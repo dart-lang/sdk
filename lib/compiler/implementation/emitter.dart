@@ -33,7 +33,7 @@ function(child, parent) {
   }
 }''';
 
-  bool addedInheritFunction = false;
+  bool needsInheritFunction = false;
   final Namer namer;
   final NativeEmitter nativeEmitter;
   Set<ClassElement> generatedClasses;
@@ -52,11 +52,11 @@ function(child, parent) {
   String get inheritsName() => '${namer.ISOLATE}.\$inherits';
 
   void addInheritFunctionIfNecessary() {
-    if (addedInheritFunction) return;
-    addedInheritFunction = true;
-    mainBuffer.add('$inheritsName = ');
-    mainBuffer.add(INHERIT_FUNCTION);
-    mainBuffer.add(';\n');
+    if (needsInheritFunction) {
+      mainBuffer.add('$inheritsName = ');
+      mainBuffer.add(INHERIT_FUNCTION);
+      mainBuffer.add(';\n');
+    }
   }
 
   void addParameterStub(FunctionElement member,
@@ -254,7 +254,7 @@ function(child, parent) {
   void emitInherits(ClassElement cls, StringBuffer buffer) {
     ClassElement superclass = cls.superclass;
     if (superclass !== null) {
-      addInheritFunctionIfNecessary();
+      needsInheritFunction = true;
       String className = namer.getName(cls);
       String superName = namer.getName(superclass);
       buffer.add('${inheritsName}($isolatePrototype.$className, ');
@@ -718,7 +718,8 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
     measure(() {
       mainBuffer.add('function ${namer.ISOLATE}() {');
       emitStaticNonFinalFieldInitializations(mainBuffer);
-      mainBuffer.add('}\n\n');
+      mainBuffer.add('}\n');
+      mainBuffer.add('init();\n\n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolatePrototype = namer.CURRENT_ISOLATE;
       mainBuffer.add('var $isolatePrototype = ${namer.ISOLATE}.prototype;\n');
@@ -733,6 +734,9 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       nativeEmitter.emitDynamicDispatchMetadata();
       nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
+      mainBuffer.add('function init() {\n');
+      addInheritFunctionIfNecessary();
+      mainBuffer.add('}\n');
       compiler.assembledCode = mainBuffer.toString();
     });
     return compiler.assembledCode;
