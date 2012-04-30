@@ -2163,6 +2163,7 @@ interface HBlockInformationVisitor {
   bool visitLoopInfo(HLoopInformation info);
   bool visitIfInfo(HIfBlockInformation info);
   bool visitAndOrInfo(HAndOrBlockInformation info);
+  bool visitTryBlockInfo(HTryBlockInformation info);
 }
 
 class HLabeledBlockInformation implements HBlockInformation {
@@ -2285,4 +2286,18 @@ class HAndOrBlockInformation implements HBlockInformation {
                          this.right,
                          this.joinBlock);
   bool accept(HBlockInformationVisitor visitor) => visitor.visitAndOrInfo(this);
+}
+
+class HTryBlockInformation implements HBlockInformation {
+  final SubGraph body;
+  final HParameterValue catchVariable;
+  final SubGraph catchBlock;
+  final SubGraph finallyBlock;
+  final HBasicBlock joinBlock;
+  HTryBlockInformation(this.body,
+                       this.catchVariable,
+                       this.catchBlock,
+                       this.finallyBlock,
+                       this.joinBlock);
+  bool accept(HBlockInformationVisitor visitor) => visitor.visitTryInfo(this);
 }

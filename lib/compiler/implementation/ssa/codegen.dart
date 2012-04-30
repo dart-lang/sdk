@@ -532,6 +532,40 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
+  bool visitTryInfo(HTryBlockInformation info) {
+    addIndentation();
+    buffer.add("try {\n");
+    indent++;
+    visitSubGraph(info.body);
+    indent--;
+    buffer.add("}");
+    if (info.catchBlock !== null) {
+      // Printing the catch part.
+      addIndentation();
+      HParameterValue exception = info.catchVariable;
+      String name = temporary(exception);
+      parameterNames[exception.element] = name;
+      buffer.add('catch ($name) {\n');
+      indent++;
+      visitSubGraph(info.catchBlock);
+      parameterNames.remove(exception.element);
+      indent--;
+      addIndentation();
+      buffer.add('}');
+    }
+    if (info.finallyBlock != null) {
+      buffer.add(" finally {\n");
+      indent++;
+      visitSubGraph(info.finallyBlock);
+      indent--;
+      addIndentation();
+      buffer.add("}");
+    }
+    buffer.add("\n");
+    visitBasicBlock(info.joinBlock);
+    return true;
+  }
+
   bool visitLoopInfo(HLoopInformation info) {
     // We must look at the loop information only once, when visiting the
     // initializer. After that, the initializer has been generated.
@@ -1589,7 +1623,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return 'lastIndexOf';
       }
     }
-    
+
     if (receiver.isExtendableArray() && !getter) {
       if (name == const SourceString('add')) {
         return 'push';
@@ -1598,7 +1632,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return 'pop';
       }
     }
-    
+
     if (receiver.isString() && !getter) {
       if (name == const SourceString('concat')
           && interceptor.inputs[2].isString()) {
@@ -2068,6 +2102,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
   bool visitIfInfo(HIfBlockInformation info) => false;
   bool visitLoopInfo(HLoopInformation info) => false;
+  bool visitTryInfo(HTryBlockInformation info) => false;
+
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;

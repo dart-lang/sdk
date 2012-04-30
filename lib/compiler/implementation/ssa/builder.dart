@@ -2839,7 +2839,9 @@ class SsaBuilder implements Visitor {
     open(tryBody);
     visit(node.tryBlock);
     if (!isAborted()) blocks.add(close(new HGoto()));
-
+    SubGraph bodyGraph = new SubGraph(tryBody, lastOpenedBlock);
+    SubGraph catchGraph = null;
+    HParameterValue exception = null;
     if (!node.catchBlocks.isEmpty()) {
       HBasicBlock block = graph.addNewBlock();
       enterBlock.addSuccessor(block);
@@ -2847,7 +2849,7 @@ class SsaBuilder implements Visitor {
       // Note that the name of this element is irrelevant.
       Element element = new Element(
           const SourceString('exception'), ElementKind.PARAMETER, work.element);
-      HParameterValue exception = new HParameterValue(element);
+      exception = new HParameterValue(element);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
@@ -2905,9 +2907,12 @@ class SsaBuilder implements Visitor {
       CatchBlock firstBlock = link.head;
       handleIf(() { pushCondition(firstBlock); }, visitThen, visitElse);
       if (!isAborted()) blocks.add(close(new HGoto()));
+
       rethrowableException = oldRethrowableException;
+      catchGraph = new SubGraph(block, lastOpenedBlock);
     }
 
+    SubGraph finallyGraph = null;
     if (node.finallyBlock != null) {
       HBasicBlock finallyBlock = graph.addNewBlock();
       enterBlock.addSuccessor(finallyBlock);
@@ -2915,6 +2920,7 @@ class SsaBuilder implements Visitor {
       visit(node.finallyBlock);
       if (!isAborted()) blocks.add(close(new HGoto()));
       tryInstruction.finallyBlock = finallyBlock;
+      finallyGraph = new SubGraph(finallyBlock, lastOpenedBlock);
     }
 
     HBasicBlock exitBlock = graph.addNewBlock();
@@ -2924,6 +2930,11 @@ class SsaBuilder implements Visitor {
     }
 
     open(exitBlock);
+    enterBlock.blockInformation = new HTryBlockInformation(bodyGraph,
+                                                           exception,
+                                                           catchGraph,
+                                                           finallyGraph,
+                                                           exitBlock);
   }
 
   visitScriptTag(ScriptTag node) {
