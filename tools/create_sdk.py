@@ -432,6 +432,7 @@ def Main(argv):
       f.close()
 
   move(SDK_tmp, SDK)
+  utils.Touch(os.path.join(SDK, 'create.stamp'))
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv))

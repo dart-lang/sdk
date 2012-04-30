@@ -72,6 +72,7 @@ def main(argv):
     #TODO: Determine where we are running, if we're running on a buildbot we
     #should fail with a message.  
     #If we are not on a buildbot then fail silently. 
+    utils.Touch(os.path.join(argv[1], 'upload.stamp'))
     exit(0)
   revision = utils.GetSVNRevision()
   if revision is None:
@@ -99,6 +100,7 @@ def main(argv):
   latest_name = 'dart-%s-latest%s.zip' % (utils.GuessOS(), sdk_suffix)
   UploadArchive(SDK_LOCAL_ZIP,
                 GS_SITE + '/'.join([gsdir, GS_SDK_DIR, latest_name]))
+  utils.Touch('upload.stamp')
 
 
 if __name__ == '__main__':

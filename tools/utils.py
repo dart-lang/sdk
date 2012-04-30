@@ -270,6 +270,11 @@ def DiagnoseExitCode(exit_code, command):
         ' '.join(command), exit_code, exit_code & 0xffffffff))
 
 
+def Touch(name):
+  with file(name, 'a'):
+    os.utime(name, None)
+
+
 if __name__ == "__main__":
   import sys
   Main(sys.argv)

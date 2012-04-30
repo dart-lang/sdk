@@ -22,14 +22,14 @@
       ],
     },
     {
-      'target_name': 'create_sdk',
+      'target_name': 'sdk',
       'type': 'none',
       'dependencies': [
-        'runtime',
+        'runtime/dart-runtime.gyp:dart',
       ],
       'actions': [
         {
-          'action_name': 'create_sdk_py',
+          'action_name': 'create_sdk',
           'inputs': [
             '<!@(["python", "frog/scripts/list_frog_files.py", "frog"])',
             # TODO(dgrove) - change these to dependencies and add dom
@@ -40,9 +40,10 @@
             'lib/dom/src',
             'frog/scripts/bootstrap/frogc',
             'tools/create_sdk.py',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/dart-sdk',
+            '<(PRODUCT_DIR)/dart-sdk/create.stamp',
           ],
           'action': [
             'python',
@@ -51,23 +52,14 @@
           ],
           'message': 'Creating SDK.',
         },
-      ],
-    },
-    {
-      'target_name': 'upload_sdk',
-      'type': 'none',
-      'dependencies': [
-        'create_sdk',
-      ],
-      'actions': [
         {
-          'action_name': 'upload_sdk_py',
+          'action_name': 'upload_sdk',
           'inputs': [
-            '<(PRODUCT_DIR)/dart-sdk',
+            '<(PRODUCT_DIR)/dart-sdk/create.stamp',
             'tools/upload_sdk.py',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/upload_sdk',
+            '<(PRODUCT_DIR)/dart-sdk/upload.stamp',
           ],
           'action': [
             'python',
