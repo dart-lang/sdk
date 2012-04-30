@@ -142,15 +142,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Creates an instantiated type argument vector used in preparation of a
   // factory call.
   // May be called only if allocating an object of a parameterized class.
-  Value* BuildFactoryTypeArguments(ConstructorCallNode* node,
-                                   intptr_t start_index);
+  Definition* BuildFactoryTypeArguments(ConstructorCallNode* node);
 
   // Creates a possibly uninstantiated type argument vector and the type
   // argument vector of the instantiator (two values in 'args') used in
   // preparation of a constructor call.
   // May be called only if allocating an object of a parameterized class.
   void BuildConstructorTypeArguments(ConstructorCallNode* node,
-                                     intptr_t start_index,
                                      ZoneGrowableArray<Value*>* args);
 
   // Returns the value of the type arguments of the instantiator.
@@ -187,11 +185,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
-  TempVal* BuildObjectAllocation(ConstructorCallNode* node,
-                                 int start_index);
-  void BuildConstructorCall(ConstructorCallNode* node,
-                            int start_index,
-                            Value* alloc_value);
+  Definition* BuildObjectAllocation(ConstructorCallNode* node);
+  void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
 
   void BuildStoreContext(const LocalVariable& variable);
   void BuildLoadContext(const LocalVariable& variable);

@@ -635,8 +635,9 @@ void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
   Append(for_left_value);
   Value* type_arguments = NULL;
   if (!type.IsInstantiated()) {
-    type_arguments = BuildInstantiatorTypeArguments(
-        node->token_index(), for_left_value.temp_index());
+    type_arguments =
+        BuildInstantiatorTypeArguments(node->token_index(),
+                                       for_left_value.temp_index());
   }
   InstanceOfComp* instance_of =
       new InstanceOfComp(node->id(),
@@ -1660,42 +1661,49 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 }
 
 
-TempVal* EffectGraphVisitor::BuildObjectAllocation(ConstructorCallNode* node,
-                                                   int start_index) {
+Definition* EffectGraphVisitor::BuildObjectAllocation(
+    ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
 
   ZoneGrowableArray<Value*>* allocate_arguments =
       new ZoneGrowableArray<Value*>();
   if (requires_type_arguments) {
-    BuildConstructorTypeArguments(node, start_index, allocate_arguments);
+    BuildConstructorTypeArguments(node, allocate_arguments);
   }
-  AllocateObjectComp* alloc_comp =
-      new AllocateObjectComp(node,
-                             owner()->try_index(),
-                             allocate_arguments);
-  AddInstruction(new BindInstr(start_index, alloc_comp));
-  return new TempVal(start_index);
+  BindInstr* allocate =
+      new BindInstr(temp_index(),
+                    new AllocateObjectComp(node,
+                                           owner()->try_index(),
+                                           allocate_arguments));
+  AddInstruction(allocate);
+  AllocateTempIndex();
+  return allocate;
 }
 
 
 void EffectGraphVisitor::BuildConstructorCall(ConstructorCallNode* node,
-                                              int start_index,
                                               Value* alloc_value) {
+  BindInstr* ctor_arg =
+      new BindInstr(temp_index(),
+                    new ConstantVal(
+                        Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll))));
+  AddInstruction(ctor_arg);
+  AllocateTempIndex();
+
   ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
   values->Add(alloc_value);
-  const Smi& ctor_arg = Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll));
-  TempVal* ctor_arg_value = new TempVal(start_index);
-  AddInstruction(
-      new BindInstr(ctor_arg_value->index(), new ConstantVal(ctor_arg)));
-  values->Add(ctor_arg_value);
-  TranslateArgumentList(*node->arguments(), start_index + 1, values);
+  values->Add(new UseVal(ctor_arg));
+
+  TranslateArgumentList(*node->arguments(), temp_index(), values);
   StaticCallComp* call =
       new StaticCallComp(node->token_index(),
                          owner()->try_index(),
                          node->constructor(),
                          node->arguments()->names(),
                          values);
+  DeallocateTempIndex();  // Consuming ctor_arg.
+  DeallocateTempIndex();  // Consuming alloc_value.
   AddInstruction(new DoInstr(call));
 }
 
@@ -1704,10 +1712,10 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     ZoneGrowableArray<Value*>* factory_arguments =
         new ZoneGrowableArray<Value*>();
-    factory_arguments->Add(BuildFactoryTypeArguments(node, temp_index()));
+    factory_arguments->Add(new UseVal(BuildFactoryTypeArguments(node)));
     ASSERT(factory_arguments->length() == 1);
     TranslateArgumentList(*node->arguments(),
-                          temp_index() + 1,
+                          temp_index(),
                           factory_arguments);
     StaticCallComp* call =
         new StaticCallComp(node->token_index(),
@@ -1715,6 +1723,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
                            node->constructor(),
                            node->arguments()->names(),
                            factory_arguments);
+    DeallocateTempIndex();  // Consuming type arguments.
     ReturnComputation(call);
     return;
   }
@@ -1724,8 +1733,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   t_n+2... <- constructor arguments start here
   //   StaticCall(constructor, t_n+1, t_n+2, ...)
   // No need to preserve allocated value (simpler than in ValueGraphVisitor).
-  TempVal* alloc_value = BuildObjectAllocation(node, temp_index());
-  BuildConstructorCall(node, alloc_value->index() + 1, alloc_value);
+  Definition* allocate = BuildObjectAllocation(node);
+  BuildConstructorCall(node, new UseVal(allocate));
 }
 
 
@@ -1748,7 +1757,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     return new UseVal(args);
   }
   ASSERT(owner()->parsed_function().instantiator() != NULL);
-  ValueGraphVisitor for_instantiator(owner(), start_index);
+  ArgumentGraphVisitor for_instantiator(owner(), start_index);
   owner()->parsed_function().instantiator()->Visit(&for_instantiator);
   Append(for_instantiator);
   Function& outer_function =
@@ -1769,75 +1778,91 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
       instantiator_class.type_arguments_instance_field_offset();
   ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
 
-  NativeLoadFieldComp* load = new NativeLoadFieldComp(
-      for_instantiator.value(), type_arguments_instance_field_offset);
-  AddInstruction(new BindInstr(start_index, load));
-  return new TempVal(start_index);
+  BindInstr* load =
+      new BindInstr(start_index,
+                    new NativeLoadFieldComp(
+                        for_instantiator.value(),
+                        type_arguments_instance_field_offset));
+  AddInstruction(load);
+  return new UseVal(load);
 }
 
 
-Value* EffectGraphVisitor::BuildFactoryTypeArguments(
-    ConstructorCallNode* node, intptr_t start_index) {
+Definition* EffectGraphVisitor::BuildFactoryTypeArguments(
+    ConstructorCallNode* node) {
   ASSERT(node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    AddInstruction(
-        new BindInstr(start_index, new ConstantVal(node->type_arguments())));
-    return new TempVal(start_index);
+    BindInstr* type_args =
+        new BindInstr(temp_index(), new ConstantVal(node->type_arguments()));
+    AddInstruction(type_args);
+    AllocateTempIndex();
+    return type_args;
   }
   // The type arguments are uninstantiated.
   Value* instantiator_value =
-      BuildInstantiatorTypeArguments(node->token_index(), start_index);
-  ExtractFactoryTypeArgumentsComp* extract =
-      new ExtractFactoryTypeArgumentsComp(node,
-                                          owner()->try_index(),
-                                          instantiator_value);
-  AddInstruction(new BindInstr(start_index, extract));
-  return new TempVal(start_index);
+      BuildInstantiatorTypeArguments(node->token_index(), temp_index());
+  BindInstr* extract =
+      new BindInstr(temp_index(),
+                    new ExtractFactoryTypeArgumentsComp(node,
+                                                        owner()->try_index(),
+                                                        instantiator_value));
+  AddInstruction(extract);
+  AllocateTempIndex();
+  return extract;
 }
 
 
 void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
-    intptr_t start_index,
     ZoneGrowableArray<Value*>* args) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    AddInstruction(
-        new BindInstr(start_index, new ConstantVal(node->type_arguments())));
-    args->Add(new TempVal(start_index));
+    BindInstr* type_args =
+        new BindInstr(temp_index(), new ConstantVal(node->type_arguments()));
+    AddInstruction(type_args);
     // No instantiator required.
-    const Smi& no_instantiator =
-        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator));
-    AddInstruction(new BindInstr(
-        start_index + 1, new ConstantVal(no_instantiator)));
-    args->Add(new TempVal(start_index + 1));
+    BindInstr* no_instantiator =
+        new BindInstr(temp_index() + 1,
+                      new ConstantVal(
+                          Smi::ZoneHandle(Smi::New(
+                              StubCode::kNoInstantiator))));
+    AddInstruction(no_instantiator);
+    args->Add(new UseVal(type_args));
+    args->Add(new UseVal(no_instantiator));
     return;
   }
   // The type arguments are uninstantiated.
   // Place holder to hold uninstantiated constructor type arguments.
-  AddInstruction(new BindInstr(start_index,
-                               new ConstantVal(Object::ZoneHandle())));
-  Value* instantiator_value =
-      BuildInstantiatorTypeArguments(node->token_index(), start_index + 1);
-  AddInstruction(new PickTempInstr(start_index + 2, start_index + 1));
-  Value* dup_instantiator_value = new TempVal(start_index + 2);
-  ExtractConstructorTypeArgumentsComp* extract_type_arguments =
-      new ExtractConstructorTypeArgumentsComp(node, dup_instantiator_value);
-  AddInstruction(new BindInstr(start_index + 2, extract_type_arguments));
-  AddInstruction(new TuckTempInstr(start_index, start_index + 2));
-  Value* constructor_type_arguments_value = new TempVal(start_index);
-  args->Add(constructor_type_arguments_value);
-  Value* discard_value = new TempVal(start_index + 2);
-  ExtractConstructorInstantiatorComp* extract_instantiator =
-      new ExtractConstructorInstantiatorComp(node,
-                                             instantiator_value,
-                                             discard_value);
-  AddInstruction(new BindInstr(start_index + 1, extract_instantiator));
-  Value* constructor_instantiator_value = new TempVal(start_index + 1);
-  args->Add(constructor_instantiator_value);
+  BindInstr* placeholder =
+      new BindInstr(temp_index(),
+                    new ConstantVal(Object::ZoneHandle()));
+  AddInstruction(placeholder);
+  Value* instantiator =
+      BuildInstantiatorTypeArguments(node->token_index(), temp_index() + 1);
+  ASSERT(instantiator->IsUse());
+  PickTempInstr* duplicate_instantiator =
+      new PickTempInstr(temp_index() + 2,
+                        instantiator->AsUse()->definition()->temp_index());
+  AddInstruction(duplicate_instantiator);
+  BindInstr* extract_type_arguments =
+      new BindInstr(temp_index() + 2,
+                    new ExtractConstructorTypeArgumentsComp(
+                        node, new UseVal(duplicate_instantiator)));
+  AddInstruction(extract_type_arguments);
+  AddInstruction(new TuckTempInstr(placeholder->temp_index(),
+                                   extract_type_arguments->temp_index()));
+  BindInstr* extract_instantiator =
+      new BindInstr(temp_index() + 1,
+                    new ExtractConstructorInstantiatorComp(
+                        node,
+                        instantiator,
+                        new UseVal(extract_type_arguments)));
+  AddInstruction(extract_instantiator);
+  args->Add(new UseVal(placeholder));
+  args->Add(new UseVal(extract_instantiator));
 }
 
 
@@ -1854,15 +1879,13 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   t_n+3... <- constructor arguments start here
   //   StaticCall(constructor, t_n+1, t_n+2, ...)
 
-  TempVal* alloc_value = BuildObjectAllocation(node, temp_index());
-  intptr_t result_index = AllocateTempIndex();
-
-  TempVal* dup_alloc_value = new TempVal(result_index + 1);
-  AddInstruction(
-      new PickTempInstr(dup_alloc_value->index(), alloc_value->index()));
-
-  BuildConstructorCall(node, dup_alloc_value->index() + 1, dup_alloc_value);
-  ReturnValue(alloc_value);
+  Definition* allocate = BuildObjectAllocation(node);
+  PickTempInstr* duplicate =
+      new PickTempInstr(temp_index(), allocate->temp_index());
+  AddInstruction(duplicate);
+  AllocateTempIndex();
+  BuildConstructorCall(node, new UseVal(duplicate));
+  ReturnValue(new UseVal(allocate));
 }
 
 
