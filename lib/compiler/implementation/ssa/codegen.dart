@@ -490,7 +490,42 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitIfInfo(HIfBlockInformation info) {
-    return false;
+    HInstruction condition = info.condition.end.last.inputs[0];
+    if (condition.isConstant()) {
+      // If the condition is constant, only generate one branch (if any).
+      HConstant constantCondition = condition;
+      Constant constant = constantCondition.constant;
+      visitSubGraph(info.condition);
+      if (constant.isTrue()) {
+        visitSubGraph(info.thenGraph);
+      } else if (info.elseGraph !== null) {
+        visitSubGraph(info.elseGraph);
+      }
+    } else {
+      visitSubGraph(info.condition);
+      addIndentation();
+      buffer.add("if (");
+      use(condition, JSPrecedence.EXPRESSION_PRECEDENCE);
+      buffer.add(") {\n");
+      indent++;
+      visitSubGraph(info.thenGraph);
+      indent--;
+      addIndentation();
+      buffer.add("}");
+      if (info.elseGraph !== null) {
+        buffer.add(" else {\n");
+        indent++;
+        visitSubGraph(info.elseGraph);
+        indent--;
+        addIndentation();
+        buffer.add("}");
+      }
+      buffer.add("\n");
+    }
+    if (info.joinBlock !== null) {
+      visitBasicBlock(info.joinBlock);
+    }
+    return true;
   }
 
   bool visitAndOrInfo(HAndOrBlockInformation info) {
@@ -1071,6 +1106,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitIf(HIf node) {
+    if (subGraph !== null && node.block === subGraph.end) {
+      if (isGeneratingExpression()) {
+        use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      }
+      return;
+    }
     HInstruction condition = node.inputs[0];
     int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
@@ -1332,7 +1373,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitLoopBranch(HLoopBranch node) {
-    if (subGraph !== null && node.block == subGraph.end) {
+    if (subGraph !== null && node.block === subGraph.end) {
       // We are generating code for a loop condition.
       // If doing this as part of a SubGraph traversal, the
       // calling code will handle the control flow logic.
@@ -2019,6 +2060,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
   }
 
+  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
+  bool visitIfInfo(HIfBlockInformation info) => false;
   bool visitLoopInfo(HLoopInformation info) => false;
 
   void visitTypeGuard(HTypeGuard node) {
