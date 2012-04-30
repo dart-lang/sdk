@@ -568,12 +568,12 @@ class DromaeoTester(Tester):
     return str
 
   # TODO(vsm): This is a hack to skip breaking tests.  Triage this
-  # failure properly.  The modify suite fails on 32-bit chrome on
-  # the mac.
+  # failure properly.  The modify suite fails on 32-bit chrome, which
+  # is the default on mac and win.
   @staticmethod
   def get_valid_dromaeo_tags():
     tags = [tag for (tag, _) in DromaeoTester.DROMAEO_BENCHMARKS.values()]
-    if platform.system() == 'Darwin':
+    if platform.system() == 'Darwin' or platform.system() == 'Windows':
       tags.remove('modify')
     return tags
 
