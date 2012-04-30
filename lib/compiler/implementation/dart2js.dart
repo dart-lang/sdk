@@ -14,6 +14,8 @@
 #import('filenames.dart');
 #import('util/uri_extras.dart');
 
+final String LIBRARY_ROOT = '../../../..';
+
 void compile(List<String> argv) {
   Uri cwd = getCurrentDirectory();
   bool throwOnError = false;
@@ -40,7 +42,7 @@ void compile(List<String> argv) {
       String path =
           nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
       out = cwd.resolve(path);
-    } else if (argument == '--allow-mock-compilation') {
+    } else if ('--allow-mock-compilation' == argument) {
       options.add(argument);
     } else if (argument.startsWith('-')) {
       fail('Unknown option $argument.');
@@ -49,7 +51,7 @@ void compile(List<String> argv) {
     }
   }
   if (arguments.isEmpty()) {
-    fail('No files to compile.');
+    fail('No file to compile.');
   }
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
@@ -133,4 +135,27 @@ String readAll(String filename) {
 void fail(String message) {
   print(message);
   exit(1);
+}
+
+void compilerMain(Options options) {
+  List<String> argv = ['--library-root=${options.script}/$LIBRARY_ROOT'];
+  argv.addAll(options.arguments);
+  compile(argv);
+}
+
+void main() {
+  try {
+    compilerMain(new Options());
+  } catch (var exception, var trace) {
+    try {
+      print('Internal error: \$exception');
+    } catch (var ignored) {
+      print('Internal error: error while printing exception');
+    }
+    try {
+      print(trace);
+    } finally {
+      exit(253); // 253 is recognized as a crash by our test scripts.
+    }
+  }
 }

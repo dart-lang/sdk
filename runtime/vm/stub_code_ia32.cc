@@ -1733,7 +1733,9 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 // Check if an instance class is a subtype of class/interface using simple
 // superchain and interface array traversal. Does not take type parameters into
 // account.
-// EAX: instance (preserved)
+// Cannot handle Smi instances (must be tested beforehand).
+// EAX: instance (to be preserved).
+// ECX: class to test.
 // EDX: class/interface to test against (is class of instance a subtype of it).
 //      (preserved).
 // Result in EBX: 1 is subtype, 0 maybe not.
@@ -1741,17 +1743,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label test_class, not_found, found, class_loaded_in_ECX, smi_value;
-  __ EnterFrame(0);
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, &smi_value, Assembler::kNearJump);
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-  __ jmp(&class_loaded_in_ECX, Assembler::kNearJump);
-  __ Bind(&smi_value);
-  __ movl(ECX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movl(ECX, Address(ECX, Isolate::object_store_offset()));
-  __ movl(ECX, Address(ECX, ObjectStore::smi_class_offset()));
-  __ Bind(&class_loaded_in_ECX);
+  Label test_class, not_found, found;
 
   __ movzxb(EBX, FieldAddress(EDX, Class::is_interface_offset()));
   // Check if we are comparing against class or interface.
@@ -1769,7 +1761,6 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   Label array_loop;
   __ Bind(&array_loop);
   __ subl(EDI, Immediate(Smi::RawValue(1)));
-  // __ cmpl(EDI, Immediate(0));
   __ j(LESS, &not_found, Assembler::kNearJump);
   // EDI is Smi therefore TIMES_2 instead of TIMES_4.
   // Get type from array.
@@ -1781,12 +1772,10 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
 
   __ Bind(&not_found);
   __ xorl(EBX, EBX);
-  __ LeaveFrame();
   __ ret();
 
   __ Bind(&found);
   __ movl(EBX, Immediate(1));
-  __ LeaveFrame();
   __ ret();
 
   __ Bind(&test_class);
@@ -1806,6 +1795,71 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   __ cmpl(EDX, ECX);
   __ j(NOT_EQUAL, &super_loop, Assembler::kNearJump);
   __ jmp(&found, Assembler::kNearJump);
+}
+
+
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address
+// TOS + 1: instantiator type arguments
+// TOS + 2: instance
+// TOS + 3: cache array.
+// Result in ECX: null -> not found, otherwise result.
+void StubCode::GenerateSubtypeTestCacheStub(Assembler* assembler) {
+  const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
+  const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
+  const intptr_t kCacheArrayOffsetInBytes = 3 * kWordSize;
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
+  __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
+  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+  // EAX: instance, ECX: instance-class.
+  // Get instance type arguments
+  Label has_no_type_arguments;
+  __ movl(EBX, raw_null);
+  __ movl(EDI, FieldAddress(ECX,
+      Class::type_arguments_instance_field_offset_offset()));
+  __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
+  __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+  __ movl(EBX, FieldAddress(EAX, EDI, TIMES_1, 0));
+  __ Bind(&has_no_type_arguments);
+  // EBX: instance type arguments (null if none).
+  __ movl(EDX, Address(ESP, kCacheArrayOffsetInBytes));
+  // EDX: cache.
+  __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
+  Label loop, found, not_found, next_iteration;
+  // EDX: Entry start.
+  // ECX: instance class.
+  // EBX: instance type arguments
+  // TOS + 2: test-type-class.
+  // TOS + 1: test-type-arguments.
+  __ Bind(&loop);
+  __ movl(EDI, Address(EDX, kWordSize * SubTypeTestCache::kInstanceClass));
+  __ cmpl(EDI, ECX);
+  __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+  __ movl(EDI,
+          Address(EDX, kWordSize * SubTypeTestCache::kInstanceTypeArguments));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+  __ movl(EDI,
+          Address(EDX, kWordSize *
+                       SubTypeTestCache::kInstantiatorTypeArguments));
+  __ cmpl(EDI, Address(ESP, kInstantiatorTypeArgumentsInBytes));
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  __ Bind(&next_iteration);
+  __ addl(EDX, Immediate(kWordSize * SubTypeTestCache::kNumEntries));
+  // Is loop done?
+  __ cmpl(EDI, raw_null);
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  // Fall through to not found.
+  __ Bind(&not_found);
+  __ movl(ECX, raw_null);
+  __ ret();
+
+  __ Bind(&found);
+  __ movl(ECX, Address(EDX, kWordSize * SubTypeTestCache::kTestResult));
+  __ ret();
 }
 
 }  // namespace dart

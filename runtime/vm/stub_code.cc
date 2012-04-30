@@ -107,7 +107,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     Assembler assembler;
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
-    stub ^= Code::FinalizeCode(name, &assembler);
+    stub ^= Code::FinalizeStubCode(name, &assembler);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
       OS::Print("Code for allocation stub '%s': {\n", name);
@@ -126,7 +126,7 @@ RawCode* StubCode::GetAllocationStubForClosure(const Function& func) {
     Assembler assembler;
     const char* name = func.ToCString();
     StubCode::GenerateAllocationStubForClosure(&assembler, func);
-    stub ^= Code::FinalizeCode(name, &assembler);
+    stub ^= Code::FinalizeStubCode(name, &assembler);
     func.set_closure_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
       OS::Print("Code for closure allocation stub '%s': {\n", name);
@@ -143,7 +143,7 @@ RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
+  const Code& code = Code::Handle(Code::FinalizeStubCode(name, &assembler));
   if (FLAG_disassemble_stubs) {
     OS::Print("Code for stub '%s': {\n", name);
     Disassembler::Disassemble(code.EntryPoint(),

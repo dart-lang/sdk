@@ -979,16 +979,6 @@ interface CanvasPattern {
 
 // WARNING: Do not edit - generated code.
 
-interface CanvasPixelArray extends List<int> {
-
-  final int length;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface CanvasRenderingContext {
 
   final HTMLCanvasElement canvas;
@@ -1671,6 +1661,20 @@ interface DOMSelection extends Selection {
 interface DOMSettableTokenList extends DOMTokenList {
 
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface DOMStringList extends List<String> {
+
+  final int length;
+
+  bool contains(String string);
+
+  String item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

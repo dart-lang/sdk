@@ -212,13 +212,15 @@ class StandardTestSuite implements TestSuite {
   final String dartDir;
   Function globalTemporaryDirectory;
   Predicate<String> isTestFilePredicate;
+  bool _listRecursive;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
                     List<String> this.statusFilePaths,
-                    [Predicate<String> this.isTestFilePredicate])
-    : dartDir = TestUtils.dartDir();
+                    [Predicate<String> this.isTestFilePredicate,
+                    bool recursive = false])
+    : dartDir = TestUtils.dartDir(), _listRecursive = recursive;
 
   /**
    * Creates a test suite whose file organization matches an expected structure.
@@ -229,15 +231,15 @@ class StandardTestSuite implements TestSuite {
    *         to/
    *           mytestsuite/
    *             mytestsuite.status
-   *             example1_tests.dart
-   *             example2_tests.dart
-   *             example3_tests.dart
+   *             example1_test.dart
+   *             example2_test.dart
+   *             example3_test.dart
    *
    * The important parts:
    *
    * * The leaf directory name is the name of your test suite.
    * * The status file uses the same name.
-   * * Test files are directly in that directory and end in "_tests.dart".
+   * * Test files are directly in that directory and end in "_test.dart".
    *
    * If you follow that convention, then you can construct one of these like:
    *
@@ -253,7 +255,8 @@ class StandardTestSuite implements TestSuite {
 
     return new StandardTestSuite(configuration,
         name, directory, ['$directory/$name.status'],
-        (filename) => filename.endsWith('_tests.dart'));
+        (filename) => filename.endsWith('_test.dart'),
+        recursive: true);
   }
 
   /**
@@ -267,7 +270,7 @@ class StandardTestSuite implements TestSuite {
     return filename.endsWith("Test.dart");
   }
 
-  bool listRecursively() => false;
+  bool listRecursively() => _listRecursive;
 
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
@@ -354,6 +357,8 @@ class StandardTestSuite implements TestSuite {
     int testsStart = filename.lastIndexOf('tests/');
     int start = filename.lastIndexOf('src/');
     if (start > testsStart) {
+      // TODO(sigmund): delete this branch once all tests stop using the src/
+      // directory
       testName = filename.substring(start + 4, filename.length - 5);
     } else if (optionsFromFile['isMultitest']) {
       start = filename.lastIndexOf('/');
@@ -374,7 +379,8 @@ class StandardTestSuite implements TestSuite {
         testName = filename;
       }
 
-      if (configuration['compiler'] != 'dartc') {
+      if (configuration['compiler'] != 'dartc' ||
+          testName.endsWith('_test.dart')) {
         if (testName.endsWith('.dart')) {
           testName = testName.substring(0, testName.length - 5);
         }
@@ -391,7 +397,11 @@ class StandardTestSuite implements TestSuite {
     Set<String> expectations = testExpectations.expectations(testName);
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
-      for (var dummy in optionsFromFile["vmOptions"]) {
+      for (var dummy in getVmOptions(optionsFromFile)) {
+        if (TestUtils.isBrowserRuntime(configuration['runtime']) &&
+            optionsFromFile['isMultitest']) {
+          break;  // Browser tests skip multitests.
+        }
         SummaryReport.add(expectations);
       }
     }
@@ -443,8 +453,7 @@ class StandardTestSuite implements TestSuite {
       args.add('--out=${tempDir.path}/out.js');
       List<Command> commands = <Command>[new Command(shellPath(), args)];
       if (configuration['runtime'] == 'd8') {
-        var d8 = '${TestUtils.buildDir(configuration)}/'
-                 'd8${TestUtils.executableSuffix("d8")}';
+        var d8 = TestUtils.d8FileName(configuration);
         commands.add(new Command(d8, ['${tempDir.path}/out.js']));
       }
       return commands;
@@ -525,12 +534,12 @@ class StandardTestSuite implements TestSuite {
     final String testPath =
         new File(filename).fullPathSync().replaceAll('\\', '/');
 
-    for (var vmOptions in optionsFromFile['vmOptions']) {
+    for (var vmOptions in getVmOptions(optionsFromFile)) {
       // Create a unique temporary directory for each set of vmOptions.
       // TODO(dart:429): Replace separate replaceAlls with a RegExp when
       // replaceAll(RegExp, String) is implemented.
       String optionsName = '';
-      if (optionsFromFile['vmOptions'].length > 1) {
+      if (getVmOptions(optionsFromFile).length > 1) {
           optionsName = Strings.join(vmOptions, '-').replaceAll('-','')
                                                     .replaceAll('=','')
                                                     .replaceAll('/','');
@@ -539,7 +548,6 @@ class StandardTestSuite implements TestSuite {
 
       String dartWrapperFilename = '${tempDir.path}/test.dart';
       String compiledDartWrapperFilename = '${tempDir.path}/test.js';
-      String domLibraryImport = 'dart:dom';
 
       String htmlPath = '${tempDir.path}/test.html';
       if (!isWebTest) {
@@ -558,10 +566,8 @@ class StandardTestSuite implements TestSuite {
 
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
-        dartWrapper.writeStringSync(DartTestWrapper(
-            domLibraryImport,
-            '$dartDir/tests/isolate/src/TestFramework.dart',
-            dartLibraryFilename));
+        dartWrapper.writeStringSync(
+            DartTestWrapper(dartDir, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = testPath;
@@ -658,8 +664,9 @@ class StandardTestSuite implements TestSuite {
       commands.add(new Command('python', args));
 
       // Create BrowserTestCase and queue it.
-      var testCase = new BrowserTestCase(testName, commands, configuration,
-          completeHandler, expectations, optionsFromFile['isNegative']);
+      var testCase = new BrowserTestCase('$suiteName/$testName',
+          commands, configuration, completeHandler, expectations,
+          optionsFromFile['isNegative']);
       doTest(testCase);
     }
   }
@@ -858,10 +865,7 @@ class StandardTestSuite implements TestSuite {
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
-    List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
-    if (configuration['compiler'] == 'dart2js') {
-      vmOptionsList = [[]];
-    }
+    List<List<String>> vmOptionsList = getVmOptions(optionsFromFile);
     Expect.isTrue(!isMultitest || dartOptions == null);
     if (dartOptions == null) {
       args.add(filename);
@@ -994,6 +998,14 @@ class StandardTestSuite implements TestSuite {
              "containsSourceOrImport": containsSourceOrImport,
              "numStaticTypeAnnotations": numStaticTypeAnnotations,
              "numCompileTimeAnnotations": numCompileTimeAnnotations};
+  }
+
+  List<List<String>> getVmOptions(Map optionsFromFile) {
+    if (configuration['compiler'] == 'dart2js') {
+      return [[]];
+    } else {
+      return optionsFromFile['vmOptions'];
+    }
   }
 }
 
@@ -1256,10 +1268,21 @@ class TestUtils {
     if (name == '') {
       name = '${buildDir(configuration)}/${executableName(configuration)}';
     }
-    if (!(new File(name)).existsSync() && !configuration['list']) {
-      throw "Executable '$name' does not exist";
-    }
+    ensureExists(name, configuration);
     return name;
+  }
+
+  static String d8FileName(Map configuration) {
+    var suffix = executableSuffix('d8');
+    var d8 = '${buildDir(configuration)}/d8$suffix';
+    ensureExists(d8, configuration);
+    return d8;
+  }
+
+  static void ensureExists(String filename, Map configuration) {
+    if (!configuration['list'] && !(new File(filename).existsSync())) {
+      throw "Executable '$filename' does not exist";
+    }
   }
 
   static String compilerPath(Map configuration) {

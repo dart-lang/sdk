@@ -119,37 +119,36 @@ class EffectGraphVisitor : public AstNodeVisitor {
                              ZoneGrowableArray<Value*>* values);
 
   // Build the load part of a instance field increment.  Translates the
-  // receiver and loads the value.  The receiver will be named with
-  // start_index, the temporary index of the value is returned (always
-  // start_index+1).
-  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, intptr_t start_index);
+  // receiver and loads the value.  The receiver will be returned in the
+  // output parameter 'receiver'.
+  Definition* BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node,
+                                   Value** receiver);
 
   // Build the load part of an indexed increment.  Translates the receiver
-  // and index and loads the value.  The receiver will be named with
-  // start_index, the index with start_index+1, and the temporary index of
-  // the value is returned (always start_index+2).
-  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, intptr_t start_index);
+  // and index and loads the value.  The receiver will be returned in the
+  // output parameter 'receiver' and the index will be returned in the
+  // output parameter 'index'..
+  Definition* BuildIncrOpIndexedLoad(IncrOpIndexedNode* node,
+                                     Value** receiver,
+                                     Value** index);
 
   // Build the increment part of an increment operation (add or subtract 1).
-  // The original value is expected to be named with start_index-1, and the
-  // result will be named with start_index.
-  void BuildIncrOpIncrement(Token::Kind kind,
-                            intptr_t node_id,
-                            intptr_t token_index,
-                            intptr_t start_index);
+  // Consumes the original value and produces the value +/- 1.
+  Definition* BuildIncrOpIncrement(Token::Kind kind,
+                                   intptr_t node_id,
+                                   intptr_t token_index,
+                                   Value* original);
 
   // Creates an instantiated type argument vector used in preparation of a
   // factory call.
   // May be called only if allocating an object of a parameterized class.
-  Value* BuildFactoryTypeArguments(ConstructorCallNode* node,
-                                   intptr_t start_index);
+  Definition* BuildFactoryTypeArguments(ConstructorCallNode* node);
 
   // Creates a possibly uninstantiated type argument vector and the type
   // argument vector of the instantiator (two values in 'args') used in
   // preparation of a constructor call.
   // May be called only if allocating an object of a parameterized class.
   void BuildConstructorTypeArguments(ConstructorCallNode* node,
-                                     intptr_t start_index,
                                      ZoneGrowableArray<Value*>* args);
 
   // Returns the value of the type arguments of the instantiator.
@@ -181,15 +180,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
+  void DeallocateTempIndex() { --temp_index_; }
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
-  TempVal* BuildObjectAllocation(ConstructorCallNode* node,
-                                 int start_index);
-  void BuildConstructorCall(ConstructorCallNode* node,
-                            int start_index,
-                            Value* alloc_value);
+  Definition* BuildObjectAllocation(ConstructorCallNode* node);
+  void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
 
   void BuildStoreContext(const LocalVariable& variable);
   void BuildLoadContext(const LocalVariable& variable);
@@ -251,8 +248,10 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // the graph and returns its temporary value (i.e., set the output
   // parameters).
   virtual void ReturnComputation(Computation* computation) {
-    AddInstruction(new BindInstr(temp_index(), computation));
-    value_ = new TempVal(AllocateTempIndex());
+    BindInstr* defn = new BindInstr(temp_index(), computation);
+    AddInstruction(defn);
+    AllocateTempIndex();
+    value_ = new UseVal(defn);
   }
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
@@ -332,8 +331,9 @@ class TestGraphVisitor : public ValueGraphVisitor {
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and branches on its value.
   virtual void ReturnComputation(Computation* computation) {
-    AddInstruction(new BindInstr(temp_index(), computation));
-    ReturnValue(new TempVal(temp_index()));
+    BindInstr* defn = new BindInstr(temp_index(), computation);
+    AddInstruction(defn);
+    ReturnValue(new UseVal(defn));
   }
 
   // Output parameters.

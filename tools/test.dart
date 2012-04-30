@@ -29,25 +29,13 @@
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
 
-#import("../tests/co19/test_config.dart");
-#import("../tests/corelib/test_config.dart");
-#import("../tests/isolate/test_config.dart");
-#import("../tests/language/test_config.dart");
-#import("../tests/lib/test_config.dart");
-#import("../tests/standalone/test_config.dart");
-#import("../tests/utils/test_config.dart");
-#import("../runtime/tests/vm/test_config.dart");
-#import("../samples/tests/samples/test_config.dart");
 #import("../client/tests/dartc/test_config.dart");
 #import("../compiler/tests/dartc/test_config.dart");
-#import("../client/tests/client/test_config.dart");
-#import("../frog/tests/frog/test_config.dart");
-#import("../frog/tests/leg/test_config.dart");
-#import("../frog/tests/leg_only/test_config.dart");
-#import("../frog/tests/native/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
-#import("../utils/tests/css/test_config.dart");
-#import("../utils/tests/import_mapper/test_config.dart");
+#import("../runtime/tests/vm/test_config.dart");
+#import("../samples/tests/samples/test_config.dart");
+#import("../tests/co19/test_config.dart");
+#import("../tests/standalone/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -57,6 +45,19 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'frog/tests/frog',
+  'frog/tests/frog_native',
+  'frog/tests/leg',
+  'frog/tests/leg_only',
+  'tests/benchmark_smoke',
+  'tests/corelib',
+  'tests/dom',
+  'tests/html',
+  'tests/isolate',
+  'tests/json',
+  'tests/language',
+  'tests/utils',
+  'utils/tests/css',
   'utils/tests/peg',
   'utils/tests/pub',
 ];
@@ -98,63 +99,23 @@ main() {
     }
 
     var conf = configurationIterator.next();
-    if (selectors.containsKey('samples')) {
-      queue.addTestSuite(new SamplesTestSuite(conf));
-    }
-    if (selectors.containsKey('standalone')) {
-      queue.addTestSuite(new StandaloneTestSuite(conf));
-    }
-    if (selectors.containsKey('corelib')) {
-      queue.addTestSuite(new CorelibTestSuite(conf));
-    }
-    if (selectors.containsKey('co19')) {
-      queue.addTestSuite(new Co19TestSuite(conf));
-    }
-    if (selectors.containsKey('language')) {
-      queue.addTestSuite(new LanguageTestSuite(conf));
-    }
-    if (selectors.containsKey('lib')) {
-      queue.addTestSuite(new LibTestSuite(conf));
-    }
-    if (selectors.containsKey('isolate')) {
-      queue.addTestSuite(new IsolateTestSuite(conf));
-    }
-    if (selectors.containsKey('utils')) {
-      queue.addTestSuite(new UtilsTestSuite(conf));
-    }
-    if (conf['runtime'] == 'vm' && selectors.containsKey('vm')) {
-      queue.addTestSuite(new VMTestSuite(conf));
-      queue.addTestSuite(new VMDartTestSuite(conf));
-    }
-    if (selectors.containsKey('frog')) {
-      queue.addTestSuite(new FrogTestSuite(conf));
-    }
-    if (selectors.containsKey('leg')) {
-      queue.addTestSuite(new LegTestSuite(conf));
-    }
-    if (selectors.containsKey('leg_only')) {
-      queue.addTestSuite(new LegOnlyTestSuite(conf));
-    }
-    if (selectors.containsKey('frog_native')) {
-      queue.addTestSuite(new FrogNativeTestSuite(conf));
-    }
-    if (conf['compiler'] == 'dartc' && selectors.containsKey('dartc')) {
-      queue.addTestSuite(new ClientDartcTestSuite(conf));
-    }
-    if (conf['compiler'] == 'dartc' && selectors.containsKey('dartc')) {
-      queue.addTestSuite(new JUnitDartcTestSuite(conf));
-    }
-    if (selectors.containsKey('css')) {
-      queue.addTestSuite(new CssTestSuite(conf));
-    }
-    if (selectors.containsKey('import_mapper')) {
-      queue.addTestSuite(new ImportMapperTestSuite(conf));
-    }
-    if (selectors.containsKey('await')) {
-      queue.addTestSuite(new AwaitTestSuite(conf));
-    }
-    if (selectors.containsKey('client')) {
-      queue.addTestSuite(new ClientTestSuite(conf));
+    for (String key in selectors.getKeys()) {
+      if (key == 'samples') {
+        queue.addTestSuite(new SamplesTestSuite(conf));
+      } else if (key == 'standalone') {
+        queue.addTestSuite(new StandaloneTestSuite(conf));
+      } else if (key == 'co19') {
+        queue.addTestSuite(new Co19TestSuite(conf));
+      } else if (conf['runtime'] == 'vm' && key == 'vm') {
+        queue.addTestSuite(new VMTestSuite(conf));
+        queue.addTestSuite(new VMDartTestSuite(conf));
+      } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
+        queue.addTestSuite(new ClientDartcTestSuite(conf));
+      } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
+        queue.addTestSuite(new JUnitDartcTestSuite(conf));
+      } else if (key == 'await') {
+        queue.addTestSuite(new AwaitTestSuite(conf));
+      }
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {

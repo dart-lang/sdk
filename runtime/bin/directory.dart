@@ -135,7 +135,7 @@ interface Directory default _Directory {
    * Sets the handler that is called if there is an error while listing
    * or creating directories.
    */
-  void set onError(void onError(Exception e));
+  void set onError(void onError(e));
 
   /**
    * Gets the path of this directory.

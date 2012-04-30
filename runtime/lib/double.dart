@@ -200,7 +200,7 @@ class Double implements double {
       native "Double_toStringAsPrecision";
 
   String toRadixString(int radix) {
-    throw "Double.toRadixString unimplemented.";
+    return toInt().toRadixString(radix);
   }
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.

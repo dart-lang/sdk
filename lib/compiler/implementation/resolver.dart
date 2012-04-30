@@ -870,7 +870,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }
     }
-    mapping.setSelector(node, new Invocation(count, namedArguments));
+    mapping.setSelector(node, new Selector.invocation(count, namedArguments));
   }
 
   visitSend(Send node) {

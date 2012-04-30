@@ -180,16 +180,17 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 
 
 bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
+  char* dst = reinterpret_cast<char*>(msg);
   int total_read = 0;
   int bytes_read =
-      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], msg, kInterruptMessageSize));
+      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], dst, kInterruptMessageSize));
   if (bytes_read < 0) {
     return false;
   }
   total_read = bytes_read;
   while (total_read < kInterruptMessageSize) {
     bytes_read = TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
-                                         msg + total_read,
+                                         dst + total_read,
                                          kInterruptMessageSize - total_read));
     if (bytes_read > 0) {
       total_read = total_read + bytes_read;

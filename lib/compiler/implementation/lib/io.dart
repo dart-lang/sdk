@@ -51,6 +51,8 @@
 // #source('../../../../runtime/bin/stdio.dart');
 #source('../../../../runtime/bin/timer.dart');
 #source('../../../../runtime/bin/timer_impl.dart');
+#source('../../../../runtime/bin/websocket.dart');
+#source('../../../../runtime/bin/websocket_impl.dart');
 
 class _File {
   factory File(arg) {

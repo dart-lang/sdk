@@ -57,52 +57,23 @@ String WrapDartTestInLibrary(String test) =>
 #source('$test');
 """;
 
-String DartTestWrapper(String domLibrary,
-                       String testFramework,
-                       String library) =>
+String DartTestWrapper(String dartHome, String library) =>
 """
 #library('test');
 
-#import('${domLibrary}');
-#import('${testFramework}');
+#import('${dartHome}/lib/unittest/unittest.dart', prefix: 'unittest');
+#import('${dartHome}/lib/unittest/html_config.dart', prefix: 'config');
 
 #import('${library}', prefix: "Test");
 
-waitForDone() {
-  window.postMessage('unittest-suite-wait-for-done', '*');
-}
-
-pass() {
-  document.body.innerHTML = 'PASS';
-  window.postMessage('unittest-suite-done', '*');
-}
-
-fail(e, trace) {
-  document.body.innerHTML = 'FAIL: \$e, \$trace';
-  window.postMessage('unittest-suite-done', '*');
-}
-
 main() {
-  bool needsToWait = false;
-  bool mainIsFinished = false;
-  TestRunner.waitForDoneCallback = () { needsToWait = true; };
-  TestRunner.doneCallback = () {
-    if (mainIsFinished) {
-      pass();
-    } else {
-      needsToWait = false;
-    }
-  };
+  config.useHtmlConfiguration();
   try {
+    unittest.ensureInitialized();
     Test.main();
-    if (needsToWait) {
-      waitForDone();
-    } else {
-      pass();
-    }
-    mainIsFinished = true;
   } catch(var e, var trace) {
-    fail(e, trace);
+    unittest.reportTestError(
+        e.toString(), trace == null ? '' : trace.toString());
   }
 }
 """;

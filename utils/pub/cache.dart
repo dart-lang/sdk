@@ -45,26 +45,14 @@ class PackageCache {
   Future<Package> find(String name) {
     // Use the previously loaded one.
     final package = _loadedPackages[name];
-    if (package != null) {
-      return new Future.immediate(package);
-    }
+    if (package != null) return new Future.immediate(package);
 
     // If we are already in-progress loading it, re-use that one.
     final pending = _pendingPackages[name];
-    if (pending != null) {
-      return pending;
-    }
+    if (pending != null) return pending;
 
-    return _loadPackage(name);
-  }
-
-  /**
-   * Start loading the package.
-   */
-  Future<Package> _loadPackage(String name) {
-    final future = _parsePubspec(name).transform((dependencies) {
-      final package = new Package._(this, name, dependencies);
-
+    // Actually load it from the cache.
+    final future = Package.load(join(rootDir, name)).transform((package) {
       _pendingPackages.remove(name);
       _loadedPackages[name] = package;
       return package;
@@ -72,33 +60,5 @@ class PackageCache {
 
     _pendingPackages[name] = future;
     return future;
-  }
-
-  Future<List<String>> _parsePubspec(String name) {
-    final completer = new Completer<List<String>>();
-    final pubspecPath = join(rootDir, name, 'pubspec');
-
-    // TODO(rnystrom): Handle the directory not existing.
-    // TODO(rnystrom): Error-handling.
-    final readFuture = readTextFile(pubspecPath);
-    readFuture.handleException((error) {
-      // If there is no pubspec, we implicitly treat that as a package with no
-      // dependencies.
-      // TODO(rnystrom): Distinguish file not found from other real errors.
-      completer.complete(<String>[]);
-      return true;
-    });
-
-    readFuture.then((pubspec) {
-      // TODO(rnystrom): Use YAML parser when ready. For now, it's just a flat
-      // list of newline-separated strings.
-      final dependencyNames = pubspec.split('\n').
-          map((name) => name.trim()).
-          filter((name) => (name != null) && (name != ''));
-
-      completer.complete(dependencyNames);
-    });
-
-    return completer.future;
   }
 }

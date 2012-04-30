@@ -109,6 +109,11 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   __ Unimplemented("IsRawSubType Stub");
 }
 
+void StubCode::GenerateSubtypeTestCacheStub(Assembler* assembler) {
+  __ Unimplemented("SubtypeTestCache Stub");
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

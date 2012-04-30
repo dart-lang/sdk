@@ -9,18 +9,20 @@
 
 
 void main() {
+  TestReadStatusFile("client/tests/dartc/dartc.status");
+  TestReadStatusFile("compiler/tests/dartc/dartc.status");
+  TestReadStatusFile("frog/tests/frog/frog.status");
+  TestReadStatusFile("runtime/tests/vm/vm.status");
+  TestReadStatusFile("samples/tests/samples/samples.status");
   TestReadStatusFile("tests/co19/co19-compiler.status");
   TestReadStatusFile("tests/co19/co19-runtime.status");
   TestReadStatusFile("tests/corelib/corelib.status");
+  TestReadStatusFile("tests/dom/dom.status");
+  TestReadStatusFile("tests/html/html.status");
   TestReadStatusFile("tests/isolate/isolate.status");
+  TestReadStatusFile("tests/json/json.status");
   TestReadStatusFile("tests/language/language.status");
   TestReadStatusFile("tests/standalone/standalone.status");
-  TestReadStatusFile("samples/tests/samples/samples.status");
-  TestReadStatusFile("runtime/tests/vm/vm.status");
-  TestReadStatusFile("frog/tests/frog/frog.status");
-  TestReadStatusFile("compiler/tests/dartc/dartc.status");
-  TestReadStatusFile("client/tests/client/client.status");
-  TestReadStatusFile("client/tests/dartc/dartc.status");
 }
 
 String fixedFilePath(String filePath) {

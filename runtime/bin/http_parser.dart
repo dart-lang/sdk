@@ -145,6 +145,9 @@ class _HttpParser {
       if (_state == _State.UPGRADED) {
         throw new HttpParserException("Data on upgraded connection");
       }
+      if (_state == _State.FAILURE) {
+        throw new HttpParserException("Data on failed connection");
+      }
       while ((index < lastIndex) && _state != _State.FAILURE && _state != _State.UPGRADED) {
         int byte = buffer[index];
         switch (_state) {
@@ -368,9 +371,10 @@ class _HttpParser {
             } else {
               String headerField = _headerField.toString();
               String headerValue =_headerValue.toString();
-              // Ignore the Content-Length header if Transfer-Encoding
-              // is chunked (RFC 2616 section 4.4)
+              bool reportHeader = true;
               if (headerField == "content-length" && !_chunked) {
+                // Ignore the Content-Length header if Transfer-Encoding
+                // is chunked (RFC 2616 section 4.4)
                 _contentLength = Math.parseInt(headerValue);
               } else if (headerField == "connection") {
                 List<String> tokens = _tokenizeFieldValue(headerValue);
@@ -383,13 +387,19 @@ class _HttpParser {
                   } else if (token == "upgrade") {
                     _connectionUpgrade = true;
                   }
+                  if (headerReceived != null) {
+                    headerReceived(headerField, token);
+                  }
                 }
+                reportHeader = false;
               } else if (headerField == "transfer-encoding" &&
                          headerValue.toLowerCase() == "chunked") {
+                // Ignore the Content-Length header if Transfer-Encoding
+                // is chunked (RFC 2616 section 4.4)
                 _chunked = true;
                 _contentLength = -1;
               }
-              if (headerReceived != null) {
+              if (reportHeader && headerReceived != null) {
                 headerReceived(headerField, headerValue);
               }
               _headerField.clear();
@@ -483,7 +493,7 @@ class _HttpParser {
             break;
 
           case _State.BODY:
-            // The body is not handled one byte at the time but in blocks.
+            // The body is not handled one byte at a time but in blocks.
             int dataAvailable = lastIndex - index;
             ByteArray data;
             if (_remainingContent == null ||

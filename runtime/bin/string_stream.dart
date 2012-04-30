@@ -394,7 +394,7 @@ class _StringInputStream implements StringInputStream {
     _clientCloseHandler = callback;
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _input.onError = callback;
   }
 

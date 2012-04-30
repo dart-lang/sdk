@@ -217,7 +217,7 @@ interface File default _File {
    * Sets the handler that gets called when errors occur during
    * operations on this file.
    */
-  void set onError(void handler(Exception e));
+  void set onError(void handler(e));
 }
 
 
@@ -376,7 +376,7 @@ interface RandomAccessFile {
    * Sets the handler that gets called when errors occur when
    * operating on this file.
    */
-  void set onError(void handler(Exception e));
+  void set onError(void handler(e));
 }
 
 

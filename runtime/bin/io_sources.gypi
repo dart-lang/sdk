@@ -11,6 +11,7 @@
     # in the order they are listed.
     'io.dart',
 
+    'base64.dart',
     'buffer_list.dart',
     'chunked_stream.dart',
     'common.dart',
@@ -27,6 +28,7 @@
     'list_stream.dart',
     'list_stream_impl.dart',
     'output_stream.dart',
+    'sha1.dart',
     'stream_util.dart',
     'string_stream.dart',
     'platform.dart',
@@ -40,5 +42,7 @@
     'stdio.dart',
     'timer.dart',
     'timer_impl.dart',
+    'websocket.dart',
+    'websocket_impl.dart',
   ],
 }

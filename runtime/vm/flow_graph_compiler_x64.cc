@@ -532,7 +532,7 @@ void FlowGraphCompiler::VisitStoreContext(StoreContextComp* comp) {
 
 
 void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
-  ASSERT(comp->context()->IsTemp());
+  ASSERT(comp->context()->IsTemp() || comp->context()->IsUse());
   ASSERT(VerifyCallComputation(comp));
   // The arguments to the stub include the closure.  The arguments
   // descriptor describes the closure's arguments (and so does not include

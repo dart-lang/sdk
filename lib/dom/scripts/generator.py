@@ -7,10 +7,8 @@
 Dart APIs from the IDL database."""
 
 import re
-import string
 
 _pure_interfaces = set([
-    'DOMStringList',
     'DOMStringMap',
     'ElementTimeControl',
     'ElementTraversal',
@@ -544,13 +542,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     conversion_arguments = [value]
     if attributes and 'TreatReturnedNullStringAs' in attributes:
       conversion_arguments.append('DartUtilities::ConvertNullToDefaultValue')
-    function_name = 'toDartValue'
-    # FIXME: implement DartUtilities::toDart for other primitive types and
-    # remove this list.
-    if self.native_type() in ['String', 'bool', 'int', 'unsigned', 'long long', 'unsigned long long', 'double']:
-      function_name = string.capwords(self.native_type()).replace(' ', '')
-      function_name = function_name[0].lower() + function_name[1:]
-      function_name = 'DartUtilities::%sToDart' % function_name
+    function_name = re.sub(r' [a-z]', lambda x: x.group(0)[1:].upper(), self.native_type())
+    function_name = function_name[0].lower() + function_name[1:]
+    function_name = 'DartUtilities::%sToDart' % function_name
     return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
 
   def webcore_getter_name(self):
@@ -640,12 +634,12 @@ _idl_type_registry = {
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
 
-    'DOMStringList': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
     'sequence': PrimitiveIDLTypeInfo('sequence', dart_type='List'),
     'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
     'DOMException': IDLTypeInfo('DOMException', native_type='DOMCoreException'),
+    'DOMStringList': IDLTypeInfo('DOMStringList', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),

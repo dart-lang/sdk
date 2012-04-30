@@ -48,7 +48,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     _clientCloseHandler = callback;
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _input.onError = callback;
   }
 

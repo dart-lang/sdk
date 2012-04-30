@@ -263,8 +263,11 @@ String CreateMultitestDirectory(String outputDir, String testDir) {
     generatedTestDir.createSync();
   }
   var split = testDir.split('/');
-  var lastComponent = split.removeLast();
-  Expect.isTrue(lastComponent == 'src');
+  if (split.last() == 'src') {
+    // TODO(sigmund): remove this once all tests are migrated to use
+    // TestSuite.forDirectory.
+    split.removeLast();
+  }
   String path = '${generatedTestDir.path}/${split.last()}';
   Directory dir = new Directory(path);
   if (!dir.existsSync()) {

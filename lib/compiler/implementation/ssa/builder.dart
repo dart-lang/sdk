@@ -45,26 +45,36 @@ class Interceptors {
 
   Element getStaticInterceptor(SourceString name, int parameters) {
     String mangledName = "builtin\$${name.slowToString()}\$${parameters}";
-    Element result = compiler.findHelper(new SourceString(mangledName));
-    return result;
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getStaticGetInterceptor(SourceString name) {
     String mangledName = "builtin\$get\$${name.slowToString()}";
-    Element result = compiler.findHelper(new SourceString(mangledName));
-    return result;
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getStaticSetInterceptor(SourceString name) {
     String mangledName = "builtin\$set\$${name.slowToString()}";
-    Element result = compiler.findHelper(new SourceString(mangledName));
-    return result;
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getOperatorInterceptor(Operator op) {
     SourceString name = mapOperatorToMethodName(op);
-    Element result = compiler.findHelper(name);
-    return result;
+    return compiler.findHelper(name);
+  }
+
+  Element getBoolifiedVersionOf(Element interceptor) {
+    String boolifiedName = "${interceptor.name.slowToString()}B";
+    return compiler.findHelper(new SourceString(boolifiedName));
+  }
+
+  /**
+   * Return an interceptor where the return type is guaranteed.
+   */
+  Element getTypedInterceptor(HType type, SourceString name, int parameters) {
+    String mangledName =
+        "builtin\$${name.slowToString()}\$${parameters}\$$type";
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getPrefixOperatorInterceptor(Operator op) {
@@ -289,18 +299,6 @@ class LocalsHandler {
       builder.add(parameter);
       directLocals[element] = parameter;
     });
-    if (closureData.thisElement !== null) {
-      // Once closures have been mapped to classes their instance members might
-      // not have any thisElement if the closure was created inside a static
-      // context.
-      assert(function.isInstanceMember() || function.isGenerativeConstructor());
-      // We have to introduce 'this' before we enter the scope, since it might
-      // need to be copied into a box (if it is captured). This is similar
-      // to all other parameters that are introduced.
-      HInstruction thisInstruction = new HThis();
-      builder.add(thisInstruction);
-      directLocals[closureData.thisElement] = thisInstruction;
-    }
 
     enterScope(node);
 
@@ -315,6 +313,14 @@ class LocalsHandler {
       HInstruction thisInstruction = new HThis();
       builder.add(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
+    } else if (function.isInstanceMember()
+               || function.isGenerativeConstructor()) {
+      // Once closures have been mapped to classes their instance members might
+      // not have any thisElement if the closure was created inside a static
+      // context.
+      HInstruction thisInstruction = new HThis();
+      builder.add(thisInstruction);
+      directLocals[closureData.thisElement] = thisInstruction;
     }
   }
 
@@ -1686,10 +1692,16 @@ class SsaBuilder implements Visitor {
 
   void generateGetter(Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
-      Selector selector = elements.getSelector(send);
-      push(new HStatic(element));
-      if (element.kind == ElementKind.GETTER) {
-        push(new HInvokeStatic(selector, <HInstruction>[pop()]));
+      if (element.kind == ElementKind.FIELD && !element.isAssignable()) {
+        // A static final. Get its constant value and inline it.
+        Constant value = compiler.constantHandler.compileVariable(element);
+        stack.add(graph.addConstant(value));
+      } else {
+        Selector selector = elements.getSelector(send);
+        push(new HStatic(element));
+        if (element.kind == ElementKind.GETTER) {
+          push(new HInvokeStatic(selector, <HInstruction>[pop()]));
+        }
       }
     } else if (Elements.isInstanceSend(send, elements)) {
       HInstruction receiver = generateInstanceSendReceiver(send);
@@ -2115,8 +2127,7 @@ class SsaBuilder implements Visitor {
           self,
           graph.addConstantString(new DartString.literal(name)),
           pop()];
-      push(new HInvokeSuper(const Selector(SelectorKind.INVOCATION, 2),
-                            inputs));
+      push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
       return;
     }
     HInstruction target = new HStatic(element);
@@ -2168,9 +2179,9 @@ class SsaBuilder implements Visitor {
       if (originalElement.isGenerativeConstructor()
           && originalElement.enclosingElement === compiler.listClass) {
         if (node.arguments.isEmpty()) {
-          type = HType.MUTABLE_ARRAY;
+          type = HType.EXTENDABLE_ARRAY;
         } else {
-          type = HType.READABLE_ARRAY;
+          type = HType.MUTABLE_ARRAY;
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.enclosingElement;
@@ -2542,7 +2553,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    work.allowSpeculativeOptimization = false;
     TargetElement target = elements[node];
     assert(target !== null);
     JumpHandler handler = jumpTargets[target];
@@ -2698,7 +2708,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    work.allowSpeculativeOptimization = false;
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock startBlock = openNewBlock();
     visit(node.expression);
@@ -3090,7 +3099,7 @@ class StringBuilderVisitor extends AbstractVisitor {
         instruction: right);
     }
     Element interceptor =
-        builder.interceptors.getStaticInterceptor(dartMethodName, 1);
+        builder.interceptors.getTypedInterceptor(HType.STRING, dartMethodName, 1);
     if (interceptor === null) {
       builder.compiler.internalError(
           "concat not intercepted.", instruction: left);
@@ -3100,7 +3109,8 @@ class StringBuilderVisitor extends AbstractVisitor {
     builder.push(new HInvokeInterceptor(Selector.INVOCATION_1,
                                         dartMethodName,
                                         false,
-                                        <HInstruction>[target, left, right]));
+                                        <HInstruction>[target, left, right],
+                                        HType.STRING));
     return builder.pop();
   }
 
@@ -3110,8 +3120,8 @@ class StringBuilderVisitor extends AbstractVisitor {
       builder.compiler.internalError(
         "Using string interpolations in non-intercepted code.", node: node);
     }
-    Element interceptor =
-        builder.interceptors.getStaticInterceptor(dartMethodName, 0);
+    Element interceptor = builder.interceptors.getTypedInterceptor(
+        HType.STRING, dartMethodName, 0);
     if (interceptor === null) {
       builder.compiler.internalError(
         "toString not intercepted.", node: node);
@@ -3121,7 +3131,8 @@ class StringBuilderVisitor extends AbstractVisitor {
     builder.push(new HInvokeInterceptor(Selector.INVOCATION_0,
                                         dartMethodName,
                                         false,
-                                        <HInstruction>[target, input]));
+                                        <HInstruction>[target, input],
+                                        HType.STRING));
     return builder.pop();
   }
 

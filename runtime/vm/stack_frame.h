@@ -41,7 +41,10 @@ class StackFrame : public ValueObject {
   virtual bool IsValid() const;
 
   // Frame type.
-  virtual bool IsDartFrame() const { return LookupDartCode() != Code::null(); }
+  virtual bool IsDartFrame() const {
+    ASSERT(IsValid());
+    return !(IsStubFrame() || IsEntryFrame() || IsExitFrame());
+  }
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }

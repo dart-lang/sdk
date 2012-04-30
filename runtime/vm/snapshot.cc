@@ -249,10 +249,12 @@ RawBigint* SnapshotReader::NewBigint(const char* hex_string) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->bigint_class();
   intptr_t bigint_length = BigintOperations::ComputeChunkLength(hex_string);
-  const Bigint& result = Bigint::Handle(reinterpret_cast<RawBigint*>(
-      AllocateUninitialized(cls_, Bigint::InstanceSize(bigint_length))));
-  BigintOperations::FromHexCString(hex_string, result);
-  return result.raw();
+  RawBigint* obj = reinterpret_cast<RawBigint*>(
+      AllocateUninitialized(cls_, Bigint::InstanceSize(bigint_length)));
+  obj->ptr()->allocated_length_ = bigint_length;
+  obj->ptr()->signed_length_ = bigint_length;
+  BigintOperations::FromHexCString(hex_string, Bigint::Handle(obj));
+  return obj;
 }
 
 

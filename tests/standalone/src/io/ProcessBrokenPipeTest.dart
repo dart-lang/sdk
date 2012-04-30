@@ -12,6 +12,9 @@ main() {
   // Running dart without arguments makes it close right away.
   Process process = new Process.start(getDartFileName(), []);
 
+  // Ignore error on stdin.
+  process.stdin.onError = (e) => null;
+
   // Write to the stdin after the process is terminated to test
   // writing to a broken pipe.
   process.onExit = (code) {

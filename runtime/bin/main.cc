@@ -46,6 +46,12 @@ static const char* generate_pprof_symbols_filename = NULL;
 static const char* breakpoint_at = NULL;
 
 
+// Value of the --package-root flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* package_root = NULL;
+
+
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool has_compile_all = false;
@@ -63,6 +69,12 @@ static bool IsValidFlag(const char* name,
 static void ProcessBreakpointOption(const char* funcname) {
   ASSERT(funcname != NULL);
   breakpoint_at = funcname;
+}
+
+
+static void ProcessPackageRootOption(const char* arg) {
+  ASSERT(arg != NULL);
+  package_root = arg;
 }
 
 
@@ -92,6 +104,7 @@ static struct {
   { "--compile_all", ProcessCompileAllOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--import_map=", ProcessImportMapOption },
+  { "--package-root=", ProcessPackageRootOption },
   { NULL, NULL }
 };
 
@@ -367,6 +380,7 @@ static Dart_Handle LoadScript(Dart_Handle builtin_lib,
 }
 
 
+// Returns true on success, false on failure.
 static bool CreateIsolateAndSetup(const char* name_prefix,
                                   void* data, char** error) {
   Dart_Isolate isolate =
@@ -398,6 +412,24 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
     return false;
+  }
+
+  if (package_root != NULL) {
+    Dart_Handle dart_args[1];
+
+    Dart_Handle handle = Dart_NewString(package_root);
+    if (Dart_IsError(handle)) {
+      *error = strdup(Dart_GetError(handle));
+      return false;
+    }
+    dart_args[0] = handle;
+
+    Dart_Handle result = Dart_Invoke(builtin_lib,
+        Dart_NewString("_setPackageRoot"), 1, dart_args);
+    if (Dart_IsError(result)) {
+      *error = strdup(Dart_GetError(result));
+      return false;
+    }
   }
 
   // Load the specified application script into the newly created isolate.

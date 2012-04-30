@@ -31,7 +31,7 @@ class _Directory implements Directory {
     request[1] = _path;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Exists failed");
+        _handleErrorResponse(response, "Exists failed");
       } else {
         callback(response == 1);
       }
@@ -56,7 +56,7 @@ class _Directory implements Directory {
     request[1] = _path;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Creation failed");
+        _handleErrorResponse(response, "Creation failed");
       } else {
         callback();
       }
@@ -80,7 +80,7 @@ class _Directory implements Directory {
     request[1] = _path;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Creation of temporary directory failed");
+        _handleErrorResponse(response, "Creation of temporary directory failed");
       } else {
         _path = response;
         callback();
@@ -109,7 +109,7 @@ class _Directory implements Directory {
     request[2] = recursive;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, errorMsg);
+        _handleErrorResponse(response, errorMsg);
       } else {
         callback();
       }
@@ -166,9 +166,7 @@ class _Directory implements Directory {
     responsePort.receive((message, replyTo) {
       if (message is !List || message[kResponseType] is !int) {
         responsePort.close();
-        if (_onError != null) {
-          _onError(new DirectoryIOException("Internal error"));
-        }
+        _reportError(new DirectoryIOException("Internal error"));
         return;
       }
       switch (message[kResponseType]) {
@@ -179,21 +177,19 @@ class _Directory implements Directory {
           if (_onFile != null) _onFile(message[kResponsePath]);
           break;
         case kListError:
-          if (_onError != null) {
-            var errorType =
-                message[kResponseError][_FileUtils.kErrorResponseErrorType];
-            if (errorType == _FileUtils.kIllegalArgumentResponse) {
-              _onError(new IllegalArgumentException());
-            } else if (errorType == _FileUtils.kOSErrorResponse) {
-              var err = new OSError(
-                  message[kResponseError][_FileUtils.kOSErrorResponseMessage],
-                  message[kResponseError][_FileUtils.kOSErrorResponseErrorCode]);
-              _onError(new DirectoryIOException("Directory listing failed",
-                                                message[kResponsePath],
-                                                err));
-            } else {
-              _onError(new DirectoryIOException("Internal error"));
-            }
+          var errorType =
+              message[kResponseError][_FileUtils.kErrorResponseErrorType];
+          if (errorType == _FileUtils.kIllegalArgumentResponse) {
+            _reportError(new IllegalArgumentException());
+          } else if (errorType == _FileUtils.kOSErrorResponse) {
+            var err = new OSError(
+                message[kResponseError][_FileUtils.kOSErrorResponseMessage],
+                message[kResponseError][_FileUtils.kOSErrorResponseErrorCode]);
+            _reportError(new DirectoryIOException("Directory listing failed",
+                                              message[kResponsePath],
+                                              err));
+          } else {
+            _reportError(new DirectoryIOException("Internal error"));
           }
           break;
         case kListDone:
@@ -216,7 +212,7 @@ class _Directory implements Directory {
     _onDone = onDone;
   }
 
-  void set onError(void onError(Exception e)) {
+  void set onError(void onError(e)) {
     _onError = onError;
   }
 
@@ -228,26 +224,32 @@ class _Directory implements Directory {
     }
   }
 
+  void _reportError(e) {
+    if (_onError != null) {
+      _onError(e);
+    } else {
+      throw e;
+    }
+  }
+
   bool _isErrorResponse(response) {
     return response is List && response[0] != _FileUtils.kSuccessResponse;
   }
 
-  bool _reportError(response, String message) {
+  void _handleErrorResponse(response, String message) {
     assert(_isErrorResponse(response));
-    if (_onError != null) {
-      switch (response[_FileUtils.kErrorResponseErrorType]) {
-        case _FileUtils.kIllegalArgumentResponse:
-          _onError(new IllegalArgumentException());
-          break;
-        case _FileUtils.kOSErrorResponse:
-          var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
-                                response[_FileUtils.kOSErrorResponseErrorCode]);
-          _onError(new DirectoryIOException(message, _path, err));
-          break;
-        default:
-          _onError(new Exception("Unknown error"));
-          break;
-      }
+    switch (response[_FileUtils.kErrorResponseErrorType]) {
+      case _FileUtils.kIllegalArgumentResponse:
+        _reportError(new IllegalArgumentException());
+        break;
+      case _FileUtils.kOSErrorResponse:
+        var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
+                              response[_FileUtils.kOSErrorResponseErrorCode]);
+        _reportError(new DirectoryIOException(message, _path, err));
+        break;
+      default:
+        _reportError(new Exception("Unknown error"));
+        break;
     }
   }
 

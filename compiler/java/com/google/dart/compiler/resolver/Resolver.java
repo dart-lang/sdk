@@ -70,7 +70,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
-import com.google.dart.compiler.util.StringUtils;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.EnumSet;
 import java.util.Iterator;

@@ -99,7 +99,7 @@ class _SocketBase {
   OSError _getError() native "Socket_GetError";
   int _getPort() native "Socket_GetPort";
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _setHandler(_ERROR_EVENT, callback);
   }
 
@@ -188,12 +188,15 @@ class _SocketBase {
 
   bool _reportError(error, String message) {
     void doReportError(Exception e) {
-      // Invoke the error callback if any.
+      // Invoke the socket error callback if any.
+      bool reported = false;
       if (_handlerMap[_ERROR_EVENT] != null) {
         _handlerMap[_ERROR_EVENT](e);
+        reported = true;
       }
       // Propagate the error to any additional listeners.
-      _propagateError(e);
+      reported = reported || _propagateError(e);
+      if (!reported) throw e;
     }
 
     // For all errors we close the socket, call the error handler and
@@ -222,7 +225,7 @@ class _SocketBase {
 
   int hashCode() => _hashCode;
 
-  void _propagateError(Exception e) => null;
+  bool _propagateError(Exception e) => null;
 
   abstract bool _isListenSocket();
   abstract bool _isPipe();
@@ -516,13 +519,15 @@ class _Socket extends _SocketBase implements Socket {
     _setHandler(_SocketBase._CLOSE_EVENT, callback);
   }
 
-  void _propagateError(Exception e) {
+  bool _propagateError(Exception e) {
+    bool reported = false;
     if (_inputStream != null) {
-      _inputStream._onError(e);
+      reported = reported || _inputStream._onSocketError(e);
     }
     if (_outputStream != null) {
-      _outputStream._onError(e);
+      reported = reported || _outputStream._onSocketError(e);
     }
+    return reported;
   }
 
   void _updateOutHandler() {

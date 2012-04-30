@@ -124,6 +124,19 @@ class FunctionsCache : public ValueObject {
 };
 
 
+// A subtype test cache is an array remembering subtype tests for given values.
+class SubTypeTestCache : public AllStatic {
+ public:
+  enum Entries {
+    kInstanceClass = 0,
+    kInstanceTypeArguments = 1,
+    kInstantiatorTypeArguments = 2,
+    kTestResult = 3,
+    kNumEntries  = 4,
+  };
+};
+
+
 RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                           const Instance& receiver);
 

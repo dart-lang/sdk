@@ -33,7 +33,7 @@ function(child, parent) {
   }
 }''';
 
-  bool addedInheritFunction = false;
+  bool needsInheritFunction = false;
   final Namer namer;
   final NativeEmitter nativeEmitter;
   Set<ClassElement> generatedClasses;
@@ -52,11 +52,11 @@ function(child, parent) {
   String get inheritsName() => '${namer.ISOLATE}.\$inherits';
 
   void addInheritFunctionIfNecessary() {
-    if (addedInheritFunction) return;
-    addedInheritFunction = true;
-    mainBuffer.add('$inheritsName = ');
-    mainBuffer.add(INHERIT_FUNCTION);
-    mainBuffer.add(';\n');
+    if (needsInheritFunction) {
+      mainBuffer.add('$inheritsName = ');
+      mainBuffer.add(INHERIT_FUNCTION);
+      mainBuffer.add(';\n');
+    }
   }
 
   void addParameterStub(FunctionElement member,
@@ -202,7 +202,7 @@ function(child, parent) {
       // TODO(ngeoffray): Have another class generate the code for the
       // fields.
       if ((member.modifiers === null || !member.modifiers.isFinal()) &&
-          compiler.universe.invokedSetters.contains(member.name)) {
+          compiler.universe.hasSetter(member, compiler)) {
         String setterName = namer.setterName(member.getLibrary(), member.name);
         String name = member.isNative()
             ? member.name.slowToString()
@@ -210,7 +210,7 @@ function(child, parent) {
         buffer.add('${attachTo(setterName)} = function(v){\n');
         buffer.add('  this.$name = v;\n};\n');
       }
-      if (compiler.universe.invokedGetters.contains(member.name)) {
+      if (compiler.universe.hasGetter(member, compiler)) {
         String getterName = namer.getterName(member.getLibrary(), member.name);
         String name = member.isNative()
             ? member.name.slowToString()
@@ -254,7 +254,7 @@ function(child, parent) {
   void emitInherits(ClassElement cls, StringBuffer buffer) {
     ClassElement superclass = cls.superclass;
     if (superclass !== null) {
-      addInheritFunctionIfNecessary();
+      needsInheritFunction = true;
       String className = namer.getName(cls);
       String superName = namer.getName(superclass);
       buffer.add('${inheritsName}($isolatePrototype.$className, ');
@@ -482,21 +482,23 @@ function(child, parent) {
           "this.${namer.instanceFieldName(member.getLibrary(), member.name)}";
     }
     for (Selector selector in selectors) {
-      String invocationName =
-          namer.instanceMethodInvocationName(member.getLibrary(), member.name,
-                                             selector);
-      SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
-      String closureCallName =
-          namer.instanceMethodInvocationName(member.getLibrary(), callName,
-                                             selector);
-      List<String> arguments = <String>[];
-      for (int i = 0; i < selector.argumentCount; i++) {
-        arguments.add("arg$i");
+      if (selector.applies(member, compiler)) {
+        String invocationName =
+            namer.instanceMethodInvocationName(member.getLibrary(), member.name,
+                                               selector);
+        SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
+        String closureCallName =
+            namer.instanceMethodInvocationName(member.getLibrary(), callName,
+                                               selector);
+        List<String> arguments = <String>[];
+        for (int i = 0; i < selector.argumentCount; i++) {
+          arguments.add("arg$i");
+        }
+        String joined = Strings.join(arguments, ", ");
+        buffer.add("${attachTo(invocationName)} = function($joined) {\n");
+        buffer.add("  return $getter.$closureCallName($joined);\n");
+        buffer.add("};\n");
       }
-      String joined = Strings.join(arguments, ", ");
-      buffer.add("${attachTo(invocationName)} = function($joined) {\n");
-      buffer.add("  return $getter.$closureCallName($joined);\n");
-      buffer.add("};\n");
     }
   }
 
@@ -550,20 +552,6 @@ function(child, parent) {
 ''');
   }
 
-  void emitStaticFinalFieldInitializations(StringBuffer buffer) {
-    ConstantHandler handler = compiler.constantHandler;
-    List<VariableElement> staticFinalFields =
-        handler.getStaticFinalFieldsForEmission();
-    for (VariableElement element in staticFinalFields) {
-      buffer.add(isolatePrototype);
-      buffer.add('.${namer.getName(element)} = ');
-      compiler.withCurrentElement(element, () {
-          handler.writeJsCodeForVariable(buffer, element);
-        });
-      buffer.add(';\n');
-    }
-  }
-
   void emitExtraAccessors(Element member,
                           String attachTo(String name),
                           StringBuffer buffer) {
@@ -574,7 +562,7 @@ function(child, parent) {
             buffer, attachTo, member, selectors);
       }
     } else if (member.kind == ElementKind.FUNCTION) {
-      if (compiler.universe.invokedGetters.contains(member.name)) {
+      if (compiler.universe.hasGetter(member, compiler)) {
         compiler.emitter.emitDynamicFunctionGetter(buffer, attachTo, member);
       }
     }
@@ -634,7 +622,8 @@ function(child, parent) {
       }
     });
 
-    compiler.universe.invokedGetters.forEach((SourceString getterName) {
+    compiler.universe.invokedGetters.forEach((SourceString getterName,
+                                              Set<Selector> selectors) {
       if (getterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
           String jsName = namer.getterName(lib, getterName);
@@ -648,7 +637,8 @@ function(child, parent) {
       }
     });
 
-    compiler.universe.invokedSetters.forEach((SourceString setterName) {
+    compiler.universe.invokedSetters.forEach((SourceString setterName,
+                                              Set<Selector> selectors) {
       if (setterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
           String jsName = namer.setterName(lib, setterName);
@@ -684,6 +674,9 @@ function(child, parent) {
 var \$globalThis = $currentIsolate;
 var \$globalState;
 var \$globals;
+var \$isWorker;
+var \$supportsWorkers;
+var \$thisScriptUrl;
 function \$static_init(){};
 
 function \$initGlobals(context) {
@@ -725,7 +718,8 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
     measure(() {
       mainBuffer.add('function ${namer.ISOLATE}() {');
       emitStaticNonFinalFieldInitializations(mainBuffer);
-      mainBuffer.add('}\n\n');
+      mainBuffer.add('}\n');
+      mainBuffer.add('init();\n\n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolatePrototype = namer.CURRENT_ISOLATE;
       mainBuffer.add('var $isolatePrototype = ${namer.ISOLATE}.prototype;\n');
@@ -733,7 +727,6 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       emitStaticFunctions(mainBuffer);
       emitStaticFunctionGetters(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
-      emitStaticFinalFieldInitializations(mainBuffer);
 
       isolatePrototype = '${namer.ISOLATE}.prototype;\n';
       mainBuffer.add(
@@ -741,6 +734,9 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       nativeEmitter.emitDynamicDispatchMetadata();
       nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
+      mainBuffer.add('function init() {\n');
+      addInheritFunctionIfNecessary();
+      mainBuffer.add('}\n');
       compiler.assembledCode = mainBuffer.toString();
     });
     return compiler.assembledCode;

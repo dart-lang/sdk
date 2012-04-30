@@ -21,6 +21,8 @@ class Constant implements Hashable {
   /** Returns true if the constant is a list, a map or a constructed object. */
   bool isObject() => false;
 
+  bool isNaN() => false;
+
   abstract void _writeJsCode(StringBuffer buffer, ConstantHandler handler);
   /**
     * Unless the constant can be emitted multiple times (as for numbers and
@@ -134,6 +136,7 @@ class DoubleConstant extends NumConstant {
   }
   const DoubleConstant._internal(this.value);
   bool isDouble() => true;
+  bool isNaN() => value.isNaN();
 
   void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     if (value.isNaN()) {
@@ -350,7 +353,7 @@ class MapConstant extends ObjectConstant {
       for (int i = 0; i < keys.entries.length; i++) {
         StringConstant key = keys.entries[i];
         if (key.value == const LiteralDartString(PROTO_PROPERTY)) continue;
-        
+
         if (valueIndex != 0) buffer.add(", ");
 
         key._writeJsCode(buffer, handler);
@@ -397,7 +400,7 @@ class MapConstant extends ObjectConstant {
     });
     if ((protoValue === null && emittedArgumentCount != 3) ||
         (protoValue !== null && emittedArgumentCount != 4)) {
-      badFieldCountError(); 
+      badFieldCountError();
     }
     buffer.add(")");
   }
@@ -909,17 +912,17 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           folded = const GreaterEqualOperation().fold(left, right);
           break;
         case "==":
-          if (left.isPrimitive() && right.isPrimitive()) { 
+          if (left.isPrimitive() && right.isPrimitive()) {
             folded = const EqualsOperation().fold(left, right);
           }
           break;
         case "===":
-          if (left.isPrimitive() && right.isPrimitive()) { 
+          if (left.isPrimitive() && right.isPrimitive()) {
             folded = const IdentityOperation().fold(left, right);
           }
           break;
         case "!=":
-          if (left.isPrimitive() && right.isPrimitive()) { 
+          if (left.isPrimitive() && right.isPrimitive()) {
             BoolConstant areEquals = const EqualsOperation().fold(left, right);
             if (areEquals === null) {
               folded = null;
@@ -929,7 +932,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           }
           break;
         case "!==":
-          if (left.isPrimitive() && right.isPrimitive()) { 
+          if (left.isPrimitive() && right.isPrimitive()) {
             BoolConstant areIdentical =
                 const IdentityOperation().fold(left, right);
             if (areIdentical === null) {
@@ -1039,7 +1042,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * Given the arguments (a list of constants) assigns them to the parameters,
    * updating the definitions map. If the constructor has field-initializer
    * parameters (like [:this.x:]), also updates the [fieldValues] map.
-   */ 
+   */
   void assignArgumentsToParameters(List<Constant> arguments) {
     // Assign arguments to parameters.
     FunctionParameters parameters = constructor.computeParameters(compiler);
@@ -1051,7 +1054,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         FieldParameterElement fieldParameterElement = parameter;
         fieldValues[fieldParameterElement.fieldElement] = argument;
       }
-    });    
+    });
   }
 
   void evaluateSuperOrRedirectSend(Selector selector,
@@ -1146,7 +1149,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         // Use the default value.
         fieldValue = compiler.compileVariable(field);
       }
-      jsNewArguments.add(fieldValue);          
+      jsNewArguments.add(fieldValue);
     });
     return jsNewArguments;
   }

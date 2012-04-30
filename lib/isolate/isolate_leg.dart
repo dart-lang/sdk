@@ -47,7 +47,7 @@
  * Called by the compiler to support switching
  * between isolates when we get a callback from the DOM.
  */
-void _callInIsolate(IsolateContext isolate, Function function) {
+void _callInIsolate(_IsolateContext isolate, Function function) {
   isolate.eval(function);
   _globalState.topEventLoop.run();
 }

@@ -249,9 +249,10 @@ final PrecedenceInfo PERIOD_PERIOD_PERIOD_INFO =
                        PERIOD_PERIOD_PERIOD_TOKEN);
 
 /**
- * The cascade operator has the lowest precedence of any operator.
+ * The cascade operator has the lowest precedence of any operator
+ * except assignment.
  */
-final int CASCADE_PRECEDENCE = 1;
+final int CASCADE_PRECEDENCE = 2;
 final PrecedenceInfo PERIOD_PERIOD_INFO =
   const PrecedenceInfo(const SourceString('..'), CASCADE_PRECEDENCE,
                        PERIOD_PERIOD_TOKEN);
@@ -283,7 +284,7 @@ final PrecedenceInfo COMMA_INFO =
   const PrecedenceInfo(const SourceString(','), 0, COMMA_TOKEN);
 
 // Assignment operators.
-final int ASSIGNMENT_PRECEDENCE = 2;
+final int ASSIGNMENT_PRECEDENCE = 1;
 final PrecedenceInfo AMPERSAND_EQ_INFO =
   const PrecedenceInfo(const SourceString('&='),
                        ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN);

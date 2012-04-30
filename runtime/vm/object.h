@@ -531,6 +531,9 @@ class Class : public Object {
   void set_type_arguments_instance_field_offset(intptr_t value) const {
     raw_ptr()->type_arguments_instance_field_offset_ = value;
   }
+  static intptr_t type_arguments_instance_field_offset_offset() {
+    return OFFSET_OF(RawClass, type_arguments_instance_field_offset_);
+  }
 
   // The super type of this class, Object type if not explicitly specified.
   RawType* super_type() const { return raw_ptr()->super_type_; }
@@ -1942,7 +1945,7 @@ class Instructions : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size);
+  static RawInstructions* New(intptr_t size, Heap::Space space);
 
   HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Code;
@@ -2248,6 +2251,7 @@ class Code : public Object {
         sizeof(RawCode) + (pointer_offsets_length * kEntrySize));
   }
   static RawCode* FinalizeCode(const char* name, Assembler* assembler);
+  static RawCode* FinalizeStubCode(const char* name, Assembler* assembler);
 
   int32_t GetPointerOffsetAt(int index) const {
     return *PointerOffsetAddrAt(index);
@@ -2294,6 +2298,10 @@ class Code : public Object {
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
   static RawCode* New(int pointer_offsets_length);
+
+  static RawCode* FinalizeCode(const char* name,
+                               Assembler* assembler,
+                               Heap::Space space);
 
   HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
@@ -3425,7 +3433,7 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    raw_ptr()->type_arguments_ = value.Canonicalize();
+    raw_ptr()->type_arguments_ = value.raw();
   }
 
   virtual bool Equals(const Instance& other) const;
@@ -3553,7 +3561,7 @@ class GrowableObjectArray : public Instance {
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
-    raw_ptr()->type_arguments_ = value.Canonicalize();
+    raw_ptr()->type_arguments_ = value.raw();
   }
 
   virtual bool Equals(const Instance& other) const;
@@ -3794,7 +3802,7 @@ class Closure : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    raw_ptr()->type_arguments_ = value.Canonicalize();
+    raw_ptr()->type_arguments_ = value.raw();
   }
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawClosure, type_arguments_);

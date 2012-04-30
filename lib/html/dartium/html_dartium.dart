@@ -130,7 +130,6 @@ _wrap(raw) {
     case 'HTMLCanvasElement': return new _CanvasElementImpl._wrap(domObject);
     case 'CanvasGradient': return new _CanvasGradientImpl._wrap(domObject);
     case 'CanvasPattern': return new _CanvasPatternImpl._wrap(domObject);
-    case 'CanvasPixelArray': return new _CanvasPixelArrayImpl._wrap(domObject);
     case 'CanvasRenderingContext': return new _CanvasRenderingContextImpl._wrap(domObject);
     case 'CanvasRenderingContext2D': return new _CanvasRenderingContext2DImpl._wrap(domObject);
     case 'ClientRect': return new _ClientRectImpl._wrap(domObject);
@@ -162,6 +161,7 @@ _wrap(raw) {
     case 'DOMSelection': return new _DOMSelectionImpl._wrap(domObject);
     case 'DOMTokenList': return new _DOMTokenListImpl._wrap(domObject);
     case 'DOMSettableTokenList': return new _DOMSettableTokenListImpl._wrap(domObject);
+    case 'DOMStringList': return new _DOMStringListImpl._wrap(domObject);
     case 'DOMURL': return new _DOMURLImpl._wrap(domObject);
     case 'DataTransferItem': return new _DataTransferItemImpl._wrap(domObject);
     case 'DataTransferItemList': return new _DataTransferItemListImpl._wrap(domObject);
@@ -4829,94 +4829,6 @@ class _CanvasPatternImpl extends _DOMTypeBase implements CanvasPattern {
   _CanvasPatternImpl._wrap(ptr) : super._wrap(ptr);
 }
 
-class _CanvasPixelArrayImpl extends _DOMTypeBase implements CanvasPixelArray {
-  _CanvasPixelArrayImpl._wrap(ptr) : super._wrap(ptr);
-
-  int get length() => _wrap(_ptr.length);
-
-  int operator[](int index) => _wrap(_ptr[index]);
-
-  void operator[]=(int index, int value) {
-    return _ptr[index] = _unwrap(value);
-  }
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<int>(this);
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
-
-  Collection map(f(int element)) => _Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => _Collections.every(this, f);
-
-  bool some(bool f(int element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<int>:
-
-  void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  int last() => this[length - 1];
-
-  int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  // FIXME: implement these.
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
-
-  // -- end List<int> mixins.
-}
-
 class _CanvasRenderingContextImpl extends _DOMTypeBase implements CanvasRenderingContext {
   _CanvasRenderingContextImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -6261,6 +6173,102 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
   String get value() => _wrap(_ptr.value);
 
   void set value(String value) { _ptr.value = _unwrap(value); }
+}
+
+class _DOMStringListImpl extends _DOMTypeBase implements DOMStringList {
+  _DOMStringListImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get length() => _wrap(_ptr.length);
+
+  String operator[](int index) => _wrap(_ptr[index]);
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(String element)) => _Collections.forEach(this, f);
+
+  Collection map(f(String element)) => _Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     _Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => _Collections.every(this, f);
+
+  bool some(bool f(String element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<String>:
+
+  void sort(int compare(String a, String b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  String last() => this[length - 1];
+
+  String removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
+
+  bool contains(String string) {
+    return _wrap(_ptr.contains(_unwrap(string)));
+  }
+
+  String item(int index) {
+    return _wrap(_ptr.item(_unwrap(index)));
+  }
 }
 
 class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
@@ -7934,10 +7942,13 @@ class _ElementAttributeMap implements AttributeMap {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
+    return this[key];
   }
 
   String remove(String key) {
+    String value = _element.$dom_getAttribute(key);
     _element.$dom_removeAttribute(key);
+    return value;
   }
 
   void clear() {
@@ -8013,9 +8024,8 @@ class _DataAttributeMap implements AttributeMap {
     $dom_attributes[_attr(key)] = '$value';
   }
 
-  String putIfAbsent(String key, String ifAbsent()) {
+  String putIfAbsent(String key, String ifAbsent()) =>
     $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
-  }
 
   String remove(String key) => $dom_attributes.remove(_attr(key));
 
@@ -23096,7 +23106,8 @@ interface AudioChannelSplitter extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioContext
-interface AudioContext extends EventTarget {
+interface AudioContext extends EventTarget default _AudioContextFactoryProvider {
+  AudioContext();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -26168,18 +26179,6 @@ interface CanvasPattern {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName CanvasPixelArray
-interface CanvasPixelArray extends List<int> {
-
-  /** @domName CanvasPixelArray.length */
-  final int length;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName CanvasRenderingContext
 interface CanvasRenderingContext {
 
@@ -27125,6 +27124,24 @@ interface DOMSettableTokenList extends DOMTokenList {
 
   /** @domName DOMSettableTokenList.value */
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName DOMStringList
+interface DOMStringList extends List<String> {
+
+  /** @domName DOMStringList.length */
+  final int length;
+
+  /** @domName DOMStringList.contains */
+  bool contains(String string);
+
+  /** @domName DOMStringList.item */
+  String item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

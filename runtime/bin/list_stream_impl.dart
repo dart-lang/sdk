@@ -82,7 +82,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
     _clientCloseHandler = callback;
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     // No errors emitted.
   }
 

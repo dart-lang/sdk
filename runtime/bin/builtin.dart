@@ -32,11 +32,20 @@ var _is_windows;
 // package imports can be resolved relative to it.
 Uri _entrypoint;
 
+// The directory to look in to resolve "package:" scheme URIs.
+String _packageRoot;
+
 void _logResolution(String msg) {
   final enabled = false;
   if (enabled) {
     _Logger._printString(msg);
   }
+}
+
+String _setPackageRoot(String packageRoot) {
+  // TODO(mattsh) - refactor windows drive and path handling code
+  // so it can be used here if needed.
+  _packageRoot = packageRoot;
 }
 
 String _resolveScriptUri(String cwd, String scriptName, bool windows) {
@@ -141,7 +150,13 @@ String _filePathFromPackageUri(Uri uri) {
           "'$right', not '$wrong'.";
   }
 
-  var path = _entrypoint.resolve('packages/${uri.path}').path;
+  var path;
+  if (_packageRoot !== null) {
+    path = "${_packageRoot}${uri.path}";
+  } else {
+    path = _entrypoint.resolve('packages/${uri.path}').path;
+  }
+
   _logResolution("# Package: $path");
   return path;
 }

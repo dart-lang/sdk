@@ -6865,7 +6865,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
       if (!type_arguments.IsInstantiated()) {
         ErrorMsg("type must be constant in const constructor");
       }
-      instance.SetTypeArguments(type_arguments);
+      instance.SetTypeArguments(
+          AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
     }
     arg_values.Add(&instance);
     arg_values.Add(&Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
@@ -7326,7 +7327,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     // Allocate and initialize the const list at compile time.
     Array& const_list =
         Array::ZoneHandle(Array::New(list->length(), Heap::kOld));
-    const_list.SetTypeArguments(type_arguments);
+    const_list.SetTypeArguments(
+        AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
     Error& malformed_error = Error::Handle();
     for (int i = 0; i < list->length(); i++) {
       AstNode* elem = list->ElementAt(i);

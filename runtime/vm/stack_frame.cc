@@ -20,17 +20,13 @@ bool StackFrame::FindRawCodeVisitor::FindObject(RawObject* obj) {
 
 
 bool StackFrame::IsStubFrame() const {
-  if (Dart::vm_isolate()->heap()->CodeContains(pc())) {
+  if (Dart::vm_isolate()->heap()->StubCodeContains(pc())) {
     return true;  // Common stub code is generated in the VM heap.
   }
-  // We add a no gc scope to ensure that the code below does not trigger
-  // a GC as we are handling raw object references here. It is possible
-  // that the code is called while a GC is in progress, that is ok.
-  NoGCScope no_gc;
-  Isolate* isolate = Isolate::Current();
-  RawCode* code = StackFrame::LookupCode(isolate, pc());
-  return ((code != Code::null()) &&
-          (code->ptr()->function_ == Function::null()));
+  if (Isolate::Current()->heap()->StubCodeContains(pc())) {
+    return true;  // Common stub code is generated in the VM heap.
+  }
+  return false;
 }
 
 
@@ -169,11 +165,8 @@ bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
 
 
 bool StackFrame::IsValid() const {
-  if (IsEntryFrame() || IsExitFrame()) {
+  if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
-  }
-  if (Dart::vm_isolate()->heap()->CodeContains(pc())) {
-    return true;  // Common stub code is generated in the VM heap.
   }
   return (StackFrame::LookupCode(Isolate::Current(), pc()) != Code::null());
 }

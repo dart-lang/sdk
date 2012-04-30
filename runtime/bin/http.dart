@@ -110,7 +110,7 @@ interface HttpServer default _HttpServer {
   /**
    * Sets the error handler that is called when a connection error occurs.
    */
-  void set onError(void callback(Exception e));
+  void set onError(void callback(e));
 }
 
 
@@ -382,6 +382,16 @@ interface HttpResponse default _HttpResponse {
    * having retrieved the output stream will throw an exception.
    */
   OutputStream get outputStream();
+
+  /**
+   * Detach the underlying socket from the HTTP server. When the
+   * socket is detached the HTTP server will no longer perform any
+   * operations on it.
+   *
+   * This is normally used when a HTTP upgraded request is received
+   * and the communication should continue with a different protocol.
+   */
+  Socket detachSocket();
 }
 
 
@@ -416,12 +426,16 @@ interface HttpClient default _HttpClient {
   HttpClientConnection openUrl(String method, Uri url);
 
   /**
-   * Opens a HTTP connection using the GET method. See [open] for details.
+   * Opens a HTTP connection using the GET method. See [open] for
+   * details. Using this method to open a HTTP connection will set the
+   * content length to 0.
    */
   HttpClientConnection get(String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the GET method. See [openUrl] for details.
+   * Opens a HTTP connection using the GET method. See [openUrl] for
+   * details. Using this method to open a HTTP connection will set the
+   * content length to 0.
    */
   HttpClientConnection getUrl(Uri url);
 
@@ -470,7 +484,7 @@ interface HttpClientConnection {
    * Sets the handler that gets called if an error occurs while
    * connecting or processing the HTTP request.
    */
-  void set onError(void callback(Exception e));
+  void set onError(void callback(e));
 }
 
 

@@ -21,5 +21,6 @@
 #source('nodes.dart');
 #source('optimize.dart');
 #source('types.dart');
+#source('types_propagation.dart');
 #source('validate.dart');
 #source('value_set.dart');

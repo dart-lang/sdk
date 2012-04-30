@@ -31,7 +31,10 @@ DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
 DEFINE_FLAG(int, code_heap_size, Heap::kCodeHeapSizeInMB,
             "code heap size in MB,"
-            "e.g: --code_heap_size=8 allocates a 8MB old gen heap");
+            "e.g: --code_heap_size=8 allocates a 8MB code heap");
+DEFINE_FLAG(int, stub_code_heap_size, Heap::kStubCodeHeapSizeInKB,
+            "stub code heap size in KB,"
+            "e.g: --stub_code_heap_size=256 allocates a 256KB stub code heap");
 
 Heap::Heap() {
   new_space_ = new Scavenger(this,
@@ -39,6 +42,7 @@ Heap::Heap() {
                              kNewObjectAlignmentOffset);
   old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
   code_space_ = new PageSpace(this, (FLAG_code_heap_size * MB), true);
+  stub_code_space_ = new PageSpace(this, (FLAG_stub_code_heap_size * KB), true);
 }
 
 
@@ -46,6 +50,7 @@ Heap::~Heap() {
   delete new_space_;
   delete old_space_;
   delete code_space_;
+  delete stub_code_space_;
 }
 
 
@@ -57,10 +62,12 @@ uword Heap::AllocateNew(intptr_t size) {
   }
   CollectGarbage(kNew);
   if (FLAG_verbose_gc) {
-    OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
+    OS::PrintErr("New space (%dk) Old space (%dk) "
+                 "Code space (%dk) Stub Code space(%dk)\n",
                  (new_space_->in_use() / KB),
                  (old_space_->in_use() / KB),
-                 (code_space_->in_use() / KB));
+                 (code_space_->in_use() / KB),
+                 (stub_code_space_->in_use() / KB));
   }
   addr = new_space_->TryAllocate(size);
   if (addr != 0) {
@@ -76,10 +83,12 @@ uword Heap::AllocateOld(intptr_t size) {
   if (addr == 0) {
     CollectAllGarbage();
     if (FLAG_verbose_gc) {
-      OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
+      OS::PrintErr("New space (%dk) Old space (%dk) "
+                   "Code space (%dk) Stub Code space(%dk)\n",
                    (new_space_->in_use() / KB),
                    (old_space_->in_use() / KB),
-                   (code_space_->in_use() / KB));
+                   (code_space_->in_use() / KB),
+                   (stub_code_space_->in_use() / KB));
     }
     addr = old_space_->TryAllocate(size);
     if (addr == 0) {
@@ -91,10 +100,10 @@ uword Heap::AllocateOld(intptr_t size) {
 }
 
 
-uword Heap::AllocateCode(intptr_t size) {
+uword Heap::AllocateCode(PageSpace* space, intptr_t size) {
   ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
   ASSERT(Utils::IsAligned(size, OS::PreferredCodeAlignment()));
-  uword addr = code_space_->TryAllocate(size);
+  uword addr = space->TryAllocate(size);
   if (addr == 0) {
     // TODO(iposva): Support GC.
     FATAL("Exhausted code heap space.");
@@ -109,12 +118,18 @@ uword Heap::AllocateCode(intptr_t size) {
 bool Heap::Contains(uword addr) const {
   return new_space_->Contains(addr) ||
       old_space_->Contains(addr) ||
-      code_space_->Contains(addr);
+      code_space_->Contains(addr) ||
+      stub_code_space_->Contains(addr);
 }
 
 
 bool Heap::CodeContains(uword addr) const {
   return code_space_->Contains(addr);
+}
+
+
+bool Heap::StubCodeContains(uword addr) const {
+  return stub_code_space_->Contains(addr);
 }
 
 
@@ -126,6 +141,7 @@ void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) {
 void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
   old_space_->VisitObjectPointers(visitor);
   code_space_->VisitObjectPointers(visitor);
+  stub_code_space_->VisitObjectPointers(visitor);
 }
 
 
@@ -134,9 +150,23 @@ void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
 }
 
 
+void Heap::IterateStubCodePointers(ObjectPointerVisitor* visitor) {
+  stub_code_space_->VisitObjectPointers(visitor);
+}
+
+
 RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
   // The code heap can only have RawInstructions objects.
   RawObject* raw_obj = code_space_->FindObject(visitor);
+  ASSERT((raw_obj == Object::null()) ||
+         (raw_obj->ptr()->class_->ptr()->instance_kind_ == kInstructions));
+  return reinterpret_cast<RawInstructions*>(raw_obj);
+}
+
+
+RawInstructions* Heap::FindObjectInStubCodeSpace(FindObjectVisitor* visitor) {
+  // The stub code heap can only have RawInstructions objects.
+  RawObject* raw_obj = stub_code_space_->FindObject(visitor);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->ptr()->class_->ptr()->instance_kind_ == kInstructions));
   return reinterpret_cast<RawInstructions*>(raw_obj);
@@ -152,9 +182,13 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
     case kOld:
       old_space_->MarkSweep(invoke_api_callbacks);
       break;
-    case kExecutable:
+    case kDartCode:
       UNIMPLEMENTED();
       code_space_->MarkSweep(invoke_api_callbacks);
+      break;
+    case kStubCode:
+      UNIMPLEMENTED();
+      stub_code_space_->MarkSweep(invoke_api_callbacks);
       break;
     default:
       UNREACHABLE();
@@ -164,10 +198,10 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
 
 void Heap::CollectGarbage(Space space) {
   ApiCallbacks api_callbacks;
-  if (space == kNew || space == kExecutable) {
-    api_callbacks = kIgnoreApiCallbacks;
-  } else {
+  if (space == kOld) {
     api_callbacks = kInvokeApiCallbacks;
+  } else {
+    api_callbacks = kIgnoreApiCallbacks;
   }
   CollectGarbage(space, api_callbacks);
 }
@@ -178,6 +212,7 @@ void Heap::CollectAllGarbage() {
   old_space_->MarkSweep(kInvokeApiCallbacks);
   // TODO(iposva): Merge old and code space.
   // code_space_->MarkSweep(kInvokeApiCallbacks);
+  // stub_code_space_->MarkSweep(kInvokeApiCallbacks);
 }
 
 
@@ -203,6 +238,7 @@ bool Heap::Verify() const {
   new_space_->VisitObjectPointers(&visitor);
   old_space_->VisitObjectPointers(&visitor);
   code_space_->VisitObjectPointers(&visitor);
+  stub_code_space_->VisitObjectPointers(&visitor);
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
 }

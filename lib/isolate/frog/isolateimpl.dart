@@ -125,10 +125,9 @@ class _Manager {
   }
 
   void _nativeDetectEnvironment() native @"""
-    this.isWorker = typeof ($globalThis['importScripts']) != 'undefined';
+    this.isWorker = $isWorker;
+    this.supportsWorkers = $supportsWorkers;
     this.fromCommandLine = typeof(window) == 'undefined';
-    this.supportsWorkers = this.isWorker ||
-        ((typeof $globalThis['Worker']) != 'undefined');
   """;
 
   void _nativeInitWorkerMessageHandler() native @"""
@@ -386,34 +385,7 @@ class _IsolateNatives {
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String get _thisScript() {
-    if (_thisScriptCache == null) {
-      _thisScriptCache = _computeThisScript();
-    }
-    return _thisScriptCache;
-  }
-
-  static String _thisScriptCache;
-
-  // TODO(sigmund): fix - this code should be run synchronously when loading the
-  // script. Running lazily on DOMContentLoaded will yield incorrect results.
-  static String _computeThisScript() native @"""
-    if (!$globalState.supportsWorkers || $globalState.isWorker) return (void 0);
-
-    // TODO(5334778): Find a cross-platform non-brittle way of getting the
-    // currently running script.
-    var scripts = document.getElementsByTagName('script');
-    // The scripts variable only contains the scripts that have already been
-    // executed. The last one is the currently running script.
-    var script = scripts[scripts.length - 1];
-    var src = script && script.src;
-    if (!src) {
-      // TODO()
-      src = "FIXME:5407062" + "_" + Math.random().toString();
-      if (script) script.src = src;
-    }
-    return src;
-  """;
+  static String get _thisScript() native @"return $thisScriptUrl";
 
   /** Starts a new worker with the given URL. */
   static _WorkerStub _newWorker(url) native "return new Worker(url);";

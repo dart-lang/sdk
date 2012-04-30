@@ -52,9 +52,11 @@ class EnqueueTask extends CompilerTask {
   }
 
   void processInstantiatedClassMember(Element member) {
-    if (compiler.universe.generatedCode.containsKey(member)) return;
+    Universe universe = compiler.universe;
+    if (universe.generatedCode.containsKey(member)) return;
 
     if (!member.isInstanceMember()) return;
+    if (member.isField()) return;
 
     String memberName = member.name.slowToString();
     Link<Element> members = instanceMembersByName.putIfAbsent(
@@ -63,24 +65,19 @@ class EnqueueTask extends CompilerTask {
 
     if (member.kind === ElementKind.GETTER ||
         member.kind === ElementKind.FIELD) {
-      compiler.universe.instantiatedClassInstanceFields.add(member.name);
+      universe.instantiatedClassInstanceFields.add(member.name);
     }
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
         compiler.enableNoSuchMethod(member);
       }
-      Set<Selector> selectors = compiler.universe.invokedNames[member.name];
-      if (selectors != null) {
-        for (Selector selector in selectors) {
-          if (selector.applies(member, compiler)) {
-            return compiler.addToWorkList(member);
-          }
-        }
+      if (universe.hasInvocation(member, compiler)) {
+        return compiler.addToWorkList(member);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (compiler.universe.invokedGetters.contains(member.name)) {
+      if (universe.hasGetter(member, compiler)) {
         // We will emit a closure, so make sure the closure class is
         // generated.
         compiler.closureClass.ensureResolved(compiler);
@@ -88,21 +85,16 @@ class EnqueueTask extends CompilerTask {
         return compiler.addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
-      if (compiler.universe.invokedGetters.contains(member.name)) {
+      if (universe.hasGetter(member, compiler)) {
         return compiler.addToWorkList(member);
       }
-      // A method invocation like in o.foo(x, y) might actually be an
-      // invocation of the getter foo followed by an invocation of the
-      // returned closure.
-      Set<Selector> invokedSelectors =
-        compiler.universe.invokedNames[member.name];
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
-      if (invokedSelectors !== null && !invokedSelectors.isEmpty()) {
+      if (universe.hasInvocation(member, compiler)) {
         return compiler.addToWorkList(member);
       }
     } else if (member.kind === ElementKind.SETTER) {
-      if (compiler.universe.invokedSetters.contains(member.name)) {
+      if (universe.hasSetter(member, compiler)) {
         return compiler.addToWorkList(member);
       }
     }
@@ -122,34 +114,34 @@ class EnqueueTask extends CompilerTask {
     });
   }
 
+  void registerNewSelector(SourceString name,
+                           Selector selector,
+                           Map<SourceString, Set<Selector>> selectorsMap) {
+    Set<Selector> selectors =
+        selectorsMap.putIfAbsent(name, () => new Set<Selector>());
+    if (!selectors.contains(selector)) {
+      selectors.add(selector);
+      handleUnseenSelector(name, selector);
+    }
+  }
+
   void registerInvocation(SourceString methodName, Selector selector) {
     measure(() {
-      Map<SourceString, Set<Selector>> invokedNames =
-        compiler.universe.invokedNames;
-      Set<Selector> selectors =
-        invokedNames.putIfAbsent(methodName, () => new Set<Selector>());
-      if (!selectors.contains(selector)) {
-        selectors.add(selector);
-        handleUnseenInvocation(methodName, selector);
-      }
+      registerNewSelector(methodName, selector, compiler.universe.invokedNames);
     });
   }
 
-  void registerGetter(SourceString methodName) {
+  void registerGetter(SourceString getterName, Selector selector) {
     measure(() {
-      if (!compiler.universe.invokedGetters.contains(methodName)) {
-        compiler.universe.invokedGetters.add(methodName);
-        handleUnseenGetter(methodName);
-      }
+      registerNewSelector(
+          getterName, selector, compiler.universe.invokedGetters);
     });
   }
 
-  void registerSetter(SourceString methodName) {
+  void registerSetter(SourceString setterName, Selector selector) {
     measure(() {
-      if (!compiler.universe.invokedSetters.contains(methodName)) {
-        compiler.universe.invokedSetters.add(methodName);
-        handleUnseenSetter(methodName);
-      }
+      registerNewSelector(
+          setterName, selector, compiler.universe.invokedSetters);
     });
   }
 
@@ -165,40 +157,13 @@ class EnqueueTask extends CompilerTask {
     }
   }
 
-  void handleUnseenInvocation(SourceString methodName, Selector selector) {
+  void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
-      if (member.isGetter()) {
+      if (selector.applies(member, compiler)) {
         compiler.addToWorkList(member);
         return true;
-      } else if (member.isFunction()) {
-        if (selector.applies(member, compiler)) {
-          compiler.addToWorkList(member);
-          return true;
-        }
       }
       return false;
-    });
-  }
-
-  void handleUnseenGetter(SourceString methodName) {
-    processInstanceMembers(methodName, (Element member) {
-      if (member.isGetter() || member.isFunction()) {
-        compiler.addToWorkList(member);
-        return true;
-      } else {
-        return false;
-      }
-    });
-  }
-
-  void handleUnseenSetter(SourceString methodName) {
-    processInstanceMembers(methodName, (Element member) {
-      if (member.isSetter()) {
-        compiler.addToWorkList(member);
-        return true;
-      } else {
-        return false;
-      }
     });
   }
 }
