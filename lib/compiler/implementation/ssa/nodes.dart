@@ -57,6 +57,7 @@ interface HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeGuard(HTypeGuard node);
+  R visitTypeConversion(HTypeConversion node);
 }
 
 class HGraphVisitor {
@@ -310,6 +311,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitInstruction(node);
   visitIs(HIs node) => visitInstruction(node);
+  visitTypeConversion(HTypeConversion node) => visitInstruction(node);
 }
 
 class SubGraph {
@@ -660,6 +662,16 @@ class HBasicBlock extends HInstructionList implements Hashable {
     validator.visitBasicBlock(this);
     return validator.isValid;
   }
+
+  // TODO(ngeoffray): Cache the information if this method ends up
+  // being hot.
+  bool dominates(HBasicBlock other) {
+    do {
+      if (this === other) return true;
+      other = other.dominator;
+    } while (other !== null && other.id >= id);
+    return false;
+  }
 }
 
 
@@ -874,6 +886,24 @@ class HInstruction implements Hashable {
       }
     }
     users.length = length;
+  }
+
+  // Change all uses of [oldInput] by [this] to [newInput]. Also
+  // updates the [usedBy] of [oldInput] and [newInput].
+  void changeUse(HInstruction oldInput, HInstruction newInput) {
+    for (int i = 0; i < inputs.length; i++) {
+      if (inputs[i] === oldInput) {
+        inputs[i] = newInput;
+        newInput.usedBy.add(this);
+      }
+    }
+    List<HInstruction> oldInputUsers = oldInput.usedBy;
+    for (int i = 0; i < oldInputUsers.length; i++) {
+      if (oldInputUsers[i] == this) {
+        oldInputUsers[i] = oldInputUsers[oldInput.usedBy.length - 1];
+        oldInputUsers.length = oldInputUsers.length - 1;
+      }
+    }
   }
 
   bool isConstant() => false;
@@ -2102,6 +2132,25 @@ class HIs extends HInstruction {
   accept(HVisitor visitor) => visitor.visitIs(this);
 
   toString() => "$expression is $typeName";
+}
+
+class HTypeConversion extends HInstruction {
+  HType type;
+
+  HTypeConversion(HType this.type, HInstruction input)
+    : super(<HInstruction>[input]);
+
+  HType get guaranteedType() => type;
+
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
+
+  accept(HVisitor visitor) => visitor.visitTypeConversion(this);
+  int typeCode() => 27;
+  bool typeEquals(other) => other is HTypeConversion;
+  bool dataEquals(HTypeConversion other) => type == other.type;
 }
 
 

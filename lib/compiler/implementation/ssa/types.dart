@@ -5,6 +5,27 @@
 abstract class HType {
   const HType();
 
+  factory HType.fromType(Type type, Compiler compiler) {
+    Element element = type.element;
+    if (element.kind === ElementKind.TYPE_VARIABLE) {
+      compiler.unimplemented("type variables");
+    }
+
+    if (element === compiler.intClass) {
+      return HType.INTEGER;
+    } else if (element === compiler.numClass) {
+      return HType.NUMBER;
+    } else if (element === compiler.doubleClass) {
+      return HType.DOUBLE;
+    } else if (element === compiler.stringClass) {
+      return HType.STRING;
+    } else {
+      // TODO(ngeoffray): Introduce a new HType class for representing
+      // this type.
+      return null;
+    }
+  }
+
   static final HType CONFLICTING = const HAnalysisType("conflicting");
   static final HType UNKNOWN = const HAnalysisType("unknown");
   static final HType BOOLEAN = const HBooleanType();

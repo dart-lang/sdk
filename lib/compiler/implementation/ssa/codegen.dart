@@ -1822,6 +1822,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }
   }
+
+  void visitTypeConversion(HTypeConversion node) {
+    assert(isGenerateAtUseSite(node));
+    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+  }
 }
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {

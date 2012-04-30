@@ -148,7 +148,7 @@ void main() {
     compilerMain(new Options());
   } catch (var exception, var trace) {
     try {
-      print('Internal error: \$exception');
+      print('Internal error: $exception');
     } catch (var ignored) {
       print('Internal error: error while printing exception');
     }

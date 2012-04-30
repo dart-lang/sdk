@@ -21,6 +21,10 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(WorkItem work, HGraph graph) {
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
+          // Run trivial constant folding first to optimize
+          // some patterns useful for type conversion.
+          new SsaConstantFolder(compiler),
+          new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler),
           new SsaCheckInserter(compiler),
           new SsaConstantFolder(compiler),
@@ -136,6 +140,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HConstant constant = input;
       bool isTrue = constant.constant.isTrue();
       return graph.addConstantBool(!isTrue);
+    } else if (input is HNot) {
+      return input.inputs[0];
     }
     return node;
   }
@@ -427,19 +433,23 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         // TODO(floitsch): cache interceptors.
         Interceptors interceptors = compiler.builder.interceptors;
-        Element targetElement = interceptors.getEqualsNullInterceptor();
-        bool onlyUsedInBoolify = allUsersAreBoolifies(node);
-        if (onlyUsedInBoolify) {
-          targetElement = interceptors.getBoolifiedVersionOf(targetElement);
+        Element equalsElement = interceptors.getEqualsInterceptor();
+        // Check that this node has not been optimized already.
+        if (node.element === equalsElement) {
+          Element targetElement = interceptors.getEqualsNullInterceptor();
+          bool onlyUsedInBoolify = allUsersAreBoolifies(node);
+          if (onlyUsedInBoolify) {
+            targetElement = interceptors.getBoolifiedVersionOf(targetElement);
+          }
+          HStatic target = new HStatic(targetElement);
+          node.block.addBefore(node, target);
+          HEquals result = new HEquals(target, node.left, node.right);
+          if (onlyUsedInBoolify) {
+            result.usesBoolifiedInterceptor = true;
+            result.propagatedType = HType.BOOLEAN;
+          }
+          return result;
         }
-        HStatic target = new HStatic(targetElement);
-        node.block.addBefore(node, target);
-        HEquals result = new HEquals(target, node.left, node.right);
-        if (onlyUsedInBoolify) {
-          result.usesBoolifiedInterceptor = true;
-          result.propagatedType = HType.BOOLEAN;
-        }
-        return result;
       }
     }
 
@@ -451,7 +461,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeGuard(HTypeGuard node) {
     HInstruction value = node.guarded;
-    // If the union of the types is still the guarded type than the incoming
+    // If the union of the types is still the guarded type then the incoming
     // type was a subtype of the guarded type, and no check is required.
     HType combinedType = value.propagatedType.union(node.guardedType);
     return (combinedType == value.propagatedType) ? value : node;
@@ -511,6 +521,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
     return node;
+  }
+
+  HInstruction visitTypeConversion(HTypeConversion node) {
+    HInstruction value = node.inputs[0];
+    // If the union of the types is still the input type then
+    // no conversion is required.
+    HType combinedType = value.propagatedType.union(node.propagatedType);
+    return (combinedType == value.propagatedType) ? value : node;
   }
 }
 
@@ -979,6 +997,78 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
       // This is safe because we are running after GVN.
       // TODO(ngeoffray): ensure GVN has been run.
       set_.add(current);
+    }
+  }
+}
+
+class SsaTypeConversionInserter extends HBaseVisitor
+    implements OptimizationPhase {
+  final String name = "SsaTypeconversionInserter";
+  final Compiler compiler;
+
+  SsaTypeConversionInserter(this.compiler);
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  void changeUsesDominatedBy(HBasicBlock dominator,
+                             HInstruction input,
+                             HType convertedType) {
+    HTypeConversion newInput;
+
+    // Update users of [input] that are dominated by [dominator] to
+    // use [newInput] instead.
+    for (HInstruction user in input.usedBy) {
+      if (dominator.dominates(user.block)) {
+        if (newInput === null) {
+          newInput = new HTypeConversion(convertedType, input);
+          dominator.addBefore(dominator.first, newInput);
+        }
+        user.changeUse(input, newInput);
+      }
+    }
+  }
+
+  void visitIs(HIs instruction) {
+    HInstruction input = instruction.expression;
+    List<HInstruction> ifUsers = <HInstruction>[];
+    List<HInstruction> notIfUsers = <HInstruction>[];
+
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HIf) {
+        ifUsers.add(user);
+      } else if (user is HNot) {
+        for (HInstruction notUser in user.usedBy) {
+          if (notUser is HIf) notIfUsers.add(notUser);
+        }
+      }
+    }
+
+    if (ifUsers.isEmpty() && notIfUsers.isEmpty()) return;
+
+    HType convertedType = new HType.fromType(instruction.typeName, compiler);
+    // TODO(ngeoffray): We should always have a HType back.
+    if (convertedType === null) return;
+
+    for (HIf ifUser in ifUsers) {
+      changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
+      // TODO(ngeoffray): Also change uses for the else block on a HType
+      // that knows it is not of a specific Type.
+    }
+
+    for (HIf ifUser in notIfUsers) {
+      if (ifUser.hasElse) {
+        changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
+      } else if (ifUser.joinBlock.predecessors.length == 1) {
+        // If the join block has only one predecessor, then we know
+        // the if block terminates. So any use of the instruction
+        // after the join block should be changed to the new
+        // instruction.
+        changeUsesDominatedBy(ifUser.joinBlock, input, convertedType);
+      }
+      // TODO(ngeoffray): Also change uses for the then block on a HType
+      // that knows it is not of a specific Type.
     }
   }
 }

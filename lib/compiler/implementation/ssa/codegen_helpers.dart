@@ -42,6 +42,10 @@ class SsaInstructionMerger extends HBaseVisitor {
     }
   }
 
+  void visitTypeConversion(HTypeConversion instruction) {
+    generateAtUseSite.add(instruction);
+  }
+
   // The codegen might use the input multiple times, so it must not be
   // set generate at use site.
   void visitIs(HIs instruction) {}
