@@ -310,23 +310,27 @@ class FileTest {
     outStream.write(buffer);
     outStream.onNoPendingWrites = () {
       outStream.close();
-      File file2 = new File(filename);
-      OutputStream appendingOutput =
-          file2.openOutputStream(FileMode.APPEND);
-      appendingOutput.write(buffer);
-      appendingOutput.onNoPendingWrites = () {
-        appendingOutput.close();
-        File file3 = new File(filename);
-        file3.open(FileMode.READ, (RandomAccessFile openedFile) {
-          openedFile.length((int length) {
-            Expect.equals(content.length * 2, length);
-            openedFile.close(() {
-              file3.delete(() {
-                asyncTestDone("testOutputStreamWriteAppend");
+      outStream.onClosed = () {
+        File file2 = new File(filename);
+        OutputStream appendingOutput =
+            file2.openOutputStream(FileMode.APPEND);
+        appendingOutput.write(buffer);
+        appendingOutput.onNoPendingWrites = () {
+          appendingOutput.close();
+          appendingOutput.onClosed = () {
+            File file3 = new File(filename);
+            file3.open(FileMode.READ, (RandomAccessFile openedFile) {
+              openedFile.length((int length) {
+                Expect.equals(content.length * 2, length);
+                openedFile.close(() {
+                  file3.delete(() {
+                    asyncTestDone("testOutputStreamWriteAppend");
+                  });
+                });
               });
             });
-          });
-        });
+          };
+        };
       };
     };
     asyncTestStarted();
