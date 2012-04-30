@@ -68,15 +68,6 @@ class Interceptors {
     return compiler.findHelper(new SourceString(boolifiedName));
   }
 
-  /**
-   * Return an interceptor where the return type is guaranteed.
-   */
-  Element getTypedInterceptor(HType type, SourceString name, int parameters) {
-    String mangledName =
-        "builtin\$${name.slowToString()}\$${parameters}\$$type";
-    return compiler.findHelper(new SourceString(mangledName));
-  }
-
   Element getPrefixOperatorInterceptor(Operator op) {
     String name = op.source.stringValue;
     if (name === '~') {
@@ -2990,6 +2981,8 @@ class SsaBuilder implements Visitor {
  */
 class StringBuilderVisitor extends AbstractVisitor {
   final SsaBuilder builder;
+  final Element stringConcat;
+  final Element stringToString;
 
   /**
    * Offset used for the synthetic operator token used by concat.
@@ -3009,7 +3002,12 @@ class StringBuilderVisitor extends AbstractVisitor {
    */
   HInstruction prefix = null;
 
-  StringBuilderVisitor(this.builder, this.offset);
+  StringBuilderVisitor(builder, this.offset)
+    : this.builder = builder,
+      stringConcat = builder.compiler.findHelper(
+          const SourceString("stringConcat")),
+      stringToString = builder.compiler.findHelper(
+          const SourceString("stringToString"));
 
   void visit(Node node) {
     node.accept(this);
@@ -3023,7 +3021,7 @@ class StringBuilderVisitor extends AbstractVisitor {
     flushLiterals();
     node.accept(builder);
     HInstruction asString = buildToString(node, builder.pop());
-    prefix = concat(prefix, asString);
+    prefix = buildConcat(prefix, asString);
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -3085,54 +3083,25 @@ class StringBuilderVisitor extends AbstractVisitor {
     HInstruction string = builder.graph.addConstantString(literalAccumulator);
     literalAccumulator = new DartString.empty();
     if (prefix !== null) {
-      prefix = concat(prefix, string);
+      prefix = buildConcat(prefix, string);
     } else {
       prefix = string;
     }
   }
 
-  HInstruction concat(HInstruction left, HInstruction right) {
-    SourceString dartMethodName = const SourceString("concat");
-    if (!builder.methodInterceptionEnabled) {
-      builder.compiler.internalError(
-        "Using string interpolations in non-intercepted code.",
-        instruction: right);
-    }
-    Element interceptor =
-        builder.interceptors.getTypedInterceptor(HType.STRING, dartMethodName, 1);
-    if (interceptor === null) {
-      builder.compiler.internalError(
-          "concat not intercepted.", instruction: left);
-    }
-    HStatic target = new HStatic(interceptor);
+  HInstruction buildConcat(HInstruction left, HInstruction right) {
+    HStatic target = new HStatic(stringConcat);
     builder.add(target);
-    builder.push(new HInvokeInterceptor(Selector.INVOCATION_1,
-                                        dartMethodName,
-                                        false,
-                                        <HInstruction>[target, left, right],
-                                        HType.STRING));
+    builder.push(new HAdd(target, left, right));
     return builder.pop();
   }
 
   HInstruction buildToString(Node node, HInstruction input) {
-    SourceString dartMethodName = const SourceString("toString");
-    if (!builder.methodInterceptionEnabled) {
-      builder.compiler.internalError(
-        "Using string interpolations in non-intercepted code.", node: node);
-    }
-    Element interceptor = builder.interceptors.getTypedInterceptor(
-        HType.STRING, dartMethodName, 0);
-    if (interceptor === null) {
-      builder.compiler.internalError(
-        "toString not intercepted.", node: node);
-    }
-    HStatic target = new HStatic(interceptor);
+    HStatic target = new HStatic(stringToString);
     builder.add(target);
-    builder.push(new HInvokeInterceptor(Selector.INVOCATION_0,
-                                        dartMethodName,
-                                        false,
-                                        <HInstruction>[target, input],
-                                        HType.STRING));
+    builder.push(new HInvokeStatic(Selector.INVOCATION_1,
+                                   <HInstruction>[target, input],
+                                   HType.STRING));
     return builder.pop();
   }
 
