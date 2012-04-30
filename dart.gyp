@@ -22,14 +22,16 @@
       ],
     },
     {
-      'target_name': 'sdk',
+      # Build the SDK. This target is separate from upload_sdk as the
+      # editor needs to build the SDK without uploading it.
+      'target_name': 'create_sdk',
       'type': 'none',
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
       ],
       'actions': [
         {
-          'action_name': 'create_sdk',
+          'action_name': 'create_sdk_py',
           'inputs': [
             '<!@(["python", "frog/scripts/list_frog_files.py", "frog"])',
             # TODO(dgrove) - change these to dependencies and add dom
@@ -52,8 +54,19 @@
           ],
           'message': 'Creating SDK.',
         },
+      ],
+    },
+    {
+      # Upload the SDK. This target is separate from create_sdk as the
+      # editor needs to build the SDK without uploading it.
+      'target_name': 'upload_sdk',
+      'type': 'none',
+      'dependencies': [
+        'create_sdk',
+      ],
+      'actions': [
         {
-          'action_name': 'upload_sdk',
+          'action_name': 'upload_sdk_py',
           'inputs': [
             '<(PRODUCT_DIR)/dart-sdk/create.stamp',
             'tools/upload_sdk.py',
