@@ -503,6 +503,8 @@ class CommonBrowserTest(RuntimePerformanceTest):
         results = line.split('<br>')
       else:
         results = line.split('<br />')
+      if results == []:
+        return True
       upload_success = True
       for result in results:
         name_and_score = result.split(':')
@@ -696,7 +698,8 @@ class DromaeoSizeTest(Test):
   def __init__(self, test_runner):
     super(DromaeoSizeTest, self).__init__(
         self.name(),
-        ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
+        ['commandline'], ['dart', 'frog_dom', 'frog_html',
+         'frog_htmlidiomatic'],
         DromaeoTester.DROMAEO_BENCHMARKS.keys(), test_runner, 
         self.DromaeoSizeTester(self),
         self.DromaeoSizeProcessor(self))
