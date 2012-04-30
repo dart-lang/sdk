@@ -102,7 +102,7 @@ dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 request_animation_frame_test: Skip  # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
-cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html
+htmlelement_test: Fail # NoSuchMethodException : method not found: 'isEmpty$0' Receiver: Instance of 'DOMStringMap'
 
 [ $compiler == dart2js && $runtime == drt ]
 indexeddb_3_test: Fail
