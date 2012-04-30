@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Library tag to allow the test to run on Dartium.
+#library('hmac_sha1_test');
+
 // TODO(ager): Replace with "dart:crypto" when ready.
 #import("../../../lib/crypto/crypto.dart");
 

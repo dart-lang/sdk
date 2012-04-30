@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('sha256Test');
+// Library tag to allow Dartium to run the tests.
+#library('sha256_test');
+
 // TODO(ager): Replace with "dart:crypto" when ready.
 #import("../../../lib/crypto/crypto.dart");
 
