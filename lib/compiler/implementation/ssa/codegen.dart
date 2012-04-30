@@ -230,8 +230,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     beginGraph(graph);
     visitBasicBlock(graph.entry);
     if (!delayedVarDecl.isEmpty()) {
-      addIndentation();
-      buffer.add("var ");
+      addIndented("var ");
       while (true) {
         buffer.add(delayedVarDecl.head);
         delayedVarDecl = delayedVarDecl.tail;
@@ -469,22 +468,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void continueAsBreak(LabelElement target) {
-    addIndentation();
-    buffer.add("break ");
+    addIndented("break ");
     writeContinueLabel(target);
     buffer.add(";\n");
   }
 
   void implicitContinueAsBreak(TargetElement target) {
-    addIndentation();
-    buffer.add("break ");
+    addIndented("break ");
     writeImplicitContinueLabel(target);
     buffer.add(";\n");
   }
 
   void implicitBreakWithLabel(TargetElement target) {
-    addIndentation();
-    buffer.add("break ");
+    addIndented("break ");
     writeImplicitLabel(target);
     buffer.add(";\n");
   }
@@ -503,22 +499,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       visitSubGraph(info.condition);
-      addIndentation();
-      buffer.add("if (");
+      addIndented("if (");
       use(condition, JSPrecedence.EXPRESSION_PRECEDENCE);
       buffer.add(") {\n");
       indent++;
       visitSubGraph(info.thenGraph);
       indent--;
-      addIndentation();
-      buffer.add("}");
+      addIndented("}");
       if (info.elseGraph !== null) {
         buffer.add(" else {\n");
         indent++;
         visitSubGraph(info.elseGraph);
         indent--;
-        addIndentation();
-        buffer.add("}");
+        addIndented("}");
       }
       buffer.add("\n");
     }
@@ -533,33 +526,29 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitTryInfo(HTryBlockInformation info) {
-    addIndentation();
-    buffer.add("try {\n");
+    addIndented("try {\n");
     indent++;
     visitSubGraph(info.body);
     indent--;
     buffer.add("}");
     if (info.catchBlock !== null) {
       // Printing the catch part.
-      addIndentation();
       HParameterValue exception = info.catchVariable;
       String name = temporary(exception);
       parameterNames[exception.element] = name;
-      buffer.add('catch ($name) {\n');
+      addIndented('catch ($name) {\n');
       indent++;
       visitSubGraph(info.catchBlock);
       parameterNames.remove(exception.element);
       indent--;
-      addIndentation();
-      buffer.add('}');
+      addIndented('}');
     }
     if (info.finallyBlock != null) {
       buffer.add(" finally {\n");
       indent++;
       visitSubGraph(info.finallyBlock);
       indent--;
-      addIndentation();
-      buffer.add("}");
+      addIndented("}");
     }
     buffer.add("\n");
     visitBasicBlock(info.joinBlock);
@@ -614,8 +603,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             info.updates !== null && isJSExpression(info.updates)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
-          addIndentation();
-          buffer.add("for (");
+          addIndented("for (");
           if (initialization !== null) {
             if (initializationType != TYPE_DECLARATION) {
               visitExpressionGraph(initialization);
@@ -642,8 +630,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           if (initialization !== null) {
             visitSubGraph(initialization);
           }
-          addIndentation();
-          buffer.add("while (");
+          addIndented("while (");
           if (isConditionExpression) {
             visitConditionGraph(condition);
             buffer.add(") {\n");
@@ -652,8 +639,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             buffer.add("true) {\n");
             indent++;
             visitSubGraph(condition);
-            addIndentation();
-            buffer.add("if (!");
+            addIndented("if (!");
             use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
             buffer.add(") break;\n");
           }
@@ -665,8 +651,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           }
           indent--;
         }
-        addIndentation();
-        buffer.add("}\n");
+        addIndented("}\n");
         break;
       }
       case HLoopInformation.DO_WHILE_LOOP: {
@@ -693,15 +678,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         if (isConditionExpression) {
           indent--;
-          addIndentation();
-          buffer.add("} while (");
+          addIndented("} while (");
           visitExpressionGraph(condition);
           buffer.add(");\n");
         } else {
           visitSubGraph(condition);
           indent--;
-          addIndentation();
-          buffer.add("} while (");
+          addIndented("} while (");
           use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add(");\n");
         }
@@ -766,8 +749,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endLabeledBlock(labeledBlockInfo);
 
     indent--;
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
 
     if (labeledBlockInfo.joinBlock !== null) {
       visitBasicBlock(labeledBlockInfo.joinBlock);
@@ -812,8 +794,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       indent++;
       visitSubGraph(info.body);
       indent--;
-      addIndentation();
-      buffer.add("}\n");
+      addIndented("}\n");
       continueAction.remove(info.target);
       for (LabelElement label in info.labels) {
         if (label.isContinueTarget) {
@@ -1073,16 +1054,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.label !== null) {
       LabelElement label = node.label;
       if (!tryCallAction(breakAction, label)) {
-        addIndentation();
-        buffer.add("break ");
+        addIndented("break ");
         writeLabel(label);
         buffer.add(";\n");
       }
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(breakAction, target)) {
-        addIndentation();
-        buffer.add("break;\n");
+        addIndented("break;\n");
       }
     }
   }
@@ -1092,23 +1071,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.label !== null) {
       LabelElement label = node.label;
       if (!tryCallAction(continueAction, label)) {
-        addIndentation();
-        buffer.add("continue ");
+        addIndented("continue ");
         writeLabel(label);
         buffer.add(";\n");
       }
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        addIndentation();
-        buffer.add("continue;\n");
+        addIndented("continue;\n");
       }
     }
   }
 
   visitTry(HTry node) {
-    addIndentation();
-    buffer.add('try {\n');
+    addIndented('try {\n');
     indent++;
     List<HBasicBlock> successors = node.block.successors;
     visitBasicBlock(successors[0]);
@@ -1116,10 +1092,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (node.finallyBlock != successors[1]) {
       // Printing the catch part.
-      addIndentation();
       String name = temporary(node.exception);
       parameterNames[node.exception.element] = name;
-      buffer.add('} catch ($name) {\n');
+      addIndented('} catch ($name) {\n');
       indent++;
       visitBasicBlock(successors[1]);
       parameterNames.remove(node.exception.element);
@@ -1127,14 +1102,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (node.finallyBlock != null) {
-      addIndentation();
-      buffer.add('} finally {\n');
+      addIndented('} finally {\n');
       indent++;
       visitBasicBlock(node.finallyBlock);
       indent--;
     }
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
 
     visitBasicBlock(node.joinBlock);
   }
@@ -1542,6 +1515,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     for (int i = 0; i < indent; i++) {
       buffer.add('  ');
     }
+  }
+
+  void addIndented(String text) {
+    addIndentation();
+    buffer.add(text);
   }
 
   void visitStatic(HStatic node) {
@@ -1981,8 +1959,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endLoop(HBasicBlock block) {
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'while' loop.
+    addIndented('}\n');  // Close 'while' loop.
   }
 
   void handleLoopCondition(HLoopBranch node) {
@@ -1996,13 +1973,11 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endIf(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
   }
 
   void startThen(HIf node) {
-    addIndentation();
-    buffer.add('if (');
+    addIndented('if (');
     use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
     buffer.add(') {\n');
     indent++;
@@ -2013,8 +1988,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startElse(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('} else {\n');
+    addIndented('} else {\n');
     indent++;
   }
 
@@ -2059,11 +2033,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginGraph(HGraph graph) {
     if (!graph.entry.hasGuards()) return;
-    addIndentation();
-    buffer.add('switch (state) {\n');
+    addIndented('switch (state) {\n');
     indent++;
-    addIndentation();
-    buffer.add('case 0:\n');
+    addIndented('case 0:\n');
     indent++;
 
     // The setup phase of a bailout function sets up the environment for
@@ -2076,8 +2048,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     if (!graph.entry.hasGuards()) return;
     indent--; // Close original case.
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'switch'.
+    addIndented('}\n');  // Close 'switch'.
     setup.add('  }\n');
   }
 
@@ -2107,11 +2078,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;
-    addIndentation();
-    buffer.add('case ${node.state}:\n');
+    addIndented('case ${node.state}:\n');
     indent++;
-    addIndentation();
-    buffer.add('state = 0;\n');
+    addIndented('state = 0;\n');
 
     setup.add('    case ${node.state}:\n');
     int i = 0;
@@ -2134,25 +2103,21 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void handleBailoutCase(List<HTypeGuard> guards) {
     for (int i = 0, len = guards.length; i < len; i++) {
-      addIndentation();
-      buffer.add('case ${guards[i].state}:\n');
+      addIndented('case ${guards[i].state}:\n');
     }
   }
 
   void startBailoutSwitch() {
-    addIndentation();
-    buffer.add('switch (state) {\n');
+    addIndented('switch (state) {\n');
     indent++;
-    addIndentation();
-    buffer.add('case 0:\n');
+    addIndented('case 0:\n');
     indent++;
   }
 
   void endBailoutSwitch() {
     indent--; // Close 'case'.
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'switch'.
+    addIndented('}\n');  // Close 'switch'.
   }
 
   void beginLoop(HBasicBlock block) {
@@ -2175,8 +2140,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       startBailoutSwitch();
       if (loopInformation.target !== null) {
         breakAction[loopInformation.target] = (TargetElement target) {
-          addIndentation();
-          buffer.add("break $newLabel;\n");
+          addIndented("break $newLabel;\n");
         };
       }
     }
@@ -2191,8 +2155,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       if (info.target != null) breakAction.remove(info.target);
     }
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'while'.
+    addIndented('}\n');  // Close 'while'.
   }
 
   void handleLoopCondition(HLoopBranch node) {
@@ -2212,15 +2175,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endIf(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
   }
 
   void startThen(HIf node) {
-    addIndentation();
     bool hasGuards = node.thenBlock.hasGuards()
         || (node.hasElse && node.elseBlock.hasGuards());
-    buffer.add('if (');
+    addIndented('if (');
     int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
     if (hasGuards) {
       // TODO(ngeoffray): Put the condition initialization in the
@@ -2251,8 +2212,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startElse(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('} else {\n');
+    addIndented('} else {\n');
     indent++;
     if (node.elseBlock.hasGuards()) {
       startBailoutSwitch();
