@@ -15,7 +15,6 @@
 #import("testing/dart/test_suite.dart");
 
 #import("../tests/co19/test_config.dart");
-#import("../tests/standalone/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 
 /**
@@ -30,6 +29,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'tests/isolate',
   'tests/language',
   'tests/lib',
+  'tests/standalone',
   'tests/utils',
 ];
 
@@ -70,9 +70,6 @@ main() {
     }
 
     var conf = configurationIterator.next();
-    if (selectors.containsKey('standalone')) {
-      queue.addTestSuite(new StandaloneTestSuite(conf));
-    }
     if (selectors.containsKey('co19')) {
       queue.addTestSuite(new Co19TestSuite(conf));
     }
