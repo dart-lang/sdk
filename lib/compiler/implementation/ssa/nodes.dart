@@ -330,9 +330,15 @@ class SubGraph {
 }
 
 class SubExpression extends SubGraph {
-  final HInstruction expression;
-  const SubExpression(HBasicBlock start, HBasicBlock end, this.expression)
+  const SubExpression(HBasicBlock start, HBasicBlock end)
       : super(start, end);
+
+  /** Find the condition expression if this sub-expression is a condition. */
+  HInstruction get conditionExpression() {
+    HInstruction last = end.last;
+    if (last is HConditionalBranch) return last.inputs[0];
+    return null;
+  }
 }
 
 class HInstructionList {
@@ -2163,7 +2169,7 @@ interface HBlockInformationVisitor {
   bool visitLoopInfo(HLoopInformation info);
   bool visitIfInfo(HIfBlockInformation info);
   bool visitAndOrInfo(HAndOrBlockInformation info);
-  bool visitTryBlockInfo(HTryBlockInformation info);
+  bool visitTryInfo(HTryBlockInformation info);
 }
 
 class HLabeledBlockInformation implements HBlockInformation {

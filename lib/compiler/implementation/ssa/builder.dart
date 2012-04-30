@@ -1178,8 +1178,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock conditionExitBlock =
         close(new HLoopBranch(conditionInstruction));
     loopInfo.condition = new SubExpression(conditionBlock,
-                                           conditionExitBlock,
-                                           conditionInstruction);
+                                           conditionExitBlock);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1354,8 +1353,7 @@ class SsaBuilder implements Visitor {
     jumpHandler.close();
 
     loopInfo.body = new SubGraph(bodyEntryBlock, bodyExitBlock);
-    loopInfo.condition = new SubExpression(conditionBlock, conditionEndBlock,
-                                           conditionInstruction);
+    loopInfo.condition = new SubExpression(conditionBlock, conditionEndBlock);
     loopInfo.joinBlock = current;
   }
 
@@ -1413,7 +1411,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock conditionStartBlock = openNewBlock();
     visitCondition();
     SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, lastOpenedBlock, stack.last());
+        new SubExpression(conditionStartBlock, lastOpenedBlock);
     bool hasElse = visitElse != null;
     HInstruction condition = popBoolified();
     HIf branch = new HIf(condition, hasElse);
@@ -1501,7 +1499,7 @@ class SsaBuilder implements Visitor {
       add(condition);
     }
     SubExpression leftGraph =
-        new SubExpression(leftBlock, lastOpenedBlock, boolifiedLeft);
+        new SubExpression(leftBlock, lastOpenedBlock);
     HIf branch = new HIf(condition, false);
     leftBlock = close(branch);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
@@ -1513,7 +1511,7 @@ class SsaBuilder implements Visitor {
     right();
     HInstruction boolifiedRight = popBoolified();
     SubExpression rightGraph =
-        new SubExpression(rightBlock, current, boolifiedRight);
+        new SubExpression(rightBlock, current);
     rightBlock = close(new HGoto());
 
     HBasicBlock joinBlock = addNewBlock();
@@ -2470,7 +2468,7 @@ class SsaBuilder implements Visitor {
     visit(node.condition);
     HIf condition = new HIf(popBoolified(), true);
     SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, current, condition);
+        new SubExpression(conditionStartBlock, current);
     HBasicBlock conditionBlock = close(condition);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 

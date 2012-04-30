@@ -486,7 +486,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitIfInfo(HIfBlockInformation info) {
-    HInstruction condition = info.condition.end.last.inputs[0];
+    HInstruction condition = info.condition.conditionExpression;
     if (condition.isConstant()) {
       // If the condition is constant, only generate one branch (if any).
       HConstant constantCondition = condition;
@@ -640,7 +640,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             indent++;
             visitSubGraph(condition);
             addIndented("if (!");
-            use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+            use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
             buffer.add(") break;\n");
           }
           if (info.updates !== null) {
@@ -685,7 +685,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           visitSubGraph(condition);
           indent--;
           addIndented("} while (");
-          use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+          use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add(");\n");
         }
         break;
@@ -693,7 +693,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       default:
         compiler.internalError(
           'Unexpected loop kind: ${info.kind}',
-          instruction: condition.expression);
+          instruction: condition.conditionExpression);
     }
     visitBasicBlock(info.joinBlock);
     return true;
