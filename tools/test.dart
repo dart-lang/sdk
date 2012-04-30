@@ -56,6 +56,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'tests/isolate',
   'tests/json',
   'tests/language',
+  'tests/lib',
   'tests/utils',
   'utils/tests/css',
   'utils/tests/peg',

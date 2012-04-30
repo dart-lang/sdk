@@ -10,18 +10,18 @@ final _BYTES_PER_WORD = 4;
 
 // Base class encapsulating common behavior for SHA cryptographic hash
 // functions.
-class _SHACryptoHashBase implements CryptoHash {
-  _SHACryptoHashBase(int this._chunkSizeInWords, int this._digestSizeInWords)
+class _SHAHashBase implements Hash {
+  _SHAHashBase(int this._chunkSizeInWords, int this._digestSizeInWords)
       : _pendingData = [] {
     _currentChunk = new List(_chunkSizeInWords);
     _h = new List(_digestSizeInWords);
   }
 
   // Update the hasher with more data.
-  _SHACryptoHashBase update(List<int> data) {
+  _SHAHashBase update(List<int> data) {
     if (_digestCalled) {
-      throw new CryptoHashException(
-          'CryptoHash update method called after digest');
+      throw new HashException(
+          'Hash update method called after digest was retrieved');
     }
     _lengthInBytes += data.length;
     _pendingData.addAll(data);
@@ -32,19 +32,22 @@ class _SHACryptoHashBase implements CryptoHash {
   // Finish the hash computation and return the digest string.
   List<int> digest() {
     if (_digestCalled) {
-      throw new CryptoHashException(
-          'CryptoHash digest method called more than once');
+      return _resultAsBytes();
     }
     _digestCalled = true;
     _finalizeData();
     _iterate();
     assert(_pendingData.length == 0);
-    var result = [];
-    for (var i = 0; i < _h.length; i++) {
-      result.addAll(_wordToBytes(_h[i]));
-    }
-    return result;
+    return _resultAsBytes();
   }
+
+  // Returns the block size of the hash in bytes.
+  int get blockSize() {
+    return _chunkSizeInWords * _BYTES_PER_WORD;
+  }
+
+  // Create a fresh instance of this Hash.
+  abstract newInstance();
 
   // One round of the hash computation.
   abstract _updateHash(List<int> m);
@@ -52,6 +55,15 @@ class _SHACryptoHashBase implements CryptoHash {
   // Helper methods.
   _add32(x, y) => (x + y) & _MASK_32;
   _roundUp(val, n) => (val + n - 1) & -n;
+
+  // Compute the final result as a list of bytes from the hash words.
+  _resultAsBytes() {
+    var result = [];
+    for (var i = 0; i < _h.length; i++) {
+      result.addAll(_wordToBytes(_h[i]));
+    }
+    return result;
+  }
 
   // Converts a list of bytes to a chunk of 32-bit words.
   _bytesToChunk(List<int> data, int dataIndex) {
@@ -108,9 +120,9 @@ class _SHACryptoHashBase implements CryptoHash {
   }
 
   // Hasher state.
+  final int _chunkSizeInWords;
+  final int _digestSizeInWords;
   int _lengthInBytes = 0;
-  int _chunkSizeInWords;
-  int _digestSizeInWords;
   List<int> _pendingData;
   List<int> _currentChunk;
   List<int> _h;
