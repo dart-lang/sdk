@@ -1084,32 +1084,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitTry(HTry node) {
-    addIndented('try {\n');
-    indent++;
-    List<HBasicBlock> successors = node.block.successors;
-    visitBasicBlock(successors[0]);
-    indent--;
-
-    if (node.finallyBlock != successors[1]) {
-      // Printing the catch part.
-      String name = temporary(node.exception);
-      parameterNames[node.exception.element] = name;
-      addIndented('} catch ($name) {\n');
-      indent++;
-      visitBasicBlock(successors[1]);
-      parameterNames.remove(node.exception.element);
-      indent--;
-    }
-
-    if (node.finallyBlock != null) {
-      addIndented('} finally {\n');
-      indent++;
-      visitBasicBlock(node.finallyBlock);
-      indent--;
-    }
-    addIndented('}\n');
-
-    visitBasicBlock(node.joinBlock);
+    // We should never get here. Try/catch/finally is always handled using block
+    // information in [visitTryInfo], or not at all, in the case of the bailout
+    // generator.
+    unreachable();
   }
 
   visitIf(HIf node) {
