@@ -278,7 +278,8 @@ class _FileUtils {
     }
     var result = exists(name);
     if (result is OSError) {
-      throw new FileIOException("Cannot check existence of file", result);
+      throw new FileIOException("Cannot check existence of file '$name'",
+                                result);
     }
     return result;
   }
@@ -289,7 +290,7 @@ class _FileUtils {
     };
     var result = open(name, mode);
     if (result is OSError) {
-      throw new FileIOException("Cannot open file $name", result);
+      throw new FileIOException("Cannot open file '$name'", result);
     }
     return result;
   }
@@ -300,7 +301,7 @@ class _FileUtils {
     };
     var result = create(name);
     if (result is OSError) {
-      throw new FileIOException("Cannot create file", result);
+      throw new FileIOException("Cannot create file '$name'", result);
     }
     return true;
   }
@@ -311,7 +312,7 @@ class _FileUtils {
     };
     var result = delete(name);
     if (result is OSError) {
-      throw new FileIOException("Cannot delete file", result);
+      throw new FileIOException("Cannot delete file '$name'", result);
     }
     return true;
   }
@@ -322,7 +323,8 @@ class _FileUtils {
     };
     var result = fullPath(name);
     if (result is OSError) {
-      throw new FileIOException("Cannot retrieve full path", result);
+      throw new FileIOException(
+          "Cannot retrieve full path for file '$name'", result);
     }
     return result;
   }
@@ -333,7 +335,8 @@ class _FileUtils {
     }
     var result = directory(name);
     if (result is OSError) {
-      throw new FileIOException("Cannot retrieve directory for file", result);
+      throw new FileIOException(
+          "Cannot retrieve directory for file '$name'", result);
     }
     return result;
   }
@@ -344,7 +347,8 @@ class _FileUtils {
     }
     var result = lengthFromName(name);
     if (result is OSError) {
-      throw new FileIOException("Cannot retrieve length of file", result);
+      throw new FileIOException(
+          "Cannot retrieve length of file '$name'", result);
     }
     return result;
   }
@@ -444,7 +448,7 @@ class _File extends _FileBase implements File {
   void createSync() {
     bool created = _FileUtils.checkedCreate(_name);
     if (!created) {
-      throw new FileIOException("Cannot create file: $_name");
+      throw new FileIOException("Cannot create file '$_name'");
     }
   }
 
@@ -455,7 +459,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Cannot delete file");
+        _handleErrorResponse(response, "Cannot delete file '$_name'");
       } else {
         callback();
       }
@@ -513,7 +517,8 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Cannot retrieve length of file");
+        _handleErrorResponse(response,
+                             "Cannot retrieve length of file '$_name'");
       } else {
         callback(response);
       }
@@ -523,7 +528,8 @@ class _File extends _FileBase implements File {
   int lengthSync() {
     var result = _FileUtils.checkedLengthFromName(_name);
     if (result is OSError) {
-      throw new FileIOException("Cannot retrieve length of file", result);
+      throw new FileIOException("Cannot retrieve length of file '$_name'",
+                                result);
     }
     return result;
   }
@@ -682,7 +688,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   void close(void callback()) {
     if (_id == 0) {
-      _reportError(new FileIOException("Cannot close file: $_name"));
+      _reportError(new FileIOException("Cannot close file '$_name'"));
       return;
     }
     _ensureFileService();
@@ -697,7 +703,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
         _id = result;
         callback();
       } else {
-        _reportError(new FileIOException("Cannot close file: $_name"));
+        _reportError(new FileIOException("Cannot close file '$_name'"));
       }
     });
   }
@@ -705,7 +711,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   void closeSync() {
     var id = _FileUtils.close(_id);
     if (id == -1) {
-      throw new FileIOException("Cannot close file: $_name");
+      throw new FileIOException("Cannot close file '$_name'");
     }
     _id = id;
   }
@@ -717,7 +723,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "readByte failed");
+        _handleErrorResponse(response, "readByte failed for file '$_name'");
       } else {
         callback(response);
       }
@@ -728,7 +734,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.readByte(_id);
     if (result is OSError) {
-      throw new FileIOException("readByte failed", result);
+      throw new FileIOException("readByte failed for file '$_name'", result);
     }
     return result;
   }
@@ -737,7 +743,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
                 void callback(int read)) {
     _ensureFileService();
     if (buffer is !List || offset is !int || bytes is !int) {
-      _reportError(new FileIOException("Invalid arguments to readList"));
+      _reportError(new FileIOException(
+          "Invalid arguments to readList for file '$_name'"));
       return;
     };
     List request = new List(3);
@@ -746,7 +753,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = bytes;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "readList failed");
+        _handleErrorResponse(response, "readList failed for file '$_name'");
       } else {
         var read = response[1];
         var data = response[2];
@@ -759,7 +766,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   int readListSync(List<int> buffer, int offset, int bytes) {
     _checkNotClosed();
     if (buffer is !List || offset is !int || bytes is !int) {
-      throw new FileIOException("Invalid arguments to readList");
+      throw new FileIOException(
+          "Invalid arguments to readList for file '$_name'");
     }
     if (bytes == 0) return 0;
     int index =
@@ -769,7 +777,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
     var result = _FileUtils.readList(_id, buffer, offset, bytes);
     if (result is OSError) {
-      throw new FileIOException("readList failed", result);
+      throw new FileIOException("readList failed for file '$_name'",
+                                result);
     }
     return result;
   }
@@ -777,7 +786,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   void writeByte(int value) {
     _ensureFileService();
     if (value is !int) {
-      _reportError(new FileIOException("Invalid argument to writeByte"));
+      _reportError(new FileIOException(
+          "Invalid argument to writeByte for file '$_name'"));
       return;
     }
     List request = new List(3);
@@ -788,7 +798,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _fileService.call(request).then((response) {
       _writeCompleted();
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "writeByte failed");
+        _handleErrorResponse(response, "writeByte failed for file '$_name'");
       }
     });
   }
@@ -796,11 +806,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   int writeByteSync(int value) {
     _checkNotClosed();
     if (value is !int) {
-      throw new FileIOException("Invalid argument to writeByte");
+      throw new FileIOException(
+          "Invalid argument to writeByte for file '$_name'");
     }
     var result = _FileUtils.writeByte(_id, value);
     if (result is OSError) {
-      throw new FileIOException("writeByte failed", result);
+      throw new FileIOException("writeByte failed for file '$_name'",
+                                result);
     }
     return result;
   }
@@ -808,7 +820,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   void writeList(List<int> buffer, int offset, int bytes) {
     _ensureFileService();
     if (buffer is !List || offset is !int || bytes is !int) {
-      _reportError(new FileIOException("Invalid arguments to writeList"));
+      _reportError(new FileIOException(
+          "Invalid arguments to writeList for file '$_name'"));
       return;
     }
 
@@ -827,7 +840,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _fileService.call(request).then((response) {
       _writeCompleted();
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "writeList failed");
+        _handleErrorResponse(response, "writeList failed for file '$_name'");
       }
     });
   }
@@ -835,7 +848,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   int writeListSync(List<int> buffer, int offset, int bytes) {
     _checkNotClosed();
     if (buffer is !List || offset is !int || bytes is !int) {
-      throw new FileIOException("Invalid arguments to writeList");
+      throw new FileIOException(
+          "Invalid arguments to writeList for file '$_name'");
     }
     if (bytes == 0) return 0;
     int index =
@@ -845,7 +859,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
     var result = _FileUtils.writeList(_id, buffer, offset, bytes);
     if (result is OSError) {
-      throw new FileIOException("writeList failed", result);
+      throw new FileIOException("writeList failed for file '$_name'", result);
     }
     return result;
   }
@@ -860,7 +874,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _fileService.call(request).then((response) {
       _writeCompleted();
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "writeString failed");
+        _handleErrorResponse(response, "writeString failed for file '$_name'");
       }
     });
   }
@@ -869,7 +883,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.checkedWriteString(_id, string);
     if (result is OSError) {
-      throw new FileIOException("writeString failed", result);
+      throw new FileIOException("writeString failed for file '$_name'", result);
     }
     return result;
   }
@@ -881,7 +895,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "position failed");
+        _handleErrorResponse(response, "position failed for file '$_name'");
       } else {
         callback(response);
       }
@@ -892,7 +906,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.position(_id);
     if (result is OSError) {
-      throw new FileIOException("position failed", result);
+      throw new FileIOException("position failed for file '$_name'", result);
     }
     return result;
   }
@@ -905,7 +919,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = position;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "setPosition failed");
+        _handleErrorResponse(response, "setPosition failed for file '$_name'");
       } else {
         callback();
       }
@@ -916,7 +930,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.setPosition(_id, position);
     if (result is OSError) {
-      throw new FileIOException("setPosition failed", result);
+      throw new FileIOException("setPosition failed for file '$_name'", result);
     }
   }
 
@@ -928,7 +942,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = length;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "truncate failed");
+        _handleErrorResponse(response, "truncate failed for file '$_name'");
       } else {
         callback();
       }
@@ -939,7 +953,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.truncate(_id, length);
     if (result is OSError) {
-      throw new FileIOException("truncate failed", result);
+      throw new FileIOException("truncate failed for file '$_name'", result);
     }
   }
 
@@ -950,7 +964,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "length failed");
+        _handleErrorResponse(response, "length failed for file '$_name'");
       } else {
         callback(response);
       }
@@ -961,7 +975,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.length(_id);
     if (result is OSError) {
-      throw new FileIOException("length failed", result);
+      throw new FileIOException("length failed for file '$_name'", result);
     }
     return result;
   }
@@ -973,7 +987,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "flush failed");
+        _handleErrorResponse(response, "flush failed for file '$_name'");
       } else {
         callback();
       }
@@ -984,7 +998,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.flush(_id);
     if (result is OSError) {
-      throw new FileIOException("flush failed", result);
+      throw new FileIOException("flush failed for file '$_name'", result);
     }
   }
 
@@ -1022,7 +1036,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   void _checkNotClosed() {
     if (_id == 0) {
-      throw new FileIOException("File closed");
+      throw new FileIOException("File closed '$_name'");
     }
   }
 
