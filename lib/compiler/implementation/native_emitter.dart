@@ -5,7 +5,7 @@
 class NativeEmitter {
 
   Compiler compiler;
-  StringBuffer buffer;
+  StringBuffer nativeBuffer;
 
   // Classes that participate in dynamic dispatch. These are the
   // classes that contain used members.
@@ -37,7 +37,7 @@ class NativeEmitter {
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
-        buffer = new StringBuffer();
+        nativeBuffer = new StringBuffer();
 
   String get dynamicName() {
     Element element = compiler.findHelper(
@@ -73,16 +73,18 @@ class NativeEmitter {
     String quotedNative = classElement.nativeName.slowToString();
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
     String className = compiler.namer.getName(classElement);
-    buffer.add(className);
-    buffer.add(' = ');
-    buffer.add(nativeCode);
-    buffer.add(';\n');
+    nativeBuffer.add(className);
+    nativeBuffer.add(' = ');
+    nativeBuffer.add(nativeCode);
+    nativeBuffer.add(';\n');
 
-    String attachTo(name) => "$className.$name";
+    void defineInstanceMember(String name, String value) {
+      nativeBuffer.add("$className.$name = $value;\n");
+    }
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(member, attachTo, buffer);
+        compiler.emitter.addInstanceMember(member, defineInstanceMember);
       }
     }
   }
@@ -120,21 +122,21 @@ class NativeEmitter {
     String nativeName = toNativeName(classElement);
     bool hasUsedSelectors = false;
 
-    String attachTo(String name) {
+    void defineInstanceMember(String name, String value) {
       hasUsedSelectors = true;
-      return "$dynamicName('$name').$nativeName";
+      nativeBuffer.add("$dynamicName('$name').$nativeName = $value;\n");
     }
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(member, attachTo, buffer);
+        compiler.emitter.addInstanceMember(member, defineInstanceMember);
       }
     }
 
     compiler.emitter.generateTypeTests(classElement, (Element other) {
       assert(requiresNativeIsCheck(other));
-      buffer.add('${attachTo(compiler.namer.operatorIs(other))} = ');
-      buffer.add('function() { return true; };\n');
+      defineInstanceMember(compiler.namer.operatorIs(other),
+                           "function() { return true; }");
     });
 
     if (hasUsedSelectors) classesWithDynamicDispatch.add(classElement);
@@ -160,11 +162,12 @@ class NativeEmitter {
     });
   }
 
-  void emitParameterStub(Element member,
-                         String invocationName,
-                         String stubParameters,
-                         List<String> argumentsBuffer,
-                         int indexOfLastOptionalArgumentInParameters) {
+  String generateParameterStub(Element member,
+                               String invocationName,
+                               String stubParameters,
+                               List<String> argumentsBuffer,
+                               int indexOfLastOptionalArgumentInParameters,
+                               StringBuffer buffer) {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
@@ -206,7 +209,8 @@ class NativeEmitter {
 
   void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty()) return;
-    buffer.add('// ${classesWithDynamicDispatch.length} dynamic classes.\n');
+    nativeBuffer.add(
+        '// ${classesWithDynamicDispatch.length} dynamic classes.\n');
 
     // Build a pre-order traversal over all the classes and their subclasses.
     Set<ClassElement> seen = new Set<ClassElement>();
@@ -227,10 +231,10 @@ class NativeEmitter {
         (cls) => !getDirectSubclasses(cls).isEmpty() &&
                   classesWithDynamicDispatch.contains(cls));
 
-    buffer.add('// ${classes.length} classes\n');
+    nativeBuffer.add('// ${classes.length} classes\n');
     Collection<ClassElement> classesThatHaveSubclasses = classes.filter(
         (ClassElement t) => !getDirectSubclasses(t).isEmpty());
-    buffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
+    nativeBuffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
 
     // Generate code that builds the map from cls tags used in dynamic dispatch
     // to the set of cls tags of classes that extend (TODO: or implement) those
@@ -296,14 +300,14 @@ class NativeEmitter {
     // Write out a thunk that builds the metadata.
 
     if (!tagDefns.isEmpty()) {
-      buffer.add('(function(){\n');
+      nativeBuffer.add('(function(){\n');
 
       for (final String varName in varNames) {
-        buffer.add('  var ${varName} = ${varDefns[varName]};\n');
+        nativeBuffer.add('  var ${varName} = ${varDefns[varName]};\n');
       }
 
-      buffer.add('  var table = [\n');
-      buffer.add(
+      nativeBuffer.add('  var table = [\n');
+      nativeBuffer.add(
           '    // [dynamic-dispatch-tag, '
           'tags of classes implementing dynamic-dispatch-tag]');
       bool needsComma = false;
@@ -312,11 +316,11 @@ class NativeEmitter {
         String clsName = toNativeName(cls);
         entries.add("\n    ['$clsName', ${tagDefns[cls]}]");
       }
-      buffer.add(Strings.join(entries, ','));
-      buffer.add('];\n');
-      buffer.add('$dynamicSetMetadataName(table);\n');
+      nativeBuffer.add(Strings.join(entries, ','));
+      nativeBuffer.add('];\n');
+      nativeBuffer.add('$dynamicSetMetadataName(table);\n');
 
-      buffer.add('})();\n');
+      nativeBuffer.add('})();\n');
     }
   }
 
@@ -371,6 +375,6 @@ class NativeEmitter {
         'function() { return $toStringHelperName(this); });\n');
 
     // Finally, emit the code in the main buffer.
-    targetBuffer.add('(function() {\n$objectProperties$buffer\n})();\n');
+    targetBuffer.add('(function() {\n$objectProperties$nativeBuffer\n})();\n');
   }
 }
