@@ -181,6 +181,7 @@ BENCHMARK(UseDartApi) {
 }
 
 
+#if 0
 //
 // Measure compile of all dart2js(compiler) functions.
 //
@@ -195,7 +196,7 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 
 
 BENCHMARK(Dart2JSCompileAll) {
-  const char* kScriptChars = "#import('../lib/compiler/compiler.dart');";
+  const char* kScriptChars = "#import('lib/compiler/compiler.dart');";
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
@@ -208,6 +209,7 @@ BENCHMARK(Dart2JSCompileAll) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
+#endif
 
 
 //
