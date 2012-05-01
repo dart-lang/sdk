@@ -7,3 +7,6 @@ RunLoop_ExceptionChild: Fail
 
 [ $arch == x64 ]
 IsolateInterrupt: Skip
+
+[ $system == windows ]
+Dart2JSCompileAll: Skip
