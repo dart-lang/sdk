@@ -88,7 +88,7 @@ xhr_test: Fail
 [ $runtime == vm ]
 *: Skip
 
-[ ($compiler == frog || $compiler == dart2js) && $runtime == d8 ]
+[ $compiler == frog && $runtime == d8 ]
 *: Skip
 
 [ $compiler == frog && $runtime == chrome && $system == windows]
@@ -101,10 +101,8 @@ css_test: Pass, Fail # Test is flaky Issue #2823
 [ $compiler == frog && $runtime == none ]
 *: Skip
 
-[ $compiler == dart2js ]
-dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
-
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+dom_isolates_test: Fail # spawnDomIsolate is not implemented.
 request_animation_frame_test: Skip  # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
