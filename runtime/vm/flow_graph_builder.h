@@ -164,8 +164,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                              intptr_t start_index);
 
   // Perform a type check on the given value and return it.
-  Value* BuildAssignableValue(intptr_t node_id,
-                              intptr_t token_index,
+  Value* BuildAssignableValue(intptr_t assignment_node_id,
+                              AstNode* value_node,
                               Value* value,
                               const AbstractType& dst_type,
                               const String& dst_name,
@@ -242,7 +242,10 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
  private:
   // Helper to set the output state to return a Value.
-  virtual void ReturnValue(Value* value) { value_ = value; }
+  virtual void ReturnValue(Value* value) {
+    ASSERT(value->IsUse() || value->IsTemp());
+    value_ = value;
+  }
 
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and returns its temporary value (i.e., set the output
@@ -258,22 +261,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
                                               const Array& literals);
 
   virtual void BuildInstanceOf(ComparisonNode* node);
-};
-
-
-// Translate an AstNode to a control-flow graph fragment for both its effects
-// and value as an outgoing argument.  Implements a function from an AstNode
-// and next temporary index to a graph fragment (as in the
-// EffectGraphBuilder), an updated temporary index, and an intermediate
-// language Value.
-class ArgumentGraphVisitor : public ValueGraphVisitor {
- public:
-  ArgumentGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
-      : ValueGraphVisitor(owner, temp_index) { }
-
- private:
-  // Override the returning of constants to ensure they are materialized.
-  virtual void ReturnValue(Value* value);
 };
 
 
@@ -306,10 +293,6 @@ class TestGraphVisitor : public ValueGraphVisitor {
         condition_node_id_(condition_node_id),
         condition_token_index_(condition_token_index) {
   }
-
-  // Visit functions overridden by this class.
-  virtual void VisitLiteralNode(LiteralNode* node);
-  virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
   TargetEntryInstr** true_successor_address() const {
     ASSERT(true_successor_address_ != NULL);

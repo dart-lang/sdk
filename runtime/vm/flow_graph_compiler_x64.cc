@@ -1226,17 +1226,6 @@ void FlowGraphCompiler::VisitBind(BindInstr* instr) {
 void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   LoadValue(RAX, instr->value());
 
-#ifdef DEBUG
-  // Check that the entry stack size matches the exit stack size.
-  __ movq(R10, RBP);
-  __ subq(R10, RSP);
-  __ cmpq(R10, Immediate(StackSize() * kWordSize));
-  Label stack_ok;
-  __ j(EQUAL, &stack_ok, Assembler::kNearJump);
-  __ Stop("Exit stack size does not match the entry stack size.");
-  __ Bind(&stack_ok);
-#endif  // DEBUG.
-
   if (FLAG_trace_functions) {
     __ pushq(RAX);  // Preserve result.
     const Function& function =
