@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/benchmark_test.h"
+
+#include "bin/file.h"
+
 #include "platform/assert.h"
 
-#include "vm/benchmark_test.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
 #include "vm/unit_test.h"
@@ -13,8 +16,10 @@ namespace dart {
 
 Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
+const char* Benchmark::executable_ = NULL;
 
-void Benchmark::RunAll() {
+void Benchmark::RunAll(const char* executable) {
+  SetExecutable(executable);
   Benchmark* benchmark = first_;
   while (benchmark != NULL) {
     benchmark->RunBenchmark();
@@ -181,10 +186,36 @@ BENCHMARK(UseDartApi) {
 }
 
 
-#if 0
 //
 // Measure compile of all dart2js(compiler) functions.
 //
+static char* ComputeDart2JSPath(const char* arg) {
+  char buffer[2048];
+  char* dart2js_path = strdup(File::GetCanonicalPath(arg));
+  const char* compiler_path = "%s%slib%scompiler%scompiler.dart";
+  const char* path_separator = File::PathSeparator();
+  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
+  char* ptr = strrchr(dart2js_path, *path_separator);
+  while (ptr != NULL) {
+    *ptr = '\0';
+    OS::SNPrint(buffer, 2048, compiler_path,
+                dart2js_path,
+                path_separator,
+                path_separator,
+                path_separator);
+    if (File::Exists(buffer)) {
+      break;
+    }
+    ptr = strrchr(dart2js_path, *path_separator);
+  }
+  if (ptr == NULL) {
+    free(dart2js_path);
+    dart2js_path = NULL;
+  }
+  return dart2js_path;
+}
+
+
 static void func(Dart_NativeArguments args) {
 }
 
@@ -196,10 +227,21 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 
 
 BENCHMARK(Dart2JSCompileAll) {
-  const char* kScriptChars = "#import('lib/compiler/compiler.dart');";
+  char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
+  Dart_Handle import_map;
+  if (dart_root != NULL) {
+    import_map = Dart_NewList(2);
+    Dart_ListSetAt(import_map, 0, Dart_NewString("DART_ROOT"));
+    Dart_ListSetAt(import_map, 1, Dart_NewString(dart_root));
+  } else {
+    import_map = Dart_NewList(0);
+  }
+  const char* kScriptChars =
+      "#import('${DART_ROOT}/lib/compiler/compiler.dart');";
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+      reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver),
+      import_map);
   EXPECT(!Dart_IsError(lib));
   Timer timer(true, "Compile all of dart2js benchmark");
   timer.Start();
@@ -208,8 +250,8 @@ BENCHMARK(Dart2JSCompileAll) {
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
+  free(dart_root);
 }
-#endif
 
 
 //

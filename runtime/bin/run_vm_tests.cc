@@ -79,7 +79,7 @@ static int Main(int argc, const char** argv) {
       run_filter = kList;
       // List all tests and benchmarks and exit without initializing the VM.
       TestCaseBase::RunAll();
-      Benchmark::RunAll();
+      Benchmark::RunAll(argv[0]);
       return 0;
     } else if (strcmp(argv[1], "--all") == 0) {
       run_filter = kAll;
@@ -105,7 +105,7 @@ static int Main(int argc, const char** argv) {
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
   // Apply the filter to all registered benchmarks.
-  Benchmark::RunAll();
+  Benchmark::RunAll(argv[0]);
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     fprintf(stderr, "No tests matched: %s\n", run_filter);

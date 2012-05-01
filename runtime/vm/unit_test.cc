@@ -103,10 +103,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
 
 Dart_Handle TestCase::LoadTestScript(const char* script,
-                                     Dart_NativeEntryResolver resolver) {
+                                     Dart_NativeEntryResolver resolver,
+                                     Dart_Handle import_map) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
-  Dart_Handle import_map = Dart_NewList(0);
   Dart_Handle lib = Dart_LoadScript(url, source, LibraryTagHandler, import_map);
   DART_CHECK_VALID(lib);
   Dart_Handle result = Dart_SetNativeResolver(lib, resolver);
