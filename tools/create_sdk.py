@@ -14,7 +14,11 @@
 # ..dart-sdk/
 # ....bin/
 # ......dart or dart.exe (executable)
+# ......dart.lib (import library for VM native extensions on Windows)
 # ......frogc.dart
+# ....include/
+# ......dart_api.h
+# ......dart_debugger_api.h
 # ....lib/
 # ......builtin/
 # ........builtin_runtime.dart
@@ -108,7 +112,9 @@ def Main(argv):
   BIN = join(SDK_tmp, 'bin')
   os.makedirs(BIN)
 
-  # Copy the Dart VM binary into sdk/bin.
+  # Copy the Dart VM binary, frogc and Windows dart VM link library
+  # into sdk/bin.
+  #
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(argv[1])
   frogc_file_extension = ''
@@ -116,6 +122,9 @@ def Main(argv):
   if utils.GuessOS() == 'win32':
     dart_file_extension = '.exe'
     frogc_file_extension = '.bat'
+    dart_import_lib_src = join(HOME, build_dir, 'dart.lib')
+    dart_import_lib_dest = join(BIN, 'dart.lib')
+    copyfile(dart_import_lib_src, dart_import_lib_dest)
   dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
   frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap',
@@ -137,6 +146,16 @@ def Main(argv):
   frogc_dest.close()
 
   # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart.
+
+  #
+  # Create and populate sdk/include.
+  #
+  INCLUDE = join(SDK_tmp, 'include')
+  os.makedirs(INCLUDE)
+  copyfile(join(HOME, 'runtime', 'include', 'dart_api.h'),
+           join(INCLUDE, 'dart_api.h'))
+  copyfile(join(HOME, 'runtime', 'include', 'dart_debugger_api.h'),
+           join(INCLUDE, 'dart_debugger_api.h'))
 
   #
   # Create and populate sdk/lib.
