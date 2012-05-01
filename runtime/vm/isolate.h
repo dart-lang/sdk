@@ -160,8 +160,12 @@ class Isolate : public BaseIsolate {
   uword spawn_data() const { return spawn_data_; }
   void set_spawn_data(uword value) { spawn_data_ = value; }
 
+  // Deprecate.
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
+
+  intptr_t computation_id() const { return computation_id_; }
+  void set_computation_id(int value) { computation_id_ = value; }
 
   Debugger* debugger() const { return debugger_; }
 
@@ -208,7 +212,8 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
-  intptr_t ast_node_id_;
+  intptr_t ast_node_id_;  // Deprecate.
+  intptr_t computation_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;

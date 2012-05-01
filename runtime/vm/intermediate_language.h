@@ -68,12 +68,27 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 
 class Computation : public ZoneAllocated {
  public:
-  Computation() { }
+  static const int kNoCid = -1;
+
+  Computation() : cid_(GetNextCid()) { }
+
+  // Unique computation/instruction id, used for deoptimization.
+  intptr_t cid() const { return cid_; }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
  private:
+  friend class Instruction;
+  static intptr_t GetNextCid() {
+    Isolate* isolate = Isolate::Current();
+    intptr_t tmp = isolate->computation_id();
+    isolate->set_computation_id(tmp + 1);
+    return tmp;
+  }
+
+  const intptr_t cid_;
+
   DISALLOW_COPY_AND_ASSIGN(Computation);
 };
 
@@ -158,15 +173,13 @@ class ConstantVal: public Value {
 
 class AssertAssignableComp : public Computation {
  public:
-  AssertAssignableComp(intptr_t node_id,
-                       intptr_t token_index,
+  AssertAssignableComp(intptr_t token_index,
                        intptr_t try_index,
                        Value* value,
                        Value* instantiator_type_arguments,  // Can be NULL.
                        const AbstractType& dst_type,
                        const String& dst_name)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         value_(value),
         instantiator_type_arguments_(instantiator_type_arguments),
@@ -179,7 +192,6 @@ class AssertAssignableComp : public Computation {
 
   DECLARE_COMPUTATION(AssertAssignable)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return value_; }
@@ -190,7 +202,6 @@ class AssertAssignableComp : public Computation {
   const String& dst_name() const { return dst_name_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
@@ -204,12 +215,10 @@ class AssertAssignableComp : public Computation {
 
 class AssertBooleanComp : public Computation {
  public:
-  AssertBooleanComp(intptr_t node_id,
-                    intptr_t token_index,
+  AssertBooleanComp(intptr_t token_index,
                     intptr_t try_index,
                     Value* value)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         value_(value) {
     ASSERT(value_ != NULL);
@@ -217,13 +226,11 @@ class AssertBooleanComp : public Computation {
 
   DECLARE_COMPUTATION(AssertBoolean)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return value_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
@@ -297,15 +304,13 @@ class ClosureCallComp : public Computation {
 
 class InstanceCallComp : public Computation {
  public:
-  InstanceCallComp(intptr_t node_id,
-                   intptr_t token_index,
+  InstanceCallComp(intptr_t token_index,
                    intptr_t try_index,
                    const String& function_name,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         function_name_(function_name),
         arguments_(arguments),
@@ -318,7 +323,6 @@ class InstanceCallComp : public Computation {
 
   DECLARE_COMPUTATION(InstanceCall)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
@@ -328,7 +332,6 @@ class InstanceCallComp : public Computation {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   const String& function_name_;
@@ -364,13 +367,11 @@ class StrictCompareComp : public Computation {
 
 class EqualityCompareComp : public Computation {
  public:
-  EqualityCompareComp(intptr_t node_id,
-                      intptr_t token_index,
+  EqualityCompareComp(intptr_t token_index,
                       intptr_t try_index,
                       Value* left,
                       Value* right)
-    : node_id_(node_id),
-      token_index_(token_index),
+    : token_index_(token_index),
       try_index_(try_index),
       left_(left),
       right_(right) {
@@ -380,14 +381,12 @@ class EqualityCompareComp : public Computation {
 
   DECLARE_COMPUTATION(EqualityCompareComp)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* left() const { return left_; }
   Value* right() const { return right_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* left_;
@@ -540,7 +539,6 @@ class StoreInstanceFieldComp : public Computation {
 
   DECLARE_COMPUTATION(StoreInstanceField)
 
-  intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
   const Field& field() const { return ast_node_.field(); }
 
@@ -597,14 +595,12 @@ class StoreStaticFieldComp : public Computation {
 // semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public Computation {
  public:
-  StoreIndexedComp(intptr_t node_id,
-                   intptr_t token_index,
+  StoreIndexedComp(intptr_t token_index,
                    intptr_t try_index,
                    Value* array,
                    Value* index,
                    Value* value)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         array_(array),
         index_(index),
@@ -612,7 +608,6 @@ class StoreIndexedComp : public Computation {
 
   DECLARE_COMPUTATION(StoreIndexed)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* array() const { return array_; }
@@ -620,7 +615,6 @@ class StoreIndexedComp : public Computation {
   Value* value() const { return value_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* array_;
@@ -635,14 +629,12 @@ class StoreIndexedComp : public Computation {
 // semantics: the value operand is preserved before the call.
 class InstanceSetterComp : public Computation {
  public:
-  InstanceSetterComp(intptr_t node_id,
-                     intptr_t token_index,
+  InstanceSetterComp(intptr_t token_index,
                      intptr_t try_index,
                      const String& field_name,
                      Value* receiver,
                      Value* value)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         field_name_(field_name),
         receiver_(receiver),
@@ -650,7 +642,6 @@ class InstanceSetterComp : public Computation {
 
   DECLARE_COMPUTATION(InstanceSetter)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
@@ -658,7 +649,6 @@ class InstanceSetterComp : public Computation {
   Value* value() const { return value_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   const String& field_name_;
@@ -717,15 +707,13 @@ class BooleanNegateComp : public Computation {
 
 class InstanceOfComp : public Computation {
  public:
-  InstanceOfComp(intptr_t node_id,
-                 intptr_t token_index,
+  InstanceOfComp(intptr_t token_index,
                  intptr_t try_index,
                  Value* value,
                  Value* type_arguments,  // Can be NULL.
                  const AbstractType& type,
                  bool negate_result)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         value_(value),
         type_arguments_(type_arguments),
@@ -741,12 +729,10 @@ class InstanceOfComp : public Computation {
   Value* type_arguments() const { return type_arguments_; }
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
@@ -879,7 +865,6 @@ class ExtractFactoryTypeArgumentsComp : public Computation {
     return ast_node_.type_arguments();
   }
   const Function& factory() const { return ast_node_.constructor(); }
-  intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
   intptr_t try_index() const { return try_index_; }
 
@@ -907,7 +892,6 @@ class ExtractConstructorTypeArgumentsComp : public Computation {
     return ast_node_.type_arguments();
   }
   const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
 
  private:
@@ -937,7 +921,6 @@ class ExtractConstructorInstantiatorComp : public Computation {
     return ast_node_.type_arguments();
   }
   const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
 
  private:
@@ -993,18 +976,15 @@ class ChainContextComp : public Computation {
 
 class CloneContextComp : public Computation {
  public:
-  CloneContextComp(intptr_t node_id,
-                   intptr_t token_index,
+  CloneContextComp(intptr_t token_index,
                    intptr_t try_index,
                    Value* context_value)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         context_value_(context_value) {
     ASSERT(context_value_ != NULL);
   }
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* context_value() const { return context_value_; }
@@ -1012,7 +992,6 @@ class CloneContextComp : public Computation {
   DECLARE_COMPUTATION(CloneContext)
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* context_value_;
@@ -1086,7 +1065,11 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() { }
+  Instruction() : cid_(Computation::GetNextCid()) { }
+
+  // Unique computation/instruction id, used for deoptimization, e.g. for
+  // ReturnInstr, ThrowInstr and ReThrowInstr.
+  intptr_t cid() const { return cid_; }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -1126,6 +1109,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
 
  private:
+  const intptr_t cid_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -1396,8 +1380,8 @@ class TuckTempInstr : public Instruction {
 
 class ReturnInstr : public Instruction {
  public:
-  ReturnInstr(intptr_t node_id, intptr_t token_index, Value* value)
-      : node_id_(node_id), token_index_(token_index), value_(value) {
+  ReturnInstr(intptr_t token_index, Value* value)
+      : token_index_(token_index), value_(value) {
     ASSERT(value_ != NULL);
   }
 
@@ -1405,13 +1389,11 @@ class ReturnInstr : public Instruction {
 
   Value* value() const { return value_; }
   intptr_t token_index() const { return token_index_; }
-  intptr_t node_id() const { return node_id_; }
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   Value* value_;
 
@@ -1421,12 +1403,10 @@ class ReturnInstr : public Instruction {
 
 class ThrowInstr : public Instruction {
  public:
-  ThrowInstr(intptr_t node_id,
-             intptr_t token_index,
+  ThrowInstr(intptr_t token_index,
              intptr_t try_index,
              Value* exception)
-      : node_id_(node_id),
-        token_index_(token_index),
+      : token_index_(token_index),
         try_index_(try_index),
         exception_(exception),
         successor_(NULL) {
@@ -1435,7 +1415,6 @@ class ThrowInstr : public Instruction {
 
   DECLARE_INSTRUCTION(Throw)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
@@ -1450,7 +1429,6 @@ class ThrowInstr : public Instruction {
   }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* exception_;
@@ -1462,13 +1440,11 @@ class ThrowInstr : public Instruction {
 
 class ReThrowInstr : public Instruction {
  public:
-  ReThrowInstr(intptr_t node_id,
-              intptr_t token_index,
-              intptr_t try_index,
-              Value* exception,
-              Value* stack_trace)
-      : node_id_(node_id),
-        token_index_(token_index),
+  ReThrowInstr(intptr_t token_index,
+               intptr_t try_index,
+               Value* exception,
+               Value* stack_trace)
+      : token_index_(token_index),
         try_index_(try_index),
         exception_(exception),
         stack_trace_(stack_trace),
@@ -1479,7 +1455,6 @@ class ReThrowInstr : public Instruction {
 
   DECLARE_INSTRUCTION(ReThrow)
 
-  intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
@@ -1495,7 +1470,6 @@ class ReThrowInstr : public Instruction {
   }
 
  private:
-  const intptr_t node_id_;
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* exception_;

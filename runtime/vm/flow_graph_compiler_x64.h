@@ -70,7 +70,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void LoadValue(Register dst, Value* value);
 
   // Emit an instance call.
-  void EmitInstanceCall(intptr_t node_id,
+  void EmitInstanceCall(intptr_t cid,
                         intptr_t token_index,
                         intptr_t try_index,
                         const String& function_name,
@@ -90,12 +90,12 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                     intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
-  void GenerateCallRuntime(intptr_t node_id,
+  void GenerateCallRuntime(intptr_t cid,
                            intptr_t token_index,
                            intptr_t try_index,
                            const RuntimeEntry& entry);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
-                            intptr_t node_id,
+                            intptr_t cid,
                             intptr_t token_index,
                             intptr_t try_index);
 
@@ -103,13 +103,13 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                                 Label* is_instance,
                                 Label* is_not_instance);
 
-  void GenerateAssertAssignable(intptr_t node_id,
+  void GenerateAssertAssignable(intptr_t cid,
                                 intptr_t token_index,
                                 intptr_t try_index,
                                 const AbstractType& dst_type,
                                 const String& dst_name);
 
-  void GenerateInstanceOf(intptr_t node_id,
+  void GenerateInstanceOf(intptr_t cid,
                           intptr_t token_index,
                           intptr_t try_index,
                           const AbstractType& type,

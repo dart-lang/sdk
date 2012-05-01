@@ -135,7 +135,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Build the increment part of an increment operation (add or subtract 1).
   // Consumes the original value and produces the value +/- 1.
   Definition* BuildIncrOpIncrement(Token::Kind kind,
-                                   intptr_t node_id,
                                    intptr_t token_index,
                                    Value* original);
 
@@ -156,16 +155,14 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                         intptr_t start_index);
 
   // Perform a type check on the given value.
-  void BuildAssertAssignable(intptr_t node_id,
-                             intptr_t token_index,
+  void BuildAssertAssignable(intptr_t token_index,
                              Value* value,
                              const AbstractType& dst_type,
                              const String& dst_name,
                              intptr_t start_index);
 
   // Perform a type check on the given value and return it.
-  Value* BuildAssignableValue(intptr_t assignment_node_id,
-                              AstNode* value_node,
+  Value* BuildAssignableValue(AstNode* value_node,
                               Value* value,
                               const AbstractType& dst_type,
                               const String& dst_name,
@@ -279,18 +276,16 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 // We expect that AstNode in test contexts either have only nonlocal exits
 // or else control flow has both true and false successors.
 //
-// The node_id and token_index are used in checked mode to verify that the
+// The cis and token_index are used in checked mode to verify that the
 // condition of the test is of type bool.
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
                    intptr_t temp_index,
-                   intptr_t condition_node_id,
                    intptr_t condition_token_index)
       : ValueGraphVisitor(owner, temp_index),
         true_successor_address_(NULL),
         false_successor_address_(NULL),
-        condition_node_id_(condition_node_id),
         condition_token_index_(condition_token_index) {
   }
 
@@ -303,7 +298,6 @@ class TestGraphVisitor : public ValueGraphVisitor {
     return false_successor_address_;
   }
 
-  intptr_t condition_node_id() const { return condition_node_id_; }
   intptr_t condition_token_index() const { return condition_token_index_; }
 
  private:
@@ -323,7 +317,6 @@ class TestGraphVisitor : public ValueGraphVisitor {
   TargetEntryInstr** true_successor_address_;
   TargetEntryInstr** false_successor_address_;
 
-  intptr_t condition_node_id_;
   intptr_t condition_token_index_;
 };
 
