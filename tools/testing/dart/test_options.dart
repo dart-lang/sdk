@@ -518,7 +518,7 @@ is 'dart file.dart' and you specify special command
       return _expandHelper('runtime', configuration);
     } else {
       // All runtimes eventually go through this path, after expansion.
-      var updater = runtimeUpdater(runtimes);
+      var updater = runtimeUpdater(configuration);
       if (updater !== null) {
         updater.update();
       }

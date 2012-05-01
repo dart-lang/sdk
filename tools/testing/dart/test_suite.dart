@@ -280,7 +280,7 @@ class StandardTestSuite implements TestSuite {
                    [Function onDone = null]) {
     // If DumpRenderTree/Dartium is required, and not yet updated,
     // wait for update.
-    var updater = runtimeUpdater(configuration['runtime']);
+    var updater = runtimeUpdater(configuration);
     if (updater !== null && !updater.updated) {
       Expect.isTrue(updater.isActive);
       updater.onUpdated.add(() {
