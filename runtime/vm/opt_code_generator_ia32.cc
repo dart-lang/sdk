@@ -383,7 +383,10 @@ void OptimizingCodeGenerator::CallDeoptimize(intptr_t node_id,
 
 // Quick loads do not clobber registers.
 static bool IsQuickLoad(AstNode* node) {
-  return node->IsLoadLocalNode() || node->IsLiteralNode();
+  if (node->IsLoadLocalNode() && (!node->AsLoadLocalNode()->HasPseudo())) {
+    return true;
+  }
+  return node->IsLiteralNode();
 }
 
 
@@ -394,7 +397,7 @@ void OptimizingCodeGenerator::VisitLoadOne(AstNode* node, Register reg) {
     __ popl(reg);
     return;
   }
-  if (node->AsLoadLocalNode()) {
+  if (node->IsLoadLocalNode()) {
     LoadLocalNode* local_node = node->AsLoadLocalNode();
     ASSERT(local_node != NULL);
     GenerateLoadVariable(reg, local_node->local());
@@ -407,7 +410,7 @@ void OptimizingCodeGenerator::VisitLoadOne(AstNode* node, Register reg) {
     }
     return;
   }
-  if (node->AsLiteralNode()) {
+  if (node->IsLiteralNode()) {
     LiteralNode* literal_node = node->AsLiteralNode();
     ASSERT(literal_node != NULL);
     __ LoadObject(reg, literal_node->literal());
@@ -483,6 +486,10 @@ void OptimizingCodeGenerator::VisitLiteralNode(LiteralNode* node) {
 
 
 void OptimizingCodeGenerator::VisitLoadLocalNode(LoadLocalNode* node) {
+  if (node->HasPseudo()) {
+    node->pseudo()->Visit(this);
+    __ popl(EAX);
+  }
   if (!IsResultNeeded(node)) return;
   if (IsResultInEaxRequested(node)) {
     GenerateLoadVariable(EAX, node->local());

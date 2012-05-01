@@ -1923,11 +1923,16 @@ void EffectGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
 
 // <Expression> ::= LoadLocal { local: LocalVariable }
 void EffectGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
-  return;
+  if (node->HasPseudo()) {
+    EffectGraphVisitor for_pseudo(owner(), temp_index());
+    node->pseudo()->Visit(&for_pseudo);
+    Append(for_pseudo);
+  }
 }
 
 
 void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
+  EffectGraphVisitor::VisitLoadLocalNode(node);
   LoadLocalComp* load = new LoadLocalComp(node->local(),
                                           owner()->context_level());
   ReturnComputation(load);

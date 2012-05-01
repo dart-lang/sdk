@@ -4429,7 +4429,11 @@ void Parser::ParseStatementSequence() {
     const intptr_t statement_pos = token_index_;
     AstNode* statement = ParseStatement();
     // Do not add statements with no effect (e.g., LoadLocalNode).
-    if (statement != NULL && !statement->IsLoadLocalNode()) {
+    if ((statement != NULL) && statement->IsLoadLocalNode()) {
+      // Skip load local.
+      statement = statement->AsLoadLocalNode()->pseudo();
+    }
+    if (statement != NULL) {
       if (!dead_code_allowed && abrupt_completing_seen) {
         ErrorMsg(statement_pos, "dead code after abrupt completing statement");
       }
@@ -6627,18 +6631,16 @@ AstNode* Parser::ParsePostfixExpr() {
           postfix_expr_pos, postfix_expr->id(), "incoplix");
       AstNode* save =
           new StoreLocalNode(postfix_expr_pos, *temp, postfix_expr);
-      current_block_->statements->Add(save);
-      LoadLocalNode* load = new LoadLocalNode(postfix_expr_pos, *temp);
       Token::Kind binary_op =
           (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
       BinaryOpNode* add = new BinaryOpNode(
           postfix_expr_pos,
           binary_op,
-          load,
+          save,
           new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
       AstNode* store = postfix_expr->MakeAssignmentNode(add);
-      current_block_->statements->Add(store);
-      LoadLocalNode* load_res = new LoadLocalNode(postfix_expr_pos, *temp);
+      LoadLocalNode* load_res =
+          new LoadLocalNode(postfix_expr_pos, *temp, store);
       return load_res;
     } else {
       AstNode* incr_op_node =

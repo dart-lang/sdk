@@ -22,6 +22,9 @@ var result;
 class A {
   get field() { result.add(1); return 1; }
   set field(value) {}
+
+  static get static_field() { result.add(0); return 1; }
+  static set static_field(value) { result.add(1); }
 }
 
 
@@ -66,13 +69,19 @@ class CompoundAssignmentOperatorTest {
 
     sequence(obj().field += 1, middle(), obj().field += 1);
     Expect.listEquals([0, 1, 2, 0, 1, 3], result);
+
+    result = [];
+    sequence(A.static_field++, middle(), A.static_field++);
+    Expect.listEquals([0, 1, 2, 0, 1, 3], result);    
   }
   
 
   static void testMain() {
-    testIndexed();
-    testIndexedMore();
-    testIndexedMoreMore();
+    for (int i = 0; i < 1000; i++) {
+      testIndexed();
+      testIndexedMore();
+      testIndexedMoreMore();
+    }
   }
 }
 

@@ -958,6 +958,10 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
 
 
 void CodeGenerator::VisitLoadLocalNode(LoadLocalNode* node) {
+  if (node->HasPseudo()) {
+    node->pseudo()->Visit(this);
+    __ popl(EAX);  // Discard result.
+  }
   // Load the value of the local variable and push it onto the expression stack.
   if (IsResultNeeded(node)) {
     GeneratePushVariable(node->local(), EAX);
