@@ -2582,8 +2582,11 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   // Restore RSP from RBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   ASSERT(locals_space_size() >= 0);
-  __ movq(RSP, RBP);
-  __ subq(RSP, Immediate(locals_space_size()));
+  if (locals_space_size() == 0) {
+    __ movq(RSP, RBP);
+  } else {
+    __ leaq(RSP, Address(RBP, -locals_space_size()));
+  }
 
   // The JumpToExceptionHandler trampoline code sets up
   // - the exception object in RAX (kExceptionObjectReg)

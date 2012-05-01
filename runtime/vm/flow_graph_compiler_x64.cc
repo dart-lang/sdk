@@ -1140,8 +1140,11 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
   // popping arguments has not been run.
   const intptr_t locals_space_size = StackSize() * kWordSize;
   ASSERT(locals_space_size >= 0);
-  __ movq(RSP, RBP);
-  __ subq(RSP, Immediate(locals_space_size));
+  if (locals_space_size == 0) {
+    __ movq(RSP, RBP);
+  } else {
+    __ leaq(RSP, Address(RBP, -locals_space_size));
+  }
 
   ASSERT(!comp->exception_var().is_captured());
   ASSERT(!comp->stacktrace_var().is_captured());

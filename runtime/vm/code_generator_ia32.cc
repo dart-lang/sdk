@@ -2821,8 +2821,11 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   // Restore ESP from EBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   ASSERT(locals_space_size() >= 0);
-  __ movl(ESP, EBP);
-  __ subl(ESP, Immediate(locals_space_size()));
+  if (locals_space_size() == 0) {
+    __ movl(ESP, EBP);
+  } else {
+    __ leal(ESP, Address(EBP, -locals_space_size()));
+  }
 
   // The JumpToExceptionHandler trampoline code sets up
   // - the exception object in EAX (kExceptionObjectReg)
