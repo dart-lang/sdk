@@ -1148,12 +1148,15 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ movl(Address(ECX,
           InstantiatedTypeArguments::instantiator_type_arguments_offset()),
               EDX);
-      __ LoadObject(EDX,
-          Class::ZoneHandle(Object::instantiated_type_arguments_class()));
+      const Class& ita_cls =
+          Class::ZoneHandle(Object::instantiated_type_arguments_class());
+      __ LoadObject(EDX, ita_cls);
       __ movl(Address(ECX, Instance::class_offset()), EDX);  // Set its class.
       // Set the tags.
-      __ movl(Address(ECX, Instance::tags_offset()),
-              Immediate(RawObject::SizeTag::encode(type_args_size)));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(type_args_size, tags);
+      tags = RawObject::ClassTag::update(ita_cls.index(), tags);
+      __ movl(Address(ECX, Instance::tags_offset()), Immediate(tags));
       // Set the new InstantiatedTypeArguments object (ECX) as the type
       // arguments (EDI) of the new object (EAX).
       __ movl(EDI, ECX);
@@ -1172,7 +1175,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ LoadObject(EDX, cls);  // Load class of object to be allocated.
     __ movl(Address(EAX, Instance::class_offset()), EDX);
     // Set the tags.
-    intptr_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.index() != kIllegalObjectKind);
     tags = RawObject::ClassTag::update(cls.index(), tags);
@@ -1325,7 +1328,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ LoadObject(EDX, cls);  // Load signature class of closure.
     __ movl(Address(EAX, Closure::class_offset()), EDX);
     // Set the tags.
-    intptr_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
     tags = RawObject::ClassTag::update(cls.index(), tags);
     __ movl(Address(EAX, Closure::tags_offset()), Immediate(tags));
@@ -1353,7 +1356,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ LoadObject(EBX, context_class);
       __ movl(Address(ECX, Context::class_offset()), EBX);
       // Set the tags.
-      intptr_t tags = 0;
+      uword tags = 0;
       tags = RawObject::SizeTag::update(context_size, tags);
       tags = RawObject::ClassTag::update(context_class.index(), tags);
       __ movl(Address(ECX, Context::tags_offset()), Immediate(tags));

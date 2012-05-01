@@ -1401,6 +1401,7 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kInstance:
       return Class::New<Instance>();
     default:
+      OS::Print("Class::GetClass kind unknown: %d\n", kind);
       UNREACHABLE();
   }
   return Class::null();
@@ -3159,7 +3160,7 @@ RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
 }
 
 
-void TypeArguments::SetLength(intptr_t value) {
+void TypeArguments::SetLength(intptr_t value) const {
   ASSERT(!IsCanonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
@@ -8653,14 +8654,15 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t used_len = growable_array.Length();
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
-  Array& array = Array::Handle(isolate, growable_array.data());
-  Array& new_array = Array::Handle(isolate, Array::Empty());
+  const Array& array = Array::Handle(isolate, growable_array.data());
+  const Array& new_array = Array::Handle(isolate, Array::Empty());
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;
 
   // Update the size in the header field and length of the array object.
-  uword tags = 0;
+  uword tags = array.raw_ptr()->tags_;
+  ASSERT(kArray == RawObject::ClassTag::decode(tags));
   tags = RawObject::SizeTag::update(used_size, tags);
   array.raw_ptr()->tags_ = tags;
   array.SetLength(used_len);
@@ -8681,9 +8683,11 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // As we have enough space to use an array object, update the leftover
       // space as an Array object.
       RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
-      raw->ptr()->class_ = isolate->object_store()->array_class();
+      const Class& cls = Class::Handle(isolate->object_store()->array_class());
+      raw->ptr()->class_ = cls.raw();
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassTag::update(cls.index(), tags);
       raw->ptr()->tags_ = tags;
       intptr_t leftover_len =
           ((leftover_size - Array::InstanceSize(0)) / kWordSize);
@@ -8693,9 +8697,11 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      raw->ptr()->class_ = isolate->object_store()->object_class();
+      const Class& cls = Class::Handle(isolate->object_store()->object_class());
+      raw->ptr()->class_ = cls.raw();
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassTag::update(cls.index(), tags);
       raw->ptr()->tags_ = tags;
     }
   }

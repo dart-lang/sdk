@@ -261,7 +261,7 @@ class RawObject {
     return result;
   }
 
-  void Validate() const;
+  void Validate(Isolate* isolate) const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
   bool FindObject(FindObjectVisitor* visitor);
 

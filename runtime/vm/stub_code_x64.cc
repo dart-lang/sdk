@@ -1146,12 +1146,15 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ movq(Address(RCX,
           InstantiatedTypeArguments::instantiator_type_arguments_offset()),
               RDX);
-      __ LoadObject(RDX,
-          Class::ZoneHandle(Object::instantiated_type_arguments_class()));
+      const Class& ita_cls =
+          Class::ZoneHandle(Object::instantiated_type_arguments_class());
+      __ LoadObject(RDX, ita_cls);
       __ movq(Address(RCX, Instance::class_offset()), RDX);  // Set its class.
       // Set the tags.
-      __ movq(Address(RCX, Instance::tags_offset()),
-              Immediate(RawObject::SizeTag::encode(type_args_size)));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(type_args_size, tags);
+      tags = RawObject::ClassTag::update(ita_cls.index(), tags);
+      __ movq(Address(RCX, Instance::tags_offset()), Immediate(tags));
       // Set the new InstantiatedTypeArguments object (RCX) as the type
       // arguments (RDI) of the new object (RAX).
       __ movq(RDI, RCX);
@@ -1170,7 +1173,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ LoadObject(RDX, cls);  // Load class of object to be allocated.
     __ movq(Address(RAX, Instance::class_offset()), RDX);
     // Set the tags.
-    intptr_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.index() != kIllegalObjectKind);
     tags = RawObject::ClassTag::update(cls.index(), tags);
@@ -1325,7 +1328,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ LoadObject(R10, cls);  // Load signature class of closure.
     __ movq(Address(RAX, Closure::class_offset()), R10);
     // Set the tags.
-    intptr_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
     tags = RawObject::ClassTag::update(cls.index(), tags);
     __ movq(Address(RAX, Closure::tags_offset()), Immediate(tags));
@@ -1353,7 +1356,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ LoadObject(R13, context_class);
       __ movq(Address(RBX, Context::class_offset()), R13);
       // Set the tags.
-      intptr_t tags = 0;
+      uword tags = 0;
       tags = RawObject::SizeTag::update(context_size, tags);
       tags = RawObject::ClassTag::update(context_class.index(), tags);
       __ movq(Address(RBX, Context::tags_offset()), Immediate(tags));

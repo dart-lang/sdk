@@ -292,7 +292,7 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
   // EAX: new growable array object start as a tagged pointer.
   const Class& cls = Class::Handle(
       isolate->object_store()->growable_object_array_class());
-  intptr_t tags = 0;
+  uword tags = 0;
   tags = RawObject::SizeTag::update(fixed_size, tags);
   tags = RawObject::ClassTag::update(cls.index(), tags);
   __ movl(FieldAddress(EAX, GrowableObjectArray::tags_offset()),

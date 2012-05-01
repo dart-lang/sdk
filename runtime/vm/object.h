@@ -422,7 +422,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
 
-  friend void RawObject::Validate() const;
+  friend void RawObject::Validate(Isolate* isolate) const;
   friend class SnapshotReader;
 
   // Disallow allocation.
@@ -1196,7 +1196,7 @@ class TypeArguments : public AbstractTypeArguments {
   // Make sure that the array size cannot wrap around.
   static const intptr_t kMaxTypes = 512 * 1024 * 1024;
   RawAbstractType** TypeAddr(intptr_t index) const;
-  void SetLength(intptr_t value);
+  void SetLength(intptr_t value) const;
 
   HEAP_OBJECT_IMPLEMENTATION(TypeArguments, AbstractTypeArguments);
   friend class Class;
@@ -3500,7 +3500,7 @@ class Array : public Instance {
     return &raw_ptr()->data()[index];
   }
 
-  void SetLength(intptr_t value) {
+  void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
     raw_ptr()->length_ = Smi::New(value);
@@ -3709,7 +3709,7 @@ class InternalByteArray : public ByteArray {
     return reinterpret_cast<T*>(addr);
   }
 
-  void SetLength(intptr_t value) {
+  void SetLength(intptr_t value) const {
     raw_ptr()->length_ = Smi::New(value);
   }
 
@@ -3779,11 +3779,11 @@ class ExternalByteArray : public ByteArray {
     return reinterpret_cast<T*>(addr);
   }
 
-  void SetLength(intptr_t value) {
+  void SetLength(intptr_t value) const {
     raw_ptr()->length_ = Smi::New(value);
   }
 
-  void SetExternalData(ExternalByteArrayData* data) {
+  void SetExternalData(ExternalByteArrayData* data) const {
     raw_ptr()->external_data_ = data;
   }
 
@@ -3931,7 +3931,7 @@ class JSRegExp : public Instance {
   void set_type(RegExType type) const { raw_ptr()->type_ = type; }
   void set_flags(intptr_t value) const { raw_ptr()->flags_ = value; }
 
-  void SetLength(intptr_t value) {
+  void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
     raw_ptr()->data_length_ = Smi::New(value);

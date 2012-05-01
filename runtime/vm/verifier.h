@@ -22,19 +22,22 @@ DECLARE_FLAG(bool, verify_on_transition);
 
 
 // Forward declarations.
+class Isolate;
 class RawObject;
 
 // A sample object pointer visitor implementation which verifies that
 // the pointers visited are contained in the isolate heap.
 class VerifyPointersVisitor : public ObjectPointerVisitor {
  public:
-  VerifyPointersVisitor() {}
+  explicit VerifyPointersVisitor(Isolate* isolate) : isolate_(isolate) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
   static void VerifyPointers();
 
  private:
+  Isolate* isolate_;
+
   DISALLOW_COPY_AND_ASSIGN(VerifyPointersVisitor);
 };
 

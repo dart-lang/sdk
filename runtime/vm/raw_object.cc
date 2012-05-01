@@ -4,6 +4,7 @@
 
 #include "vm/raw_object.h"
 
+#include "vm/class_table.h"
 #include "vm/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -12,7 +13,9 @@
 
 namespace dart {
 
-void RawObject::Validate() const {
+void RawObject::Validate(Isolate* isolate) const {
+  // Validation only happens in DEBUG builds.
+#if defined(DEBUG)
   if (Object::null_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
     // VM is still being initialized.
@@ -30,8 +33,12 @@ void RawObject::Validate() const {
   ASSERT(raw_class_class->ptr()->instance_kind_ == kClass);
 
   // Validate that the tags_ field is sensible.
-  intptr_t tags = ptr()->tags_;
+  uword tags = ptr()->tags_;
   ASSERT((tags & 0x000000f0) == 0);
+  intptr_t cid = ClassTag::decode(tags);
+  RawClass* tag_class = isolate->class_table()->At(cid);
+  ASSERT(tag_class == raw_class);
+#endif
 }
 
 
@@ -177,7 +184,7 @@ intptr_t RawObject::SizeFromClass() const {
     }
   }
   ASSERT(instance_size != 0);
-  intptr_t tags = ptr()->tags_;
+  uword tags = ptr()->tags_;
   ASSERT((instance_size == SizeTag::decode(tags)) ||
          (SizeTag::decode(tags) == 0) ||
          FreeBit::decode(tags));
