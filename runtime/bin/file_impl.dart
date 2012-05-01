@@ -4,21 +4,21 @@
 
 class _FileInputStream extends _BaseDataInputStream implements InputStream {
   _FileInputStream(String name) {
-    _file = new File(name);
+    var file = new File(name);
     _data = [];
     _position = 0;
-    _file.onError = _reportError;
-    _file.open(FileMode.READ, (openedFile) {
+    file.onError = _reportError;
+    file.open(FileMode.READ, (openedFile) {
       _readDataFromFile(openedFile);
     });
   }
 
   _FileInputStream.fromStdio(int fd) {
     assert(fd == 0);
-    _file = _File._openStdioSync(fd);
+    var file = _File._openStdioSync(fd);
     _data = [];
     _position = 0;
-    _readDataFromFile(_file);
+    _readDataFromFile(file);
   }
 
   void _readDataFromFile(RandomAccessFile openedFile) {
@@ -75,7 +75,6 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     _closed = true;
   }
 
-  File _file;
   List<int> _data;
   int _position;
   bool _closed = false;
