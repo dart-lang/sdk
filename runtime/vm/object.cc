@@ -219,6 +219,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kInstantiatedTypeArgumentsClass: return "InstantiatedTypeArguments";
     case kFunctionClass: return "Function";
     case kFieldClass: return "Field";
+    case kLiteralTokenClass: return "LiteralToken";
     case kTokenStreamClass: return "TokenStream";
     case kScriptClass: return "Script";
     case kLibraryClass: return "Library";
@@ -261,8 +262,9 @@ void Object::InitOnce() {
   {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
-    InitializeObject(address, Instance::InstanceSize());  // Using 'null_'.
-    null_->ptr()->tags_ = 0;
+    InitializeObject(address,
+                     kNullClassIndex,
+                     Instance::InstanceSize());  // Using 'null_'.
   }
 
   // Initialize object_store empty array to null_ in order to be able to check
@@ -272,18 +274,34 @@ void Object::InitOnce() {
   Class& cls = Class::Handle();
 
   // Allocate and initialize the class class.
-  // At this point, class_class_ is still RAW_NULL, i.e. different from 'null_',
-  // since 'null_' is not RAW_NULL anymore. However, class_class_ == null_ must
-  // be true before calling Class::New<Class>(), or it will fail.
-  class_class_ = Class::Handle().raw();  // Set 'class_class_' to 'null_'.
-  cls = Class::New<Class>();
-  cls.set_is_finalized();
-  class_class_ = cls.raw();
-  // Make the class_ field point to itself.
-  class_class_->ptr()->class_ = class_class_;
+  {
+    intptr_t size = Class::InstanceSize();
+    uword address = heap->Allocate(size, Heap::kOld);
+    class_class_ = reinterpret_cast<RawClass*>(address + kHeapObjectTag);
+    InitializeObject(address, Class::kInstanceKind, size);
+    // Make the class_ field point to itself.
+    class_class_->ptr()->class_ = class_class_;
+
+    Class fake;
+    // Initialization from Class::New<Class>.
+    cls = class_class_;
+    cls.set_handle_vtable(fake.vtable());
+    cls.set_instance_size(Class::InstanceSize());
+    cls.set_next_field_offset(Class::InstanceSize());
+    cls.set_instance_kind(Class::kInstanceKind);
+    cls.set_index(Class::kInstanceKind);
+    cls.raw_ptr()->is_const_ = false;
+    cls.raw_ptr()->is_interface_ = false;
+    cls.set_is_finalized();
+    cls.raw_ptr()->type_arguments_instance_field_offset_ =
+        Class::kNoTypeArguments;
+    cls.raw_ptr()->num_native_fields_ = 0;
+    cls.InitEmptyFields();
+    Isolate::Current()->class_table()->Register(cls);
+  }
 
   // Allocate and initialize the null class.
-  cls = Class::New<Instance>();
+  cls = Class::New<Instance>(kNullClassIndex);
   cls.set_is_finalized();
   null_class_ = cls.raw();
 
@@ -309,7 +327,7 @@ void Object::InitOnce() {
   // Therefore, it cannot have a heap allocated name (the name is hard coded,
   // see GetSingletonClassIndex) and its array fields cannot be set to the empty
   // array, but remain null.
-  cls = Class::New<Instance>();
+  cls = Class::New<Instance>(kDynamicClassIndex);
   cls.set_is_finalized();
   cls.set_is_interface();
   dynamic_class_ = cls.raw();
@@ -318,7 +336,7 @@ void Object::InitOnce() {
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
 
-  cls = Class::New<Instance>();
+  cls = Class::New<Instance>(kVoidClassIndex);
   cls.set_is_finalized();
   void_class_ = cls.raw();
 
@@ -584,6 +602,7 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_object_class(cls);
   cls.set_name(String::Handle(String::NewSymbol("Object")));
   cls.set_script(script);
+  cls.set_class_state(RawClass::kPreFinalized);
   core_lib.AddClass(cls);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -749,9 +768,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<ExternalByteArray>();
   object_store->set_external_byte_array_class(cls);
 
-  cls = Class::New<Instance>();
-  object_store->set_object_class(cls);
-
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
 
@@ -805,7 +821,7 @@ void Object::Print() const {
 }
 
 
-void Object::InitializeObject(uword address, intptr_t size) {
+void Object::InitializeObject(uword address, intptr_t index, intptr_t size) {
   // TODO(iposva): Get a proper halt instruction from the assembler which
   // would be needed here for code objects.
   uword initial_value = reinterpret_cast<uword>(null_);
@@ -815,6 +831,11 @@ void Object::InitializeObject(uword address, intptr_t size) {
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
   }
+  uword tags = 0;
+  ASSERT(index != kIllegalObjectKind);
+  tags = RawObject::ClassTag::update(index, tags);
+  tags = RawObject::SizeTag::update(size, tags);
+  reinterpret_cast<RawObject*>(address)->tags_ = tags;
 }
 
 
@@ -835,12 +856,10 @@ RawObject* Object::Allocate(const Class& cls,
     UNREACHABLE();
   }
   NoGCScope no_gc;
-  InitializeObject(address, size);
+  InitializeObject(address, cls.index(), size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
-  uword tags = 0;
-  tags = RawObject::SizeTag::update(size, tags);
-  raw_obj->ptr()->tags_ = tags;
+  ASSERT(cls.index() == RawObject::ClassTag::decode(raw_obj->ptr()->tags_));
   return raw_obj;
 }
 
@@ -894,18 +913,15 @@ RawClass* Class::New() {
                                       Class::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
-    if (class_class.IsNull()) {
-      // Allocating class_class, avoid using uninitialized class vtable.
-      result.raw_ = raw;
-    } else {
-      result ^= raw;
-    }
+    result ^= raw;
   }
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::InstanceSize());
   result.set_instance_kind(FakeObject::kInstanceKind);
+  result.set_index((FakeObject::kInstanceKind != kInstance) ?
+                   FakeObject::kInstanceKind : kIllegalObjectKind);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
   // VM backed classes are almost ready: run checks and resolve class
@@ -915,6 +931,7 @@ RawClass* Class::New() {
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_index_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
+  Isolate::Current()->class_table()->Register(result);
   return result.raw();
 }
 
@@ -1213,10 +1230,7 @@ void Class::SetFields(const Array& value) const {
 
 
 template <class FakeInstance>
-RawClass* Class::New(const String& name,
-                     const Script& script,
-                     intptr_t token_index) {
-  ASSERT(token_index >= 0);
+RawClass* Class::New(intptr_t index) {
   Class& class_class = Class::Handle(Object::class_class());
   Class& result = Class::Handle();
   {
@@ -1232,15 +1246,26 @@ RawClass* Class::New(const String& name,
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_instance_kind(FakeInstance::kInstanceKind);
-  result.set_name(name);
-  result.set_script(script);
-  result.set_token_index(token_index);
+  result.set_index(index);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
   result.raw_ptr()->class_state_ = RawClass::kAllocated;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
+  Isolate::Current()->class_table()->Register(result);
+  return result.raw();
+}
+
+
+template <class FakeInstance>
+RawClass* Class::New(const String& name,
+                     const Script& script,
+                     intptr_t token_index) {
+  Class& result = Class::Handle(New<FakeInstance>(kIllegalObjectKind));
+  result.set_name(name);
+  result.set_script(script);
+  result.set_token_index(token_index);
   return result.raw();
 }
 
@@ -8588,7 +8613,15 @@ RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
 
 void Array::MakeImmutable() const {
   Isolate* isolate = Isolate::Current();
-  raw()->ptr()->class_ = isolate->object_store()->immutable_array_class();
+  const Class& cls = Class::Handle(
+      isolate, isolate->object_store()->immutable_array_class());
+  {
+    NoGCScope no_gc;
+    raw_ptr()->class_ = cls.raw();
+    uword tags = raw_ptr()->tags_;
+    tags = RawObject::ClassTag::update(cls.index(), tags);
+    raw_ptr()->tags_ = tags;
+  }
 }
 
 

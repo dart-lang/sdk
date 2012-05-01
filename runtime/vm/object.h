@@ -373,7 +373,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   RawObject* raw_;  // The raw object reference.
 
  private:
-  static void InitializeObject(uword address, intptr_t size);
+  static void InitializeObject(uword address, intptr_t index, intptr_t size);
 
   cpp_vtable* vtable_address() const {
     uword vtable_addr = reinterpret_cast<uword>(this);
@@ -463,8 +463,13 @@ class Class : public Object {
   }
 
   ObjectKind instance_kind() const { return raw_ptr()->instance_kind_; }
-  void set_instance_kind(ObjectKind value) {
+  void set_instance_kind(ObjectKind value) const {
     raw_ptr()->instance_kind_ = value;
+  }
+
+  intptr_t index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t value) const {
+    raw_ptr()->index_ = value;
   }
 
   RawString* Name() const;
@@ -677,11 +682,6 @@ class Class : public Object {
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
 
-  // Allocate an instance class which has a VM implementation.
-  template <class FakeInstance> static RawClass* New(const String& name,
-                                                     const Script& script,
-                                                     intptr_t token_index);
-
   // Allocate instance classes and interfaces.
   static RawClass* New(const String& name,
                        const Script& script,
@@ -729,6 +729,12 @@ class Class : public Object {
   RawFunction* LookupAccessorFunction(const char* prefix,
                                       intptr_t prefix_length,
                                       const String& name) const;
+
+  // Allocate an instance class which has a VM implementation.
+  template <class FakeInstance> static RawClass* New(intptr_t index);
+  template <class FakeInstance> static RawClass* New(const String& name,
+                                                     const Script& script,
+                                                     intptr_t token_index);
 
   HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class Object;
@@ -3942,7 +3948,12 @@ RawClass* Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  return raw_->ptr()->class_;
+  RawClass* result = raw_->ptr()->class_;
+  ASSERT(result->ptr()->index_ ==
+      RawObject::ClassTag::decode(raw_->ptr()->tags_));
+  ASSERT(Isolate::Current()->class_table()->At(
+      RawObject::ClassTag::decode(raw_->ptr()->tags_)) == result);
+  return result;
 }
 
 

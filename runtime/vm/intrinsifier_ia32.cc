@@ -49,7 +49,8 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ andl(EDI, Immediate(-kObjectAlignment));
 
-  Heap* heap = Isolate::Current()->heap();
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
 
   // EDI: allocation size.
   __ movl(EAX, Address::Absolute(heap->TopAddress()));
@@ -76,12 +77,16 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
     __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
     __ shll(EDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
-    __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&size_tag_overflow);
-    __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));
+    __ movl(EDI, Immediate(0));
     __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+    __ orl(EDI, Immediate(RawObject::ClassTag::encode(cls.index())));
+    __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
 
   // Store class value for array.
@@ -266,7 +271,8 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
   // RoundedAllocationSize(sizeof(RawGrowableObjectArray)) +
   intptr_t fixed_size = GrowableObjectArray::InstanceSize();
 
-  Heap* heap = Isolate::Current()->heap();
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
 
   __ movl(EAX, Address::Absolute(heap->TopAddress()));
   __ leal(EBX, Address(EAX, fixed_size));
@@ -284,8 +290,13 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
 
   // Initialize the tags.
   // EAX: new growable array object start as a tagged pointer.
+  const Class& cls = Class::Handle(
+      isolate->object_store()->growable_object_array_class());
+  intptr_t tags = 0;
+  tags = RawObject::SizeTag::update(fixed_size, tags);
+  tags = RawObject::ClassTag::update(cls.index(), tags);
   __ movl(FieldAddress(EAX, GrowableObjectArray::tags_offset()),
-          Immediate(RawObject::SizeTag::update(fixed_size, 0)));
+          Immediate(tags));
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.

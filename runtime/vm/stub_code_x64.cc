@@ -675,12 +675,15 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ cmpq(RBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
       __ shlq(RBX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
-      __ movq(FieldAddress(RAX, Array::tags_offset()), RBX);
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
-      __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(0));
+      __ movq(RBX, Immediate(0));
       __ Bind(&done);
+
+      // Get the class index and insert it into the tags.
+      __ orq(RBX, Immediate(RawObject::ClassTag::encode(kArray)));
+      __ movq(FieldAddress(RAX, Array::tags_offset()), RBX);
     }
 
     // Initialize all array elements to raw_null.
@@ -996,13 +999,19 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ cmpq(R13, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
       __ shlq(R13, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
-      __ movq(FieldAddress(RAX, Context::tags_offset()), R13);  // Tags.
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
       // Set overflow size tag value.
-      __ movq(FieldAddress(RAX, Context::tags_offset()), Immediate(0));
+      __ movq(R13, Immediate(0));
+
       __ Bind(&done);
+      // RAX: new object.
+      // R10: number of context variables.
+      // R13: size and bit tags.
+      __ orq(R13,
+             Immediate(RawObject::ClassTag::encode(context_class.index())));
+      __ movq(FieldAddress(RAX, Context::tags_offset()), R13);  // Tags.
     }
 
     // Setup up number of context variables field.
@@ -1161,8 +1170,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ LoadObject(RDX, cls);  // Load class of object to be allocated.
     __ movq(Address(RAX, Instance::class_offset()), RDX);
     // Set the tags.
-    __ movq(Address(RAX, Instance::tags_offset()),
-            Immediate(RawObject::SizeTag::encode(instance_size)));
+    intptr_t tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.index() != kIllegalObjectKind);
+    tags = RawObject::ClassTag::update(cls.index(), tags);
+    __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the remaining words of the object.
     const Immediate raw_null =
@@ -1313,8 +1325,10 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ LoadObject(R10, cls);  // Load signature class of closure.
     __ movq(Address(RAX, Closure::class_offset()), R10);
     // Set the tags.
-    __ movq(Address(RAX, Closure::tags_offset()),
-            Immediate(RawObject::SizeTag::encode(closure_size)));
+    intptr_t tags = 0;
+    tags = RawObject::SizeTag::update(closure_size, tags);
+    tags = RawObject::ClassTag::update(cls.index(), tags);
+    __ movq(Address(RAX, Closure::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
     // RAX: new closure object.
@@ -1335,11 +1349,14 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       // Initialize the new context capturing the receiver.
 
       // Set the class field to the Context class.
-      __ LoadObject(R13, Class::ZoneHandle(Object::context_class()));
+      const Class& context_class = Class::ZoneHandle(Object::context_class());
+      __ LoadObject(R13, context_class);
       __ movq(Address(RBX, Context::class_offset()), R13);
       // Set the tags.
-      __ movq(Address(RBX, Context::tags_offset()),
-              Immediate(RawObject::SizeTag::encode(context_size)));
+      intptr_t tags = 0;
+      tags = RawObject::SizeTag::update(context_size, tags);
+      tags = RawObject::ClassTag::update(context_class.index(), tags);
+      __ movq(Address(RBX, Context::tags_offset()), Immediate(tags));
 
       // Set number of variables field to 1 (for captured receiver).
       __ movq(Address(RBX, Context::num_variables_offset()), Immediate(1));

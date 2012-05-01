@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "vm/class_table.h"
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/gc_callbacks.h"
@@ -57,6 +58,8 @@ class Isolate : public BaseIsolate {
                                   bool visit_prologue_weak_persistent_handles);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
+
+  ClassTable* class_table() { return &class_table_; }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
@@ -189,6 +192,7 @@ class Isolate : public BaseIsolate {
 
   static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_;
+  ClassTable class_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   Dart_Port main_port_;

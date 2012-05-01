@@ -680,12 +680,15 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ cmpl(ECX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
       __ shll(ECX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
-      __ movl(FieldAddress(EAX, Array::tags_offset()), ECX);
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
-      __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));
+      __ movl(ECX, Immediate(0));
       __ Bind(&done);
+
+      // Get the class index and insert it into the tags.
+      __ orl(ECX, Immediate(RawObject::ClassTag::encode(kArray)));
+      __ movl(FieldAddress(EAX, Array::tags_offset()), ECX);
     }
 
     // Initialize all array elements to raw_null.
@@ -1000,13 +1003,19 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ cmpl(EBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
       __ shll(EBX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
-      __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
       __ jmp(&done);
 
       __ Bind(&size_tag_overflow);
       // Set overflow size tag value.
-      __ movl(FieldAddress(EAX, Context::tags_offset()), Immediate(0));
+      __ movl(EBX, Immediate(0));
+
       __ Bind(&done);
+      // EAX: new object.
+      // EDX: number of context variables.
+      // EBX: size and bit tags.
+      __ orl(EBX,
+             Immediate(RawObject::ClassTag::encode(context_class.index())));
+      __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
     // Setup up number of context variables field.
@@ -1163,8 +1172,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ LoadObject(EDX, cls);  // Load class of object to be allocated.
     __ movl(Address(EAX, Instance::class_offset()), EDX);
     // Set the tags.
-    __ movl(Address(EAX, Instance::tags_offset()),
-            Immediate(RawObject::SizeTag::encode(instance_size)));
+    intptr_t tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.index() != kIllegalObjectKind);
+    tags = RawObject::ClassTag::update(cls.index(), tags);
+    __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the remaining words of the object.
     const Immediate raw_null =
@@ -1313,8 +1325,10 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ LoadObject(EDX, cls);  // Load signature class of closure.
     __ movl(Address(EAX, Closure::class_offset()), EDX);
     // Set the tags.
-    __ movl(Address(EAX, Closure::tags_offset()),
-            Immediate(RawObject::SizeTag::encode(closure_size)));
+    intptr_t tags = 0;
+    tags = RawObject::SizeTag::update(closure_size, tags);
+    tags = RawObject::ClassTag::update(cls.index(), tags);
+    __ movl(Address(EAX, Closure::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
     // EAX: new closure object.
@@ -1335,11 +1349,14 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       // Initialize the new context capturing the receiver.
 
       // Set the class field to the Context class.
-      __ LoadObject(EBX, Class::ZoneHandle(Object::context_class()));
+      const Class& context_class = Class::ZoneHandle(Object::context_class());
+      __ LoadObject(EBX, context_class);
       __ movl(Address(ECX, Context::class_offset()), EBX);
       // Set the tags.
-      __ movl(Address(ECX, Context::tags_offset()),
-              Immediate(RawObject::SizeTag::encode(context_size)));
+      intptr_t tags = 0;
+      tags = RawObject::SizeTag::update(context_size, tags);
+      tags = RawObject::ClassTag::update(context_class.index(), tags);
+      __ movl(Address(ECX, Context::tags_offset()), Immediate(tags));
 
       // Set number of variables field to 1 (for captured receiver).
       __ movl(Address(ECX, Context::num_variables_offset()), Immediate(1));

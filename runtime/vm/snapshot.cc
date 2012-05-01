@@ -219,7 +219,6 @@ RawClass* SnapshotReader::NewClass(int value) {
     cls_ = Object::class_class();
     RawClass* obj = reinterpret_cast<RawClass*>(
         AllocateUninitialized(cls_, Class::InstanceSize()));
-    obj->ptr()->instance_kind_ = object_kind;
     if (object_kind == kInstance) {
       Instance fake;
       obj->ptr()->handle_vtable_ = fake.vtable();
@@ -227,7 +226,11 @@ RawClass* SnapshotReader::NewClass(int value) {
       Closure fake;
       obj->ptr()->handle_vtable_ = fake.vtable();
     }
-    return obj;
+    cls_ = obj;
+    cls_.set_instance_kind(object_kind);
+    cls_.set_index(kIllegalObjectKind);
+    isolate()->class_table()->Register(cls_);
+    return cls_.raw();
   }
   return Class::GetClass(object_kind);
 }
@@ -363,6 +366,9 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
   uword tags = 0;
+  intptr_t index = cls.index();
+  ASSERT(index != kIllegalObjectKind);
+  tags = RawObject::ClassTag::update(index, tags);
   tags = RawObject::SizeTag::update(size, tags);
   raw_obj->ptr()->tags_ = tags;
   return raw_obj;

@@ -61,7 +61,10 @@ class ObjectStore {
 
   ~ObjectStore();
 
-  RawClass* object_class() const { return object_class_; }
+  RawClass* object_class() const {
+    ASSERT(object_class_ != Object::null());
+    return object_class_;
+  }
   void set_object_class(const Class& value) { object_class_ = value.raw(); }
   static intptr_t object_class_offset() {
     return OFFSET_OF(ObjectStore, object_class_);

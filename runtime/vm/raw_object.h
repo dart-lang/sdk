@@ -85,6 +85,7 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 
 
 enum ObjectKind {
+  kIllegalObjectKind = 0,
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   k##clazz,
 CLASS_LIST(DEFINE_OBJECT_KIND)
@@ -92,7 +93,13 @@ CLASS_LIST(DEFINE_OBJECT_KIND)
   // The following entry does not describe a real object, but instead it
   // identifies free list elements in the heap.
   kFreeListElement,
-  kNumOfObjectKinds = kFreeListElement
+  // The following entries do not describe a real object, but instead are used
+  // to allocate class indexes for pre-allocated instance classes such as the
+  // Null, Void, Dynamic and other similar classes.
+  kNullClassIndex,
+  kDynamicClassIndex,
+  kVoidClassIndex,
+  kNumPredefinedKinds = 100
 };
 
 enum ObjectAlignment {
@@ -160,6 +167,8 @@ class RawObject {
     kReservedBit10M = 7,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
+    kClassTagBit = kSizeTagBit + kSizeTagSize,
+    kClassTagSize = 16
   };
 
   // Encodes the object size in the tag in units of object alignment.
@@ -192,6 +201,8 @@ class RawObject {
       return value << kObjectAlignmentLog2;
     }
   };
+
+  class ClassTag : public BitField<intptr_t, kClassTagBit, kClassTagSize> {};
 
   bool IsHeapObject() const {
     uword value = reinterpret_cast<uword>(this);
@@ -341,6 +352,7 @@ class RawClass : public RawObject {
   cpp_vtable handle_vtable_;
   intptr_t instance_size_;
   ObjectKind instance_kind_;
+  intptr_t index_;  // Index in the class table.
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
   intptr_t next_field_offset_;  // Offset of then next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.

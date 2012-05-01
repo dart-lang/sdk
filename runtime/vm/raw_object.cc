@@ -31,7 +31,7 @@ void RawObject::Validate() const {
 
   // Validate that the tags_ field is sensible.
   intptr_t tags = ptr()->tags_;
-  ASSERT((tags & 0xffff00f0) == 0);
+  ASSERT((tags & 0x000000f0) == 0);
 }
 
 

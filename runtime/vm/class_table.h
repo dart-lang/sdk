@@ -1,0 +1,47 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef VM_CLASS_TABLE_H_
+#define VM_CLASS_TABLE_H_
+
+#include "platform/assert.h"
+#include "platform/globals.h"
+
+namespace dart {
+
+class Class;
+class ObjectPointerVisitor;
+class RawClass;
+
+class ClassTable {
+ public:
+  ClassTable();
+  ~ClassTable();
+
+  RawClass* At(intptr_t index) const {
+    ASSERT(index > 0);
+    ASSERT(index < top_);
+    return table_[index];
+  }
+
+  void Register(const Class& cls);
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  void Print();
+
+ private:
+  static const int initial_capacity_ = 4 * 1024;
+
+  intptr_t top_;
+  intptr_t capacity_;
+
+  RawClass** table_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClassTable);
+};
+
+}  // namespace dart
+
+#endif  // VM_CLASS_TABLE_H_

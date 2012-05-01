@@ -21,6 +21,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
 Isolate* Dart::vm_isolate_ = NULL;
@@ -99,6 +100,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   StubCode::Init(isolate);
   isolate->set_init_callback_data(data);
+  if (FLAG_print_class_table) {
+    isolate->class_table()->Print();
+  }
   return Error::null();
 }
 
