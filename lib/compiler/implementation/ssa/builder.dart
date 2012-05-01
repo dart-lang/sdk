@@ -44,27 +44,18 @@ class Interceptors {
   }
 
   Element getStaticInterceptor(SourceString name, int parameters) {
-    String mangledName = name.slowToString();
-    Element element = compiler.findInterceptor(new SourceString(mangledName));
-    if (element !== null && element.isFunction()) {
-      // Only pick the function element with the short name if the
-      // number of parameters it expects matches the number we're
-      // passing modulo the receiver.
-      FunctionElement function = element;
-      if (function.parameterCount(compiler) == parameters + 1) return element;
-    }
-    String longMangledName = "$mangledName\$$parameters";
-    return compiler.findInterceptor(new SourceString(longMangledName));
+    String mangledName = "builtin\$${name.slowToString()}\$${parameters}";
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getStaticGetInterceptor(SourceString name) {
-    String mangledName = "get\$${name.slowToString()}";
-    return compiler.findInterceptor(new SourceString(mangledName));
+    String mangledName = "builtin\$get\$${name.slowToString()}";
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getStaticSetInterceptor(SourceString name) {
-    String mangledName = "set\$${name.slowToString()}";
-    return compiler.findInterceptor(new SourceString(mangledName));
+    String mangledName = "builtin\$set\$${name.slowToString()}";
+    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getOperatorInterceptor(Operator op) {

@@ -301,19 +301,8 @@ class LibraryElement extends CompilationUnitElement {
     }
   }
 
-  /** Look up a top-level element in this library. The element could
-    * potentially have been imported from another library. Returns
-    * null if no such element exist. */
   Element find(SourceString elementName) {
     return elements[elementName];
-  }
-
-  /** Look up a top-level element in this library, but only look for
-    * non-imported elements. Returns null if no such element exist. */
-  Element findLocal(SourceString elementName) {
-    Element result = elements[elementName];
-    if (result === null || result.getLibrary() != this) return null;
-    return result;
   }
 
   void forEachExport(f(Element element)) {
