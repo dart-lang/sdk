@@ -27,3 +27,11 @@ $!GENERATED_DART_FILES
 DOMWindow get window() native "return window;";
 
 HTMLDocument get document() native "return document;";
+
+// TODO(vsm): Implement these.
+interface LayoutTestController {}
+LayoutTestController layoutTestController;
+
+spawnDomIsolate(Window targetWindow, String entryPoint) {
+  throw const NotImplementedException();
+}

@@ -16,6 +16,14 @@ DOMWindow get window() native "return window;";
 
 HTMLDocument get document() native "return document;";
 
+// TODO(vsm): Implement these.
+interface LayoutTestController {}
+LayoutTestController layoutTestController;
+
+spawnDomIsolate(Window targetWindow, String entryPoint) {
+  throw const NotImplementedException();
+}
+
 class _AbstractWorkerJs extends _EventTargetJs implements AbstractWorker native "*AbstractWorker" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
