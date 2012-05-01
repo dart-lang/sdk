@@ -88,6 +88,8 @@ xhr_test: Fail
 [ $compiler == frog && $runtime == d8 ]
 *: Skip
 
+[ $compiler == frog && $runtime == chrome && $system == windows]
+css_test: Pass, Fail # Test is flaky Issue #2823
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
