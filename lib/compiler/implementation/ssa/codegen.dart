@@ -1758,23 +1758,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIs(HIs node) {
-    Type type = node.typeName;
+    Type type = node.typeExpression;
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
     } else if (element.kind === ElementKind.TYPEDEF) {
       compiler.unimplemented("visitIs for typedefs");
     }
-    compiler.registerIsCheck(element);
+    compiler.registerIsCheck(type.element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
+
     if (node.nullOk) {
       beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
       checkNull(input);
       buffer.add(' || ');
     }
-
     if (element === objectClass || element === compiler.dynamicClass) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
@@ -1807,7 +1807,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, element);
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     }
-
+    if (compiler.universe.rti.hasTypeArguments(type)) {
+      InterfaceType interfaceType = type;
+      ClassElement cls = type.element;
+      Link<Type> arguments = interfaceType.arguments;
+      buffer.add(' && ');
+      checkObject(node.typeInfoCall, '===');
+      cls.typeParameters.forEach((name, _) {
+        buffer.add(' && ');
+        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+        use(node.typeInfoCall, JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(".${name.slowToString()} === '${arguments.head}'");
+        endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      });
+    }
     if (node.nullOk) {
       endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }

@@ -114,6 +114,15 @@ class Interceptors {
   Element getMapMaker() {
     return compiler.findHelper(const SourceString('makeLiteralMap'));
   }
+
+  // TODO(karlklose): move these to different class or rename class?
+  Element getSetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('setRuntimeTypeInfo'));
+  }
+
+  Element getGetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
+  }
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -1779,7 +1788,18 @@ class SsaBuilder implements Visitor {
         typeAnnotation = argument.asSend().receiver;
         isNot = true;
       }
+
       Type type = elements.getType(typeAnnotation);
+      HInstruction typeInfo = null;
+      if (compiler.universe.rti.hasTypeArguments(type)) {
+        HInstruction typeInfoGetter =
+            new HStatic(interceptors.getGetRuntimeTypeInfo());
+        add(typeInfoGetter);
+        typeInfo = new HInvokeStatic(Selector.INVOCATION_1,
+                                     <HInstruction>[typeInfoGetter,
+                                                    expression]);
+        add(typeInfo);
+      }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
         // TODO(karlklose): We emulate the frog behavior and answer
         // true to any is check involving a type variable -- both is T
@@ -1787,7 +1807,12 @@ class SsaBuilder implements Visitor {
         // reified generics.
         stack.add(graph.addConstantBool(true));
       } else {
-        HInstruction instruction = new HIs(type, expression);
+        HInstruction instruction;
+        if (typeInfo !== null) {
+          instruction = new HIs.withTypeInfoCall(type, expression, typeInfo);
+        } else {
+          instruction = new HIs(type, expression);
+        }
         if (isNot) {
           add(instruction);
           instruction = new HNot(instruction);
@@ -2142,20 +2167,74 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  visitStaticSend(Send node) {
+  visitNewSend(Send node) {
+    computeType(element) {
+      Element originalElement = elements[node];
+      if (originalElement.enclosingElement === compiler.listClass) {
+        if (node.arguments.isEmpty()) {
+          return HType.EXTENDABLE_ARRAY;
+        } else {
+          return HType.MUTABLE_ARRAY;
+        }
+      } else if (element.isGenerativeConstructor()) {
+        ClassElement cls = element.enclosingElement;
+        return new HNonPrimitiveType(cls.type);
+      } else {
+        return HType.UNKNOWN;
+      }
+    }
+
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      compiler.resolver.resolveMethodElement(element);
-      FunctionElement functionElement = element;
-      element = functionElement.defaultImplementation;
-    }
+    compiler.resolver.resolveMethodElement(element);
+    FunctionElement functionElement = element;
+    element = functionElement.defaultImplementation;
     HInstruction target = new HStatic(element);
     add(target);
     var inputs = <HInstruction>[];
     inputs.add(target);
-    if (element.kind == ElementKind.FUNCTION ||
-        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+    bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
+                                                  element, inputs);
+    if (!succeeded) {
+      // TODO(ngeoffray): Match the VM behavior and throw an
+      // exception at runtime.
+      compiler.cancel('Unimplemented non-matching static call', node: node);
+    }
+
+    HType elementType = computeType(element);
+    HInstruction newInstance = new HInvokeStatic(selector, inputs, elementType);
+    push(newInstance);
+
+    TypeAnnotation annotation = getTypeAnnotationFromSend(node);
+    Type type = elements.getType(annotation);
+    generateSetRuntimeTypeInformation(newInstance, type);
+  }
+
+  generateSetRuntimeTypeInformation(HInstruction instance, Type type) {
+    if (compiler.universe.rti.hasTypeArguments(type)) {
+      String typeString = compiler.universe.rti.asJsString(type);
+      HInstruction typeInfo = new HForeign(new LiteralDartString(typeString),
+                                           new LiteralDartString('Object'),
+                                           <HInstruction>[]);
+      add(typeInfo);
+      HInstruction typeInfoSetter =
+          new HStatic(interceptors.getSetRuntimeTypeInfo());
+      add(typeInfoSetter);
+      Selector setSelector = Selector.INVOCATION_2;
+      var inputs = <HInstruction>[typeInfoSetter, instance, typeInfo];
+      add(new HInvokeStatic(setSelector, inputs));
+    }
+  }
+
+  visitStaticSend(Send node) {
+    Selector selector = elements.getSelector(node);
+    Element element = elements[node];
+    compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
+    HInstruction target = new HStatic(element);
+    add(target);
+    var inputs = <HInstruction>[];
+    inputs.add(target);
+    if (element.kind == ElementKind.FUNCTION) {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     element, inputs);
       if (!succeeded) {
@@ -2163,20 +2242,7 @@ class SsaBuilder implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      HType type = HType.UNKNOWN;
-      Element originalElement = elements[node];
-      if (originalElement.isGenerativeConstructor()
-          && originalElement.enclosingElement === compiler.listClass) {
-        if (node.arguments.isEmpty()) {
-          type = HType.EXTENDABLE_ARRAY;
-        } else {
-          type = HType.MUTABLE_ARRAY;
-        }
-      } else if (element.isGenerativeConstructor()) {
-        ClassElement cls = element.enclosingElement;
-        type = new HNonPrimitiveType(cls.type);
-      }
-      push(new HInvokeStatic(selector, inputs, type));
+      push(new HInvokeStatic(selector, inputs));
     } else {
       if (element.kind == ElementKind.GETTER) {
         target = new HInvokeStatic(Selector.GETTER, inputs);
@@ -2224,13 +2290,28 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  // TODO(karlklose): share with resolver.
+  TypeAnnotation getTypeAnnotationFromSend(Send send) {
+    if (send.selector is TypeAnnotation) {
+      return send.selector;
+    } else if (send.selector is Send) {
+      Send selector = send.selector;
+      if (selector.receiver is TypeAnnotation) {
+        return selector.receiver;
+      }
+    } else {
+      compiler.internalError("malformed send in new expression");
+    }
+  }
+
   visitNewExpression(NewExpression node) {
     if (node.isConst()) {
+      // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else {
-      visitSend(node.send);
+      visitNewSend(node.send);
     }
   }
 

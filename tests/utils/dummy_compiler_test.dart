@@ -26,6 +26,8 @@ Future<String> provider(Uri uri) {
                   class Closure {}
                   class Dynamic {}
                   class Null {}
+                  getRuntimeTypeInfo(o) {}
+                  setRuntimeTypeInfo(o, i) {}
                   eqNull(a) {}
                   eqNullB(a) {}""";
     } else {

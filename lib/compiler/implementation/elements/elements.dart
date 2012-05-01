@@ -688,7 +688,7 @@ class ClassElement extends ContainerElement {
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
-  Map<SourceString, TypeVariableElement> typeParameters;
+  LinkedHashMap<SourceString, TypeVariableElement> typeParameters;
   bool isResolved = false;
   bool isBeingResolved = false;
   // backendMembers are members that have been added by the backend to simplify
@@ -700,7 +700,7 @@ class ClassElement extends ContainerElement {
   ClassElement(SourceString name, CompilationUnitElement enclosing)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
-      typeParameters = new Map<SourceString, TypeVariableElement>(),
+      typeParameters = new LinkedHashMap<SourceString, TypeVariableElement>(),
       super(name, ElementKind.CLASS, enclosing);
 
   void addMember(Element element, DiagnosticListener listener) {

@@ -34,7 +34,7 @@ class TypeVariableType implements Type {
   Element element;
   TypeVariableType(this.name, [this.element]);
 
-  toString() => name.toString();
+  toString() => name.slowToString();
 }
 
 /**
@@ -62,7 +62,7 @@ class StatementType implements Type {
 
 class InterfaceType implements Type {
   final SourceString name;
-  final Element element;
+  final ClassElement element;
   final Link<Type> arguments;
 
   const InterfaceType(this.name, this.element,

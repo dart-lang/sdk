@@ -1397,3 +1397,13 @@ class Null {
 }
 
 builtin$get$toString(receiver) => () => builtin$toString$0(receiver);
+
+setRuntimeTypeInfo(target, typeInfo) {
+  // We have to check for null because factories may return null.
+  if (target !== null) JS('var', @'#.builtin$typeInfo = #', target, typeInfo);
+}
+
+getRuntimeTypeInfo(target) {
+  if (target === null) return null;
+  return JS('var', @'#.builtin$typeInfo', target);
+}

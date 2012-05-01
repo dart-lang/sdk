@@ -14,6 +14,7 @@ class Universe {
   final Map<String, LibraryElement> libraries;
   // TODO(ngeoffray): This should be a Set<Type>.
   final Set<Element> isChecks;
+  final RuntimeTypeInformation rti;
 
   Universe() : generatedCode = new Map<Element, String>(),
                generatedBailoutCode = new Map<Element, String>(),
@@ -24,7 +25,8 @@ class Universe {
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
-               isChecks = new Set<Element>();
+               isChecks = new Set<Element>(),
+               rti = new RuntimeTypeInformation();
 
   void addGeneratedCode(WorkItem work, String code) {
     generatedCode[work.element] = code;

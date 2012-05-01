@@ -468,7 +468,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitIs(HIs node) {
-    Type type = node.typeName;
+    Type type = node.typeExpression;
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
@@ -1047,7 +1047,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty() && notIfUsers.isEmpty()) return;
 
-    HType convertedType = new HType.fromType(instruction.typeName, compiler);
+    HType convertedType = new HType.fromType(instruction.typeExpression,
+                                             compiler);
     // TODO(ngeoffray): We should always have a HType back.
     if (convertedType === null) return;
 

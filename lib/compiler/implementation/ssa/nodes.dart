@@ -2125,19 +2125,25 @@ class HIndexAssign extends HInvokeStatic {
 }
 
 class HIs extends HInstruction {
-  final Type typeName;
+  final Type typeExpression;
   final bool nullOk;
 
-  HIs(this.typeName, HInstruction expression, [nullOk = false])
-    : this.nullOk = nullOk, super(<HInstruction>[expression]);
+  HIs.withTypeInfoCall(this.typeExpression, HInstruction expression,
+                       HInstruction typeInfo, [this.nullOk = false])
+    : super(<HInstruction>[expression, typeInfo]);
+
+  HIs(this.typeExpression, HInstruction expression, [this.nullOk = false])
+     : super(<HInstruction>[expression]);
 
   HInstruction get expression() => inputs[0];
+
+  HInstruction get typeInfoCall() => inputs[1];
 
   HType get guaranteedType() => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
-  toString() => "$expression is $typeName";
+  toString() => "$expression is $typeExpression";
 }
 
 class HTypeConversion extends HInstruction {
