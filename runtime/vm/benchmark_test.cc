@@ -6,6 +6,7 @@
 
 #include "vm/benchmark_test.h"
 #include "vm/dart_api_impl.h"
+#include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -25,8 +26,12 @@ void Benchmark::RunAll() {
 // Compiler only implemented on IA32 and X64 now.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
+
+//
+// Measure compile of all functions in dart core lib classes.
+//
 BENCHMARK(CorelibCompileAll) {
-  Timer timer(true, "Compile all benchmark");
+  Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
   const Error& error = Error::Handle(benchmark->isolate(),
                                      Library::CompileAll());
@@ -39,6 +44,9 @@ BENCHMARK(CorelibCompileAll) {
 #endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64
 
 
+//
+// Measure creation of core isolate from a snapshot.
+//
 BENCHMARK(CorelibIsolateStartup) {
   const int kNumIterations = 100;
   char* err = NULL;
@@ -67,7 +75,10 @@ BENCHMARK(CorelibIsolateStartup) {
 }
 
 
-void InitNativeFields(Dart_NativeArguments args) {
+//
+// Measure invocation of Dart API functions.
+//
+static void InitNativeFields(Dart_NativeArguments args) {
   Dart_EnterScope();
   int count = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(1, count);
@@ -83,7 +94,7 @@ void InitNativeFields(Dart_NativeArguments args) {
 
 // The specific api functions called here are a bit arbitrary.  We are
 // trying to get a sense of the overhead for using the dart api.
-void UseDartApi(Dart_NativeArguments args) {
+static void UseDartApi(Dart_NativeArguments args) {
   Dart_EnterScope();
   int count = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(3, count);
@@ -166,6 +177,123 @@ BENCHMARK(UseDartApi) {
               args);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
+
+//
+// Measure compile of all dart2js(compiler) functions.
+//
+static void func(Dart_NativeArguments args) {
+}
+
+
+static Dart_NativeFunction NativeResolver(Dart_Handle name,
+                                          int arg_count) {
+  return &func;
+}
+
+
+BENCHMARK(Dart2JSCompileAll) {
+  const char* kScriptChars = "#import('../lib/compiler/compiler.dart');";
+  Dart_Handle lib = TestCase::LoadTestScript(
+      kScriptChars,
+      reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+  EXPECT(!Dart_IsError(lib));
+  Timer timer(true, "Compile all of dart2js benchmark");
+  timer.Start();
+  Dart_Handle result = Dart_CompileAll();
+  EXPECT(!Dart_IsError(result));
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
+
+//
+// Measure frame lookup during stack traversal.
+//
+static void StackFrame_accessFrame(Dart_NativeArguments args) {
+  const int kNumIterations = 100;
+  Dart_EnterScope();
+  Code& code = Code::Handle();
+  Timer timer(true, "LookupDartCode benchmark");
+  timer.Start();
+  for (int i = 0; i < kNumIterations; i++) {
+    StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+    StackFrame* frame = frames.NextFrame();
+    while (frame != NULL) {
+      if (frame->IsStubFrame()) {
+        code ^= frame->LookupDartCode();
+        EXPECT(code.function() == Function::null());
+      } else if (frame->IsDartFrame()) {
+        code ^= frame->LookupDartCode();
+        EXPECT(code.function() != Function::null());
+      }
+      frame = frames.NextFrame();
+    }
+  }
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  Dart_SetReturnValue(args, Dart_NewInteger(elapsed_time));
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction StackFrameNativeResolver(Dart_Handle name,
+                                                    int arg_count) {
+  return &StackFrame_accessFrame;
+}
+
+
+// Unit test case to verify stack frame iteration.
+BENCHMARK(FrameLookup) {
+  const char* kScriptChars =
+      "class StackFrame {"
+      "  static int accessFrame() native \"StackFrame_accessFrame\";"
+      "} "
+      "class First {"
+      "  First() { }"
+      "  int method1(int param) {"
+      "    if (param == 1) {"
+      "      param = method2(200);"
+      "    } else {"
+      "      param = method2(100);"
+      "    }"
+      "    return param;"
+      "  }"
+      "  int method2(int param) {"
+      "    if (param == 200) {"
+      "      return First.staticmethod(this, param);"
+      "    } else {"
+      "      return First.staticmethod(this, 10);"
+      "    }"
+      "  }"
+      "  static int staticmethod(First obj, int param) {"
+      "    if (param == 10) {"
+      "      return obj.method3(10);"
+      "    } else {"
+      "      return obj.method3(200);"
+      "    }"
+      "  }"
+      "  int method3(int param) {"
+      "    return StackFrame.accessFrame();"
+      "  }"
+      "}"
+      "class StackFrameTest {"
+      "  static int testMain() {"
+      "    First obj = new First();"
+      "    return obj.method1(1);"
+      "  }"
+      "}";
+  Dart_Handle lib = TestCase::LoadTestScript(
+      kScriptChars,
+      reinterpret_cast<Dart_NativeEntryResolver>(StackFrameNativeResolver));
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("StackFrameTest"));
+  Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+  int64_t elapsed_time = 0;
+  EXPECT(!Dart_IsError(Dart_IntegerToInt64(result, &elapsed_time)));
   benchmark->set_score(elapsed_time);
 }
 

@@ -375,6 +375,13 @@
       ],
       'sources': [
         'run_vm_tests.cc',
+        'builtin.cc',
+        # Include generated source files.
+        '<(builtin_cc_file)',
+        '<(io_cc_file)',
+        '<(json_cc_file)',
+        '<(uri_cc_file)',
+        '<(utf_cc_file)',
       ],
       'includes': [
         'builtin_impl_sources.gypi',
@@ -387,8 +394,10 @@
       # Only include _test.[cc|h] files.
       'sources/': [
         ['exclude', '\\.(cc|h)$'],
-        ['include', '_test\\.(cc|h)$'],
         ['include', 'run_vm_tests.cc'],
+        ['include', 'builtin.cc'],
+        ['include', '_gen\\.cc$'],
+        ['include', '_test\\.(cc|h)$'],
       ],
       'conditions': [
         ['OS=="win"', {
