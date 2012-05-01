@@ -88,7 +88,7 @@ xhr_test: Fail
 [ $runtime == vm ]
 *: Skip
 
-[ $compiler == frog && $runtime == d8 ]
+[ ($compiler == frog || $compiler == dart2js) && $runtime == d8 ]
 *: Skip
 
 [ $compiler == frog && $runtime == chrome && $system == windows]
