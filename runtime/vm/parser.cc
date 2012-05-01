@@ -5919,10 +5919,8 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
           CreateTempConstVariable(token_index, token_id, "lia");
       AstNode* save =
           new StoreLocalNode(token_index, *temp, load_indexed->array());
-      current_block_->statements->Add(save);
-      AstNode* load = new LoadLocalNode(token_index, *temp);
       load_indexed = new LoadIndexedNode(token_index,
-                                         load,
+                                         save,
                                          load_indexed->index_expr());
     }
     // Second, evaluate the index expression and store in a temporary
@@ -5932,11 +5930,9 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
           CreateTempConstVariable(token_index, token_id, "lix");
       AstNode* save =
           new StoreLocalNode(token_index, *temp, load_indexed->index_expr());
-      current_block_->statements->Add(save);
-      AstNode* load = new LoadLocalNode(token_index, *temp);
       load_indexed = new LoadIndexedNode(token_index,
                                          load_indexed->array(),
-                                         load);
+                                         save);
     }
     return load_indexed;
   }
@@ -5950,9 +5946,7 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
           CreateTempConstVariable(token_index, token_id, "igr");
       AstNode* save =
           new StoreLocalNode(token_index, *temp, getter->receiver());
-      current_block_->statements->Add(save);
-      AstNode* load = new LoadLocalNode(token_index, *temp);
-      getter = new InstanceGetterNode(token_index, load, getter->field_name());
+      getter = new InstanceGetterNode(token_index, save, getter->field_name());
     }
     return getter;
   }
@@ -6037,6 +6031,48 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
 }
 
 
+// A compound assignment consists of a store and a load part. In order
+// to control inputs with potential side effects, the store part stores any
+// side effect creating inputs into locals.
+// Here we convert the inputs if the load local from the StoreLocals to
+// LoadLocals.
+static AstNode* ModifyCompoundAssignmentLoad(AstNode* node) {
+  if (node->IsLoadIndexedNode()) {
+    LoadIndexedNode* load_indexed = node->AsLoadIndexedNode();
+    if (load_indexed->array()->IsStoreLocalNode()) {
+      StoreLocalNode* store = load_indexed->array()->AsStoreLocalNode();
+      LoadLocalNode* load = new LoadLocalNode(store->token_index(),
+                                              store->local());
+      load_indexed = new LoadIndexedNode(load_indexed->token_index(),
+                                         load,
+                                         load_indexed->index_expr());
+    }
+    if (load_indexed->index_expr()->IsStoreLocalNode()) {
+      StoreLocalNode* store = load_indexed->index_expr()->AsStoreLocalNode();
+      LoadLocalNode* load = new LoadLocalNode(store->token_index(),
+                                              store->local());
+      load_indexed = new LoadIndexedNode(load_indexed->token_index(),
+                                         load_indexed->array(),
+                                         load);
+    }
+    return load_indexed;
+  }
+  if (node->IsInstanceGetterNode()) {
+    InstanceGetterNode* getter = node->AsInstanceGetterNode();
+    if (getter->receiver()->IsStoreLocalNode()) {
+      StoreLocalNode* store = getter->receiver()->AsStoreLocalNode();
+      LoadLocalNode* load = new LoadLocalNode(store->token_index(),
+                                              store->local());
+      getter = new InstanceGetterNode(getter->token_index(),
+                                      load,
+                                      getter->field_name());
+    }
+    return getter;
+  }
+  return node;
+}
+
+
 AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   TRACE_PARSER("ParseExpr");
   const intptr_t expr_pos = token_index_;
@@ -6056,12 +6092,15 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const) {
     ErrorMsg(right_expr_pos, "expression must be a compile time constant");
   }
   AstNode* right_expr = ParseExpr(require_compiletime_const);
+  AstNode* left_expr = expr;
   if (assignment_op != Token::kASSIGN) {
-    expr = AsSideEffectFreeNode(expr);
+    // Compound assignment: store inputs with side effects into temp. locals.
+    left_expr = AsSideEffectFreeNode(expr);
+    expr = ModifyCompoundAssignmentLoad(left_expr);
   }
   right_expr =
       ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-  AstNode* assign_expr = expr->MakeAssignmentNode(right_expr);
+  AstNode* assign_expr = left_expr->MakeAssignmentNode(right_expr);
   if (assign_expr == NULL) {
     ErrorMsg(assignment_pos,
              "left hand side of '%s' is not assignable",
@@ -6291,11 +6330,14 @@ AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
     AstNode* value = ParseExpr(kAllowConst);
     AstNode* load_access =
         new InstanceGetterNode(call_pos, receiver, field_name);
+    AstNode* left_load_access = load_access;
     if (assignment_op != Token::kASSIGN) {
-      load_access = AsSideEffectFreeNode(load_access);
+      // Compound assignment: store inputs with side effects into temp. locals.
+      left_load_access = AsSideEffectFreeNode(load_access);
+      load_access = ModifyCompoundAssignmentLoad(left_load_access);
     }
     value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = load_access->MakeAssignmentNode(value);
+    access = left_load_access->MakeAssignmentNode(value);
   } else {
     access = CallGetter(call_pos, receiver, field_name);
   }
