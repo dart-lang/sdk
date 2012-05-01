@@ -442,7 +442,7 @@ class Parser : ValueObject {
                               Token::Kind assignment_op,
                               AstNode* lhs,
                               AstNode* rhs);
-  AstNode* AsSideEffectFreeNode(AstNode* node);
+  AstNode* PrepareCompoundAssignmentNodes(AstNode** expr);
   LocalVariable* CreateTempConstVariable(intptr_t token_index,
                                          intptr_t token_id,
                                          const char* s);

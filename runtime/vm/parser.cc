@@ -5902,58 +5902,6 @@ LocalVariable* Parser::CreateTempConstVariable(intptr_t token_index,
 }
 
 
-// If 'node' can create side effects, store its result in a temporary variable
-// and return a LoadLocalNode instead.
-// Side effect free nodes are LoadLocalNode and LiteralNode.
-AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
-  if (node->IsLoadIndexedNode()) {
-    LoadIndexedNode* load_indexed = node->AsLoadIndexedNode();
-    intptr_t token_id = node->id();
-    intptr_t token_index = node->token_index();
-    node = NULL;  // Do not use it.
-    // The array object access may not have side effects.
-    // First, evaluate the array object expression if it might have side
-    // effects.
-    if (!IsLocalOrLiteralNode(load_indexed->array())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_index, token_id, "lia");
-      AstNode* save =
-          new StoreLocalNode(token_index, *temp, load_indexed->array());
-      load_indexed = new LoadIndexedNode(token_index,
-                                         save,
-                                         load_indexed->index_expr());
-    }
-    // Second, evaluate the index expression and store in a temporary
-    // variable if it might have side effects.
-    if (!IsLocalOrLiteralNode(load_indexed->index_expr())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_index, token_id, "lix");
-      AstNode* save =
-          new StoreLocalNode(token_index, *temp, load_indexed->index_expr());
-      load_indexed = new LoadIndexedNode(token_index,
-                                         load_indexed->array(),
-                                         save);
-    }
-    return load_indexed;
-  }
-  if (node->IsInstanceGetterNode()) {
-    InstanceGetterNode* getter = node->AsInstanceGetterNode();
-    intptr_t token_index = node->token_index();
-    intptr_t token_id = node->id();
-    node = NULL;  // Do not use it.
-    if (!IsLocalOrLiteralNode(getter->receiver())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_index, token_id, "igr");
-      AstNode* save =
-          new StoreLocalNode(token_index, *temp, getter->receiver());
-      getter = new InstanceGetterNode(token_index, save, getter->field_name());
-    }
-    return getter;
-  }
-  return node;
-}
-
-
 // TODO(srdjan): Implement other optimizations.
 AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
                                       Token::Kind binary_op,
@@ -6033,43 +5981,66 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
 
 // A compound assignment consists of a store and a load part. In order
 // to control inputs with potential side effects, the store part stores any
-// side effect creating inputs into locals.
-// Here we convert the inputs if the load local from the StoreLocals to
-// LoadLocals.
-static AstNode* ModifyCompoundAssignmentLoad(AstNode* node) {
+// side effect creating inputs into locals. The load part reads then from
+// those locals. If expr may have side effects, it will be split into two new
+// left and right nodes. 'expr' becomes the right node, left node is returned as
+// result.
+AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
+  AstNode* node = *expr;
   if (node->IsLoadIndexedNode()) {
-    LoadIndexedNode* load_indexed = node->AsLoadIndexedNode();
-    if (load_indexed->array()->IsStoreLocalNode()) {
-      StoreLocalNode* store = load_indexed->array()->AsStoreLocalNode();
-      LoadLocalNode* load = new LoadLocalNode(store->token_index(),
-                                              store->local());
-      load_indexed = new LoadIndexedNode(load_indexed->token_index(),
-                                         load,
-                                         load_indexed->index_expr());
+    LoadIndexedNode* left_node = node->AsLoadIndexedNode();
+    LoadIndexedNode* right_node = left_node;
+    intptr_t node_id = node->id();
+    intptr_t token_index = node->token_index();
+    node = NULL;  // Do not use it.
+    if (!IsLocalOrLiteralNode(left_node->array())) {
+      LocalVariable* temp =
+          CreateTempConstVariable(token_index, node_id, "lia");
+      StoreLocalNode* save =
+          new StoreLocalNode(token_index, *temp, left_node->array());
+      left_node =
+          new LoadIndexedNode(token_index, save, left_node->index_expr());
+      right_node = new LoadIndexedNode(token_index,
+                                       new LoadLocalNode(token_index, *temp),
+                                       right_node->index_expr());
     }
-    if (load_indexed->index_expr()->IsStoreLocalNode()) {
-      StoreLocalNode* store = load_indexed->index_expr()->AsStoreLocalNode();
-      LoadLocalNode* load = new LoadLocalNode(store->token_index(),
-                                              store->local());
-      load_indexed = new LoadIndexedNode(load_indexed->token_index(),
-                                         load_indexed->array(),
-                                         load);
+    if (!IsLocalOrLiteralNode(left_node->index_expr())) {
+      LocalVariable* temp =
+          CreateTempConstVariable(token_index, node_id, "lix");
+      StoreLocalNode* save =
+          new StoreLocalNode(token_index, *temp, left_node->index_expr());
+      left_node = new LoadIndexedNode(token_index,
+                                      left_node->array(),
+                                      save);
+      right_node = new LoadIndexedNode(token_index,
+                                       right_node->array(),
+                                       new LoadLocalNode(token_index, *temp));
     }
-    return load_indexed;
+    *expr = right_node;
+    return left_node;
   }
   if (node->IsInstanceGetterNode()) {
-    InstanceGetterNode* getter = node->AsInstanceGetterNode();
-    if (getter->receiver()->IsStoreLocalNode()) {
-      StoreLocalNode* store = getter->receiver()->AsStoreLocalNode();
-      LoadLocalNode* load = new LoadLocalNode(store->token_index(),
-                                              store->local());
-      getter = new InstanceGetterNode(getter->token_index(),
-                                      load,
-                                      getter->field_name());
+    InstanceGetterNode* left_node = node->AsInstanceGetterNode();
+    InstanceGetterNode* right_node = left_node;
+    intptr_t node_id = node->id();
+    intptr_t token_index = node->token_index();
+    node = NULL;  // Do not use it.
+    if (!IsLocalOrLiteralNode(left_node->receiver())) {
+      LocalVariable* temp =
+          CreateTempConstVariable(token_index, node_id, "igr");
+      StoreLocalNode* save =
+          new StoreLocalNode(token_index, *temp, left_node->receiver());
+      left_node = new InstanceGetterNode(token_index,
+                                         save,
+                                         left_node->field_name());
+      right_node = new InstanceGetterNode(token_index,
+                                          new LoadLocalNode(token_index, *temp),
+                                          right_node->field_name());
     }
-    return getter;
+    *expr = right_node;
+    return left_node;
   }
-  return node;
+  return *expr;
 }
 
 
@@ -6095,8 +6066,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   AstNode* left_expr = expr;
   if (assignment_op != Token::kASSIGN) {
     // Compound assignment: store inputs with side effects into temp. locals.
-    left_expr = AsSideEffectFreeNode(expr);
-    expr = ModifyCompoundAssignmentLoad(left_expr);
+    left_expr = PrepareCompoundAssignmentNodes(&expr);
   }
   right_expr =
       ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
@@ -6333,8 +6303,7 @@ AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
     AstNode* left_load_access = load_access;
     if (assignment_op != Token::kASSIGN) {
       // Compound assignment: store inputs with side effects into temp. locals.
-      left_load_access = AsSideEffectFreeNode(load_access);
-      load_access = ModifyCompoundAssignmentLoad(left_load_access);
+      left_load_access = PrepareCompoundAssignmentNodes(&load_access);
     }
     value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
     access = left_load_access->MakeAssignmentNode(value);
