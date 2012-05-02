@@ -1343,10 +1343,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    // This method may introduce variable declarations in the JS code.
-    // If we are generating an expression, those variable declarations
-    // must be delayed until later.
-    bool delayDeclaration = false;
     String name;
     if (node.receiver !== null) {
       name =
@@ -1361,7 +1357,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       name = JsNames.getValid(node.element.name.slowToString());
       declareVariable(name);
     }
-    if (delayDeclaration) delayedVarDecl = delayedVarDecl.prepend(name);
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
     if (node.receiver !== null) {
