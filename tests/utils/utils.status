@@ -32,9 +32,6 @@ dummy_compiler_test: Fail # Issue 2264.
 [ $compiler == dartc ]
 dummy_compiler_test: Fail # Issue 2263.
 
-[ $compiler == dart2js ]
-yaml_test: Skip # Issue 2717.
-
 [ $compiler == dart2js && $runtime == drt ]
 *: Skip
 
