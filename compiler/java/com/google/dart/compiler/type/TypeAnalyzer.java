@@ -1378,16 +1378,24 @@ public class TypeAnalyzer implements DartCompilationPhase {
           // Check for cases when property has no setter or getter.
           if (fieldElement.getModifiers().isAbstractField() && enclosingClass != null) {
             // Check for using field without getter in other operation that assignment.
-            if (inGetterContext && getter == null
-                && Elements.lookupFieldElementGetter(enclosingClass, name) == null) {
-              return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
+            if (inGetterContext) {
+              if (getter == null) {
+                getter = Elements.lookupFieldElementGetter(enclosingClass, name);
+                if (getter == null) {
+                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
+                }
+              }
+              node.setElement(getter);
             }
             // Check for using field without setter in some assignment variant.
-            if (inSetterContext && setter == null
-                && Elements.lookupFieldElementSetter(enclosingClass, name) == null) {
-                return typeError(node.getName(),
-                                 TypeErrorCode.FIELD_HAS_NO_SETTER,
-                                 node.getName());
+            if (inSetterContext) {
+                if (setter == null) {
+                  setter = Elements.lookupFieldElementSetter(enclosingClass, name);
+                  if (setter == null) {
+                    return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
+                  }
+                }
+                node.setElement(setter);
             }
           }
 
