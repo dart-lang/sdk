@@ -1201,20 +1201,23 @@ class SsaBuilder implements Visitor {
     HBasicBlock initializerBlock = openNewBlock();
     initialize();
     assert(!isAborted());
-    SubGraph initializerGraph = new SubGraph(initializerBlock, current);
+    SubExpression initializerGraph =
+        new SubExpression(initializerBlock, current);
 
     JumpHandler jumpHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
     HLoopInformation loopInfo = current.blockInformation;
     // The initializer graph is currently unused due to the way we
     // generate code.
-    loopInfo.initializer = initializerGraph;
+    loopInfo.initializer = new HSubExpressionBlockInformation(initializerGraph);
 
     HInstruction conditionInstruction = condition();
     HBasicBlock conditionExitBlock =
         close(new HLoopBranch(conditionInstruction));
-    loopInfo.condition = new SubExpression(conditionBlock,
-                                           conditionExitBlock);
+    SubExpression conditionExpression =
+        new SubExpression(conditionBlock, conditionExitBlock);
+    loopInfo.condition =
+        new HSubExpressionBlockInformation(conditionExpression);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1228,7 +1231,7 @@ class SsaBuilder implements Visitor {
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, current);
     HBasicBlock bodyBlock = close(new HGoto());
-    loopInfo.body = bodyGraph;
+    loopInfo.body = new HSubGraphBlockInformation(bodyGraph);
 
     // Update.
     // We create an update block, even when we are in a while loop. There the
@@ -1252,13 +1255,17 @@ class SsaBuilder implements Visitor {
     List<LabelElement> labels = jumpHandler.labels();
     TargetElement target = elements[loop];
     if (!labels.isEmpty()) {
-      beginBodyBlock.blockInformation =
-          new HLabeledBlockInformation(bodyGraph, updateBlock,
-                                       jumpHandler.labels(), isContinue: true);
+      beginBodyBlock.blockInformation = new HLabeledBlockInformation(
+        new HSubGraphBlockInformation(bodyGraph),
+        updateBlock,
+        jumpHandler.labels(),
+        isContinue: true);
     } else if (target !== null && target.isContinueTarget) {
-      beginBodyBlock.blockInformation =
-          new HLabeledBlockInformation.implicit(bodyGraph, updateBlock,
-                                                target, isContinue: true);
+      beginBodyBlock.blockInformation = new HLabeledBlockInformation.implicit(
+        new HSubGraphBlockInformation(bodyGraph),
+        updateBlock,
+        target,
+        isContinue: true);
     }
 
     localsHandler.enterLoopUpdates(loop);
@@ -1269,7 +1276,8 @@ class SsaBuilder implements Visitor {
     // The back-edge completing the cycle.
     updateEndBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
-    loopInfo.updates = new SubGraph(updateBlock, updateEndBlock);
+    SubExpression updateGraph = new SubExpression(updateBlock, updateEndBlock);
+    loopInfo.updates = new HSubExpressionBlockInformation(updateGraph);
 
     endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
     loopInfo.joinBlock = current;
@@ -1361,17 +1369,17 @@ class SsaBuilder implements Visitor {
       SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
       List<LabelElement> labels = jumpHandler.labels();
       if (!labels.isEmpty()) {
-        bodyEntryBlock.blockInformation =
-            new HLabeledBlockInformation(bodyGraph,
-                                         conditionBlock,
-                                         labels,
-                                         isContinue: true);
+        bodyEntryBlock.blockInformation = new HLabeledBlockInformation(
+            new HSubGraphBlockInformation(bodyGraph),
+            conditionBlock,
+            labels,
+            isContinue: true);
       } else {
-        bodyEntryBlock.blockInformation =
-            new HLabeledBlockInformation.implicit(bodyGraph,
-                                                  conditionBlock,
-                                                  target,
-                                                  isContinue: true);
+        bodyEntryBlock.blockInformation = new HLabeledBlockInformation.implicit(
+            new HSubGraphBlockInformation(bodyGraph),
+            conditionBlock,
+            target,
+            isContinue: true);
       }
     }
     open(conditionBlock);
@@ -1388,8 +1396,10 @@ class SsaBuilder implements Visitor {
     endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
     jumpHandler.close();
 
-    loopInfo.body = new SubGraph(bodyEntryBlock, bodyExitBlock);
-    loopInfo.condition = new SubExpression(conditionBlock, conditionEndBlock);
+    loopInfo.body = new HSubGraphBlockInformation(
+        new SubGraph(bodyEntryBlock, bodyExitBlock));
+    loopInfo.condition = new HSubExpressionBlockInformation(
+        new SubExpression(conditionBlock, conditionEndBlock));
     loopInfo.joinBlock = current;
   }
 
@@ -1499,10 +1509,11 @@ class SsaBuilder implements Visitor {
         localsHandler = thenLocals;
       }
     }
-    HIfBlockInformation info = new HIfBlockInformation(conditionGraph,
-                                                       thenGraph,
-                                                       elseGraph,
-                                                       joinBlock);
+    HIfBlockInformation info = new HIfBlockInformation(
+      new HSubExpressionBlockInformation(conditionGraph),
+      new HSubGraphBlockInformation(thenGraph),
+      (elseGraph === null) ? null : new HSubGraphBlockInformation(elseGraph),
+      joinBlock);
     conditionStartBlock.blockInformation = info;
     branch.blockInformation = info;
   }
@@ -1555,10 +1566,18 @@ class SsaBuilder implements Visitor {
     rightBlock.addSuccessor(joinBlock);
     open(joinBlock);
 
-    leftGraph.start.blockInformation =
-        new HAndOrBlockInformation(isAnd, leftGraph, rightGraph, joinBlock);
-    branch.blockInformation =
-        new HIfBlockInformation(leftGraph, rightGraph, null, joinBlock);
+    leftGraph.start.blockInformation = new HAndOrBlockInformation(
+        isAnd,
+        new HSubExpressionBlockInformation(leftGraph),
+        new HSubExpressionBlockInformation(rightGraph),
+        joinBlock);
+    // Fallback until we handle and-or-information better.
+    branch.blockInformation = new HIfBlockInformation(
+      new HSubExpressionBlockInformation(leftGraph),
+      new HSubGraphBlockInformation(rightGraph),
+      null,
+      joinBlock
+    );
 
     localsHandler.mergeWith(savedLocals, joinBlock);
     HPhi result = new HPhi.manyInputs(null,
@@ -2601,10 +2620,13 @@ class SsaBuilder implements Visitor {
     HBasicBlock joinBlock = addNewBlock();
     thenBlock.addSuccessor(joinBlock);
     elseBlock.addSuccessor(joinBlock);
-    condition.blockInformation = new HIfBlockInformation(conditionGraph,
-                                                         thenGraph,
-                                                         elseGraph,
-                                                         joinBlock);
+
+    // TODO(lrn): Handle expressions better.
+    condition.blockInformation = new HIfBlockInformation(
+        new HSubExpressionBlockInformation(conditionGraph),
+        new HSubGraphBlockInformation(thenGraph),
+        new HSubGraphBlockInformation(elseGraph),
+        joinBlock);
     open(joinBlock);
 
     localsHandler.mergeWith(thenLocals, joinBlock);
@@ -2766,7 +2788,8 @@ class SsaBuilder implements Visitor {
     if (hasBreak) {
       // There was at least one reachable break, so the label is needed.
       entryBlock.blockInformation =
-          new HLabeledBlockInformation(bodyGraph, joinBlock, handler.labels());
+          new HLabeledBlockInformation(new HSubGraphBlockInformation(bodyGraph),
+                                       joinBlock, handler.labels());
     }
     handler.close();
   }
@@ -2847,7 +2870,7 @@ class SsaBuilder implements Visitor {
       joinBlock = null;
     }
     startBlock.blockInformation = new HLabeledBlockInformation.implicit(
-        new SubGraph(startBlock, lastBlock),
+        new HSubGraphBlockInformation(new SubGraph(startBlock, lastBlock)),
         joinBlock,
         elements[node]);
     jumpHandler.close();
@@ -3036,11 +3059,12 @@ class SsaBuilder implements Visitor {
     }
 
     open(exitBlock);
-    enterBlock.blockInformation = new HTryBlockInformation(bodyGraph,
-                                                           exception,
-                                                           catchGraph,
-                                                           finallyGraph,
-                                                           exitBlock);
+    enterBlock.blockInformation = new HTryBlockInformation(
+      new HSubGraphBlockInformation(bodyGraph),
+      exception,
+      catchGraph == null ? null : new HSubGraphBlockInformation(catchGraph),
+      finallyGraph == null ? null : new HSubGraphBlockInformation(finallyGraph),
+      exitBlock);
   }
 
   visitScriptTag(ScriptTag node) {

@@ -284,7 +284,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * and not, e.g., expressions where the value isn't assigned, or where it's
    * assigned to something that's not a simple variable.
    */
-  int expressionType(SubGraph limits) {
+  int expressionType(HExpressionInformation info) {
+    // The only HExpressionInformation used as part of a HBlockInformation is
+    // current HSubExpressionBlockInformation, so it's the only one reaching
+    // here. If we start using the other HExpressionInformation types too,
+    // this code should be generalized.
+    assert(info is HSubExpressionBlockInformation);
+    HSubExpressionBlockInformation expressionInfo = info;
+    SubGraph limits = expressionInfo.subExpression;
+
     // Start assuming that we can generate declarations. If we find a
     // counter-example, we degrade our assumption to either expression or
     // statement, and in the latter case, we can return immediately since
@@ -330,34 +338,66 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return result;
   }
 
-  bool isJSExpression(SubGraph limits) {
-    return expressionType(limits) != TYPE_STATEMENT;
+  bool isJSExpression(HExpressionInformation info) {
+    return expressionType(info) !== TYPE_STATEMENT;
   }
 
-  bool isJSDeclaration(SubGraph limits) {
-    return expressionType(limits) == TYPE_DECLARATION;
+  bool isJSDeclaration(HExpressionInformation info) {
+    return expressionType(info) === TYPE_DECLARATION;
   }
 
-  bool isJSCondition(SubGraph limits) {
-    return isJSExpression(limits) && (limits.end.last is HConditionalBranch);
+  bool isJSCondition(HExpressionInformation info) {
+    HSubExpressionBlockInformation graph = info;
+    SubExpression limits = graph.subExpression;
+    return expressionType(info) !== TYPE_STATEMENT &&
+       (limits.end.last is HConditionalBranch);
   }
 
-  void visitExpressionGraph(SubGraph expressionSubGraph) {
+  /**
+   * Generate statements from block information.
+   * If the block information contains expressions, generate only
+   * assignments, and if it ends in a conditional branch, don't generate
+   * the condition.
+   */
+  void generateStatements(HBlockInformation block) {
+    int oldState = generationState;
+    generationState = STATE_STATEMENT;
+    if (block is HStatementInformation) {
+      block.accept(this);
+    } else {
+      HSubExpressionBlockInformation expression = block;
+      visitSubGraph(expression.subExpression);
+    }
+    generationState = oldState;
+  }
+
+  /**
+   * Generate expressions from block information.
+   */
+  void generateExpression(HExpressionInformation expression) {
+    // Currently we only handle sub-expression graphs.
+    assert(expression is HSubExpressionBlockInformation);
+    HSubExpressionBlockInformation expressionSubGraph = expression;
+
     int oldState = generationState;
     generationState = STATE_FIRST_EXPRESSION;
-    visitSubGraph(expressionSubGraph);
+    visitSubGraph(expressionSubGraph.subExpression);
     generationState = oldState;
   }
 
-  void visitDeclarationGraph(SubGraph expressionSubGraph) {
+  void generateDeclaration(HExpressionInformation expression) {
+    // Currently we only handle sub-expression graphs.
+    assert(expression is HSubExpressionBlockInformation);
+    HSubExpressionBlockInformation expressionSubGraph = expression;
+
     int oldState = generationState;
     generationState = STATE_FIRST_DECLARATION;
-    visitSubGraph(expressionSubGraph);
+    visitSubGraph(expressionSubGraph.subExpression);
     generationState = oldState;
   }
 
-  void visitConditionGraph(SubGraph conditionSubGraph) {
-    visitExpressionGraph(conditionSubGraph);
+  void generateCondition(HBlockInformation condition) {
+    generateExpression(condition);
   }
 
   String temporary(HInstruction instruction) {
@@ -517,25 +557,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If the condition is constant, only generate one branch (if any).
       HConstant constantCondition = condition;
       Constant constant = constantCondition.constant;
-      visitSubGraph(info.condition);
+      generateStatements(info.condition);
       if (constant.isTrue()) {
-        visitSubGraph(info.thenGraph);
+        generateStatements(info.thenGraph);
       } else if (info.elseGraph !== null) {
-        visitSubGraph(info.elseGraph);
+        generateStatements(info.elseGraph);
       }
     } else {
-      visitSubGraph(info.condition);
+      generateStatements(info.condition);
       addIndented("if (");
       use(condition, JSPrecedence.EXPRESSION_PRECEDENCE);
       buffer.add(") {\n");
       indent++;
-      visitSubGraph(info.thenGraph);
+      generateStatements(info.thenGraph);
       indent--;
       addIndented("}");
       if (info.elseGraph !== null) {
         buffer.add(" else {\n");
         indent++;
-        visitSubGraph(info.elseGraph);
+        generateStatements(info.elseGraph);
         indent--;
         addIndented("}");
       }
@@ -547,6 +587,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return true;
   }
 
+  bool visitSubGraphInfo(HSubGraphBlockInformation info) {
+    visitSubGraph(info.subGraph);
+    // A [HSubGraphBlockInformation] is always part of another block
+    // information structure, so it doesn't have a joinBlock.
+  }
+
+  bool visitSubExpressionInfo(HSubExpressionBlockInformation info) {
+    return false;
+  }
+
   bool visitAndOrInfo(HAndOrBlockInformation info) {
     return false;
   }
@@ -554,17 +604,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool visitTryInfo(HTryBlockInformation info) {
     addIndented("try {\n");
     indent++;
-    visitSubGraph(info.body);
+    generateStatements(info.body);
     indent--;
-    buffer.add("}");
+    addIndented("}");
     if (info.catchBlock !== null) {
       // Printing the catch part.
       HParameterValue exception = info.catchVariable;
       String name = temporary(exception);
       parameterNames[exception.element] = name;
-      addIndented('catch ($name) {\n');
+      buffer.add('catch ($name) {\n');
       indent++;
-      visitSubGraph(info.catchBlock);
+      generateStatements(info.catchBlock);
       parameterNames.remove(exception.element);
       indent--;
       addIndented('}');
@@ -572,7 +622,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (info.finallyBlock != null) {
       buffer.add(" finally {\n");
       indent++;
-      visitSubGraph(info.finallyBlock);
+      generateStatements(info.finallyBlock);
       indent--;
       addIndented("}");
     }
@@ -591,17 +641,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return false;
     }
 
-    SubExpression condition = info.condition;
+    HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
 
     void visitBodyIgnoreLabels() {
       if (info.body.start.isLabeledBlock()) {
         HBlockInformation oldInfo = currentBlockInformation;
         currentBlockInformation = info.body.start.blockInformation;
-        visitSubGraph(info.body);
+        generateStatements(info.body);
         currentBlockInformation = oldInfo;
       } else {
-        visitSubGraph(info.body);
+        generateStatements(info.body);
       }
     }
 
@@ -610,12 +660,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case HLoopInformation.FOR_LOOP:
       case HLoopInformation.WHILE_LOOP:
       case HLoopInformation.FOR_IN_LOOP: {
-        SubGraph initialization = info.initializer;
+        HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization !== null) {
           initializationType = expressionType(initialization);
           if (initializationType == TYPE_STATEMENT) {
-            visitSubGraph(initialization);
+            generateStatements(initialization);
             initialization = null;
           }
         }
@@ -632,15 +682,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           addIndented("for (");
           if (initialization !== null) {
             if (initializationType != TYPE_DECLARATION) {
-              visitExpressionGraph(initialization);
+              generateExpression(initialization);
             } else {
-              visitDeclarationGraph(initialization);
+              generateDeclaration(initialization);
             }
           }
           buffer.add("; ");
-          visitConditionGraph(condition);
+          generateCondition(condition);
           buffer.add("; ");
-          visitExpressionGraph(info.updates);
+          generateExpression(info.updates);
           buffer.add(") {\n");
           indent++;
           // The body might be labeled. Ignore this when recursing on the
@@ -654,24 +704,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // We have either no update graph, or it's too complex to
           // put in an expression.
           if (initialization !== null) {
-            visitSubGraph(initialization);
+            generateStatements(initialization);
           }
           addIndented("while (");
           if (isConditionExpression) {
-            visitConditionGraph(condition);
+            generateCondition(condition);
             buffer.add(") {\n");
             indent++;
           } else {
             buffer.add("true) {\n");
             indent++;
-            visitSubGraph(condition);
+            generateStatements(condition);
             addIndented("if (!");
             use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
             buffer.add(") break;\n");
           }
           if (info.updates !== null) {
             wrapLoopBodyForContinue(info);
-            visitSubGraph(info.updates);
+            generateStatements(info.updates);
           } else {
             visitBodyIgnoreLabels();
           }
@@ -683,7 +733,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case HLoopInformation.DO_WHILE_LOOP: {
         // Generate do-while loop in all cases.
         if (info.initializer !== null) {
-          visitSubGraph(info.initializer);
+          generateStatements(info.initializer);
         }
         addIndentation();
         for (LabelElement label in info.labels) {
@@ -700,15 +750,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           visitBodyIgnoreLabels();
         }
         if (info.updates !== null) {
-          visitSubGraph(info.updates);
+          generateStatements(info.updates);
         }
         if (isConditionExpression) {
           indent--;
           addIndented("} while (");
-          visitExpressionGraph(condition);
+          generateExpression(condition);
           buffer.add(");\n");
         } else {
-          visitSubGraph(condition);
+          generateStatements(condition);
           indent--;
           addIndented("} while (");
           use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
@@ -771,7 +821,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     indent++;
 
     startLabeledBlock(labeledBlockInfo);
-    visitSubGraph(labeledBlockInfo.body);
+    generateStatements(labeledBlockInfo.body);
     endLabeledBlock(labeledBlockInfo);
 
     indent--;
@@ -818,7 +868,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(":{\n");
       continueAction[info.target] = implicitContinueAsBreak;
       indent++;
-      visitSubGraph(info.body);
+      generateStatements(info.body);
       indent--;
       addIndented("}\n");
       continueAction.remove(info.target);
@@ -829,14 +879,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       // Loop body contains no continues, so we don't need a break target.
-      visitSubGraph(info.body);
+      generateStatements(info.body);
     }
   }
 
   void visitBasicBlock(HBasicBlock node) {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
-
+N
     currentBlock = node;
     // If this node has special behavior attached, handle it.
     // If we reach here again while handling the attached information,
@@ -1130,9 +1180,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (condition.isConstant()) {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
-        visitSubGraph(info.thenGraph);
+        generateStatements(info.thenGraph);
       } else if (node.hasElse) {
-        visitSubGraph(info.elseGraph);
+        generateStatements(info.elseGraph);
       }
       // We ignore the other branch, even if it isn't visited.
       preVisitedBlocks = node.hasElse ? 2 : 1;
@@ -1141,13 +1191,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(!isGenerateAtUseSite(node));
       startThen(node);
       assert(node.thenBlock === dominated[0]);
-      visitSubGraph(info.thenGraph);
+      generateStatements(info.thenGraph);
       preVisitedBlocks++;
       endThen(node);
       if (node.hasElse) {
         startElse(node);
         assert(node.elseBlock === dominated[1]);
-        visitSubGraph(info.elseGraph);
+        generateStatements(info.elseGraph);
         preVisitedBlocks++;
         endElse(node);
       }
@@ -1383,7 +1433,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we are generating the subgraph as an expression, the
       // condition will be generated as the expression.
       // Otherwise, we don't generate the expression, and leave that
-      // to the code that called visitSubGraph.
+      // to the code that called [visitSubGraph].
       if (isGeneratingExpression()) {
         use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
       }
