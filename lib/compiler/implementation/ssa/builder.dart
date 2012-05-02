@@ -809,9 +809,14 @@ class SsaBuilder implements Visitor {
   /**
    * Returns the constructor body associated with the given constructor or
    * creates a new constructor body, if none can be found.
+   *
+   * Returns [:null:] if the constructor does not have a body.
    */
   ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
     assert(constructor.kind === ElementKind.GENERATIVE_CONSTRUCTOR);
+    if (constructor is SynthesizedConstructorElement) return null;
+    FunctionExpression node = constructor.parseNode(compiler);
+    if (!node.hasBody()) return null;
     ClassElement classElement = constructor.enclosingElement;
     ConstructorBodyElement bodyElement;
     for (Link<Element> backendMembers = classElement.backendMembers;
@@ -998,10 +1003,8 @@ class SsaBuilder implements Visitor {
     // Generate calls to the constructor bodies.
     for (int index = constructors.length - 1; index >= 0; index--) {
       FunctionElement constructor = constructors[index];
-      // TODO(floitsch): find better way to detect that constructor body is
-      // empty.
-      if (constructor is SynthesizedConstructorElement) continue;
       ConstructorBodyElement body = getConstructorBody(constructor);
+      if (body === null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
       body.functionParameters.forEachParameter((parameter) {
