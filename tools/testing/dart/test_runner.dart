@@ -78,8 +78,8 @@ class TestCase {
            [this.isNegative = false,
             this.info = null]) {
     if (!isNegative) {
-      // TODO(sigmund): dissallow NegativeTest once the test rename overhaul is
-      // done.
+      // TODO(sigmund): use only 'negative_test' (and not 'NegativeTest') once
+      // the test rename overhaul is done.
       this.isNegative = displayName.contains("NegativeTest")
           || displayName.contains("negative_test");
     }

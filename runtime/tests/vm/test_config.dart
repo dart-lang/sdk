@@ -13,11 +13,3 @@ class VMTestSuite extends CCTestSuite {
               "run_vm_tests",
               ["runtime/tests/vm/vm.status"]);
 }
-
-class VMDartTestSuite extends StandardTestSuite {
-  VMDartTestSuite(Map configuration)
-      : super(configuration,
-              "vm",
-              "runtime/tests/vm/src",
-              ["runtime/tests/vm/vm_dart.status"]);
-}

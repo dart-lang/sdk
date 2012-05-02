@@ -47,6 +47,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'frog/tests/frog_native',
   'frog/tests/leg',
   'frog/tests/leg_only',
+  'runtime/tests/vm',
   'samples/tests/samples',
   'tests/benchmark_smoke',
   'tests/corelib',
@@ -104,8 +105,9 @@ main() {
       if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
+        // vm tests contain both cc tests (added here) and dart tests (added in
+        // [TEST_SUITE_DIRECTORIES]).
         queue.addTestSuite(new VMTestSuite(conf));
-        queue.addTestSuite(new VMDartTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
         queue.addTestSuite(new ClientDartcTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {

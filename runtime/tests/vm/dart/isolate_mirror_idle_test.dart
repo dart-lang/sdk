@@ -4,7 +4,7 @@
 //
 // Dart test program for checking implemention of IsolateMirror.
 
-#library('IsolateMirrorIdleTest');
+#library('isolate_mirror_idle_test');
 
 #import('dart:isolate');
 #import('dart:mirrors');

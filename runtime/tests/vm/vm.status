@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# TODO(sigmund): change test.dart to make it possible to use a 'cc/' prefix on
+# vm cc tests.
+
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 RunLoop_ExceptionChild: Fail
 
@@ -10,3 +13,19 @@ IsolateInterrupt: Skip
 
 [ $system == windows ]
 Dart2JSCompileAll: Skip
+
+# The following section refers to the dart vm tests which live under
+# runtime/tests/vm/dart.
+
+[ $system == windows ]
+dart/isolate_mirror_self_test: Skip  # TODO(turnidge): Fix this
+
+[ $runtime == drt ]
+dart/import_map_test: Skip
+dart/isolate_mirror_self_test: Skip  # TODO(turnidge,antonm): investigate
+
+[ $arch == arm ]
+dart/*: Skip
+
+[ $arch == simarm ]
+dart/*: Skip
