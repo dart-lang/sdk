@@ -11,5 +11,6 @@ class VMTestSuite extends CCTestSuite {
       : super(configuration,
               "vm",
               "run_vm_tests",
-              ["runtime/tests/vm/vm.status"]);
+              ["runtime/tests/vm/vm.status"],
+              testPrefix: 'cc/');
 }

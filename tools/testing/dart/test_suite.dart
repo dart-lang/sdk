@@ -100,6 +100,7 @@ class CCTestListerIsolate extends Isolate {
 class CCTestSuite implements TestSuite {
   Map configuration;
   final String suiteName;
+  final String testPrefix;
   String runnerPath;
   final String dartDir;
   List<String> statusFilePaths;
@@ -111,7 +112,8 @@ class CCTestSuite implements TestSuite {
   CCTestSuite(Map this.configuration,
               String this.suiteName,
               String runnerName,
-              List<String> this.statusFilePaths)
+              List<String> this.statusFilePaths,
+              [this.testPrefix = ''])
       : dartDir = TestUtils.dartDir() {
     runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
   }
@@ -124,10 +126,11 @@ class CCTestSuite implements TestSuite {
       // Only run the tests that match the pattern. Use the name
       // "suiteName/testName" for cc tests.
       RegExp pattern = configuration['selectors'][suiteName];
-      String constructedName = '$suiteName/$testName';
+      String constructedName = '$suiteName/$testPrefix$testName';
       if (!pattern.hasMatch(constructedName)) return;
 
-      var expectations = testExpectations.expectations(testName);
+      var expectations = testExpectations.expectations(
+          '$testPrefix$testName');
 
       if (configuration["report"]) {
         SummaryReport.add(expectations);
@@ -140,7 +143,7 @@ class CCTestSuite implements TestSuite {
       var args = [testName];
       args.addAll(TestUtils.standardOptions(configuration));
 
-      doTest(new TestCase('$suiteName/$testName',
+      doTest(new TestCase(constructedName,
                           [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
