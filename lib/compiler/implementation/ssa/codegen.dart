@@ -1813,16 +1813,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkInt(input, '===');
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     } else if (Elements.isStringSupertype(element, compiler)) {
-        handleStringSupertypeCheck(input, element);
+      handleStringSupertypeCheck(input, element);
     } else if (element === compiler.listClass
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, element);
-    } else {
+    } else if (input.propagatedType.canBePrimitive()
+               || input.propagatedType.canBeNull()) {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkObject(input, '===');
       buffer.add(' && ');
       checkType(input, element);
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    } else {
+      checkType(input, element);
     }
     if (compiler.universe.rti.hasTypeArguments(type)) {
       InterfaceType interfaceType = type;

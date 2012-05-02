@@ -55,6 +55,7 @@ abstract class HType {
   bool isExact() => false;
 
   bool canBePrimitive() => false;
+  bool canBeNull() => false;
 
   /** A type is useful it is not unknown and not conflicting. */
   bool isUseful() => !isUnknown() && !isConflicting();
@@ -99,6 +100,7 @@ class HAnalysisType extends HType {
   const HAnalysisType(this.name);
   String toString() => name;
   bool canBePrimitive() => true;
+  bool canBeNull() => true;
 
   Type computeType(Compiler compiler) => null;
 

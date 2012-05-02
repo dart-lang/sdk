@@ -530,6 +530,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         return graph.addConstantBool(false);
       }
+    // TODO(karlklose): remove the hasTypeArguments check.
+    } else if (expressionType.isUseful()
+               && !compiler.universe.rti.hasTypeArguments(type)) {
+      Type receiverType = expressionType.computeType(compiler);
+      if (receiverType !== null) {
+        if (compiler.types.isSubtype(receiverType, type)) {
+          return graph.addConstantBool(true);
+        } else if (expressionType.isExact()) {
+          return graph.addConstantBool(false);
+        }
+      }
     }
     return node;
   }

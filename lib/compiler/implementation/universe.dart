@@ -324,18 +324,12 @@ class TypedSelector extends Selector {
       return super.applies(element, compiler);
     }
 
-
     ClassElement self = receiverType.element;
-
-    // If the class of the element is a subclass of this selector's
-    // class, it is a candidate.
-    // TODO(ngeoffray): If [self] is an interface, check if
-    // [other] implements [self].
-    if (other.isSubclassOf(self) || self.isInterface()) {
+    if (other.implementsInterface(self)) {
       return super.applies(element, compiler);
     }
 
-    if (self.isSubclassOf(other)) {
+    if (!self.isInterface() && self.isSubclassOf(other)) {
       // Resolve an invocation of [element.name] on [self]. If it
       // is found, this selector is a candidate.
       return hasElementIn(self, element) && super.applies(element, compiler);
