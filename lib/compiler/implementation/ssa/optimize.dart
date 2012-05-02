@@ -443,7 +443,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // TODO(floitsch): cache interceptors.
         Interceptors interceptors = compiler.builder.interceptors;
         Element equalsElement = interceptors.getEqualsInterceptor();
-        // Check that this node has not been optimized already.
+        // If we have a different element than [equalsElement], we
+        // don't need to optimize this instruction to use another
+        // element: we know the element is either eqNull or eqNullB.
         if (node.element === equalsElement) {
           Element targetElement = interceptors.getEqualsNullInterceptor();
           bool onlyUsedInBoolify = allUsersAreBoolifies(node);

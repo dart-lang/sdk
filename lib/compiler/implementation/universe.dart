@@ -308,6 +308,7 @@ class TypedSelector extends Selector {
         return hasElementIn(otherCls.superclass, element);
       }
     }
+    return false;
   }
 
   bool applies(Element element, Compiler compiler) {
