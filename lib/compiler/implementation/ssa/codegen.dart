@@ -886,7 +886,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitBasicBlock(HBasicBlock node) {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
-N
+
     currentBlock = node;
     // If this node has special behavior attached, handle it.
     // If we reach here again while handling the attached information,
