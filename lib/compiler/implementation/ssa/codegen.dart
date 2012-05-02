@@ -7,6 +7,30 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String get name() => 'SSA code generator';
 
 
+  String buildJavaScriptFunction(FunctionElement element,
+                                 String parameters,
+                                 String body) {
+    String extraSpace = "";
+    // Members are emitted inside a JavaScript object literal. To line up the
+    // indentation we want the closing curly brace to be indented by one space.
+    // Example:
+    // defineClass("A", "B", ... , {
+    //  foo$1: function(..) {
+    //  },  /* <========== indent by 1. */
+    //  bar$2: function(..) {
+    //  },  /* <========== indent by 1. */
+    //
+    // For static functions this is not necessary:
+    // $.staticFun = function() {
+    //   ...
+    // };
+    if (element.isInstanceMember() ||
+        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      extraSpace = " ";
+    }
+    return 'function($parameters) {\n$body$extraSpace}';
+  }
+
   String generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
@@ -35,7 +59,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       } else {
         code = codegen.buffer.toString();
       }
-      return 'function($parameters) {\n$code}';
+      return buildJavaScriptFunction(element, parameters, code);
     });
   }
 
@@ -58,7 +82,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
         newParameters.add(', env$i');
       }
 
-      return 'function($newParameters) {\n${codegen.setup}${codegen.buffer}}';
+      Element element = work.element;
+      String body = '${codegen.setup}${codegen.buffer}';
+      return buildJavaScriptFunction(element, newParameters.toString(), body);
     });
   }
 

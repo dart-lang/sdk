@@ -209,8 +209,8 @@ class NativeEmitter {
 
   void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty()) return;
-    nativeBuffer.add(
-        '// ${classesWithDynamicDispatch.length} dynamic classes.\n');
+    int length = classesWithDynamicDispatch.length;
+    nativeBuffer.add('// $length dynamic classes.\n');
 
     // Build a pre-order traversal over all the classes and their subclasses.
     Set<ClassElement> seen = new Set<ClassElement>();
