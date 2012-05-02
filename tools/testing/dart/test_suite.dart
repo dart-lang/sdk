@@ -369,8 +369,10 @@ class StandardTestSuite implements TestSuite {
       testName = filename.substring(start + 1, middle) + '/' +
           filename.substring(middle + 1, filename.length - 5);
     } else {
-      // This case is hit by the dartc client compilation
-      // tests. These tests are pretty broken compared to the
+      // This branch is hit in two cases: standard test suites created with
+      // forDirectory and dartc code compilation tests.
+
+      // Dartc compilation tests are pretty broken compared to the
       // rest. They use the .dart suffix in the status files. They
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
@@ -1147,7 +1149,7 @@ class JUnitTestSuite implements TestSuite {
             dartDir + '/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
-    
+
     // Lengthen the timeout for JUnit tests.  It is normal for them
     // to run for a few minutes.
     Map updatedConfiguration = new Map();
