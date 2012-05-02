@@ -496,7 +496,8 @@ class HtmlSystemShared(object):
 
     if not target_name.startswith('_'):
       if self._PrivateInHtmlLibrary(interface, member, member_prefix):
-        target_name = '$dom_' + target_name
+        if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
+          target_name = '$dom_' + target_name
       elif implementation_class and self._ManuallyGeneratedInHtmlLibrary(
           interface, member, member_prefix):
         target_name = '_' + target_name

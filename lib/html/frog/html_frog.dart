@@ -10292,7 +10292,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10521,7 +10521,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10573,7 +10573,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10698,7 +10698,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10734,7 +10734,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10965,7 +10965,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11047,7 +11047,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11087,7 +11087,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11113,7 +11113,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11165,7 +11165,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11221,7 +11221,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11255,7 +11255,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11299,7 +11299,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11342,7 +11342,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11366,7 +11366,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11410,7 +11410,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11450,7 +11450,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11474,7 +11474,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11519,7 +11519,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11549,7 +11549,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11590,7 +11590,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11635,7 +11635,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11683,7 +11683,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11727,7 +11727,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11805,7 +11805,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11855,7 +11855,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11904,7 +11904,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11938,7 +11938,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11987,7 +11987,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12108,7 +12108,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12215,7 +12215,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12265,7 +12265,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12449,7 +12449,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12756,7 +12756,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12826,7 +12826,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12880,7 +12880,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13001,7 +13001,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13140,7 +13140,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13194,7 +13194,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13274,7 +13274,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13314,7 +13314,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13401,7 +13401,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13478,7 +13478,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13603,7 +13603,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_$dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;

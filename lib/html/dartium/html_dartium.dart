@@ -14101,7 +14101,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14403,7 +14403,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14471,7 +14471,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14606,7 +14606,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14656,7 +14656,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14924,7 +14924,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15002,7 +15002,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15034,7 +15034,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15062,7 +15062,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15102,7 +15102,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15152,7 +15152,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15188,7 +15188,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15224,7 +15224,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15273,7 +15273,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15299,7 +15299,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15352,7 +15352,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15398,7 +15398,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15424,7 +15424,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15469,7 +15469,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15501,7 +15501,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15545,7 +15545,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15593,7 +15593,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15631,7 +15631,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15684,7 +15684,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15778,7 +15778,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15844,7 +15844,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15916,7 +15916,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15944,7 +15944,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16002,7 +16002,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16151,7 +16151,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16277,7 +16277,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16335,7 +16335,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16614,7 +16614,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17049,7 +17049,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17150,7 +17150,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17220,7 +17220,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17344,7 +17344,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17549,7 +17549,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17619,7 +17619,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17736,7 +17736,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17790,7 +17790,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17903,7 +17903,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17985,7 +17985,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -18140,7 +18140,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
