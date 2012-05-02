@@ -166,7 +166,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.propagatedType;
-    if (type.isNonPrimitive()) {
+    if (!type.isPrimitive()) {
       prefix = 'U';
     } else {
       switch (type) {
