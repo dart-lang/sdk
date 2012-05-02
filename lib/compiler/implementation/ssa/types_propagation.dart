@@ -138,7 +138,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     if (desiredType.isConflicting()) return newType;
     // TODO(ngeoffray): Allow speculative optimizations on
     // non-primitive types?
-    if (desiredType.isNonPrimitive()) return newType;
+    if (!desiredType.isPrimitive()) return newType;
     return newType.intersection(desiredType);
   }
 }

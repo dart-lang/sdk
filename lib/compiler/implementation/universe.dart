@@ -289,6 +289,27 @@ class TypedSelector extends Selector {
             selector.argumentCount,
             selector.namedArguments);
 
+  /**
+   * Check if [element] will be the one used at runtime when being
+   * invoked on an instance of [cls].
+   */
+  bool hasElementIn(ClassElement cls, Element element) {
+    Element resolved = cls.lookupMember(element.name);
+    if (resolved === element) return  true;
+    if (resolved === null) return false;
+    if (resolved.kind === ElementKind.ABSTRACT_FIELD) {
+      AbstractFieldElement field = resolved;
+      if (element === field.getter || element === field.setter) {
+        return true;
+      } else {
+        ClassElement otherCls = field.enclosingElement;
+        // We have not found a match, but another class higher in the
+        // hierarchy may define the getter or the setter.
+        return hasElementIn(otherCls.superclass, element);
+      }
+    }
+  }
+
   bool applies(Element element, Compiler compiler) {
     if (!element.enclosingElement.isClass()) return false;
 
@@ -302,28 +323,21 @@ class TypedSelector extends Selector {
       return super.applies(element, compiler);
     }
 
+
+    ClassElement self = receiverType.element;
+
     // If the class of the element is a subclass of this selector's
     // class, it is a candidate.
-    ClassElement self = receiverType.element;
-    if (other.isSubclassOf(self)) {
+    // TODO(ngeoffray): If [self] is an interface, check if
+    // [other] implements [self].
+    if (other.isSubclassOf(self) || self.isInterface()) {
       return super.applies(element, compiler);
     }
 
     if (self.isSubclassOf(other)) {
-      // Resolve an invocation of [element.name] on [self]. If the
-      // found element is [element], or is an abstract field whose
-      // getter or setter is [element], this selector is a candidate.
-      Element resolved = self.lookupMember(element.name);
-      if (resolved === element) {
-        return super.applies(element, compiler);
-      }
-
-      if (resolved !== null && resolved.kind === ElementKind.ABSTRACT_FIELD) {
-        AbstractFieldElement field = resolved;
-        if (element === field.getter || element === field.setter) {
-          return super.applies(element, compiler);
-        }
-      }
+      // Resolve an invocation of [element.name] on [self]. If it
+      // is found, this selector is a candidate.
+      return hasElementIn(self, element) && super.applies(element, compiler);
     }
 
     return false;

@@ -1169,18 +1169,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If we know we're calling a specific method, register that
         // method only.
         compiler.registerDynamicInvocationOf(node.element);
-      } else if (node.inputs[0] is HThis) {
-        // TODO(ngeoffray): We should propagate an union type in
-        // earlier phases instead of just checking if the receiver is 'this'.
-        ClassElement cls = work.element.enclosingElement;
-        Type type = cls.computeType(compiler);
-        compiler.registerDynamicInvocation(
-            node.name, new TypedSelector(type, node.selector));
       } else {
-        compiler.registerDynamicInvocation(node.name, node.selector);
+        compiler.registerDynamicInvocation(
+            node.name, getOptimizedSelectorFor(node, node.selector));
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
+  }
+
+  Selector getOptimizedSelectorFor(HInvoke node, Selector defaultSelector) {
+    Type receiverType = node.inputs[0].propagatedType.computeType(compiler);
+    if (receiverType !== null) {
+      return new TypedSelector(receiverType, defaultSelector);
+    } else {
+      return defaultSelector;
+    }
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1189,14 +1192,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.setterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    if (node.inputs[0] is HThis) {
-      ClassElement cls = work.element.enclosingElement;
-      Type type = cls.computeType(compiler);
-      compiler.registerDynamicSetter(node.name,
-          new TypedSelector(type, Selector.SETTER));
-    } else {
-      compiler.registerDynamicSetter(node.name, Selector.SETTER);
-    }
+    compiler.registerDynamicSetter(
+        node.name, getOptimizedSelectorFor(node, Selector.SETTER));
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
@@ -1206,14 +1203,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.getterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    if (node.inputs[0] is HThis) {
-      ClassElement cls = work.element.enclosingElement;
-      Type type = cls.computeType(compiler);
-      compiler.registerDynamicGetter(node.name,
-          new TypedSelector(type, Selector.GETTER));
-    } else {
-      compiler.registerDynamicGetter(node.name, Selector.GETTER);
-    }
+    compiler.registerDynamicGetter(
+        node.name, getOptimizedSelectorFor(node, Selector.GETTER));
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 

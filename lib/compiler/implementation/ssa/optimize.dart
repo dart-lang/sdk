@@ -106,10 +106,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         }
         block.rewrite(instruction, replacement);
         block.remove(instruction);
-        // If the replacement instruction does not know its type yet,
-        // use the type of the instruction.
+        // If the replacement instruction does not know its type or
+        // source element yet, use the type and source element of the
+        // instruction.
         if (!replacement.propagatedType.isUseful()) {
           replacement.propagatedType = instruction.propagatedType;
+        }
+        if (replacement.sourceElement === null) {
+          replacement.sourceElement = instruction.sourceElement;
         }
       }
       instruction = next;
@@ -180,7 +184,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node.inputs[1];
     }
 
-    if (input.isNonPrimitive() && !node.getter) {
+    if (!input.canBePrimitive() && !node.getter) {
       return fromInterceptorToDynamicInvocation(node, node.name);
     }
 
@@ -189,8 +193,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     HType receiverType = node.receiver.propagatedType;
-    if (receiverType.isNonPrimitive()) {
-      HNonPrimitiveType type = receiverType;
+    if (receiverType.isExact()) {
+      HExactType type = receiverType;
       Element element = type.lookupMember(node.name);
       // TODO(ngeoffray): Also fold if it's a getter or variable.
       if (element != null && element.isFunction()) {
@@ -210,13 +214,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction fromInterceptorToDynamicInvocation(
       HInvokeStatic node, SourceString methodName) {
-    HNonPrimitiveType type = node.inputs[1].propagatedType;
-    Element element = type.lookupMember(methodName);
+    HBoundedType type = node.inputs[1].propagatedType;
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
         node.selector,
         methodName,
         node.inputs.getRange(1, node.inputs.length - 1));
-    result.element = element;
+    if (type.isExact()) {
+      HExactType concrete = type;
+      result.element = concrete.lookupMember(methodName);
+    }
     return result;
   }
 
@@ -273,7 +279,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
 
   HInstruction visitIndex(HIndex node) {
-    if (node.receiver.isNonPrimitive()) {
+    if (!node.receiver.canBePrimitive()) {
       SourceString methodName = Elements.constructOperatorName(
           const SourceString('operator'), const SourceString('[]'));
       return fromInterceptorToDynamicInvocation(node, methodName);
@@ -282,7 +288,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitIndexAssign(HIndexAssign node) {
-    if (node.receiver.isNonPrimitive()) {
+    if (!node.receiver.canBePrimitive()) {
       SourceString methodName = Elements.constructOperatorName(
           const SourceString('operator'), const SourceString('[]='));
       return fromInterceptorToDynamicInvocation(node, methodName);
@@ -301,7 +307,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (folded !== null) return graph.addConstant(folded);
     }
 
-    if (left.isNonPrimitive() && node.operation.isUserDefinable()) {
+    if (!left.canBePrimitive()
+        && node.operation.isUserDefinable()
+        // The equals operation is being optimized in visitEquals.
+        && node.operation !== const EqualsOperation()) {
       SourceString methodName = Elements.constructOperatorName(
           const SourceString('operator'), node.operation.name);
       return fromInterceptorToDynamicInvocation(node, methodName);
@@ -410,8 +419,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return super.visitEquals(node);
     }
 
-    if (left.isNonPrimitive()) {
-      HNonPrimitiveType type = left.propagatedType;
+    if (left.propagatedType.isExact()) {
+      HExactType type = left.propagatedType;
       Element element = type.lookupMember(Namer.OPERATOR_EQUALS);
       if (element !== null) {
         // If the left-hand side is guaranteed to be a non-primitive
@@ -1047,10 +1056,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty() && notIfUsers.isEmpty()) return;
 
-    HType convertedType = new HType.fromType(instruction.typeExpression,
-                                             compiler);
-    // TODO(ngeoffray): We should always have a HType back.
-    if (convertedType === null) return;
+    HType convertedType =
+        new HType.fromBoundedType(instruction.typeExpression, compiler);
 
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);

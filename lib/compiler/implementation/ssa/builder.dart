@@ -328,7 +328,9 @@ class LocalsHandler {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      HInstruction thisInstruction = new HThis();
+      ClassElement cls = function.enclosingElement;
+      Type type = cls.computeType(builder.compiler);
+      HInstruction thisInstruction = new HThis(new HBoundedType(type));
       builder.add(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
     }
@@ -414,8 +416,21 @@ class LocalsHandler {
     }
   }
 
+  HType cachedTypeOfThis;
+
   HInstruction readThis() {
-    return readLocal(closureData.thisElement);
+    HInstruction res = readLocal(closureData.thisElement);
+    if (res.guaranteedType === null) {
+      if (cachedTypeOfThis === null) {
+        assert(closureData.isClosure());
+        Element element = closureData.thisElement;
+        ClassElement cls = element.enclosingElement.enclosingElement;
+        Type type = cls.computeType(builder.compiler);
+        cachedTypeOfThis = new HBoundedType(type);
+      }
+      res.guaranteedType = cachedTypeOfThis;
+    }
+    return res;
   }
 
   /**
@@ -2187,7 +2202,7 @@ class SsaBuilder implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.enclosingElement;
-        return new HNonPrimitiveType(cls.type);
+        return new HExactType(cls.type);
       } else {
         return HType.UNKNOWN;
       }

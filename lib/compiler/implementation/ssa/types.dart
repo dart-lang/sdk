@@ -5,7 +5,7 @@
 abstract class HType {
   const HType();
 
-  factory HType.fromType(Type type, Compiler compiler) {
+  factory HType.fromBoundedType(Type type, Compiler compiler) {
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("type variables");
@@ -19,10 +19,12 @@ abstract class HType {
       return HType.DOUBLE;
     } else if (element === compiler.stringClass) {
       return HType.STRING;
+    } else if (element === compiler.listClass
+               || Elements.isStringSupertype(element, compiler)
+               || Elements.isListSupertype(element, compiler)) {
+      return new HBoundedPotentialPrimitiveType(type);
     } else {
-      // TODO(ngeoffray): Introduce a new HType class for representing
-      // this type.
-      return null;
+      return new HBoundedType(type);
     }
   }
 
@@ -50,12 +52,16 @@ abstract class HType {
   bool isMutableArray() => false;
   bool isExtendableArray() => false;
   bool isPrimitive() => false;
-  bool isNonPrimitive() => false;
+  bool isExact() => false;
+
+  bool canBePrimitive() => false;
 
   /** A type is useful it is not unknown and not conflicting. */
   bool isUseful() => !isUnknown() && !isConflicting();
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
+
+  abstract Type computeType(Compiler compiler);
 
   /**
    * The intersection of two types is the intersection of its values. For
@@ -92,6 +98,9 @@ class HAnalysisType extends HType {
   final String name;
   const HAnalysisType(this.name);
   String toString() => name;
+  bool canBePrimitive() => true;
+
+  Type computeType(Compiler compiler) => null;
 
   HType combine(HType other) {
     if (isUnknown()) return other;
@@ -106,12 +115,17 @@ class HAnalysisType extends HType {
 abstract class HPrimitiveType extends HType {
   const HPrimitiveType();
   bool isPrimitive() => true;
+  bool canBePrimitive() => true;
 }
 
 class HBooleanType extends HPrimitiveType {
   const HBooleanType();
   bool isBoolean() => true;
   String toString() => "boolean";
+
+  Type computeType(Compiler compiler) {
+    return compiler.boolClass.computeType(compiler);
+  }
 
   HType combine(HType other) {
     if (other.isBoolean() || other.isUnknown()) return HType.BOOLEAN;
@@ -129,6 +143,10 @@ class HNumberType extends HPrimitiveType {
   bool isNumber() => true;
   String toString() => "number";
 
+  Type computeType(Compiler compiler) {
+    return compiler.numClass.computeType(compiler);
+  }
+
   HType union(HType other) {
     if (other.isNumber() || other.isUnknown()) return HType.NUMBER;
     return HType.CONFLICTING;
@@ -145,6 +163,10 @@ class HIntegerType extends HNumberType {
   const HIntegerType();
   bool isInteger() => true;
   String toString() => "integer";
+
+  Type computeType(Compiler compiler) {
+    return compiler.intClass.computeType(compiler);
+  }
 
   HType union(HType other) {
     if (other.isInteger() || other.isUnknown()) return HType.INTEGER;
@@ -165,6 +187,10 @@ class HDoubleType extends HNumberType {
   bool isDouble() => true;
   String toString() => "double";
 
+  Type computeType(Compiler compiler) {
+    return compiler.doubleClass.computeType(compiler);
+  }
+
   HType union(HType other) {
     if (other.isDouble() || other.isUnknown()) return HType.DOUBLE;
     if (other.isNumber()) return HType.NUMBER;
@@ -183,6 +209,11 @@ class HIndexablePrimitiveType extends HPrimitiveType {
   const HIndexablePrimitiveType();
   bool isIndexablePrimitive() => true;
   String toString() => "indexable";
+
+  Type computeType(Compiler compiler) {
+    // TODO(ngeoffray): Represent union types.
+    return null;
+  }
 
   HType union(HType other) {
     if (other.isIndexablePrimitive() || other.isUnknown()) {
@@ -203,6 +234,10 @@ class HStringType extends HIndexablePrimitiveType {
   bool isString() => true;
   String toString() => "String";
 
+  Type computeType(Compiler compiler) {
+    return compiler.stringClass.computeType(compiler);
+  }
+
   HType union(HType other) {
     if (other.isString() || other.isUnknown()) return HType.STRING;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
@@ -221,6 +256,10 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   const HReadableArrayType();
   bool isReadableArray() => true;
   String toString() => "readable array";
+
+  Type computeType(Compiler compiler) {
+    return compiler.listClass.computeType(compiler);
+  }
 
   HType union(HType other) {
     if (other.isReadableArray() || other.isUnknown()) {
@@ -285,17 +324,19 @@ class HExtendableArrayType extends HMutableArrayType {
   }
 }
 
-class HNonPrimitiveType extends HType {
+class HBoundedType extends HType {
   final Type type;
 
-  const HNonPrimitiveType(Type this.type);
-  bool isNonPrimitive() => true;
+  const HBoundedType(Type this.type);
   String toString() => type.toString();
 
+  Type computeType(Compiler compiler) => type;
+
   HType combine(HType other) {
-    if (other.isNonPrimitive()) {
-      HNonPrimitiveType temp = other;
-      if (this.type === temp.type) return this;
+    if (other is HBoundedType) {
+      HBoundedType temp = other;
+      // Return [other] in case it is an exact type.
+      if (this.type === temp.type) return other;
     }
     if (other.isUnknown()) return this;
     return HType.CONFLICTING;
@@ -305,9 +346,28 @@ class HNonPrimitiveType extends HType {
   // the intersection and union is the same.
   HType intersection(HType other) => combine(other);
   HType union(HType other) => combine(other);
+}
+
+class HExactType extends HBoundedType {
+  const HExactType(Type type) : super(type);
+  bool isExact() => true;
 
   Element lookupMember(SourceString name) {
     ClassElement classElement = type.element;
     return classElement.lookupMember(name);
   }
+
+  HType combine(HType other) {
+    if (other.isExact()) {
+      HExactType concrete = other;
+      if (this.type === concrete.type) return this;
+    }
+    if (other.isUnknown()) return this;
+    return HType.CONFLICTING;
+  }
+}
+
+class HBoundedPotentialPrimitiveType extends HBoundedType {
+  const HBoundedPotentialPrimitiveType(Type type) : super(type);
+  bool canBePrimitive() => true;
 }

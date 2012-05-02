@@ -155,11 +155,7 @@ class HGraph {
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
-    if (constant.isMap()) {
-      MapConstant map = constant;
-      return new HNonPrimitiveType(map.type);
-    }
-    return HType.UNKNOWN;
+    return new HExactType(constant.type);
   }
 
   HConstant addConstant(Constant constant) {
@@ -743,13 +739,13 @@ class HInstruction implements Hashable {
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
   bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
-  bool isNonPrimitive() => propagatedType.isNonPrimitive();
+  bool canBePrimitive() => propagatedType.canBePrimitive();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not
    * take any propagation into account.
    */
-  HType get guaranteedType() => HType.UNKNOWN;
+  HType guaranteedType = HType.UNKNOWN;
   bool hasGuaranteedType() => !guaranteedType.isUnknown();
 
   /**
@@ -1118,17 +1114,16 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  /** The known type that this instruction yields. */
-  final HType knownType;
   /** The first input must be the target. */
-  HInvokeStatic(selector, inputs, [this.knownType = HType.UNKNOWN])
-      : super(selector, inputs);
+  HInvokeStatic(selector, inputs, [HType knownType = HType.UNKNOWN])
+      : super(selector, inputs) {
+    guaranteedType = knownType;
+  }
+
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
-
-  HType get guaranteedType() => knownType;
 
   HType computeDesiredTypeForInput(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1755,7 +1750,9 @@ class HParameterValue extends HInstruction {
 }
 
 class HThis extends HParameterValue {
-  HThis() : super(null);
+  HThis([HType type = HType.UNKNOWN]) : super(null) {
+    guaranteedType = type;
+  }
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
 }
