@@ -1309,7 +1309,7 @@ void main() {
 void documentLoaded(event) {
   // Load the database of expected methods and properties with an
   // XMLHttpRequest.
-  new XMLHttpRequest.getTEMPNAME('${window.location}.json', (req) {
+  new XMLHttpRequest.get('${window.location}.json', (req) {
     data = JSON.parse(req.responseText);
     dbEntry = {'members': [], 'srcUrl': pageUrl};
     run();

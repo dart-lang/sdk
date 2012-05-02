@@ -22647,9 +22647,9 @@ class _WorkerFactoryProvider {
 class _XMLHttpRequestFactoryProvider {
   factory XMLHttpRequest() => _wrap(new dom.XMLHttpRequest());
 
-  factory XMLHttpRequest.getTEMPNAME(String url,
+  factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.getTEMPNAME(url, onSuccess);
+      _XMLHttpRequestUtils.get(url, onSuccess);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40472,7 +40472,7 @@ interface WorkerNavigator {
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
-  XMLHttpRequest.getTEMPNAME(String url, onSuccess(XMLHttpRequest request));
+  XMLHttpRequest.get(String url, onSuccess(XMLHttpRequest request));
 
   XMLHttpRequest();
 
@@ -41448,9 +41448,9 @@ class _Collections {
 
 class _XMLHttpRequestUtils {
 
-  // Helper for factory XMLHttpRequest.getTEMPNAME
-  static XMLHttpRequest getTEMPNAME(String url,
-                                    onSuccess(XMLHttpRequest request)) {
+  // Helper for factory XMLHttpRequest.get
+  static XMLHttpRequest get(String url,
+                            onSuccess(XMLHttpRequest request)) {
     final request = new XMLHttpRequest();
     request.open('GET', url, true);
 

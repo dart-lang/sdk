@@ -8,5 +8,5 @@ $!COMMENT
 interface $ID$EXTENDS {
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
-  $ID.getTEMPNAME(String url, onSuccess($ID request));
+  $ID.get(String url, onSuccess($ID request));
 $!MEMBERS}

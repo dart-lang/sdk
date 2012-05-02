@@ -4,9 +4,9 @@
 
 class _XMLHttpRequestUtils {
 
-  // Helper for factory XMLHttpRequest.getTEMPNAME
-  static XMLHttpRequest getTEMPNAME(String url,
-                                    onSuccess(XMLHttpRequest request)) {
+  // Helper for factory XMLHttpRequest.get
+  static XMLHttpRequest get(String url,
+                            onSuccess(XMLHttpRequest request)) {
     final request = new XMLHttpRequest();
     request.open('GET', url, true);
 

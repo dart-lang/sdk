@@ -23,7 +23,7 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
         new dom.XMLHttpRequest());
   }
 
-  factory XMLHttpRequestWrappingImplementation.getTEMPNAME(String url,
+  factory XMLHttpRequestWrappingImplementation.get(String url,
       onSuccess(XMLHttpRequest request)) {
     final request = new XMLHttpRequest();
     request.open('GET', url, true);
