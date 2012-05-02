@@ -419,6 +419,8 @@ class _HttpParser {
             _expect(byte, _CharCode.LF);
             if (_connectionUpgrade) {
               _state = _State.UPGRADED;
+              _unparsedData =
+                  buffer.getRange(index + 1, count - (index + 1 - offset));
               if (headersComplete != null) headersComplete();
             } else {
               if (headersComplete != null) headersComplete();
@@ -606,6 +608,8 @@ class _HttpParser {
 
   bool get isIdle() => _state == _State.START;
 
+  List<int> get unparsedData() => _unparsedData;
+
   void _bodyEnd() {
     if (dataEnd != null) {
       dataEnd(_messageType == _MessageType.RESPONSE && !_persistentConnection);
@@ -695,6 +699,7 @@ class _HttpParser {
   String _responseToMethod;  // Indicates the method used for the request.
   int _remainingContent;
 
+  List<int> _unparsedData;  // Unparsed data after connection upgrade.
   // Callbacks.
   Function requestStart;
   Function responseStart;

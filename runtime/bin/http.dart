@@ -388,10 +388,10 @@ interface HttpResponse default _HttpResponse {
    * socket is detached the HTTP server will no longer perform any
    * operations on it.
    *
-   * This is normally used when a HTTP upgraded request is received
+   * This is normally used when a HTTP upgrade request is received
    * and the communication should continue with a different protocol.
    */
-  Socket detachSocket();
+  DetachedSocket detachSocket();
 }
 
 
@@ -485,6 +485,16 @@ interface HttpClientConnection {
    * connecting or processing the HTTP request.
    */
   void set onError(void callback(e));
+
+  /**
+   * Detach the underlying socket from the HTTP client. When the
+   * socket is detached the HTTP client will no longer perform any
+   * operations on it.
+   *
+   * This is normally used when a HTTP upgrade is negotiated and the
+   * communication should continue with a different protocol.
+   */
+  DetachedSocket detachSocket();
 }
 
 
@@ -547,6 +557,19 @@ interface HttpClientResponse default _HttpClientResponse {
    * the response data.
    */
   InputStream get inputStream();
+}
+
+
+/**
+ * When detaching a socket from either the [:HttpServer:] or the
+ * [:HttpClient:] due to a HTTP connection upgrade there might be
+ * unparsed data already read from the socket. This unparsed data
+ * together with the detached socket is returned in an instance of
+ * this class.
+ */
+interface DetachedSocket default _DetachedSocket {
+  Socket get socket();
+  List<int> get unparsedData();
 }
 
 
