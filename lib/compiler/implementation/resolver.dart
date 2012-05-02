@@ -211,6 +211,17 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
+  Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+    if (annotation === null) return compiler.types.dynamicType;
+    ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+    Type result = visitor.resolveTypeAnnotation(annotation);
+    if (result === null) {
+      // TODO(karklose): warning.
+      return compiler.types.dynamicType;
+    }
+    return result;
+  }
+
   void resolveClass(ClassElement element) {
     if (element.isResolved) return;
     measure(() {
@@ -1107,11 +1118,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         }
         if (cls.typeParameters.length == 0) {
           // Return the canonical type if it has no type parameters.
-          type = element.computeType(compiler);
+          type = cls.computeType(compiler);
         } else {
           type = new InterfaceType(cls, arguments.toLink());
         }
-      } else if (element.isTypedef() || element.isTypeVariable()) {
+      } else if (element.isTypedef()) {
+        // TODO(ngeoffray): This is a hack to help us get support for the
+        // DOM library.
+        // TODO(ngeoffray): The list of types for the argument is wrong.
+        type = new FunctionType(compiler.types.dynamicType,
+                                const EmptyLink<Type>(),
+                                element);
+      } else if (element.isTypeVariable()) {
         type = element.computeType(compiler);
       } else {
         compiler.cancel("unexpected element kind ${element.kind}",

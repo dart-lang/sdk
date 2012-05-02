@@ -446,7 +446,7 @@ class VariableListElement extends Element {
 
   Type computeType(Compiler compiler) {
     if (type != null) return type;
-    type = getType(parseNode(compiler).type, compiler, getLibrary());
+    type = compiler.resolveTypeAnnotation(this, parseNode(compiler).type);
     return type;
   }
 
@@ -498,47 +498,6 @@ class AbstractFieldElement extends Element {
       return setter.position();
     }
   }
-}
-
-/** DEPRECATED. */
-Type getType(TypeAnnotation typeAnnotation,
-             Compiler compiler,
-             LibraryElement library) {
-  // TODO(karlklose,ngeoffray): This method should be removed and the
-  // information should be computed by the resolver.
-
-  if (typeAnnotation == null || typeAnnotation.typeName == null) {
-    return compiler.types.dynamicType;
-  }
-  Identifier identifier = typeAnnotation.typeName.asIdentifier();
-  if (identifier === null) {
-    compiler.reportWarning(
-      typeAnnotation.typeName,
-      new ResolutionWarning(MessageKind.GENERIC,
-                            ['library prefixes not handled']));
-    return compiler.types.dynamicType;
-  }
-  SourceString name = identifier.source;
-  Element element = library.find(name);
-  if (element !== null) {
-    if (element.isTypedef()) {
-      // TODO(ngeoffray): This is a hack to help us get support for the
-      // DOM library.
-      // TODO(ngeoffray): The list of types for the argument is wrong.
-      return new FunctionType(compiler.types.dynamicType,
-                              const EmptyLink<Type>(),
-                              element);
-    }
-    if (element.isClass()) {
-      // TODO(karlklose): substitute type parameters.
-      return element.computeType(compiler);
-    }
-  }
-  Type type = compiler.types.lookup(name);
-  if (type === null) {
-    type = compiler.types.dynamicType;
-  }
-  return type;
 }
 
 class FunctionParameters {
@@ -644,8 +603,7 @@ class FunctionElement extends Element {
       Types types = compiler.types;
       FunctionExpression node =
           compiler.parser.measure(() => parseNode(compiler));
-      Type returnType = getType(node.returnType, compiler, getLibrary());
-      if (returnType === null) returnType = types.dynamicType;
+      Type returnType = compiler.resolveTypeAnnotation(this, node.returnType);
 
       LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
       for (Link<Element> link = parameters.requiredParameters;

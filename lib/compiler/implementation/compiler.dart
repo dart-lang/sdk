@@ -416,6 +416,10 @@ class Compiler implements DiagnosticListener {
     withCurrentElement(element, () => resolver.resolveClass(element));
   }
 
+  Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+    return resolver.resolveTypeAnnotation(element, annotation);
+  }
+
   FunctionParameters resolveSignature(FunctionElement element) {
     return withCurrentElement(element,
                               () => resolver.resolveSignature(element));
