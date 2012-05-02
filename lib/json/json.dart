@@ -304,7 +304,7 @@ class _JsonParser {
 
     if (char === CHAR_E || char === CHAR_CAPITAL_E) {
       char = _nextChar();
-      if (char === MINUS || char === PLUS) position++;
+      if (char === MINUS || char === PLUS) char = _nextChar();
       if (_isDigit(char)) {
         char = _nextChar();
         isInt = false;
