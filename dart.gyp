@@ -28,21 +28,19 @@
       'type': 'none',
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
+        'dart2js',
       ],
       'actions': [
         {
           'action_name': 'create_sdk_py',
           'inputs': [
-            '<!@(["python", "frog/scripts/list_frog_files.py", "frog"])',
-            # TODO(dgrove) - change these to dependencies and add dom
-            # dependences once issues 754 and 755 are fixed
-            'lib/html/html_frog.dart',
-            'lib/html/html_dartium.dart',
-            'lib/dom/dom.dart',
-            'lib/dom/src',
+            '<!@(["python", "tools/list_files.py", "\\.dart$", "lib"])',
             'frog/scripts/bootstrap/frogc',
             'tools/create_sdk.py',
+            '<(PRODUCT_DIR)/frog/bin/frog',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/dart2js',
+            '<(PRODUCT_DIR)/dart2js.bat',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart-sdk/create.stamp',
