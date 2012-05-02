@@ -61,19 +61,20 @@ class StatementType implements Type {
 }
 
 class InterfaceType implements Type {
-  final SourceString name;
   final Element element;
   final Link<Type> arguments;
 
-  const InterfaceType(this.name, this.element,
+  const InterfaceType(this.element,
                       [this.arguments = const EmptyLink<Type>()]);
+
+  SourceString get name() => element.name;
 
   toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
     if (!arguments.isEmpty()) {
       sb.add('<');
-      arguments.printOn(sb);
+      arguments.printOn(sb, ', ');
       sb.add('>');
     }
     return sb.toString();
@@ -118,8 +119,8 @@ class Types {
 
   // TODO(karlklose): should we have a class Void?
   Types.with(Element dynamicElement, LibraryElement library)
-    : voidType = new InterfaceType(VOID, new ClassElement(VOID, library)),
-      dynamicType = new InterfaceType(DYNAMIC, dynamicElement);
+    : voidType = new InterfaceType(new ClassElement(VOID, library)),
+      dynamicType = new InterfaceType(dynamicElement);
 
   Type lookup(SourceString s) {
     if (VOID == s) {

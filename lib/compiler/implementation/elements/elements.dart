@@ -345,11 +345,17 @@ class PrefixElement extends Element {
 }
 
 class TypedefElement extends Element {
-  Token token;
+  final Token token;
+  Type cachedType;
+
   TypedefElement(SourceString name, Element enclosing, this.token)
-    : super(name, ElementKind.TYPEDEF, enclosing);
+      : super(name, ElementKind.TYPEDEF, enclosing) {
+    cachedType = new InterfaceType(this);
+  }
 
   position() => findMyName(token);
+
+  Type computeType(Compiler compiler) => cachedType;
 }
 
 class VariableElement extends Element {
@@ -729,7 +735,7 @@ class ClassElement extends ContainerElement {
 
   Type computeType(compiler) {
     if (type === null) {
-      type = new InterfaceType(name, this);
+      type = new InterfaceType(this);
     }
     return type;
   }

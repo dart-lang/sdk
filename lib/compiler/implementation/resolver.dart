@@ -1105,13 +1105,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
             report(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
           }
         }
-        type = new InterfaceType(cls.name, cls, arguments.toLink());
-      } else if (element.isTypedef()) {
-        // TODO(karlklose): implement typedefs. We return a fake type that the
-        // code generator can use to detect typedefs in is-checks.
-        type = new InterfaceType(element.name, element);
-      } else {
+        if (cls.typeParameters.length == 0) {
+          // Return the canonical type if it has no type parameters.
+          type = element.computeType(compiler);
+        } else {
+          type = new InterfaceType(cls, arguments.toLink());
+        }
+      } else if (element.isTypedef() || element.isTypeVariable()) {
         type = element.computeType(compiler);
+      } else {
+        compiler.cancel("unexpected element kind ${element.kind}",
+                        node: node);
       }
     }
     return useType(node, type);
@@ -1404,7 +1408,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       } else if (objectElement === null){
         error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
-      classElement.supertype = new InterfaceType(Types.OBJECT, objectElement);
+      classElement.supertype = new InterfaceType(objectElement);
     }
     if (node.defaultClause !== null) {
       classElement.defaultClass = visit(node.defaultClause);
@@ -1739,17 +1743,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   void resolveType(Node node) {
     if (node == null) return;
-    // Find the correct member context to perform the lookup in.
-    Element outer = enclosingElement;
-    Element context = outer;
-    while (outer !== null) {
-      if (outer.isMember()) {
-        context = outer;
-        break;
-      }
-      outer = outer.enclosingElement;
-    }
-    node.accept(new ResolverVisitor(compiler, context));
+    node.accept(new ResolverVisitor(compiler, enclosingElement));
   }
 
   // TODO(ahe): This is temporary.

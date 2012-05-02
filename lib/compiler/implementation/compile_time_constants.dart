@@ -775,7 +775,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
-    Type type = new InterfaceType(classElement.name, classElement);
+    Type type = new InterfaceType(classElement);
     compiler.registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
     compiler.constantHandler.registerCompileTimeConstant(constant);
