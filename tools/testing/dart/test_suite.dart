@@ -1233,10 +1233,14 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'dart2js':
+        var prefix = '';
+        if (configuration['use_sdk']) {
+          prefix = 'dart-sdk/bin/';
+        }
         if (configuration['host_checked']) {
-          return 'dart2js_developer$suffix';
+          return '${prefix}dart2js_developer$suffix';
         } else {
-          return 'dart2js$suffix';
+          return '${prefix}dart2js$suffix';
         }
       case 'frog':
         return 'frog/bin/frog$suffix';
@@ -1251,11 +1255,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'dart2js':
-        if (configuration['host_checked']) {
-          return 'dart2js_developer$suffix';
-        } else {
-          return 'dart2js$suffix';
-        }
+        return executableName(configuration);
       case 'frog':
         return 'frog/bin/frog$suffix';
       default:

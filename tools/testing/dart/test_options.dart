@@ -249,6 +249,18 @@ is 'dart file.dart' and you specify special command
               [],
               ''),
           new _TestOptionSpecification(
+              'use_sdk',
+              '''Use compiler or runtime from the SDK.
+
+Normally, the compiler or runtimes in PRODUCT_DIR is tested, with this
+option, the compiler or runtime in PRODUCT_DIR/dart-sdk/bin is tested.
+
+Note: currently only implemented for dart2js.''',
+              ['--use-sdk'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'noBatch',
               'Do not run browser tests in batch mode',
               ['-n', '--nobatch'],

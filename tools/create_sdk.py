@@ -78,6 +78,49 @@ def ReplaceInFiles(paths, subs):
     dest.write(contents)
     dest.close()
 
+
+def Copy(src, dest):
+  copyfile(src, dest)
+  copymode(src, dest)
+
+
+def CopyDart2Js(build_dir, sdk_root):
+  '''
+  Install dart2js in SDK/lib/dart2js.
+
+  Currently, we copy too much stuff to this location, but the SDK's
+  layout matches the the layout of the part of the repository we're
+  dealing with here which frees us from rewriting files. The long term
+  plan is to align the layout of the repository and the SDK, at which
+  point we should be able to simplify Main below and share the dart
+  files between the various components to minimize SDK download size.
+  '''
+  copytree('lib', os.path.join(sdk_root, 'lib', 'dart2js', 'lib'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('corelib', 'src'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'src'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('runtime', 'lib'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('runtime', 'bin'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'bin'),
+           ignore=ignore_patterns('.svn'))
+  if utils.GuessOS() == 'win32':
+    dart2js = os.path.join(sdk_root, 'bin', 'dart2js.bat')
+    Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
+    ReplaceInFiles([dart2js],
+                   [(r'%SCRIPTPATH%\.\.\\lib',
+                     r'%SCRIPTPATH%..\lib\dart2js\lib')])
+  else:
+    dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
+    Copy(os.path.join(build_dir, 'dart2js'), dart2js)
+    ReplaceInFiles([dart2js],
+                   [(r'\$BIN_DIR/\.\./\.\./lib',
+                     r'$BIN_DIR/../lib/dart2js/lib')])
+
+
+
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
   builtin_runtime_sources = \
@@ -442,6 +485,8 @@ def Main(argv):
     import_src = join(HOME, 'lib', 'config', 'import_' + platform + '.config')
     import_dst = join(LIB, 'config', 'import_' + platform + '.config')
     copyfile(import_src, import_dst);
+
+  CopyDart2Js(build_dir, SDK_tmp)
 
   # Write the 'revision' file
   revision = utils.GetSVNRevision()
