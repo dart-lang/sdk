@@ -135,7 +135,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Build the increment part of an increment operation (add or subtract 1).
   // Consumes the original value and produces the value +/- 1.
   Definition* BuildIncrOpIncrement(Token::Kind kind,
-                                   intptr_t node_id,
                                    intptr_t token_index,
                                    Value* original);
 
@@ -156,16 +155,14 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                         intptr_t start_index);
 
   // Perform a type check on the given value.
-  void BuildAssertAssignable(intptr_t node_id,
-                             intptr_t token_index,
+  void BuildAssertAssignable(intptr_t token_index,
                              Value* value,
                              const AbstractType& dst_type,
                              const String& dst_name,
                              intptr_t start_index);
 
   // Perform a type check on the given value and return it.
-  Value* BuildAssignableValue(intptr_t node_id,
-                              intptr_t token_index,
+  Value* BuildAssignableValue(AstNode* value_node,
                               Value* value,
                               const AbstractType& dst_type,
                               const String& dst_name,
@@ -242,7 +239,10 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
  private:
   // Helper to set the output state to return a Value.
-  virtual void ReturnValue(Value* value) { value_ = value; }
+  virtual void ReturnValue(Value* value) {
+    ASSERT(value->IsUse() || value->IsTemp());
+    value_ = value;
+  }
 
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and returns its temporary value (i.e., set the output
@@ -261,22 +261,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 };
 
 
-// Translate an AstNode to a control-flow graph fragment for both its effects
-// and value as an outgoing argument.  Implements a function from an AstNode
-// and next temporary index to a graph fragment (as in the
-// EffectGraphBuilder), an updated temporary index, and an intermediate
-// language Value.
-class ArgumentGraphVisitor : public ValueGraphVisitor {
- public:
-  ArgumentGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
-      : ValueGraphVisitor(owner, temp_index) { }
-
- private:
-  // Override the returning of constants to ensure they are materialized.
-  virtual void ReturnValue(Value* value);
-};
-
-
 // Translate an AstNode to a control-flow graph fragment for both its
 // effects and true/false control flow (e.g., for an expression in a test
 // context).  The resulting graph is always closed (even if it is empty)
@@ -292,24 +276,18 @@ class ArgumentGraphVisitor : public ValueGraphVisitor {
 // We expect that AstNode in test contexts either have only nonlocal exits
 // or else control flow has both true and false successors.
 //
-// The node_id and token_index are used in checked mode to verify that the
+// The cis and token_index are used in checked mode to verify that the
 // condition of the test is of type bool.
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
                    intptr_t temp_index,
-                   intptr_t condition_node_id,
                    intptr_t condition_token_index)
       : ValueGraphVisitor(owner, temp_index),
         true_successor_address_(NULL),
         false_successor_address_(NULL),
-        condition_node_id_(condition_node_id),
         condition_token_index_(condition_token_index) {
   }
-
-  // Visit functions overridden by this class.
-  virtual void VisitLiteralNode(LiteralNode* node);
-  virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
   TargetEntryInstr** true_successor_address() const {
     ASSERT(true_successor_address_ != NULL);
@@ -320,7 +298,6 @@ class TestGraphVisitor : public ValueGraphVisitor {
     return false_successor_address_;
   }
 
-  intptr_t condition_node_id() const { return condition_node_id_; }
   intptr_t condition_token_index() const { return condition_token_index_; }
 
  private:
@@ -340,7 +317,6 @@ class TestGraphVisitor : public ValueGraphVisitor {
   TargetEntryInstr** true_successor_address_;
   TargetEntryInstr** false_successor_address_;
 
-  intptr_t condition_node_id_;
   intptr_t condition_token_index_;
 };
 

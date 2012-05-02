@@ -27,6 +27,7 @@ DECLARE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure);
 DECLARE_RUNTIME_ENTRY(AllocateImplicitStaticClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
+DECLARE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck);
 DECLARE_RUNTIME_ENTRY(BreakpointStaticHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointReturnHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointDynamicHandler);

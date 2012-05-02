@@ -1,31 +1,6 @@
-// Copyright 2012, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.ast;
 
@@ -40,7 +15,6 @@ import java.util.List;
  * parent.
  */
 public class NodeList<E extends DartNode> extends AbstractList<E> {
-
   /**
    * @return the new instance of {@link NodeList} with correct type argument.
    */
@@ -51,7 +25,7 @@ public class NodeList<E extends DartNode> extends AbstractList<E> {
   /**
    * The underlying list in which the nodes of this list are stored.
    */
-  private final List<E> elements = Lists.newArrayListWithCapacity(0);
+  private List<E> elements = null;
 
   /**
    * The node that is the parent of each of the elements in the list.
@@ -61,7 +35,7 @@ public class NodeList<E extends DartNode> extends AbstractList<E> {
   /**
    * Initialize a newly created list of nodes to be empty.
    *
-   * @param parent the node that is the parent of each of the elements in the list
+   * @param owner the node that is the parent of each of the elements in the list
    */
   public NodeList(DartNode owner) {
     this.owner = owner;
@@ -73,13 +47,18 @@ public class NodeList<E extends DartNode> extends AbstractList<E> {
    * @param visitor the visitor to be used to visit the elements of this list
    */
   public void accept(ASTVisitor<?> visitor) {
-    for (E element : elements) {
-      element.accept(visitor);
+    if (elements != null) {
+      for (E element : elements) {
+        element.accept(visitor);
+      }
     }
   }
 
   @Override
   public void add(int index, E element) {
+    if (elements == null) {
+      elements = Lists.newArrayListWithCapacity(2);
+    }
     elements.add(element);
     owner.becomeParentOf(element);
   }
@@ -94,11 +73,17 @@ public class NodeList<E extends DartNode> extends AbstractList<E> {
 
   @Override
   public E get(int index) {
+    if (elements == null) {
+      throw new IndexOutOfBoundsException(Integer.toString(index));
+    }
     return elements.get(index);
   }
 
   @Override
   public E set(int index, E element) {
+    if (elements == null) {
+      elements = Lists.newArrayListWithCapacity(index + 1);
+    }
     E result = elements.set(index, element);
     owner.becomeParentOf(element);
     return result;
@@ -106,6 +91,9 @@ public class NodeList<E extends DartNode> extends AbstractList<E> {
 
   @Override
   public int size() {
+    if (elements == null) {
+      return 0;
+    }
     return elements.size();
   }
 }

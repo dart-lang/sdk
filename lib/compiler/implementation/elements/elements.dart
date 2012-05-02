@@ -301,8 +301,19 @@ class LibraryElement extends CompilationUnitElement {
     }
   }
 
+  /** Look up a top-level element in this library. The element could
+    * potentially have been imported from another library. Returns
+    * null if no such element exist. */
   Element find(SourceString elementName) {
     return elements[elementName];
+  }
+
+  /** Look up a top-level element in this library, but only look for
+    * non-imported elements. Returns null if no such element exist. */
+  Element findLocal(SourceString elementName) {
+    Element result = elements[elementName];
+    if (result === null || result.getLibrary() != this) return null;
+    return result;
   }
 
   void forEachExport(f(Element element)) {
@@ -334,11 +345,17 @@ class PrefixElement extends Element {
 }
 
 class TypedefElement extends Element {
-  Token token;
+  final Token token;
+  Type cachedType;
+
   TypedefElement(SourceString name, Element enclosing, this.token)
-    : super(name, ElementKind.TYPEDEF, enclosing);
+      : super(name, ElementKind.TYPEDEF, enclosing) {
+    cachedType = new InterfaceType(this);
+  }
 
   position() => findMyName(token);
+
+  Type computeType(Compiler compiler) => cachedType;
 }
 
 class VariableElement extends Element {
@@ -688,7 +705,7 @@ class ClassElement extends ContainerElement {
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
-  Map<SourceString, TypeVariableElement> typeParameters;
+  LinkedHashMap<SourceString, TypeVariableElement> typeParameters;
   bool isResolved = false;
   bool isBeingResolved = false;
   // backendMembers are members that have been added by the backend to simplify
@@ -700,7 +717,7 @@ class ClassElement extends ContainerElement {
   ClassElement(SourceString name, CompilationUnitElement enclosing)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
-      typeParameters = new Map<SourceString, TypeVariableElement>(),
+      typeParameters = new LinkedHashMap<SourceString, TypeVariableElement>(),
       super(name, ElementKind.CLASS, enclosing);
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -718,7 +735,7 @@ class ClassElement extends ContainerElement {
 
   Type computeType(compiler) {
     if (type === null) {
-      type = new InterfaceType(name, this);
+      type = new InterfaceType(this);
     }
     return type;
   }

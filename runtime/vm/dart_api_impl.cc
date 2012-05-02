@@ -14,6 +14,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debuginfo.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
@@ -27,6 +28,8 @@
 #include "vm/verifier.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, print_class_table);
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 
@@ -808,6 +811,9 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     return Api::NewHandle(isolate, obj.raw());
   }
   ASSERT(obj.IsNull());
+  if (FLAG_print_class_table) {
+    isolate->class_table()->Print();
+  }
   return Api::Success(isolate);
 }
 

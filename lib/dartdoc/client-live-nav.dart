@@ -30,7 +30,7 @@ main() {
   enableCodeBlocks();
 
   // Request the navigation data so we can build the HTML for it.
-  new XMLHttpRequest.getTEMPNAME('${prefix}nav.json', (request) {
+  new XMLHttpRequest.get('${prefix}nav.json', (request) {
     buildNavigation(JSON.parse(request.responseText));
   });
 }

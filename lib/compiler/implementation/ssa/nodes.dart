@@ -57,6 +57,7 @@ interface HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeGuard(HTypeGuard node);
+  R visitTypeConversion(HTypeConversion node);
 }
 
 class HGraphVisitor {
@@ -154,11 +155,8 @@ class HGraph {
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
-    if (constant.isMap()) {
-      MapConstant map = constant;
-      return new HNonPrimitiveType(map.type);
-    }
-    return HType.UNKNOWN;
+    ObjectConstant objectConstant = constant;
+    return new HExactType(objectConstant.type);
   }
 
   HConstant addConstant(Constant constant) {
@@ -310,6 +308,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitInstruction(node);
   visitIs(HIs node) => visitInstruction(node);
+  visitTypeConversion(HTypeConversion node) => visitInstruction(node);
 }
 
 class SubGraph {
@@ -328,9 +327,15 @@ class SubGraph {
 }
 
 class SubExpression extends SubGraph {
-  final HInstruction expression;
-  const SubExpression(HBasicBlock start, HBasicBlock end, this.expression)
+  const SubExpression(HBasicBlock start, HBasicBlock end)
       : super(start, end);
+
+  /** Find the condition expression if this sub-expression is a condition. */
+  HInstruction get conditionExpression() {
+    HInstruction last = end.last;
+    if (last is HConditionalBranch) return last.inputs[0];
+    return null;
+  }
 }
 
 class HInstructionList {
@@ -660,6 +665,16 @@ class HBasicBlock extends HInstructionList implements Hashable {
     validator.visitBasicBlock(this);
     return validator.isValid;
   }
+
+  // TODO(ngeoffray): Cache the information if this method ends up
+  // being hot.
+  bool dominates(HBasicBlock other) {
+    do {
+      if (this === other) return true;
+      other = other.dominator;
+    } while (other !== null && other.id >= id);
+    return false;
+  }
 }
 
 
@@ -725,13 +740,13 @@ class HInstruction implements Hashable {
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
   bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
-  bool isNonPrimitive() => propagatedType.isNonPrimitive();
+  bool canBePrimitive() => propagatedType.canBePrimitive();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not
    * take any propagation into account.
    */
-  HType get guaranteedType() => HType.UNKNOWN;
+  HType guaranteedType = HType.UNKNOWN;
   bool hasGuaranteedType() => !guaranteedType.isUnknown();
 
   /**
@@ -874,6 +889,24 @@ class HInstruction implements Hashable {
       }
     }
     users.length = length;
+  }
+
+  // Change all uses of [oldInput] by [this] to [newInput]. Also
+  // updates the [usedBy] of [oldInput] and [newInput].
+  void changeUse(HInstruction oldInput, HInstruction newInput) {
+    for (int i = 0; i < inputs.length; i++) {
+      if (inputs[i] === oldInput) {
+        inputs[i] = newInput;
+        newInput.usedBy.add(this);
+      }
+    }
+    List<HInstruction> oldInputUsers = oldInput.usedBy;
+    for (int i = 0; i < oldInputUsers.length; i++) {
+      if (oldInputUsers[i] == this) {
+        oldInputUsers[i] = oldInputUsers[oldInput.usedBy.length - 1];
+        oldInputUsers.length = oldInputUsers.length - 1;
+      }
+    }
   }
 
   bool isConstant() => false;
@@ -1082,17 +1115,16 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  /** The known type that this instruction yields. */
-  final HType knownType;
   /** The first input must be the target. */
-  HInvokeStatic(selector, inputs, [this.knownType = HType.UNKNOWN])
-      : super(selector, inputs);
+  HInvokeStatic(selector, inputs, [HType knownType = HType.UNKNOWN])
+      : super(selector, inputs) {
+    guaranteedType = knownType;
+  }
+
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
-
-  HType get guaranteedType() => knownType;
 
   HType computeDesiredTypeForInput(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1719,7 +1751,9 @@ class HParameterValue extends HInstruction {
 }
 
 class HThis extends HParameterValue {
-  HThis() : super(null);
+  HThis([HType type = HType.UNKNOWN]) : super(null) {
+    guaranteedType = type;
+  }
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
 }
@@ -2089,19 +2123,44 @@ class HIndexAssign extends HInvokeStatic {
 }
 
 class HIs extends HInstruction {
-  final Type typeName;
+  final Type typeExpression;
   final bool nullOk;
 
-  HIs(this.typeName, HInstruction expression, [nullOk = false])
-    : this.nullOk = nullOk, super(<HInstruction>[expression]);
+  HIs.withTypeInfoCall(this.typeExpression, HInstruction expression,
+                       HInstruction typeInfo, [this.nullOk = false])
+    : super(<HInstruction>[expression, typeInfo]);
+
+  HIs(this.typeExpression, HInstruction expression, [this.nullOk = false])
+     : super(<HInstruction>[expression]);
 
   HInstruction get expression() => inputs[0];
+
+  HInstruction get typeInfoCall() => inputs[1];
 
   HType get guaranteedType() => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
-  toString() => "$expression is $typeName";
+  toString() => "$expression is $typeExpression";
+}
+
+class HTypeConversion extends HInstruction {
+  HType type;
+
+  HTypeConversion(HType this.type, HInstruction input)
+    : super(<HInstruction>[input]);
+
+  HType get guaranteedType() => type;
+
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
+
+  accept(HVisitor visitor) => visitor.visitTypeConversion(this);
+  int typeCode() => 27;
+  bool typeEquals(other) => other is HTypeConversion;
+  bool dataEquals(HTypeConversion other) => type == other.type;
 }
 
 
@@ -2114,6 +2173,7 @@ interface HBlockInformationVisitor {
   bool visitLoopInfo(HLoopInformation info);
   bool visitIfInfo(HIfBlockInformation info);
   bool visitAndOrInfo(HAndOrBlockInformation info);
+  bool visitTryInfo(HTryBlockInformation info);
 }
 
 class HLabeledBlockInformation implements HBlockInformation {
@@ -2236,4 +2296,18 @@ class HAndOrBlockInformation implements HBlockInformation {
                          this.right,
                          this.joinBlock);
   bool accept(HBlockInformationVisitor visitor) => visitor.visitAndOrInfo(this);
+}
+
+class HTryBlockInformation implements HBlockInformation {
+  final SubGraph body;
+  final HParameterValue catchVariable;
+  final SubGraph catchBlock;
+  final SubGraph finallyBlock;
+  final HBasicBlock joinBlock;
+  HTryBlockInformation(this.body,
+                       this.catchVariable,
+                       this.catchBlock,
+                       this.finallyBlock,
+                       this.joinBlock);
+  bool accept(HBlockInformationVisitor visitor) => visitor.visitTryInfo(this);
 }

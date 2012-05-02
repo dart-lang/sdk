@@ -27,9 +27,9 @@ String uriPathToNative(String path) {
   if (Platform.operatingSystem() != 'windows') return path;
   path = path.toLowerCase();
   if (path.length > 3 && path[0] == '/' && path[2] == ':') {
-    return path.substring(1);
+    return path.substring(1).replaceAll('/', '\\');
   } else {
-    return path;
+    return path.replaceAll('/', '\\');
   }
 }
 

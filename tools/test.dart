@@ -33,9 +33,7 @@
 #import("../compiler/tests/dartc/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
-#import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
-#import("../tests/standalone/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -49,6 +47,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'frog/tests/frog_native',
   'frog/tests/leg',
   'frog/tests/leg_only',
+  'samples/tests/samples',
   'tests/benchmark_smoke',
   'tests/corelib',
   'tests/dom',
@@ -56,6 +55,8 @@ final TEST_SUITE_DIRECTORIES = const [
   'tests/isolate',
   'tests/json',
   'tests/language',
+  'tests/lib',
+  'tests/standalone',
   'tests/utils',
   'utils/tests/css',
   'utils/tests/peg',
@@ -100,11 +101,7 @@ main() {
 
     var conf = configurationIterator.next();
     for (String key in selectors.getKeys()) {
-      if (key == 'samples') {
-        queue.addTestSuite(new SamplesTestSuite(conf));
-      } else if (key == 'standalone') {
-        queue.addTestSuite(new StandaloneTestSuite(conf));
-      } else if (key == 'co19') {
+      if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
         queue.addTestSuite(new VMTestSuite(conf));

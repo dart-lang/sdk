@@ -38,7 +38,7 @@ class Box<T> {
 
   makeFoo() {
     // Box.T is not assignable to num.
-    return new Foo<T>(); /// 04: static type warning
+    return new Foo<T>(); /// 04: static type warning, dynamic type error
   }
 }
 

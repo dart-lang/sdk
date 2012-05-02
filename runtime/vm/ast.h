@@ -1164,11 +1164,23 @@ class JumpNode : public AstNode {
 class LoadLocalNode : public AstNode {
  public:
   LoadLocalNode(intptr_t token_index, const LocalVariable& local)
-      : AstNode(token_index), local_(local) { }
+      : AstNode(token_index), local_(local), pseudo_(NULL) { }
+  // The pseudo node does not produce input but must be visited before
+  // completing local load.
+  LoadLocalNode(intptr_t token_index,
+                const LocalVariable& local,
+                AstNode* pseudo)
+      : AstNode(token_index), local_(local), pseudo_(pseudo) {}
 
   const LocalVariable& local() const { return local_; }
+  AstNode* pseudo() const { return pseudo_; }  // Can be NULL.
+  bool HasPseudo() const { return pseudo_ != NULL; }
 
-  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
+  virtual void VisitChildren(AstNodeVisitor* visitor) const {
+    if (HasPseudo()) {
+      pseudo()->Visit(visitor);
+    }
+  }
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
@@ -1180,6 +1192,7 @@ class LoadLocalNode : public AstNode {
 
  private:
   const LocalVariable& local_;
+  AstNode* pseudo_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadLocalNode);
 };

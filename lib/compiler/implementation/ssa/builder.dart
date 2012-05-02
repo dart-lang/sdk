@@ -44,18 +44,27 @@ class Interceptors {
   }
 
   Element getStaticInterceptor(SourceString name, int parameters) {
-    String mangledName = "builtin\$${name.slowToString()}\$${parameters}";
-    return compiler.findHelper(new SourceString(mangledName));
+    String mangledName = name.slowToString();
+    Element element = compiler.findInterceptor(new SourceString(mangledName));
+    if (element !== null && element.isFunction()) {
+      // Only pick the function element with the short name if the
+      // number of parameters it expects matches the number we're
+      // passing modulo the receiver.
+      FunctionElement function = element;
+      if (function.parameterCount(compiler) == parameters + 1) return element;
+    }
+    String longMangledName = "$mangledName\$$parameters";
+    return compiler.findInterceptor(new SourceString(longMangledName));
   }
 
   Element getStaticGetInterceptor(SourceString name) {
-    String mangledName = "builtin\$get\$${name.slowToString()}";
-    return compiler.findHelper(new SourceString(mangledName));
+    String mangledName = "get\$${name.slowToString()}";
+    return compiler.findInterceptor(new SourceString(mangledName));
   }
 
   Element getStaticSetInterceptor(SourceString name) {
-    String mangledName = "builtin\$set\$${name.slowToString()}";
-    return compiler.findHelper(new SourceString(mangledName));
+    String mangledName = "set\$${name.slowToString()}";
+    return compiler.findInterceptor(new SourceString(mangledName));
   }
 
   Element getOperatorInterceptor(Operator op) {
@@ -64,17 +73,9 @@ class Interceptors {
   }
 
   Element getBoolifiedVersionOf(Element interceptor) {
+    if (interceptor === null) return interceptor;
     String boolifiedName = "${interceptor.name.slowToString()}B";
     return compiler.findHelper(new SourceString(boolifiedName));
-  }
-
-  /**
-   * Return an interceptor where the return type is guaranteed.
-   */
-  Element getTypedInterceptor(HType type, SourceString name, int parameters) {
-    String mangledName =
-        "builtin\$${name.slowToString()}\$${parameters}\$$type";
-    return compiler.findHelper(new SourceString(mangledName));
   }
 
   Element getPrefixOperatorInterceptor(Operator op) {
@@ -122,6 +123,15 @@ class Interceptors {
 
   Element getMapMaker() {
     return compiler.findHelper(const SourceString('makeLiteralMap'));
+  }
+
+  // TODO(karlklose): move these to different class or rename class?
+  Element getSetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('setRuntimeTypeInfo'));
+  }
+
+  Element getGetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
   }
 }
 
@@ -318,7 +328,9 @@ class LocalsHandler {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      HInstruction thisInstruction = new HThis();
+      ClassElement cls = function.enclosingElement;
+      Type type = cls.computeType(builder.compiler);
+      HInstruction thisInstruction = new HThis(new HBoundedType(type));
       builder.add(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
     }
@@ -404,8 +416,21 @@ class LocalsHandler {
     }
   }
 
+  HType cachedTypeOfThis;
+
   HInstruction readThis() {
-    return readLocal(closureData.thisElement);
+    HInstruction res = readLocal(closureData.thisElement);
+    if (res.guaranteedType === null) {
+      if (cachedTypeOfThis === null) {
+        assert(closureData.isClosure());
+        Element element = closureData.thisElement;
+        ClassElement cls = element.enclosingElement.enclosingElement;
+        Type type = cls.computeType(builder.compiler);
+        cachedTypeOfThis = new HBoundedType(type);
+      }
+      res.guaranteedType = cachedTypeOfThis;
+    }
+    return res;
   }
 
   /**
@@ -784,10 +809,15 @@ class SsaBuilder implements Visitor {
   /**
    * Returns the constructor body associated with the given constructor or
    * creates a new constructor body, if none can be found.
+   *
+   * Returns [:null:] if the constructor does not have a body.
    */
-  ConstructorBodyElement getConstructorBody(ClassElement classElement,
-                                            FunctionElement constructor) {
+  ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
     assert(constructor.kind === ElementKind.GENERATIVE_CONSTRUCTOR);
+    if (constructor is SynthesizedConstructorElement) return null;
+    FunctionExpression node = constructor.parseNode(compiler);
+    if (!node.hasBody()) return null;
+    ClassElement classElement = constructor.enclosingElement;
     ConstructorBodyElement bodyElement;
     for (Link<Element> backendMembers = classElement.backendMembers;
          !backendMembers.isEmpty();
@@ -973,11 +1003,8 @@ class SsaBuilder implements Visitor {
     // Generate calls to the constructor bodies.
     for (int index = constructors.length - 1; index >= 0; index--) {
       FunctionElement constructor = constructors[index];
-      // TODO(floitsch): find better way to detect that constructor body is
-      // empty.
-      if (constructor is SynthesizedConstructorElement) continue;
-      ConstructorBodyElement body = getConstructorBody(classElement,
-                                                       constructor);
+      ConstructorBodyElement body = getConstructorBody(constructor);
+      if (body === null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
       body.functionParameters.forEachParameter((parameter) {
@@ -1187,8 +1214,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock conditionExitBlock =
         close(new HLoopBranch(conditionInstruction));
     loopInfo.condition = new SubExpression(conditionBlock,
-                                           conditionExitBlock,
-                                           conditionInstruction);
+                                           conditionExitBlock);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1363,8 +1389,7 @@ class SsaBuilder implements Visitor {
     jumpHandler.close();
 
     loopInfo.body = new SubGraph(bodyEntryBlock, bodyExitBlock);
-    loopInfo.condition = new SubExpression(conditionBlock, conditionEndBlock,
-                                           conditionInstruction);
+    loopInfo.condition = new SubExpression(conditionBlock, conditionEndBlock);
     loopInfo.joinBlock = current;
   }
 
@@ -1422,7 +1447,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock conditionStartBlock = openNewBlock();
     visitCondition();
     SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, lastOpenedBlock, stack.last());
+        new SubExpression(conditionStartBlock, lastOpenedBlock);
     bool hasElse = visitElse != null;
     HInstruction condition = popBoolified();
     HIf branch = new HIf(condition, hasElse);
@@ -1510,7 +1535,7 @@ class SsaBuilder implements Visitor {
       add(condition);
     }
     SubExpression leftGraph =
-        new SubExpression(leftBlock, lastOpenedBlock, boolifiedLeft);
+        new SubExpression(leftBlock, lastOpenedBlock);
     HIf branch = new HIf(condition, false);
     leftBlock = close(branch);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
@@ -1522,7 +1547,7 @@ class SsaBuilder implements Visitor {
     right();
     HInstruction boolifiedRight = popBoolified();
     SubExpression rightGraph =
-        new SubExpression(rightBlock, current, boolifiedRight);
+        new SubExpression(rightBlock, current);
     rightBlock = close(new HGoto());
 
     HBasicBlock joinBlock = addNewBlock();
@@ -1790,7 +1815,18 @@ class SsaBuilder implements Visitor {
         typeAnnotation = argument.asSend().receiver;
         isNot = true;
       }
+
       Type type = elements.getType(typeAnnotation);
+      HInstruction typeInfo = null;
+      if (compiler.universe.rti.hasTypeArguments(type)) {
+        HInstruction typeInfoGetter =
+            new HStatic(interceptors.getGetRuntimeTypeInfo());
+        add(typeInfoGetter);
+        typeInfo = new HInvokeStatic(Selector.INVOCATION_1,
+                                     <HInstruction>[typeInfoGetter,
+                                                    expression]);
+        add(typeInfo);
+      }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
         // TODO(karlklose): We emulate the frog behavior and answer
         // true to any is check involving a type variable -- both is T
@@ -1798,7 +1834,12 @@ class SsaBuilder implements Visitor {
         // reified generics.
         stack.add(graph.addConstantBool(true));
       } else {
-        HInstruction instruction = new HIs(type, expression);
+        HInstruction instruction;
+        if (typeInfo !== null) {
+          instruction = new HIs.withTypeInfoCall(type, expression, typeInfo);
+        } else {
+          instruction = new HIs(type, expression);
+        }
         if (isNot) {
           add(instruction);
           instruction = new HNot(instruction);
@@ -2153,20 +2194,74 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  visitStaticSend(Send node) {
+  visitNewSend(Send node) {
+    computeType(element) {
+      Element originalElement = elements[node];
+      if (originalElement.enclosingElement === compiler.listClass) {
+        if (node.arguments.isEmpty()) {
+          return HType.EXTENDABLE_ARRAY;
+        } else {
+          return HType.MUTABLE_ARRAY;
+        }
+      } else if (element.isGenerativeConstructor()) {
+        ClassElement cls = element.enclosingElement;
+        return new HExactType(cls.type);
+      } else {
+        return HType.UNKNOWN;
+      }
+    }
+
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      compiler.resolver.resolveMethodElement(element);
-      FunctionElement functionElement = element;
-      element = functionElement.defaultImplementation;
-    }
+    compiler.resolver.resolveMethodElement(element);
+    FunctionElement functionElement = element;
+    element = functionElement.defaultImplementation;
     HInstruction target = new HStatic(element);
     add(target);
     var inputs = <HInstruction>[];
     inputs.add(target);
-    if (element.kind == ElementKind.FUNCTION ||
-        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+    bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
+                                                  element, inputs);
+    if (!succeeded) {
+      // TODO(ngeoffray): Match the VM behavior and throw an
+      // exception at runtime.
+      compiler.cancel('Unimplemented non-matching static call', node: node);
+    }
+
+    HType elementType = computeType(element);
+    HInstruction newInstance = new HInvokeStatic(selector, inputs, elementType);
+    push(newInstance);
+
+    TypeAnnotation annotation = getTypeAnnotationFromSend(node);
+    Type type = elements.getType(annotation);
+    generateSetRuntimeTypeInformation(newInstance, type);
+  }
+
+  generateSetRuntimeTypeInformation(HInstruction instance, Type type) {
+    if (compiler.universe.rti.hasTypeArguments(type)) {
+      String typeString = compiler.universe.rti.asJsString(type);
+      HInstruction typeInfo = new HForeign(new LiteralDartString(typeString),
+                                           new LiteralDartString('Object'),
+                                           <HInstruction>[]);
+      add(typeInfo);
+      HInstruction typeInfoSetter =
+          new HStatic(interceptors.getSetRuntimeTypeInfo());
+      add(typeInfoSetter);
+      Selector setSelector = Selector.INVOCATION_2;
+      var inputs = <HInstruction>[typeInfoSetter, instance, typeInfo];
+      add(new HInvokeStatic(setSelector, inputs));
+    }
+  }
+
+  visitStaticSend(Send node) {
+    Selector selector = elements.getSelector(node);
+    Element element = elements[node];
+    compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
+    HInstruction target = new HStatic(element);
+    add(target);
+    var inputs = <HInstruction>[];
+    inputs.add(target);
+    if (element.kind == ElementKind.FUNCTION) {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     element, inputs);
       if (!succeeded) {
@@ -2174,20 +2269,7 @@ class SsaBuilder implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      HType type = HType.UNKNOWN;
-      Element originalElement = elements[node];
-      if (originalElement.isGenerativeConstructor()
-          && originalElement.enclosingElement === compiler.listClass) {
-        if (node.arguments.isEmpty()) {
-          type = HType.EXTENDABLE_ARRAY;
-        } else {
-          type = HType.MUTABLE_ARRAY;
-        }
-      } else if (element.isGenerativeConstructor()) {
-        ClassElement cls = element.enclosingElement;
-        type = new HNonPrimitiveType(cls.type);
-      }
-      push(new HInvokeStatic(selector, inputs, type));
+      push(new HInvokeStatic(selector, inputs));
     } else {
       if (element.kind == ElementKind.GETTER) {
         target = new HInvokeStatic(Selector.GETTER, inputs);
@@ -2235,13 +2317,28 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  // TODO(karlklose): share with resolver.
+  TypeAnnotation getTypeAnnotationFromSend(Send send) {
+    if (send.selector is TypeAnnotation) {
+      return send.selector;
+    } else if (send.selector is Send) {
+      Send selector = send.selector;
+      if (selector.receiver is TypeAnnotation) {
+        return selector.receiver;
+      }
+    } else {
+      compiler.internalError("malformed send in new expression");
+    }
+  }
+
   visitNewExpression(NewExpression node) {
     if (node.isConst()) {
+      // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else {
-      visitSend(node.send);
+      visitNewSend(node.send);
     }
   }
 
@@ -2479,7 +2576,7 @@ class SsaBuilder implements Visitor {
     visit(node.condition);
     HIf condition = new HIf(popBoolified(), true);
     SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, current, condition);
+        new SubExpression(conditionStartBlock, current);
     HBasicBlock conditionBlock = close(condition);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -2848,7 +2945,9 @@ class SsaBuilder implements Visitor {
     open(tryBody);
     visit(node.tryBlock);
     if (!isAborted()) blocks.add(close(new HGoto()));
-
+    SubGraph bodyGraph = new SubGraph(tryBody, lastOpenedBlock);
+    SubGraph catchGraph = null;
+    HParameterValue exception = null;
     if (!node.catchBlocks.isEmpty()) {
       HBasicBlock block = graph.addNewBlock();
       enterBlock.addSuccessor(block);
@@ -2856,7 +2955,7 @@ class SsaBuilder implements Visitor {
       // Note that the name of this element is irrelevant.
       Element element = new Element(
           const SourceString('exception'), ElementKind.PARAMETER, work.element);
-      HParameterValue exception = new HParameterValue(element);
+      exception = new HParameterValue(element);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
@@ -2914,9 +3013,12 @@ class SsaBuilder implements Visitor {
       CatchBlock firstBlock = link.head;
       handleIf(() { pushCondition(firstBlock); }, visitThen, visitElse);
       if (!isAborted()) blocks.add(close(new HGoto()));
+
       rethrowableException = oldRethrowableException;
+      catchGraph = new SubGraph(block, lastOpenedBlock);
     }
 
+    SubGraph finallyGraph = null;
     if (node.finallyBlock != null) {
       HBasicBlock finallyBlock = graph.addNewBlock();
       enterBlock.addSuccessor(finallyBlock);
@@ -2924,6 +3026,7 @@ class SsaBuilder implements Visitor {
       visit(node.finallyBlock);
       if (!isAborted()) blocks.add(close(new HGoto()));
       tryInstruction.finallyBlock = finallyBlock;
+      finallyGraph = new SubGraph(finallyBlock, lastOpenedBlock);
     }
 
     HBasicBlock exitBlock = graph.addNewBlock();
@@ -2933,6 +3036,11 @@ class SsaBuilder implements Visitor {
     }
 
     open(exitBlock);
+    enterBlock.blockInformation = new HTryBlockInformation(bodyGraph,
+                                                           exception,
+                                                           catchGraph,
+                                                           finallyGraph,
+                                                           exitBlock);
   }
 
   visitScriptTag(ScriptTag node) {
@@ -2990,6 +3098,8 @@ class SsaBuilder implements Visitor {
  */
 class StringBuilderVisitor extends AbstractVisitor {
   final SsaBuilder builder;
+  final Element stringConcat;
+  final Element stringToString;
 
   /**
    * Offset used for the synthetic operator token used by concat.
@@ -3009,7 +3119,12 @@ class StringBuilderVisitor extends AbstractVisitor {
    */
   HInstruction prefix = null;
 
-  StringBuilderVisitor(this.builder, this.offset);
+  StringBuilderVisitor(builder, this.offset)
+    : this.builder = builder,
+      stringConcat = builder.compiler.findHelper(
+          const SourceString("stringConcat")),
+      stringToString = builder.compiler.findHelper(
+          const SourceString("stringToString"));
 
   void visit(Node node) {
     node.accept(this);
@@ -3023,7 +3138,7 @@ class StringBuilderVisitor extends AbstractVisitor {
     flushLiterals();
     node.accept(builder);
     HInstruction asString = buildToString(node, builder.pop());
-    prefix = concat(prefix, asString);
+    prefix = buildConcat(prefix, asString);
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -3085,54 +3200,25 @@ class StringBuilderVisitor extends AbstractVisitor {
     HInstruction string = builder.graph.addConstantString(literalAccumulator);
     literalAccumulator = new DartString.empty();
     if (prefix !== null) {
-      prefix = concat(prefix, string);
+      prefix = buildConcat(prefix, string);
     } else {
       prefix = string;
     }
   }
 
-  HInstruction concat(HInstruction left, HInstruction right) {
-    SourceString dartMethodName = const SourceString("concat");
-    if (!builder.methodInterceptionEnabled) {
-      builder.compiler.internalError(
-        "Using string interpolations in non-intercepted code.",
-        instruction: right);
-    }
-    Element interceptor =
-        builder.interceptors.getTypedInterceptor(HType.STRING, dartMethodName, 1);
-    if (interceptor === null) {
-      builder.compiler.internalError(
-          "concat not intercepted.", instruction: left);
-    }
-    HStatic target = new HStatic(interceptor);
+  HInstruction buildConcat(HInstruction left, HInstruction right) {
+    HStatic target = new HStatic(stringConcat);
     builder.add(target);
-    builder.push(new HInvokeInterceptor(Selector.INVOCATION_1,
-                                        dartMethodName,
-                                        false,
-                                        <HInstruction>[target, left, right],
-                                        HType.STRING));
+    builder.push(new HAdd(target, left, right));
     return builder.pop();
   }
 
   HInstruction buildToString(Node node, HInstruction input) {
-    SourceString dartMethodName = const SourceString("toString");
-    if (!builder.methodInterceptionEnabled) {
-      builder.compiler.internalError(
-        "Using string interpolations in non-intercepted code.", node: node);
-    }
-    Element interceptor = builder.interceptors.getTypedInterceptor(
-        HType.STRING, dartMethodName, 0);
-    if (interceptor === null) {
-      builder.compiler.internalError(
-        "toString not intercepted.", node: node);
-    }
-    HStatic target = new HStatic(interceptor);
+    HStatic target = new HStatic(stringToString);
     builder.add(target);
-    builder.push(new HInvokeInterceptor(Selector.INVOCATION_0,
-                                        dartMethodName,
-                                        false,
-                                        <HInstruction>[target, input],
-                                        HType.STRING));
+    builder.push(new HInvokeStatic(Selector.INVOCATION_1,
+                                   <HInstruction>[target, input],
+                                   HType.STRING));
     return builder.pop();
   }
 

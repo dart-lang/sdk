@@ -53,14 +53,17 @@ class _DartiumUpdater {
 _DartiumUpdater _dumpRenderTreeUpdater;
 _DartiumUpdater _dartiumUpdater;
 
-_DartiumUpdater runtimeUpdater(String runtime) {
-  if (runtime == 'drt') {
+_DartiumUpdater runtimeUpdater(Map configuration) {
+  String runtime = configuration['runtime'];
+  if (runtime == 'drt' && configuration['drt'] == '') {
+    // Download the default DumpRenderTree from Google Storage.
     if (_dumpRenderTreeUpdater === null) {
       _dumpRenderTreeUpdater = new _DartiumUpdater('DumpRenderTree',
                                                    'get_drt.py');
     }
     return _dumpRenderTreeUpdater;
-  } else if (runtime == 'dartium') {
+  } else if (runtime == 'dartium' && configuration['dartium'] == '') {
+    // Download the default Dartium from Google Storage.
     if (_dartiumUpdater === null) {
       _dartiumUpdater = new _DartiumUpdater('Dartium Chrome', 'get_drt.py',
                                             '--dartium');

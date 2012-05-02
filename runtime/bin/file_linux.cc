@@ -140,7 +140,7 @@ File* File::OpenStdio(int fd) {
 bool File::Exists(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
-    return S_ISREG(st.st_mode);  // Deal with symlinks?
+    return S_ISREG(st.st_mode);
   } else {
     return false;
   }

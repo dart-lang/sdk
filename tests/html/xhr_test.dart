@@ -23,4 +23,13 @@ main() {
       });
     xhr.send();
   });
+
+  asyncTest('XHR.get', 1, () {
+      new XMLHttpRequest.get("NonExistingFile", (xhr) {
+          Expect.equals(XMLHttpRequest.DONE, xhr.readyState);
+          Expect.equals(0, xhr.status);
+          Expect.stringEquals('', xhr.responseText);
+          callbackDone();
+      });
+  });
 }

@@ -7,6 +7,30 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String get name() => 'SSA code generator';
 
 
+  String buildJavaScriptFunction(FunctionElement element,
+                                 String parameters,
+                                 String body) {
+    String extraSpace = "";
+    // Members are emitted inside a JavaScript object literal. To line up the
+    // indentation we want the closing curly brace to be indented by one space.
+    // Example:
+    // defineClass("A", "B", ... , {
+    //  foo$1: function(..) {
+    //  },  /* <========== indent by 1. */
+    //  bar$2: function(..) {
+    //  },  /* <========== indent by 1. */
+    //
+    // For static functions this is not necessary:
+    // $.staticFun = function() {
+    //   ...
+    // };
+    if (element.isInstanceMember() ||
+        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      extraSpace = " ";
+    }
+    return 'function($parameters) {\n$body$extraSpace}';
+  }
+
   String generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
@@ -35,7 +59,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       } else {
         code = codegen.buffer.toString();
       }
-      return 'function($parameters) {\n$code}';
+      return buildJavaScriptFunction(element, parameters, code);
     });
   }
 
@@ -58,7 +82,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
         newParameters.add(', env$i');
       }
 
-      return 'function($newParameters) {\n${codegen.setup}${codegen.buffer}}';
+      Element element = work.element;
+      String body = '${codegen.setup}${codegen.buffer}';
+      return buildJavaScriptFunction(element, newParameters.toString(), body);
     });
   }
 
@@ -230,8 +256,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     beginGraph(graph);
     visitBasicBlock(graph.entry);
     if (!delayedVarDecl.isEmpty()) {
-      addIndentation();
-      buffer.add("var ");
+      addIndented("var ");
       while (true) {
         buffer.add(delayedVarDecl.head);
         delayedVarDecl = delayedVarDecl.tail;
@@ -469,32 +494,91 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void continueAsBreak(LabelElement target) {
-    addIndentation();
-    buffer.add("break ");
+    addIndented("break ");
     writeContinueLabel(target);
     buffer.add(";\n");
   }
 
   void implicitContinueAsBreak(TargetElement target) {
-    addIndentation();
-    buffer.add("break ");
+    addIndented("break ");
     writeImplicitContinueLabel(target);
     buffer.add(";\n");
   }
 
   void implicitBreakWithLabel(TargetElement target) {
-    addIndentation();
-    buffer.add("break ");
+    addIndented("break ");
     writeImplicitLabel(target);
     buffer.add(";\n");
   }
 
   bool visitIfInfo(HIfBlockInformation info) {
-    return false;
+    HInstruction condition = info.condition.conditionExpression;
+    if (condition.isConstant()) {
+      // If the condition is constant, only generate one branch (if any).
+      HConstant constantCondition = condition;
+      Constant constant = constantCondition.constant;
+      visitSubGraph(info.condition);
+      if (constant.isTrue()) {
+        visitSubGraph(info.thenGraph);
+      } else if (info.elseGraph !== null) {
+        visitSubGraph(info.elseGraph);
+      }
+    } else {
+      visitSubGraph(info.condition);
+      addIndented("if (");
+      use(condition, JSPrecedence.EXPRESSION_PRECEDENCE);
+      buffer.add(") {\n");
+      indent++;
+      visitSubGraph(info.thenGraph);
+      indent--;
+      addIndented("}");
+      if (info.elseGraph !== null) {
+        buffer.add(" else {\n");
+        indent++;
+        visitSubGraph(info.elseGraph);
+        indent--;
+        addIndented("}");
+      }
+      buffer.add("\n");
+    }
+    if (info.joinBlock !== null) {
+      visitBasicBlock(info.joinBlock);
+    }
+    return true;
   }
 
   bool visitAndOrInfo(HAndOrBlockInformation info) {
     return false;
+  }
+
+  bool visitTryInfo(HTryBlockInformation info) {
+    addIndented("try {\n");
+    indent++;
+    visitSubGraph(info.body);
+    indent--;
+    buffer.add("}");
+    if (info.catchBlock !== null) {
+      // Printing the catch part.
+      HParameterValue exception = info.catchVariable;
+      String name = temporary(exception);
+      parameterNames[exception.element] = name;
+      addIndented('catch ($name) {\n');
+      indent++;
+      visitSubGraph(info.catchBlock);
+      parameterNames.remove(exception.element);
+      indent--;
+      addIndented('}');
+    }
+    if (info.finallyBlock != null) {
+      buffer.add(" finally {\n");
+      indent++;
+      visitSubGraph(info.finallyBlock);
+      indent--;
+      addIndented("}");
+    }
+    buffer.add("\n");
+    visitBasicBlock(info.joinBlock);
+    return true;
   }
 
   bool visitLoopInfo(HLoopInformation info) {
@@ -545,8 +629,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             info.updates !== null && isJSExpression(info.updates)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
-          addIndentation();
-          buffer.add("for (");
+          addIndented("for (");
           if (initialization !== null) {
             if (initializationType != TYPE_DECLARATION) {
               visitExpressionGraph(initialization);
@@ -573,8 +656,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           if (initialization !== null) {
             visitSubGraph(initialization);
           }
-          addIndentation();
-          buffer.add("while (");
+          addIndented("while (");
           if (isConditionExpression) {
             visitConditionGraph(condition);
             buffer.add(") {\n");
@@ -583,9 +665,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             buffer.add("true) {\n");
             indent++;
             visitSubGraph(condition);
-            addIndentation();
-            buffer.add("if (!");
-            use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+            addIndented("if (!");
+            use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
             buffer.add(") break;\n");
           }
           if (info.updates !== null) {
@@ -596,8 +677,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           }
           indent--;
         }
-        addIndentation();
-        buffer.add("}\n");
+        addIndented("}\n");
         break;
       }
       case HLoopInformation.DO_WHILE_LOOP: {
@@ -624,16 +704,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         if (isConditionExpression) {
           indent--;
-          addIndentation();
-          buffer.add("} while (");
+          addIndented("} while (");
           visitExpressionGraph(condition);
           buffer.add(");\n");
         } else {
           visitSubGraph(condition);
           indent--;
-          addIndentation();
-          buffer.add("} while (");
-          use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+          addIndented("} while (");
+          use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add(");\n");
         }
         break;
@@ -641,7 +719,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       default:
         compiler.internalError(
           'Unexpected loop kind: ${info.kind}',
-          instruction: condition.expression);
+          instruction: condition.conditionExpression);
     }
     visitBasicBlock(info.joinBlock);
     return true;
@@ -697,8 +775,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endLabeledBlock(labeledBlockInfo);
 
     indent--;
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
 
     if (labeledBlockInfo.joinBlock !== null) {
       visitBasicBlock(labeledBlockInfo.joinBlock);
@@ -743,8 +820,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       indent++;
       visitSubGraph(info.body);
       indent--;
-      addIndentation();
-      buffer.add("}\n");
+      addIndented("}\n");
       continueAction.remove(info.target);
       for (LabelElement label in info.labels) {
         if (label.isContinueTarget) {
@@ -1004,16 +1080,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.label !== null) {
       LabelElement label = node.label;
       if (!tryCallAction(breakAction, label)) {
-        addIndentation();
-        buffer.add("break ");
+        addIndented("break ");
         writeLabel(label);
         buffer.add(";\n");
       }
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(breakAction, target)) {
-        addIndentation();
-        buffer.add("break;\n");
+        addIndented("break;\n");
       }
     }
   }
@@ -1023,54 +1097,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.label !== null) {
       LabelElement label = node.label;
       if (!tryCallAction(continueAction, label)) {
-        addIndentation();
-        buffer.add("continue ");
+        addIndented("continue ");
         writeLabel(label);
         buffer.add(";\n");
       }
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        addIndentation();
-        buffer.add("continue;\n");
+        addIndented("continue;\n");
       }
     }
   }
 
   visitTry(HTry node) {
-    addIndentation();
-    buffer.add('try {\n');
-    indent++;
-    List<HBasicBlock> successors = node.block.successors;
-    visitBasicBlock(successors[0]);
-    indent--;
-
-    if (node.finallyBlock != successors[1]) {
-      // Printing the catch part.
-      addIndentation();
-      String name = temporary(node.exception);
-      parameterNames[node.exception.element] = name;
-      buffer.add('} catch ($name) {\n');
-      indent++;
-      visitBasicBlock(successors[1]);
-      parameterNames.remove(node.exception.element);
-      indent--;
-    }
-
-    if (node.finallyBlock != null) {
-      addIndentation();
-      buffer.add('} finally {\n');
-      indent++;
-      visitBasicBlock(node.finallyBlock);
-      indent--;
-    }
-    addIndentation();
-    buffer.add('}\n');
-
-    visitBasicBlock(node.joinBlock);
+    // We should never get here. Try/catch/finally is always handled using block
+    // information in [visitTryInfo], or not at all, in the case of the bailout
+    // generator.
+    unreachable();
   }
 
   visitIf(HIf node) {
+    if (subGraph !== null && node.block === subGraph.end) {
+      if (isGeneratingExpression()) {
+        use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      }
+      return;
+    }
     HInstruction condition = node.inputs[0];
     int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
@@ -1143,18 +1195,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If we know we're calling a specific method, register that
         // method only.
         compiler.registerDynamicInvocationOf(node.element);
-      } else if (node.inputs[0] is HThis) {
-        // TODO(ngeoffray): We should propagate an union type in
-        // earlier phases instead of just checking if the receiver is 'this'.
-        ClassElement cls = work.element.enclosingElement;
-        Type type = cls.computeType(compiler);
-        compiler.registerDynamicInvocation(
-            node.name, new TypedSelector(type, node.selector));
       } else {
-        compiler.registerDynamicInvocation(node.name, node.selector);
+        compiler.registerDynamicInvocation(
+            node.name, getOptimizedSelectorFor(node, node.selector));
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
+  }
+
+  Selector getOptimizedSelectorFor(HInvoke node, Selector defaultSelector) {
+    Type receiverType = node.inputs[0].propagatedType.computeType(compiler);
+    if (receiverType !== null) {
+      return new TypedSelector(receiverType, defaultSelector);
+    } else {
+      return defaultSelector;
+    }
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1163,14 +1218,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.setterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    if (node.inputs[0] is HThis) {
-      ClassElement cls = work.element.enclosingElement;
-      Type type = cls.computeType(compiler);
-      compiler.registerDynamicSetter(node.name,
-          new TypedSelector(type, Selector.SETTER));
-    } else {
-      compiler.registerDynamicSetter(node.name, Selector.SETTER);
-    }
+    compiler.registerDynamicSetter(
+        node.name, getOptimizedSelectorFor(node, Selector.SETTER));
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
@@ -1180,14 +1229,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.getterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    if (node.inputs[0] is HThis) {
-      ClassElement cls = work.element.enclosingElement;
-      Type type = cls.computeType(compiler);
-      compiler.registerDynamicGetter(node.name,
-          new TypedSelector(type, Selector.GETTER));
-    } else {
-      compiler.registerDynamicGetter(node.name, Selector.GETTER);
-    }
+    compiler.registerDynamicGetter(
+        node.name, getOptimizedSelectorFor(node, Selector.GETTER));
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
@@ -1332,7 +1375,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitLoopBranch(HLoopBranch node) {
-    if (subGraph !== null && node.block == subGraph.end) {
+    if (subGraph !== null && node.block === subGraph.end) {
       // We are generating code for a loop condition.
       // If doing this as part of a SubGraph traversal, the
       // calling code will handle the control flow logic.
@@ -1469,6 +1512,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void addIndented(String text) {
+    addIndentation();
+    buffer.add(text);
+  }
+
   void visitStatic(HStatic node) {
     compiler.registerStaticUse(node.element);
     buffer.add(compiler.namer.isolateAccess(node.element));
@@ -1548,7 +1596,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return 'lastIndexOf';
       }
     }
-    
+
     if (receiver.isExtendableArray() && !getter) {
       if (name == const SourceString('add')) {
         return 'push';
@@ -1557,7 +1605,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return 'pop';
       }
     }
-    
+
     if (receiver.isString() && !getter) {
       if (name == const SourceString('concat')
           && interceptor.inputs[2].isString()) {
@@ -1727,23 +1775,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIs(HIs node) {
-    Type type = node.typeName;
+    Type type = node.typeExpression;
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
-      compiler.unimplemented("visitIs for type variables");
+      compiler.unimplemented("visitIs for type variables", instruction: node);
     } else if (element.kind === ElementKind.TYPEDEF) {
-      compiler.unimplemented("visitIs for typedefs");
+      compiler.unimplemented("visitIs for typedefs", instruction: node);
     }
-    compiler.registerIsCheck(element);
+    compiler.registerIsCheck(type.element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
+
     if (node.nullOk) {
       beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
       checkNull(input);
       buffer.add(' || ');
     }
-
     if (element === objectClass || element === compiler.dynamicClass) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
@@ -1765,21 +1813,42 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkInt(input, '===');
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     } else if (Elements.isStringSupertype(element, compiler)) {
-        handleStringSupertypeCheck(input, element);
+      handleStringSupertypeCheck(input, element);
     } else if (element === compiler.listClass
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, element);
-    } else {
+    } else if (input.propagatedType.canBePrimitive()
+               || input.propagatedType.canBeNull()) {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkObject(input, '===');
       buffer.add(' && ');
       checkType(input, element);
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    } else {
+      checkType(input, element);
     }
-
+    if (compiler.universe.rti.hasTypeArguments(type)) {
+      InterfaceType interfaceType = type;
+      ClassElement cls = type.element;
+      Link<Type> arguments = interfaceType.arguments;
+      buffer.add(' && ');
+      checkObject(node.typeInfoCall, '===');
+      cls.typeParameters.forEach((name, _) {
+        buffer.add(' && ');
+        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+        use(node.typeInfoCall, JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(".${name.slowToString()} === '${arguments.head}'");
+        endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      });
+    }
     if (node.nullOk) {
       endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }
+  }
+
+  void visitTypeConversion(HTypeConversion node) {
+    assert(isGenerateAtUseSite(node));
+    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
   }
 }
 
@@ -1901,8 +1970,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endLoop(HBasicBlock block) {
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'while' loop.
+    addIndented('}\n');  // Close 'while' loop.
   }
 
   void handleLoopCondition(HLoopBranch node) {
@@ -1916,13 +1984,11 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endIf(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
   }
 
   void startThen(HIf node) {
-    addIndentation();
-    buffer.add('if (');
+    addIndented('if (');
     use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
     buffer.add(') {\n');
     indent++;
@@ -1933,8 +1999,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startElse(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('} else {\n');
+    addIndented('} else {\n');
     indent++;
   }
 
@@ -1979,11 +2044,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginGraph(HGraph graph) {
     if (!graph.entry.hasGuards()) return;
-    addIndentation();
-    buffer.add('switch (state) {\n');
+    addIndented('switch (state) {\n');
     indent++;
-    addIndentation();
-    buffer.add('case 0:\n');
+    addIndented('case 0:\n');
     indent++;
 
     // The setup phase of a bailout function sets up the environment for
@@ -1996,8 +2059,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     if (!graph.entry.hasGuards()) return;
     indent--; // Close original case.
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'switch'.
+    addIndented('}\n');  // Close 'switch'.
     setup.add('  }\n');
   }
 
@@ -2019,15 +2081,17 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
   }
 
+  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
+  bool visitIfInfo(HIfBlockInformation info) => false;
   bool visitLoopInfo(HLoopInformation info) => false;
+  bool visitTryInfo(HTryBlockInformation info) => false;
+
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;
-    addIndentation();
-    buffer.add('case ${node.state}:\n');
+    addIndented('case ${node.state}:\n');
     indent++;
-    addIndentation();
-    buffer.add('state = 0;\n');
+    addIndented('state = 0;\n');
 
     setup.add('    case ${node.state}:\n');
     int i = 0;
@@ -2050,25 +2114,21 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void handleBailoutCase(List<HTypeGuard> guards) {
     for (int i = 0, len = guards.length; i < len; i++) {
-      addIndentation();
-      buffer.add('case ${guards[i].state}:\n');
+      addIndented('case ${guards[i].state}:\n');
     }
   }
 
   void startBailoutSwitch() {
-    addIndentation();
-    buffer.add('switch (state) {\n');
+    addIndented('switch (state) {\n');
     indent++;
-    addIndentation();
-    buffer.add('case 0:\n');
+    addIndented('case 0:\n');
     indent++;
   }
 
   void endBailoutSwitch() {
     indent--; // Close 'case'.
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'switch'.
+    addIndented('}\n');  // Close 'switch'.
   }
 
   void beginLoop(HBasicBlock block) {
@@ -2091,8 +2151,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       startBailoutSwitch();
       if (loopInformation.target !== null) {
         breakAction[loopInformation.target] = (TargetElement target) {
-          addIndentation();
-          buffer.add("break $newLabel;\n");
+          addIndented("break $newLabel;\n");
         };
       }
     }
@@ -2107,8 +2166,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       if (info.target != null) breakAction.remove(info.target);
     }
     indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'while'.
+    addIndented('}\n');  // Close 'while'.
   }
 
   void handleLoopCondition(HLoopBranch node) {
@@ -2128,15 +2186,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endIf(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('}\n');
+    addIndented('}\n');
   }
 
   void startThen(HIf node) {
-    addIndentation();
     bool hasGuards = node.thenBlock.hasGuards()
         || (node.hasElse && node.elseBlock.hasGuards());
-    buffer.add('if (');
+    addIndented('if (');
     int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
     if (hasGuards) {
       // TODO(ngeoffray): Put the condition initialization in the
@@ -2167,8 +2223,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startElse(HIf node) {
     indent--;
-    addIndentation();
-    buffer.add('} else {\n');
+    addIndented('} else {\n');
     indent++;
     if (node.elseBlock.hasGuards()) {
       startBailoutSwitch();

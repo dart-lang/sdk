@@ -66,11 +66,14 @@ class Benchmark {
   void Run() { (*run_)(this); }
   void RunBenchmark();
 
-  static void RunAll();
+  static void RunAll(const char* executable);
+  static void SetExecutable(const char* arg) { executable_ = arg; }
+  static const char* Executable() { return executable_; }
 
  private:
   static Benchmark* first_;
   static Benchmark* tail_;
+  static const char* executable_;
 
   RunEntry* const run_;
   const char* name_;

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('sha1Test');
+// Library tag to allow dartium to run the test.
+#library('sha1_test');
+
 // TODO(ager): Replace with "dart:crypto" when ready.
 #import("../../../lib/crypto/crypto.dart");
 
@@ -549,10 +551,13 @@ void test() {
 void testInvalidUse() {
   var sha = new SHA1();
   sha.digest();
-  Expect.throws(sha.digest,
-                (e) => e is CryptoHashException);
-  Expect.throws(() => sha.update([0]),
-                (e) => e is CryptoHashException);
+  Expect.throws(() => sha.update([0]), (e) => e is HashException);
+}
+
+void testRepeatedDigest() {
+  var sha = new SHA1();
+  var digest = sha.digest();
+  Expect.listEquals(digest, sha.digest());
 }
 
 void testStandardVectors(inputs, mds) {
@@ -565,6 +570,7 @@ void testStandardVectors(inputs, mds) {
 void main() {
   test();
   testInvalidUse();
+  testRepeatedDigest();
   testStandardVectors(sha1_long_inputs, sha1_long_mds);
   testStandardVectors(sha1_short_inputs, sha1_short_mds);
 }

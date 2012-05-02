@@ -138,7 +138,8 @@ void fail(String message) {
 }
 
 void compilerMain(Options options) {
-  List<String> argv = ['--library-root=${options.script}/$LIBRARY_ROOT'];
+  var root = uriPathToNative("/$LIBRARY_ROOT");
+  List<String> argv = ['--library-root=${options.script}$root'];
   argv.addAll(options.arguments);
   compile(argv);
 }
@@ -148,7 +149,7 @@ void main() {
     compilerMain(new Options());
   } catch (var exception, var trace) {
     try {
-      print('Internal error: \$exception');
+      print('Internal error: $exception');
     } catch (var ignored) {
       print('Internal error: error while printing exception');
     }

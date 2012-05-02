@@ -56,19 +56,14 @@ class GenericTest {
       E e = new E();  // Throws a type error, if type checks are enabled.
     } catch (TypeError error) {
       result = 1;
-      // TODO(regis): The error below is detected too late.
-      // It should be reported on line 31, at new B<T>(), i.e. new B<AX>().
-      // This will be detected when we check the subtyping constraints.
-      Expect.equals("A", error.dstType);
-      Expect.equals("AX", error.srcType);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("generic_test.dart", subs);
-      Expect.equals(23, error.line);
-      Expect.equals(23, error.column);
+      Expect.equals(31, error.line);  // new B<T>(t); AX does not extend A.
+      Expect.equals(17, error.column);
     }
     return result;
   }

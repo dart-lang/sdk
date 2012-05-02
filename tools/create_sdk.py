@@ -14,7 +14,11 @@
 # ..dart-sdk/
 # ....bin/
 # ......dart or dart.exe (executable)
+# ......dart.lib (import library for VM native extensions on Windows)
 # ......frogc.dart
+# ....include/
+# ......dart_api.h
+# ......dart_debugger_api.h
 # ....lib/
 # ......builtin/
 # ........builtin_runtime.dart
@@ -74,6 +78,49 @@ def ReplaceInFiles(paths, subs):
     dest.write(contents)
     dest.close()
 
+
+def Copy(src, dest):
+  copyfile(src, dest)
+  copymode(src, dest)
+
+
+def CopyDart2Js(build_dir, sdk_root):
+  '''
+  Install dart2js in SDK/lib/dart2js.
+
+  Currently, we copy too much stuff to this location, but the SDK's
+  layout matches the the layout of the part of the repository we're
+  dealing with here which frees us from rewriting files. The long term
+  plan is to align the layout of the repository and the SDK, at which
+  point we should be able to simplify Main below and share the dart
+  files between the various components to minimize SDK download size.
+  '''
+  copytree('lib', os.path.join(sdk_root, 'lib', 'dart2js', 'lib'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('corelib', 'src'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'src'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('runtime', 'lib'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('runtime', 'bin'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'bin'),
+           ignore=ignore_patterns('.svn'))
+  if utils.GuessOS() == 'win32':
+    dart2js = os.path.join(sdk_root, 'bin', 'dart2js.bat')
+    Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
+    ReplaceInFiles([dart2js],
+                   [(r'%SCRIPTPATH%\.\.\\lib',
+                     r'%SCRIPTPATH%..\lib\dart2js\lib')])
+  else:
+    dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
+    Copy(os.path.join(build_dir, 'dart2js'), dart2js)
+    ReplaceInFiles([dart2js],
+                   [(r'\$BIN_DIR/\.\./\.\./lib',
+                     r'$BIN_DIR/../lib/dart2js/lib')])
+
+
+
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
   builtin_runtime_sources = \
@@ -108,7 +155,9 @@ def Main(argv):
   BIN = join(SDK_tmp, 'bin')
   os.makedirs(BIN)
 
-  # Copy the Dart VM binary into sdk/bin.
+  # Copy the Dart VM binary, frogc and Windows dart VM link library
+  # into sdk/bin.
+  #
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(argv[1])
   frogc_file_extension = ''
@@ -116,6 +165,9 @@ def Main(argv):
   if utils.GuessOS() == 'win32':
     dart_file_extension = '.exe'
     frogc_file_extension = '.bat'
+    dart_import_lib_src = join(HOME, build_dir, 'dart.lib')
+    dart_import_lib_dest = join(BIN, 'dart.lib')
+    copyfile(dart_import_lib_src, dart_import_lib_dest)
   dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
   frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap',
@@ -137,6 +189,16 @@ def Main(argv):
   frogc_dest.close()
 
   # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart.
+
+  #
+  # Create and populate sdk/include.
+  #
+  INCLUDE = join(SDK_tmp, 'include')
+  os.makedirs(INCLUDE)
+  copyfile(join(HOME, 'runtime', 'include', 'dart_api.h'),
+           join(INCLUDE, 'dart_api.h'))
+  copyfile(join(HOME, 'runtime', 'include', 'dart_debugger_api.h'),
+           join(INCLUDE, 'dart_debugger_api.h'))
 
   #
   # Create and populate sdk/lib.
@@ -424,6 +486,8 @@ def Main(argv):
     import_dst = join(LIB, 'config', 'import_' + platform + '.config')
     copyfile(import_src, import_dst);
 
+  CopyDart2Js(build_dir, SDK_tmp)
+
   # Write the 'revision' file
   revision = utils.GetSVNRevision()
   if revision is not None:
@@ -432,6 +496,7 @@ def Main(argv):
       f.close()
 
   move(SDK_tmp, SDK)
+  utils.Touch(os.path.join(SDK, 'create.stamp'))
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv))

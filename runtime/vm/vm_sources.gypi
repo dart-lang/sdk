@@ -49,6 +49,8 @@
     'class_finalizer.h',
     'class_finalizer.cc',
     'class_finalizer_test.cc',
+    'class_table.cc',
+    'class_table.h',
     'code_descriptors.cc',
     'code_descriptors.h',
     'code_descriptors_test.cc',

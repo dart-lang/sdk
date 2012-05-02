@@ -165,7 +165,12 @@ class TestCase : TestCaseBase {
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) { }
 
   static Dart_Handle LoadTestScript(const char* script,
-                                    Dart_NativeEntryResolver resolver);
+                                    Dart_NativeEntryResolver resolver) {
+    return LoadTestScript(script, resolver, Dart_NewList(0));
+  }
+  static Dart_Handle LoadTestScript(const char* script,
+                                    Dart_NativeEntryResolver resolver,
+                                    Dart_Handle import_map);
   static Dart_Handle lib();
   static const char* url() { return "dart:test-lib"; }
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer) {

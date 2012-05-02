@@ -112,7 +112,7 @@ class _SocketOutputStream
     if (!_pendingWrites.isEmpty()) {
       // Mark the socket for close when all data is written.
       _closing = true;
-      _socket._onWrite = _onWrite;
+      _setupWriteHander();
     } else {
       // Close the socket for writing.
       _socket._closeWrite();
@@ -128,9 +128,19 @@ class _SocketOutputStream
   }
 
   void set onNoPendingWrites(void callback()) {
+    if (_noPendingWritesTimer != null) {
+      _noPendingWritesTimer.cancel();
+      _noPendingWritesTimer = null;
+    }
     _onNoPendingWrites = callback;
     if (_onNoPendingWrites != null) {
-      _socket._onWrite = _onWrite;
+      if (_pendingWrites.isEmpty()) {
+        _noPendingWritesTimer = new Timer(0, (t) {
+          if (_onNoPendingWrites != null) _onNoPendingWrites();
+        });
+      } else {
+        _setupWriteHander();
+      }
     }
   }
 
@@ -154,7 +164,7 @@ class _SocketOutputStream
       assert(offset + len == buffer.length);
       _pendingWrites.add(buffer, notWrittenOffset);
     }
-    _socket._onWrite = _onWrite;
+    _setupWriteHander();
     return false;
   }
 
@@ -186,6 +196,16 @@ class _SocketOutputStream
     }
   }
 
+  void _setupWriteHander() {
+    // Set up the callback for writing the pending data as the
+    // underlying socket becomes ready for writing.
+    if (_noPendingWritesTimer != null) {
+      _noPendingWritesTimer.cancel();
+      _noPendingWritesTimer = null;
+    }
+    _socket._onWrite = _onWrite;
+  }
+
   bool _onSocketError(e) {
     close();
     if (_onError != null) {
@@ -198,7 +218,8 @@ class _SocketOutputStream
 
   Socket _socket;
   _BufferList _pendingWrites;
-  var _onNoPendingWrites;
+  Function _onNoPendingWrites;
+  Timer _noPendingWritesTimer;
   bool _closing = false;
   bool _closed = false;
 }

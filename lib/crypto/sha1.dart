@@ -3,16 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // The SHA1 hasher is used to compute an SHA1 message digest.
-class _SHA1 extends _SHACryptoHashBase implements SHA1 {
+class _SHA1 extends _SHAHashBase implements SHA1 {
   // Construct a SHA1 hasher object.
   _SHA1() : _w = new List(80), super(16, 5) {
-    // Initial value of the hash parts. First 32 bits of the fractional parts
-    // of the square roots of the first 8 prime numbers.
     _h[0] = 0x67452301;
     _h[1] = 0xEFCDAB89;
     _h[2] = 0x98BADCFE;
     _h[3] = 0x10325476;
     _h[4] = 0xC3D2E1F0;
+  }
+
+  // Returns a new instance of this Hash.
+  SHA1 newInstance() {
+    return new SHA1();
   }
 
   // Rotate left limiting to unsigned 32-bit values.

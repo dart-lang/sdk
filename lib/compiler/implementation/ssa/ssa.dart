@@ -24,3 +24,28 @@
 #source('types_propagation.dart');
 #source('validate.dart');
 #source('value_set.dart');
+
+class RuntimeTypeInformation {
+  String asJsString(InterfaceType type) {
+    ClassElement element = type.element;
+    StringBuffer buffer = new StringBuffer();
+    Link<Type> arguments = type.arguments;
+    int index = 0;
+    element.typeParameters.forEach((name, _) {
+      buffer.add("${name.slowToString()}: '${arguments.head}'");
+      if (++index < element.typeParameters.length) {
+        buffer.add(', ');
+      }
+    });
+    return "{$buffer}";
+  }
+
+  bool hasTypeArguments(Type type) {
+    if (type is InterfaceType) {
+      InterfaceType interfaceType = type;
+      return (!interfaceType.arguments.isEmpty() &&
+              interfaceType.arguments.tail.isEmpty());
+    }
+    return false;
+  }
+}

@@ -18,6 +18,53 @@ void testParse() {
   Expect.equals(-42, JSON.parse(' -42 '));
   Expect.equals(3, JSON.parse(' 3e0 '));
   Expect.equals(3.14, JSON.parse(' 3.14 '));
+  Expect.equals(1.0E-06, JSON.parse(' 1.0E-06 '));
+  Expect.equals(0, JSON.parse("0"));
+  Expect.equals(1, JSON.parse("1"));
+  Expect.equals(0.1, JSON.parse("0.1"));
+  Expect.equals(1.1, JSON.parse("1.1"));
+  Expect.equals(1.1, JSON.parse("1.100000"));
+  Expect.equals(1.111111, JSON.parse("1.111111"));
+  Expect.equals(-0, JSON.parse("-0"));
+  Expect.equals(-1, JSON.parse("-1"));
+  Expect.equals(-0.1, JSON.parse("-0.1"));
+  Expect.equals(-1.1, JSON.parse("-1.1"));
+  Expect.equals(-1.1, JSON.parse("-1.100000"));
+  Expect.equals(-1.111111, JSON.parse("-1.111111"));
+  Expect.equals(11, JSON.parse("1.1e1"));
+  Expect.equals(11, JSON.parse("1.1e+1"));
+  Expect.equals(0.11, JSON.parse("1.1e-1"));
+  Expect.equals(11, JSON.parse("1.1E1"));
+  Expect.equals(11, JSON.parse("1.1E+1"));
+  Expect.equals(0.11, JSON.parse("1.1E-1"));
+  Expect.equals(1E0, JSON.parse(" 1E0"));
+  Expect.equals(1E+0, JSON.parse(" 1E+0"));
+  Expect.equals(1E-0, JSON.parse(" 1E-0"));
+  Expect.equals(1E00, JSON.parse(" 1E00"));
+  Expect.equals(1E+00, JSON.parse(" 1E+00"));
+  Expect.equals(1E-00, JSON.parse(" 1E-00"));
+  Expect.equals(1E+10, JSON.parse(" 1E+10"));
+  Expect.equals(1E+010, JSON.parse(" 1E+010"));
+  Expect.equals(1E+0010, JSON.parse(" 1E+0010"));
+  Expect.equals(1E10, JSON.parse(" 1E10"));
+  Expect.equals(1E010, JSON.parse(" 1E010"));
+  Expect.equals(1E0010, JSON.parse(" 1E0010"));
+  Expect.equals(1E-10, JSON.parse(" 1E-10"));
+  Expect.equals(1E-0010, JSON.parse(" 1E-0010"));
+  Expect.equals(1E0, JSON.parse(" 1e0"));
+  Expect.equals(1E+0, JSON.parse(" 1e+0"));
+  Expect.equals(1E-0, JSON.parse(" 1e-0"));
+  Expect.equals(1E00, JSON.parse(" 1e00"));
+  Expect.equals(1E+00, JSON.parse(" 1e+00"));
+  Expect.equals(1E-00, JSON.parse(" 1e-00"));
+  Expect.equals(1E+10, JSON.parse(" 1e+10"));
+  Expect.equals(1E+010, JSON.parse(" 1e+010"));
+  Expect.equals(1E+0010, JSON.parse(" 1e+0010"));
+  Expect.equals(1E10, JSON.parse(" 1e10"));
+  Expect.equals(1E010, JSON.parse(" 1e010"));
+  Expect.equals(1E0010, JSON.parse(" 1e0010"));
+  Expect.equals(1E-10, JSON.parse(" 1e-10"));
+  Expect.equals(1E-0010, JSON.parse(" 1e-0010"));
   Expect.equals(true, JSON.parse(' true '));
   Expect.equals(false, JSON.parse(' false'));
   Expect.equals(null, JSON.parse(' null '));
@@ -46,12 +93,37 @@ void testParseInvalid() {
     //                 have been updated.
     Expect.throws(() => JSON.parse(s));
   }
+  // Scalars
   testString("");
   testString("-");
   testString("-.");
   testString("3.a");
   testString("{ key: value }");
   testString("tru");
+  testString("1E--6");
+  testString("1E-+6");
+  testString("1E+-6");
+  testString("1E++6");
+  testString("1E6.6");
+  testString("1E-6.6");
+  testString("1E+6.6");
+
+  // JavaScript number literals not valid in JSON.
+  testString('[01]');
+  testString('[.1]');
+  testString('[1.]');
+  testString('[1.e1]');
+  testString('[-.1]');
+  testString('[-1.]');
+
+  // Plain invalid number literals.
+  testString('-');
+  testString('--1');
+  testString('-1e');
+  testString('1e--1]');
+  testString('1e+-1');
+  testString('1e-+1');
+  testString('1e++1');
 
   // Lists
   testString('[, ]');

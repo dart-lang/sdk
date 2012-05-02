@@ -150,10 +150,12 @@ static bool ListRecursively(const char* dir_name,
                                         path_length,
                                         listing);
         break;
+      case DT_LNK:
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
-        // readdir_r. For those we use lstat to determine the entry
-        // type.
+        // readdir_r. For those and for links we use stat to determine
+        // the actual entry type. Notice that stat returns the type of
+        // the file pointed to.
         struct stat entry_info;
         size_t written = snprintf(path + path_length,
                                   PATH_MAX - path_length,
@@ -163,24 +165,25 @@ static bool ListRecursively(const char* dir_name,
           success = false;
           break;
         }
-        int lstat_success = TEMP_FAILURE_RETRY(lstat(path, &entry_info));
-        if (lstat_success == -1) {
+        int stat_success = TEMP_FAILURE_RETRY(stat(path, &entry_info));
+        if (stat_success == -1) {
           success = false;
           PostError(listing, path);
           break;
         }
-        if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+        if (S_ISDIR(entry_info.st_mode)) {
           success = success && HandleDir(entry.d_name,
                                          path,
                                          path_length,
                                          recursive,
                                          listing);
-        } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
+        } else if (S_ISREG(entry_info.st_mode)) {
           success = success && HandleFile(entry.d_name,
                                           path,
                                           path_length,
                                           listing);
         }
+        ASSERT(!S_ISLNK(entry_info.st_mode));
         break;
       }
       default:
@@ -237,6 +240,16 @@ static bool DeleteDir(char* dir_name,
 
 
 static bool DeleteRecursively(const char* dir_name) {
+  // Do not recurse into links for deletion. Instead delete the link.
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(lstat(dir_name, &st)) == -1) {
+    return false;
+  } else if (S_ISLNK(st.st_mode)) {
+    return (remove(dir_name) == 0);
+  }
+
+  // Not a link. Attempt to open as a directory and recurse into the
+  // directory.
   DIR* dir_pointer;
   do {
     dir_pointer = opendir(dir_name);
@@ -275,6 +288,10 @@ static bool DeleteRecursively(const char* dir_name) {
         success = success && DeleteDir(entry.d_name, path, path_length);
         break;
       case DT_REG:
+      case DT_LNK:
+        // Treat all links as files. This will delete the link which
+        // is what we want no matter if the link target is a file or a
+        // directory.
         success = success && DeleteFile(entry.d_name, path, path_length);
         break;
       case DT_UNKNOWN: {
@@ -295,9 +312,12 @@ static bool DeleteRecursively(const char* dir_name) {
           success = false;
           break;
         }
-        if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+        if (S_ISDIR(entry_info.st_mode)) {
           success = success && DeleteDir(entry.d_name, path, path_length);
-        } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
+        } else if (S_ISREG(entry_info.st_mode) || S_ISLNK(entry_info.st_mode)) {
+          // Treat links as files. This will delete the link which is
+          // what we want no matter if the link target is a file or a
+          // directory.
           success = success && DeleteFile(entry.d_name, path, path_length);
         }
         break;
@@ -329,9 +349,9 @@ bool Directory::List(const char* dir_name,
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
   struct stat entry_info;
-  int lstat_success = TEMP_FAILURE_RETRY(lstat(dir_name, &entry_info));
-  if (lstat_success == 0) {
-    if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+  int success = TEMP_FAILURE_RETRY(stat(dir_name, &entry_info));
+  if (success == 0) {
+    if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;
     } else {
       return DOES_NOT_EXIST;

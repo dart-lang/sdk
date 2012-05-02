@@ -234,7 +234,7 @@ void Heap::Init(Isolate* isolate) {
 
 
 bool Heap::Verify() const {
-  VerifyPointersVisitor visitor;
+  VerifyPointersVisitor visitor(Isolate::Current());
   new_space_->VisitObjectPointers(&visitor);
   old_space_->VisitObjectPointers(&visitor);
   code_space_->VisitObjectPointers(&visitor);

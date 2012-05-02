@@ -467,7 +467,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     return _outputStream;
   }
 
-  Socket detachSocket() {
+  DetachedSocket detachSocket() {
     if (_state >= DONE) throw new HttpException("Response closed");
     // Ensure that headers are written.
     if (_state == START) {
@@ -602,7 +602,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     // whether the content length is known.
     if (_contentLength > 0) {
       _headers.set("Content-Length", _contentLength.toString());
-    } else {
+    } else if (_contentLength < 0) {
       _headers.set("Transfer-Encoding", "chunked");
     }
 
@@ -745,8 +745,10 @@ class _HttpConnectionBase implements Hashable {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
       if (!_httpParser.upgrade) {
         if (parsed != bytesRead) {
-          // TODO(sgjesse): Error handling.
-          _close();
+          if (_socket != null) {
+            // TODO(sgjesse): Error handling.
+            _close();
+          }
         }
       }
     }
@@ -766,16 +768,15 @@ class _HttpConnectionBase implements Hashable {
     _onConnectionClosed(e);
   }
 
-  Socket _detachSocket() {
+  DetachedSocket _detachSocket() {
     _socket.onData = null;
-    // TODO(sgjesse): Handle getting the write handler when using output stream.
-    //_socket.onWrite = null;
     _socket.onClosed = null;
     _socket.onError = null;
+    _socket.outputStream.onNoPendingWrites = null;
     Socket socket = _socket;
     _socket = null;
-    if (onDetach) onDetach();
-    return socket;
+    if (onDetach != null) onDetach();
+    return new _DetachedSocket(socket, _httpParser.unparsedData);
   }
 
   abstract void _onConnectionClosed(e);
@@ -1231,6 +1232,10 @@ class _HttpClientConnection
     return _request;
   }
 
+  DetachedSocket detachSocket() {
+    return _detachSocket();
+  }
+
   void _onConnectionClosed(e) {
     // Socket is closed either due to an error or due to normal socket close.
     if (e != null) {
@@ -1505,4 +1510,13 @@ class _HttpClient implements HttpClient {
   Set<_SocketConnection> _activeSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?
+}
+
+
+class _DetachedSocket implements DetachedSocket {
+  _DetachedSocket(this._socket, this._unparsedData);
+  Socket get socket() => _socket;
+  List<int> get unparsedData() => _unparsedData;
+  Socket _socket;
+  List<int> _unparsedData;
 }

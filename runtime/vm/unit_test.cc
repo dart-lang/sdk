@@ -6,6 +6,9 @@
 
 #include "vm/unit_test.h"
 
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
+
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
 #include "vm/code_generator.h"
@@ -60,25 +63,50 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return Dart_Error("accessing url characters failed");
   }
-  static const char* kDartScheme = "dart:";
-  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
-  // If the URL starts with "dart:" then it is not modified as it will be
-  // handled by the VM internally.
-  if (strncmp(url_chars, kDartScheme, kDartSchemeLen) == 0) {
-    if (tag == kCanonicalizeUrl) {
+  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
+  if (tag == kCanonicalizeUrl) {
+    // If this is a Dart Scheme URL then it is not modified as it will be
+    // handled by the VM internally.
+    if (is_dart_scheme_url) {
       return url;
     }
-    return Dart_Error("unexpected tag encountered %d", tag);
+    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    DART_CHECK_VALID(builtin_lib);
+    return DartUtils::CanonicalizeURL(NULL, library, url_chars);
   }
-  return Dart_Error("unsupported url encountered %s", url_chars);
+  if (is_dart_scheme_url) {
+    ASSERT(tag == kImportTag);
+    // Handle imports of other built-in libraries present in the SDK.
+    if (DartUtils::IsDartIOLibURL(url_chars)) {
+      return Builtin::LoadLibrary(Builtin::kIOLibrary);
+    } else if (DartUtils::IsDartJsonLibURL(url_chars)) {
+      return Builtin::LoadLibrary(Builtin::kJsonLibrary);
+    } else if (DartUtils::IsDartUriLibURL(url_chars)) {
+      return Builtin::LoadLibrary(Builtin::kUriLibrary);
+    } else if (DartUtils::IsDartUtfLibURL(url_chars)) {
+      return Builtin::LoadLibrary(Builtin::kUtfLibrary);
+    } else {
+      return Dart_Error("Do not know how to load '%s'", url_chars);
+    }
+  }
+  result = DartUtils::LoadSource(NULL,
+                                 library,
+                                 url,
+                                 tag,
+                                 url_chars,
+                                 import_map);
+  if (!Dart_IsError(result) && (tag == kImportTag)) {
+    Builtin::ImportLibrary(result, Builtin::kBuiltinLibrary);
+  }
+  return result;
 }
 
 
 Dart_Handle TestCase::LoadTestScript(const char* script,
-                                     Dart_NativeEntryResolver resolver) {
+                                     Dart_NativeEntryResolver resolver,
+                                     Dart_Handle import_map) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
-  Dart_Handle import_map = Dart_NewList(0);
   Dart_Handle lib = Dart_LoadScript(url, source, LibraryTagHandler, import_map);
   DART_CHECK_VALID(lib);
   Dart_Handle result = Dart_SetNativeResolver(lib, resolver);

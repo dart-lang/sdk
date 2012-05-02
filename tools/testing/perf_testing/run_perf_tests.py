@@ -503,6 +503,8 @@ class CommonBrowserTest(RuntimePerformanceTest):
         results = line.split('<br>')
       else:
         results = line.split('<br />')
+      if results == []:
+        return True
       upload_success = True
       for result in results:
         name_and_score = result.split(':')
@@ -566,12 +568,12 @@ class DromaeoTester(Tester):
     return str
 
   # TODO(vsm): This is a hack to skip breaking tests.  Triage this
-  # failure properly.  The modify suite fails on 32-bit chrome on
-  # the mac.
+  # failure properly.  The modify suite fails on 32-bit chrome, which
+  # is the default on mac and win.
   @staticmethod
   def get_valid_dromaeo_tags():
     tags = [tag for (tag, _) in DromaeoTester.DROMAEO_BENCHMARKS.values()]
-    if platform.system() == 'Darwin':
+    if platform.system() == 'Darwin' or platform.system() == 'Windows':
       tags.remove('modify')
     return tags
 
@@ -696,7 +698,8 @@ class DromaeoSizeTest(Test):
   def __init__(self, test_runner):
     super(DromaeoSizeTest, self).__init__(
         self.name(),
-        ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
+        ['commandline'], ['dart', 'frog_dom', 'frog_html',
+         'frog_htmlidiomatic'],
         DromaeoTester.DROMAEO_BENCHMARKS.keys(), test_runner, 
         self.DromaeoSizeTester(self),
         self.DromaeoSizeProcessor(self))

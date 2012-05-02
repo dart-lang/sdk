@@ -45,7 +45,9 @@ class Compiler implements DiagnosticListener {
   LibraryElement coreImplLibrary;
   LibraryElement isolateLibrary;
   LibraryElement jsHelperLibrary;
+  LibraryElement interceptorsLibrary;
   LibraryElement mainApp;
+
   ClassElement objectClass;
   ClassElement closureClass;
   ClassElement dynamicClass;
@@ -241,17 +243,20 @@ class Compiler implements DiagnosticListener {
   void scanBuiltinLibraries() {
     coreImplLibrary = scanBuiltinLibrary('coreimpl');
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
+    interceptorsLibrary = scanBuiltinLibrary('_interceptors');
     coreLibrary = scanBuiltinLibrary('core');
 
-    // Since coreLibrary import the libraries "coreimpl", and
-    // "js_helper", coreLibrary is null when they are being built. So
-    // we add the implicit import of coreLibrary now. This can be
-    // cleaned up when we have proper support for "dart:core" and
-    // don't need to access it through the field "coreLibrary".
+    // Since coreLibrary import the libraries "coreimpl", "js_helper",
+    // and "interceptors", coreLibrary is null when they are being
+    // built. So we add the implicit import of coreLibrary now. This
+    // can be cleaned up when we have proper support for "dart:core"
+    // and don't need to access it through the field "coreLibrary".
     // TODO(ahe): Clean this up as described above.
     scanner.importLibrary(coreImplLibrary, coreLibrary, null);
     scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
+    scanner.importLibrary(interceptorsLibrary, coreLibrary, null);
     addForeignFunctions(jsHelperLibrary);
+    addForeignFunctions(interceptorsLibrary);
 
     universe.libraries['dart:core'] = coreLibrary;
     universe.libraries['dart:coreimpl'] = coreImplLibrary;
@@ -497,7 +502,10 @@ class Compiler implements DiagnosticListener {
     unimplemented('Compiler.legDirectory');
   }
 
-  Element findHelper(SourceString name) => jsHelperLibrary.find(name);
+  Element findHelper(SourceString name)
+      => jsHelperLibrary.findLocal(name);
+  Element findInterceptor(SourceString name)
+      => interceptorsLibrary.findLocal(name);
 
   bool get isMockCompilation() => false;
 }

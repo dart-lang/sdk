@@ -21,48 +21,121 @@ class ClosureInvocationElement extends FunctionElement {
  * The code for the containing (used) methods must exist in the [:universe:].
  */
 class CodeEmitterTask extends CompilerTask {
-  static final String INHERIT_FUNCTION = '''
-function(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
-  }
-}''';
-
   bool needsInheritFunction = false;
+  bool needsDefineClass = false;
+  bool needsClosureClass = false;
   final Namer namer;
   final NativeEmitter nativeEmitter;
-  Set<ClassElement> generatedClasses;
+  StringBuffer boundClosureBuffer;
   StringBuffer mainBuffer;
   String isolatePrototype;
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
         nativeEmitter = new NativeEmitter(compiler),
-        generatedClasses = new Set<ClassElement>(),
+        boundClosureBuffer = new StringBuffer(),
         mainBuffer = new StringBuffer(),
         super(compiler);
 
   String get name() => 'CodeEmitter';
 
-  String get inheritsName() => '${namer.ISOLATE}.\$inherits';
+  String get defineClassName() => '${namer.ISOLATE}.\$defineClass';
+  String get finishClassesName() => '${namer.ISOLATE}.\$finishClasses';
 
-  void addInheritFunctionIfNecessary() {
-    if (needsInheritFunction) {
-      mainBuffer.add('$inheritsName = ');
-      mainBuffer.add(INHERIT_FUNCTION);
-      mainBuffer.add(';\n');
+  String buildDefineClassFunction(String isolate) {
+    // Example:
+    // defineClass("A", "B",
+    // function(x) {          /* The JavaScript constructor. */
+    //   this.x = x;
+    // }, {                   /* The members inside an Object literal. */
+    //  foo$1: function(y) {
+    //   print(this.x + y);
+    //  },
+    //  bar$2: function(t, v) {
+    //   this.x = t - v;
+    //  },
+    // });
+    return """
+function(cls, superclass, constructor, prototype) {
+  $isolate.prototype[cls] = constructor;
+  constructor.prototype = prototype;
+  if (superclass !== "") {
+    $isolate.pendingClasses[cls] = superclass;
+  }
+}""";
+  }
+
+  String buildFinishClassesFunction(String isolate) {
+    // 'defineClass' does not require the classes to be constructed in order.
+    // Classes are initially just stored in the 'pendingClasses' field.
+    // 'finishClasses' takes all pending classes and sets up the prototype.
+    // Once set up, the constructors prototype field satisfy:
+    //  - it contains all (local) members.
+    //  - its internal prototype (__proto__) points to the superclass'
+    //    prototype field.
+    //  - the prototype's constructor field points to the JavaScript
+    //    constructor.
+    // For engines where we have access to the '__proto__' we can manipulate
+    // the object literal directly. For other engines we have to create a new
+    // object and copy over the members.
+    return '''
+function() {
+  var pendingClasses = $isolate.pendingClasses;
+'''/* FinishClasses can be called multiple times. This means that we need to
+      clear the pendingClasses property. */'''
+  $isolate.pendingClasses = {};
+  var finishedClasses = {};
+  function finishClass(cls) {
+    if (finishedClasses[cls]) return;
+    finishedClasses[cls] = true;
+    var superclass = pendingClasses[cls];
+'''/* The superclass is only false (empty string) for Dart's Object class. */'''
+    if (!superclass) return;
+    finishClass(superclass);
+    var constructor = $isolate.prototype[cls];
+    var superConstructor = $isolate.prototype[superclass];
+    var prototype = constructor.prototype;
+    if (prototype.__proto__) {
+'''/* On Firefox and Webkit browsers we can manipulate the __proto__
+      directly. */'''
+      prototype.__proto__ = superConstructor.prototype;
+      prototype.constructor = constructor;
+    } else {
+'''/* On the remaining browsers we need to instantiate an object with the
+      correct (internal) prototype set up correctly, and then copy the
+      members. */'''
+      function tmp() {};
+      tmp.prototype = superConstructor.prototype;
+      var newPrototype = new tmp();
+      constructor.prototype = newPrototype;
+      newPrototype.constructor = constructor;
+'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
+      hosOwnProperty instead. */'''
+      var hasOwnProperty = Object.prototype.hasOwnProperty;
+      for (var member in prototype) {
+        if (hasOwnProperty.call(prototype, member)) {
+          newPrototype[member] = prototype[member];
+        }
+      }
     }
+  }
+  for (var cls in pendingClasses) finishClass(cls);
+};
+''';
+  }
+
+  void addDefineClassAndFinishClassFunctionsIfNecessary(StringBuffer buffer) {
+    String isolate = namer.ISOLATE;
+    buffer.add("$defineClassName = ${buildDefineClassFunction(isolate)};\n");
+    buffer.add("$isolate.pendingClasses = {};\n");
+    buffer.add("$finishClassesName = ${buildFinishClassesFunction(isolate)};");
+    buffer.add("\n");
   }
 
   void addParameterStub(FunctionElement member,
-                        String attachTo(String invocationName),
-                        StringBuffer buffer,
-                        Selector selector) {
+                        Selector selector,
+                        void defineInstanceMember(String invocationName,
+                                                  String definition)) {
     FunctionParameters parameters = member.computeParameters(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -75,7 +148,8 @@ function(child, parent) {
     String invocationName =
         namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                            selector);
-    buffer.add('${attachTo(invocationName)} = function(');
+    StringBuffer buffer = new StringBuffer();
+    buffer.add('function(');
 
     // The parameters that this stub takes.
     List<String> parametersBuffer = new List<String>(selector.argumentCount);
@@ -153,30 +227,31 @@ function(child, parent) {
     buffer.add('$parametersString) {\n');
 
     if (member.isNative()) {
-      nativeEmitter.emitParameterStub(
+      nativeEmitter.generateParameterStub(
           member, invocationName, parametersString, argumentsBuffer,
-          indexOfLastOptionalArgumentInParameters);
+          indexOfLastOptionalArgumentInParameters, buffer);
     } else {
       String arguments = Strings.join(argumentsBuffer, ",");
       buffer.add('  return this.${namer.getName(member)}($arguments)');
-  }
-    buffer.add('\n};\n');
+    }
+    buffer.add('\n}');
+    defineInstanceMember(invocationName, buffer.toString());
   }
 
   void addParameterStubs(FunctionElement member,
-                         String attachTo(String invocationName),
-                         StringBuffer buffer) {
+                         void defineInstanceMember(String invocationName,
+                                                   String definition)) {
     Set<Selector> selectors = compiler.universe.invokedNames[member.name];
     if (selectors == null) return;
     for (Selector selector in selectors) {
       if (!selector.applies(member, compiler)) continue;
-      addParameterStub(member, attachTo, buffer, selector);
+      addParameterStub(member, selector, defineInstanceMember);
     }
   }
 
   void addInstanceMember(Element member,
-                         String attachTo(String name),
-                         StringBuffer buffer) {
+                         void defineInstanceMember(String invocationName,
+                                                   String definition)) {
     // TODO(floitsch): we don't need to deal with members of
     // uninstantiated classes, that have been overwritten by subclasses.
 
@@ -187,16 +262,15 @@ function(child, parent) {
       if (member.modifiers !== null && member.modifiers.isAbstract()) return;
       String codeBlock = compiler.universe.generatedCode[member];
       if (codeBlock == null) return;
-      buffer.add('${attachTo(namer.getName(member))} = $codeBlock;\n');
+      defineInstanceMember(namer.getName(member), codeBlock);
       codeBlock = compiler.universe.generatedBailoutCode[member];
       if (codeBlock !== null) {
-        String name = compiler.namer.getBailoutName(member);
-        buffer.add('${attachTo(name)} = $codeBlock;\n');
+        defineInstanceMember(compiler.namer.getBailoutName(member), codeBlock);
       }
       FunctionElement function = member;
       FunctionParameters parameters = function.computeParameters(compiler);
       if (!parameters.optionalParameters.isEmpty()) {
-        addParameterStubs(member, attachTo, buffer);
+        addParameterStubs(member, defineInstanceMember);
       }
     } else if (member.kind === ElementKind.FIELD) {
       // TODO(ngeoffray): Have another class generate the code for the
@@ -207,22 +281,20 @@ function(child, parent) {
         String name = member.isNative()
             ? member.name.slowToString()
             : namer.getName(member);
-        buffer.add('${attachTo(setterName)} = function(v){\n');
-        buffer.add('  this.$name = v;\n};\n');
+        defineInstanceMember(setterName, "function(v) { this.$name = v; }");
       }
       if (compiler.universe.hasGetter(member, compiler)) {
         String getterName = namer.getterName(member.getLibrary(), member.name);
         String name = member.isNative()
             ? member.name.slowToString()
             : namer.getName(member);
-        buffer.add('${attachTo(getterName)} = function(){\n');
-        buffer.add('  return this.$name;\n};\n');
+        defineInstanceMember(getterName, "function() { return this.$name; }");
       }
     } else {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
-    emitExtraAccessors(member, attachTo, buffer);
+    emitExtraAccessors(member, defineInstanceMember);
   }
 
   bool generateFieldInits(ClassElement classElement,
@@ -251,26 +323,8 @@ function(child, parent) {
                                       includeSuperMembers: true);
   }
 
-  void emitInherits(ClassElement cls, StringBuffer buffer) {
-    ClassElement superclass = cls.superclass;
-    if (superclass !== null) {
-      needsInheritFunction = true;
-      String className = namer.getName(cls);
-      String superName = namer.getName(superclass);
-      buffer.add('${inheritsName}($isolatePrototype.$className, ');
-      buffer.add('$isolatePrototype.$superName);\n');
-    }
-  }
-
-  void ensureGenerated(ClassElement classElement, StringBuffer buffer) {
-    if (classElement == null) return;
-    if (generatedClasses.contains(classElement)) return;
-    generatedClasses.add(classElement);
-    generateClass(classElement, buffer);
-  }
-
   void generateClass(ClassElement classElement, StringBuffer buffer) {
-    ensureGenerated(classElement.superclass, buffer);
+    needsDefineClass = true;
 
     if (classElement.isNative()) {
       nativeEmitter.generateNativeClass(classElement);
@@ -282,9 +336,15 @@ function(child, parent) {
       buffer = mainBuffer;
     }
 
-    String className = '${isolatePrototype}.${namer.getName(classElement)}';
+    String className = namer.getName(classElement);
+    ClassElement superclass = classElement.superclass;
+    String superName = "";
+    if (superclass !== null) {
+      superName = namer.getName(superclass);
+    }
     String constructorName = namer.safeName(classElement.name.slowToString());
-    buffer.add('$className = function $constructorName(');
+    buffer.add('$defineClassName("$className", "$superName",\n');
+    buffer.add('function $constructorName(');
     StringBuffer bodyBuffer = new StringBuffer();
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can leave its JavaScript constructor empty.
@@ -293,27 +353,28 @@ function(child, parent) {
     }
     buffer.add(') {\n');
     buffer.add(bodyBuffer);
-    buffer.add('};\n');
+    buffer.add('}, ');
 
-    emitInherits(classElement, buffer);
+    buffer.add('{\n');
 
-    String attachTo(String name) => '$className.prototype.$name';
+    void defineInstanceMember(String name, String value) {
+      buffer.add(' $name: $value,\n');
+    }
 
     classElement.forEachMember(includeBackendMembers: true,
                                f: (ClassElement enclosing, Element member) {
       if (member.isInstanceMember()) {
-        addInstanceMember(member, attachTo, buffer);
+        addInstanceMember(member, defineInstanceMember);
       }
     });
 
     generateTypeTests(classElement, (Element other) {
-      buffer.add('${attachTo(namer.operatorIs(other))} = ');
       if (nativeEmitter.requiresNativeIsCheck(other)) {
-        buffer.add('function() { return true; }');
+        defineInstanceMember(namer.operatorIs(other),
+                             'function() { return true; }');
       } else {
-        buffer.add('true');
+        defineInstanceMember(namer.operatorIs(other), 'true');
       }
-      buffer.add(';\n');
     });
 
     if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
@@ -321,8 +382,9 @@ function(child, parent) {
       // the code in the dynamicMethod can find them. Note that the
       // code in dynamicMethod is invoked before analyzing the full JS
       // script.
-      emitNoSuchMethodCalls(buffer);
+      emitNoSuchMethodCalls(defineInstanceMember);
     }
+    buffer.add('});\n\n');
   }
 
   void generateTypeTests(ClassElement cls,
@@ -348,9 +410,32 @@ function(child, parent) {
   }
 
   void emitClasses(StringBuffer buffer) {
-    for (ClassElement element in compiler.universe.instantiatedClasses) {
-      ensureGenerated(element, buffer);
+    Set<ClassElement> instantiatedClasses =
+        compiler.universe.instantiatedClasses;
+    Set<ClassElement> neededClasses =
+        new Set<ClassElement>.from(instantiatedClasses);
+    for (ClassElement element in instantiatedClasses) {
+      for (ClassElement superclass = element.superclass;
+           superclass !== null;
+           superclass = superclass.superclass) {
+        if (neededClasses.contains(superclass)) break;
+        neededClasses.add(superclass);
+      }
     }
+    for (ClassElement element in neededClasses) {
+      generateClass(element, buffer);
+    }
+
+    // The closure class could have become necessary because of the generation
+    // of stubs.
+    ClassElement closureClass = compiler.closureClass;
+    if (needsClosureClass && !instantiatedClasses.contains(closureClass)) {
+      generateClass(closureClass, buffer);
+    }
+  }
+
+  void emitFinishClassesInvocationIfNecessary(StringBuffer buffer) {
+    if (needsDefineClass) buffer.add("$finishClassesName();\n");
   }
 
   void emitStaticFunctionsWithNamer(StringBuffer buffer,
@@ -394,15 +479,15 @@ function(child, parent) {
       buffer.add(".$staticName.$invocationName = ");
       buffer.add(isolatePrototype);
       buffer.add(".$staticName;\n");
-      addParameterStubs(callElement,
-                        (name) => '$isolatePrototype.$staticName.$name',
-                        buffer);
+      addParameterStubs(callElement, (String name, String value) {
+        buffer.add('$isolatePrototype.$staticName.$name = $value;\n');
+      });
     }
   }
 
-  void emitDynamicFunctionGetter(StringBuffer buffer,
-                                 String attachTo(String invocationName),
-                                 FunctionElement member) {
+  void emitDynamicFunctionGetter(FunctionElement member,
+                                 defineInstanceMember(String invocationName,
+                                                      String definition)) {
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
     // 'foo' and somewhere in the code there is a dynamic property get of
@@ -426,16 +511,13 @@ function(child, parent) {
     ClassElement closureClassElement =
         new ClosureClassElement(compiler, member.getCompilationUnit());
     String mangledName = namer.getName(closureClassElement);
-    ensureGenerated(closureClassElement.superclass, buffer);
+    String superName = namer.getName(closureClassElement.superclass);
+    needsClosureClass = true;
 
     // Define the constructor with a name so that Object.toString can
     // find the class name of the closure class.
-    buffer.add(isolatePrototype);
-    buffer.add(".$mangledName = function $name(self) ");
-    buffer.add("{ this.self = self; };\n");
-    emitInherits(closureClassElement, buffer);
-
-    String prototype = "$isolatePrototype.$mangledName.prototype";
+    boundClosureBuffer.add("$defineClassName('$mangledName', '$superName', ");
+    boundClosureBuffer.add("function $name(self) { this.self = self; }, {\n");
 
     // Now add the methods on the closure class. The instance method does not
     // have the correct name. Since [addParameterStubs] use the name to create
@@ -455,25 +537,26 @@ function(child, parent) {
       arguments[i] = "arg$i";
     }
     String joinedArgs = Strings.join(arguments, ", ");
-    buffer.add("$prototype.$invocationName = function($joinedArgs) {\n");
-    buffer.add("  return this.self.$targetName($joinedArgs);\n");
-    buffer.add("};\n");
-    addParameterStubs(callElement,
-                      (stubName) => '$prototype.$stubName',
-                      buffer);
+    boundClosureBuffer.add(
+        "$invocationName: function($joinedArgs) {\n");
+    boundClosureBuffer.add("  return this.self.$targetName($joinedArgs);\n");
+    boundClosureBuffer.add("},\n");
+    addParameterStubs(callElement, (String stubName, String memberValue) {
+      boundClosureBuffer.add('$stubName: $memberValue,\n');
+    });
+    boundClosureBuffer.add("});\n");
 
     // And finally the getter.
     String getterName = namer.getterName(member.getLibrary(), member.name);
     String closureClass = namer.isolateAccess(closureClassElement);
-    buffer.add("${attachTo(getterName)} = function() {\n");
-    buffer.add("  return new $closureClass(this);\n");
-    buffer.add("};\n");
+    defineInstanceMember(getterName,
+                         "function() { return new $closureClass(this); }");
   }
 
-  void emitCallStubForGetter(StringBuffer buffer,
-                             String attachTo(String name),
-                             Element member,
-                             Set<Selector> selectors) {
+  void emitCallStubForGetter(Element member,
+                             Set<Selector> selectors,
+                             void defineInstanceMember(String invocationName,
+                                                       String definition)) {
     String getter;
     if (member.kind == ElementKind.GETTER) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
@@ -495,9 +578,9 @@ function(child, parent) {
           arguments.add("arg$i");
         }
         String joined = Strings.join(arguments, ", ");
-        buffer.add("${attachTo(invocationName)} = function($joined) {\n");
-        buffer.add("  return $getter.$closureCallName($joined);\n");
-        buffer.add("};\n");
+        defineInstanceMember(
+            invocationName,
+            "function($joined) { return $getter.$closureCallName($joined); }");
       }
     }
   }
@@ -553,29 +636,29 @@ function(child, parent) {
   }
 
   void emitExtraAccessors(Element member,
-                          String attachTo(String name),
-                          StringBuffer buffer) {
+                          void defineInstanceMember(String invocationName,
+                                                    String definition)) {
     if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
       Set<Selector> selectors = compiler.universe.invokedNames[member.name];
       if (selectors !== null && !selectors.isEmpty()) {
-        compiler.emitter.emitCallStubForGetter(
-            buffer, attachTo, member, selectors);
+        compiler.emitter.emitCallStubForGetter(member, selectors,
+                                               defineInstanceMember);
       }
     } else if (member.kind == ElementKind.FUNCTION) {
       if (compiler.universe.hasGetter(member, compiler)) {
-        compiler.emitter.emitDynamicFunctionGetter(buffer, attachTo, member);
+        compiler.emitter.emitDynamicFunctionGetter(member,
+                                                   defineInstanceMember);
       }
     }
   }
 
-  void emitNoSuchMethodCalls(StringBuffer buffer) {
+  void emitNoSuchMethodCalls(void defineInstanceMember(String invocationName,
+                                                       String definition)) {
     // Do not generate no such method calls if there is no class.
     if (compiler.universe.instantiatedClasses.isEmpty()) return;
 
     ClassElement objectClass =
         compiler.coreLibrary.find(const SourceString('Object'));
-    String className = namer.getName(objectClass);
-    String prototype = '$isolatePrototype.$className.prototype';
     String runtimeObjectPrototype =
         '${namer.isolateAccess(objectClass)}.prototype';
     String noSuchMethodName =
@@ -583,8 +666,9 @@ function(child, parent) {
     Collection<LibraryElement> libraries =
         compiler.universe.libraries.getValues();
 
-    void generateMethod(String methodName, String jsName, Selector selector) {
-      buffer.add('$prototype.$jsName = function');
+    String generateMethod(String methodName, Selector selector) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.add('function');
       StringBuffer args = new StringBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         if (i != 0) args.add(', ');
@@ -599,7 +683,8 @@ function(child, parent) {
       buffer.add("      ? this.$noSuchMethodName('$methodName', [$args])\n");
       buffer.add("      : $runtimeObjectPrototype.$noSuchMethodName.call(");
       buffer.add("this, '$methodName', [$args])\n");
-      buffer.add('}\n');
+      buffer.add('}');
+      return buffer.toString();
     }
 
     compiler.universe.invokedNames.forEach((SourceString methodName,
@@ -611,12 +696,15 @@ function(child, parent) {
             for (LibraryElement lib in libraries) {
               String jsName =
                 namer.instanceMethodInvocationName(lib, methodName, selector);
-              generateMethod(methodName.slowToString(), jsName, selector);
+              String method =
+                  generateMethod(methodName.slowToString(), selector);
+              defineInstanceMember(jsName, method);
             }
           } else {
             String jsName =
               namer.instanceMethodInvocationName(null, methodName, selector);
-            generateMethod(methodName.slowToString(), jsName, selector);
+            String method = generateMethod(methodName.slowToString(), selector);
+            defineInstanceMember(jsName, method);
           }
         }
       }
@@ -627,13 +715,15 @@ function(child, parent) {
       if (getterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
           String jsName = namer.getterName(lib, getterName);
-          generateMethod('get ${getterName.slowToString()}', jsName,
-                         Selector.GETTER);
+          String method = generateMethod('get ${getterName.slowToString()}',
+                                         Selector.GETTER);
+          defineInstanceMember(jsName, method);
         }
       } else {
         String jsName = namer.getterName(null, getterName);
-        generateMethod('get ${getterName.slowToString()}', jsName,
-                       Selector.GETTER);
+        String method = generateMethod('get ${getterName.slowToString()}',
+                                       Selector.GETTER);
+        defineInstanceMember(jsName, method);
       }
     });
 
@@ -642,13 +732,15 @@ function(child, parent) {
       if (setterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
           String jsName = namer.setterName(lib, setterName);
-          generateMethod('set ${setterName.slowToString()}', jsName,
-                         Selector.SETTER);
+          String method = generateMethod('set ${setterName.slowToString()}',
+                                         Selector.SETTER);
+          defineInstanceMember(jsName, method);
         }
       } else {
         String jsName = namer.setterName(null, setterName);
-        generateMethod('set ${setterName.slowToString()}', jsName,
-                       Selector.SETTER);
+        String method = generateMethod('set ${setterName.slowToString()}',
+                                       Selector.SETTER);
+        defineInstanceMember(jsName, method);
       }
     });
   }
@@ -724,8 +816,14 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       isolatePrototype = namer.CURRENT_ISOLATE;
       mainBuffer.add('var $isolatePrototype = ${namer.ISOLATE}.prototype;\n');
       emitClasses(mainBuffer);
+      mainBuffer.add(boundClosureBuffer);
+      // Clear the buffer, so that we can reuse it for the native classes.
+      boundClosureBuffer.clear();
       emitStaticFunctions(mainBuffer);
       emitStaticFunctionGetters(mainBuffer);
+      // We need to finish the classes before we construct compile time
+      // constants.
+      emitFinishClassesInvocationIfNecessary(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
 
       isolatePrototype = '${namer.ISOLATE}.prototype;\n';
@@ -733,9 +831,11 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
           'var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       nativeEmitter.emitDynamicDispatchMetadata();
       nativeEmitter.assembleCode(mainBuffer);
+      mainBuffer.add(boundClosureBuffer);
+      emitFinishClassesInvocationIfNecessary(mainBuffer);
       emitMain(mainBuffer);
       mainBuffer.add('function init() {\n');
-      addInheritFunctionIfNecessary();
+      addDefineClassAndFinishClassFunctionsIfNecessary(mainBuffer);
       mainBuffer.add('}\n');
       compiler.assembledCode = mainBuffer.toString();
     });

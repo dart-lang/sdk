@@ -17,6 +17,17 @@ class Indexed {
   var _f;
 }
 
+var result;
+
+class A {
+  get field() { result.add(1); return 1; }
+  set field(value) {}
+
+  static get static_field() { result.add(0); return 1; }
+  static set static_field(value) { result.add(1); }
+}
+
+
 class CompoundAssignmentOperatorTest {
 
   static void testIndexed() {
@@ -37,11 +48,43 @@ class CompoundAssignmentOperatorTest {
     indexed[3][i++] += 1;
     Expect.equals(1, i);
   }
+  
+  
+  static testIndexedMore() {
+     result = [];
+     array() { result.add(0); return [0]; }
+     index() { result.add(1); return 0; }
+     middle() { result.add(2); }
+     sequence(a, b, c) { result.add(3); }
+
+     sequence(array()[index()] += 1, middle(), array()[index()] += 1);
+     Expect.listEquals([0, 1, 2, 0, 1, 3], result);
+  }
+  
+  static testIndexedMoreMore() {
+    result = [];
+    middle() { result.add(2); }
+    obj() { result.add(0); return new A(); }
+    sequence(a, b, c) { result.add(3); }
+
+    sequence(obj().field += 1, middle(), obj().field += 1);
+    Expect.listEquals([0, 1, 2, 0, 1, 3], result);
+
+    result = [];
+    sequence(A.static_field++, middle(), A.static_field++);
+    Expect.listEquals([0, 1, 2, 0, 1, 3], result);    
+  }
+  
 
   static void testMain() {
-    testIndexed();
+    for (int i = 0; i < 1000; i++) {
+      testIndexed();
+      testIndexedMore();
+      testIndexedMoreMore();
+    }
   }
 }
+
 main() {
   CompoundAssignmentOperatorTest.testMain();
 }

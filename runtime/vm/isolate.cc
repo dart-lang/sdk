@@ -420,6 +420,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in the object store.
   object_store()->VisitObjectPointers(visitor);
 
+  // Visit objects in the class table.
+  class_table()->VisitObjectPointers(visitor);
+
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
 

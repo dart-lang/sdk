@@ -34,7 +34,7 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
           !Dart::vm_isolate()->heap()->Contains(obj_addr)) {
         FATAL1("Invalid object pointer encountered 0x%lx\n", obj_addr);
       }
-      raw_obj->Validate();
+      raw_obj->Validate(isolate_);
     }
   }
 }
@@ -51,7 +51,7 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
 void VerifyPointersVisitor::VerifyPointers() {
   NoGCScope no_gc;
   Isolate* isolate = Isolate::Current();
-  VerifyPointersVisitor visitor;
+  VerifyPointersVisitor visitor(isolate);
   // Visit all strongly reachable objects.
   isolate->VisitObjectPointers(&visitor,
                                false,  // skip prologue weak handles

@@ -5,7 +5,7 @@
 class $FACTORYPROVIDER {
   factory XMLHttpRequest() => _wrap(new dom.XMLHttpRequest());
 
-  factory XMLHttpRequest.getTEMPNAME(String url,
+  factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.getTEMPNAME(url, onSuccess);
+      _XMLHttpRequestUtils.get(url, onSuccess);
 }

@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "vm/class_table.h"
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/gc_callbacks.h"
@@ -57,6 +58,8 @@ class Isolate : public BaseIsolate {
                                   bool visit_prologue_weak_persistent_handles);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
+
+  ClassTable* class_table() { return &class_table_; }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
@@ -157,8 +160,12 @@ class Isolate : public BaseIsolate {
   uword spawn_data() const { return spawn_data_; }
   void set_spawn_data(uword value) { spawn_data_ = value; }
 
+  // Deprecate.
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
+
+  intptr_t computation_id() const { return computation_id_; }
+  void set_computation_id(int value) { computation_id_ = value; }
 
   Debugger* debugger() const { return debugger_; }
 
@@ -189,6 +196,7 @@ class Isolate : public BaseIsolate {
 
   static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_;
+  ClassTable class_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   Dart_Port main_port_;
@@ -204,7 +212,8 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
-  intptr_t ast_node_id_;
+  intptr_t ast_node_id_;  // Deprecate.
+  intptr_t computation_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;

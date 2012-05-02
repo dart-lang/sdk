@@ -280,7 +280,7 @@ class StandardTestSuite implements TestSuite {
                    [Function onDone = null]) {
     // If DumpRenderTree/Dartium is required, and not yet updated,
     // wait for update.
-    var updater = runtimeUpdater(configuration['runtime']);
+    var updater = runtimeUpdater(configuration);
     if (updater !== null && !updater.updated) {
       Expect.isTrue(updater.isActive);
       updater.onUpdated.add(() {
@@ -1233,10 +1233,15 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'dart2js':
+        var prefix = '';
+        if (configuration['use_sdk']) {
+          prefix = 'dart-sdk/bin/';
+        }
         if (configuration['host_checked']) {
+          // The script dart2js_developer is not in the SDK.
           return 'dart2js_developer$suffix';
         } else {
-          return 'dart2js$suffix';
+          return '${prefix}dart2js$suffix';
         }
       case 'frog':
         return 'frog/bin/frog$suffix';
@@ -1251,11 +1256,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'dart2js':
-        if (configuration['host_checked']) {
-          return 'dart2js_developer$suffix';
-        } else {
-          return 'dart2js$suffix';
-        }
+        return executableName(configuration);
       case 'frog':
         return 'frog/bin/frog$suffix';
       default:
