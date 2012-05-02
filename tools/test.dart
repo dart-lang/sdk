@@ -30,7 +30,6 @@
 #import("testing/dart/test_suite.dart");
 
 #import("../compiler/tests/dartc/test_config.dart");
-#import("../frog/tests/await/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/dartc/test_config.dart");
 #import("../tests/co19/test_config.dart");
@@ -43,6 +42,7 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'frog/tests/await',
   'frog/tests/frog',
   'frog/tests/frog_native',
   'frog/tests/leg',
@@ -111,8 +111,6 @@ main() {
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
         queue.addTestSuite(new SamplesDartcTestSuite(conf));
         queue.addTestSuite(new JUnitDartcTestSuite(conf));
-      } else if (key == 'await') {
-        queue.addTestSuite(new AwaitTestSuite(conf));
       }
     }
 
