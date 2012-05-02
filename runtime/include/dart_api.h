@@ -1256,6 +1256,21 @@ DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
                                              const char** utf8);
 
+/**
+ * Gets a UTF-8 encoded representation of a String.
+ *
+ * \param str A string.
+ * \param bytes Returns the String represented as an array of UTF-8
+ *   code units. This array is scope allocated and is only valid until
+ *   the next call to Dart_ExitScope.
+ * \param length Returns the length of the code units array, in bytes.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle str,
+                                           const uint8_t** bytes,
+                                           intptr_t* length);
+
 // --- Lists ---
 
 /**

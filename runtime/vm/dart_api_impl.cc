@@ -25,6 +25,7 @@
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
 #include "vm/timer.h"
+#include "vm/unicode.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -1608,6 +1609,35 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
     return Api::Success(isolate);
   }
   return Api::NewError("Object is not a String");
+}
+
+
+DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle object,
+                                           const uint8_t** bytes,
+                                           intptr_t *length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str = Api::UnwrapStringHandle(isolate, object);
+  if (str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, object, String);
+  }
+  if (bytes == NULL) {
+    return Api::NewError("%s expects argument 'bytes' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (length == NULL) {
+    return Api::NewError("%s expects argument 'length' to be non-null.",
+                        CURRENT_FUNC);
+  }
+  const char* cstring = str.ToCString();
+  *length = Utf8::Length(str);
+  char* result = reinterpret_cast<char*>(Api::Allocate(isolate, *length));
+  if (result == NULL) {
+    return Api::NewError("Unable to allocate memory");
+  }
+  memmove(result, cstring, *length);
+  *bytes = result;
+  return Api::Success(isolate);
 }
 
 

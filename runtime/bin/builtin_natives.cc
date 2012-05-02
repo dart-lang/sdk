@@ -104,16 +104,19 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
 // test/debug functionality in standalone dart mode.
 
 void Builtin::PrintString(FILE* out, Dart_Handle str) {
-  const char* cstring = NULL;
-  Dart_Handle result = Dart_StringToCString(str, &cstring);
+  const uint8_t* characters = NULL;
+  intptr_t length;
+  Dart_Handle result = Dart_StringToBytes(str, &characters, &length);
   if (Dart_IsError(result)) {
     // TODO(turnidge): Consider propagating some errors here.  What if
     // an isolate gets interrupted by the embedder in the middle of
-    // Dart_StringToCString?  We need to make sure not to swallow the
+    // Dart_StringToBytes?  We need to make sure not to swallow the
     // interrupt.
-    cstring = Dart_GetError(result);
+    fputs(Dart_GetError(result));
+  } else {
+    fwrite(characters, sizeof(*characters), length, out);
   }
-  fprintf(out, "%s\n", cstring);
+  fputc('\n', out);
   fflush(out);
 }
 
