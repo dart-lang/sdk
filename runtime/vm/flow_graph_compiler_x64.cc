@@ -318,9 +318,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
     const String& error_message = String::ZoneHandle(
         String::NewSymbol(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    const Immediate location =
-        Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-    __ pushq(location);  // Push the source location.
+    __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
@@ -340,12 +338,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
 
   __ Bind(&runtime_call);
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  const Immediate location =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-  const Immediate cid_as_smi =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(cid)));
-  __ pushq(location);  // Push the source location.
-  __ pushq(cid_as_smi);  // node-id.
+  __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   if (!dst_type.IsInstantiated()) {
@@ -421,9 +415,7 @@ void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
   __ CompareObject(RAX, Bool::ZoneHandle(Bool::False()));
   __ j(EQUAL, &done, Assembler::kNearJump);
 
-  const Immediate location =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(comp->token_index())));
-  __ pushq(location);  // Push the source location.
+  __ pushq(Immediate(Smi::RawValue(comp->token_index())));  // Source location.
   __ pushq(RAX);  // Push the source object.
   GenerateCallRuntime(comp->cid(),
                       comp->token_index(),
@@ -842,12 +834,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
 
   // Generate runtime call.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  const Immediate location =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-  const Immediate cid_as_smi =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(cid)));
-  __ pushq(location);  // Push the source location.
-  __ pushq(cid_as_smi);
+  __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -903,6 +891,30 @@ void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
   for (intptr_t i = 0; i < comp->arguments().length(); i++) {
     __ popq(RCX);  // Discard allocation argument
   }
+}
+
+
+void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
+    AllocateObjectWithBoundsCheckComp* comp) {
+  const Class& cls = Class::ZoneHandle(comp->constructor().owner());
+  __ popq(RCX);  // Pop instantiator type arguments.
+  __ popq(RAX);  // Pop type arguments.
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  __ pushq(Immediate(Smi::RawValue(comp->token_index())));
+  __ PushObject(cls);
+  __ pushq(RAX);  // Push type arguments.
+  __ pushq(RCX);  // Push instantiator type arguments.
+  GenerateCallRuntime(comp->cid(),
+                      comp->token_index(),
+                      comp->try_index(),
+                      kAllocateObjectWithBoundsCheckRuntimeEntry);
+  __ popq(RCX);  // Pop instantiator type arguments.
+  __ popq(RCX);  // Pop type arguments.
+  __ popq(RCX);  // Pop class.
+  __ popq(RCX);  // Pop source location.
+  __ popq(RAX);  // Pop new instance.
 }
 
 
@@ -980,8 +992,8 @@ void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
     __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
     __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
-        Smi::New(comp->type_arguments().Length())));
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(comp->type_arguments().Length()));
     __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
         arguments_length);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
@@ -1030,8 +1042,8 @@ void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
     __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
     __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
-        Smi::New(comp->type_arguments().Length())));
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(comp->type_arguments().Length()));
     __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
         arguments_length);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
@@ -1086,8 +1098,8 @@ void FlowGraphCompiler::VisitExtractConstructorInstantiator(
     __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
     __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
-        Smi::New(comp->type_arguments().Length())));
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(comp->type_arguments().Length()));
     __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
         arguments_length);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);

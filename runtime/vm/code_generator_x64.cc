@@ -1123,10 +1123,9 @@ void CodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
     // Preserve as result.
     __ pushq(RAX);
   }
-  const Immediate value = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   const char* operator_name = (node->kind() == Token::kINCR) ? "+" : "-";
   __ pushq(RAX);
-  __ pushq(value);
+  __ pushq(Immediate(Smi::RawValue(1)));
   GenerateBinaryOperatorCall(node->id(), node->token_index(), operator_name);
   // result is in RAX.
   if (FLAG_enable_type_checks) {
@@ -1158,13 +1157,12 @@ void CodeGenerator::VisitIncrOpInstanceFieldNode(
     // Preserve as result.
     __ pushq(RAX);  // Preserve value as result.
   }
-  const Immediate one_value = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   const char* operator_name = (node->kind() == Token::kINCR) ? "+" : "-";
   // RAX: Value.
   // RDX: Receiver.
   __ pushq(RDX);  // Preserve receiver.
   __ pushq(RAX);  // Left operand.
-  __ pushq(one_value);  // Right operand.
+  __ pushq(Immediate(Smi::RawValue(1)));  // Right operand.
   GenerateBinaryOperatorCall(node->operator_id(),
                              node->token_index(),
                              operator_name);
@@ -1201,10 +1199,9 @@ void CodeGenerator::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
     __ pushq(RCX);  // Array.
     __ pushq(RDX);  // Index.
   }
-  const Immediate value = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   const char* operator_name = (node->kind() == Token::kINCR) ? "+" : "-";
   __ pushq(RAX);    // Left operand.
-  __ pushq(value);  // Right operand.
+  __ pushq(Immediate(Smi::RawValue(1)));  // Right operand.
   GenerateBinaryOperatorCall(node->operator_id(),
                              node->token_index(),
                              operator_name);
@@ -1382,10 +1379,8 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     }
   }
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  const Immediate location =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-  const Immediate node_id_as_smi =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(node_id)));
+  const Immediate location = Immediate(Smi::RawValue(token_index));
+  const Immediate node_id_as_smi = Immediate(Smi::RawValue(node_id));
   __ pushq(location);  // Push the source location.
   __ pushq(node_id_as_smi);
   __ pushq(RAX);  // Push the instance.
@@ -1493,9 +1488,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     const String& error_message = String::ZoneHandle(
         String::NewSymbol(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    const Immediate location =
-        Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-    __ pushq(location);  // Push the source location.
+    __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
@@ -1610,12 +1603,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   }
   __ Bind(&runtime_call);
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  const Immediate location =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-  const Immediate node_id_as_smi =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(node_id)));
-  __ pushq(location);  // Push the source location.
-  __ pushq(node_id_as_smi);  // node-id.
+  __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushq(Immediate(Smi::RawValue(node_id)));  // node-id.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   if (!dst_type.IsInstantiated()) {
@@ -1680,9 +1669,7 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
-  const Immediate location =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-  __ pushq(location);  // Push the source location.
+  __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
   __ pushq(RAX);  // Push the source object.
   GenerateCallRuntime(node_id, token_index, kConditionTypeErrorRuntimeEntry);
   // We should never return here.
@@ -2315,8 +2302,8 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
       __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-      Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
-          Smi::New(node->type_arguments().Length())));
+      Immediate arguments_length =
+          Immediate(Smi::RawValue(node->type_arguments().Length()));
       __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
           arguments_length);
       __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
@@ -2382,12 +2369,46 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
 
   // If cls is parameterized, the type arguments and the instantiator's
   // type arguments are on the stack.
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
-  if (requires_type_arguments) {
-    __ popq(RCX);  // Pop type arguments.
+  // In checked mode, if the type arguments are uninstantiated, they may need to
+  // be checked against declared bounds at run time.
+  Error& malformed_error = Error::Handle();
+  if (FLAG_enable_type_checks &&
+      requires_type_arguments &&
+      !node->type_arguments().IsNull() &&
+      !node->type_arguments().IsInstantiated() &&
+      !node->type_arguments().IsWithinBoundsOf(cls,
+                                               node->type_arguments(),
+                                               &malformed_error)) {
+    // The uninstantiated type arguments cannot be verified to be within their
+    // bounds at compile time, so verify them at runtime.
+    // Although the type arguments may be uninstantiated at compile time, they
+    // may represent the identity vector and may be replaced by the instantiated
+    // type arguments of the instantiator at run time.
     __ popq(RCX);  // Pop instantiator type arguments.
+    __ popq(RAX);  // Pop type arguments.
+
+    // Push the result place holder initialized to NULL.
+    __ PushObject(Object::ZoneHandle());
+    __ pushq(Immediate(Smi::RawValue(node->token_index())));
+    __ PushObject(cls);
+    __ pushq(RAX);  // Push type arguments.
+    __ pushq(RCX);  // Push instantiator type arguments.
+    GenerateCallRuntime(node->id(),
+                        node->token_index(),
+                        kAllocateObjectWithBoundsCheckRuntimeEntry);
+    __ popq(RCX);  // Pop instantiator type arguments.
+    __ popq(RCX);  // Pop type arguments.
+    __ popq(RCX);  // Pop class.
+    __ popq(RCX);  // Pop source location.
+    __ popq(RAX);  // Pop new instance.
+  } else {
+    const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
+    const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+    GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
+    if (requires_type_arguments) {
+      __ popq(RCX);  // Pop instantiator type arguments.
+      __ popq(RCX);  // Pop type arguments.
+    }
   }
 
   if (IsResultNeeded(node)) {

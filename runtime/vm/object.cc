@@ -2202,9 +2202,20 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return false;
   }
   // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
+  // When comparing two uninstantiated function types, one returning type
+  // parameter K, the other returning type parameter V, we cannot assume that K
+  // is a subtype of V, or vice versa. We only return true if K == V, i.e. if
+  // they have the same index (both are finalized, so their indices are
+  // comparable).
+  // The same rule applies When checking the upper bound of a still
+  // uninstantiated type at compile time. Returning false will defer the test
+  // to run time. But there are cases where it can be decided at compile time.
+  // For example, with class A<K, V extends K>, new A<T, T> called from within
+  // a class B<T> will never require a run time bounds check, even it T is
+  // uninstantiated at compile time.
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    // An uninstantiated type parameter is equivalent to Dynamic.
-    return true;
+    return IsTypeParameter() && other.IsTypeParameter() &&
+        (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
   return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
@@ -2629,8 +2640,10 @@ bool TypeParameter::IsIdentical(const AbstractType& other) const {
   }
   TypeParameter& other_type_param = TypeParameter::Handle();
   other_type_param ^= other.raw();
-  // Both type parameters may have different type_class and their index may be
-  // different after finalization, which is OK. Do not check.
+  // IsIdentical may be called on type parameters belonging to different
+  // classes, e.g. to an interface and to its default factory class.
+  // Therefore, both type parameters may have different parameterized classes
+  // and different indices. Compare the type parameter names only.
   String& name = String::Handle(Name());
   String& other_name = String::Handle(other_type_param.Name());
   return name.Equals(other_name);
@@ -2959,7 +2972,9 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
     const AbstractTypeArguments& bounds_instantiator,
     Error* malformed_error) const {
   ASSERT(FLAG_enable_type_checks);
-  ASSERT(IsInstantiated());
+  // This function may be called at compile time on (partially) uninstantiated
+  // type arguments and may return true, in which case a run time bounds check
+  // can be avoided.
   ASSERT(Length() >= cls.NumTypeArguments());
   const intptr_t num_type_params = cls.NumTypeParameters();
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;

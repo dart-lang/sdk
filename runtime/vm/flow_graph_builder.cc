@@ -1625,11 +1625,31 @@ Definition* EffectGraphVisitor::BuildObjectAllocation(
   if (requires_type_arguments) {
     BuildConstructorTypeArguments(node, allocate_arguments);
   }
-  BindInstr* allocate =
-      new BindInstr(temp_index(),
-                    new AllocateObjectComp(node,
+  // In checked mode, if the type arguments are uninstantiated, they may need to
+  // be checked against declared bounds at run time.
+  Computation* allocate_comp = NULL;
+  Error& malformed_error = Error::Handle();
+  if (FLAG_enable_type_checks &&
+      requires_type_arguments &&
+      !node->type_arguments().IsNull() &&
+      !node->type_arguments().IsInstantiated() &&
+      !node->type_arguments().IsWithinBoundsOf(cls,
+                                               node->type_arguments(),
+                                               &malformed_error)) {
+    // The uninstantiated type arguments cannot be verified to be within their
+    // bounds at compile time, so verify them at runtime.
+    // Although the type arguments may be uninstantiated at compile time, they
+    // may represent the identity vector and may be replaced by the instantiated
+    // type arguments of the instantiator at run time.
+    allocate_comp = new AllocateObjectWithBoundsCheckComp(node,
+                                                          owner()->try_index(),
+                                                          allocate_arguments);
+  } else {
+    allocate_comp = new AllocateObjectComp(node,
                                            owner()->try_index(),
-                                           allocate_arguments));
+                                           allocate_arguments);
+  }
+  BindInstr* allocate = new BindInstr(temp_index(), allocate_comp);
   AddInstruction(allocate);
   AllocateTempIndex();
   return allocate;
@@ -2597,6 +2617,18 @@ void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
 
 void FlowGraphPrinter::VisitAllocateObject(AllocateObjectComp* comp) {
   OS::Print("AllocateObject(%s",
+            Class::Handle(comp->constructor().owner()).ToCString());
+  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
+    OS::Print(", ");
+    comp->arguments()[i]->Accept(this);
+  }
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitAllocateObjectWithBoundsCheck(
+    AllocateObjectWithBoundsCheckComp* comp) {
+  OS::Print("AllocateObjectWithBoundsCheck(%s",
             Class::Handle(comp->constructor().owner()).ToCString());
   for (intptr_t i = 0; i < comp->arguments().length(); i++) {
     OS::Print(", ");

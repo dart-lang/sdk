@@ -414,6 +414,7 @@ assign_static_type_test/03: Fail # Unrecognized option: --no-enable-type-checks.
 assign_static_type_test/04: Fail # Unrecognized option: --no-enable-type-checks.
 type_variable_bounds_test/01: Fail # Issue 2135
 type_variable_bounds_test/02: Fail # Issue 2135
+type_variable_bounds_test/04: Fail # Issue 2135
 type_variable_bounds_test/05: Fail # Issue 2135
 type_variable_bounds2_test/00: Fail # Issue 2135
 type_variable_bounds2_test/03: Fail # Issue 2135

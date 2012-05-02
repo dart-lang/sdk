@@ -188,6 +188,78 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
 }
 
 
+// Allocate a new object of a generic type and check that the instantiated type
+// arguments are within the declared bounds or throw a dynamic type error.
+// Arg0: index of the token of the instance creation (source location).
+// Arg1: class of the object that needs to be allocated.
+// Arg2: type arguments of the object that needs to be allocated.
+// Arg3: type arguments of the instantiator or kNoInstantiator.
+// Return value: newly allocated object.
+DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 4) {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(arguments.Count() ==
+         kAllocateObjectWithBoundsCheckRuntimeEntry.argument_count());
+  const Class& cls = Class::CheckedHandle(arguments.At(1));
+  const Instance& instance = Instance::Handle(Instance::New(cls));
+  arguments.SetReturn(instance);
+  ASSERT(cls.HasTypeArguments());
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
+  ASSERT(type_arguments.IsNull() ||
+         (type_arguments.Length() == cls.NumTypeArguments()));
+  AbstractTypeArguments& bounds_instantiator = AbstractTypeArguments::Handle();
+  if (Object::Handle(arguments.At(3)).IsSmi()) {
+    ASSERT(Smi::CheckedHandle(arguments.At(3)).Value() ==
+           StubCode::kNoInstantiator);
+  } else {
+    ASSERT(!type_arguments.IsInstantiated());
+    const AbstractTypeArguments& instantiator =
+        AbstractTypeArguments::CheckedHandle(arguments.At(3));
+    ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
+    if (instantiator.IsNull()) {
+      type_arguments =
+          InstantiatedTypeArguments::New(type_arguments, instantiator);
+    } else if (instantiator.IsTypeArguments()) {
+      // Code inlined in the caller should have optimized the case where the
+      // instantiator is a TypeArguments and can be used as type argument
+      // vector.
+      ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
+             (instantiator.Length() != type_arguments.Length()));
+      type_arguments =
+          InstantiatedTypeArguments::New(type_arguments, instantiator);
+    } else {
+      // If possible, use the instantiator as the type argument vector.
+      if (type_arguments.IsUninstantiatedIdentity() &&
+          (instantiator.Length() == type_arguments.Length())) {
+        type_arguments = instantiator.raw();
+      } else {
+        type_arguments =
+            InstantiatedTypeArguments::New(type_arguments, instantiator);
+      }
+    }
+    bounds_instantiator = instantiator.raw();
+  }
+  if (!type_arguments.IsNull()) {
+    ASSERT(type_arguments.IsInstantiated());
+    Error& malformed_error = Error::Handle();
+    if (!type_arguments.IsWithinBoundsOf(cls,
+                                         bounds_instantiator,
+                                         &malformed_error)) {
+      ASSERT(!malformed_error.IsNull());
+      // Throw a dynamic type error.
+      intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+      String& malformed_error_message =  String::Handle(
+          String::New(malformed_error.ToErrorCString()));
+      const String& no_name = String::Handle(String::NewSymbol(""));
+      Exceptions::CreateAndThrowTypeError(
+          location, no_name, no_name, no_name, malformed_error_message);
+      UNREACHABLE();
+    }
+  }
+  instance.SetTypeArguments(type_arguments);
+}
+
+
 // Instantiate type arguments.
 // Arg0: uninstantiated type arguments.
 // Arg1: instantiator type arguments.

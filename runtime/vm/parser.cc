@@ -7853,8 +7853,8 @@ AstNode* Parser::ParseNewOperator() {
       // Compile the throw of a dynamic type error due to a bound error.
       return ThrowTypeError(type_pos, type);
     }
-    // TODO(regis): If the type argument vector is not instantiated, we need to
-    // verify in checked mode at runtime that it is within its declared bounds.
+    // If the type argument vector is not instantiated, we verify in checked
+    // mode at runtime that it is within its declared bounds.
     new_object = new ConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
   }

@@ -52,6 +52,7 @@ class LocalVariable;
   M(CreateArray, CreateArrayComp)                                              \
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
+  M(AllocateObjectWithBoundsCheck, AllocateObjectWithBoundsCheckComp)          \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
   M(ExtractFactoryTypeArguments, ExtractFactoryTypeArgumentsComp)              \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
@@ -766,6 +767,31 @@ class AllocateObjectComp : public Computation {
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const arguments_;
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
+};
+
+
+class AllocateObjectWithBoundsCheckComp : public Computation {
+ public:
+  AllocateObjectWithBoundsCheckComp(ConstructorCallNode* node,
+                                    intptr_t try_index,
+                                    ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
+    // One type-argument and one instantiator.
+    ASSERT(arguments->length() == 2);
+  }
+
+  DECLARE_COMPUTATION(AllocateObjectWithBoundsCheck)
+
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
+  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  const intptr_t try_index_;
+  ZoneGrowableArray<Value*>* const arguments_;
+  DISALLOW_COPY_AND_ASSIGN(AllocateObjectWithBoundsCheckComp);
 };
 
 
