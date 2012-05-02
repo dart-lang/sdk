@@ -3561,8 +3561,10 @@ class GrowableObjectArray : public Instance {
   RawObject* RemoveLast() const;
 
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
-    const Array& contents = Array::Handle(data());
-    return contents.GetTypeArguments();
+    // TODO(regis): Enable asserts once allocation of array literal fixed.
+    // ASSERT(Array::Handle(data()).GetTypeArguments() ==
+    //     raw_ptr()->type_arguments_);
+    return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
     const Array& contents = Array::Handle(data());

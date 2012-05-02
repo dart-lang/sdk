@@ -480,7 +480,10 @@ static void UpdateTypeTestCache(intptr_t node_id,
   AbstractTypeArguments& instance_type_arguments =
       AbstractTypeArguments::Handle();
   const Class& instance_class = Class::Handle(instance.clazz());
+  AbstractTypeArguments& original_instance_type_arguments =
+      AbstractTypeArguments::Handle();
   if (instance_class.HasTypeArguments()) {
+    original_instance_type_arguments = instance.GetTypeArguments();
     OptimizeTypeArguments(instance);
     instance_type_arguments = instance.GetTypeArguments();
   }
@@ -500,6 +503,8 @@ static void UpdateTypeTestCache(intptr_t node_id,
     // TODO(srdjan): Check instantiator type arguments as well.
     Object& last_instance_class = Object::Handle();
     Object& last_instance_type_arguments = Object::Handle();
+    // Check for duplicate entries (can happen if we optimized type arguments
+    // above).
     for (intptr_t i = 0; i < cache.Length();
          i += SubTypeTestCache::kNumEntries) {
       last_instance_class = cache.At(i + SubTypeTestCache::kInstanceClass);
@@ -508,7 +513,9 @@ static void UpdateTypeTestCache(intptr_t node_id,
       if ((last_instance_class.raw() == instance_class.raw()) &&
           (last_instance_type_arguments.raw() ==
               instance_type_arguments.raw())) {
-        if (FLAG_trace_type_checks) {
+        if (FLAG_trace_type_checks &&
+            (original_instance_type_arguments.raw() ==
+             instance_type_arguments.raw())) {
           PrintTypeCheck("WARNING duplicate cache entry", instance, type,
               type_instantiator, result);
         }

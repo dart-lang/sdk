@@ -1292,11 +1292,12 @@ static const Class* CoreClass(const char* c_name) {
 // TODO(srdjan): Implement a quicker subtype check, as type test
 // arrays can grow too high, but they may be useful when optimizing
 // code (type-feedback).
-void CodeGenerator::GenerateSubtypeTestCacheLookup(intptr_t node_id,
-                                                   intptr_t token_index,
-                                                   const Class& type_class,
-                                                   Label* is_instance_lbl,
-                                                   Label* is_not_instance_lbl) {
+void CodeGenerator::GenerateSubtype1TestCacheLookup(
+    intptr_t node_id,
+    intptr_t token_index,
+    const Class& type_class,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1313,25 +1314,21 @@ void CodeGenerator::GenerateSubtypeTestCacheLookup(intptr_t node_id,
   __ CompareObject(EDI, type_class);
   __ j(EQUAL, is_instance_lbl);
 
-  // ECX: instance class.
-  // Insert subtype test cache into the code stream.
   AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
   __ LoadObject(EDX, Array::ZoneHandle(
       Array::New(SubTypeTestCache::kNumEntries)));
-  // EDX: cache array.
-  __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
-  __ Bind(&loop);
-  __ movl(EBX, Address(EDX, kWordSize * SubTypeTestCache::kInstanceClass));
-  __ cmpl(ECX, EBX);
-  __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
-  __ addl(EDX, Immediate(kWordSize * SubTypeTestCache::kNumEntries));
-  __ cmpl(EBX, raw_null);
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ jmp(&runtime_call, Assembler::kNearJump);
+  __ pushl(EDX);  // Cache array.
+  __ pushl(EAX);  // Instance.
+  __ pushl(raw_null);  // Unused
+  __ call(&StubCode::Subtype1TestCacheLabel());
+  __ popl(EAX);  // Discard.
+  __ popl(EAX);  // Restore receiver.
+  __ popl(EDX);  // Discard.
+  // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
 
-  __ Bind(&found_in_cache);
-  __ movl(EDX, Address(EDX, kWordSize * SubTypeTestCache::kTestResult));
-  __ CompareObject(EDX, bool_true);
+  __ cmpl(ECX, raw_null);
+  __ j(EQUAL, &runtime_call, Assembler::kNearJump);
+  __ CompareObject(ECX, bool_true);
   __ j(EQUAL, is_instance_lbl);
   __ jmp(is_not_instance_lbl);
   __ Bind(&runtime_call);
@@ -1367,8 +1364,8 @@ void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
                                               is_not_instance_lbl);
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
-      GenerateSubtypeTestCacheLookup(node_id, token_index, type_class,
-                                     is_instance_lbl, is_not_instance_lbl);
+      GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
+                                      is_instance_lbl, is_not_instance_lbl);
     }
   } else {
     GenerateUninstantiatedTypeTest(type,
@@ -1526,8 +1523,8 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
       __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
       __ j(EQUAL, is_instance_lbl);
     }
-    GenerateSubtypeTestCacheLookup(node_id, token_index, type_class,
-                                   is_instance_lbl, is_not_instance_lbl);
+    GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
+                                    is_instance_lbl, is_not_instance_lbl);
     return;
   }
   // Note that the test below must be synced with the tests in
@@ -1550,8 +1547,8 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
   Error& malformed_error = Error::Handle();
   if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
     // Instance class test only necessary.
-    GenerateSubtypeTestCacheLookup(node_id, token_index, type_class,
-                                   is_instance_lbl, is_not_instance_lbl);
+    GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
+                                    is_instance_lbl, is_not_instance_lbl);
     return;
   }
   Label inlined_check, fall_through;
@@ -1560,11 +1557,11 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
   AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
   __ LoadObject(EDX, Array::ZoneHandle(
       Array::New(SubTypeTestCache::kNumEntries)));
-  __ pushl(EDX);       // Cache array.
-  __ pushl(EAX);       // Instance.
-  __ pushl(raw_null);  // Instantiator type arguments, no instantiator -> null.
-  __ call(&StubCode::SubtypeTestCacheLabel());
-  __ popl(EDX);  // Discard.
+  __ pushl(EDX);  // Cache array.
+  __ pushl(EAX);  // Instance.
+  __ pushl(raw_null);  // Unused.
+  __ call(&StubCode::Subtype2TestCacheLabel());
+  __ popl(EAX);  // Discard.
   __ popl(EAX);  // Restore receiver.
   __ popl(EDX);  // Discard.
   // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.

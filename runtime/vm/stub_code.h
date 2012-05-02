@@ -33,7 +33,9 @@ class RawCode;
   V(BreakpointStatic)                                                          \
   V(BreakpointReturn)                                                          \
   V(IsRawSubType)                                                              \
-  V(SubtypeTestCache)                                                          \
+  V(Subtype1TestCache)                                                         \
+  V(Subtype2TestCache)                                                         \
+  V(Subtype3TestCache)                                                         \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
