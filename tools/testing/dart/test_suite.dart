@@ -1238,7 +1238,8 @@ class TestUtils {
           prefix = 'dart-sdk/bin/';
         }
         if (configuration['host_checked']) {
-          return '${prefix}dart2js_developer$suffix';
+          // The script dart2js_developer is not in the SDK.
+          return 'dart2js_developer$suffix';
         } else {
           return '${prefix}dart2js$suffix';
         }
