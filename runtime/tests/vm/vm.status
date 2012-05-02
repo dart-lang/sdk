@@ -24,6 +24,11 @@ dart/isolate_mirror_self_test: Skip  # TODO(turnidge): Fix this
 dart/import_map_test: Skip
 dart/isolate_mirror_self_test: Skip  # TODO(turnidge,antonm): investigate
 
+
+[ $compiler == dart2js || $compiler == frog || $compiler == dartc ]
+dart/import_map_test: Skip # compilers not aware of import maps.
+dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
+
 [ $arch == arm ]
 dart/*: Skip
 
