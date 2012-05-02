@@ -13,13 +13,18 @@ namespace dart {
 DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
 ClassTable::ClassTable()
-    : top_(kNumPredefinedKinds), capacity_(initial_capacity_), table_(NULL) {
-  table_ = reinterpret_cast<RawClass**>(calloc(capacity_,
-                                               sizeof(RawClass*)));  // NOLINT
-  // Duplicate the class table from the VM isolate.
-  if (Dart::vm_isolate() != NULL) {
+    : top_(kNumPredefinedKinds), capacity_(0), table_(NULL) {
+  if (Dart::vm_isolate() == NULL) {
+    capacity_ = initial_capacity_;
+    table_ = reinterpret_cast<RawClass**>(
+        calloc(capacity_, sizeof(RawClass*)));  // NOLINT
+  } else {
+    // Duplicate the class table from the VM isolate.
     ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
-    for (int i = kObject; i < kInstance; i++) {
+    capacity_ = vm_class_table->capacity_;
+    table_ = reinterpret_cast<RawClass**>(
+        calloc(capacity_, sizeof(RawClass*)));  // NOLINT
+    for (intptr_t i = kObject; i < kInstance; i++) {
       table_[i] = vm_class_table->At(i);
     }
     table_[kNullClassIndex] = vm_class_table->At(kNullClassIndex);
@@ -40,12 +45,24 @@ void ClassTable::Register(const Class& cls) {
     ASSERT(index > 0);
     ASSERT(index < kNumPredefinedKinds);
     ASSERT(table_[index] == 0);
+    ASSERT(index < capacity_);
     table_[index] = cls.raw();
   } else {
+    if (top_ == capacity_) {
+      // Grow the capacity of the class table.
+      intptr_t new_capacity = capacity_ + capacity_increment_;
+      RawClass** new_table = reinterpret_cast<RawClass**>(
+          realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+      for (intptr_t i = capacity_; i < new_capacity; i++) {
+        new_table[i] = NULL;
+      }
+      capacity_ = new_capacity;
+      table_ = new_table;
+    }
+    ASSERT(top_ < capacity_);
     cls.set_index(top_);
     table_[top_] = cls.raw();
     top_++;  // Increment next index.
-    ASSERT(top_ < capacity_);
   }
 }
 
