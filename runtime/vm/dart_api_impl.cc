@@ -1631,7 +1631,7 @@ DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle object,
   }
   const char* cstring = str.ToCString();
   *length = Utf8::Length(str);
-  char* result = reinterpret_cast<char*>(Api::Allocate(isolate, *length));
+  uint8_t* result = reinterpret_cast<uint8_t*>(Api::Allocate(isolate, *length));
   if (result == NULL) {
     return Api::NewError("Unable to allocate memory");
   }

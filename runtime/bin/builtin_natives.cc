@@ -112,7 +112,7 @@ void Builtin::PrintString(FILE* out, Dart_Handle str) {
     // an isolate gets interrupted by the embedder in the middle of
     // Dart_StringToBytes?  We need to make sure not to swallow the
     // interrupt.
-    fputs(Dart_GetError(result));
+    fputs(Dart_GetError(result), out);
   } else {
     fwrite(characters, sizeof(*characters), length, out);
   }
