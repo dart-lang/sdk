@@ -595,7 +595,7 @@ class StandardTestSuite implements TestSuite {
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
       String filePrefix = '';
-      if (Platform.operatingSystem() == 'windows') {
+      if (Platform.operatingSystem == 'windows') {
         // Firefox on Windows does not like absolute file path names that start
         // with 'C:' adding 'file:///' solves the problem.
         filePrefix = 'file:///';
@@ -816,7 +816,7 @@ class StandardTestSuite implements TestSuite {
     if (configuration['drt'] != '') {
       return configuration['drt'];
     }
-    if (Platform.operatingSystem() == 'macos') {
+    if (Platform.operatingSystem == 'macos') {
       return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/'
           'MacOS/DumpRenderTree';
     }
@@ -827,7 +827,7 @@ class StandardTestSuite implements TestSuite {
     if (configuration['dartium'] != '') {
       return configuration['dartium'];
     }
-    if (Platform.operatingSystem() == 'macos') {
+    if (Platform.operatingSystem == 'macos') {
       return '$dartDir/client/tests/dartium/Chromium.app/Contents/'
           'MacOS/Chromium';
     }
@@ -1220,7 +1220,7 @@ class TestUtils {
   }
 
   static String executableSuffix(String executable) {
-    if (Platform.operatingSystem() == 'windows') {
+    if (Platform.operatingSystem == 'windows') {
       if (executable == 'd8' || executable == 'vm' || executable == 'none') {
         return '.exe';
       } else {

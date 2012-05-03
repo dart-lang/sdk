@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 String getPlatformOutDir() {
-  var os = Platform.operatingSystem();
+  var os = Platform.operatingSystem;
   if (os == 'linux') return 'out/';
   if (os == 'macos') return 'xcodebuild/';
   return '';  // Windows.
 }
 
 String getPlatformExecutableExtension() {
-  var os = Platform.operatingSystem();
+  var os = Platform.operatingSystem;
   if (os == 'windows') return '.exe';
   return '';  // Linux and Mac OS.
 }

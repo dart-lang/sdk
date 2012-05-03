@@ -38,7 +38,7 @@ String join(part1, [part2, part3, part4]) {
     }
   }
 
-  return Strings.join(parts, Platform.pathSeparator());
+  return Strings.join(parts, Platform.pathSeparator);
 }
 
 /**

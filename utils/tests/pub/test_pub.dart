@@ -111,7 +111,7 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   // Find a dart executable we can use to run pub. Uses the one that the
   // test infrastructure uses.
   final scriptDir = new File(new Options().script).directorySync().path;
-  final platform = Platform.operatingSystem();
+  final platform = Platform.operatingSystem;
   final dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
 
   // Find the main pub entrypoint.

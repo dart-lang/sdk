@@ -259,7 +259,7 @@ class TestOutputImpl implements TestOutput {
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
 
   bool get hasCrashed() {
-    if (Platform.operatingSystem() == 'windows') {
+    if (Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
       if (exitCode == 3) {
@@ -598,7 +598,7 @@ class RunningProcess {
 
   void runCommand(Command command,
                   void exitHandler(int exitCode)) {
-    if (Platform.operatingSystem() == 'windows') {
+    if (Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
       // TODO(efortuna): Remove this when fixed (Issue 1306).
@@ -919,7 +919,7 @@ class ProcessQueue {
   String globalTemporaryDirectory() {
     if (_temporaryDirectory != null) return _temporaryDirectory;
 
-    if (Platform.operatingSystem() == 'windows') {
+    if (Platform.operatingSystem == 'windows') {
       throw new Exception(
           'Test suite requires temporary directory. Not supported on Windows.');
     }
@@ -972,7 +972,7 @@ class ProcessQueue {
    * True if we are using a browser + platform combination that needs the
    * Selenium server jar.
    */
-  bool get _needsSelenium() => Platform.operatingSystem() == 'macos' &&
+  bool get _needsSelenium() => Platform.operatingSystem == 'macos' &&
       browserUsed == 'safari';
 
   /** True if the Selenium Server is ready to be used. */
@@ -995,7 +995,7 @@ class ProcessQueue {
       // Check to see if the jar was already running before the program started.
       String cmd = 'ps';
       var arg = ['aux'];
-      if (Platform.operatingSystem() == 'windows') {
+      if (Platform.operatingSystem == 'windows') {
         cmd = 'tasklist';
         arg.add('/v');
       }
@@ -1060,7 +1060,7 @@ class ProcessQueue {
   void _startSeleniumServer() {
     // Get the absolute path to the Selenium jar.
     String filePath = new Options().script;
-    String pathSep = Platform.pathSeparator();
+    String pathSep = Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
     filePath = filePath.substring(0, index) + '${pathSep}testing${pathSep}';
     var dir = new Directory(filePath);

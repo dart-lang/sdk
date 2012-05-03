@@ -50,7 +50,7 @@ writeScript(Uri uri, List<String> scripts) {
     stream.closeSync();
   }
 
-  if (Platform.operatingSystem() != 'windows') {
+  if (Platform.operatingSystem != 'windows') {
     onExit(int exitCode, String stdout, String stderr) {
       if (exitCode != 0) {
         print(stdout);

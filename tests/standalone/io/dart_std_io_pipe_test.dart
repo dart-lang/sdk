@@ -79,7 +79,7 @@ void test(String shellScript, String dartScript, String type) {
 // and can pipe to stdout.
 main() {
   // Don't try to run shell scripts on Windows.
-  var os = Platform.operatingSystem();
+  var os = Platform.operatingSystem;
   if (os == 'windows') return;
 
   // Get the shell script for testing the Standalone Dart VM with
