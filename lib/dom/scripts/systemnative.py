@@ -302,9 +302,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         raise Exception('Unsupported CallWith=%s attribute' % call_with)
 
     # Process constructor arguments.
-    for (i, arg) in enumerate(constructor_info.idl_args):
-      self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
-      arguments.append(arg.id)
+    for (i, argument) in enumerate(constructor_info.idl_args):
+      argument_expression = self._GenerateParameterAdapter(
+          parameter_definitions_emitter, argument, i - 1)
+      arguments.append(argument_expression)
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
@@ -536,12 +537,11 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    arguments.append('value')
-
-    self._GenerateParameterAdapter(
+    argument_expression = self._GenerateParameterAdapter(
         parameter_definitions_emitter, attr, 0, adapter_name='value')
-    parameter_definitions = parameter_definitions_emitter.Fragments()
+    arguments.append(argument_expression)
 
+    parameter_definitions = parameter_definitions_emitter.Fragments()
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     invocation = self._GenerateWebCoreInvocation(function_expression,
         arguments, 'void', attr.ext_attrs, attr.set_raises)
@@ -655,8 +655,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
-      self._GenerateParameterAdapter(parameter_definitions_emitter, argument, i)
-      arguments.append(argument.id)
+      argument_expression = self._GenerateParameterAdapter(
+          parameter_definitions_emitter, argument, i)
+      arguments.append(argument_expression)
 
     if operation.id in ['addEventListener', 'removeEventListener']:
       # addEventListener's and removeEventListener's last argument is marked
@@ -727,6 +728,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     (adapter_type, include_name) = type_info.parameter_adapter_info()
     if include_name:
       self._cpp_impl_includes.add(include_name)
+    adapter_name = adapter_name or idl_node.id
     flags = ''
     if (idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString' or
         'RequiredCppParameter' in idl_node.ext_attrs):
@@ -739,9 +741,16 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         '            goto fail;\n'
         '        }\n',
         ADAPTER_TYPE=adapter_type,
-        NAME=adapter_name or idl_node.id,
+        NAME=adapter_name,
         INDEX=index + 1,
         FLAGS=flags)
+
+    conversion = '%s'
+    if isinstance(type_info, SVGTearOffIDLTypeInfo) and not self._interface.id.endswith('List'):
+      conversion = '%s.get()->propertyReference()'
+    elif type_info.idl_type() == 'SVGMatrix' and self._interface.id == 'SVGTransformList':
+      conversion = '%s.get()'
+    return conversion % adapter_name
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):

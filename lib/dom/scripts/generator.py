@@ -424,13 +424,12 @@ def TypeName(type_ids, interface):
 
 class IDLTypeInfo(object):
   def __init__(self, idl_type, dart_type=None,
-               native_type=None, ref_counted=True,
+               native_type=None,
                custom_to_native=False,
                custom_to_dart=False, conversion_includes=[]):
     self._idl_type = idl_type
     self._dart_type = dart_type
     self._native_type = native_type
-    self._ref_counted = ref_counted
     self._custom_to_native = custom_to_native
     self._custom_to_dart = custom_to_dart
     self._conversion_includes = conversion_includes + [idl_type]
@@ -445,12 +444,9 @@ class IDLTypeInfo(object):
     return self._native_type or self._idl_type
 
   def parameter_adapter_info(self):
-    native_type = self.native_type()
-    if self._ref_counted:
-      native_type = 'RefPtr< %s >' % native_type
-    wrapper_type = 'Dart%s' % self.idl_type()
-    adapter_type = 'ParameterAdapter<%s, %s>' % (native_type, wrapper_type)
-    return (adapter_type, '"%s.h"' % wrapper_type)
+    adapter_type = 'ParameterAdapter<Dart%s>' % self._idl_type
+    include = '"Dart%s.h"' % self._idl_type
+    return (adapter_type, include)
 
   def custom_to_native(self):
     return self._custom_to_native
@@ -480,7 +476,7 @@ class IDLTypeInfo(object):
       return ['"%s.h"' % self.native_type()]
 
     if self._idl_type in ['SVGNumber', 'SVGPoint']:
-      return []
+      return ['"SVGPropertyTearOff.h"']
     if self._idl_type.startswith('SVGPathSeg'):
       include = self._idl_type.replace('Abs', '').replace('Rel', '')
     else:
@@ -516,19 +512,17 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, dart_type, native_type=None, ref_counted=False,
+  def __init__(self, idl_type, dart_type, native_type=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute'):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, dart_type=dart_type,
-        native_type=native_type, ref_counted=ref_counted)
+        native_type=native_type)
     self._webcore_getter_name = webcore_getter_name
     self._webcore_setter_name = webcore_setter_name
 
   def parameter_adapter_info(self):
-    native_type = self.native_type()
-    if self._ref_counted:
-      native_type = 'RefPtr< %s >' % native_type
-    return ('ParameterAdapter< %s >' % native_type, None)
+    adapter_type = 'ParameterAdapter<%s>' % self.native_type()
+    return (adapter_type, None)
 
   def parameter_type(self):
     if self.native_type() == 'String':
@@ -554,10 +548,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return self._webcore_setter_name
 
 class SVGTearOffIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, native_type='', ref_counted=True):
+  def __init__(self, idl_type, native_type=''):
     super(SVGTearOffIDLTypeInfo, self).__init__(idl_type,
-                                                native_type=native_type,
-                                                ref_counted=ref_counted)
+                                                native_type=native_type)
 
   def native_type(self):
     if self._native_type:
@@ -629,7 +622,7 @@ _idl_type_registry = {
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.
-    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', dart_type='Dynamic', ref_counted=True),
+    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', dart_type='Dynamic'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
@@ -654,18 +647,18 @@ _idl_type_registry = {
 
     'SVGAngle': SVGTearOffIDLTypeInfo('SVGAngle'),
     'SVGLength': SVGTearOffIDLTypeInfo('SVGLength'),
-    'SVGLengthList': SVGTearOffIDLTypeInfo('SVGLengthList', ref_counted=False),
+    'SVGLengthList': SVGTearOffIDLTypeInfo('SVGLengthList'),
     'SVGMatrix': SVGTearOffIDLTypeInfo('SVGMatrix'),
     'SVGNumber': SVGTearOffIDLTypeInfo('SVGNumber', native_type='SVGPropertyTearOff<float>'),
-    'SVGNumberList': SVGTearOffIDLTypeInfo('SVGNumberList', ref_counted=False),
-    'SVGPathSegList': SVGTearOffIDLTypeInfo('SVGPathSegList', native_type='SVGPathSegListPropertyTearOff', ref_counted=False),
+    'SVGNumberList': SVGTearOffIDLTypeInfo('SVGNumberList'),
+    'SVGPathSegList': SVGTearOffIDLTypeInfo('SVGPathSegList', native_type='SVGPathSegListPropertyTearOff'),
     'SVGPoint': SVGTearOffIDLTypeInfo('SVGPoint', native_type='SVGPropertyTearOff<FloatPoint>'),
-    'SVGPointList': SVGTearOffIDLTypeInfo('SVGPointList', ref_counted=False),
+    'SVGPointList': SVGTearOffIDLTypeInfo('SVGPointList'),
     'SVGPreserveAspectRatio': SVGTearOffIDLTypeInfo('SVGPreserveAspectRatio'),
     'SVGRect': SVGTearOffIDLTypeInfo('SVGRect', native_type='SVGPropertyTearOff<FloatRect>'),
-    'SVGStringList': SVGTearOffIDLTypeInfo('SVGStringList', native_type='SVGStaticListPropertyTearOff<SVGStringList>', ref_counted=False),
+    'SVGStringList': SVGTearOffIDLTypeInfo('SVGStringList', native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
     'SVGTransform': SVGTearOffIDLTypeInfo('SVGTransform'),
-    'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff', ref_counted=False)
+    'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff')
 }
 
 _svg_supplemental_includes = [
