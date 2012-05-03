@@ -272,6 +272,9 @@ class TestRunner(object):
     for test in suites:
       test.run()
 
+    if not self.no_upload:
+      self.upload_to_app_engine(TestBuilder.available_suite_names())
+
 
 class Test(object):
   """The base class to provide shared code for different tests we will run and
@@ -684,8 +687,6 @@ class CommonBrowserTest(RuntimePerformanceTest):
           delete the trace file."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
                             'testing', 'perf_testing'))
-      if self.test.test_runner.no_upload:
-        return
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
@@ -725,7 +726,8 @@ class CommonBrowserTest(RuntimePerformanceTest):
         bench_dict = self.test.values_dict[browser][version]
         bench_dict[name] += [float(score)]
         self.test.revision_dict[browser][version][name] += [revision_num]
-        if self.should_report_results(afile):
+        if self.should_report_results(afile) and \
+            not self.test.test_runner.no_upload:
           upload_success = upload_success and self.report_results(
               name, score, browser, version, revision_num, self.SCORE)
         else:
@@ -871,8 +873,6 @@ class DromaeoTest(RuntimePerformanceTest):
     def process_file(self, afile):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage."""
-      if self.test.test_runner.no_upload:
-        return
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
@@ -906,7 +906,8 @@ class DromaeoTest(RuntimePerformanceTest):
                 bench_dict[name] += [float(score)]
                 self.test.revision_dict[browser][version][name] += \
                     [revision_num]
-                if self.should_report_results(afile):
+                if self.should_report_results(afile) and \
+                    not self.test.test_runner.no_upload:
                   upload_success = upload_success and self.report_results(
                       name, score, browser, version, revision_num, self.SCORE)
                 else:
@@ -1007,8 +1008,6 @@ class DromaeoSizeTest(Test):
       Returns: True if we successfully posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
-      if self.test.test_runner.no_upload:
-        return
       f = open(os.path.join(self.test.result_folder_name, afile))
       tabulate_data = False
       revision_num = 0
@@ -1034,7 +1033,8 @@ class DromaeoSizeTest(Test):
           self.test.values_dict['commandline'][variant][metric] += [num]
           self.test.revision_dict['commandline'][variant][metric] += \
               [revision_num]
-          if self.should_report_results(afile):
+          if self.should_report_results(afile) and \
+              not self.test.test_runner.no_upload:
             upload_success = upload_success and self.report_results(
                 metric, num, 'commandline', variant, revision_num,
                 self.CODE_SIZE)
@@ -1097,8 +1097,9 @@ class CompileTimeAndSizeTest(Test):
 
       self.test.test_runner.run_cmd(
           [self.test.dart_vm, 'frogc.dart', '--out=swarm-result',
-          os.path.join('..', 'internal', 'golem', 'benchmarks-dart2js', 'tests',
-          'samples-r6461', 'swarm', 'swarm.dart')])
+          os.path.join('..', 'samples', 'swarm', 'swarm.dart')])
+          #os.path.join('..', 'internal', 'golem', 'benchmarks-dart2js', 'tests',
+          #'samples-r6461', 'swarm', 'swarm.dart')])
 
       swarm_size = 0
       try:
@@ -1137,8 +1138,6 @@ class CompileTimeAndSizeTest(Test):
       Returns: True if we successfully posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
-      if self.test.test_runner.no_upload:
-        return
       f = open(os.path.join(self.test.result_folder_name, afile))
       tabulate_data = False
       revision_num = 0
@@ -1161,7 +1160,10 @@ class CompileTimeAndSizeTest(Test):
               score_type = self.CODE_SIZE
               if 'Compiling' in metric or 'Bootstrapping' in metric:
                 score_type = self.COMPILE_TIME
-              if self.should_report_results(afile):
+              if self.should_report_results(afile) and \
+                  not self.test.test_runner.no_upload:
+                if num < self.test.failure_threshold[metric]:
+                  num = 0
                 upload_success = upload_success and self.report_results(
                     metric, num, 'commandline', 'frog', revision_num,
                     score_type)
