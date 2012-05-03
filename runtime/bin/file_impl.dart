@@ -419,7 +419,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Cannot open file $_name");
+        _handleErrorResponse(response, "Cannot open file '$_name'");
       } else {
         callback(response);
       }
@@ -502,7 +502,7 @@ class _File extends _FileBase implements File {
     request[2] = mode._mode;  // Direct int value for serialization.
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Cannot open file $_name");
+        _handleErrorResponse(response, "Cannot open file '$_name'");
       } else {
         callback(new _RandomAccessFile(response, _name));
       }
