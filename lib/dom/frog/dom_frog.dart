@@ -3540,13 +3540,9 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayJs initData = null]) native;
 
-  void webkitSourceAddId(String id, String type) native;
-
   void webkitSourceAppend(_Uint8ArrayJs data) native;
 
   void webkitSourceEndOfStream(int status) native;
-
-  void webkitSourceRemoveId(String id) native;
 }
 
 class _HTMLMenuElementJs extends _HTMLElementJs implements HTMLMenuElement native "*HTMLMenuElement" {
@@ -3937,6 +3933,8 @@ class _HTMLTableElementJs extends _HTMLElementJs implements HTMLTableElement nat
 
   _HTMLElementJs createCaption() native;
 
+  _HTMLElementJs createTBody() native;
+
   _HTMLElementJs createTFoot() native;
 
   _HTMLElementJs createTHead() native;
@@ -4166,6 +4164,8 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   final source;
 
+  void advance(int count) native;
+
   void continueFunction([key = null]) native '''
         if (key == null) return this['continue']();
         return this['continue'](key);
@@ -4272,9 +4272,9 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestJs getKey(key) native;
 
-  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openCursor([key_OR_range = null, int direction = null]) native;
 
-  _IDBRequestJs openKeyCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openKeyCursor([key_OR_range = null, int direction = null]) native;
 }
 
 class _IDBKeyJs extends _DOMTypeJs implements IDBKey native "*IDBKey" {
@@ -4317,7 +4317,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBIndexJs index(String name) native;
 
-  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openCursor([key_OR_range = null, int direction = null]) native;
 
   _IDBRequestJs put(value, [key = null]) native;
 }
@@ -5311,7 +5311,7 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 }
 
 class _NavigatorUserMediaErrorJs extends _DOMTypeJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -5779,6 +5779,8 @@ class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performa
   final _PerformanceNavigationJs navigation;
 
   final _PerformanceTimingJs timing;
+
+  num webkitNow() native;
 }
 
 class _PerformanceNavigationJs extends _DOMTypeJs implements PerformanceNavigation native "*PerformanceNavigation" {
@@ -10838,8 +10840,6 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   static final int SCISSOR_TEST = 0x0C11;
 
-  static final int SHADER_COMPILER = 0x8DFA;
-
   static final int SHADER_TYPE = 0x8B4F;
 
   static final int SHADING_LANGUAGE_VERSION = 0x8B8C;
@@ -11393,13 +11393,6 @@ class _WebKitAnimationListJs extends _DOMTypeJs implements WebKitAnimationList n
   final int length;
 
   _WebKitAnimationJs item(int index) native;
-}
-
-class _WebKitBlobBuilderJs extends _DOMTypeJs implements WebKitBlobBuilder native "*WebKitBlobBuilder" {
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
-
-  _BlobJs getBlob([String contentType = null]) native;
 }
 
 class _WebKitCSSFilterValueJs extends _CSSValueListJs implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
@@ -12134,14 +12127,6 @@ if (pauseOnExit == null)
   return new TextTrackCue(id, startTime, endTime, text, settings);
 return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
 ''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _WebKitBlobBuilderFactoryProvider {
-  factory WebKitBlobBuilder() native
-      '''return new WebKitBlobBuilder();''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16240,13 +16225,9 @@ interface HTMLMediaElement extends HTMLElement {
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  void webkitSourceAddId(String id, String type);
-
   void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16762,6 +16743,8 @@ interface HTMLTableElement extends HTMLElement {
 
   HTMLElement createCaption();
 
+  HTMLElement createTBody();
+
   HTMLElement createTFoot();
 
   HTMLElement createTHead();
@@ -17050,6 +17033,8 @@ interface IDBCursor {
 
   final /*IDBAny*/ source;
 
+  void advance(int count);
+
   void continueFunction([/*IDBKey*/ key]);
 
   IDBRequest delete();
@@ -17178,9 +17163,9 @@ interface IDBIndex {
 
   IDBRequest getKey(key);
 
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
-  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17248,7 +17233,7 @@ interface IDBObjectStore {
 
   IDBIndex index(String name);
 
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
@@ -18052,7 +18037,7 @@ interface Navigator {
 
   void registerProtocolHandler(String scheme, String url, String title);
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18551,6 +18536,8 @@ interface Performance {
   final PerformanceNavigation navigation;
 
   final PerformanceTiming timing;
+
+  num webkitNow();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18872,7 +18859,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef bool RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22966,8 +22953,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   static final int SCISSOR_TEST = 0x0C11;
 
-  static final int SHADER_COMPILER = 0x8DFA;
-
   static final int SHADER_TYPE = 0x8B4F;
 
   static final int SHADING_LANGUAGE_VERSION = 0x8B8C;
@@ -23561,20 +23546,6 @@ interface WebKitAnimationList {
   final int length;
 
   WebKitAnimation item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
-
-  WebKitBlobBuilder();
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
-
-  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

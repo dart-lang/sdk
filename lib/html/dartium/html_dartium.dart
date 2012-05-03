@@ -102,7 +102,6 @@ _wrap(raw) {
     case 'BeforeLoadEvent': return new _BeforeLoadEventImpl._wrap(domObject);
     case 'BiquadFilterNode': return new _BiquadFilterNodeImpl._wrap(domObject);
     case 'Blob': return new _BlobImpl._wrap(domObject);
-    case 'WebKitBlobBuilder': return new _BlobBuilderImpl._wrap(domObject);
     case 'HTMLBodyElement': return new _BodyElementImpl._wrap(domObject);
     case 'HTMLButtonElement': return new _ButtonElementImpl._wrap(domObject);
     case 'CharacterData': return new _CharacterDataImpl._wrap(domObject);
@@ -1453,45 +1452,6 @@ class _BlobImpl extends _DOMTypeBase implements Blob {
       }
     }
     throw "Incorrect number or type of arguments";
-  }
-}
-
-class _BlobBuilderImpl extends _DOMTypeBase implements BlobBuilder {
-  _BlobBuilderImpl._wrap(ptr) : super._wrap(ptr);
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) {
-    if (arrayBuffer_OR_blob_OR_value is Blob) {
-      if (endings === null) {
-        _ptr.append(_unwrap(arrayBuffer_OR_blob_OR_value));
-        return;
-      }
-    } else {
-      if (arrayBuffer_OR_blob_OR_value is ArrayBuffer) {
-        if (endings === null) {
-          _ptr.append(_unwrap(arrayBuffer_OR_blob_OR_value));
-          return;
-        }
-      } else {
-        if (arrayBuffer_OR_blob_OR_value is String) {
-          if (endings === null) {
-            _ptr.append(_unwrap(arrayBuffer_OR_blob_OR_value));
-            return;
-          } else {
-            _ptr.append(_unwrap(arrayBuffer_OR_blob_OR_value), _unwrap(endings));
-            return;
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  Blob getBlob([String contentType = null]) {
-    if (contentType === null) {
-      return _wrap(_ptr.getBlob());
-    } else {
-      return _wrap(_ptr.getBlob(_unwrap(contentType)));
-    }
   }
 }
 
@@ -10199,6 +10159,11 @@ class _IDBCursorImpl extends _DOMTypeBase implements IDBCursor {
 
   Dynamic get source() => _wrap(_ptr.source);
 
+  void advance(int count) {
+    _ptr.advance(_unwrap(count));
+    return;
+  }
+
   void continueFunction([/*IDBKey*/ key = null]) {
     if (key === null) {
       _ptr.continueFunction();
@@ -10389,31 +10354,47 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
     }
   }
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
-    if (range === null) {
+  IDBRequest openCursor([key_OR_range = null, int direction = null]) {
+    if (key_OR_range === null) {
       if (direction === null) {
         return _wrap(_ptr.openCursor());
       }
     } else {
-      if (direction === null) {
-        return _wrap(_ptr.openCursor(_unwrap(range)));
+      if (key_OR_range is IDBKeyRange) {
+        if (direction === null) {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
+        } else {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
+        }
       } else {
-        return _wrap(_ptr.openCursor(_unwrap(range), _unwrap(direction)));
+        if (direction === null) {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
+        } else {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
+        }
       }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) {
-    if (range === null) {
+  IDBRequest openKeyCursor([key_OR_range = null, int direction = null]) {
+    if (key_OR_range === null) {
       if (direction === null) {
         return _wrap(_ptr.openKeyCursor());
       }
     } else {
-      if (direction === null) {
-        return _wrap(_ptr.openKeyCursor(_unwrap(range)));
+      if (key_OR_range is IDBKeyRange) {
+        if (direction === null) {
+          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range)));
+        } else {
+          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
+        }
       } else {
-        return _wrap(_ptr.openKeyCursor(_unwrap(range), _unwrap(direction)));
+        if (direction === null) {
+          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range)));
+        } else {
+          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
+        }
       }
     }
     throw "Incorrect number or type of arguments";
@@ -10504,16 +10485,24 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     return _wrap(_ptr.index(_unwrap(name)));
   }
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
-    if (range === null) {
+  IDBRequest openCursor([key_OR_range = null, int direction = null]) {
+    if (key_OR_range === null) {
       if (direction === null) {
         return _wrap(_ptr.openCursor());
       }
     } else {
-      if (direction === null) {
-        return _wrap(_ptr.openCursor(_unwrap(range)));
+      if (key_OR_range is IDBKeyRange) {
+        if (direction === null) {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
+        } else {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
+        }
       } else {
-        return _wrap(_ptr.openCursor(_unwrap(range), _unwrap(direction)));
+        if (direction === null) {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
+        } else {
+          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
+        }
       }
     }
     throw "Incorrect number or type of arguments";
@@ -11971,11 +11960,6 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement {
     }
   }
 
-  void webkitSourceAddId(String id, String type) {
-    _ptr.webkitSourceAddId(_unwrap(id), _unwrap(type));
-    return;
-  }
-
   void webkitSourceAppend(Uint8Array data) {
     _ptr.webkitSourceAppend(_unwrap(data));
     return;
@@ -11983,11 +11967,6 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement {
 
   void webkitSourceEndOfStream(int status) {
     _ptr.webkitSourceEndOfStream(_unwrap(status));
-    return;
-  }
-
-  void webkitSourceRemoveId(String id) {
-    _ptr.webkitSourceRemoveId(_unwrap(id));
     return;
   }
 }
@@ -12706,7 +12685,7 @@ class _NavigatorImpl extends _DOMTypeBase implements Navigator {
     return;
   }
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
     if (errorCallback === null) {
       _ptr.webkitGetUserMedia(_unwrap(options), _unwrap(successCallback));
       return;
@@ -13648,6 +13627,10 @@ class _PerformanceImpl extends _DOMTypeBase implements Performance {
   PerformanceNavigation get navigation() => _wrap(_ptr.navigation);
 
   PerformanceTiming get timing() => _wrap(_ptr.timing);
+
+  num webkitNow() {
+    return _wrap(_ptr.webkitNow());
+  }
 }
 
 class _PerformanceNavigationImpl extends _DOMTypeBase implements PerformanceNavigation {
@@ -19145,6 +19128,10 @@ class _TableElementImpl extends _ElementImpl implements TableElement {
     return _wrap(_ptr.createCaption());
   }
 
+  Element createTBody() {
+    return _wrap(_ptr.createTBody());
+  }
+
   Element createTFoot() {
     return _wrap(_ptr.createTFoot());
   }
@@ -22460,14 +22447,6 @@ class _AudioElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _BlobBuilderFactoryProvider {
-  factory BlobBuilder() =>
-      _wrap(new dom.WebKitBlobBuilder());
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _CSSMatrixFactoryProvider {
   factory CSSMatrix([String cssValue = '']) =>
       _wrap(new dom.WebKitCSSMatrix(cssValue));
@@ -23587,23 +23566,6 @@ interface Blob {
 
   /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName WebKitBlobBuilder
-interface BlobBuilder default _BlobBuilderFactoryProvider {
-
-  BlobBuilder();
-
-  /** @domName WebKitBlobBuilder.append */
-  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
-
-  /** @domName WebKitBlobBuilder.getBlob */
-  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29630,6 +29592,9 @@ interface IDBCursor {
   /** @domName IDBCursor.source */
   final Dynamic source;
 
+  /** @domName IDBCursor.advance */
+  void advance(int count);
+
   /** @domName IDBCursor.continueFunction */
   void continueFunction([/*IDBKey*/ key]);
 
@@ -29809,10 +29774,10 @@ interface IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29890,7 +29855,7 @@ interface IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
@@ -31034,17 +30999,11 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  /** @domName HTMLMediaElement.webkitSourceAddId */
-  void webkitSourceAddId(String id, String type);
-
   /** @domName HTMLMediaElement.webkitSourceAppend */
   void webkitSourceAppend(Uint8Array data);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
-
-  /** @domName HTMLMediaElement.webkitSourceRemoveId */
-  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -31769,7 +31728,7 @@ interface Navigator {
   void registerProtocolHandler(String scheme, String url, String title);
 
   /** @domName Navigator.webkitGetUserMedia */
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32612,6 +32571,9 @@ interface Performance {
 
   /** @domName Performance.timing */
   final PerformanceTiming timing;
+
+  /** @domName Performance.webkitNow */
+  num webkitNow();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33095,7 +33057,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef bool RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -37481,6 +37443,9 @@ interface TableElement extends Element {
   /** @domName HTMLTableElement.createCaption */
   Element createCaption();
 
+  /** @domName HTMLTableElement.createTBody */
+  Element createTBody();
+
   /** @domName HTMLTableElement.createTFoot */
   Element createTFoot();
 
@@ -38942,8 +38907,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 

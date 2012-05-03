@@ -552,13 +552,6 @@ class _BlobImpl implements Blob native "*Blob" {
   _BlobImpl webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }
 
-class _BlobBuilderImpl implements BlobBuilder native "*WebKitBlobBuilder" {
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
-
-  _BlobImpl getBlob([String contentType = null]) native;
-}
-
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
   _BodyElementEventsImpl get on() =>
@@ -7413,6 +7406,8 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final Dynamic source;
 
+  void advance(int count) native;
+
   void continueFunction([key = null]) native "continue";
 
   _IDBRequestImpl delete() native;
@@ -7529,9 +7524,9 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestImpl getKey(key) native;
 
-  _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range = null, int direction = null]) native;
 
-  _IDBRequestImpl openKeyCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
+  _IDBRequestImpl openKeyCursor([key_OR_range = null, int direction = null]) native;
 }
 
 class _IDBKeyImpl implements IDBKey native "*IDBKey" {
@@ -7574,7 +7569,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBIndexImpl index(String name) native;
 
-  _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range = null, int direction = null]) native;
 
   _IDBRequestImpl put(value, [key = null]) native;
 }
@@ -8528,13 +8523,9 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayImpl initData = null]) native;
 
-  void webkitSourceAddId(String id, String type) native;
-
   void webkitSourceAppend(_Uint8ArrayImpl data) native;
 
   void webkitSourceEndOfStream(int status) native;
-
-  void webkitSourceRemoveId(String id) native;
 }
 
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
@@ -9109,7 +9100,7 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 }
 
 class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -9922,6 +9913,8 @@ class _PerformanceImpl implements Performance native "*Performance" {
   final _PerformanceNavigationImpl navigation;
 
   final _PerformanceTimingImpl timing;
+
+  num webkitNow() native;
 }
 
 class _PerformanceNavigationImpl implements PerformanceNavigation native "*PerformanceNavigation" {
@@ -14322,6 +14315,8 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   _ElementImpl createCaption() native;
 
+  _ElementImpl createTBody() native;
+
   _ElementImpl createTFoot() native;
 
   _ElementImpl createTHead() native;
@@ -15613,8 +15608,6 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
@@ -16978,14 +16971,6 @@ class _AudioElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _BlobBuilderFactoryProvider {
-  factory BlobBuilder() native
-      '''return new BlobBuilder();''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _CSSMatrixFactoryProvider {
   factory CSSMatrix([String cssValue = '']) native
       'return new WebKitCSSMatrix(cssValue);';
@@ -18120,23 +18105,6 @@ interface Blob {
 
   /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName WebKitBlobBuilder
-interface BlobBuilder default _BlobBuilderFactoryProvider {
-
-  BlobBuilder();
-
-  /** @domName WebKitBlobBuilder.append */
-  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
-
-  /** @domName WebKitBlobBuilder.getBlob */
-  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24163,6 +24131,9 @@ interface IDBCursor {
   /** @domName IDBCursor.source */
   final Dynamic source;
 
+  /** @domName IDBCursor.advance */
+  void advance(int count);
+
   /** @domName IDBCursor.continueFunction */
   void continueFunction([/*IDBKey*/ key]);
 
@@ -24342,10 +24313,10 @@ interface IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24423,7 +24394,7 @@ interface IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
@@ -25567,17 +25538,11 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  /** @domName HTMLMediaElement.webkitSourceAddId */
-  void webkitSourceAddId(String id, String type);
-
   /** @domName HTMLMediaElement.webkitSourceAppend */
   void webkitSourceAppend(Uint8Array data);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
-
-  /** @domName HTMLMediaElement.webkitSourceRemoveId */
-  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -26302,7 +26267,7 @@ interface Navigator {
   void registerProtocolHandler(String scheme, String url, String title);
 
   /** @domName Navigator.webkitGetUserMedia */
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27145,6 +27110,9 @@ interface Performance {
 
   /** @domName Performance.timing */
   final PerformanceTiming timing;
+
+  /** @domName Performance.webkitNow */
+  num webkitNow();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27628,7 +27596,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef bool RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32014,6 +31982,9 @@ interface TableElement extends Element {
   /** @domName HTMLTableElement.createCaption */
   Element createCaption();
 
+  /** @domName HTMLTableElement.createTBody */
+  Element createTBody();
+
   /** @domName HTMLTableElement.createTFoot */
   Element createTFoot();
 
@@ -33475,8 +33446,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
