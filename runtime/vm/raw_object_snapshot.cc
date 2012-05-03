@@ -1073,6 +1073,22 @@ void RawICData::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
+                                                intptr_t object_id,
+                                                intptr_t tags,
+                                                Snapshot::Kind kind) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RawSubtypeTestCache::WriteTo(SnapshotWriter* writer,
+                                  intptr_t object_id,
+                                  Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawError* Error::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           intptr_t tags,

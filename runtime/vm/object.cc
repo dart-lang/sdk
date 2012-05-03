@@ -87,6 +87,8 @@ RawClass* Object::exception_handlers_class_ =
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::subtypetestcache_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
@@ -150,6 +152,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kContextScopeClass;
   } else if (raw_class == icdata_class()) {
     return kICDataClass;
+  } else if (raw_class == subtypetestcache_class()) {
+    return kSubtypeTestCacheClass;
   } else if (raw_class == api_error_class()) {
     return kApiErrorClass;
   } else if (raw_class == language_error_class()) {
@@ -193,6 +197,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
     case kICDataClass: return icdata_class();
+    case kSubtypeTestCacheClass: return subtypetestcache_class();
     case kApiErrorClass: return api_error_class();
     case kLanguageErrorClass: return language_error_class();
     case kUnhandledExceptionClass: return unhandled_exception_class();
@@ -233,6 +238,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
     case kICDataClass: return "ICData";
+    case kSubtypeTestCacheClass: return "SubtypeTestCache";
     case kApiErrorClass: return "ApiError";
     case kLanguageErrorClass: return "LanguageError";
     case kUnhandledExceptionClass: return "UnhandledException";
@@ -405,6 +411,9 @@ void Object::InitOnce() {
 
   cls = Class::New<ICData>();
   icdata_class_ = cls.raw();
+
+  cls = Class::New<SubtypeTestCache>();
+  subtypetestcache_class_ = cls.raw();
 
   cls = Class::New<ApiError>();
   api_error_class_ = cls.raw();
@@ -5629,7 +5638,6 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kIcCall: return "ic-call";
     case PcDescriptors::kFuncCall: return "fn-call";
     case PcDescriptors::kReturn: return "return";
-    case PcDescriptors::kTypeTest: return "ty-test";
     case PcDescriptors::kOther: return "other";
   }
   UNREACHABLE();
@@ -6057,18 +6065,6 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
 }
 
 
-uword Code::GetTypeTestAtNodeId(intptr_t node_id) const {
-  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if ((descriptors.NodeId(i) == node_id) &&
-        (descriptors.DescriptorKind(i) == PcDescriptors::kTypeTest)) {
-      return descriptors.PC(i);
-    }
-  }
-  return 0;
-}
-
-
 const char* Code::ToCString() const {
   const char* kFormat = "Code entry:0x%d";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
@@ -6362,9 +6358,8 @@ RawICData* ICData::New(const Function& function,
   ASSERT(!cls.IsNull());
   ICData& result = ICData::Handle();
   {
-    // IC data objects ar long living objects, allocate them in old generation.
-    RawObject* raw =
-    Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -6378,6 +6373,75 @@ RawICData* ICData::New(const Function& function,
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   result.set_ic_data(ic_data);
   return result.raw();
+}
+
+
+RawSubtypeTestCache* SubtypeTestCache::New() {
+  const Class& cls = Class::Handle(Object::subtypetestcache_class());
+  ASSERT(!cls.IsNull());
+  SubtypeTestCache& result = SubtypeTestCache::Handle();
+  {
+    // SubtypeTestCache objects are long living objects, allocate them in the
+    // old generation.
+    RawObject* raw =
+        Object::Allocate(cls, SubtypeTestCache::InstanceSize(), Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  const Array& cache = Array::Handle(Array::New(kTestEntryLength));
+  result.set_cache(cache);
+  return result.raw();
+}
+
+
+void SubtypeTestCache::set_cache(const Array& value) const {
+  StorePointer(&raw_ptr()->cache_, value.raw());
+}
+
+
+intptr_t SubtypeTestCache::NumberOfChecks() const {
+  // Do not count the sentinel;
+  return (Array::Handle(cache()).Length() / kTestEntryLength) - 1;
+}
+
+
+void SubtypeTestCache::AddCheck(
+    const Class& instance_class,
+    const AbstractTypeArguments& instance_type_arguments,
+    const AbstractTypeArguments& instantiator_type_arguments,
+    const Bool& test_result) const {
+  intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(cache());
+  intptr_t new_len = data.Length() + kTestEntryLength;
+  data = Array::Grow(data, new_len);
+  set_cache(data);
+  intptr_t data_pos = old_num * kTestEntryLength;
+  data.SetAt(data_pos + kInstanceClass, instance_class);
+  data.SetAt(data_pos + kInstanceTypeArguments, instance_type_arguments);
+  data.SetAt(data_pos + kInstantiatorTypeArguments,
+      instantiator_type_arguments);
+  data.SetAt(data_pos + kTestResult, test_result);
+}
+
+
+void SubtypeTestCache::GetCheck(
+    intptr_t ix,
+    Class* instance_class,
+    AbstractTypeArguments* instance_type_arguments,
+    AbstractTypeArguments* instantiator_type_arguments,
+    Bool* test_result) const {
+  Array& data = Array::Handle(cache());
+  intptr_t data_pos = ix * kTestEntryLength;
+  *instance_class ^= data.At(data_pos + kInstanceClass);
+  *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
+  *instantiator_type_arguments ^=
+      data.At(data_pos + kInstantiatorTypeArguments);
+  *test_result ^= data.At(data_pos + kTestResult);
+}
+
+
+const char* SubtypeTestCache::ToCString() const {
+  return "SubtypeTestCache";
 }
 
 

@@ -1363,10 +1363,11 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   } else {
     __ pushq(raw_null);  // Null instantiator.
   }
+  __ pushq(raw_null);  // SubtypeTestCache not yet supported.
   GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addq(RSP, Immediate(5 * kWordSize));
+  __ addq(RSP, Immediate(6 * kWordSize));
   if (negate_result) {
     Label negate_done;
     __ popq(RDX);
@@ -1586,10 +1587,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     __ pushq(raw_null);  // Null instantiator.
   }
   __ PushObject(dst_name);  // Push the name of the destination.
+  __ pushq(raw_null);  // SubtypeTestCache not yet supported.
   GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addq(RSP, Immediate(6 * kWordSize));
+  __ addq(RSP, Immediate(7 * kWordSize));
   __ popq(RAX);
 
   __ Bind(&done);

@@ -167,6 +167,7 @@ class Object {
     kContextClass,
     kContextScopeClass,
     kICDataClass,
+    kSubtypeTestCacheClass,
     kApiErrorClass,
     kLanguageErrorClass,
     kUnhandledExceptionClass,
@@ -316,6 +317,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
   static RawClass* icdata_class() { return icdata_class_; }
+  static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   static int GetSingletonClassIndex(const RawClass* raw_class);
   static RawClass* GetSingletonClass(int index);
@@ -417,6 +419,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* icdata_class_;  // Class of ICData.
+  static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
   static RawClass* api_error_class_;  // Class of ApiError.
   static RawClass* language_error_class_;  // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
@@ -2004,7 +2007,6 @@ class PcDescriptors : public Object {
     kIcCall,     // IC call.
     kFuncCall,   // Call to known target, e.g. static call, closure call.
     kReturn,     // Return from function.
-    kTypeTest,   // Array caching previous type tests.
     kOther
   };
 
@@ -2501,6 +2503,51 @@ class ICData : public Object {
   intptr_t TestEntryLength() const;
 
   HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  friend class Class;
+};
+
+
+class SubtypeTestCache : public Object {
+ public:
+  enum Entries {
+    kInstanceClass = 0,
+    kInstanceTypeArguments = 1,
+    kInstantiatorTypeArguments = 2,
+    kTestResult = 3,
+    kTestEntryLength  = 4,
+  };
+
+  intptr_t NumberOfChecks() const;
+  void AddCheck(const Class& instance_class,
+                const AbstractTypeArguments& instance_type_arguments,
+                const AbstractTypeArguments& instantiator_type_arguments,
+                const Bool& test_result) const;
+  void GetCheck(intptr_t ix,
+                Class* instance_class,
+                AbstractTypeArguments* instance_type_arguments,
+                AbstractTypeArguments* instantiator_type_arguments,
+                Bool* test_result) const;
+
+  static RawSubtypeTestCache* New();
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSubtypeTestCache));
+  }
+
+  static intptr_t cache_offset() {
+    return OFFSET_OF(RawSubtypeTestCache, cache_);
+  }
+
+ private:
+  RawArray* cache() const {
+    return raw_ptr()->cache_;
+  }
+
+  void set_cache(const Array& value) const;
+
+  intptr_t TestEntryLength() const;
+
+  HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
 };
 

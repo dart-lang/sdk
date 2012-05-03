@@ -451,104 +451,70 @@ static void UpdateTypeTestCache(intptr_t node_id,
                                 const Instance& instance,
                                 const AbstractType& type,
                                 const AbstractTypeArguments& type_instantiator,
-                                const Bool& result) {
+                                const Bool& result,
+                                const SubtypeTestCache& new_cache) {
   // Since the test is expensive, don't do it unless necessary.
   // The list of disallowed cases will decrease as they are implemented in
   // inlined assembly.
-  if (!type.IsInstantiated()) return;
-  if (Class::Handle(type.type_class()).HasTypeArguments()) {
-    const AbstractTypeArguments& type_arguments =
-        AbstractTypeArguments::Handle(type.arguments());
-    const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(type_arguments.Length());
-    if (!is_raw_type) {
-      // We cannot inline tests for instances with more than one type argument
-      // or if its class has not been resolved (malformed type).
-      if (type_arguments.Length() != 1) {
-        // We can handle only one argument so far.
-        return;
-      }
-      const AbstractType& tp_argument =
-          AbstractType::ZoneHandle(type_arguments.TypeAt(0));
-      if (!tp_argument.IsType()) {
-        // E.g, it is TypeParameter.
-        return;
-      }
-      ASSERT(tp_argument.HasResolvedTypeClass());
-    }
-  }
+  if (new_cache.IsNull()) return;
   AbstractTypeArguments& instance_type_arguments =
       AbstractTypeArguments::Handle();
   const Class& instance_class = Class::Handle(instance.clazz());
   AbstractTypeArguments& original_instance_type_arguments =
       AbstractTypeArguments::Handle();
   if (instance_class.HasTypeArguments()) {
+    // Canonicalize type arguments.
     original_instance_type_arguments = instance.GetTypeArguments();
     OptimizeTypeArguments(instance);
     instance_type_arguments = instance.GetTypeArguments();
   }
 
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  const Code& code = Code::Handle(caller_frame->LookupDartCode());
-  ASSERT(!code.IsNull());
-  uword loc = code.GetTypeTestAtNodeId(node_id);
-  if (loc != 0) {
-    // Found type test cache.
-    Array& cache = Array::Handle(CodePatcher::GetTypeTestArray(loc));
-    // TODO(srdjan): Prevent type test cache from growing too much, it has been
-    // observed to grow to 100 elements.
-    // Don't enter duplicate entries.
-    // TODO(srdjan): Check instantiator type arguments as well.
-    Object& last_instance_class = Object::Handle();
-    Object& last_instance_type_arguments = Object::Handle();
-    // Check for duplicate entries (can happen if we optimized type arguments
-    // above).
-    for (intptr_t i = 0; i < cache.Length();
-         i += SubTypeTestCache::kNumEntries) {
-      last_instance_class = cache.At(i + SubTypeTestCache::kInstanceClass);
-      last_instance_type_arguments =
-          cache.At(i + SubTypeTestCache::kInstanceTypeArguments);
-      if ((last_instance_class.raw() == instance_class.raw()) &&
-          (last_instance_type_arguments.raw() ==
-              instance_type_arguments.raw())) {
-        if (FLAG_trace_type_checks &&
-            (original_instance_type_arguments.raw() ==
-             instance_type_arguments.raw())) {
+  Class& last_instance_class = Class::Handle();
+  AbstractTypeArguments& last_instance_type_arguments =
+      AbstractTypeArguments::Handle();
+  AbstractTypeArguments& last_instantiator_type_arguments =
+      AbstractTypeArguments::Handle();
+  Bool& last_result = Bool::Handle();
+  intptr_t len = new_cache.NumberOfChecks();
+  for (intptr_t i = 0; i < len; ++i) {
+    new_cache.GetCheck(
+        i,
+        &last_instance_class,
+        &last_instance_type_arguments,
+        &last_instantiator_type_arguments,
+        &last_result);
+    if ((last_instance_class.raw() == instance_class.raw()) &&
+        (last_instance_type_arguments.raw() ==
+            instance_type_arguments.raw())) {
+      if (FLAG_trace_type_checks) {
+        if (original_instance_type_arguments.raw() ==
+            instance_type_arguments.raw()) {
           PrintTypeCheck("WARNING duplicate cache entry", instance, type,
               type_instantiator, result);
         }
-        return;
       }
+      // A duplicate entry found, likely because the instance type arguments
+      // were not cacnonicalized before.
+      return;
     }
-
-    // Array must be null terminated.
-    ASSERT(last_instance_class.IsNull());
-    ASSERT(!cache.IsNull());
-    // Cache is null terminate, i.e., the last entry contains all null elements.
-    intptr_t old_len = cache.Length();
-    cache = cache.Grow(cache, old_len + SubTypeTestCache::kNumEntries);
-    intptr_t last_start = old_len - SubTypeTestCache::kNumEntries;
-    cache.SetAt(last_start + SubTypeTestCache::kInstanceClass, instance_class);
-    cache.SetAt(last_start + SubTypeTestCache::kInstanceTypeArguments,
-        instance_type_arguments);
-    // TODO(srdjan): Store instantiator arguments instead of null.
-    cache.SetAt(last_start + SubTypeTestCache::kInstantiatorTypeArguments,
-        AbstractTypeArguments::Handle());
-    cache.SetAt(last_start + SubTypeTestCache::kTestResult , result);
-    if (FLAG_trace_type_checks) {
-      OS::Print("  Updated test cache: [0x%x %s, 0x%x %s]\n"
-                "                      [0x%x %s] %s\n",
-           instance_class.raw(),
-           instance_class.ToCString(),
-           instance_type_arguments.raw(),
-           instance_type_arguments.ToCString(),
-           type.type_class(),
-           Class::Handle(type.type_class()).ToCString(),
-           result.ToCString());
-    }
-    CodePatcher::SetTypeTestArray(loc, cache);
+  }
+  new_cache.AddCheck(instance_class,
+                     instance_type_arguments,
+                     AbstractTypeArguments::Handle(),
+                     result);
+  if (FLAG_trace_type_checks) {
+    OS::Print("  Updated test cache 0x%x ix:%d:\n"
+        "    [0x%x %s, 0x%x %s]\n"
+        "    [0x%x %s] %s\n",
+        new_cache.raw(),
+        len,
+        instance_class.raw(),
+        instance_class.ToCString(),
+        instance_type_arguments.raw(),
+        instance_type_arguments.ToCString(),
+        type.type_class(),
+        Class::Handle(type.type_class()).ToCString(),
+        result.ToCString());
   }
 }
 
@@ -560,8 +526,9 @@ static void UpdateTypeTestCache(intptr_t node_id,
 // Arg2: instance being checked.
 // Arg3: type.
 // Arg4: type arguments of the instantiator of the type.
+// Arg5: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
-DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
+DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
   // TODO(regis): Get the token index from the PcDesc (via DartFrame).
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
@@ -570,6 +537,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   const AbstractType& type = AbstractType::CheckedHandle(arguments.At(3));
   const AbstractTypeArguments& type_instantiator =
       AbstractTypeArguments::CheckedHandle(arguments.At(4));
+  const SubtypeTestCache& cache =
+      SubtypeTestCache::CheckedHandle(arguments.At(5));
   ASSERT(type.IsFinalized());
   Error& malformed_error = Error::Handle();
   const Bool& result = Bool::Handle(
@@ -587,7 +556,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
         location, no_name, no_name, no_name, malformed_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(node_id, instance, type, type_instantiator, result);
+  UpdateTypeTestCache(
+      node_id, instance, type, type_instantiator, result, cache);
   arguments.SetReturn(result);
 }
 
@@ -607,12 +577,13 @@ static RawString* GetSimpleTypeName(const Instance& value) {
 // can therefore be assigned.
 // Arg0: index of the token of the assignment (source location).
 // Arg1: node-id of the assignemnt.
-// Arg1: instance being assigned.
-// Arg2: type being assigned to.
-// Arg3: type arguments of the instantiator of the type being assigned to.
-// Arg4: name of variable being assigned to.
+// Arg2: instance being assigned.
+// Arg3: type being assigned to.
+// Arg4: type arguments of the instantiator of the type being assigned to.
+// Arg5: name of variable being assigned to.
+// Arg6: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
   // TODO(regis): Get the token index from the PcDesc (via DartFrame).
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
@@ -622,6 +593,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   const AbstractTypeArguments& dst_type_instantiator =
       AbstractTypeArguments::CheckedHandle(arguments.At(4));
   const String& dst_name = String::CheckedHandle(arguments.At(5));
+  const SubtypeTestCache& cache =
+      SubtypeTestCache::CheckedHandle(arguments.At(6));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
@@ -655,7 +628,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     UNREACHABLE();
   }
   UpdateTypeTestCache(node_id, src_instance, dst_type, dst_type_instantiator,
-      Bool::ZoneHandle(Bool::True()));
+      Bool::ZoneHandle(Bool::True()), cache);
   arguments.SetReturn(src_instance);
 }
 

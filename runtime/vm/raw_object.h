@@ -41,6 +41,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(ICData)                                                                    \
+  V(SubtypeTestCache)                                                          \
   V(Error)                                                                     \
     V(ApiError)                                                                \
     V(LanguageError)                                                           \
@@ -835,6 +836,13 @@ class RawICData : public RawObject {
   intptr_t id_;  // Parser node id corresponding to this IC.
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
 };
+
+
+class RawSubtypeTestCache : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache);
+  RawArray* cache_;
+};
+
 
 
 class RawError : public RawObject {

@@ -1265,12 +1265,14 @@ static const Class* CoreClass(const char* c_name) {
 // TODO(srdjan): Implement a quicker subtype check, as type test
 // arrays can grow too high, but they may be useful when optimizing
 // code (type-feedback).
-void CodeGenerator::GenerateSubtype1TestCacheLookup(
+RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
     intptr_t node_id,
     intptr_t token_index,
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1287,9 +1289,7 @@ void CodeGenerator::GenerateSubtype1TestCacheLookup(
   __ CompareObject(EDI, type_class);
   __ j(EQUAL, is_instance_lbl);
 
-  AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
-  __ LoadObject(EDX, Array::ZoneHandle(
-      Array::New(SubTypeTestCache::kNumEntries)));
+  __ LoadObject(EDX, type_test_cache);
   __ pushl(EDX);  // Cache array.
   __ pushl(EAX);  // Instance.
   __ pushl(raw_null);  // Unused
@@ -1305,6 +1305,7 @@ void CodeGenerator::GenerateSubtype1TestCacheLookup(
   __ j(EQUAL, is_instance_lbl);
   __ jmp(is_not_instance_lbl);
   __ Bind(&runtime_call);
+  return type_test_cache.raw();
 }
 
 
@@ -1312,22 +1313,23 @@ void CodeGenerator::GenerateSubtype1TestCacheLookup(
 // if we can compute the type-test, otherwise fallthrough.
 // EAX: instance to be tested, must be preserved.
 // Clobbers many registers.
-void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
-                                             intptr_t token_index,
-                                             const AbstractType& type,
-                                             Label* is_instance_lbl,
-                                             Label* is_not_instance_lbl) {
+RawSubtypeTestCache* CodeGenerator::GenerateInlineInstanceof(
+    intptr_t node_id,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A Smi object cannot be the instance of a parameterized class.
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (type_class.HasTypeArguments()) {
-      GenerateInstantiatedTypeWithArgumentsTest(node_id,
-                                                token_index,
-                                                type,
-                                                is_instance_lbl,
-                                                is_not_instance_lbl);
+      return GenerateInstantiatedTypeWithArgumentsTest(node_id,
+                                                       token_index,
+                                                       type,
+                                                       is_instance_lbl,
+                                                       is_not_instance_lbl);
       // Fall through to runtime call.
     } else {
       GenerateInstantiatedTypeNoArgumentsTest(node_id,
@@ -1337,14 +1339,16 @@ void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
                                               is_not_instance_lbl);
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
-      GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
-                                      is_instance_lbl, is_not_instance_lbl);
+      return GenerateSubtype1TestCacheLookup(
+          node_id, token_index, type_class,
+          is_instance_lbl, is_not_instance_lbl);
     }
   } else {
     GenerateUninstantiatedTypeTest(type,
                                    token_index,
                                    is_instance_lbl);
   }
+  return SubtypeTestCache::null();
 }
 
 
@@ -1425,9 +1429,9 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     __ jmp(&done);
     __ Bind(&non_null);
   }
-
-  GenerateInlineInstanceof(node_id, token_index, type,
-                           &is_instance_of, &is_not_instance_of);
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(node_id, token_index, type,
+                                        &is_instance_of, &is_not_instance_of);
 
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location = Immediate(Smi::RawValue(token_index));
@@ -1441,10 +1445,12 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   } else {
     __ pushl(raw_null);  // Null instantiator.
   }
+  __ LoadObject(EAX, test_cache);
+  __ pushl(EAX);
   GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addl(ESP, Immediate(5 * kWordSize));
+  __ addl(ESP, Immediate(6 * kWordSize));
   if (negate_result) {
     __ popl(EDX);
     __ CompareObject(EDX, bool_false);
@@ -1468,7 +1474,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 // Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
 // type test is conclusive, otherwise fallthrough if a type test could not
 // be completed.
-void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
+RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
     intptr_t node_id,
     intptr_t token_index,
     const AbstractType& type,
@@ -1496,21 +1502,21 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
       __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
       __ j(EQUAL, is_instance_lbl);
     }
-    GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
-                                    is_instance_lbl, is_not_instance_lbl);
-    return;
+    return
+        GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
+                                        is_instance_lbl, is_not_instance_lbl);
   }
   // Note that the test below must be synced with the tests in
   // CodeGenerator::UpdateTestCache.
   // Inline checks for one type argument only.
   if (type_arguments.Length() != 1) {
-    return;
+    return SubtypeTestCache::null();
   }
   const AbstractType& tp_argument =
       AbstractType::ZoneHandle(type_arguments.TypeAt(0));
   if (!tp_argument.IsType()) {
     // E.g., it is a TypeParameter.
-    return;
+    return SubtypeTestCache::null();
   }
   // Malformed type has been caught in the caller chain of this function.
   ASSERT(tp_argument.HasResolvedTypeClass());
@@ -1520,16 +1526,15 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
   Error& malformed_error = Error::Handle();
   if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
     // Instance class test only necessary.
-    GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
-                                    is_instance_lbl, is_not_instance_lbl);
-    return;
+    return GenerateSubtype1TestCacheLookup(
+        node_id, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
   }
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
   Label inlined_check, fall_through;
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
-  __ LoadObject(EDX, Array::ZoneHandle(
-      Array::New(SubTypeTestCache::kNumEntries)));
+  __ LoadObject(EDX, type_test_cache);
   __ pushl(EDX);  // Cache array.
   __ pushl(EAX);  // Instance.
   __ pushl(raw_null);  // Unused.
@@ -1546,6 +1551,7 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
   __ j(EQUAL, is_instance_lbl);
   __ jmp(is_not_instance_lbl);
   __ Bind(&fall_through);
+  return type_test_cache.raw();
 }
 
 
@@ -1805,8 +1811,9 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     return;
   }
 
-  GenerateInlineInstanceof(node_id, token_index, dst_type,
-                           &done, &runtime_call);
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(node_id, token_index, dst_type,
+                                        &done, &runtime_call);
 
   __ Bind(&runtime_call);
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
@@ -1820,10 +1827,12 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     GenerateInstantiatorTypeArguments(token_index);
   }
   __ PushObject(dst_name);  // Push the name of the destination.
+  __ LoadObject(EAX, test_cache);
+  __ pushl(EAX);
   GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addl(ESP, Immediate(6 * kWordSize));
+  __ addl(ESP, Immediate(7 * kWordSize));
   __ popl(EAX);
 
   // EAX: value.

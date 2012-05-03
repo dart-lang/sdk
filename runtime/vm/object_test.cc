@@ -2803,6 +2803,29 @@ TEST_CASE(ICData) {
 }
 
 
+TEST_CASE(SubtypeTestCache) {
+  String& class_name = String::Handle(String::NewSymbol("EmptyClass"));
+  Script& script = Script::Handle();
+  const Class& empty_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+  SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
+  ASSERT(!cache.IsNull());
+  EXPECT_EQ(0, cache.NumberOfChecks());
+  const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
+  const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
+  cache.AddCheck(empty_class, targ_0, targ_1, Bool::Handle(Bool::True()));
+  EXPECT_EQ(1, cache.NumberOfChecks());
+  Class& test_class = Class::Handle();
+  AbstractTypeArguments& test_targ_0 = AbstractTypeArguments::Handle();
+  AbstractTypeArguments& test_targ_1 = AbstractTypeArguments::Handle();
+  Bool& test_result = Bool::Handle();
+  cache.GetCheck(0, &test_class, &test_targ_0, &test_targ_1, &test_result);
+  EXPECT_EQ(empty_class.raw(), test_class.raw());
+  EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
+  EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
+  EXPECT_EQ(Bool::True(), test_result.raw());
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart
