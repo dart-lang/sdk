@@ -7,6 +7,9 @@
 
 #include "vm/globals.h"
 
+// Forward declarations.
+class tm;
+
 namespace dart {
 
 // Forward declarations.
@@ -15,30 +18,29 @@ class Isolate;
 // Interface to the underlying OS platform.
 class OS {
  public:
-  typedef struct BrokenDownDate {
-    int year;   // Offset by 1900. A value of 111 Represents the year 2011.
-    int month;  // [0..11]
-    int day;    // [1..31]
-    int hours;
-    int minutes;
-    int seconds;
-  } BrokenDownDate;
-
   // Takes the seconds since epoch (midnight, January 1, 1970 UTC) and breaks it
-  // down into date and time.
-  // If 'inUtc', then the broken down date and time are in the UTC timezone,
-  // otherwise the local timezone is used.
+  // down into date and time in the UTC timezone.
   // The returned year is offset by 1900. The returned month is 0-based.
   // Returns true if the conversion succeeds, false otherwise.
-  static bool BreakDownSecondsSinceEpoch(time_t seconds_since_epoch,
-                                         bool in_utc,
-                                         BrokenDownDate* result);
+  static bool GmTime(int64_t seconds_since_epoch, tm* tm_result);
 
-  // Converts a broken down date into the seconds since epoch (midnight,
-  // January 1, 1970 UTC). Returns true if the conversion succeeds, false
-  // otherwise.
-  static bool BrokenDownToSecondsSinceEpoch(
-      const BrokenDownDate& broken_down, bool in_utc, time_t* result);
+  // Takes the seconds since epoch (midnight, January 1, 1970 UTC) and breaks it
+  // down into date and time in the local time.
+  // The returned year is offset by 1900. The returned month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result);
+
+  // Takes the broken down date and time in UTC timezone and computes the
+  // seconds since epoch (midnight, January 1, 1970 UTC).
+  // The given year is offset by 1900. The given month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool MkGmTime(tm* tm, int64_t* seconds_result);
+
+  // Takes the broken down date and time in local timezone and computes the
+  // seconds since epoch (midnight, January 1, 1970 UTC).
+  // The given year is offset by 1900. The given month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool MkTime(tm* tm, int64_t* seconds_result);
 
   // Returns the current time in milliseconds measured
   // from midnight January 1, 1970 UTC.
