@@ -208,7 +208,7 @@ class _HttpHeaders implements HttpHeaders {
       sb.add(": ");
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
-          sb.add(": ");
+          sb.add(", ");
         }
         sb.add(values[i]);
       }
@@ -238,6 +238,33 @@ class _HttpRequestResponseBase {
 
   int get contentLength() => _contentLength;
   HttpHeaders get headers() => _headers;
+
+  bool get persistentConnection() {
+    List<String> connection = headers[HttpHeaders.CONNECTION];
+    if (_protocolVersion == "1.1") {
+      if (connection == null) return true;
+      return !headers[HttpHeaders.CONNECTION].some(
+          (value) => value.toLowerCase() == "close");
+    } else {
+      if (connection == null) return false;
+      return headers[HttpHeaders.CONNECTION].some(
+          (value) => value.toLowerCase() == "keep-alive");
+    }
+  }
+
+  void set persistentConnection(bool persistentConnection) {
+    if (_outputStream != null) throw new HttpException("Header already sent");
+
+    // Determine the value of the "Connection" header.
+    headers.remove(HttpHeaders.CONNECTION, "close");
+    headers.remove(HttpHeaders.CONNECTION, "keep-alive");
+    if (_protocolVersion == "1.1" && !persistentConnection) {
+      headers.add(HttpHeaders.CONNECTION, "close");
+    } else if (_protocolVersion == "1.0" && persistentConnection) {
+      headers.add(HttpHeaders.CONNECTION, "keep-alive");
+    }
+  }
+
 
   bool _write(List<int> data, bool copyBuffer) {
     _ensureHeadersSent();
@@ -338,6 +365,7 @@ class _HttpRequestResponseBase {
 
   _HttpConnectionBase _httpConnection;
   _HttpHeaders _headers;
+  String _protocolVersion = "1.1";
 
   // Length of the content body. If this is set to -1 (default value)
   // when starting to send data chunked transfer encoding will be
@@ -592,18 +620,12 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _httpConnection._write(data);
     _writeCRLF();
 
-    // Determine the value of the "Connection" header.
-    if (_protocolVersion == "1.1" && !_persistentConnection) {
-      _headers.set("Connection", "close");
-    } else if (_protocolVersion == "1.0" && _persistentConnection) {
-      _headers.set("Connection", "keep-alive");
-    }
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known.
     if (_contentLength > 0) {
-      _headers.set("Content-Length", _contentLength.toString());
+      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
-      _headers.set("Transfer-Encoding", "chunked");
+      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
     // Write headers.
@@ -615,8 +637,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   // Response status code.
   int _statusCode;
   String _reasonPhrase;
-  String _protocolVersion;
-  bool _persistentConnection;
   _HttpOutputStream _outputStream;
   Function _streamErrorHandler;
 }
@@ -859,6 +879,7 @@ class _HttpConnection extends _HttpConnectionBase {
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
     _request._onRequestStart(method, uri, version);
+    _request._protocolVersion = version;
     _response._protocolVersion = version;
   }
 
@@ -872,7 +893,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onHeadersComplete() {
     _request._onHeadersComplete();
-    _response._persistentConnection = _httpParser.persistentConnection;
+    _response.persistentConnection = _httpParser.persistentConnection;
     if (onRequestReceived != null) {
       onRequestReceived(_request, _response);
     }
@@ -1095,9 +1116,9 @@ class _HttpClientRequest
     // whether the content length is known. If there is no content
     // neither "Content-Length" nor "Transfer-Encoding" is set
     if (_contentLength > 0) {
-      _headers.set("Content-Length", _contentLength.toString());
+      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
-      _headers.set("Transfer-Encoding", "chunked");
+      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
     // Write headers.

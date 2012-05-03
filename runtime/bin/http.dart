@@ -306,6 +306,11 @@ interface HttpRequest default _HttpRequest {
   int get contentLength();
 
   /**
+   * Returns the persistent connection state signaled by the client.
+   */
+  bool get persistentConnection();
+
+  /**
    * Returns the method for the request.
    */
   String get method();
@@ -366,6 +371,13 @@ interface HttpResponse default _HttpResponse {
    * set a default reason phrase is provided.
    */
   String reasonPhrase;
+
+  /**
+   * Gets and sets the persistent connection state. The initial value
+   * of this property is the persistent connection state from the
+   * request.
+   */
+  bool persistentConnection;
 
   /**
    * Returns the response headers.
