@@ -12,6 +12,7 @@ cc/IsolateInterrupt: Skip
 # runtime/tests/vm/dart.
 
 [ $system == windows ]
+cc/Dart2JSCompileAll: Skip
 dart/isolate_mirror_self_test: Skip  # TODO(turnidge): Fix this
 
 [ $runtime == drt ]
