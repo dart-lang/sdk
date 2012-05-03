@@ -232,31 +232,33 @@ const char* DartUtils::GetCanonicalPath(const char* reference_dir,
     return strdup(filename);
   }
 
-  char* path = strdup(reference_dir);
-  if  (path == NULL) {
-    return NULL;
+  char* canonical_path = File::GetCanonicalPath(reference_dir);
+  if  (canonical_path == NULL) {
+    canonical_path = strdup(reference_dir);
+    ASSERT(canonical_path != NULL);
   }
-  char* path_sep = strrchr(path, File::PathSeparator()[0]);
+  ASSERT(File::PathSeparator() != NULL && strlen(File::PathSeparator()) == 1);
+  char* path_sep = strrchr(canonical_path, File::PathSeparator()[0]);
   if (path_sep == NULL) {
     // No separator found: Reference is a file in local directory.
+    free(canonical_path);
     return strdup(filename);
   }
   *path_sep = '\0';
   intptr_t len = snprintf(NULL, 0, "%s%s%s",
-                          path, File::PathSeparator(), filename);
+                          canonical_path, File::PathSeparator(), filename);
   char* absolute_filename = reinterpret_cast<char*>(malloc(len + 1));
   ASSERT(absolute_filename != NULL);
 
   snprintf(absolute_filename, len + 1, "%s%s%s",
-           path, File::PathSeparator(), filename);
-
-  free(path);
-  char* canonical_filename = File::GetCanonicalPath(absolute_filename);
-  if (canonical_filename == NULL) {
+           canonical_path, File::PathSeparator(), filename);
+  free(canonical_path);
+  canonical_path = File::GetCanonicalPath(absolute_filename);
+  if (canonical_path == NULL) {
     return absolute_filename;
   }
   free(absolute_filename);
-  return canonical_filename;
+  return canonical_path;
 }
 
 

@@ -8,9 +8,6 @@ cc/RunLoop_ExceptionChild: Fail
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
-[ $system == windows ]
-cc/Dart2JSCompileAll: Skip
-
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
 
