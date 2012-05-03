@@ -433,8 +433,8 @@ class _WebSocketConnectionBase  {
     if (_closeReceived) {
       // Close the socket when the close frame has been sent - if it
       // does not take too long.
-      _socket.close(true);
-      _socket.outputStream.onNoPendingWrites = () {
+      _socket.outputStream.close();
+      _socket.outputStream.onClosed = () {
         if (_closeTimer != null) _closeTimer.cancel();
         _socket.close();
       };
