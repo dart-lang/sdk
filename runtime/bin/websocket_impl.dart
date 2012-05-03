@@ -445,7 +445,7 @@ class _WebSocketConnectionBase  {
       // Half close the socket and expect a close frame in response
       // before closing the socket. If a close frame does not arrive
       // within a reasonable amount of time just close the socket.
-      _socket.close(true);
+      _socket.outputStream.close();
       _closeTimer = new Timer(5000, (t) {
         _socket.close();
       });
