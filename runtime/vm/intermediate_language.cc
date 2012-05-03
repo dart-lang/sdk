@@ -92,6 +92,106 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
+// ==== Per-instruction input counts.
+intptr_t AssertAssignableComp::InputCount() const {
+  // Value and optional instantiator type arguments.
+  return (instantiator_type_arguments() == NULL) ? 1 : 2;
+}
+
+
+intptr_t InstanceOfComp::InputCount() const {
+  // Value and optional type_arguments.
+  return (type_arguments() == NULL) ? 1 : 2;
+}
+
+
+intptr_t CreateClosureComp::InputCount() const {
+  // Optional type arguments.
+  return (type_arguments() == NULL) ? 0 : 1;
+}
+
+
+intptr_t InstanceCallComp::InputCount() const {
+  return ArgumentCount();
+}
+
+
+intptr_t StaticCallComp::InputCount() const {
+  return ArgumentCount();
+}
+
+
+intptr_t ClosureCallComp::InputCount() const {
+  // Context and arguments.
+  return 1 + ArgumentCount();
+}
+
+
+intptr_t AllocateObjectComp::InputCount() const {
+  return arguments().length();
+}
+
+
+intptr_t AllocateObjectWithBoundsCheckComp::InputCount() const {
+  return arguments().length();
+}
+
+
+intptr_t CreateArrayComp::InputCount() const {
+  return ElementCount();
+}
+
+
+intptr_t BranchInstr::InputCount() const {
+  return 1;
+}
+
+
+intptr_t ReThrowInstr::InputCount() const {
+  return 2;
+}
+
+
+intptr_t ThrowInstr::InputCount() const {
+  return 1;
+}
+
+
+intptr_t ReturnInstr::InputCount() const {
+  return 1;
+}
+
+
+intptr_t BindInstr::InputCount() const {
+  return computation()->InputCount();
+}
+
+
+intptr_t DoInstr::InputCount() const {
+  return computation()->InputCount();
+}
+
+
+intptr_t TuckTempInstr::InputCount() const {
+  return 0;
+}
+
+
+intptr_t PickTempInstr::InputCount() const {
+  return 0;
+}
+
+
+intptr_t TargetEntryInstr::InputCount() const {
+  return 0;
+}
+
+
+intptr_t JoinEntryInstr::InputCount() const {
+  return 0;
+}
+
+
 // ==== Postorder graph traversal.
 void JoinEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,

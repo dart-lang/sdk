@@ -79,6 +79,8 @@ class Computation : public ZoneAllocated {
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
+  virtual intptr_t InputCount() const = 0;
+
  private:
   friend class Instruction;
   static intptr_t GetNextCid() {
@@ -94,7 +96,49 @@ class Computation : public ZoneAllocated {
 };
 
 
-class Value : public Computation {
+// An embedded container with N elements of type T.  Used (with partial
+// specialization for N=0) because embedded arrays cannot have size 0.
+template<typename T, intptr_t N>
+class EmbeddedArray {
+ public:
+  EmbeddedArray() : elements_() { }
+
+  intptr_t length() { return N; }
+  T& operator[](intptr_t i) {
+    ASSERT(i < length());
+    return elements_[i];
+  }
+
+ private:
+  T elements_[N];
+};
+
+
+template<typename T>
+class EmbeddedArray<T, 0> {
+ public:
+  int length() { return 0; }
+  T& operator[](intptr_t i) {
+    UNREACHABLE();
+    static T sentinel = 0;
+    return sentinel;
+  }
+};
+
+
+class Value;
+
+template<intptr_t N>
+class TemplateComputation : public Computation {
+ public:
+  virtual intptr_t InputCount() const { return N; }
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+};
+
+
+class Value : public TemplateComputation<0> {
  public:
   Value() { }
 
@@ -112,7 +156,7 @@ class Value : public Computation {
 
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
-  virtual void Accept(FlowGraphVisitor* visitor);
+  virtual void Accept(FlowGraphVisitor* visitor);                              \
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
@@ -202,6 +246,8 @@ class AssertAssignableComp : public Computation {
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -214,27 +260,26 @@ class AssertAssignableComp : public Computation {
 };
 
 
-class AssertBooleanComp : public Computation {
+class AssertBooleanComp : public TemplateComputation<1> {
  public:
   AssertBooleanComp(intptr_t token_index,
                     intptr_t try_index,
                     Value* value)
       : token_index_(token_index),
-        try_index_(try_index),
-        value_(value) {
-    ASSERT(value_ != NULL);
+        try_index_(try_index) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(AssertBoolean)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
 };
@@ -242,7 +287,7 @@ class AssertBooleanComp : public Computation {
 
 // Denotes the current context, normally held in a register.  This is
 // a computation, not a value, because it's mutable.
-class CurrentContextComp : public Computation {
+class CurrentContextComp : public TemplateComputation<0> {
  public:
   CurrentContextComp() { }
 
@@ -253,19 +298,18 @@ class CurrentContextComp : public Computation {
 };
 
 
-class StoreContextComp : public Computation {
+class StoreContextComp : public TemplateComputation<1> {
  public:
-  explicit StoreContextComp(Value* value) : value_(value) {
-    ASSERT(value_ != NULL);
+  explicit StoreContextComp(Value* value) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(StoreContext);
 
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
 
  private:
-  Value* value_;
-
   DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
 };
 
@@ -292,6 +336,8 @@ class ClosureCallComp : public Computation {
   Value* context() const { return context_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
+
+  virtual intptr_t InputCount() const;
 
  private:
   const ClosureCallNode& ast_node_;
@@ -332,6 +378,8 @@ class InstanceCallComp : public Computation {
   const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -344,54 +392,52 @@ class InstanceCallComp : public Computation {
 };
 
 
-class StrictCompareComp : public Computation {
+class StrictCompareComp : public TemplateComputation<2> {
  public:
   StrictCompareComp(Token::Kind kind, Value* left, Value* right)
-      : kind_(kind), left_(left), right_(right) {
+      : kind_(kind) {
     ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
+    inputs_[0] = left;
+    inputs_[1] = right;
   }
 
   DECLARE_COMPUTATION(StrictCompare)
 
   Token::Kind kind() const { return kind_; }
-  Value* left() const { return left_; }
-  Value* right() const { return right_; }
+  Value* left() { return inputs_[0]; }
+  Value* right() { return inputs_[1]; }
 
  private:
   const Token::Kind kind_;
-  Value* left_;
-  Value* right_;
 
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
 
 
-class EqualityCompareComp : public Computation {
+class EqualityCompareComp : public TemplateComputation<2> {
  public:
   EqualityCompareComp(intptr_t token_index,
                       intptr_t try_index,
                       Value* left,
                       Value* right)
     : token_index_(token_index),
-      try_index_(try_index),
-      left_(left),
-      right_(right) {
-    ASSERT(left_ != NULL);
-    ASSERT(right_ != NULL);
+      try_index_(try_index) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
   }
 
   DECLARE_COMPUTATION(EqualityCompareComp)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* left() const { return left_; }
-  Value* right() const { return right_; }
+  Value* left() { return inputs_[0]; }
+  Value* right() { return inputs_[1]; }
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  Value* left_;
-  Value* right_;
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };
@@ -424,6 +470,8 @@ class StaticCallComp : public Computation {
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -435,7 +483,7 @@ class StaticCallComp : public Computation {
 };
 
 
-class LoadLocalComp : public Computation {
+class LoadLocalComp : public TemplateComputation<0> {
  public:
   LoadLocalComp(const LocalVariable& local, intptr_t context_level)
       : local_(local), context_level_(context_level) { }
@@ -453,29 +501,30 @@ class LoadLocalComp : public Computation {
 };
 
 
-class StoreLocalComp : public Computation {
+class StoreLocalComp : public TemplateComputation<1> {
  public:
   StoreLocalComp(const LocalVariable& local,
                  Value* value,
                  intptr_t context_level)
-      : local_(local), value_(value), context_level_(context_level) { }
+      : local_(local), context_level_(context_level) {
+    inputs_[0] = value;
+  }
 
   DECLARE_COMPUTATION(StoreLocal)
 
   const LocalVariable& local() const { return local_; }
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
   intptr_t context_level() const { return context_level_; }
 
  private:
   const LocalVariable& local_;
-  Value* value_;
   const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalComp);
 };
 
 
-class NativeCallComp : public Computation {
+class NativeCallComp : public TemplateComputation<0> {
  public:
   NativeCallComp(NativeBodyNode* node, intptr_t try_index)
       : ast_node_(*node), try_index_(try_index) {}
@@ -507,35 +556,37 @@ class NativeCallComp : public Computation {
 };
 
 
-class LoadInstanceFieldComp : public Computation {
+class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
   LoadInstanceFieldComp(LoadInstanceFieldNode* ast_node, Value* instance)
-      : ast_node_(*ast_node), instance_(instance) {
-    ASSERT(instance_ != NULL);
+      : ast_node_(*ast_node) {
+    ASSERT(instance != NULL);
+    inputs_[0] = instance;
   }
 
   DECLARE_COMPUTATION(LoadInstanceField)
 
   const Field& field() const { return ast_node_.field(); }
 
-  Value* instance() const { return instance_; }
+  Value* instance() { return inputs_[0]; }
 
  private:
   const LoadInstanceFieldNode& ast_node_;
-  Value* instance_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
 
 
-class StoreInstanceFieldComp : public Computation {
+class StoreInstanceFieldComp : public TemplateComputation<2> {
  public:
   StoreInstanceFieldComp(StoreInstanceFieldNode* ast_node,
                          Value* instance,
                          Value* value)
-      : ast_node_(*ast_node), instance_(instance), value_(value) {
-    ASSERT(instance_ != NULL);
-    ASSERT(value_ != NULL);
+      : ast_node_(*ast_node) {
+    ASSERT(instance != NULL);
+    ASSERT(value != NULL);
+    inputs_[0] = instance;
+    inputs_[1] = value;
   }
 
   DECLARE_COMPUTATION(StoreInstanceField)
@@ -543,19 +594,17 @@ class StoreInstanceFieldComp : public Computation {
   intptr_t token_index() const { return ast_node_.token_index(); }
   const Field& field() const { return ast_node_.field(); }
 
-  Value* instance() const { return instance_; }
-  Value* value() const { return value_; }
+  Value* instance() { return inputs_[0]; }
+  Value* value() { return inputs_[1]; }
 
  private:
   const StoreInstanceFieldNode& ast_node_;
-  Value* instance_;
-  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
 
 
-class LoadStaticFieldComp : public Computation {
+class LoadStaticFieldComp : public TemplateComputation<0> {
  public:
   explicit LoadStaticFieldComp(const Field& field) : field_(field) {}
 
@@ -570,23 +619,22 @@ class LoadStaticFieldComp : public Computation {
 };
 
 
-class StoreStaticFieldComp : public Computation {
+class StoreStaticFieldComp : public TemplateComputation<1> {
  public:
   StoreStaticFieldComp(const Field& field, Value* value)
-      : field_(field),
-        value_(value) {
+      : field_(field) {
     ASSERT(field.IsZoneHandle());
     ASSERT(value != NULL);
+    inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(StoreStaticField);
 
   const Field& field() const { return field_; }
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
 
  private:
   const Field& field_;
-  Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldComp);
 };
@@ -594,7 +642,7 @@ class StoreStaticFieldComp : public Computation {
 
 // Not simply an InstanceCall because it has somewhat more complicated
 // semantics: the value operand is preserved before the call.
-class StoreIndexedComp : public Computation {
+class StoreIndexedComp : public TemplateComputation<3> {
  public:
   StoreIndexedComp(intptr_t token_index,
                    intptr_t try_index,
@@ -602,25 +650,23 @@ class StoreIndexedComp : public Computation {
                    Value* index,
                    Value* value)
       : token_index_(token_index),
-        try_index_(try_index),
-        array_(array),
-        index_(index),
-        value_(value) { }
+        try_index_(try_index) {
+    inputs_[0] = array;
+    inputs_[1] = index;
+    inputs_[2] = value;
+  }
 
   DECLARE_COMPUTATION(StoreIndexed)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* array() const { return array_; }
-  Value* index() const { return index_; }
-  Value* value() const { return value_; }
+  Value* array() { return inputs_[0]; }
+  Value* index() { return inputs_[1]; }
+  Value* value() { return inputs_[2]; }
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  Value* array_;
-  Value* index_;
-  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
@@ -628,7 +674,7 @@ class StoreIndexedComp : public Computation {
 
 // Not simply an InstanceCall because it has somewhat more complicated
 // semantics: the value operand is preserved before the call.
-class InstanceSetterComp : public Computation {
+class InstanceSetterComp : public TemplateComputation<2> {
  public:
   InstanceSetterComp(intptr_t token_index,
                      intptr_t try_index,
@@ -637,24 +683,23 @@ class InstanceSetterComp : public Computation {
                      Value* value)
       : token_index_(token_index),
         try_index_(try_index),
-        field_name_(field_name),
-        receiver_(receiver),
-        value_(value) { }
+        field_name_(field_name) {
+    inputs_[0] = receiver;
+    inputs_[1] = value;
+  }
 
   DECLARE_COMPUTATION(InstanceSetter)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
-  Value* receiver() const { return receiver_; }
-  Value* value() const { return value_; }
+  Value* receiver() { return inputs_[0]; }
+  Value* value() { return inputs_[1]; }
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
   const String& field_name_;
-  Value* const receiver_;
-  Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
 };
@@ -662,7 +707,7 @@ class InstanceSetterComp : public Computation {
 
 // Not simply a StaticCall because it has somewhat more complicated
 // semantics: the value operand is preserved before the call.
-class StaticSetterComp : public Computation {
+class StaticSetterComp : public TemplateComputation<1> {
  public:
   StaticSetterComp(intptr_t token_index,
                    intptr_t try_index,
@@ -670,38 +715,38 @@ class StaticSetterComp : public Computation {
                    Value* value)
       : token_index_(token_index),
         try_index_(try_index),
-        setter_function_(setter_function),
-        value_(value) { }
+        setter_function_(setter_function) {
+    inputs_[0] = value;
+  }
 
   DECLARE_COMPUTATION(StaticSetter)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const Function& setter_function() const { return setter_function_; }
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
   const Function& setter_function_;
-  Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticSetterComp);
 };
 
 
 // Note overrideable, built-in: value? false : true.
-class BooleanNegateComp : public Computation {
+class BooleanNegateComp : public TemplateComputation<1> {
  public:
-  explicit BooleanNegateComp(Value* value) : value_(value) {}
+  explicit BooleanNegateComp(Value* value) {
+    inputs_[0] = value;
+  }
 
   DECLARE_COMPUTATION(BooleanNegate)
 
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
 
  private:
-  Value* value_;
-
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateComp);
 };
 
@@ -733,6 +778,8 @@ class InstanceOfComp : public Computation {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -762,6 +809,8 @@ class AllocateObjectComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
@@ -786,6 +835,8 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
   intptr_t token_index() const { return ast_node_.token_index(); }
   intptr_t try_index() const { return try_index_; }
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
+
+  virtual intptr_t InputCount() const;
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -818,6 +869,8 @@ class CreateArrayComp : public Computation {
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const ArrayNode& ast_node_;
   const intptr_t try_index_;
@@ -844,6 +897,8 @@ class CreateClosureComp : public Computation {
   const Function& function() const { return ast_node_.function(); }
   Value* type_arguments() const { return type_arguments_; }
 
+  virtual intptr_t InputCount() const;
+
  private:
   const ClosureNode& ast_node_;
   const intptr_t try_index_;
@@ -853,40 +908,40 @@ class CreateClosureComp : public Computation {
 };
 
 
-class NativeLoadFieldComp : public Computation {
+class NativeLoadFieldComp : public TemplateComputation<1> {
  public:
   NativeLoadFieldComp(Value* value, intptr_t offset_in_bytes)
-      : value_(value), offset_in_bytes_(offset_in_bytes) {
+      : offset_in_bytes_(offset_in_bytes) {
     ASSERT(value != NULL);
+    inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(NativeLoadField)
 
-  Value* value() const { return value_; }
+  Value* value() { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
  private:
-  Value* value_;
   intptr_t offset_in_bytes_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
 };
 
 
-class ExtractFactoryTypeArgumentsComp : public Computation {
+class ExtractFactoryTypeArgumentsComp : public TemplateComputation<1> {
  public:
   ExtractFactoryTypeArgumentsComp(ConstructorCallNode* ast_node,
                                   intptr_t try_index,
                                   Value* instantiator)
       : ast_node_(*ast_node),
-        try_index_(try_index),
-        instantiator_(instantiator) {
-    ASSERT(instantiator_ != NULL);
+        try_index_(try_index) {
+    ASSERT(instantiator != NULL);
+    inputs_[0] = instantiator;
   }
 
   DECLARE_COMPUTATION(ExtractFactoryTypeArguments)
 
-  Value* instantiator() const { return instantiator_; }
+  Value* instantiator() { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
@@ -897,23 +952,23 @@ class ExtractFactoryTypeArgumentsComp : public Computation {
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
-  Value* instantiator_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractFactoryTypeArgumentsComp);
 };
 
 
-class ExtractConstructorTypeArgumentsComp : public Computation {
+class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
  public:
   ExtractConstructorTypeArgumentsComp(ConstructorCallNode* ast_node,
                                       Value* instantiator)
-      : ast_node_(*ast_node), instantiator_(instantiator) {
-    ASSERT(instantiator_ != NULL);
+      : ast_node_(*ast_node) {
+    ASSERT(instantiator != NULL);
+    inputs_[0] = instantiator;
   }
 
   DECLARE_COMPUTATION(ExtractConstructorTypeArguments)
 
-  Value* instantiator() const { return instantiator_; }
+  Value* instantiator() { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
@@ -922,27 +977,26 @@ class ExtractConstructorTypeArgumentsComp : public Computation {
 
  private:
   const ConstructorCallNode& ast_node_;
-  Value* instantiator_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsComp);
 };
 
 
-class ExtractConstructorInstantiatorComp : public Computation {
+class ExtractConstructorInstantiatorComp : public TemplateComputation<2> {
  public:
   ExtractConstructorInstantiatorComp(ConstructorCallNode* ast_node,
                                      Value* instantiator,
                                      Value* discard_value)
-      : ast_node_(*ast_node),
-        instantiator_(instantiator),
-        discard_value_(discard_value) {
-    ASSERT(instantiator_ != NULL);
+      : ast_node_(*ast_node) {
+    ASSERT(instantiator != NULL);
+    inputs_[0] = instantiator;
+    inputs_[1] = discard_value;
   }
 
   DECLARE_COMPUTATION(ExtractConstructorInstantiator)
 
-  Value* instantiator() const { return instantiator_; }
-  Value* discard_value() const { return discard_value_; }
+  Value* instantiator() { return inputs_[0]; }
+  Value* discard_value() { return inputs_[1]; }
   const AbstractTypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
@@ -951,14 +1005,12 @@ class ExtractConstructorInstantiatorComp : public Computation {
 
  private:
   const ConstructorCallNode& ast_node_;
-  Value* instantiator_;
-  Value* discard_value_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorComp);
 };
 
 
-class AllocateContextComp : public Computation {
+class AllocateContextComp : public TemplateComputation<0> {
  public:
   AllocateContextComp(intptr_t token_index,
                       intptr_t try_index,
@@ -982,51 +1034,48 @@ class AllocateContextComp : public Computation {
 };
 
 
-class ChainContextComp : public Computation {
+class ChainContextComp : public TemplateComputation<1> {
  public:
-  explicit ChainContextComp(Value* context_value)
-      : context_value_(context_value) {
-    ASSERT(context_value_ != NULL);
+  explicit ChainContextComp(Value* context_value) {
+    ASSERT(context_value != NULL);
+    inputs_[0] = context_value;
   }
 
   DECLARE_COMPUTATION(ChainContext)
 
-  Value* context_value() const { return context_value_; }
+  Value* context_value() { return inputs_[0]; }
 
  private:
-  Value* context_value_;
-
   DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
 };
 
 
-class CloneContextComp : public Computation {
+class CloneContextComp : public TemplateComputation<1> {
  public:
   CloneContextComp(intptr_t token_index,
                    intptr_t try_index,
                    Value* context_value)
       : token_index_(token_index),
-        try_index_(try_index),
-        context_value_(context_value) {
-    ASSERT(context_value_ != NULL);
+        try_index_(try_index) {
+    ASSERT(context_value != NULL);
+    inputs_[0] = context_value;
   }
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* context_value() const { return context_value_; }
+  Value* context_value() { return inputs_[0]; }
 
   DECLARE_COMPUTATION(CloneContext)
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  Value* context_value_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextComp);
 };
 
 
-class CatchEntryComp : public Computation {
+class CatchEntryComp : public TemplateComputation<0> {
  public:
   CatchEntryComp(const LocalVariable& exception_var,
                  const LocalVariable& stacktrace_var)
@@ -1087,6 +1136,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual Instruction* Accept(FlowGraphVisitor* visitor);                      \
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
+  virtual intptr_t InputCount() const;                                         \
 
 
 class Instruction : public ZoneAllocated {
@@ -1101,6 +1151,12 @@ class Instruction : public ZoneAllocated {
   BlockEntryInstr* AsBlockEntry() {
     return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
   }
+  virtual bool IsDefinition() const { return false; }
+  Definition* AsDefinition() {
+    return IsDefinition() ? reinterpret_cast<Definition*>(this) : NULL;
+  }
+
+  virtual intptr_t InputCount() const = 0;
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -1300,12 +1356,15 @@ class DoInstr : public Instruction {
 
 class Definition : public Instruction {
  public:
-  explicit Definition(intptr_t temp_index) : temp_index_(temp_index) { }
+  Definition() : temp_index_(-1) { }
+
+  virtual bool IsDefinition() const { return true; }
 
   intptr_t temp_index() const { return temp_index_; }
+  void set_temp_index(intptr_t index) { temp_index_ = index; }
 
  private:
-  const intptr_t temp_index_;
+  intptr_t temp_index_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -1313,8 +1372,8 @@ class Definition : public Instruction {
 
 class BindInstr : public Definition {
  public:
-  BindInstr(intptr_t temp_index, Computation* computation)
-      : Definition(temp_index), computation_(computation), successor_(NULL) { }
+  explicit BindInstr(Computation* computation)
+      : Definition(), computation_(computation), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Bind)
 
@@ -1345,8 +1404,8 @@ class BindInstr : public Definition {
 // (named 'source') without counting as the use of the source.
 class PickTempInstr : public Definition {
  public:
-  PickTempInstr(intptr_t temp_index, intptr_t source)
-      : Definition(temp_index), source_(source), successor_(NULL) { }
+  explicit PickTempInstr(intptr_t source)
+      : Definition(), source_(source), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(PickTemp)
 

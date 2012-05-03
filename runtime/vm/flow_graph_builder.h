@@ -115,7 +115,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
  protected:
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
-                             intptr_t next_temp_index,
                              ZoneGrowableArray<Value*>* values);
 
   // Build the load part of a instance field increment.  Translates the
@@ -151,22 +150,19 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                      ZoneGrowableArray<Value*>* args);
 
   // Returns the value of the type arguments of the instantiator.
-  Value* BuildInstantiatorTypeArguments(intptr_t token_index,
-                                        intptr_t start_index);
+  Value* BuildInstantiatorTypeArguments(intptr_t token_index);
 
   // Perform a type check on the given value.
   void BuildAssertAssignable(intptr_t token_index,
                              Value* value,
                              const AbstractType& dst_type,
-                             const String& dst_name,
-                             intptr_t start_index);
+                             const String& dst_name);
 
   // Perform a type check on the given value and return it.
   Value* BuildAssignableValue(AstNode* value_node,
                               Value* value,
                               const AbstractType& dst_type,
-                              const String& dst_name,
-                              intptr_t start_index);
+                              const String& dst_name);
 
   virtual void BuildInstanceOf(ComparisonNode* node);
 
@@ -177,7 +173,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
-  void DeallocateTempIndex() { --temp_index_; }
+  void DeallocateTempIndex(intptr_t n) {
+    ASSERT(temp_index_ >= n);
+    temp_index_ -= n;
+  }
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
@@ -248,10 +247,9 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // the graph and returns its temporary value (i.e., set the output
   // parameters).
   virtual void ReturnComputation(Computation* computation) {
-    BindInstr* defn = new BindInstr(temp_index(), computation);
+    BindInstr* defn = new BindInstr(computation);
     AddInstruction(defn);
-    AllocateTempIndex();
-    value_ = new UseVal(defn);
+    ReturnValue(new UseVal(defn));
   }
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
@@ -304,14 +302,6 @@ class TestGraphVisitor : public ValueGraphVisitor {
   // Construct and concatenate a Branch instruction to this graph fragment.
   // Closes the fragment and sets the output parameters.
   virtual void ReturnValue(Value* value);
-
-  // Specify a computation as the final result.  Adds a Bind instruction to
-  // the graph and branches on its value.
-  virtual void ReturnComputation(Computation* computation) {
-    BindInstr* defn = new BindInstr(temp_index(), computation);
-    AddInstruction(defn);
-    ReturnValue(new UseVal(defn));
-  }
 
   // Output parameters.
   TargetEntryInstr** true_successor_address_;
