@@ -29795,29 +29795,7 @@ interface IDBKey {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBKeyRange
-interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
-
-  /**
-   * @domName IDBKeyRange.only
-   */
-  IDBKeyRange.only(/*IDBKey*/ value);
-
-  /**
-   * @domName IDBKeyRange.lowerBound
-   */
-  IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]);
-
-  /**
-   * @domName IDBKeyRange.upperBound
-   */
-  IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]);
-
-  /**
-   * @domName IDBKeyRange.bound
-   */
-  IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                    [bool lowerOpen, bool upperOpen]);
-
+interface IDBKeyRange {
 
   /** @domName IDBKeyRange.lower */
   final Dynamic lower;
@@ -41567,23 +41545,6 @@ class _SVGSVGElementFactoryProvider {
 
 class _AudioContextFactoryProvider {
   factory AudioContext() => _wrap(new dom.AudioContext());
-}
-
-class _IDBKeyRangeFactoryProvider {
-
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _wrap(new dom.IDBKeyRange.only(_unwrap(value)));
-
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(new dom.IDBKeyRange.lowerBound(_unwrap(bound) open));
-
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(new dom.IDBKeyRange.upperBound(_unwrap(bound) open));
-
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
-      _wrap(new dom.IDBKeyRange.bound(_unwrap(lower), _unwrap(upper),
-                                      lowerOpen, upperOpen));
 }
 
 class _TypedArrayFactoryProvider {
