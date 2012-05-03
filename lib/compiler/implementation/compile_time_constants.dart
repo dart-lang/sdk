@@ -265,8 +265,7 @@ class ObjectConstant extends Constant {
 
   void _writeCanonicalizedJsCode(StringBuffer buffer, ConstantHandler handler) {
     String name = handler.getNameForConstant(this);
-    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
-    buffer.add("$isolatePrototype.$name");
+    buffer.add(handler.compiler.namer.isolatePropertiesAccessForConstant(name));
   }
 }
 
@@ -285,8 +284,7 @@ class ListConstant extends ObjectConstant {
   void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     // TODO(floitsch): we should not need to go through the compiler to make
     // the list constant.
-    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
-    buffer.add("$isolatePrototype.makeConstantList");
+    buffer.add("${handler.compiler.namer.ISOLATE}.makeConstantList");
     buffer.add("([");
     for (int i = 0; i < entries.length; i++) {
       if (i != 0) buffer.add(", ");
@@ -693,7 +691,7 @@ class ConstantHandler extends CompilerTask {
   }
 
   String getJsConstructor(ClassElement element) {
-    return compiler.namer.isolatePropertyAccess(element);
+    return compiler.namer.isolatePropertiesAccess(element);
   }
 }
 

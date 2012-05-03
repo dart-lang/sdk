@@ -1443,7 +1443,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element superClass = superMethod.enclosingElement;
     // Remove the element and 'this'.
     int argumentCount = node.inputs.length - 2;
-    String className = compiler.namer.isolatePropertyAccess(superClass);
+    String className = compiler.namer.isolateAccess(superClass);
     if (superMethod.kind == ElementKind.FUNCTION ||
         superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       String methodName = compiler.namer.instanceMethodName(

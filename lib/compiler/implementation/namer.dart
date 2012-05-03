@@ -30,6 +30,7 @@ class Namer {
 
   final String CURRENT_ISOLATE = "\$";
   final String ISOLATE = "Isolate";
+  final String ISOLATE_PROPERTIES = "\$isolateProperties";
 
 
   String closureInvocationName(Selector selector) {
@@ -189,12 +190,16 @@ class Namer {
     }
   }
 
-  String isolateAccess(Element element) {
-    return "$CURRENT_ISOLATE.${getName(element)}";
+  String isolatePropertiesAccess(Element element) {
+    return "$ISOLATE.$ISOLATE_PROPERTIES.${getName(element)}";
   }
 
-  String isolatePropertyAccess(Element element) {
-    return "$ISOLATE.prototype.${getName(element)}";
+  String isolatePropertiesAccessForConstant(String constantName) {
+    return "$ISOLATE.$ISOLATE_PROPERTIES.$constantName";
+  }
+
+  String isolateAccess(Element element) {
+    return "$CURRENT_ISOLATE.${getName(element)}";
   }
 
   String isolateBailoutAccess(Element element) {
