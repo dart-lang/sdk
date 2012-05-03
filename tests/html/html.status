@@ -67,7 +67,7 @@ cssstyledeclaration_test: Fail
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
-dart_object_local_storage_test: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
 element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
