@@ -497,6 +497,7 @@ named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
 named_parameters4_test: Fail # Unimplemented non-matching static call
 naming_test: Fail # Broken because operator negate is not accessible as if it was a method.
+operator6_test: Fail # Constant folding of bit-operations does not agree with runtime behavior. Issue 2887.
 parameter_initializer_test: Fail # internal error: super property read not implemented
 pseudo_kw_test: Fail # Unexpected token '('
 super_field_access_test: Fail # internal error: super property read not implemented

@@ -26,7 +26,6 @@ class OperatorTest {
     Expect.equals(0, (op1 & op2));
     Expect.equals(4, (op1 << op2));
     Expect.equals(0, (op1 >> op2));
-    Expect.equals(~1, ~op1);
     Expect.equals(-1, -op1);
 
     op1.value += op2.value;
@@ -126,10 +125,6 @@ class Operator {
 
   operator ~/(Operator other) {
     return value ~/ other.value;
-  }
-
-  operator ~() {
-    return ~value;
   }
 
   operator negate() {
