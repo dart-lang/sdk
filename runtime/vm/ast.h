@@ -24,8 +24,6 @@ namespace dart {
   V(StringConcatNode, "concat")                                                \
   V(ComparisonNode, "compare")                                                 \
   V(UnaryOpNode, "unaryop")                                                    \
-  V(IncrOpInstanceFieldNode, "incr instance field")                            \
-  V(IncrOpIndexedNode, "incr indexed")                                         \
   V(ConditionalExprNode, "?:")                                                 \
   V(IfNode, "if")                                                              \
   V(SwitchNode, "switch")                                                      \
@@ -151,14 +149,6 @@ NODE_LIST(AST_TYPE_CHECK)
 
   // Return NULL if 'unary_op_kind' can't be applied.
   virtual AstNode* ApplyUnaryOp(Token::Kind unary_op_kind) {
-    return NULL;
-  }
-
-  // Creates a an IncrOpXXXNode that corresponds to this node type, e.g.,
-  // LoadLocalNode creates the appropriate IncrOpLocalNode
-  virtual AstNode* MakeIncrOpNode(intptr_t token_index,
-                                  Token::Kind kind,
-                                  bool is_prefix) {
     return NULL;
   }
 
@@ -661,169 +651,6 @@ class UnaryOpNode : public AstNode {
 };
 
 
-class IncrOpInstanceFieldNode : public AstNode {
- public:
-  IncrOpInstanceFieldNode(intptr_t token_index,
-                          Token::Kind kind,
-                          bool prefix,
-                          AstNode* receiver,
-                          const String& field_name)
-      : AstNode(token_index),
-        kind_(kind),
-        prefix_(prefix),
-        receiver_(receiver),
-        field_name_(field_name),
-        operator_id_(AstNode::GetNextId()),
-        setter_id_(AstNode::GetNextId()),
-        operator_ic_data_(ICData::ZoneHandle()),
-        setter_ic_data_(ICData::ZoneHandle()) {
-    ASSERT(receiver_ != NULL);
-    ASSERT(field_name_.IsZoneHandle());
-    ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
-  }
-
-  Token::Kind kind() const { return kind_; }
-  bool prefix() const { return prefix_; }
-  AstNode* receiver() const { return receiver_; }
-  const String& field_name() const { return field_name_; }
-
-  intptr_t getter_id() const { return id(); }
-  intptr_t operator_id() const { return operator_id_; }
-  intptr_t setter_id() const { return setter_id_; }
-
-  virtual bool HasId(intptr_t value) const {
-    return (getter_id() == value) ||
-           (operator_id() == value) ||
-           (setter_id() == value);
-  }
-
-  virtual void SetIcDataAtId(intptr_t node_id, const ICData& value) {
-    ASSERT(HasId(node_id));
-    if (node_id == getter_id()) {
-      set_ic_data(value);
-    } else if (node_id == operator_id()) {
-      operator_ic_data_ = value.raw();
-    } else {
-      ASSERT(node_id == setter_id());
-      setter_ic_data_ = value.raw();
-    }
-  }
-
-  virtual const ICData& ICDataAtId(intptr_t node_id) const {
-    ASSERT(HasId(node_id));
-    if (node_id == getter_id()) {
-      return ic_data();
-    } else if (node_id == operator_id()) {
-      return operator_ic_data_;
-    } else {
-      ASSERT(node_id == setter_id());
-      return setter_ic_data_;
-    }
-  }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const {
-    receiver()->Visit(visitor);
-  }
-
-  virtual const char* Name() const;
-
-  DECLARE_COMMON_NODE_FUNCTIONS(IncrOpInstanceFieldNode);
-
- private:
-  const Token::Kind kind_;
-  const bool prefix_;
-  AstNode* receiver_;
-  const String& field_name_;
-  const intptr_t operator_id_;
-  const intptr_t setter_id_;
-  ICData& operator_ic_data_;
-  ICData& setter_ic_data_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(IncrOpInstanceFieldNode);
-};
-
-
-class IncrOpIndexedNode : public AstNode {
- public:
-  IncrOpIndexedNode(intptr_t token_index,
-                    Token::Kind kind,
-                    bool prefix,
-                    AstNode* array,
-                    AstNode* index)
-      : AstNode(token_index),
-        kind_(kind),
-        prefix_(prefix),
-        array_(array),
-        index_(index),
-        operator_id_(AstNode::GetNextId()),
-        store_id_(AstNode::GetNextId()),
-        operator_ic_data_(ICData::ZoneHandle()),
-        store_ic_data_(ICData::ZoneHandle()) {
-    ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
-    ASSERT(array_ != NULL);
-    ASSERT(index_ != NULL);
-  }
-
-  Token::Kind kind() const { return kind_; }
-  bool prefix() const { return prefix_; }
-  AstNode* array() const { return array_; }
-  AstNode* index() const { return index_; }
-
-  intptr_t load_id() const { return id(); }
-  intptr_t operator_id() const { return operator_id_; }
-  intptr_t store_id() const { return store_id_; }
-
-  virtual bool HasId(intptr_t value) const {
-    return (load_id() == value) ||
-           (operator_id() == value) ||
-           (store_id() == value);
-  }
-
-  virtual const ICData& ICDataAtId(intptr_t node_id) const {
-    ASSERT(HasId(node_id));
-    if (node_id == load_id()) {
-      return ic_data();
-    } else if (node_id == operator_id()) {
-      return operator_ic_data_;
-    } else {
-      ASSERT(node_id == store_id());
-      return store_ic_data_;
-    }
-  }
-
-  virtual void SetIcDataAtId(intptr_t node_id, const ICData& value) {
-    ASSERT(HasId(node_id));
-    if (node_id == load_id()) {
-      set_ic_data(value);
-    } else if (node_id == operator_id()) {
-      operator_ic_data_ = value.raw();
-    } else {
-      ASSERT(node_id == store_id());
-      store_ic_data_ = value.raw();
-    }
-  }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const {
-    array()->Visit(visitor);
-    index()->Visit(visitor);
-  }
-
-  virtual const char* Name() const;
-
-  DECLARE_COMMON_NODE_FUNCTIONS(IncrOpIndexedNode);
-
- private:
-  const Token::Kind kind_;
-  const bool prefix_;
-  AstNode* array_;
-  AstNode* index_;
-  const intptr_t operator_id_;
-  const intptr_t store_id_;
-  ICData& operator_ic_data_;
-  ICData& store_ic_data_;
-};
-
-
 class ConditionalExprNode : public AstNode {
  public:
   ConditionalExprNode(intptr_t token_index,
@@ -1154,10 +981,6 @@ class LoadLocalNode : public AstNode {
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
-  virtual AstNode* MakeIncrOpNode(intptr_t token_index,
-                                  Token::Kind kind,
-                                  bool is_prefix);
-
   DECLARE_COMMON_NODE_FUNCTIONS(LoadLocalNode);
 
  private:
@@ -1270,10 +1093,6 @@ class LoadStaticFieldNode : public AstNode {
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
-  virtual AstNode* MakeIncrOpNode(intptr_t token_index,
-                                  Token::Kind kind,
-                                  bool is_prefix);
-
   virtual const Instance* EvalConstExpr() const {
     ASSERT(field_.is_static());
     return field_.is_final() ? &Instance::ZoneHandle(field_.value()) : NULL;
@@ -1330,10 +1149,6 @@ class LoadIndexedNode : public AstNode {
   }
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
-
-  virtual AstNode* MakeIncrOpNode(intptr_t token_index,
-                                  Token::Kind kind,
-                                  bool is_prefix);
 
   DECLARE_COMMON_NODE_FUNCTIONS(LoadIndexedNode);
 
@@ -1432,10 +1247,6 @@ class InstanceGetterNode : public AstNode {
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
-  virtual AstNode* MakeIncrOpNode(intptr_t token_index,
-                                  Token::Kind kind,
-                                  bool is_prefix);
-
   DECLARE_COMMON_NODE_FUNCTIONS(InstanceGetterNode);
 
  private:
@@ -1501,10 +1312,6 @@ class StaticGetterNode : public AstNode {
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
-
-  virtual AstNode* MakeIncrOpNode(intptr_t token_index,
-                                  Token::Kind kind,
-                                  bool is_prefix);
 
   virtual const Instance* EvalConstExpr() const;
 

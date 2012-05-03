@@ -117,26 +117,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void TranslateArgumentList(const ArgumentListNode& node,
                              ZoneGrowableArray<Value*>* values);
 
-  // Build the load part of a instance field increment.  Translates the
-  // receiver and loads the value.  The receiver will be returned in the
-  // output parameter 'receiver'.
-  Definition* BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node,
-                                   Value** receiver);
-
-  // Build the load part of an indexed increment.  Translates the receiver
-  // and index and loads the value.  The receiver will be returned in the
-  // output parameter 'receiver' and the index will be returned in the
-  // output parameter 'index'..
-  Definition* BuildIncrOpIndexedLoad(IncrOpIndexedNode* node,
-                                     Value** receiver,
-                                     Value** index);
-
-  // Build the increment part of an increment operation (add or subtract 1).
-  // Consumes the original value and produces the value +/- 1.
-  Definition* BuildIncrOpIncrement(Token::Kind kind,
-                                   intptr_t token_index,
-                                   Value* original);
-
   // Creates an instantiated type argument vector used in preparation of a
   // factory call.
   // May be called only if allocating an object of a parameterized class.
@@ -221,8 +201,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitAssignableNode(AssignableNode* node);
-  virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
-  virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
   virtual void VisitConstructorCallNode(ConstructorCallNode* node);
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);

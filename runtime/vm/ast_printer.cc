@@ -248,16 +248,6 @@ void AstPrinter::VisitJumpNode(JumpNode* node) {
 }
 
 
-void AstPrinter::VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node) {
-  VisitGenericAstNode(node);
-}
-
-
-void AstPrinter::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
-  VisitGenericAstNode(node);
-}
-
-
 void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
   OS::Print("(%s '%s'(", node->Name(), node->function_name().ToCString());
   node->VisitChildren(this);

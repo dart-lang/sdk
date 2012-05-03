@@ -6153,25 +6153,17 @@ AstNode* Parser::ParseUnaryExpr() {
     if (!IsAssignableExpr(expr)) {
       ErrorMsg("expression is not assignable");
     }
-    // TODO(srdjan): Implement transformation for all.
-    if (expr->IsLoadStaticFieldNode() || expr->IsStaticGetterNode()) {
-      Token::Kind binary_op =
-          (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
-      BinaryOpNode* add = new BinaryOpNode(
-          op_pos,
-          binary_op,
-          expr,
-          new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
-      AstNode* store = expr->MakeAssignmentNode(add);
-      expr = store;
-    } else {
-      // is_prefix.
-      AstNode* incr_op_node = expr->MakeIncrOpNode(op_pos, incr_op, true);
-      if (incr_op_node == NULL) {
-        Unimplemented("incr operation not implemented");
-      }
-      expr = incr_op_node;
-    }
+    // Is prefix.
+    AstNode* left_expr = PrepareCompoundAssignmentNodes(&expr);
+    Token::Kind binary_op =
+        (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
+    BinaryOpNode* add = new BinaryOpNode(
+        op_pos,
+        binary_op,
+        expr,
+        new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
+    AstNode* store = left_expr->MakeAssignmentNode(add);
+    expr = store;
   } else {
     expr = ParsePostfixExpr();
   }
@@ -6647,31 +6639,21 @@ AstNode* Parser::ParsePostfixExpr() {
     }
     ConsumeToken();
     // Not prefix.
-    if (postfix_expr->IsLoadStaticFieldNode() ||
-        postfix_expr->IsStaticGetterNode() ||
-        postfix_expr->IsLoadLocalNode()) {
-      const LocalVariable& temp = GetIncrementTempLocal();
-      AstNode* save =
-          new StoreLocalNode(postfix_expr_pos, temp, postfix_expr);
-      Token::Kind binary_op =
-          (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
-      BinaryOpNode* add = new BinaryOpNode(
-          postfix_expr_pos,
-          binary_op,
-          save,
-          new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
-      AstNode* store = postfix_expr->MakeAssignmentNode(add);
-      LoadLocalNode* load_res =
-          new LoadLocalNode(postfix_expr_pos, temp, store);
-      return load_res;
-    } else {
-      AstNode* incr_op_node =
-          postfix_expr->MakeIncrOpNode(postfix_expr_pos, incr_op, false);
-      if (incr_op_node == NULL) {
-        Unimplemented("incr op not implemented");
-      }
-      postfix_expr = incr_op_node;
-    }
+    AstNode* left_expr = PrepareCompoundAssignmentNodes(&postfix_expr);
+    const LocalVariable& temp = GetIncrementTempLocal();
+    AstNode* save =
+        new StoreLocalNode(postfix_expr_pos, temp, postfix_expr);
+    Token::Kind binary_op =
+        (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
+    BinaryOpNode* add = new BinaryOpNode(
+        postfix_expr_pos,
+        binary_op,
+        save,
+        new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
+    AstNode* store = left_expr->MakeAssignmentNode(add);
+    LoadLocalNode* load_res =
+        new LoadLocalNode(postfix_expr_pos, temp, store);
+    return load_res;
   }
   return postfix_expr;
 }

@@ -26,7 +26,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
                           const ParsedFunction& parsed_function);
 
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
-  virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitInstanceGetterNode(InstanceGetterNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitComparisonNode(ComparisonNode* node);
