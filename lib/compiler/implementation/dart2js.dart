@@ -9,7 +9,7 @@
 #import('dart:utf');
 
 #import('../compiler.dart', prefix: 'api');
-#import('colors.dart');
+#import('colors.dart', prefix: 'colors');
 #import('source_file.dart');
 #import('filenames.dart');
 #import('util/uri_extras.dart');
@@ -44,6 +44,8 @@ void compile(List<String> argv) {
       out = cwd.resolve(path);
     } else if ('--allow-mock-compilation' == argument) {
       options.add(argument);
+    } else if ('--no-colors' == argument) {
+      colors.enabled = false;
     } else if (argument.startsWith('-')) {
       fail('Unknown option $argument.');
     } else {
@@ -75,7 +77,7 @@ void compile(List<String> argv) {
   }
 
   void info(var message) {
-    if (verbose) print('${green("info:")} $message');
+    if (verbose) print('${colors.green("info:")} $message');
   }
 
   void handler(Uri uri, int begin, int end, String message, bool fatal) {

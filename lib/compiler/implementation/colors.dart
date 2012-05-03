@@ -9,6 +9,17 @@ final String RED_COLOR = '\u001b[31m';
 final String MAGENTA_COLOR = '\u001b[35m';
 final String NO_COLOR = '\u001b[0m';
 
-String green(String string) => "${GREEN_COLOR}$string${NO_COLOR}";
-String red(String string) => "${RED_COLOR}$string${NO_COLOR}";
-String magenta(String string) => "${MAGENTA_COLOR}$string${NO_COLOR}";
+// BUG(2654): This is a fairly hacky way of turning of coloring used
+// in messages. It would be better if the coloring could be dealt with
+// entirely by the user of the compiler API, but that is not the case
+// today.
+bool enabled = true;
+
+String wrap(String string, String color)
+    => enabled ? "${color}$string${NO_COLOR}" : string;
+String green(String string)
+    => wrap(string, GREEN_COLOR);
+String red(String string)
+    => wrap(string, RED_COLOR);
+String magenta(String string)
+    => wrap(string, MAGENTA_COLOR);

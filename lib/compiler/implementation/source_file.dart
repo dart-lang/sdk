@@ -4,7 +4,7 @@
 
 #library('source_file');
 
-#import('colors.dart');
+#import('colors.dart', prefix: 'colors');
 
 /**
  * Represents a file of source code.
@@ -54,7 +54,7 @@ class SourceFile {
    * in the file.
    */
   String getLocationMessage(String message, int start,
-      [int end, bool includeText=false, bool useColors = true]) {
+      [int end, bool includeText = false]) {
     var line = getLine(start);
     var column = getColumn(line, start);
 
@@ -71,11 +71,11 @@ class SourceFile {
       }
 
       int toColumn = Math.min(column + (end-start), textLine.length);
-      if (useColors) {
+      if (colors.enabled) {
         buf.add(textLine.substring(0, column));
-        buf.add(RED_COLOR);
+        buf.add(colors.RED_COLOR);
         buf.add(textLine.substring(column, toColumn));
-        buf.add(NO_COLOR);
+        buf.add(colors.NO_COLOR);
         buf.add(textLine.substring(toColumn));
       } else {
         buf.add(textLine);
@@ -86,11 +86,11 @@ class SourceFile {
         buf.add(' ');
       }
 
-      if (useColors) buf.add(RED_COLOR);
+      if (colors.enabled) buf.add(colors.RED_COLOR);
       for (; i < toColumn; i++) {
         buf.add('^');
       }
-      if (useColors) buf.add(NO_COLOR);
+      if (colors.enabled) buf.add(colors.NO_COLOR);
     }
 
     return buf.toString();
