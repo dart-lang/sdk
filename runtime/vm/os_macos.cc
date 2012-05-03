@@ -18,44 +18,63 @@
 
 namespace dart {
 
-bool OS::GmTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) return false;
-  struct tm* error_code = gmtime_r(&seconds, tm_result);
+bool OS::BreakDownSecondsSinceEpoch(time_t seconds_since_epoch,
+                                    bool in_utc,
+                                    BrokenDownDate* result) {
+  struct tm tm_result;
+  struct tm* error_code;
+  if (in_utc) {
+    error_code = gmtime_r(&seconds_since_epoch, &tm_result);
+  } else {
+    // TODO(floitsch): we should be able to call tzset only once during
+    // initialization.
+    tzset();  // Make sure the libc knows about the local zone.
+    error_code = localtime_r(&seconds_since_epoch, &tm_result);
+  }
+  result->year = tm_result.tm_year;
+  result->month= tm_result.tm_mon;
+  result->day = tm_result.tm_mday;
+  result->hours = tm_result.tm_hour;
+  result->minutes = tm_result.tm_min;
+  result->seconds = tm_result.tm_sec;
   return error_code != NULL;
 }
 
 
-bool OS::LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) return false;
-  struct tm* error_code = localtime_r(&seconds, tm_result);
-  return error_code != NULL;
-}
-
-
-bool OS::MkGmTime(tm* tm, int64_t* seconds_result) {
+bool OS::BrokenDownToSecondsSinceEpoch(
+    const BrokenDownDate& broken_down, bool in_utc, time_t* result) {
+  struct tm tm_broken_down;
+  // mktime takes the years since 1900.
+  tm_broken_down.tm_year = broken_down.year;
+  tm_broken_down.tm_mon = broken_down.month;
+  tm_broken_down.tm_mday = broken_down.day;
+  tm_broken_down.tm_hour = broken_down.hours;
+  tm_broken_down.tm_min = broken_down.minutes;
+  tm_broken_down.tm_sec = broken_down.seconds;
   // Set wday to an impossible day, so that we can catch bad input.
-  tm->tm_wday = -1;
-  time_t seconds = timegm(tm);
-  if ((seconds == -1) && (tm->tm_wday == -1)) {
+  tm_broken_down.tm_wday = -1;
+  // Make sure the libc knows about the local zone.
+  // In case of 'in_utc' this call is mainly for multi-threading issues. If
+  // another thread uses a time-function it will set the timezone. The timezone
+  // adjustement below would then not work anymore.
+  // TODO(floitsch): we should be able to call tzset only once during
+  // initialization.
+  tzset();
+  if (in_utc) {
+    // Disable daylight saving in utc mode.
+    tm_broken_down.tm_isdst = 0;
+    // mktime assumes that the given date is local time zone.
+    *result = mktime(&tm_broken_down);
+    // Remove the timezone.
+    *result -= timezone;
+  } else {
+    // Let libc figure out if daylight saving is active.
+    tm_broken_down.tm_isdst = -1;
+    *result = mktime(&tm_broken_down);
+  }
+  if ((*result == -1) && (tm_broken_down.tm_wday == -1)) {
     return false;
   }
-  *seconds_result = seconds;
-  return true;
-}
-
-
-bool OS::MkTime(tm* tm, int64_t* seconds_result) {
-  // Let the libc figure out if daylight saving is active.
-  tm->tm_isdst = -1;
-  // Set wday to an impossible day, so that we can catch bad input.
-  tm->tm_wday = -1;
-  time_t seconds = mktime(tm);
-  if ((seconds == -1) && (tm->tm_wday == -1)) {
-    return false;
-  }
-  *seconds_result = seconds;
   return true;
 }
 
