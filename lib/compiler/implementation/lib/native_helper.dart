@@ -30,6 +30,8 @@ String typeNameInIE(obj) {
   if (name == 'HTMLTableDataCellElement') return 'HTMLTableCellElement';
   if (name == 'HTMLTableHeaderCellElement') return 'HTMLTableCellElement';
   if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
+  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'HTMLPhraseElement') return 'HTMLElement';
   return name;
 }
 
