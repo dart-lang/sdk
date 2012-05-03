@@ -191,6 +191,7 @@ compile_time_constant_k_test: Fail # Constant maps are not canonicalized correct
 compile_time_constant_l_test: Fail # final instance fields with default values are not initialized correctly.
 compile_time_constant_o_test: Fail # String constants with string-interpolation.
 compile_time_constant_p_test/01: Fail # Implicit super calls that don't match are not caught in compile-time constants.
+positive_bit_operations_test: Fail # Frog goes negative.
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 double_to_string_as_exponential_test: Fail # fails due to -0.0.
 # Once the -0.0 in double_to_string_as_fixed_test is fixed it will probably need to

@@ -156,6 +156,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Element boolifiedEqualsNullElement;
   int indent = 0;
   int expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
+  JSBinaryOperatorPrecedence unsignedShiftPrecedences;
   HGraph currentGraph;
   /**
    * Whether the code-generation should try to generate an expression
@@ -194,7 +195,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       logicalOperations = new Map<HPhi, String>(),
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>(),
-      phiEquivalence = new Equivalence<HPhi>() {
+      phiEquivalence = new Equivalence<HPhi>(),
+      unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
 
     for (final name in parameterNames.getValues()) {
       prefixes[name] = 0;
@@ -1111,6 +1113,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  // We want the outcome of bit-operations to be positive. We use the unsigned
+  // shift operator to achieve this.
+  visitBitInvokeBinary(HBinaryBitOp node, String op) {
+    if (node.builtin){
+      beginExpression(unsignedShiftPrecedences.precedence);
+      visitInvokeBinary(node, op);
+      buffer.add(' >>> 0');
+      endExpression(unsignedShiftPrecedences.precedence);
+    } else {
+      visitInvokeBinary(node, op);
+    }
+  }
+
   visitInvokeUnary(HInvokeUnary node, String op) {
     if (node.builtin) {
       beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
@@ -1119,6 +1134,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       endExpression(JSPrecedence.PREFIX_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
+    }
+  }
+
+  // We want the outcome of bit-operations to be positive. We use the unsigned
+  // shift operator to achieve this.
+  visitBitInvokeUnary(HInvokeUnary node, String op) {
+    if (node.builtin){
+      beginExpression(unsignedShiftPrecedences.precedence);
+      visitInvokeUnary(node, op);
+      buffer.add(' >>> 0');
+      endExpression(unsignedShiftPrecedences.precedence);
+    } else {
+      visitInvokeUnary(node, op);
     }
   }
 
@@ -1151,10 +1179,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // Modulo cannot be mapped to the native operator (different semantics).
   visitModulo(HModulo node)                     => visitInvokeStatic(node);
 
-  visitBitAnd(HBitAnd node)         => visitInvokeBinary(node, '&');
-  visitBitNot(HBitNot node)         => visitInvokeUnary(node, '~');
-  visitBitOr(HBitOr node)           => visitInvokeBinary(node, '|');
-  visitBitXor(HBitXor node)         => visitInvokeBinary(node, '^');
+  visitBitAnd(HBitAnd node)         => visitBitInvokeBinary(node, '&');
+  visitBitNot(HBitNot node)         => visitBitInvokeUnary(node, '~');
+  visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
+  visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
 
   // We need to check if the left operand is negative in order to use
   // the native operator.

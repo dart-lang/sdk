@@ -65,7 +65,6 @@ deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/http_parser_test: Fail, OK # ByteArray
 io/options_test: Fail, OK # Cannot pass options to d8.
-crypto/sha1_test: Skip
 
 [ $compiler == dart2js && $runtime == none ]
 fail_test: Skip # fails only at runtime, overrides default expectation from standalone.status

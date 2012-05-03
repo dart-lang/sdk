@@ -163,7 +163,7 @@ shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
     if (b < 0) throw new IllegalArgumentException(b);
-    return JS('num', @'# << #', a, b);
+    return JS('num', @'(# << #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a << b);
 }
@@ -172,7 +172,7 @@ shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
     if (b < 0) throw new IllegalArgumentException(b);
-    return JS('num', @'# >> #', a, b);
+    return JS('num', @'# >>> #', a, b);
   }
   return UNINTERCEPTED(a >> b);
 }
@@ -180,7 +180,7 @@ shr(var a, var b) {
 and(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'# & #', a, b);
+    return JS('num', @'(# & #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a & b);
 }
@@ -188,7 +188,7 @@ and(var a, var b) {
 or(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'# | #', a, b);
+    return JS('num', @'(# | #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a | b);
 }
@@ -196,13 +196,15 @@ or(var a, var b) {
 xor(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'# ^ #', a, b);
+    return JS('num', @'(# ^ #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
-  if (JS('bool', @'typeof # === "number"', a)) return JS('num', @'~#', a);
+  if (JS('bool', @'typeof # === "number"', a)) {
+    return JS('num', @'(~#) >>> 0', a);
+  }
   return UNINTERCEPTED(~a);
 }
 
