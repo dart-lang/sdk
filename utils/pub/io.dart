@@ -9,8 +9,6 @@
 
 #import('dart:io');
 
-#import('../lib/file_system.dart', prefix: 'fs');
-
 /** Gets the current working directory. */
 String get workingDir() => new File('.').fullPathSync();
 
@@ -45,8 +43,17 @@ String join(part1, [part2, part3, part4]) {
  * Gets the basename, the file name without any leading directory path, for
  * [file], which can either be a [String], [File], or [Directory].
  */
+// TODO(rnystrom): Copied from file_system (so that we don't have to add
+// file_system to the SDK). Should unify.
 String basename(file) {
-  return fs.basename(_getPath(file));
+  file = _getPath(file).replaceAll('\\', '/');
+
+  int lastSlash = file.lastIndexOf('/', file.length);
+  if (lastSlash == -1) {
+    return file;
+  } else {
+    return file.substring(lastSlash + 1);
+  }
 }
 
 /**

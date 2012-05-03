@@ -16,6 +16,7 @@
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......frogc.dart
+# ......pub
 # ....include/
 # ......dart_api.h
 # ......dart_debugger_api.h
@@ -50,6 +51,7 @@
 # ......utf/
 # ......(more will come here)
 # ....util/
+# ......pub/
 # ......(more will come here)
 
 
@@ -61,7 +63,7 @@ import tempfile
 import utils
 
 # TODO(dgrove): Only import modules following Google style guide.
-from os.path import dirname, join, realpath, exists, isdir
+from os.path import basename, dirname, join, realpath, exists, isdir
 
 # TODO(dgrove): Only import modules following Google style guide.
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree, move
@@ -82,6 +84,18 @@ def ReplaceInFiles(paths, subs):
 def Copy(src, dest):
   copyfile(src, dest)
   copymode(src, dest)
+
+
+def CopyShellScript(src_file, dest_dir):
+  '''Copies a shell/batch script to the given destination directory. Handles
+     using the appropriate platform-specific file extension.'''
+  file_extension = ''
+  if utils.GuessOS() == 'win32':
+    file_extension = '.bat'
+
+  src = src_file + file_extension
+  dest = join(dest_dir, basename(src_file) + file_extension)
+  Copy(src, dest)
 
 
 def CopyDart2Js(build_dir, sdk_root):
@@ -118,7 +132,6 @@ def CopyDart2Js(build_dir, sdk_root):
     ReplaceInFiles([dart2js],
                    [(r'\$BIN_DIR/\.\./\.\./lib',
                      r'$BIN_DIR/../lib/dart2js/lib')])
-
 
 
 def Main(argv):
@@ -160,23 +173,19 @@ def Main(argv):
   #
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(argv[1])
-  frogc_file_extension = ''
   dart_file_extension = ''
   if utils.GuessOS() == 'win32':
     dart_file_extension = '.exe'
-    frogc_file_extension = '.bat'
     dart_import_lib_src = join(HOME, build_dir, 'dart.lib')
     dart_import_lib_dest = join(BIN, 'dart.lib')
     copyfile(dart_import_lib_src, dart_import_lib_dest)
   dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
-  frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap',
-      'frogc' + frogc_file_extension)
-  frogc_dest_binary = join(BIN, 'frogc' + frogc_file_extension)
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
-  copyfile(frogc_src_binary, frogc_dest_binary)
-  copymode(frogc_src_binary, frogc_dest_binary)
+
+  frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap', 'frogc')
+  CopyShellScript(frogc_src_binary, BIN)
 
   # Create sdk/bin/frogc.dart, and hack as needed.
   frog_src_dir = join(HOME, 'frog')
@@ -187,6 +196,10 @@ def Main(argv):
   frogc_dest.write(
     re.sub(r"#import\('([^.])", r"#import('../lib/frog/\1", frogc_contents))
   frogc_dest.close()
+
+  # Create pub shell script.
+  pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
+  CopyShellScript(pub_src_script, BIN)
 
   # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart.
 
@@ -375,7 +388,7 @@ def Main(argv):
   # Create and populate lib/isolate
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
            ignore=ignore_patterns('.svn'))
-  
+
   isolate_runtime_dir = join(LIB, 'isolate', 'runtime')
   # path seems to exist when run locally, but not on builder
   if not exists(isolate_runtime_dir):
@@ -477,6 +490,11 @@ def Main(argv):
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
 
+  # Create and populate util/pub
+  pub_src_dir = join(HOME, 'utils', 'pub')
+  pub_dst_dir = join(UTIL, 'pub')
+  copytree(pub_src_dir, pub_dst_dir,
+           ignore=ignore_patterns('.svn', 'sdk'))
 
   # Copy import maps
   PLATFORMS = ['any', 'vm', 'dartium', 'dart2js', 'frog' ]
