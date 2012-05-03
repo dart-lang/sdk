@@ -1355,62 +1355,6 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
-// Optimized for Smi only.
-void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  if (FLAG_enable_type_checks) {
-    const AbstractType& local_type = node->local().type();
-    if (!local_type.IsNumberInterface() && !local_type.IsIntInterface()) {
-      // Local does not accept a Smi (only Smi's interfaces are public).
-      classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
-      CodeGenerator::VisitIncrOpLocalNode(node);
-      return;
-    }
-  }
-  const ICData& ic_data = node->ICDataAtId(node->id());
-  if (ic_data.NumberOfChecks() == 0) {
-    DeoptimizationBlob* deopt_blob =
-        AddDeoptimizationBlob(node, kDeoptNoTypeFeedback);
-    __ jmp(deopt_blob->label());
-    return;
-  }
-  const char* kOptMessage = "Inlines IncrOpLocal";
-  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  if (!AtIdNodeHasClassAt(node, node->id(), smi_class_, 0)) {
-    classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
-    TraceNotOpt(node, kOptMessage);
-    CodeGenerator::VisitIncrOpLocalNode(node);
-    return;
-  }
-  TraceOpt(node, kOptMessage);
-
-  GenerateLoadVariable(EAX, node->local());
-  if (!node->prefix() && IsResultNeeded(node)) {
-    // Preserve as result.
-    __ movl(ECX, EAX);
-  }
-  const int int_value = (node->kind() == Token::kINCR) ? 1 : -1;
-  const Immediate smi_value =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(int_value)));
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, kDeoptIncrLocal);
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt_blob->label());
-  __ addl(EAX, smi_value);
-  __ j(OVERFLOW, deopt_blob->label());
-  GenerateStoreVariable(node->local(), EAX, EDX);
-  if (IsResultNeeded(node)) {
-    if (node->info() != NULL) {
-      node->info()->set_is_class(&smi_class_);
-    }
-    if (node->prefix()) {
-      __ pushl(EAX);
-    } else {
-      __ pushl(ECX);
-    }
-  }
-  classes_for_locals_->SetLocalType(node->local(), smi_class_);
-}
-
-
 // Debugging helper method, used in assert only.
 static bool HaveSameClassesInICData(const ICData& a, const ICData& b) {
   if (a.NumberOfChecks() != b.NumberOfChecks()) {

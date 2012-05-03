@@ -221,7 +221,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitAssignableNode(AssignableNode* node);
-  virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
   virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
   virtual void VisitConstructorCallNode(ConstructorCallNode* node);

@@ -248,11 +248,6 @@ void AstPrinter::VisitJumpNode(JumpNode* node) {
 }
 
 
-void AstPrinter::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  VisitGenericLocalNode(node, node->local());
-}
-
-
 void AstPrinter::VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node) {
   VisitGenericAstNode(node);
 }

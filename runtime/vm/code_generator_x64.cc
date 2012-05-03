@@ -1115,33 +1115,6 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
 }
 
 
-void CodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  MarkDeoptPoint(node->id(), node->token_index());
-  GenerateLoadVariable(RAX, node->local());
-  if (!node->prefix() && IsResultNeeded(node)) {
-    // Preserve as result.
-    __ pushq(RAX);
-  }
-  const char* operator_name = (node->kind() == Token::kINCR) ? "+" : "-";
-  __ pushq(RAX);
-  __ pushq(Immediate(Smi::RawValue(1)));
-  GenerateBinaryOperatorCall(node->id(), node->token_index(), operator_name);
-  // result is in RAX.
-  if (FLAG_enable_type_checks) {
-    GenerateAssertAssignable(node->id(),
-                             node->token_index(),
-                             NULL,
-                             node->local().type(),
-                             node->local().name());
-  }
-  GenerateStoreVariable(node->local(), RAX, RDX);
-  if (node->prefix() && IsResultNeeded(node)) {
-    __ pushq(RAX);
-  }
-}
-
-
 void CodeGenerator::VisitIncrOpInstanceFieldNode(
     IncrOpInstanceFieldNode* node) {
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));

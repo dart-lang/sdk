@@ -24,7 +24,6 @@ namespace dart {
   V(StringConcatNode, "concat")                                                \
   V(ComparisonNode, "compare")                                                 \
   V(UnaryOpNode, "unaryop")                                                    \
-  V(IncrOpLocalNode, "incr local")                                             \
   V(IncrOpInstanceFieldNode, "incr instance field")                            \
   V(IncrOpIndexedNode, "incr indexed")                                         \
   V(ConditionalExprNode, "?:")                                                 \
@@ -659,35 +658,6 @@ class UnaryOpNode : public AstNode {
   bool IsKindValid() const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnaryOpNode);
-};
-
-
-class IncrOpLocalNode : public AstNode {
- public:
-  IncrOpLocalNode(intptr_t token_index,
-                  Token::Kind kind,
-                  bool prefix,
-                  const LocalVariable& local)
-      : AstNode(token_index), kind_(kind), prefix_(prefix), local_(local) {
-    ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
-  }
-
-  Token::Kind kind() const { return kind_; }
-  bool prefix() const { return prefix_; }
-  const LocalVariable& local() const { return local_; }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const {}
-
-  virtual const char* Name() const;
-
-  DECLARE_COMMON_NODE_FUNCTIONS(IncrOpLocalNode);
-
- private:
-  const Token::Kind kind_;
-  const bool prefix_;
-  const LocalVariable& local_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(IncrOpLocalNode);
 };
 
 

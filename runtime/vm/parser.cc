@@ -239,7 +239,8 @@ Parser::Parser(const Script& script, const Library& library)
       current_function_(Function::Handle()),
       current_class_(Class::Handle()),
       library_(library),
-      try_blocks_list_(NULL) {
+      try_blocks_list_(NULL),
+      increment_temp_(NULL) {
   ASSERT(!tokens_.IsNull());
   ASSERT(!library.IsNull());
   SetPosition(0);
@@ -259,7 +260,8 @@ Parser::Parser(const Script& script,
       current_function_(function),
       current_class_(Class::Handle(current_function_.owner())),
       library_(Library::Handle(current_class_.library())),
-      try_blocks_list_(NULL) {
+      try_blocks_list_(NULL),
+      increment_temp_(NULL)  {
   ASSERT(!tokens_.IsNull());
   ASSERT(!function.IsNull());
   SetPosition(token_index);
@@ -647,7 +649,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   // Compilation can be nested, preserve the ast node id.
-  const int prev_ast_node_id = isolate->ast_node_id();
+  const intptr_t prev_ast_node_id = isolate->ast_node_id();
   isolate->set_ast_node_id(0);
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
@@ -682,6 +684,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   if (!HasReturnNode(node_sequence)) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(parser.token_index_));
+  }
+  if (parser.increment_temp_ != NULL) {
+    node_sequence->scope()->AddVariable(parser.increment_temp_);
   }
   parsed_function->SetNodeSequence(node_sequence);
 
@@ -1215,6 +1220,18 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
 }
 
 
+// Simple test if a node is side effect free.
+static bool IsSimpleLocalOrLiteralNode(AstNode* node) {
+  if (node->IsLiteralNode()) {
+    return true;
+  }
+  if (node->IsLoadLocalNode() && !node->AsLoadLocalNode()->HasPseudo()) {
+    return true;
+  }
+  return false;
+}
+
+
 AstNode* Parser::ParseSuperOperator() {
   TRACE_PARSER("ParseSuperOperator");
   AstNode* super_op = NULL;
@@ -1230,7 +1247,7 @@ AstNode* Parser::ParseSuperOperator() {
       // Compound assignment. Ensure side effects in index expression
       // only execute once. If the index is not a local variable or an
       // literal, evaluate and save in a temporary local.
-      if (!index_expr->IsLoadLocalNode() && !index_expr->IsLiteralNode()) {
+      if (!IsSimpleLocalOrLiteralNode(index_expr)) {
         LocalVariable* temp =
             CreateTempConstVariable(operator_pos, index_expr->id(), "lix");
         AstNode* save =
@@ -1853,7 +1870,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     ASSERT(ctor_args->length() >= 2);
     for (int i = 2; i < ctor_args->length(); i++) {
       AstNode* arg = ctor_args->NodeAt(i);
-      if (!arg->IsLoadLocalNode() && !arg->IsLiteralNode()) {
+      if (!IsSimpleLocalOrLiteralNode(arg)) {
         LocalVariable* temp =
             CreateTempConstVariable(arg->token_index(), arg->id(), "sca");
         AstNode* save_temp =
@@ -5860,7 +5877,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 
 bool Parser::IsAssignableExpr(AstNode* expr) {
   return expr->IsPrimaryNode()
-      || expr->IsLoadLocalNode()
+      || (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo())
       || expr->IsLoadStaticFieldNode()
       || expr->IsStaticGetterNode()
       || expr->IsInstanceGetterNode()
@@ -5886,10 +5903,15 @@ AstNode* Parser::ParseExprList() {
 }
 
 
-static bool IsLocalOrLiteralNode(AstNode* node) {
-  return node->IsLoadLocalNode() || node->IsLiteralNode();
+const LocalVariable& Parser::GetIncrementTempLocal() {
+  if (increment_temp_ == NULL) {
+    increment_temp_ =
+        new LocalVariable(current_function_.token_index(),
+                          String::ZoneHandle(String::NewSymbol(":incrtemp")),
+                          Type::ZoneHandle(Type::DynamicType()));
+  }
+  return *increment_temp_;
 }
-
 
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_index,
                                                intptr_t token_id,
@@ -5997,7 +6019,7 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
     intptr_t node_id = node->id();
     intptr_t token_index = node->token_index();
     node = NULL;  // Do not use it.
-    if (!IsLocalOrLiteralNode(left_node->array())) {
+    if (!IsSimpleLocalOrLiteralNode(left_node->array())) {
       LocalVariable* temp =
           CreateTempConstVariable(token_index, node_id, "lia");
       StoreLocalNode* save =
@@ -6008,7 +6030,7 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
                                        new LoadLocalNode(token_index, *temp),
                                        right_node->index_expr());
     }
-    if (!IsLocalOrLiteralNode(left_node->index_expr())) {
+    if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
       LocalVariable* temp =
           CreateTempConstVariable(token_index, node_id, "lix");
       StoreLocalNode* save =
@@ -6029,7 +6051,7 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
     intptr_t node_id = node->id();
     intptr_t token_index = node->token_index();
     node = NULL;  // Do not use it.
-    if (!IsLocalOrLiteralNode(left_node->receiver())) {
+    if (!IsSimpleLocalOrLiteralNode(left_node->receiver())) {
       LocalVariable* temp =
           CreateTempConstVariable(token_index, node_id, "igr");
       StoreLocalNode* save =
@@ -6626,11 +6648,11 @@ AstNode* Parser::ParsePostfixExpr() {
     ConsumeToken();
     // Not prefix.
     if (postfix_expr->IsLoadStaticFieldNode() ||
-        postfix_expr->IsStaticGetterNode()) {
-      LocalVariable* temp = CreateTempConstVariable(
-          postfix_expr_pos, postfix_expr->id(), "incoplix");
+        postfix_expr->IsStaticGetterNode() ||
+        postfix_expr->IsLoadLocalNode()) {
+      const LocalVariable& temp = GetIncrementTempLocal();
       AstNode* save =
-          new StoreLocalNode(postfix_expr_pos, *temp, postfix_expr);
+          new StoreLocalNode(postfix_expr_pos, temp, postfix_expr);
       Token::Kind binary_op =
           (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
       BinaryOpNode* add = new BinaryOpNode(
@@ -6640,7 +6662,7 @@ AstNode* Parser::ParsePostfixExpr() {
           new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
       AstNode* store = postfix_expr->MakeAssignmentNode(add);
       LoadLocalNode* load_res =
-          new LoadLocalNode(postfix_expr_pos, *temp, store);
+          new LoadLocalNode(postfix_expr_pos, temp, store);
       return load_res;
     } else {
       AstNode* incr_op_node =

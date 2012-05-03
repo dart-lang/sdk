@@ -298,19 +298,6 @@ const char* UnaryOpNode::Name() const {
 }
 
 
-const char* IncrOpLocalNode::Name() const {
-  switch (kind_) {
-    case Token::kINCR:
-      return prefix_ ? "local_pre_++" : "local_post_++";
-    case Token::kDECR:
-      return prefix_ ? "local_pre_--" : "local_post_--";
-    default:
-      UNREACHABLE();
-      return NULL;
-  }
-}
-
-
 const char* IncrOpInstanceFieldNode::Name() const {
   switch (kind_) {
     case Token::kINCR:
@@ -346,6 +333,9 @@ AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (local().is_final()) {
     return NULL;
   }
+  if (HasPseudo()) {
+    return NULL;
+  }
   return new StoreLocalNode(token_index(), local(), rhs);
 }
 
@@ -356,7 +346,17 @@ AstNode* LoadLocalNode::MakeIncrOpNode(intptr_t token_index,
   if (local().is_final()) {
     return NULL;
   }
-  return new IncrOpLocalNode(token_index, kind, is_prefix, local());
+  if (is_prefix) {
+    const Instance& literal = Instance::ZoneHandle(Smi::New(1));
+    AstNode* lhs = this;
+    LiteralNode* rhs = new LiteralNode(token_index, literal);
+    Token::Kind binop_kind = (kind == Token::kINCR) ? Token::kADD : Token::kSUB;
+    BinaryOpNode* result = new BinaryOpNode(token_index, binop_kind, lhs, rhs);
+    StoreLocalNode* store = new StoreLocalNode(token_index, local(), result);
+    return store;
+  }
+  UNIMPLEMENTED();
+  return NULL;
 }
 
 

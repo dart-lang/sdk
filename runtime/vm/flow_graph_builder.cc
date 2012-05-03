@@ -724,54 +724,6 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  // In an effect context, treat postincrement as if it were preincrement
-  // because its value is not needed.
-
-  // 1. Load the value.
-  BindInstr* load =
-      new BindInstr(new LoadLocalComp(node->local(), owner()->context_level()));
-  AddInstruction(load);
-  // 2. Increment.
-  Definition* incr =
-      BuildIncrOpIncrement(node->kind(), node->token_index(), new UseVal(load));
-  // 3. Perform the store, resulting in the new value.
-  StoreLocalComp* store = new StoreLocalComp(
-      node->local(), new UseVal(incr), owner()->context_level());
-  ReturnComputation(store);
-}
-
-
-void ValueGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  if (node->prefix()) {
-    // Base class handles preincrement.
-    EffectGraphVisitor::VisitIncrOpLocalNode(node);
-    return;
-  }
-  // For postincrement, duplicate the original value to use one copy as the
-  // result.
-  //
-  // 1. Load the value.
-  BindInstr* load =
-      new BindInstr(new LoadLocalComp(node->local(), owner()->context_level()));
-  AddInstruction(load);
-  // 2. Duplicate it to increment.
-  PickTempInstr* duplicate = new PickTempInstr(load->temp_index());
-  AddInstruction(duplicate);
-  // 3. Increment.
-  Definition* incr =
-      BuildIncrOpIncrement(node->kind(), node->token_index(),
-                           new UseVal(duplicate));
-  // 4. Perform the store and return the original value.
-  StoreLocalComp* store = new StoreLocalComp(
-      node->local(), new UseVal(incr), owner()->context_level());
-  AddInstruction(new DoInstr(store));
-  ReturnValue(new UseVal(load));
-}
-
-
 Definition* EffectGraphVisitor::BuildIncrOpFieldLoad(
     IncrOpInstanceFieldNode* node,
     Value** receiver) {
