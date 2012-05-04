@@ -11,11 +11,9 @@
 
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
-#include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/disassembler.h"
-#include "vm/longjump.h"
 #include "vm/parser.h"
 #include "vm/virtual_memory.h"
 
@@ -174,39 +172,14 @@ CodeGenTest::CodeGenTest(const char* name)
 
 
 void CodeGenTest::Compile() {
-  Assembler assembler;
   ParsedFunction parsed_function(function_);
   parsed_function.SetNodeSequence(node_sequence_);
   parsed_function.set_instantiator(NULL);
   parsed_function.set_default_parameter_values(default_parameter_values_);
   parsed_function.AllocateVariables();
-  bool retval;
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    CodeGenerator code_gen(&assembler, parsed_function);
-    code_gen.GenerateCode();
-    const char* function_fullname = function_.ToFullyQualifiedCString();
-    const Code& code =
-        Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
-    if (FLAG_disassemble) {
-      OS::Print("Code for function '%s' {\n", function_fullname);
-      const Instructions& instructions =
-          Instructions::Handle(code.instructions());
-      uword start = instructions.EntryPoint();
-      Disassembler::Disassemble(start, start + assembler.CodeSize());
-      OS::Print("}\n");
-    }
-    function_.SetCode(code);
-    retval = true;
-  } else {
-    retval = false;
-  }
-  EXPECT(retval);
-  isolate->set_long_jump_base(base);
+  const Error& error =
+      Error::Handle(Compiler::CompileParsedFunction(parsed_function));
+  EXPECT(error.IsNull());
 }
 
 

@@ -9,9 +9,10 @@
 #include "vm/ast.h"
 #include "vm/assembler.h"
 #include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/native_entry.h"
+#include "vm/parser.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -51,8 +52,6 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    CodeGenerator code_gen(&assembler, parsed_function);
-
     // Build some stack map entries.
     StackmapBuilder* builder = new StackmapBuilder();
     EXPECT(builder != NULL);
@@ -75,13 +74,14 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     }
     builder->SetSlotAsObject(10);
     builder->AddEntry(3);  // Add a stack map entry at pc offset 3.
-    code_gen.GenerateCode();
-    const char* function_fullname = function.ToFullyQualifiedCString();
-    const Code& code =
-        Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
+
+    const Error& error =
+        Error::Handle(Compiler::CompileParsedFunction(parsed_function));
+    EXPECT(error.IsNull());
+    const Code& code = Code::Handle(function.CurrentCode());
+
     const Array& stack_maps = Array::Handle(builder->FinalizeStackmaps(code));
     code.set_stackmaps(stack_maps);
-    function.SetCode(code);
     const Array& stack_map_list = Array::Handle(code.stackmaps());
     EXPECT(!stack_map_list.IsNull());
     Stackmap& stack_map = Stackmap::Handle();

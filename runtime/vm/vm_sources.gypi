@@ -60,7 +60,6 @@
     'code_generator_arm.h',
     'code_generator_ia32.cc',
     'code_generator_ia32.h',
-    'code_generator_x64.cc',
     'code_generator_x64.h',
     'code_patcher.h',
     'code_patcher_arm.cc',
