@@ -5,9 +5,6 @@
 #ifndef BIN_DBG_CONNECTION_WIN_H_
 #define BIN_DBG_CONNECTION_WIN_H_
 
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
 
 
 class DebuggerConnectionImpl {
