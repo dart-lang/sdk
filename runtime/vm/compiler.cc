@@ -243,7 +243,6 @@ static void CompileParsedFunctionHelper(
 static RawError* CompileFunctionHelper(const Function& function,
                                        bool optimized) {
   Isolate* isolate = Isolate::Current();
-  Error& error = Error::Handle();
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -323,13 +322,18 @@ static RawError* CompileFunctionHelper(const Function& function,
       OS::Print("%s", handlers.ToCString());
       OS::Print("}\n");
     }
+    isolate->set_long_jump_base(base);
+    return Error::null();
   } else {
+    Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
   }
-  isolate->set_long_jump_base(base);
-  return error.raw();
+  UNREACHABLE();
+  return Error::null();
 }
 
 
@@ -346,19 +350,23 @@ RawError* Compiler::CompileOptimizedFunction(const Function& function) {
 RawError* Compiler::CompileParsedFunction(
     const ParsedFunction& parsed_function) {
   Isolate* isolate = Isolate::Current();
-  Error& error = Error::Handle();
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     CompileParsedFunctionHelper(parsed_function, false);  // Non-optimized.
+    isolate->set_long_jump_base(base);
+    return Error::null();
   } else {
+    Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
   }
-  isolate->set_long_jump_base(base);
-  return error.raw();
+  UNREACHABLE();
+  return Error::null();
 }
 
 
@@ -382,7 +390,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   Isolate* isolate = Isolate::Current();
-  Object& result = Object::Handle();
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -421,15 +428,21 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
     GrowableArray<const Object*> arguments;  // no arguments.
     const Array& kNoArgumentNames = Array::Handle();
+    Object& result = Object::Handle();
     result = DartEntry::InvokeStatic(func,
                                      arguments,
                                      kNoArgumentNames);
+    isolate->set_long_jump_base(base);
+    return result.raw();
   } else {
+    Object& result = Object::Handle();
     result = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return result.raw();
   }
-  isolate->set_long_jump_base(base);
-  return result.raw();
+  UNREACHABLE();
+  return Error::null();
 }
 
 
