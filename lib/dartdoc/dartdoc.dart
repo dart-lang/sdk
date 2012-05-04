@@ -58,6 +58,7 @@ void main() {
   bool includeSource;
   int mode;
   String outputDir;
+  bool generateAppCache;
 
   for (int i = 0; i < args.length - 1; i++) {
     final arg = args[i];
@@ -73,6 +74,11 @@ void main() {
 
       case '--mode=live-nav':
         mode = MODE_LIVE_NAV;
+        break;
+
+      case '--generate-app-cache':
+      case '--generate-app-cache=true':
+        generateAppCache = true;
         break;
 
       default:
@@ -106,17 +112,21 @@ void main() {
   if (includeSource != null) dartdoc.includeSource = includeSource;
   if (mode != null) dartdoc.mode = mode;
   if (outputDir != null) dartdoc.outputDir = outputDir;
+  if (generateAppCache != null) dartdoc.generateAppCache = generateAppCache;
 
   cleanOutputDirectory(dartdoc.outputDir);
 
   // Compile the client-side code to JS.
   final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
-  compileScript(compilerPath, libDir, '$scriptDir/client-$clientScript.dart',
-               '${dartdoc.outputDir}/client-$clientScript.js');
+  final Future scriptCompiled = compileScript(compilerPath, libDir,
+                '$scriptDir/client-$clientScript.dart',
+                '${dartdoc.outputDir}/client-$clientScript.js');
 
-  copyFiles('$scriptDir/static', dartdoc.outputDir);
+  final Future filesCopied = copyFiles('$scriptDir/static', dartdoc.outputDir);
 
-  dartdoc.document(entrypoint);
+  Futures.wait([scriptCompiled, filesCopied]).then((_) {
+    dartdoc.document(entrypoint);
+  });
 
   print('Documented ${dartdoc._totalLibraries} libraries, ' +
       '${dartdoc._totalTypes} types, and ' +
@@ -152,7 +162,8 @@ void cleanOutputDirectory(String path) {
  * Note: runs asynchronously, so you won't see any files copied until after the
  * event loop has had a chance to pump (i.e. after `main()` has returned).
  */
-void copyFiles(String from, String to) {
+Future copyFiles(String from, String to) {
+  final completer = new Completer();
   final fromDir = new Directory(from);
   fromDir.onFile = (path) {
     final name = basename(path);
@@ -166,15 +177,18 @@ void copyFiles(String from, String to) {
       stream.close();
     });
   };
+  fromDir.onDone = (done) => completer.complete(true);
   fromDir.list(recursive: false);
+  return completer.future;
 }
 
 /**
  * Compiles the given Dart script to a JavaScript file at [jsPath] using the
  * Dart-to-JS compiler located at [compilerPath].
  */
-void compileScript(String compilerPath, String libDir,
+Future compileScript(String compilerPath, String libDir,
     String dartPath, String jsPath) {
+  final completer = new Completer();
   onExit(int exitCode, String stdout, String stderr) {
     if (exitCode != 0) {
       final message = 'Non-zero exit code from $compilerPath';
@@ -183,6 +197,7 @@ void compileScript(String compilerPath, String libDir,
       print(stderr);
       throw message;
     }
+    completer.complete(true);
   }
 
   onError(error) {
@@ -196,6 +211,7 @@ void compileScript(String compilerPath, String libDir,
     '--libdir=$libDir', '--out=$jsPath',
     '--compile-only', '--enable-type-checks', '--warnings-as-errors',
     dartPath], null, onExit).onError = onError;
+  return completer.future;
 }
 
 class Dartdoc {
@@ -209,6 +225,11 @@ class Dartdoc {
    * the `MODE_` constants.
    */
   int mode = MODE_LIVE_NAV;
+
+  /**
+   * Generates the App Cache manifest file, enabling offline doc viewing.
+   */
+  bool generateAppCache = false;
 
   /** Path to generate HTML files into. */
   String outputDir = 'docs';
@@ -307,6 +328,10 @@ class Dartdoc {
       for (final library in _sortedLibraries) {
         docLibrary(library);
       }
+
+      if (generateAppCache) {
+        generateAppCacheManifest();
+      }
     } finally {
       options.dietParse = oldDietParse;
     }
@@ -350,10 +375,13 @@ class Dartdoc {
    *     <a href="foo.html">foo</a> &rsaquo; bar
    */
   void writeHeader(String title, List<String> breadcrumbs) {
+    final htmlAttributes = generateAppCache ?
+        'manifest="/appcache.manifest"' : '';
+    
     write(
         '''
         <!DOCTYPE html>
-        <html>
+        <html${htmlAttributes == '' ? '' : ' $htmlAttributes'}>
         <head>
         ''');
     writeHeadContents(title);
@@ -1295,5 +1323,26 @@ class Dartdoc {
   int getSpanColumn(SourceSpan span) {
     final line = span.file.getLine(span.start);
     return span.file.getColumn(line, span.start);
+  }
+
+  generateAppCacheManifest() {
+    print('Generating app cache manifest from output $outputDir');
+    startFile('appcache.manifest');
+    write("CACHE MANIFEST\n\n");
+    write("# VERSION: ${new Date.now()}\n\n");
+    write("NETWORK:\n*\n\n");
+    write("CACHE:\n");
+    var toCache = new Directory(outputDir);
+    var pathPrefix = new File(outputDir).fullPathSync();
+    var pathPrefixLength = pathPrefix.length;
+    toCache.onFile = (filename) {
+      if (filename.endsWith('appcache.manifest')) {
+        return;
+      }
+      var relativePath = filename.substring(pathPrefixLength + 1);
+      write("$relativePath\n");
+    };
+    toCache.onDone = (done) => endFile();
+    toCache.list(recursive: true);
   }
 }

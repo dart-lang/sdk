@@ -34,6 +34,7 @@ void main() {
   int mode = doc.MODE_STATIC;
   String outputDir = 'docs';
   String compilerPath;
+  bool generateAppCache = true;
 
   // Parse the command-line arguments.
   for (int i = 0; i < args.length; i++) {
@@ -46,6 +47,10 @@ void main() {
 
       case '--mode=live-nav':
         mode = doc.MODE_LIVE_NAV;
+        break;
+
+      case '--generate-app-cache=false':
+        generateAppCache = false;
         break;
 
       default:
@@ -75,16 +80,18 @@ void main() {
 
   final clientScript = (mode == doc.MODE_STATIC) ?
       'static' : 'live-nav';
-  doc.compileScript(compilerPath, libDir,
+  final Future scriptCompiled = doc.compileScript(compilerPath, libDir,
       '${doc.scriptDir}/../../lib/dartdoc/client-$clientScript.dart',
       '${outputDir}/client-$clientScript.js');
 
   // TODO(rnystrom): Use platform-specific path separator.
   // The basic dartdoc-provided static content.
-  doc.copyFiles('${doc.scriptDir}/../../lib/dartdoc/static', outputDir);
+  final Future copiedStatic = doc.copyFiles(
+      '${doc.scriptDir}/../../lib/dartdoc/static', outputDir);
 
   // The apidoc-specific static content.
-  doc.copyFiles('${doc.scriptDir}/static', outputDir);
+  final Future copiedApiDocStatic = doc.copyFiles('${doc.scriptDir}/static',
+      outputDir);
 
   var files = new VMFileSystem();
   parseOptions(frogPath, ['', '', '--libdir=$frogPath/lib'], files);
@@ -113,8 +120,11 @@ void main() {
   world.process();
 
   print('Generating docs...');
-  final apidoc = new Apidoc(mdn, outputDir, mode);
-  apidoc.document();
+  final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache);
+
+  Futures.wait([scriptCompiled, copiedStatic, copiedApiDocStatic]).then((_) {
+    apidoc.document();
+  });
 }
 
 class Apidoc extends doc.Dartdoc {
@@ -130,9 +140,10 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl;
 
-  Apidoc(this.mdn, String outputDir, int mode) {
+  Apidoc(this.mdn, String outputDir, int mode, bool generateAppCache) {
     this.outputDir = outputDir;
     this.mode = mode;
+    this.generateAppCache = generateAppCache;
 
     mainTitle = 'Dart API Reference';
     mainUrl = 'http://dartlang.org';
@@ -199,8 +210,7 @@ class Apidoc extends doc.Dartdoc {
         '''
         <script type="text/javascript">
           var _gaq = _gaq || [];
-          _gaq.push(["_setAccount", "UA-26406144-4"]);
-          _gaq.push(["_setDomainName", "dartlang.org"]);
+          _gaq.push(["_setAccount", "UA-26406144-9"]);
           _gaq.push(["_trackPageview"]);
 
           (function() {
@@ -501,4 +511,5 @@ class Apidoc extends doc.Dartdoc {
 
     return '';
   }
+
 }
