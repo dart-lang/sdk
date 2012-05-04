@@ -138,7 +138,7 @@ intptr_t AllocateObjectWithBoundsCheckComp::InputCount() const {
 
 
 intptr_t CreateArrayComp::InputCount() const {
-  return ElementCount();
+  return ElementCount() + 1;
 }
 
 

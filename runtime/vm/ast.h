@@ -290,7 +290,6 @@ class ArrayNode : public AstNode {
         type_arguments_(type_arguments),
         elements_(4) {
     ASSERT(type_arguments_.IsZoneHandle());
-    ASSERT(type_arguments.IsNull() || type_arguments_.IsInstantiated());
   }
 
   void VisitChildren(AstNodeVisitor* visitor) const;

@@ -934,13 +934,18 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
     element->Visit(this);
   }
 
+  const AbstractTypeArguments& element_type = node->type_arguments();
+  const bool instantiate_type_arguments =  true;
+  GenerateTypeArguments(node->id(),
+                        node->token_index(),
+                        element_type,
+                        instantiate_type_arguments);
+  __ popl(ECX);
+  __ movl(EDX, Immediate(Smi::RawValue(node->length())));
+
   // Allocate the array.
   //   EDX : Array length as Smi.
   //   ECX : element type for the array.
-  __ movl(EDX, Immediate(Smi::RawValue(node->length())));
-  const AbstractTypeArguments& element_type = node->type_arguments();
-  ASSERT(element_type.IsNull() || element_type.IsInstantiated());
-  __ LoadObject(ECX, element_type);
   GenerateCall(node->token_index(),
                &StubCode::AllocateArrayLabel(),
                PcDescriptors::kOther);
@@ -2395,52 +2400,44 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
 }
 
 
-// Pushes the type arguments on the stack in preparation of a constructor or
-// factory call.
-// For a factory call, instantiates (possibly requiring an additional run time
-// call) and pushes the type argument vector that will be passed as implicit
-// first parameter to the factory.
-// For a constructor call allocating an object of a parameterized class, pushes
-// the type arguments and the type arguments of the instantiator, without ever
-// generating an additional run time call.
-// Does nothing for a constructor call allocating an object of a non
-// parameterized class.
-// Note that a class without proper type parameters may still be parameterized,
-// e.g. class A extends Array<int>.
-void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
-                                          bool requires_type_arguments) {
+// Pushes the type arguments on the stack in preparation of an allocation call.
+// If instantiate_type_arguments is true, the instantiated type arguments
+// are pushed on the stack (after an instantiation run time call, if necessary).
+// If instantiate_type_arguments is false, the (possibly uninstantiated) type
+// arguments are pushed on the stack, as well as the type arguments of the
+// instantiator (or the special kNoInstantiator Smi marker, if the type
+// arguments are instantiated).
+void CodeGenerator::GenerateTypeArguments(
+    intptr_t node_id,
+    intptr_t token_index,
+    const AbstractTypeArguments& type_arguments,
+    bool instantiate_type_arguments) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  // Instantiate the type arguments if necessary.
-  if (node->type_arguments().IsNull() ||
-      node->type_arguments().IsInstantiated()) {
-    if (requires_type_arguments) {
-      // A factory requires the type arguments as first parameter.
-      __ PushObject(node->type_arguments());
-      if (!node->constructor().IsFactory()) {
-        // The non-factory allocator additionally requires the instantiator
-        // type arguments which are not needed here, since the type arguments
-        // are instantiated.
-        __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      }
+  if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
+    // The type arguments are instantiated.
+    __ PushObject(type_arguments);
+    if (!instantiate_type_arguments) {
+      // The type arguments of the instantiator are not needed, since the
+      // type arguments are instantiated.
+      __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
     }
   } else {
     // The type arguments are uninstantiated.
-    ASSERT(requires_type_arguments);
-    GenerateInstantiatorTypeArguments(node->token_index());
+    GenerateInstantiatorTypeArguments(token_index);
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator AbstractTypeArguments object (or null).
     // If the instantiator is null and if the type argument vector
     // instantiated from null becomes a vector of Dynamic, then use null as
     // the type arguments.
     Label type_arguments_instantiated;
-    const intptr_t len = node->type_arguments().Length();
-    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+    const intptr_t len = type_arguments.Length();
+    if (type_arguments.IsRawInstantiatedRaw(len)) {
       __ cmpl(EAX, raw_null);
       __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
     }
     // Instantiate non-null type arguments.
-    if (node->type_arguments().IsUninstantiatedIdentity()) {
+    if (type_arguments.IsUninstantiatedIdentity()) {
       // Check if the instantiator type argument vector is a TypeArguments of a
       // matching length and, if so, use it as the instantiated type_arguments.
       // No need to check RAX for null (again), because a null instance will
@@ -2449,21 +2446,18 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       __ LoadObject(ECX, Class::ZoneHandle(Object::type_arguments_class()));
       __ cmpl(ECX, FieldAddress(EAX, Object::class_offset()));
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-      Immediate arguments_length =
-          Immediate(Smi::RawValue(node->type_arguments().Length()));
       __ cmpl(FieldAddress(EAX, TypeArguments::length_offset()),
-          arguments_length);
+              Immediate(Smi::RawValue(len)));
       __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
       __ Bind(&type_arguments_uninstantiated);
     }
-    if (node->constructor().IsFactory()) {
-      // A runtime call to instantiate the type arguments is required before
-      // calling the factory.
+    if (instantiate_type_arguments) {
+      // A runtime call to instantiate the type arguments is required.
       __ PushObject(Object::ZoneHandle());  // Make room for the result.
-      __ PushObject(node->type_arguments());
+      __ PushObject(type_arguments);
       __ pushl(EAX);  // Push instantiator type arguments.
-      GenerateCallRuntime(node->id(),
-                          node->token_index(),
+      GenerateCallRuntime(node_id,
+                          token_index,
                           kInstantiateTypeArgumentsRuntimeEntry);
       __ popl(EAX);  // Pop instantiator type arguments.
       __ popl(EAX);  // Pop uninstantiated type arguments.
@@ -2471,9 +2465,8 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       __ Bind(&type_arguments_instantiated);
       __ pushl(EAX);  // Instantiated type arguments.
     } else {
-      // In the non-factory case, we rely on the allocation stub to
-      // instantiate the type arguments.
-      __ PushObject(node->type_arguments());
+      // The allocation stub will instantiate the type arguments.
+      __ PushObject(type_arguments);
       __ pushl(EAX);  // Instantiator type arguments.
       Label type_arguments_pushed;
       __ jmp(&type_arguments_pushed, Assembler::kNearJump);
@@ -2489,8 +2482,11 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
 void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
-    const bool requires_type_arguments = true;  // Always first arg to factory.
-    GenerateTypeArguments(node, requires_type_arguments);
+    const bool instantiate_type_arguments = true;  // First argument to factory.
+    GenerateTypeArguments(node->id(),
+                          node->token_index(),
+                          node->type_arguments(),
+                          instantiate_type_arguments);
     // The top of stack is an instantiated AbstractTypeArguments object
     // (or null).
     int num_args = node->arguments()->length() + 1;  // +1 to include type args.
@@ -2512,7 +2508,13 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
 
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
-  GenerateTypeArguments(node, requires_type_arguments);
+  const bool instantiate_type_arguments = false;  // Done in stub or runtime.
+  if (requires_type_arguments) {
+    GenerateTypeArguments(node->id(),
+                          node->token_index(),
+                          node->type_arguments(),
+                          instantiate_type_arguments);
+  }
 
   // If cls is parameterized, the type arguments and the instantiator's
   // type arguments are on the stack.

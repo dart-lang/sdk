@@ -7312,8 +7312,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
-  ArrayNode* list =
-      new ArrayNode(token_index_, TypeArguments::ZoneHandle());
+  ArrayNode* list = new ArrayNode(token_index_, type_arguments);
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const String& dst_name = String::ZoneHandle(
@@ -7478,6 +7477,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
+  // The kv_pair array is temporary and of element type Dynamic. It is passed
+  // to the factory to initialize a properly typed map.
   ArrayNode* kv_pairs =
       new ArrayNode(token_index_, TypeArguments::ZoneHandle());
   const String& dst_name = String::ZoneHandle(

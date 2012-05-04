@@ -1780,6 +1780,9 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   Array& contents = Array::Handle();
   contents ^= reader->ReadObject();
   array.SetData(contents);
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(contents.GetTypeArguments());
+  array.SetTypeArguments(type_arguments);
   return array.raw();
 }
 

@@ -176,8 +176,10 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateConditionTypeCheck(intptr_t node_id, intptr_t token_index);
 
   void GenerateInstantiatorTypeArguments(intptr_t token_index);
-  void GenerateTypeArguments(ConstructorCallNode* node,
-                             bool is_cls_parameterized);
+  void GenerateTypeArguments(intptr_t node_id,
+                             intptr_t token_index,
+                             const AbstractTypeArguments& type_arguments,
+                             bool instantiate_type_arguments);
 
   void TestClassAndJump(const Class& cls, Label *label);
 

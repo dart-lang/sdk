@@ -923,9 +923,7 @@ void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
 void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
   // 1. Allocate the array.  R10 = length, RBX = element type.
   __ movq(R10, Immediate(Smi::RawValue(comp->ElementCount())));
-  const AbstractTypeArguments& element_type = comp->type_arguments();
-  ASSERT(element_type.IsNull() || element_type.IsInstantiated());
-  __ LoadObject(RBX, element_type);
+  LoadValue(RBX, comp->element_type());
   GenerateCall(comp->token_index(),
                comp->try_index(),
                &StubCode::AllocateArrayLabel(),
@@ -968,8 +966,8 @@ void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
 }
 
 
-void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
-    ExtractFactoryTypeArgumentsComp* comp) {
+void FlowGraphCompiler::VisitInstantiateTypeArguments(
+    InstantiateTypeArgumentsComp* comp) {
   __ popq(RAX);  // Instantiator.
 
   // RAX is the instantiator AbstractTypeArguments object (or null).
@@ -1001,8 +999,7 @@ void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
     __ Bind(&type_arguments_uninstantiated);
   }
-  // A runtime call to instantiate the type arguments is required before
-  // calling the factory.
+  // A runtime call to instantiate the type arguments is required.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ PushObject(comp->type_arguments());
   __ pushq(RAX);  // Push instantiator type arguments.
@@ -1090,8 +1087,6 @@ void FlowGraphCompiler::VisitExtractConstructorInstantiator(
     // is split between two computations, so that each one produces a
     // single value, rather than producing a pair of values.
     // If this becomes an issue, we should expose these tests at the IL level.
-    // TODO(regis): This code will still change, because bounds checking is not
-    // implemented yet.
 
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.

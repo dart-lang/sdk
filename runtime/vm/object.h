@@ -1054,6 +1054,7 @@ class InstantiatedType : public AbstractType {
   virtual RawAbstractTypeArguments* arguments() const;
   virtual intptr_t token_index() const;
   virtual bool IsInstantiated() const { return true; }
+  virtual bool Equals(const AbstractType& other) const;
 
   RawAbstractType* uninstantiated_type() const {
     return raw_ptr()->uninstantiated_type_;
@@ -3608,9 +3609,9 @@ class GrowableObjectArray : public Instance {
   RawObject* RemoveLast() const;
 
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
-    // TODO(regis): Enable asserts once allocation of array literal fixed.
-    // ASSERT(Array::Handle(data()).GetTypeArguments() ==
-    //     raw_ptr()->type_arguments_);
+    ASSERT(AbstractTypeArguments::AreEqual(
+        AbstractTypeArguments::Handle(Array::Handle(data()).GetTypeArguments()),
+        AbstractTypeArguments::Handle(raw_ptr()->type_arguments_)));
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {

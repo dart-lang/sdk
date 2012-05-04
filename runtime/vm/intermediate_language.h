@@ -54,7 +54,7 @@ class LocalVariable;
   M(AllocateObject, AllocateObjectComp)                                        \
   M(AllocateObjectWithBoundsCheck, AllocateObjectWithBoundsCheckComp)          \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
-  M(ExtractFactoryTypeArguments, ExtractFactoryTypeArgumentsComp)              \
+  M(InstantiateTypeArguments, InstantiateTypeArgumentsComp)                    \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
   M(AllocateContext, AllocateContextComp)                                      \
@@ -848,33 +848,37 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 
 class CreateArrayComp : public Computation {
  public:
-  CreateArrayComp(ArrayNode* node,
+  CreateArrayComp(intptr_t token_index,
                   intptr_t try_index,
-                  ZoneGrowableArray<Value*>* elements)
-      : ast_node_(*node), try_index_(try_index), elements_(elements) {
+                  ZoneGrowableArray<Value*>* elements,
+                  Value* element_type)
+      : token_index_(token_index),
+        try_index_(try_index),
+        elements_(elements),
+        element_type_(element_type) {
 #if defined(DEBUG)
     for (int i = 0; i < ElementCount(); ++i) {
       ASSERT(ElementAt(i) != NULL);
     }
+    ASSERT(element_type_ != NULL);
 #endif
   }
 
   DECLARE_COMPUTATION(CreateArray)
 
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  const AbstractTypeArguments& type_arguments() const {
-    return ast_node_.type_arguments();
-  }
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
+  Value* element_type() const { return element_type_; }
 
   virtual intptr_t InputCount() const;
 
  private:
-  const ArrayNode& ast_node_;
+  const intptr_t token_index_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
+  Value* element_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
@@ -928,40 +932,47 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
 };
 
 
-class ExtractFactoryTypeArgumentsComp : public TemplateComputation<1> {
+class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
  public:
-  ExtractFactoryTypeArgumentsComp(ConstructorCallNode* ast_node,
-                                  intptr_t try_index,
-                                  Value* instantiator)
-      : ast_node_(*ast_node),
-        try_index_(try_index) {
+  InstantiateTypeArgumentsComp(intptr_t token_index,
+                               intptr_t try_index,
+                               const AbstractTypeArguments& type_arguments,
+                               Value* instantiator)
+      : token_index_(token_index),
+        try_index_(try_index),
+        type_arguments_(type_arguments) {
     ASSERT(instantiator != NULL);
     inputs_[0] = instantiator;
   }
 
-  DECLARE_COMPUTATION(ExtractFactoryTypeArguments)
+  DECLARE_COMPUTATION(InstantiateTypeArguments)
 
   Value* instantiator() { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
-    return ast_node_.type_arguments();
+    return type_arguments_;
   }
-  const Function& factory() const { return ast_node_.constructor(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
 
  private:
-  const ConstructorCallNode& ast_node_;
+  const intptr_t token_index_;
   const intptr_t try_index_;
+  const AbstractTypeArguments& type_arguments_;
 
-  DISALLOW_COPY_AND_ASSIGN(ExtractFactoryTypeArgumentsComp);
+  DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsComp);
 };
 
 
 class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
  public:
-  ExtractConstructorTypeArgumentsComp(ConstructorCallNode* ast_node,
-                                      Value* instantiator)
-      : ast_node_(*ast_node) {
+  ExtractConstructorTypeArgumentsComp(
+      intptr_t token_index,
+      intptr_t try_index,
+      const AbstractTypeArguments& type_arguments,
+      Value* instantiator)
+      : token_index_(token_index),
+        try_index_(try_index),
+        type_arguments_(type_arguments) {
     ASSERT(instantiator != NULL);
     inputs_[0] = instantiator;
   }
@@ -970,13 +981,15 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
 
   Value* instantiator() { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
-    return ast_node_.type_arguments();
+    return type_arguments_;
   }
-  const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
 
  private:
-  const ConstructorCallNode& ast_node_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+  const AbstractTypeArguments& type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsComp);
 };

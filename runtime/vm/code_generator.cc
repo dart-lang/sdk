@@ -114,9 +114,8 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 
 
 // Allocation of a fixed length array of given element type.
-// TODO(regis): This runtime entry is never called for allocating a List of a
-// generic type, which does not seem correct. Verify that generic user Lists are
-// properly supported.
+// This runtime entry is never called for allocating a List of a generic type,
+// because a prior run time call instantiates the element type if necessary.
 // Arg0: array length.
 // Arg1: array element type.
 // Return value: newly allocated array of length arg0.
@@ -128,7 +127,8 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   AbstractTypeArguments& element_type =
       AbstractTypeArguments::CheckedHandle(arguments.At(1));
   // An Array is raw or takes only one type argument.
-  ASSERT(element_type.IsNull() || (element_type.Length() == 1));
+  ASSERT(element_type.IsNull() ||
+         ((element_type.Length() == 1) && element_type.IsInstantiated()));
   array.SetTypeArguments(element_type);  // May be null.
 }
 
@@ -674,70 +674,6 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 4) {
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, malformed_error);
   UNREACHABLE();
-}
-
-
-// TODO(regis): Function rest arguments are not supported anymore, but they may
-// come back.
-// Check that the type of each element of the given array is assignable to the
-// given type.
-// Arg0: index of the token of the rest argument declaration (source location).
-// Arg1: rest argument array.
-// Arg2: element declaration type.
-// Arg3: type arguments of the instantiator of the element declaration type.
-// Arg4: name of object being assigned to, i.e. name of rest argument.
-// Return value: null if assignable, otherwise allocate and throw a TypeError.
-DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
-  ASSERT(arguments.Count() ==
-      kRestArgumentTypeCheckRuntimeEntry.argument_count());
-  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
-  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Array& rest_array = Array::CheckedHandle(arguments.At(1));
-  const AbstractType& element_type =
-      AbstractType::CheckedHandle(arguments.At(2));
-  const AbstractTypeArguments& element_type_instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.At(3));
-  const String& rest_name = String::CheckedHandle(arguments.At(4));
-  ASSERT(!element_type.IsDynamicType());  // No need to check assignment.
-  ASSERT(!element_type.IsMalformed());  // Already checked in code generator.
-  ASSERT(!rest_array.IsNull());
-
-  Instance& elem = Instance::Handle();
-  Error& malformed_error = Error::Handle();
-  for (intptr_t i = 0; i < rest_array.Length(); i++) {
-    elem ^= rest_array.At(i);
-    // The previous successful type check may have set malformed_error.
-    // Note that a returned malformed_error is ignored if a type check succeeds.
-    malformed_error = Error::null();
-    if (!elem.IsNull() && !elem.IsInstanceOf(element_type,
-                                             element_type_instantiator,
-                                             &malformed_error)) {
-      // Allocate and throw a new instance of TypeError.
-      char buf[256];
-      OS::SNPrint(buf, sizeof(buf), "%s[%d]",
-                  rest_name.ToCString(), static_cast<int>(i));
-      const String& src_type_name = String::Handle(GetSimpleTypeName(elem));
-      String& dst_type_name = String::Handle();
-      if (!element_type.IsInstantiated()) {
-        // Instantiate element_type before reporting the error.
-        const AbstractType& instantiated_element_type = AbstractType::Handle(
-            element_type.InstantiateFrom(element_type_instantiator));
-        dst_type_name = instantiated_element_type.Name();
-      } else {
-        dst_type_name = element_type.Name();
-      }
-      const String& dst_name = String::Handle(String::New(buf));
-      String& malformed_error_message =  String::Handle();
-      if (!malformed_error.IsNull()) {
-        ASSERT(FLAG_enable_type_checks);
-        malformed_error_message = String::New(malformed_error.ToErrorCString());
-      }
-      Exceptions::CreateAndThrowTypeError(location, src_type_name,
-                                          dst_type_name, dst_name,
-                                          malformed_error_message);
-      UNREACHABLE();
-    }
-  }
 }
 
 

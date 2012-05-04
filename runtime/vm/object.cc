@@ -2447,12 +2447,11 @@ bool Type::Equals(const AbstractType& other) const {
   if (raw() == other.raw()) {
     return true;
   }
-  if (IsMalformed() || !other.IsType() || other.IsMalformed()) {
+  if (IsMalformed() || other.IsMalformed() ||
+      (!other.IsType() && !other.IsInstantiatedType())) {
     return false;
   }
-  Type& other_type = Type::Handle();
-  other_type ^= other.raw();
-  if (type_class() != other_type.type_class()) {
+  if (type_class() != other.type_class()) {
     return false;
   }
   return AbstractTypeArguments::AreEqual(
@@ -2784,6 +2783,24 @@ RawInstantiatedType* InstantiatedType::New(
   result.set_uninstantiated_type(uninstantiated_type);
   result.set_instantiator_type_arguments(instantiator_type_arguments);
   return result.raw();
+}
+
+
+bool InstantiatedType::Equals(const AbstractType& other) const {
+  ASSERT(IsFinalized() && other.IsFinalized());
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (IsMalformed() || other.IsMalformed() ||
+      (!other.IsType() && !other.IsInstantiatedType())) {
+    return false;
+  }
+  if (type_class() != other.type_class()) {
+    return false;
+  }
+  return AbstractTypeArguments::AreEqual(
+      AbstractTypeArguments::Handle(arguments()),
+      AbstractTypeArguments::Handle(other.arguments()));
 }
 
 
@@ -8711,10 +8728,15 @@ const char* Array::ToCString() const {
 
 
 RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
-  intptr_t len = source.IsNull() ? 0 : source.Length();
+  const Array& result = Array::Handle(Array::New(new_length, space));
+  intptr_t len = 0;
+  if (!source.IsNull()) {
+    len = source.Length();
+    result.SetTypeArguments(
+        AbstractTypeArguments::Handle(source.GetTypeArguments()));
+  }
   ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
   ASSERT(new_length != len);  // Unnecessary copying of array.
-  const Array& result = Array::Handle(Array::New(new_length, space));
   Object& obj = Object::Handle();
   for (int i = 0; i < len; i++) {
     obj = source.At(i);
@@ -8831,6 +8853,9 @@ void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
   const Array& new_contents =
       Array::Handle(Array::Grow(contents, new_capacity, space));
   StorePointer(&(raw_ptr()->data_), new_contents.raw());
+  ASSERT(AbstractTypeArguments::AreEqual(
+      AbstractTypeArguments::Handle(new_contents.GetTypeArguments()),
+      AbstractTypeArguments::Handle(raw_ptr()->type_arguments_)));
 }
 
 

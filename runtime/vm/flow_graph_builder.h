@@ -117,10 +117,12 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void TranslateArgumentList(const ArgumentListNode& node,
                              ZoneGrowableArray<Value*>* values);
 
-  // Creates an instantiated type argument vector used in preparation of a
-  // factory call.
+  // Creates an instantiated type argument vector used in preparation of an
+  // allocation call.
   // May be called only if allocating an object of a parameterized class.
-  Definition* BuildFactoryTypeArguments(ConstructorCallNode* node);
+  Definition* BuildInstantiatedTypeArguments(
+      intptr_t token_index,
+      const AbstractTypeArguments& type_arguments);
 
   // Creates a possibly uninstantiated type argument vector and the type
   // argument vector of the instantiator (two values in 'args') used in

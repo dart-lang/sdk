@@ -1167,9 +1167,13 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     Append(for_value);
     values->Add(for_value.value());
   }
-  CreateArrayComp* create = new CreateArrayComp(node,
+  Value* element_type = new UseVal(
+      BuildInstantiatedTypeArguments(node->token_index(),
+                                     node->type_arguments()));
+  CreateArrayComp* create = new CreateArrayComp(node->token_index(),
                                                 owner()->try_index(),
-                                                values);
+                                                values,
+                                                element_type);
   ReturnComputation(create);
 }
 
@@ -1355,7 +1359,9 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     ZoneGrowableArray<Value*>* factory_arguments =
         new ZoneGrowableArray<Value*>();
-    factory_arguments->Add(new UseVal(BuildFactoryTypeArguments(node)));
+    factory_arguments->Add(
+        new UseVal(BuildInstantiatedTypeArguments(node->token_index(),
+                                                  node->type_arguments())));
     ASSERT(factory_arguments->length() == 1);
     TranslateArgumentList(*node->arguments(), factory_arguments);
     StaticCallComp* call =
@@ -1426,25 +1432,24 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
 }
 
 
-Definition* EffectGraphVisitor::BuildFactoryTypeArguments(
-    ConstructorCallNode* node) {
-  ASSERT(node->constructor().IsFactory());
-  if (node->type_arguments().IsNull() ||
-      node->type_arguments().IsInstantiated()) {
+Definition* EffectGraphVisitor::BuildInstantiatedTypeArguments(
+    intptr_t token_index,
+    const AbstractTypeArguments& type_arguments) {
+  if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
     BindInstr* type_args =
-        new BindInstr(new ConstantVal(node->type_arguments()));
+        new BindInstr(new ConstantVal(type_arguments));
     AddInstruction(type_args);
     return type_args;
   }
   // The type arguments are uninstantiated.
-  Value* instantiator_value =
-      BuildInstantiatorTypeArguments(node->token_index());
-  BindInstr* extract =
-      new BindInstr(new ExtractFactoryTypeArgumentsComp(node,
-                                                        owner()->try_index(),
-                                                        instantiator_value));
-  AddInstruction(extract);
-  return extract;
+  Value* instantiator_value = BuildInstantiatorTypeArguments(token_index);
+  BindInstr* instantiate =
+      new BindInstr(new InstantiateTypeArgumentsComp(token_index,
+                                                     owner()->try_index(),
+                                                     type_arguments,
+                                                     instantiator_value));
+  AddInstruction(instantiate);
+  return instantiate;
 }
 
 
@@ -1479,9 +1484,12 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   PickTempInstr* duplicate_instantiator =
       new PickTempInstr(instantiator->AsUse()->definition()->temp_index());
   AddInstruction(duplicate_instantiator);
-  BindInstr* extract_type_arguments =
-      new BindInstr(new ExtractConstructorTypeArgumentsComp(
-                        node, new UseVal(duplicate_instantiator)));
+  BindInstr* extract_type_arguments = new BindInstr(
+      new ExtractConstructorTypeArgumentsComp(
+          node->token_index(),
+          owner()->try_index(),
+          node->type_arguments(),
+          new UseVal(duplicate_instantiator)));
   AddInstruction(extract_type_arguments);
   AddInstruction(new TuckTempInstr(placeholder->temp_index(),
                                    extract_type_arguments->temp_index()));
@@ -2287,6 +2295,8 @@ void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
     if (i != 0) OS::Print(", ");
     comp->ElementAt(i)->Accept(this);
   }
+  if (comp->ElementCount() > 0) OS::Print(", ");
+  comp->element_type()->Accept(this);
   OS::Print(")");
 }
 
@@ -2308,9 +2318,10 @@ void FlowGraphPrinter::VisitNativeLoadField(NativeLoadFieldComp* comp) {
 }
 
 
-void FlowGraphPrinter::VisitExtractFactoryTypeArguments(
-    ExtractFactoryTypeArgumentsComp* comp) {
-  OS::Print("ExtractFactoryTypeArguments(");
+void FlowGraphPrinter::VisitInstantiateTypeArguments(
+    InstantiateTypeArgumentsComp* comp) {
+  const String& type_args = String::Handle(comp->type_arguments().Name());
+  OS::Print("InstantiateTypeArguments(%s, ", type_args.ToCString());
   comp->instantiator()->Accept(this);
   OS::Print(")");
 }
@@ -2318,7 +2329,8 @@ void FlowGraphPrinter::VisitExtractFactoryTypeArguments(
 
 void FlowGraphPrinter::VisitExtractConstructorTypeArguments(
     ExtractConstructorTypeArgumentsComp* comp) {
-  OS::Print("ExtractConstructorTypeArguments(");
+  const String& type_args = String::Handle(comp->type_arguments().Name());
+  OS::Print("ExtractConstructorTypeArguments(%s, ", type_args.ToCString());
   comp->instantiator()->Accept(this);
   OS::Print(")");
 }
