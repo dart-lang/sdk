@@ -794,7 +794,8 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const bool requires_type_arguments = cls.HasTypeArguments();
   if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
-    GenerateInstantiatorTypeArguments(node->token_index());
+    const bool kPushInstantiator = false;
+    GenerateInstantiatorTypeArguments(node->token_index(), kPushInstantiator);
   }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
@@ -1278,9 +1279,11 @@ RawSubtypeTestCache* CodeGenerator::GenerateInlineInstanceof(
           is_instance_lbl, is_not_instance_lbl);
     }
   } else {
-    GenerateUninstantiatedTypeTest(type,
-                                   token_index,
-                                   is_instance_lbl);
+    return GenerateUninstantiatedTypeTest(type,
+                                          node_id,
+                                          token_index,
+                                          is_instance_lbl,
+                                          is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
 }
@@ -1374,17 +1377,19 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   __ pushl(node_id_as_smi);  // node-id.
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
-  if (!type.IsInstantiated()) {
-    GenerateInstantiatorTypeArguments(token_index);
-  } else {
+  if (type.IsInstantiated()) {
     __ pushl(raw_null);  // Null instantiator.
+    __ pushl(raw_null);  // Null instantiator.
+  } else {
+    const bool kPushInstantiator = true;
+    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
   }
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
   GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addl(ESP, Immediate(6 * kWordSize));
+  __ addl(ESP, Immediate(7 * kWordSize));
   if (negate_result) {
     __ popl(EDX);
     __ CompareObject(EDX, bool_false);
@@ -1469,7 +1474,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ LoadObject(EDX, type_test_cache);
-  __ pushl(EDX);  // Cache array.
+  __ pushl(EDX);  // Subtype test cache.
   __ pushl(EAX);  // Instance.
   __ pushl(raw_null);  // Unused.
   __ call(&StubCode::Subtype2TestCacheLabel());
@@ -1587,18 +1592,21 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
 
 // EAX: instance to test.
 // Clobbers: EBX, EDX, ECX.
-void CodeGenerator::GenerateUninstantiatedTypeTest(
+RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     const AbstractType& type,
+    intptr_t node_id,
     intptr_t token_index,
-    Label* is_instance_lbl) {
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
   ASSERT(!type.IsInstantiated());
   // Skip check if destination is a dynamic type.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
-    const Immediate raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
     // EAX must be preserved!
     Label fall_through;
-    GenerateInstantiatorTypeArguments(token_index);
+    const bool kPushInstantiator = false;
+    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
     // Type arguments are on stack.
     __ popl(EBX);
     // Check if type argument is dynamic.
@@ -1658,7 +1666,36 @@ void CodeGenerator::GenerateUninstantiatedTypeTest(
 
     // Test not conclusive.
     __ Bind(&fall_through);
+    return SubtypeTestCache::null();
   }
+  if (type.IsType()) {
+    Label fall_through;
+    __ testl(EAX, Immediate(kSmiTagMask));  // Is instance Smi?
+    __ j(ZERO, is_not_instance_lbl, Assembler::kNearJump);
+    // Uninstantiated type class is known at compile time, but the type
+    // arguments are determined at runtime by the instantiator.
+    const SubtypeTestCache& type_test_cache =
+        SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+    __ LoadObject(EDX, type_test_cache);
+    __ pushl(EDX);  // Subtype test cache.
+    __ pushl(EAX);  // Instance.
+    const bool kPushInstantiator = false;
+    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
+    __ call(&StubCode::Subtype3TestCacheLabel());
+    __ popl(EDX);  // Discard type arguments.
+    __ popl(EAX);  // Restore receiver.
+    __ popl(EDX);  // Discard subtype test cache.
+    // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
+    __ cmpl(ECX, raw_null);
+    __ j(EQUAL, &fall_through, Assembler::kNearJump);
+    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+    __ CompareObject(ECX, bool_true);
+    __ j(EQUAL, is_instance_lbl);
+    __ jmp(is_not_instance_lbl);
+    __ Bind(&fall_through);
+    return type_test_cache.raw();
+  }
+  return SubtypeTestCache::null();
 }
 
 
@@ -1757,8 +1794,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   __ PushObject(dst_type);  // Push the type of the destination.
   if (dst_type.IsInstantiated()) {
     __ pushl(raw_null);  // Null instantiator.
+    __ pushl(raw_null);  // Null instantiator type argument.
   } else {
-    GenerateInstantiatorTypeArguments(token_index);
+    const bool kPushInstantiator = true;
+    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
   }
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
@@ -1766,7 +1805,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addl(ESP, Immediate(7 * kWordSize));
+  __ addl(ESP, Immediate(8 * kWordSize));
   __ popl(EAX);
 
   // EAX: value.
@@ -2363,7 +2402,13 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 
 // Pushes the type arguments of the instantiator on the stack.
 // Destroys EBX.
-void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
+void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index,
+                                                      bool push_instantiator) {
+  if (push_instantiator) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ pushl(raw_null);  // Initial instantiator.
+  }
   const Class& instantiator_class = Class::Handle(
       parsed_function().function().owner());
   if (instantiator_class.NumTypeParameters() == 0) {
@@ -2385,7 +2430,14 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
       outer_function = outer_function.parent_function();
     }
     if (!outer_function.IsFactory()) {
-      __ popl(EBX);  // Pop instantiator.
+      if (push_instantiator) {
+        __ popl(EBX);   // Pop instantiator.
+        __ popl(ECX);   // Discard null instantiator.
+        __ pushl(EBX);  // Replace it with the real one.
+      } else {
+        __ popl(EBX);  // Pop instantiator.
+      }
+      // EBX: instantiator.
       // The instantiator is the receiver of the caller, which is not a factory.
       // The receiver cannot be null; extract its AbstractTypeArguments object.
       // Note that in the factory case, the instantiator is the first parameter
@@ -2424,7 +2476,8 @@ void CodeGenerator::GenerateTypeArguments(
     }
   } else {
     // The type arguments are uninstantiated.
-    GenerateInstantiatorTypeArguments(token_index);
+    const bool kPushInstantiator = false;
+    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator AbstractTypeArguments object (or null).
     // If the instantiator is null and if the type argument vector

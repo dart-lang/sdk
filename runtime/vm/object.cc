@@ -1469,6 +1469,8 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_type_parameter_bounds(type_parameter_bounds);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
+  result.set_type_arguments_instance_field_offset(
+      Closure::type_arguments_offset());
   // Implements interface "Function".
   const Type& function_interface = Type::Handle(Type::FunctionInterface());
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));

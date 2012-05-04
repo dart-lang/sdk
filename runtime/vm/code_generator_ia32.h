@@ -180,7 +180,8 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateArgumentTypeChecks();
   void GenerateConditionTypeCheck(intptr_t node_id, intptr_t token_index);
 
-  void GenerateInstantiatorTypeArguments(intptr_t token_index);
+  void GenerateInstantiatorTypeArguments(intptr_t token_index,
+                                         bool push_instantiator);
   void GenerateTypeArguments(intptr_t node_id,
                              intptr_t token_index,
                              const AbstractTypeArguments& type_arguments,
@@ -206,7 +207,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache*  GenerateInstantiatedTypeWithArgumentsTest(
+  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
       intptr_t node_id,
       intptr_t token_index,
       const AbstractType& dst_type,
@@ -217,9 +218,12 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                                                const AbstractType& dst_type,
                                                Label* is_instance_lbl,
                                                Label* is_not_instance_lbl);
-  void GenerateUninstantiatedTypeTest(const AbstractType& dst_type,
-                                      intptr_t token_index,
-                                      Label* is_instance_lbl);
+  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+      const AbstractType& dst_type,
+      intptr_t node_id,
+      intptr_t token_index,
+      Label* is_instance_lbl,
+      Label* is_not_instance_label);
   RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
       intptr_t node_id,
       intptr_t token_index,
