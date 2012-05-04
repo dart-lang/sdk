@@ -655,10 +655,10 @@ TEST_CASE(SerializeByteArray) {
   uint8_t* buffer;
   SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
   const int kByteArrayLength = 256;
-  InternalByteArray& byte_array =
-      InternalByteArray::Handle(InternalByteArray::New(kByteArrayLength));
+  Uint8Array& byte_array =
+      Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
   for (int i = 0; i < kByteArrayLength; i++) {
-    byte_array.SetAt<uint8_t>(i, i);
+    byte_array.SetAt(i, i);
   }
   writer.WriteObject(byte_array.raw());
   writer.FinalizeBuffer();
@@ -693,8 +693,8 @@ TEST_CASE(SerializeEmptyByteArray) {
   uint8_t* buffer;
   SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
   const int kByteArrayLength = 0;
-  InternalByteArray& byte_array =
-      InternalByteArray::Handle(InternalByteArray::New(kByteArrayLength));
+  Uint8Array& byte_array =
+      Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
   writer.WriteObject(byte_array.raw());
   writer.FinalizeBuffer();
 

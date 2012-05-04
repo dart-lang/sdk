@@ -1,0 +1,2177 @@
+class ByteArrayTest {
+  static testInt8Array() {
+    Expect.throws(() { new Int8Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Int8Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(10, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x100 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x7F - i;
+    }
+    Expect.listEquals([127, 126, 125, 124, 123,
+                       122, 121, 120, 119, 118],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -0x80 + i;
+    }
+    Expect.listEquals([-128, -127, -126, -125, -124,
+                       -123, -122, -121, -120, -119],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Int8Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Int8Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [-128, 0, 1, 127]);
+    Expect.listEquals([0, 1, 2, -128, 0, 1, 127, 7, 8, 9],
+                      array);
+  }
+
+  static testUint8Array() {
+    Expect.throws(() { new Uint8Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Uint8Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(10, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x100 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF - i;
+    }
+    Expect.listEquals([0xFF, 0xFE, 0xFD, 0xFC, 0xFB,
+                       0xFA, 0xF9, 0xF8, 0xF7, 0xF6],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Uint8Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Uint8Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [257, 0, 1, 255]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 255, 7, 8, 9],
+                      array);
+  }
+
+  static testInt16Array() {
+    Expect.throws(() { new Int16Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Int16Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(2, array.bytesPerElement());
+    Expect.equals(20, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x10000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x7FFF - i;
+    }
+    Expect.listEquals([0x7FFF, 0x7FFE, 0x7FFD, 0x7FFC, 0x7FFB,
+                       0x7FFA, 0x7FF9, 0x7FF8, 0x7FF7, 0x7FF6],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -0x8000 + i;
+    }
+    Expect.listEquals([-0x8000, -0x7FFF, -0x7FFE, -0x7FFD, -0x7FFC,
+                       -0x7FFB, -0x7FFA, -0x7FF9, -0x7FF8, -0x7FF7],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Int16Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Int16Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [-32768, 0, 1, 32767]);
+    Expect.listEquals([0, 1, 2, -32768, 0, 1, 32767, 7, 8, 9],
+                      array);
+  }
+
+  static testUint16Array() {
+    Expect.throws(() { new Uint16Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Uint16Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(2, array.bytesPerElement());
+    Expect.equals(20, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x10000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFFFF - i;
+    }
+    Expect.listEquals([0xFFFF, 0xFFFE, 0xFFFD, 0xFFFC, 0xFFFB,
+                       0xFFFA, 0xFFF9, 0xFFF8, 0xFFF7, 0xFFF6],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Uint16Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Uint16Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [0x10001, 0, 1, 0xFFFF]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFF, 7, 8, 9],
+                      array);
+  }
+
+  static testInt32Array() {
+    Expect.throws(() { new Int32Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Int32Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(4, array.bytesPerElement());
+    Expect.equals(40, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x100000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x7FFFFFFF - i;
+    }
+    Expect.listEquals([0x7FFFFFFF, 0x7FFFFFFE,
+                       0x7FFFFFFD, 0x7FFFFFFC,
+                       0x7FFFFFFB, 0x7FFFFFFA,
+                       0x7FFFFFF9, 0x7FFFFFF8,
+                       0x7FFFFFF7, 0x7FFFFFF6],
+        array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -0x80000000 + i;
+    }
+    Expect.listEquals([-0x80000000, -0x7FFFFFFF,
+                       -0x7FFFFFFE, -0x7FFFFFFD,
+                       -0x7FFFFFFC, -0x7FFFFFFB,
+                       -0x7FFFFFFA, -0x7FFFFFF9,
+                       -0x7FFFFFF8, -0x7FFFFFF7],
+        array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Int32Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Int32Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [-0x80000000, 0, 1, 0x7FFFFFFF]);
+    Expect.listEquals([0, 1, 2, -0x80000000, 0, 1, 0x7FFFFFFF, 7, 8, 9],
+                      array);
+  }
+
+  static testUint32Array() {
+    Expect.throws(() { new Uint32Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Uint32Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(4, array.bytesPerElement());
+    Expect.equals(40, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x100000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFFFFFFFF - i;
+    }
+    Expect.listEquals([0xFFFFFFFF, 0xFFFFFFFE,
+                       0xFFFFFFFD, 0xFFFFFFFC,
+                       0xFFFFFFFB, 0xFFFFFFFA,
+                       0xFFFFFFF9, 0xFFFFFFF8,
+                       0xFFFFFFF7, 0xFFFFFFF6],
+        array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Uint32Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Uint32Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [0x100000001, 0, 1, 0xFFFFFFFF]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFF, 7, 8, 9],
+                      array);
+  }
+
+  static testInt64Array() {
+    Expect.throws(() { new Int64Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Int64Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(8, array.bytesPerElement());
+    Expect.equals(80, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x10000000000000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x7FFFFFFFFFFFFFFF - i;
+    }
+    Expect.listEquals([0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFE,
+                       0x7FFFFFFFFFFFFFFD, 0x7FFFFFFFFFFFFFFC,
+                       0x7FFFFFFFFFFFFFFB, 0x7FFFFFFFFFFFFFFA,
+                       0x7FFFFFFFFFFFFFF9, 0x7FFFFFFFFFFFFFF8,
+                       0x7FFFFFFFFFFFFFF7, 0x7FFFFFFFFFFFFFF6],
+        array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -0x8000000000000000 + i;
+    }
+    Expect.listEquals([-0x8000000000000000, -0x7FFFFFFFFFFFFFFF,
+                       -0x7FFFFFFFFFFFFFFE, -0x7FFFFFFFFFFFFFFD,
+                       -0x7FFFFFFFFFFFFFFC, -0x7FFFFFFFFFFFFFFB,
+                       -0x7FFFFFFFFFFFFFFA, -0x7FFFFFFFFFFFFFF9,
+                       -0x7FFFFFFFFFFFFFF8, -0x7FFFFFFFFFFFFFF7],
+        array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Int64Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Int64Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
+    Expect.listEquals([0, 1, 2, -0x8000000000000000, 0,
+                       1, 0x7FFFFFFFFFFFFFFF, 7, 8, 9],
+                      array);
+  }
+
+  static testUint64Array() {
+    Expect.throws(() { new Uint64Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Uint64Array(10);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(8, array.bytesPerElement());
+    Expect.equals(80, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x10000000000000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFFFFFFFFFFFFFFFF - i;
+    }
+    Expect.listEquals([0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE,
+                       0xFFFFFFFFFFFFFFFD, 0xFFFFFFFFFFFFFFFC,
+                       0xFFFFFFFFFFFFFFFB, 0xFFFFFFFFFFFFFFFA,
+                       0xFFFFFFFFFFFFFFF9, 0xFFFFFFFFFFFFFFF8,
+                       0xFFFFFFFFFFFFFFF7, 0xFFFFFFFFFFFFFFF6],
+        array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Uint64Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Uint64Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
+                      array);
+  }
+
+  static testFloat32Array() {
+    Expect.throws(() { new Float32Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Float32Array(10);
+    Expect.isTrue(array is List<double>);
+    Expect.equals(10, array.length);
+    Expect.equals(4, array.bytesPerElement());
+    Expect.equals(40, array.lengthInBytes());
+    Expect.listEquals([0.0, 0.0, 0.0, 0.0, 0.0,
+                       0.0, 0.0, 0.0, 0.0, 0.0],
+                      array);
+    Expect.throws(() { array[-1] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1.0 + i;
+    }
+    Expect.listEquals([1.0, 2.0, 3.0, 4.0, 5.0,
+                       6.0, 7.0, 8.0, 9.0, 10.0],
+                      array);
+    // TODO: min, max, and round
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i * 1.0;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Float32Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Float32Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
+    array.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
+                       1.0, double.INFINITY, 7.0, 8.0, 9.0],
+                      array);
+  }
+
+  static testFloat64Array() {
+    Expect.throws(() { new Float64Array(-1); },
+                  (e) { return e is IllegalArgumentException; });
+    var array = new Float64Array(10);
+    Expect.isTrue(array is List<double>);
+    Expect.equals(10, array.length);
+    Expect.equals(8, array.bytesPerElement());
+    Expect.equals(80, array.lengthInBytes());
+    Expect.listEquals([0.0, 0.0, 0.0, 0.0, 0.0,
+                       0.0, 0.0, 0.0, 0.0, 0.0],
+                      array);
+    Expect.throws(() { array[-1] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array[10] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 1.0 + i;
+    }
+    Expect.listEquals([1.0, 2.0, 3.0, 4.0, 5.0,
+                       6.0, 7.0, 8.0, 9.0, 10.0],
+                      array);
+    // TODO: min, max
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i * 1.0;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Float64Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Float64Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
+    array.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
+                       1.0, double.INFINITY, 7.0, 8.0, 9.0],
+                      array);
+  }
+
+  static testByteArray() {
+    var array = new Uint8Array(8);
+    Expect.equals(8, array.length);
+    Expect.equals(8, array.lengthInBytes());
+    var byte_array = array.asByteArray(0, array.lengthInBytes());
+    Expect.equals(8, byte_array.lengthInBytes());
+    Expect.throws(() { byte_array.getInt8(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint8(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt16(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint16(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt32(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint32(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt64(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint64(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getFloat32(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getFloat64(-1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt8(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint8(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt16(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint16(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt32(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint32(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt64(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint64(-1, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setFloat32(-1, 0.0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setFloat64(-1, 0.0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt8(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint8(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt16(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint16(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt32(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint32(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getInt64(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getUint64(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getFloat32(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.getFloat64(8); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt8(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint8(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt16(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint16(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt32(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint32(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setInt64(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setUint64(8, 0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setFloat32(8, 0.0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { byte_array.setFloat64(8, 0.0); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.equals(0, byte_array.getInt8(0));
+    Expect.equals(0, byte_array.getUint8(0));
+    Expect.equals(0, byte_array.getInt16(0));
+    Expect.equals(0, byte_array.getUint16(0));
+    Expect.equals(0, byte_array.getInt32(0));
+    Expect.equals(0, byte_array.getUint32(0));
+    Expect.equals(0, byte_array.getInt64(0));
+    Expect.equals(0, byte_array.getUint64(0));
+    Expect.equals(0.0, byte_array.getFloat32(0));
+    Expect.equals(0.0, byte_array.getFloat64(0));
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF;
+    }
+    Expect.equals(-1, byte_array.getInt8(0));
+    Expect.equals(0xFF, byte_array.getUint8(0));
+    Expect.equals(-1, byte_array.getInt16(0));
+    Expect.equals(0xFFFF, byte_array.getUint16(0));
+    Expect.equals(-1, byte_array.getInt32(0));
+    Expect.equals(0xFFFFFFFF, byte_array.getUint32(0));
+    Expect.equals(-1, byte_array.getInt64(0));
+    Expect.equals(0xFFFFFFFFFFFFFFFF, byte_array.getUint64(0));
+    Expect.isTrue(byte_array.getFloat32(0).isNaN());
+    Expect.isTrue(byte_array.getFloat64(0).isNaN());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF - i;
+    }
+    byte_array.setUint32(0, 0xBF800000);
+    Expect.equals(0, byte_array.getInt8(0));
+    Expect.equals(0, byte_array.getInt8(1));
+    Expect.equals(-128, byte_array.getInt8(2));
+    Expect.equals(-65, byte_array.getInt8(3));
+    Expect.equals(-5, byte_array.getInt8(4));
+    Expect.equals(-6, byte_array.getInt8(5));
+    Expect.equals(-7, byte_array.getInt8(6));
+    Expect.equals(-8, byte_array.getInt8(7));
+    Expect.equals(0x00, byte_array.getUint8(0));
+    Expect.equals(0x00, byte_array.getUint8(1));
+    Expect.equals(0x80, byte_array.getUint8(2));
+    Expect.equals(0xBF, byte_array.getUint8(3));
+    Expect.equals(0xFB, byte_array.getUint8(4));
+    Expect.equals(0xFA, byte_array.getUint8(5));
+    Expect.equals(0xF9, byte_array.getUint8(6));
+    Expect.equals(0xF8, byte_array.getUint8(7));
+    Expect.equals(0, byte_array.getInt16(0));
+    Expect.equals(-16512, byte_array.getInt16(2));
+    Expect.equals(-1285, byte_array.getInt16(4));
+    Expect.equals(-1799, byte_array.getInt16(6));
+    Expect.equals(0x0000, byte_array.getUint16(0));
+    Expect.equals(0xBF80, byte_array.getUint16(2));
+    Expect.equals(0xFAFB, byte_array.getUint16(4));
+    Expect.equals(0xF8F9, byte_array.getUint16(6));
+    Expect.equals(-1082130432, byte_array.getInt32(0));
+    Expect.equals(0xBF800000, byte_array.getUint32(0));
+    Expect.equals(-506097523945897984, byte_array.getInt64(0));
+    Expect.equals(0xF8F9FAFBBF800000, byte_array.getUint64(0));
+    Expect.equals(-1.0, byte_array.getFloat32(0));
+    // TODO: byte_array.getFloat64(0)
+  }
+
+  static testInt8ArrayView() {
+    var array = new Uint8Array(12);
+    Expect.equals(12, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(12, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF;
+    }
+    Expect.throws(() { new Int8Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int8Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int8Array.view(array.asByteArray(),
+                                          array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int8Array.view(array.asByteArray(),
+                                          0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int8Array.view(array.asByteArray(),
+                                          array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Int8Array.view(array.asByteArray(), 1, array.length - 2);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Int8Array);
+    Expect.equals(10, view.length);
+    Expect.equals(1, view.bytesPerElement());
+    Expect.equals(10, view.lengthInBytes());
+    Expect.listEquals([-1, -1, -1, -1, -1,
+                       -1, -1, -1, -1, -1],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([0xFF, 1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x100 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      view);
+    Expect.listEquals([0xFF, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA,
+                       0xFB, 0xFC, 0xFD, 0xFE, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x7F - i;
+    }
+    Expect.listEquals([127, 126, 125, 124, 123,
+                       122, 121, 120, 119, 118],
+                      view);
+    Expect.listEquals([0xFF, 127, 126, 125, 124, 123,
+                       122, 121, 120, 119, 118, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -0x80 + i;
+    }
+    Expect.listEquals([-128, -127, -126, -125, -124,
+                       -123, -122, -121, -120, -119],
+                      view);
+    Expect.listEquals([0xFF, 0x80, 0x81, 0x82, 0x83, 0x84,
+                       0x85, 0x86, 0x87, 0x88, 0x89, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Int8Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Int8Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [-128, 0, 1, 127]);
+    Expect.listEquals([0, 1, 2, -128, 0, 1, 127, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0, 1, 2, 128, 0, 1, 127, 7, 8, 9, 0xFF],
+                      array);
+  }
+
+  static testUint8ArrayView() {
+    var array = new Int8Array(12);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(12, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(12, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -1;
+    }
+    Expect.throws(() { new Uint8Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint8Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint8Array.view(array.asByteArray(),
+                                           array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint8Array.view(array.asByteArray(),
+                                           0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint8Array.view(array.asByteArray(),
+                                           array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Uint8Array.view(array.asByteArray(), 1, array.length - 2);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Uint8Array);
+    Expect.equals(10, view.length);
+    Expect.equals(1, view.bytesPerElement());
+    Expect.equals(10, view.lengthInBytes());
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([-1, 1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x100 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, 0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0xFF - i;
+    }
+    Expect.listEquals([0xFF, 0xFE, 0xFD, 0xFC, 0xFB,
+                       0xFA, 0xF9, 0xF8, 0xF7, 0xF6],
+                      view);
+    Expect.listEquals([-1, -1, -2, -3, -4, -5,
+                       -6, -7, -8, -9, -10, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Uint8Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Uint8Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [257, 0, 1, 255]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 255, 7, 8, 9],
+                      view);
+  }
+
+  static testInt16ArrayView() {
+    var array = new Uint8Array(24);
+    Expect.equals(24, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(24, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF;
+    }
+    Expect.throws(() { new Int16Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int16Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int16Array.view(array.asByteArray(),
+                                           array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int16Array.view(array.asByteArray(),
+                                           0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int16Array.view(array.asByteArray(),
+                                           array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Int16Array.view(array.asByteArray(), 2, 10);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Int16Array);
+    Expect.equals(10, view.length);
+    Expect.equals(2, view.bytesPerElement());
+    Expect.equals(20, view.lengthInBytes());
+    Expect.listEquals([-1, -1, -1, -1, -1,
+                       -1, -1, -1, -1, -1],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00,
+                       0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00,
+                       0x08, 0x00, 0x09, 0x00, 0x0A, 0x00, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x10000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
+                       0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00,
+                       0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xF6, 0xFF, 0xF7, 0xFF, 0xF8, 0xFF,
+                       0xF9, 0xFF, 0xFA, 0xFF, 0xFB, 0xFF, 0xFC, 0xFF,
+                       0xFD, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x7FFF - i;
+    }
+    Expect.listEquals([0x7FFF, 0x7FFE, 0x7FFD, 0x7FFC, 0x7FFB,
+                       0x7FFA, 0x7FF9, 0x7FF8, 0x7FF7, 0x7FF6],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0x7F, 0xFE, 0x7F, 0xFD, 0x7F,
+                       0xFC, 0x7F, 0xFB, 0x7F, 0xFA, 0x7F, 0xF9, 0x7F,
+                       0xF8, 0x7F, 0xF7, 0x7F, 0xF6, 0x7F, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -0x8000 + i;
+    }
+    Expect.listEquals([-0x8000, -0x7FFF, -0x7FFE, -0x7FFD, -0x7FFC,
+                       -0x7FFB, -0x7FFA, -0x7FF9, -0x7FF8, -0x7FF7],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0x00, 0x80, 0x01, 0x80, 0x02, 0x80,
+                       0x03, 0x80, 0x04, 0x80, 0x05, 0x80, 0x06, 0x80,
+                       0x07, 0x80, 0x08, 0x80, 0x09, 0x80, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Int16Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Int16Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [-32768, 0, 1, 32767]);
+    Expect.listEquals([0, 1, 2, -32768, 0, 1, 32767, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
+                       0x00, 0x80, 0x00, 0x00, 0x01, 0x00, 0xFF, 0x7F,
+                       0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0xFF, 0xFF],
+                      array);
+  }
+
+  static testUint16ArrayView() {
+    var array = new Int8Array(24);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(24, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(24, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -1;
+    }
+    Expect.throws(() { new Uint16Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint16Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint16Array.view(array.asByteArray(),
+                                            array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint16Array.view(array.asByteArray(),
+                                            0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint16Array.view(array.asByteArray(),
+                                            array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Uint16Array.view(array.asByteArray(), 2, 10);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Uint16Array);
+    Expect.equals(10, view.length);
+    Expect.equals(2, view.bytesPerElement());
+    Expect.equals(20, view.lengthInBytes());
+    Expect.listEquals([0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+                       0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([-1, -1, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0,
+                       6, 0, 7, 0, 8, 0, 9, 0, 10, 0, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x10000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, -1, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0,
+                        5, 0, 6, 0, 7, 0, 8, 0, 9, 0, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0xFFFF - i;
+    }
+    Expect.listEquals([0xFFFF, 0xFFFE, 0xFFFD, 0xFFFC, 0xFFFB,
+                       0xFFFA, 0xFFF9, 0xFFF8, 0xFFF7, 0xFFF6],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, -2, -1, -3, -1,
+                       -4, -1, -5, -1, -6, -1, -7, -1,
+                       -8, -1, -9, -1, -10, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Uint16Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Uint16Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [0x10001, 0, 1, 0xFFFF]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFF, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, -1, 0, 0, 1, 0, 2, 0,
+                       1, 0, 0, 0, 1, 0, -1, -1,
+                       7, 0, 8, 0, 9, 0, -1, -1],
+                      array);
+  }
+
+  static testInt32ArrayView() {
+    var array = new Uint8Array(48);
+    Expect.equals(48, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(48, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF;
+    }
+    Expect.throws(() { new Int32Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int32Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int32Array.view(array.asByteArray(),
+                                           array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int32Array.view(array.asByteArray(),
+                                           0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int32Array.view(array.asByteArray(),
+                                           array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Int32Array.view(array.asByteArray(), 4, 10);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Int32Array);
+    Expect.equals(10, view.length);
+    Expect.equals(4, view.bytesPerElement());
+    Expect.equals(40, view.lengthInBytes());
+    Expect.listEquals([-1, -1, -1, -1, -1,
+                       -1, -1, -1, -1, -1],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x00, 0x00, 0x00,
+                       0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+                       0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00,
+                       0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
+                       0x08, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00,
+                       0x0A, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x100000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00,
+                       0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                       0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00,
+                       0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00,
+                       0x07, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
+                       0x09, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xF6, 0xFF, 0xFF, 0xFF,
+                       0xF7, 0xFF, 0xFF, 0xFF, 0xF8, 0xFF, 0xFF, 0xFF,
+                       0xF9, 0xFF, 0xFF, 0xFF, 0xFA, 0xFF, 0xFF, 0xFF,
+                       0xFB, 0xFF, 0xFF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF,
+                       0xFD, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x7FFFFFFF - i;
+    }
+    Expect.listEquals([0x7FFFFFFF, 0x7FFFFFFE,
+                       0x7FFFFFFD, 0x7FFFFFFC,
+                       0x7FFFFFFB, 0x7FFFFFFA,
+                       0x7FFFFFF9, 0x7FFFFFF8,
+                       0x7FFFFFF7, 0x7FFFFFF6],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFE, 0xFF, 0xFF, 0x7F, 0xFD, 0xFF, 0xFF, 0x7F,
+                       0xFC, 0xFF, 0xFF, 0x7F, 0xFB, 0xFF, 0xFF, 0x7F,
+                       0xFA, 0xFF, 0xFF, 0x7F, 0xF9, 0xFF, 0xFF, 0x7F,
+                       0xF8, 0xFF, 0xFF, 0x7F, 0xF7, 0xFF, 0xFF, 0x7F,
+                       0xF6, 0xFF, 0xFF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -0x80000000 + i;
+    }
+    Expect.listEquals([-0x80000000, -0x7FFFFFFF,
+                       -0x7FFFFFFE, -0x7FFFFFFD,
+                       -0x7FFFFFFC, -0x7FFFFFFB,
+                       -0x7FFFFFFA, -0x7FFFFFF9,
+                       -0x7FFFFFF8, -0x7FFFFFF7],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x80,
+                       0x01, 0x00, 0x00, 0x80, 0x02, 0x00, 0x00, 0x80,
+                       0x03, 0x00, 0x00, 0x80, 0x04, 0x00, 0x00, 0x80,
+                       0x05, 0x00, 0x00, 0x80, 0x06, 0x00, 0x00, 0x80,
+                       0x07, 0x00, 0x00, 0x80, 0x08, 0x00, 0x00, 0x80,
+                       0x09, 0x00, 0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Int32Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Int32Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [-0x80000000, 0, 1, 0x7FFFFFFF]);
+    Expect.listEquals([0, 1, 2, -0x80000000, 0, 1, 0x7FFFFFFF, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00,
+                       0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                       0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00,
+                       0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0x07, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
+                       0x09, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+  }
+
+  static testUint32ArrayView() {
+    var array = new Int8Array(48);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(48, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(48, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -1;
+    }
+    Expect.throws(() { new Uint32Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint32Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint32Array.view(array.asByteArray(),
+                                            array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint32Array.view(array.asByteArray(),
+                                            0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint32Array.view(array.asByteArray(),
+                                            array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Uint32Array.view(array.asByteArray(), 4, 10);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Uint32Array);
+    Expect.equals(10, view.length);
+    Expect.equals(4, view.bytesPerElement());
+    Expect.equals(40, view.lengthInBytes());
+    Expect.listEquals([0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+                       0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, 1, 0, 0, 0,
+                       2, 0, 0, 0, 3, 0, 0, 0,
+                       4, 0, 0, 0, 5, 0, 0, 0,
+                       6, 0, 0, 0, 7, 0, 0, 0,
+                       8, 0, 0, 0, 9, 0, 0, 0,
+                       10, 0, 0, 0, -1, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x100000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, 0, 0, 0, 0,
+                       1, 0, 0, 0, 2, 0, 0, 0,
+                       3, 0, 0, 0, 4, 0, 0, 0,
+                       5, 0, 0, 0, 6, 0, 0, 0,
+                       7, 0, 0, 0, 8, 0, 0, 0,
+                       9, 0, 0, 0, -1, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0xFFFFFFFF - i;
+    }
+    Expect.listEquals([0xFFFFFFFF, 0xFFFFFFFE,
+                       0xFFFFFFFD, 0xFFFFFFFC,
+                       0xFFFFFFFB, 0xFFFFFFFA,
+                       0xFFFFFFF9, 0xFFFFFFF8,
+                       0xFFFFFFF7, 0xFFFFFFF6],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1,
+                       -2, -1, -1, -1, -3, -1, -1, -1,
+                       -4, -1, -1, -1, -5, -1, -1, -1,
+                       -6, -1, -1, -1, -7, -1, -1, -1,
+                       -8, -1, -1, -1, -9, -1, -1, -1,
+                       -10, -1, -1, -1, -1, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Uint32Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Uint32Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [0x100000001, 0, 1, 0xFFFFFFFF]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFF, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, 0, 0, 0, 0,
+                       1, 0, 0, 0, 2, 0, 0, 0,
+                       1, 0, 0, 0, 0, 0, 0, 0,
+                       1, 0, 0, 0, -1, -1, -1, -1,
+                       7, 0, 0, 0, 8, 0, 0, 0,
+                       9, 0, 0, 0, -1, -1, -1, -1],
+                      array);
+  }
+
+  static testInt64ArrayView() {
+    var array = new Uint8Array(96);
+    Expect.equals(96, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(96, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF;
+    }
+    Expect.throws(() { new Int64Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int64Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int64Array.view(array.asByteArray(),
+                                           array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int64Array.view(array.asByteArray(),
+                                           0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Int64Array.view(array.asByteArray(),
+                                           array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Int64Array.view(array.asByteArray(), 8, 10);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Int64Array);
+    Expect.equals(10, view.length);
+    Expect.equals(8, view.bytesPerElement());
+    Expect.equals(80, view.lengthInBytes());
+    Expect.listEquals([-1, -1, -1, -1, -1,
+                       -1, -1, -1, -1, -1],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x10000000000000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -10 + i;
+    }
+    Expect.listEquals([-10, -9, -8, -7, -6,
+                        -5, -4, -3, -2, -1],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xF6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xF7, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xF9, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFB, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFC, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x7FFFFFFFFFFFFFFF - i;
+    }
+    Expect.listEquals([0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFE,
+                       0x7FFFFFFFFFFFFFFD, 0x7FFFFFFFFFFFFFFC,
+                       0x7FFFFFFFFFFFFFFB, 0x7FFFFFFFFFFFFFFA,
+                       0x7FFFFFFFFFFFFFF9, 0x7FFFFFFFFFFFFFF8,
+                       0x7FFFFFFFFFFFFFF7, 0x7FFFFFFFFFFFFFF6],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFC, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFB, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xF9, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xF7, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xF6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = -0x8000000000000000 + i;
+    }
+    Expect.listEquals([-0x8000000000000000, -0x7FFFFFFFFFFFFFFF,
+                       -0x7FFFFFFFFFFFFFFE, -0x7FFFFFFFFFFFFFFD,
+                       -0x7FFFFFFFFFFFFFFC, -0x7FFFFFFFFFFFFFFB,
+                       -0x7FFFFFFFFFFFFFFA, -0x7FFFFFFFFFFFFFF9,
+                       -0x7FFFFFFFFFFFFFF8, -0x7FFFFFFFFFFFFFF7],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Int64Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Int64Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
+    Expect.listEquals([0, 1, 2, -0x8000000000000000, 0,
+                       1, 0x7FFFFFFFFFFFFFFF, 7, 8, 9],
+                      view);
+    Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+                       0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                       0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+                      array);
+  }
+
+  static testUint64ArrayView() {
+    var array = new Int8Array(96);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(96, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(96, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -1;
+    }
+    Expect.throws(() { new Uint64Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint64Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint64Array.view(array.asByteArray(),
+                                            array.length); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint64Array.view(array.asByteArray(),
+                                            0, array.length + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Uint64Array.view(array.asByteArray(),
+                                            array.length - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Uint64Array.view(array.asByteArray(), 8, 10);
+    Expect.isTrue(view is List<int>);
+    Expect.isTrue(view is Uint64Array);
+    Expect.equals(10, view.length);
+    Expect.equals(8, view.bytesPerElement());
+    Expect.equals(80, view.lengthInBytes());
+    Expect.listEquals([0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                       0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                       0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                       0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                       0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF],
+                      view);
+    Expect.throws(() { view[-1] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[view.length] = 0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view.add(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.addLast(0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.insertRange(0, view.length, 0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { view.removeRange(0, view.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1 + i;
+    }
+    Expect.listEquals([1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1,
+                       1, 0, 0, 0, 0, 0, 0, 0,
+                       2, 0, 0, 0, 0, 0, 0, 0,
+                       3, 0, 0, 0, 0, 0, 0, 0,
+                       4, 0, 0, 0, 0, 0, 0, 0,
+                       5, 0, 0, 0, 0, 0, 0, 0,
+                       6, 0, 0, 0, 0, 0, 0, 0,
+                       7, 0, 0, 0, 0, 0, 0, 0,
+                       8, 0, 0, 0, 0, 0, 0, 0,
+                       9, 0, 0, 0, 0, 0, 0, 0,
+                       10, 0, 0, 0, 0, 0, 0, 0,
+                       -1, -1, -1, -1, -1, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0x10000000000000000 + i;
+    }
+    Expect.listEquals([0, 1, 2, 3, 4,
+                       5, 6, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1,
+                       0, 0, 0, 0, 0, 0, 0, 0,
+                       1, 0, 0, 0, 0, 0, 0, 0,
+                       2, 0, 0, 0, 0, 0, 0, 0,
+                       3, 0, 0, 0, 0, 0, 0, 0,
+                       4, 0, 0, 0, 0, 0, 0, 0,
+                       5, 0, 0, 0, 0, 0, 0, 0,
+                       6, 0, 0, 0, 0, 0, 0, 0,
+                       7, 0, 0, 0, 0, 0, 0, 0,
+                       8, 0, 0, 0, 0, 0, 0, 0,
+                       9, 0, 0, 0, 0, 0, 0, 0,
+                       -1, -1, -1, -1, -1, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 0xFFFFFFFFFFFFFFFF - i;
+    }
+    Expect.listEquals([0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE,
+                       0xFFFFFFFFFFFFFFFD, 0xFFFFFFFFFFFFFFFC,
+                       0xFFFFFFFFFFFFFFFB, 0xFFFFFFFFFFFFFFFA,
+                       0xFFFFFFFFFFFFFFF9, 0xFFFFFFFFFFFFFFF8,
+                       0xFFFFFFFFFFFFFFF7, 0xFFFFFFFFFFFFFFF6],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1,
+                       -1, -1, -1, -1, -1, -1, -1, -1,
+                       -2, -1, -1, -1, -1, -1, -1, -1,
+                       -3, -1, -1, -1, -1, -1, -1, -1,
+                       -4, -1, -1, -1, -1, -1, -1, -1,
+                       -5, -1, -1, -1, -1, -1, -1, -1,
+                       -6, -1, -1, -1, -1, -1, -1, -1,
+                       -7, -1, -1, -1, -1, -1, -1, -1,
+                       -8, -1, -1, -1, -1, -1, -1, -1,
+                       -9, -1, -1, -1, -1, -1, -1, -1,
+                       -10, -1, -1, -1, -1, -1, -1, -1,
+                       -1, -1, -1, -1, -1, -1, -1, -1],
+                      array);
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Uint64Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Uint64Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    view.setRange(3, 4, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
+                      view);
+    Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1,
+                       0, 0, 0, 0, 0, 0, 0, 0,
+                       1, 0, 0, 0, 0, 0, 0, 0,
+                       2, 0, 0, 0, 0, 0, 0, 0,
+                       1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0,
+                       1, 0, 0, 0, 0, 0, 0, 0,
+                       -1, -1, -1, -1, -1, -1, -1, -1,
+                       7, 0, 0, 0, 0, 0, 0, 0,
+                       8, 0, 0, 0, 0, 0, 0, 0,
+                       9, 0, 0, 0, 0, 0, 0, 0,
+                       -1, -1, -1, -1, -1, -1, -1, -1],
+                      array);
+  }
+
+  static testFloat32ArrayView() {
+    var array = new Uint32Array(12);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(12, array.length);
+    Expect.equals(4, array.bytesPerElement());
+    Expect.equals(48, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xBF800000;
+    }
+    Expect.throws(() { new Float32Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float32Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float32Array.view(array.asByteArray(),
+                                             array.lengthInBytes() + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float32Array.view(array.asByteArray(),
+                                             0, array.lengthInBytes() + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float32Array.view(array.asByteArray(),
+                                             array.lengthInBytes() - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Float32Array.view(array.asByteArray(), 4, 10);
+    Expect.isTrue(view is List<double>);
+    Expect.equals(10, view.length);
+    Expect.equals(4, view.bytesPerElement());
+    Expect.equals(40, view.lengthInBytes());
+    Expect.listEquals([-1.0, -1.0, -1.0, -1.0, -1.0,
+                       -1.0, -1.0, -1.0, -1.0, -1.0],
+                      view);
+    Expect.throws(() { view[-1] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1.0 + i;
+    }
+    Expect.listEquals([1.0, 2.0, 3.0, 4.0, 5.0,
+                       6.0, 7.0, 8.0, 9.0, 10.0],
+                      view);
+    Expect.listEquals([0xBF800000, 0x3F800000,
+                       0x40000000, 0x40400000,
+                       0x40800000, 0x40A00000,
+                       0x40C00000, 0x40E00000,
+                       0x41000000, 0x41100000,
+                       0x41200000, 0xBF800000],
+                      array);
+    // TODO: min, max, and round
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i * 1.0;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Float32Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Float32Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
+    view.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
+                       1.0, double.INFINITY, 7.0, 8.0, 9.0],
+                      view);
+    Expect.listEquals([0xBF800000, 0x00000000,
+                       0x3F800000, 0x40000000,
+                       0xFF800000, 0x00000000,
+                       0x3F800000, 0x7F800000,
+                       0x40E00000, 0x41000000,
+                       0x41100000, 0xBF800000],
+                      array);
+  }
+
+  static testFloat64ArrayView() {
+    var array = new Uint64Array(12);
+    Expect.isTrue(array is List<int>);
+    Expect.equals(12, array.length);
+    Expect.equals(8, array.bytesPerElement());
+    Expect.equals(96, array.lengthInBytes());
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xBFF0000000000000;
+    }
+    Expect.throws(() { new Float64Array.view(array.asByteArray(), -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float64Array.view(array.asByteArray(), 0, -1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float64Array.view(array.asByteArray(),
+                                             array.lengthInBytes() + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float64Array.view(array.asByteArray(),
+                                             0, array.lengthInBytes() + 1); },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { new Float64Array.view(array.asByteArray(),
+                                             array.lengthInBytes() - 1, 2); },
+                  (e) { return e is IndexOutOfRangeException; });
+    var view = new Float64Array.view(array.asByteArray(), 8, 10);
+    Expect.isTrue(view is List<double>);
+    Expect.equals(10, view.length);
+    Expect.equals(8, view.bytesPerElement());
+    Expect.equals(80, view.lengthInBytes());
+    Expect.listEquals([-1.0, -1.0, -1.0, -1.0, -1.0,
+                       -1.0, -1.0, -1.0, -1.0, -1.0],
+                      view);
+    Expect.throws(() { view[-1] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { return view[-1]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10]; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { view[10] = 0.0; },
+                  (e) { return e is IndexOutOfRangeException; });
+    Expect.throws(() { array.add(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.addLast(0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.insertRange(0, array.length, 0.0); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedOperationException; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedOperationException; });
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = 1.0 + i;
+    }
+    Expect.listEquals([1.0, 2.0, 3.0, 4.0, 5.0,
+                       6.0, 7.0, 8.0, 9.0, 10.0],
+                      view);
+    Expect.listEquals([0xBFF0000000000000, 0x3FF0000000000000,
+                       0x4000000000000000, 0x4008000000000000,
+                       0x4010000000000000, 0x4014000000000000,
+                       0x4018000000000000, 0x401C000000000000,
+                       0x4020000000000000, 0x4022000000000000,
+                       0x4024000000000000, 0xBFF0000000000000],
+                      array);
+    // TODO: min, max
+    for (int i = 0; i < view.length; ++i) {
+      view[i] = i * 1.0;
+    }
+    var copy = view.getRange(0, view.length);
+    Expect.isFalse(copy === view);
+    Expect.isTrue(copy is Float64Array);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(view, copy);
+    var region = view.getRange(3, view.length - 6);
+    Expect.isTrue(copy is Float64Array);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
+    view.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
+                       1.0, double.INFINITY, 7.0, 8.0, 9.0],
+                      view);
+    Expect.listEquals([0xBFF0000000000000, 0x0000000000000000,
+                       0x3FF0000000000000, 0x4000000000000000,
+                       0xFFF0000000000000, 0x0000000000000000,
+                       0x3FF0000000000000, 0x7FF0000000000000,
+                       0x401C000000000000, 0x4020000000000000,
+                       0x4022000000000000, 0xBFF0000000000000],
+                      array);
+  }
+
+  static testMain() {
+    testInt8Array();
+    testUint8Array();
+    testInt16Array();
+    testUint16Array();
+    testInt32Array();
+    testUint32Array();
+    testInt64Array();
+    testUint64Array();
+    testFloat32Array();
+    testFloat64Array();
+    testByteArray();
+    testInt8ArrayView();
+    testUint8ArrayView();
+    testInt16ArrayView();
+    testUint16ArrayView();
+    testInt32ArrayView();
+    testUint32ArrayView();
+    testInt64ArrayView();
+    testUint64ArrayView();
+    testFloat32ArrayView();
+    testFloat64ArrayView();
+  }
+}
+
+main() {
+  ByteArrayTest.testMain();
+}

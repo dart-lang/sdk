@@ -276,7 +276,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
     case ObjectStore::kFourByteStringClass:
       // Four byte strings not supported.
       return NULL;
-    case ObjectStore::kInternalByteArrayClass: {
+    case ObjectStore::kUint8ArrayClass: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* object = AllocateDartCObjectByteArray(len);
       AddBackwardReference(object_id, object);
@@ -543,7 +543,7 @@ void ApiMessageWriter::WriteCObject(Dart_CObject* object) {
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteObjectHeader(ObjectStore::kInternalByteArrayClass, 0);
+      WriteObjectHeader(ObjectStore::kUint8ArrayClass, 0);
       uint8_t* bytes = object->value.as_byte_array.values;
       intptr_t len = object->value.as_byte_array.length;
       WriteSmi(len);
