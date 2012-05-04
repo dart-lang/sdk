@@ -692,7 +692,7 @@ struct Dart_CObject {
     kDouble,
     kString,
     kArray,
-    kByteArray,
+    kUint8Array,
     kNumberOfTypes
   };
   Type type;

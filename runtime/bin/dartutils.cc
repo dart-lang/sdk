@@ -399,8 +399,8 @@ Dart_CObject* CObject::NewArray(int length) {
 }
 
 
-Dart_CObject* CObject::NewByteArray(int length) {
-  Dart_CObject* cobject = New(Dart_CObject::kByteArray, length);
+Dart_CObject* CObject::NewUint8Array(int length) {
+  Dart_CObject* cobject = New(Dart_CObject::kUint8Array, length);
   cobject->value.as_byte_array.length = length;
   cobject->value.as_byte_array.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;

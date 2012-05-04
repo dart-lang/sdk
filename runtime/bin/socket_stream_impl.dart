@@ -18,7 +18,7 @@ class _SocketInputStream implements SocketInputStream {
         bytesToRead = len;
       }
     }
-    ByteArray buffer = new ByteArray(bytesToRead);
+    List<int> buffer = new Uint8List(bytesToRead);
     int bytesRead = _socket.readList(buffer, 0, bytesToRead);
     if (bytesRead == 0) {
       // On MacOS when reading from a tty Ctrl-D will result in one
@@ -27,7 +27,7 @@ class _SocketInputStream implements SocketInputStream {
       // which is indicated by a null return value.
       return null;
     } else if (bytesRead < bytesToRead) {
-      ByteArray newBuffer = new ByteArray(bytesRead);
+      List<int> newBuffer = new Uint8List(bytesRead);
       newBuffer.setRange(0, bytesRead, buffer);
       return newBuffer;
     } else {

@@ -5,12 +5,12 @@
 // Dart test program for testing native byte arrays.
 
 void testCreateByteArray() {
-  ByteArray byteArray;
+  Uint8List byteArray;
 
-  byteArray = new ByteArray(0);
+  byteArray = new Uint8List(0);
   Expect.equals(0, byteArray.length);
 
-  byteArray = new ByteArray(10);
+  byteArray = new Uint8List(10);
   Expect.equals(10, byteArray.length);
   for (int i = 0; i < 10; i++) {
     Expect.equals(0, byteArray[i]);
@@ -18,7 +18,7 @@ void testCreateByteArray() {
 }
 
 void testSetRange() {
-  ByteArray byteArray = new ByteArray(3);
+  Uint8List byteArray = new Uint8List(3);
 
   List<int> list = [10, 11, 12];
   byteArray.setRange(0, 3, list);
@@ -41,7 +41,7 @@ void testSetRange() {
 }
 
 void testIndexOutOfRange() {
-  ByteArray byteArray = new ByteArray(3);
+  Uint8List byteArray = new Uint8List(3);
   List<int> list = const [0, 1, 2, 3];
 
   Expect.throws(() {

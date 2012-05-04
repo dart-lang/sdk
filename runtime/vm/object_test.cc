@@ -1854,495 +1854,318 @@ TEST_CASE(GrowableObjectArray) {
 }
 
 
-TEST_CASE(ExternalByteArray) {
-  uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
-  intptr_t data_length = ARRAY_SIZE(data);
-
-  const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data,
-                                                       data_length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(data_length, array1.Length());
-  EXPECT_EQ(-3, array1.At<int8_t>(0));
-  EXPECT_EQ(253, array1.At<uint8_t>(0));
-  EXPECT_EQ(-2, array1.At<int8_t>(1));
-  EXPECT_EQ(254, array1.At<uint8_t>(1));
-  EXPECT_EQ(-1, array1.At<int8_t>(2));
-  EXPECT_EQ(255, array1.At<uint8_t>(2));
-  EXPECT_EQ(0, array1.At<int8_t>(3));
-  EXPECT_EQ(0, array1.At<uint8_t>(3));
-  EXPECT_EQ(1, array1.At<int8_t>(4));
-  EXPECT_EQ(1, array1.At<uint8_t>(4));
-  EXPECT_EQ(2, array1.At<int8_t>(5));
-  EXPECT_EQ(2, array1.At<uint8_t>(5));
-
-  const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data,
-                                                       data_length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(data_length, array2.Length());
-  for (intptr_t i = 0 ; i < array1.Length(); ++i) {
-    EXPECT_EQ(array1.At<uint8_t>(i), array2.At<uint8_t>(i));
-  }
-
-  array1.SetAt<uint8_t>(0, 123);
-  array2.SetAt<int8_t>(2, -123);
-  for (intptr_t i = 0 ; i < array1.Length(); ++i) {
-    EXPECT_EQ(array1.At<uint8_t>(i), array2.At<uint8_t>(i));
-  }
-}
-
-
-TEST_CASE(ExternalByteArrayAlignedAccess) {
-  intptr_t length = 16;
-  uint8_t* data = new uint8_t[length];
-
-  const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data,
-                                                       length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(length, array1.Length());
-
-  const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data,
-                                                       length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array2.IsNull());
-  EXPECT_EQ(length, array2.Length());
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetAt<float>(0, FLT_MIN);
-  array1.SetAt<float>(4, FLT_MAX);
-  EXPECT_EQ(FLT_MIN, array2.At<float>(0));
-  EXPECT_EQ(FLT_MAX, array2.At<float>(4));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetAt<float>(0, 0.0f);
-  EXPECT_EQ(0.0f, array2.At<float>(0));
-  array1.SetAt<float>(4, 1.0f);
-  EXPECT_EQ(1.0f, array2.At<float>(4));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetAt<double>(0, DBL_MIN);
-  EXPECT_EQ(DBL_MIN, array2.At<double>(0));
-  array1.SetAt<double>(8, DBL_MAX);
-  EXPECT_EQ(DBL_MAX, array2.At<double>(8));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetAt<double>(0, 0.0);
-  EXPECT_EQ(0.0, array2.At<double>(0));
-  array1.SetAt<double>(8, 1.0);
-  EXPECT_EQ(1.0, array2.At<double>(8));
-
-  delete[] data;
-}
-
-
-TEST_CASE(ExternalByteArrayUnlignedAccess) {
-  intptr_t length = 24;
-  uint8_t* data = new uint8_t[length];
-
-  const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data,
-                                                       length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(length, array1.Length());
-
-  const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data,
-                                                       length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array2.IsNull());
-  EXPECT_EQ(length, array2.Length());
-
-  int float_misalign = 3;
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<float>(float_misalign, FLT_MIN);
-  array1.SetUnalignedAt<float>(4 + float_misalign, FLT_MAX);
-  EXPECT_EQ(FLT_MIN, array2.UnalignedAt<float>(float_misalign));
-  EXPECT_EQ(FLT_MAX, array2.UnalignedAt<float>(4 + float_misalign));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<float>(float_misalign, 0.0f);
-  EXPECT_EQ(0.0f, array2.UnalignedAt<float>(float_misalign));
-  array1.SetUnalignedAt<float>(4 + float_misalign, 1.0f);
-  EXPECT_EQ(1.0f, array2.UnalignedAt<float>(4 + float_misalign));
-
-  int double_misalign = 5;
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<double>(double_misalign, DBL_MIN);
-  EXPECT_EQ(DBL_MIN, array2.UnalignedAt<double>(double_misalign));
-  array1.SetUnalignedAt<double>(8 + double_misalign, DBL_MAX);
-  EXPECT_EQ(DBL_MAX,
-            array2.UnalignedAt<double>(8 + double_misalign));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<double>(double_misalign, 0.0);
-  EXPECT_EQ(0.0, array2.UnalignedAt<double>(double_misalign));
-  array1.SetUnalignedAt<double>(8 + double_misalign, 1.0);
-  EXPECT_EQ(1.0, array2.UnalignedAt<double>(8 + double_misalign));
-
-  delete[] data;
-}
-
-
-TEST_CASE(ExternalByteArraySkewedUnalignedBaseAccess) {
-  intptr_t length = 24;
-  uint8_t* data = new uint8_t[length];
-
-  int skew = 2;
-
-  const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data + 3,
-                                                       length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(length, array1.Length());
-
-  const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data + 1,
-                                                       length,
-                                                       NULL,
-                                                       NULL));
-  EXPECT(!array2.IsNull());
-  EXPECT_EQ(length, array2.Length());
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<float>(0, FLT_MIN);
-  array1.SetUnalignedAt<float>(4, FLT_MAX);
-  EXPECT_EQ(FLT_MIN, array2.UnalignedAt<float>(0 + skew));
-  EXPECT_EQ(FLT_MAX, array2.UnalignedAt<float>(4 + skew));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<float>(0, 0.0f);
-  EXPECT_EQ(0.0f, array2.UnalignedAt<float>(0 + skew));
-  array2.SetUnalignedAt<float>(4 + skew, 1.0f);
-  EXPECT_EQ(1.0f, array1.UnalignedAt<float>(4));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<double>(0, DBL_MIN);
-  EXPECT_EQ(DBL_MIN, array2.UnalignedAt<double>(0 + skew));
-  array2.SetUnalignedAt<double>(8 + skew, DBL_MAX);
-  EXPECT_EQ(DBL_MAX, array1.UnalignedAt<double>(8));
-
-  memset(data, 0xAA, ARRAY_SIZE(data));
-  array1.SetUnalignedAt<double>(0, 0.0);
-  EXPECT_EQ(0.0, array2.UnalignedAt<double>(0 + skew));
-  array2.SetUnalignedAt<double>(8 + skew, 1.0);
-  EXPECT_EQ(1.0, array1.UnalignedAt<double>(8));
-
-  delete[] data;
-}
-
-
-TEST_CASE(ExternalByteArrayCopy) {
-  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
-  const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
-
-  uint8_t data[] = { 0, 1, 2, 3 };
-  const ExternalByteArray& external =
-      ExternalByteArray::Handle(
-          ExternalByteArray::New(data, ARRAY_SIZE(data), NULL, NULL));
-  EXPECT(!external.IsNull());
-  EXPECT_EQ(4, external.Length());
-  EXPECT_EQ(0, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(2, external.At<uint8_t>(2));
-  EXPECT_EQ(3, external.At<uint8_t>(3));
-
-  // A zero length copy.
-  ByteArray::Copy(external, 0, b_4_5_6_7, 0);
-  EXPECT_EQ(0, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(2, external.At<uint8_t>(2));
-  EXPECT_EQ(3, external.At<uint8_t>(3));
-
-  // Another zero length copy.
-  ByteArray::Copy(external, 4, b_4_5_6_7, 0);
-  EXPECT_EQ(0, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(2, external.At<uint8_t>(2));
-  EXPECT_EQ(3, external.At<uint8_t>(3));
-
-  // A one element copy.
-  ByteArray::Copy(external, 0, b_4_5_6_7, 1);
-  EXPECT_EQ(4, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(2, external.At<uint8_t>(2));
-  EXPECT_EQ(3, external.At<uint8_t>(3));
-
-  // A two element copy.
-  ByteArray::Copy(external, 2, b_4_5_6_7, 2);
-  EXPECT_EQ(4, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(4, external.At<uint8_t>(2));
-  EXPECT_EQ(5, external.At<uint8_t>(3));
-
-  // A three element copy.
-  ByteArray::Copy(external, 1, b_4_5_6_7, 3);
-  EXPECT_EQ(4, external.At<uint8_t>(0));
-  EXPECT_EQ(4, external.At<uint8_t>(1));
-  EXPECT_EQ(5, external.At<uint8_t>(2));
-  EXPECT_EQ(6, external.At<uint8_t>(3));
-
-  // A four element copy.
-  ByteArray::Copy(external, 0, b_0_1_2_3, 4);
-  EXPECT_EQ(0, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(2, external.At<uint8_t>(2));
-  EXPECT_EQ(3, external.At<uint8_t>(3));
-}
-
-
 TEST_CASE(InternalByteArray) {
   uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
   intptr_t data_length = ARRAY_SIZE(data);
 
-  const InternalByteArray& array1 =
-      InternalByteArray::Handle(InternalByteArray::New(data, data_length));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(data_length, array1.Length());
-  EXPECT_EQ(-3, array1.At<int8_t>(0));
-  EXPECT_EQ(253, array1.At<uint8_t>(0));
-  EXPECT_EQ(-2, array1.At<int8_t>(1));
-  EXPECT_EQ(254, array1.At<uint8_t>(1));
-  EXPECT_EQ(-1, array1.At<int8_t>(2));
-  EXPECT_EQ(255, array1.At<uint8_t>(2));
-  EXPECT_EQ(0, array1.At<int8_t>(3));
-  EXPECT_EQ(0, array1.At<uint8_t>(3));
-  EXPECT_EQ(1, array1.At<int8_t>(4));
-  EXPECT_EQ(1, array1.At<uint8_t>(4));
-  EXPECT_EQ(2, array1.At<int8_t>(5));
-  EXPECT_EQ(2, array1.At<uint8_t>(5));
+  const Int8Array& int8_array =
+      Int8Array::Handle(Int8Array::New(reinterpret_cast<int8_t*>(data),
+                                       data_length));
+  EXPECT(!int8_array.IsNull());
+  EXPECT_EQ(data_length, int8_array.Length());
 
-  const InternalByteArray& array2 =
-      InternalByteArray::Handle(InternalByteArray::New(data, data_length));
-  EXPECT(!array1.IsNull());
-  EXPECT_EQ(data_length, array2.Length());
-  for (intptr_t i = 0; i < array1.Length(); ++i) {
-    EXPECT_EQ(array1.At<uint8_t>(i), array2.At<uint8_t>(i));
+  EXPECT_EQ(-3, int8_array.At(0));
+  uint8_t at_0;
+  ByteArray::Copy(&at_0, int8_array, 0, sizeof(at_0));
+  EXPECT_EQ(253, at_0);
+
+  EXPECT_EQ(-2, int8_array.At(1));
+  uint8_t at_1;
+  ByteArray::Copy(&at_1, int8_array, 1, sizeof(at_1));
+  EXPECT_EQ(254, at_1);
+
+  EXPECT_EQ(-1, int8_array.At(2));
+  uint8_t at_2;
+  ByteArray::Copy(&at_2, int8_array, 2, sizeof(at_2));
+  EXPECT_EQ(255, at_2);
+
+  EXPECT_EQ(0, int8_array.At(3));
+  uint8_t at_3;
+  ByteArray::Copy(&at_3, int8_array, 3, sizeof(at_3));
+  EXPECT_EQ(0, at_3);
+
+  EXPECT_EQ(1, int8_array.At(4));
+  uint8_t at_4;
+  ByteArray::Copy(&at_4, int8_array, 4, sizeof(at_4));
+  EXPECT_EQ(1, at_4);
+
+  EXPECT_EQ(2, int8_array.At(5));
+  uint8_t at_5;
+  ByteArray::Copy(&at_5, int8_array, 5, sizeof(at_5));
+  EXPECT_EQ(2, at_5);
+
+  EXPECT_EQ(3, int8_array.At(6));
+  uint8_t at_6;
+  ByteArray::Copy(&at_6, int8_array, 6, sizeof(at_6));
+  EXPECT_EQ(3, at_6);
+
+  EXPECT_EQ(4, int8_array.At(7));
+  uint8_t at_7;
+  ByteArray::Copy(&at_7, int8_array, 7, sizeof(at_7));
+  EXPECT_EQ(4, at_7);
+
+  const Int8Array& int8_array2 =
+      Int8Array::Handle(Int8Array::New(reinterpret_cast<int8_t*>(data),
+                                       data_length));
+  EXPECT(!int8_array.IsNull());
+  EXPECT_EQ(data_length, int8_array.Length());
+
+  for (intptr_t i = 0; i < data_length; ++i) {
+    EXPECT_EQ(int8_array.At(i), int8_array2.At(i));
+  }
+  for (intptr_t i = 0; i < data_length; ++i) {
+    int8_array.SetAt(i, 123 + i);
+  }
+  for (intptr_t i = 0; i < data_length; ++i) {
+    EXPECT(int8_array.At(i) != int8_array2.At(i));
+  }
+}
+
+
+TEST_CASE(ExternalByteArray) {
+  uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
+  intptr_t data_length = ARRAY_SIZE(data);
+
+  const ExternalInt8Array& int8_array =
+      ExternalInt8Array::Handle(
+          ExternalInt8Array::New(reinterpret_cast<int8_t*>(data),
+                                 data_length, NULL, NULL));
+  EXPECT(!int8_array.IsNull());
+  EXPECT_EQ(data_length, int8_array.Length());
+
+  const ExternalUint8Array& uint8_array =
+      ExternalUint8Array::Handle(
+          ExternalUint8Array::New(data, data_length, NULL, NULL));
+  EXPECT(!uint8_array.IsNull());
+  EXPECT_EQ(data_length, uint8_array.Length());
+
+  EXPECT_EQ(-3, int8_array.At(0));
+  EXPECT_EQ(253, uint8_array.At(0));
+
+  EXPECT_EQ(-2, int8_array.At(1));
+  EXPECT_EQ(254, uint8_array.At(1));
+
+  EXPECT_EQ(-1, int8_array.At(2));
+  EXPECT_EQ(255, uint8_array.At(2));
+
+  EXPECT_EQ(0, int8_array.At(3));
+  EXPECT_EQ(0, uint8_array.At(3));
+
+  EXPECT_EQ(1, int8_array.At(4));
+  EXPECT_EQ(1, uint8_array.At(4));
+
+  EXPECT_EQ(2, int8_array.At(5));
+  EXPECT_EQ(2, uint8_array.At(5));
+
+  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+    uint8_t value = 0;
+    ByteArray::Copy(&value, int8_array, i, sizeof(value));
+    EXPECT_EQ(value, uint8_array.At(i));
   }
 
-  array1.SetAt<uint8_t>(0, 123);
-  array2.SetAt<int8_t>(2, -123);
-
-  EXPECT(array1.At<uint8_t>(0) != array2.At<uint8_t>(0));
-  EXPECT(array1.At<uint8_t>(1) == array2.At<uint8_t>(1));
-  EXPECT(array1.At<uint8_t>(2) != array2.At<uint8_t>(2));
-  for (intptr_t i = 3; i < array1.Length(); ++i) {
-    EXPECT(array1.At<uint8_t>(i) == array2.At<uint8_t>(i));
+  int8_array.SetAt(2, -123);
+  uint8_array.SetAt(0, 123);
+  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+    int8_t value = 0;
+    ByteArray::Copy(&value, uint8_array, i, sizeof(value));
+    EXPECT_EQ(int8_array.At(i), value);
   }
 }
 
 
-TEST_CASE(InternalByteArrayAlignedAccess) {
-  const intptr_t length = 16;
-  const InternalByteArray& byte_array =
-      InternalByteArray::Handle(InternalByteArray::New(length));
-  EXPECT(!byte_array.IsNull());
-  EXPECT_EQ(length, byte_array.Length());
-
-  byte_array.SetAt<float>(0, FLT_MIN);
-  byte_array.SetAt<float>(4, FLT_MAX);
-  EXPECT_EQ(FLT_MIN, byte_array.At<float>(0));
-  EXPECT_EQ(FLT_MAX, byte_array.At<float>(4));
-
-  byte_array.SetAt<float>(0, 0.0f);
-  EXPECT_EQ(0.0f, byte_array.At<float>(0));
-  byte_array.SetAt<float>(4, 1.0f);
-  EXPECT_EQ(1.0f, byte_array.At<float>(4));
-
-  byte_array.SetAt<double>(0, DBL_MIN);
-  EXPECT_EQ(DBL_MIN, byte_array.At<double>(0));
-  byte_array.SetAt<double>(8, DBL_MAX);
-  EXPECT_EQ(DBL_MAX, byte_array.At<double>(8));
-
-  byte_array.SetAt<double>(0, 0.0);
-  EXPECT_EQ(0.0, byte_array.At<double>(0));
-  byte_array.SetAt<double>(8, 1.0);
-  EXPECT_EQ(1.0, byte_array.At<double>(8));
-}
-
-
-TEST_CASE(InternalByteArrayUnlignedAccess) {
-  const intptr_t length = 24;
-  const InternalByteArray& byte_array =
-      InternalByteArray::Handle(InternalByteArray::New(length));
-  EXPECT(!byte_array.IsNull());
-  EXPECT_EQ(length, byte_array.Length());
-
-  int float_misalign = 3;
-  byte_array.SetUnalignedAt<float>(float_misalign, FLT_MIN);
-  byte_array.SetUnalignedAt<float>(4 + float_misalign, FLT_MAX);
-  EXPECT_EQ(FLT_MIN, byte_array.UnalignedAt<float>(float_misalign));
-  EXPECT_EQ(FLT_MAX, byte_array.UnalignedAt<float>(4 + float_misalign));
-
-  byte_array.SetUnalignedAt<float>(float_misalign, 0.0f);
-  EXPECT_EQ(0.0f, byte_array.UnalignedAt<float>(float_misalign));
-  byte_array.SetUnalignedAt<float>(4 + float_misalign, 1.0f);
-  EXPECT_EQ(1.0f, byte_array.UnalignedAt<float>(4 + float_misalign));
-
-  int double_misalign = 5;
-  byte_array.SetUnalignedAt<double>(double_misalign, DBL_MIN);
-  EXPECT_EQ(DBL_MIN, byte_array.UnalignedAt<double>(double_misalign));
-  byte_array.SetUnalignedAt<double>(8 + double_misalign, DBL_MAX);
-  EXPECT_EQ(DBL_MAX,
-            byte_array.UnalignedAt<double>(8 + double_misalign));
-
-  byte_array.SetUnalignedAt<double>(double_misalign, 0.0);
-  EXPECT_EQ(0.0, byte_array.UnalignedAt<double>(double_misalign));
-  byte_array.SetUnalignedAt<double>(8 + double_misalign, 1.0);
-  EXPECT_EQ(1.0, byte_array.UnalignedAt<double>(8 + double_misalign));
-}
-
-
-TEST_CASE(InternalByteArrayCopy) {
+TEST_CASE(ByteArrayCopyInternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
   const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
-  const InternalByteArray& internal =
-      InternalByteArray::Handle(
-          InternalByteArray::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
+  const Uint8Array& internal =
+      Uint8Array::Handle(Uint8Array::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
   EXPECT(!internal.IsNull());
   EXPECT_EQ(4, internal.Length());
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A zero length copy.
   ByteArray::Copy(internal, 0, b_4_5_6_7, 0);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // Another zero length copy.
   ByteArray::Copy(internal, 4, b_4_5_6_7, 0);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A one element copy.
   ByteArray::Copy(internal, 0, b_4_5_6_7, 1);
-  EXPECT_EQ(4, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A two element copy.
   ByteArray::Copy(internal, 2, b_4_5_6_7, 2);
-  EXPECT_EQ(4, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(4, internal.At<uint8_t>(2));
-  EXPECT_EQ(5, internal.At<uint8_t>(3));
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(4, internal.At(2));
+  EXPECT_EQ(5, internal.At(3));
 
   // A three element copy.
   ByteArray::Copy(internal, 1, b_4_5_6_7, 3);
-  EXPECT_EQ(4, internal.At<uint8_t>(0));
-  EXPECT_EQ(4, internal.At<uint8_t>(1));
-  EXPECT_EQ(5, internal.At<uint8_t>(2));
-  EXPECT_EQ(6, internal.At<uint8_t>(3));
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(4, internal.At(1));
+  EXPECT_EQ(5, internal.At(2));
+  EXPECT_EQ(6, internal.At(3));
 
   // A four element copy.
   ByteArray::Copy(internal, 0, b_0_1_2_3, 4);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 }
 
 
-TEST_CASE(ByteArrayCopy) {
+TEST_CASE(ByteArrayCopyExternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
-  const InternalByteArray& internal =
-      InternalByteArray::Handle(
-          InternalByteArray::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
-  EXPECT(!internal.IsNull());
-  EXPECT_EQ(4, internal.Length());
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
-
-  uint8_t data[] = { 4, 5, 6, 7 };
-  const ExternalByteArray& external =
-      ExternalByteArray::Handle(
-          ExternalByteArray::New(data, ARRAY_SIZE(data), NULL, NULL));
+  uint8_t data[] = { 0, 1, 2, 3 };
+  const ExternalUint8Array& external =
+      ExternalUint8Array::Handle(
+          ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
-  EXPECT_EQ(4, external.At<uint8_t>(0));
-  EXPECT_EQ(5, external.At<uint8_t>(1));
-  EXPECT_EQ(6, external.At<uint8_t>(2));
-  EXPECT_EQ(7, external.At<uint8_t>(3));
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(external, 0, b_4_5_6_7, 0);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // Another zero length copy.
+  ByteArray::Copy(external, 4, b_4_5_6_7, 0);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A one element copy.
+  ByteArray::Copy(external, 0, b_4_5_6_7, 1);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A two element copy.
+  ByteArray::Copy(external, 2, b_4_5_6_7, 2);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(4, external.At(2));
+  EXPECT_EQ(5, external.At(3));
+
+  // A three element copy.
+  ByteArray::Copy(external, 1, b_4_5_6_7, 3);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(4, external.At(1));
+  EXPECT_EQ(5, external.At(2));
+  EXPECT_EQ(6, external.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(external, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+}
+
+
+TEST_CASE(ByteArrayCopyInternalExternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+
+  const Uint8Array& internal =
+      Uint8Array::Handle(Uint8Array::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
+  EXPECT(!internal.IsNull());
+  EXPECT_EQ(4, internal.Length());
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  uint8_t data[] = { 4, 5, 6, 7 };
+  const ExternalUint8Array& external =
+      ExternalUint8Array::Handle(
+          ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
+  EXPECT(!external.IsNull());
+  EXPECT_EQ(4, external.Length());
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
 
   // A zero length copy.
   ByteArray::Copy(internal, 0, external, 0, 0);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A zero length copy, take 2.
   ByteArray::Copy(internal, 4, external, 0, 0);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A zero length copy, take 3.
   ByteArray::Copy(internal, 0, external, 4, 0);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A zero length copy, take 4.
   ByteArray::Copy(internal, 4, external, 4, 0);
-  EXPECT_EQ(0, internal.At<uint8_t>(0));
-  EXPECT_EQ(1, internal.At<uint8_t>(1));
-  EXPECT_EQ(2, internal.At<uint8_t>(2));
-  EXPECT_EQ(3, internal.At<uint8_t>(3));
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
 
   // A four element copy.
   ByteArray::Copy(internal, 0, external, 0, 4);
-  EXPECT_EQ(4, internal.At<uint8_t>(0));
-  EXPECT_EQ(5, internal.At<uint8_t>(1));
-  EXPECT_EQ(6, internal.At<uint8_t>(2));
-  EXPECT_EQ(7, internal.At<uint8_t>(3));
-  EXPECT_EQ(4, external.At<uint8_t>(0));
-  EXPECT_EQ(5, external.At<uint8_t>(1));
-  EXPECT_EQ(6, external.At<uint8_t>(2));
-  EXPECT_EQ(7, external.At<uint8_t>(3));
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(5, internal.At(1));
+  EXPECT_EQ(6, internal.At(2));
+  EXPECT_EQ(7, internal.At(3));
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
 
   // A four element copy, take 2.
   ByteArray::Copy(external, 0, b_0_1_2_3, 4);
-  EXPECT_EQ(0, external.At<uint8_t>(0));
-  EXPECT_EQ(1, external.At<uint8_t>(1));
-  EXPECT_EQ(2, external.At<uint8_t>(2));
-  EXPECT_EQ(3, external.At<uint8_t>(3));
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
   ByteArray::Copy(external, 0, internal, 0, 4);
-  EXPECT_EQ(4, internal.At<uint8_t>(0));
-  EXPECT_EQ(5, internal.At<uint8_t>(1));
-  EXPECT_EQ(6, internal.At<uint8_t>(2));
-  EXPECT_EQ(7, internal.At<uint8_t>(3));
-  EXPECT_EQ(4, external.At<uint8_t>(0));
-  EXPECT_EQ(5, external.At<uint8_t>(1));
-  EXPECT_EQ(6, external.At<uint8_t>(2));
-  EXPECT_EQ(7, external.At<uint8_t>(3));
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(5, internal.At(1));
+  EXPECT_EQ(6, internal.At(2));
+  EXPECT_EQ(7, internal.At(3));
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
 }
 
 

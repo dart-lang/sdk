@@ -24,7 +24,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   void _readDataFromFile(RandomAccessFile openedFile) {
     openedFile.onError = _reportError;
     openedFile.length((length) {
-      var contents = new ByteArray(length);
+      var contents = new Uint8List(length);
       if (length != 0) {
         openedFile.readList(contents, 0, length, (read) {
           if (read != length) {
@@ -56,7 +56,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   List<int> _read(int bytesToRead) {
-    ByteArray result = new ByteArray(bytesToRead);
+    List<int> result = new Uint8List(bytesToRead);
     result.setRange(0, bytesToRead, _data, _position);
     _position += bytesToRead;
     _checkScheduleCallbacks();
@@ -113,7 +113,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     var data = buffer;
     if (copyBuffer) {
       var length = buffer.length;
-      data = new ByteArray(length);
+      data = new Uint8List(length);
       data.setRange(0, length, buffer, 0);
     }
     if (_file == null) {
@@ -131,7 +131,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
       if (len > length) throw new IndexOutOfRangeException(len);
       length = len;
     }
-    var copy = new ByteArray(length);
+    var copy = new Uint8List(length);
     copy.setRange(0, length, buffer, offset);
     return write(copy);
   }
@@ -222,10 +222,10 @@ class _FileUtils {
     // supplied List to a ByteArray if it isn't already.
     List outBuffer;
     int outOffset = offset;
-    if (buffer is ByteArray || buffer is ObjectArray) {
+    if (buffer is Uint8List || buffer is ObjectArray) {
       outBuffer = buffer;
     } else {
-      outBuffer = new ByteArray(bytes);
+      outBuffer = new Uint8List(bytes);
       outOffset = 0;
       int j = offset;
       for (int i = 0; i < bytes; i++) {
@@ -601,7 +601,7 @@ class _File extends _FileBase implements File {
   List<int> readAsBytesSync() {
     var opened = openSync();
     var length = opened.lengthSync();
-    var result = new ByteArray(length);
+    var result = new Uint8List(length);
     var read = opened.readListSync(result, 0, length);
     if (read != length) {
       throw new FileIOException("Failed to read file");

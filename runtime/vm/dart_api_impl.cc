@@ -1863,7 +1863,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsByteArray()) {
+  if (obj.IsUint8Array() || obj.IsExternalUint8Array()) {
     ByteArray& byte_array = ByteArray::Handle(isolate);
     byte_array ^= obj.raw();
     if (Utils::RangeCheck(offset, length, byte_array.Length())) {
@@ -1947,7 +1947,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsByteArray()) {
+  if (obj.IsUint8Array() || obj.IsExternalUint8Array()) {
     ByteArray& byte_array = ByteArray::Handle(isolate);
     byte_array ^= obj.raw();
     if (Utils::RangeCheck(offset, length, byte_array.Length())) {
@@ -2022,7 +2022,7 @@ DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  return Api::NewHandle(isolate, InternalByteArray::New(length));
+  return Api::NewHandle(isolate, Uint8Array::New(length));
 }
 
 
@@ -2041,7 +2041,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
                          CURRENT_FUNC);
   }
   return Api::NewHandle(
-      isolate, ExternalByteArray::New(data, length, peer, callback));
+      isolate, ExternalUint8Array::New(data, length, peer, callback));
 }
 
 
@@ -2049,10 +2049,10 @@ DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
                                                       void** peer) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const ExternalByteArray& array =
-      Api::UnwrapExternalByteArrayHandle(isolate, object);
+  const ExternalUint8Array& array =
+      Api::UnwrapExternalUint8ArrayHandle(isolate, object);
   if (array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, ExternalByteArray);
+    RETURN_TYPE_ERROR(isolate, object, ExternalUint8Array);
   }
   if (peer == NULL) {
     return Api::NewError("%s expects argument 'peer' to be non-null.",
@@ -2072,7 +2072,7 @@ Dart_Handle ByteArrayGetAt(T* value, Dart_Handle array, intptr_t offset) {
     RETURN_TYPE_ERROR(isolate, array, ByteArray);
   }
   intptr_t length = sizeof(T);
-  if (!Utils::RangeCheck(offset, length, array_obj.Length())) {
+  if (!Utils::RangeCheck(offset, length, array_obj.ByteLength())) {
     return Api::NewError("Invalid index passed in to get byte array element");
   }
   uint8_t* dst = reinterpret_cast<uint8_t*>(value);
@@ -2090,7 +2090,7 @@ Dart_Handle ByteArraySetAt(Dart_Handle array, intptr_t offset, T value) {
     RETURN_TYPE_ERROR(isolate, array, ByteArray);
   }
   intptr_t length = sizeof(T);
-  if (!Utils::RangeCheck(offset, length, array_obj.Length())) {
+  if (!Utils::RangeCheck(offset, length, array_obj.ByteLength())) {
     return Api::NewError("Invalid index passed in to get byte array element");
   }
   const uint8_t* src = reinterpret_cast<uint8_t*>(&value);
@@ -2100,142 +2100,142 @@ Dart_Handle ByteArraySetAt(Dart_Handle array, intptr_t offset, T value) {
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetInt8At(Dart_Handle array,
-                                                intptr_t offset,
+                                                intptr_t byte_offset,
                                                 int8_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetInt8At(Dart_Handle array,
-                                                intptr_t offset,
+                                                intptr_t byte_offset,
                                                 int8_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetUint8At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  uint8_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetUint8At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  uint8_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetInt16At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  int16_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetInt16At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  int16_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetUint16At(Dart_Handle array,
-                                                  intptr_t offset,
+                                                  intptr_t byte_offset,
                                                   uint16_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetUint16At(Dart_Handle array,
-                                                  intptr_t offset,
+                                                  intptr_t byte_offset,
                                                   uint16_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetInt32At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  int32_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetInt32At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  int32_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetUint32At(Dart_Handle array,
-                                                  intptr_t offset,
+                                                  intptr_t byte_offset,
                                                   uint32_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetUint32At(Dart_Handle array,
-                                                  intptr_t offset,
+                                                  intptr_t byte_offset,
                                                   uint32_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetInt64At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  int64_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetInt64At(Dart_Handle array,
-                                                 intptr_t offset,
+                                                 intptr_t byte_offset,
                                                  int64_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetUint64At(Dart_Handle array,
-                                                  intptr_t offset,
+                                                  intptr_t byte_offset,
                                                   uint64_t* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetUint64At(Dart_Handle array,
-                                                  intptr_t offset,
+                                                  intptr_t byte_offset,
                                                   uint64_t value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetFloat32At(Dart_Handle array,
-                                                   intptr_t offset,
+                                                   intptr_t byte_offset,
                                                    float* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetFloat32At(Dart_Handle array,
-                                                   intptr_t offset,
+                                                   intptr_t byte_offset,
                                                    float value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArrayGetFloat64At(Dart_Handle array,
-                                                   intptr_t offset,
+                                                   intptr_t byte_offset,
                                                    double* value) {
-  return ByteArrayGetAt(value, array, offset);
+  return ByteArrayGetAt(value, array, byte_offset);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ByteArraySetFloat64At(Dart_Handle array,
-                                                   intptr_t offset,
+                                                   intptr_t byte_offset,
                                                    double value) {
-  return ByteArraySetAt(array, offset, value);
+  return ByteArraySetAt(array, byte_offset, value);
 }
 
 

@@ -327,7 +327,7 @@ class _HttpRequestResponseBase {
     final List<int> hexDigits = [0x30, 0x31, 0x32, 0x33, 0x34,
                                  0x35, 0x36, 0x37, 0x38, 0x39,
                                  0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
-    ByteArray hex = new ByteArray(10);
+    List<int> hex = new Uint8List(10);
     int index = hex.length;
     while (x > 0) {
       index--;
@@ -759,7 +759,7 @@ class _HttpConnectionBase implements Hashable {
       return;
     }
 
-    ByteArray buffer = new ByteArray(available);
+    List<int> buffer = new Uint8List(available);
     int bytesRead = _socket.readList(buffer, 0, available);
     if (bytesRead > 0) {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);

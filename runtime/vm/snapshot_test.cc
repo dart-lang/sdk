@@ -92,7 +92,7 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
     case Dart_CObject::kString:
       EXPECT_STREQ(first->value.as_string, second->value.as_string);
       break;
-    case Dart_CObject::kByteArray:
+    case Dart_CObject::kUint8Array:
       EXPECT_EQ(first->value.as_byte_array.length,
                 second->value.as_byte_array.length);
       for (int i = 0; i < first->value.as_byte_array.length; i++) {
@@ -655,10 +655,10 @@ TEST_CASE(SerializeByteArray) {
   uint8_t* buffer;
   SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
   const int kByteArrayLength = 256;
-  InternalByteArray& byte_array =
-      InternalByteArray::Handle(InternalByteArray::New(kByteArrayLength));
+  Uint8Array& byte_array =
+      Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
   for (int i = 0; i < kByteArrayLength; i++) {
-    byte_array.SetAt<uint8_t>(i, i);
+    byte_array.SetAt(i, i);
   }
   writer.WriteObject(byte_array.raw());
   writer.FinalizeBuffer();
@@ -677,7 +677,7 @@ TEST_CASE(SerializeByteArray) {
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
-  EXPECT_EQ(Dart_CObject::kByteArray, root->type);
+  EXPECT_EQ(Dart_CObject::kUint8Array, root->type);
   EXPECT_EQ(kByteArrayLength, root->value.as_byte_array.length);
   for (int i = 0; i < kByteArrayLength; i++) {
     EXPECT(root->value.as_byte_array.values[i] == i);
@@ -693,8 +693,8 @@ TEST_CASE(SerializeEmptyByteArray) {
   uint8_t* buffer;
   SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
   const int kByteArrayLength = 0;
-  InternalByteArray& byte_array =
-      InternalByteArray::Handle(InternalByteArray::New(kByteArrayLength));
+  Uint8Array& byte_array =
+      Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
   writer.WriteObject(byte_array.raw());
   writer.FinalizeBuffer();
 
@@ -712,7 +712,7 @@ TEST_CASE(SerializeEmptyByteArray) {
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
-  EXPECT_EQ(Dart_CObject::kByteArray, root->type);
+  EXPECT_EQ(Dart_CObject::kUint8Array, root->type);
   EXPECT_EQ(kByteArrayLength, root->value.as_byte_array.length);
   EXPECT(root->value.as_byte_array.values == NULL);
   CheckEncodeDecodeMessage(root);
@@ -1304,8 +1304,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  return list;\n"
       "}\n"
       "getByteArrayList() {\n"
-      "  var byte_array = new ByteArray(256);\n"
-      "  var list = new List<ByteArray>(kArrayLength);\n"
+      "  var byte_array = new Uint8List(256);\n"
+      "  var list = new List(kArrayLength);\n"
       "  for (var i = 0; i < kArrayLength; i++) list[i] = byte_array;\n"
       "  return list;\n"
       "}\n"
@@ -1399,7 +1399,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kByteArray, element->type);
+        EXPECT_EQ(Dart_CObject::kUint8Array, element->type);
         EXPECT_EQ(256, element->value.as_byte_array.length);
       }
     }
