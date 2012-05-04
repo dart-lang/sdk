@@ -18,6 +18,7 @@
 
 int DebuggerConnectionHandler::listener_fd_ = -1;
 int DebuggerConnectionHandler::debugger_fd_ = -1;
+dart::Monitor DebuggerConnectionHandler::is_connected_;
 MessageBuffer* DebuggerConnectionHandler::msgbuf_ = NULL;
 
 bool DebuggerConnectionHandler::handler_started_ = false;
@@ -209,7 +210,7 @@ void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
     ASSERT(Dart_IsString(script_url));
     const char* script_url_chars;
     Dart_StringToCString(script_url, &script_url_chars);
-    msg.Printf("\"location\": { \"scriptId\": \"%s\", \"lineNumber\": %d }}",
+    msg.Printf("\"location\": { \"url\": \"%s\", \"lineNumber\": %d }}",
                script_url_chars, line_number);
   }
   msg.Printf("]}}");
@@ -220,11 +221,13 @@ void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
 
 void DebuggerConnectionHandler::BreakpointHandler(Dart_Breakpoint bpt,
                                                   Dart_StackTrace trace) {
-  // TODO(hausner): rather than busy-waiting, block on the pipe to the
-  // debugger thread and wait until a debugger connection has been
-  // established.
-  while (!IsConnected()) {
-    // Busy wait.
+  {
+    MonitorLocker ml(&is_connected_);
+    while (!IsConnected()) {
+      printf("Waiting for debugger connection...\n");
+      dart::Monitor::WaitResult res = ml.Wait(dart::Monitor::kNoTimeout);
+      ASSERT(res == dart::Monitor::kNotified);
+    }
   }
   SendBreakpointEvent(bpt, trace);
   HandleMessages();
@@ -238,6 +241,10 @@ void DebuggerConnectionHandler::AcceptDbgConnection(int debugger_fd) {
   debugger_fd_ = debugger_fd;
   ASSERT(msgbuf_ == NULL);
   msgbuf_ = new MessageBuffer(debugger_fd_);
+  {
+    MonitorLocker ml(&is_connected_);
+    ml.Notify();
+  }
 }
 
 void DebuggerConnectionHandler::CloseDbgConnection() {

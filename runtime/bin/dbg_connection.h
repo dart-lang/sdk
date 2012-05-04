@@ -56,6 +56,10 @@ class DebuggerConnectionHandler {
   // closed by a VM thread.
   static int debugger_fd_;
 
+  // The VM thread waits on this condition variable when it reaches a
+  // breakpoint and the debugger client has not connected yet.
+  static dart::Monitor is_connected_;
+
   static MessageBuffer* msgbuf_;
 
   friend class DebuggerConnectionImpl;
