@@ -215,6 +215,7 @@ module storage {
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
     [DartName=getObject] IDBRequest get(in IDBKeyRange key);
+    [Suppressed, CallWith=ScriptExecutionContext] IDBRequest openCursor() raises (IDBDatabaseException);
   };
 
   interface IDBKeyRange {

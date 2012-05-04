@@ -10485,27 +10485,12 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     return _wrap(_ptr.index(_unwrap(name)));
   }
 
-  IDBRequest openCursor([key_OR_range = null, int direction = null]) {
-    if (key_OR_range === null) {
-      if (direction === null) {
-        return _wrap(_ptr.openCursor());
-      }
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+    if (direction === null) {
+      return _wrap(_ptr.openCursor(_unwrap(range)));
     } else {
-      if (key_OR_range is IDBKeyRange) {
-        if (direction === null) {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
-        } else {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
-        }
-      } else {
-        if (direction === null) {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
-        } else {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
-        }
-      }
+      return _wrap(_ptr.openCursor(_unwrap(range), _unwrap(direction)));
     }
-    throw "Incorrect number or type of arguments";
   }
 
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key = null]) {
