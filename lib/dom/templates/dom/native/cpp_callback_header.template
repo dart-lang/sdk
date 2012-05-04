@@ -18,8 +18,10 @@ class Dart$(INTERFACE) : public $(INTERFACE), public ActiveDOMCallback {
 public:
     typedef $(INTERFACE) NativeType;
 
-    static PassRefPtr<NativeType> toNative(Dart_Handle object, Dart_Handle& exception)
+    static PassRefPtr<NativeType> create(Dart_Handle object, DartUtilities::ConversionFlag flag, Dart_Handle& exception)
     {
+        if (flag == DartUtilities::ConvertNullToDefaultValue && Dart_IsNull(object))
+            return 0;
         return adoptRef(new Dart$(INTERFACE)(object, exception, DartUtilities::scriptExecutionContext()));
     }
 $HANDLERS

@@ -303,7 +303,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     # Process constructor arguments.
     for (i, argument) in enumerate(constructor_info.idl_args):
-      argument_expression = self._GenerateParameterAdapter(
+      argument_expression = self._GenerateToNative(
           parameter_definitions_emitter, argument, i)
       arguments.append(argument_expression)
 
@@ -387,7 +387,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
           '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception);\n')
     else:
       to_native_emitter.Emit(
-          '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception)\n'
+          '    static NativeType* toNative(Dart_Handle handle, Dart_Handle& exception)\n'
           '    {\n'
           '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
           '    }\n',
@@ -537,8 +537,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    argument_expression = self._GenerateParameterAdapter(
-        parameter_definitions_emitter, attr, 1, adapter_name='value')
+    argument_expression = self._GenerateToNative(
+        parameter_definitions_emitter, attr, 1, argument_name='value')
     arguments.append(argument_expression)
 
     parameter_definitions = parameter_definitions_emitter.Fragments()
@@ -671,7 +671,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
-      argument_expression = self._GenerateParameterAdapter(
+      argument_expression = self._GenerateToNative(
           parameter_definitions_emitter, argument, start_index + i)
       arguments.append(argument_expression)
 
@@ -719,7 +719,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     if raises_exceptions:
       body = emitter.Format(
-          '    Dart_Handle exception;\n'
+          '    Dart_Handle exception = 0;\n'
           '$BODY'
           '\n'
           'fail:\n'
@@ -737,36 +737,15 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         CALLBACK_NAME=callback_name,
         BODY=body)
 
-  def _GenerateParameterAdapter(self, emitter, idl_node, index,
-                                adapter_name=None):
+  def _GenerateToNative(self, emitter, idl_node, index,
+                                argument_name=None):
     """idl_node is IDLArgument or IDLAttribute."""
     type_info = GetIDLTypeInfo(idl_node.type.id)
-    (adapter_type, include_name) = type_info.parameter_adapter_info()
-    if include_name:
-      self._cpp_impl_includes.add(include_name)
-    adapter_name = adapter_name or idl_node.id
-    flags = ''
-    if (idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString' or
-        'RequiredCppParameter' in idl_node.ext_attrs):
-      flags = ', DartUtilities::ConvertNullToDefaultValue'
-    emitter.Emit(
-        '\n'
-        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX)$FLAGS);\n'
-        '        if (!$NAME.conversionSuccessful()) {\n'
-        '            exception = $NAME.exception();\n'
-        '            goto fail;\n'
-        '        }\n',
-        ADAPTER_TYPE=adapter_type,
-        NAME=adapter_name,
-        INDEX=index,
-        FLAGS=flags)
-
-    conversion = '%s'
-    if isinstance(type_info, SVGTearOffIDLTypeInfo) and not self._interface.id.endswith('List'):
-      conversion = '%s.get()->propertyReference()'
-    elif type_info.idl_type() == 'SVGMatrix' and self._interface.id == 'SVGTransformList':
-      conversion = '%s.get()'
-    return conversion % adapter_name
+    if not IsPrimitiveType(idl_node.type.id):
+      self._cpp_impl_includes.add('"Dart%s.h"' % type_info.idl_type())
+    argument_name = argument_name or idl_node.id
+    handle = 'Dart_GetNativeArgument(args, %i)' % index
+    return type_info.emit_to_native(emitter, idl_node, argument_name, handle, self._interface.id)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):

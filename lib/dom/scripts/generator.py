@@ -448,10 +448,42 @@ class IDLTypeInfo(object):
   def native_type(self):
     return self._native_type or self._idl_type
 
-  def parameter_adapter_info(self):
-    adapter_type = 'ParameterAdapter<Dart%s>' % self._idl_type
-    include = '"Dart%s.h"' % self._idl_type
-    return (adapter_type, include)
+  def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+    if 'Callback' in idl_node.ext_attrs:
+      if 'RequiredCppParameter' in idl_node.ext_attrs:
+        flag = 'DartUtilities::ConvertNullToDefaultValue'
+      else:
+        flag = 'DartUtilities::ConvertNone'
+      emitter.Emit(
+        '\n'
+        '        RefPtr<$TYPE> $NAME = Dart$IDL_TYPE::create($HANDLE, $FLAG, exception);\n'
+        '        if (exception)\n'
+        '            goto fail;\n',
+        TYPE=self.native_type(),
+        NAME=name,
+        IDL_TYPE=self.idl_type(),
+        HANDLE=handle,
+        FLAG=flag)
+      return name
+
+    argument = name
+    if self.custom_to_native():
+      type = 'RefPtr<%s>' % self.native_type()
+      argument = '%s.get()' % name
+    else:
+      type = '%s*' % self.native_type()
+      if isinstance(self, SVGTearOffIDLTypeInfo) and not interface_name.endswith('List'):
+        argument = '%s->propertyReference()' % name
+    emitter.Emit(
+        '\n'
+        '        $TYPE $NAME = Dart$IDL_TYPE::toNative($HANDLE, exception);\n'
+        '        if (exception)\n'
+        '            goto fail;\n',
+        TYPE=type,
+        NAME=name,
+        IDL_TYPE=self.idl_type(),
+        HANDLE=handle)
+    return argument
 
   def custom_to_native(self):
     return self._custom_to_native
@@ -525,9 +557,21 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     self._webcore_getter_name = webcore_getter_name
     self._webcore_setter_name = webcore_setter_name
 
-  def parameter_adapter_info(self):
-    adapter_type = 'ParameterAdapter<%s>' % self.native_type()
-    return (adapter_type, None)
+  def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+    arguments = [handle]
+    if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString' or 'RequiredCppParameter' in idl_node.ext_attrs:
+      arguments.append('DartUtilities::ConvertNullToDefaultValue')
+    emitter.Emit(
+        '\n'
+        '        const ParameterAdapter<$TYPE> $NAME($ARGUMENTS);\n'
+        '        if (!$NAME.conversionSuccessful()) {\n'
+        '            exception = $NAME.exception();\n'
+        '            goto fail;\n'
+        '        }\n',
+        TYPE=self.native_type(),
+        NAME=name,
+        ARGUMENTS=', '.join(arguments))
+    return name
 
   def parameter_type(self):
     if self.native_type() == 'String':
@@ -646,7 +690,6 @@ _idl_type_registry = {
     'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
     'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic', custom_to_native=True),
     'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic', custom_to_native=True),
-    'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', custom_to_native=True),
     'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
     'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
 
