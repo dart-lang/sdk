@@ -11,6 +11,7 @@
 class FDUtils {
  public:
   static bool SetNonBlocking(intptr_t fd);
+  static bool SetBlocking(intptr_t fd);
 
   // Checks whether the file descriptor is blocking. If the function
   // returns true the value pointed to by is_blocking will be set to

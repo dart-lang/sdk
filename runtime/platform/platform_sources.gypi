@@ -6,6 +6,7 @@
 {
   'sources': [
     'assert.cc',
+    'json.cc',
     'thread_linux.cc',
     'thread_macos.cc',
     'thread_win.cc',

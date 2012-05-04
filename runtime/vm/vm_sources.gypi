@@ -163,8 +163,6 @@
     'isolate.cc',
     'isolate.h',
     'isolate_test.cc',
-    'json.cc',
-    'json.h',
     'json_test.cc',
     'longjump.cc',
     'longjump.h',
