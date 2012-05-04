@@ -8,7 +8,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "bin/dbg_connection.h"
 #include "bin/fdutils.h"
 #include "bin/socket.h"
 
