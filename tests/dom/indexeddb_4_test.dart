@@ -67,7 +67,7 @@ class Test {
           if (firstKey == null) firstKey = cursor.key;
           lastKey = cursor.key;
           itemCount += 1;
-          Expect.equals('Item ${cursor.key}', cursor.value);
+          Expect.equals('Item ${cursor.key.toStringAsFixed(0)}', cursor.value);
           cursor.continueFunction();
         } else {
           // Done

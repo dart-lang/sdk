@@ -576,7 +576,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if 'Custom' in info.overloads[0].ext_attrs:
       parameters = info.ParametersImplementationDeclaration()
       dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
-      argument_count = 1 + len(info.param_infos)
+      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
       self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
           'Callback', True)
       return
@@ -646,7 +646,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
                                        argument_list)
     is_custom = 'Custom' in operation.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(
-        native_name, 1 + len(operation.arguments), dart_declaration, 'Callback',
+        native_name, (0 if operation.is_static else 1) + len(operation.arguments), dart_declaration, 'Callback',
         is_custom)
     if is_custom:
       return
