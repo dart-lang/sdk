@@ -36,26 +36,8 @@ ObjectStore::ObjectStore()
     immutable_array_class_(Class::null()),
     growable_object_array_class_(Class::null()),
     byte_array_interface_(Type::null()),
-    int8_array_class_(Class::null()),
-    uint8_array_class_(Class::null()),
-    int16_array_class_(Class::null()),
-    uint16_array_class_(Class::null()),
-    int32_array_class_(Class::null()),
-    uint32_array_class_(Class::null()),
-    int64_array_class_(Class::null()),
-    uint64_array_class_(Class::null()),
-    float32_array_class_(Class::null()),
-    float64_array_class_(Class::null()),
-    external_int8_array_class_(Class::null()),
-    external_uint8_array_class_(Class::null()),
-    external_int16_array_class_(Class::null()),
-    external_uint16_array_class_(Class::null()),
-    external_int32_array_class_(Class::null()),
-    external_uint32_array_class_(Class::null()),
-    external_int64_array_class_(Class::null()),
-    external_uint64_array_class_(Class::null()),
-    external_float32_array_class_(Class::null()),
-    external_float64_array_class_(Class::null()),
+    internal_byte_array_class_(Class::null()),
+    external_byte_array_class_(Class::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     true_value_(Bool::null()),
@@ -154,26 +136,8 @@ RawClass* ObjectStore::GetClass(int index) {
     case kArrayClass: return array_class_;
     case kImmutableArrayClass: return immutable_array_class_;
     case kGrowableObjectArrayClass: return growable_object_array_class_;
-    case kInt8ArrayClass: return int8_array_class_;
-    case kUint8ArrayClass: return uint8_array_class_;
-    case kInt16ArrayClass: return int16_array_class_;
-    case kUint16ArrayClass: return uint16_array_class_;
-    case kInt32ArrayClass: return int32_array_class_;
-    case kUint32ArrayClass: return uint32_array_class_;
-    case kInt64ArrayClass: return int64_array_class_;
-    case kUint64ArrayClass: return uint64_array_class_;
-    case kFloat32ArrayClass: return float32_array_class_;
-    case kFloat64ArrayClass: return float64_array_class_;
-    case kExternalInt8ArrayClass: return external_int8_array_class_;
-    case kExternalUint8ArrayClass: return external_uint8_array_class_;
-    case kExternalInt16ArrayClass: return external_int16_array_class_;
-    case kExternalUint16ArrayClass: return external_uint16_array_class_;
-    case kExternalInt32ArrayClass: return external_int32_array_class_;
-    case kExternalUint32ArrayClass: return external_uint32_array_class_;
-    case kExternalInt64ArrayClass: return external_int64_array_class_;
-    case kExternalUint64ArrayClass: return external_uint64_array_class_;
-    case kExternalFloat32ArrayClass: return external_float32_array_class_;
-    case kExternalFloat64ArrayClass: return external_float64_array_class_;
+    case kInternalByteArrayClass: return internal_byte_array_class_;
+    case kExternalByteArrayClass: return external_byte_array_class_;
     case kStacktraceClass: return stacktrace_class_;
     case kJSRegExpClass: return jsregexp_class_;
     default: break;
@@ -215,46 +179,10 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
     return kImmutableArrayClass;
   } else if (raw_class == growable_object_array_class_) {
     return kGrowableObjectArrayClass;
-  } else if (raw_class == int8_array_class_) {
-    return kInt8ArrayClass;
-  } else if (raw_class == uint8_array_class_) {
-    return kUint8ArrayClass;
-  } else if (raw_class == int16_array_class_) {
-    return kInt16ArrayClass;
-  } else if (raw_class == uint16_array_class_) {
-    return kUint16ArrayClass;
-  } else if (raw_class == int32_array_class_) {
-    return kInt32ArrayClass;
-  } else if (raw_class == uint32_array_class_) {
-    return kUint32ArrayClass;
-  } else if (raw_class == int64_array_class_) {
-    return kInt64ArrayClass;
-  } else if (raw_class == uint64_array_class_) {
-    return kUint64ArrayClass;
-  } else if (raw_class == float32_array_class_) {
-    return kFloat32ArrayClass;
-  } else if (raw_class == float64_array_class_) {
-    return kFloat64ArrayClass;
-  } else if (raw_class == external_int8_array_class_) {
-    return kExternalInt8ArrayClass;
-  } else if (raw_class == external_uint8_array_class_) {
-    return kExternalUint8ArrayClass;
-  } else if (raw_class == external_int16_array_class_) {
-    return kExternalInt16ArrayClass;
-  } else if (raw_class == external_uint16_array_class_) {
-    return kExternalUint16ArrayClass;
-  } else if (raw_class == external_int32_array_class_) {
-    return kExternalInt32ArrayClass;
-  } else if (raw_class == external_uint32_array_class_) {
-    return kExternalUint32ArrayClass;
-  } else if (raw_class == external_int64_array_class_) {
-    return kExternalInt64ArrayClass;
-  } else if (raw_class == external_uint64_array_class_) {
-    return kExternalUint64ArrayClass;
-  } else if (raw_class == external_float32_array_class_) {
-    return kExternalFloat32ArrayClass;
-  } else if (raw_class == external_float64_array_class_) {
-    return kExternalFloat64ArrayClass;
+  } else if (raw_class == internal_byte_array_class_) {
+    return kInternalByteArrayClass;
+  } else if (raw_class == external_byte_array_class_) {
+    return kExternalByteArrayClass;
   } else if (raw_class == stacktrace_class_) {
     return kStacktraceClass;
   } else if (raw_class == jsregexp_class_) {

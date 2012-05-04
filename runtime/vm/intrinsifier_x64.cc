@@ -73,6 +73,16 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::ByteArrayBase_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   return false;
 }

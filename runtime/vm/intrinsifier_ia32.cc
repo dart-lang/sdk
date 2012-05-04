@@ -432,6 +432,50 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+// Handles only class InternalByteArray.
+bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
+  __ CompareObject(EBX,
+      Class::ZoneHandle(object_store->internal_byte_array_class()));
+  __ j(NOT_EQUAL, &fall_through);
+  __ movl(EAX, FieldAddress(EAX, InternalByteArray::length_offset()));
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+// Handles only class InternalByteArray.
+bool Intrinsifier::ByteArrayBase_getIndexed(Assembler* assembler) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
+  __ CompareObject(EBX,
+      Class::ZoneHandle(object_store->internal_byte_array_class()));
+  __ j(NOT_EQUAL, &fall_through);
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, InternalByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ SmiUntag(EBX);
+  __ movzxb(EAX,
+      FieldAddress(EAX, EBX, TIMES_1, InternalByteArray::data_offset()));
+  // The values stored in the byte array are regular, untagged values,
+  // therefore they need to be tagged.
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

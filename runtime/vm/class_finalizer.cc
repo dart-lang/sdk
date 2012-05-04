@@ -222,44 +222,10 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(Array::InstanceSize() == cls.instance_size());
   cls = object_store->immutable_array_class();
   ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
-  cls = object_store->uint8_array_class();
-  ASSERT(Uint8Array::InstanceSize() == cls.instance_size());
-  cls = object_store->int16_array_class();
-  ASSERT(Int16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint16_array_class();
-  ASSERT(Uint16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->int32_array_class();
-  ASSERT(Int32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint32_array_class();
-  ASSERT(Uint32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->int64_array_class();
-  ASSERT(Int64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint64_array_class();
-  ASSERT(Uint64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->float32_array_class();
-  ASSERT(Float32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->float64_array_class();
-  ASSERT(Float64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int8_array_class();
-  ASSERT(ExternalInt8Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint8_array_class();
-  ASSERT(ExternalUint8Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int16_array_class();
-  ASSERT(ExternalInt16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint16_array_class();
-  ASSERT(ExternalUint16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int32_array_class();
-  ASSERT(ExternalInt32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint32_array_class();
-  ASSERT(ExternalUint32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int64_array_class();
-  ASSERT(ExternalInt64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint64_array_class();
-  ASSERT(ExternalUint64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_float32_array_class();
-  ASSERT(ExternalFloat32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_float64_array_class();
-  ASSERT(ExternalFloat64Array::InstanceSize() == cls.instance_size());
+  cls = object_store->internal_byte_array_class();
+  ASSERT(InternalByteArray::InstanceSize() == cls.instance_size());
+  cls = object_store->external_byte_array_class();
+  ASSERT(ExternalByteArray::InstanceSize() == cls.instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -270,7 +236,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
     cls ^= class_array.At(i);
     if (cls.is_finalized() || cls.is_prefinalized()) {
       // Pre-finalized bootstrap classes must not define any fields.
-      ASSERT(!cls.HasInstanceFields());
+      ASSERT(Array::Handle(cls.fields()).Length() == 0);
     }
   }
 
@@ -353,26 +319,8 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
         (super_class.raw() == object_store->array_class()) ||
         (super_class.raw() == object_store->immutable_array_class()) ||
         (super_class.raw() == growable_object_array_class.raw()) ||
-        (super_class.raw() == object_store->int8_array_class()) ||
-        (super_class.raw() == object_store->uint8_array_class()) ||
-        (super_class.raw() == object_store->int16_array_class()) ||
-        (super_class.raw() == object_store->uint16_array_class()) ||
-        (super_class.raw() == object_store->int32_array_class()) ||
-        (super_class.raw() == object_store->uint32_array_class()) ||
-        (super_class.raw() == object_store->int64_array_class()) ||
-        (super_class.raw() == object_store->uint64_array_class()) ||
-        (super_class.raw() == object_store->float32_array_class()) ||
-        (super_class.raw() == object_store->float64_array_class()) ||
-        (super_class.raw() == object_store->external_int8_array_class()) ||
-        (super_class.raw() == object_store->external_uint8_array_class()) ||
-        (super_class.raw() == object_store->external_int16_array_class()) ||
-        (super_class.raw() == object_store->external_uint16_array_class()) ||
-        (super_class.raw() == object_store->external_int32_array_class()) ||
-        (super_class.raw() == object_store->external_uint32_array_class()) ||
-        (super_class.raw() == object_store->external_int64_array_class()) ||
-        (super_class.raw() == object_store->external_uint64_array_class()) ||
-        (super_class.raw() == object_store->external_float32_array_class()) ||
-        (super_class.raw() == object_store->external_float64_array_class()) ||
+        (super_class.raw() == object_store->internal_byte_array_class()) ||
+        (super_class.raw() == object_store->external_byte_array_class()) ||
         (super_class.raw() == integer_implementation_class.raw()) ||
         (super_class.raw() == object_store->smi_class()) ||
         (super_class.raw() == object_store->mint_class()) ||
