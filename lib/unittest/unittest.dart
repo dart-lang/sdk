@@ -172,18 +172,38 @@ final _PASS  = 'pass';
 final _FAIL  = 'fail';
 final _ERROR = 'error';
 
+/** If set, then all other test cases will be ignored. */
+TestCase _soloTest;
+
 /** Creates an expectation for the given value. */
 Expectation expect(value) => new Expectation(value);
 
-/** Evaluates the given function and validates that it throws an exception. */
-void expectThrow(function) {
+/**
+ * Evaluates the [function] and validates that it throws an exception. If
+ * [callback] is provided, then it will be invoked with the thrown exception.
+ * The callback may do any validation it wants. In addition, if it returns
+ * `false`, that also indicates an expectation failure.
+ */
+void expectThrow(function, [bool callback(exception)]) {
   bool threw = false;
   try {
     function();
   } catch (var e) {
     threw = true;
+
+    // Also let the callback look at it.
+    if (callback != null) {
+      var result = callback(e);
+
+      // If the callback explicitly returned false, treat that like an
+      // expectation too. (If it returns null, though, don't.)
+      if (result == false) {
+        _fail('Exception:\n$e\ndid not match expectation.');
+      }
+    }
   }
-  Expect.equals(true, threw, 'Expected exception but none was thrown.');
+
+  if (threw != true) _fail('An expected exception was not thrown.');
 }
 
 /**
@@ -214,6 +234,29 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
     testCase.error(
         'Async tests must wait for at least one callback ', '');
   }
+}
+
+/**
+ * Creates a new test case with the given description and body. The
+ * description will include the descriptions of any surrounding group()
+ * calls.
+ *
+ * "solo_" means that this will be the only test that is run. All other tests
+ * will be skipped. This is a convenience function to let you quickly isolate
+ * a single test by adding "solo_" before it to temporarily disable all other
+ * tests.
+ */
+void solo_test(String spec, TestFunction body) {
+  // TODO(rnystrom): Support multiple solos. If more than one test is solo-ed,
+  // all of the solo-ed tests and none of the non-solo-ed ones should run.
+  if (_soloTest != null) {
+    throw new Exception('Only one test can be soloed right now.');
+  }
+
+  ensureInitialized();
+
+  _soloTest = new TestCase(_tests.length + 1, _fullSpec(spec), body, 0);
+  _tests.add(_soloTest);
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -408,6 +451,11 @@ _defer(void callback()) {
 
 /** Runs all queued tests, one at a time. */
 _runTests() {
+  // If we are soloing a test, remove all the others.
+  if (_soloTest != null) {
+    _tests = _tests.filter((t) => t == _soloTest);
+  }
+
   _config.onStart();
 
   _defer(() {
@@ -429,7 +477,13 @@ _guard(tryBody, [finallyBody]) {
           trace == null ? '' : trace.toString());
     }
   } catch (var e, var trace) {
-    if (_state != _UNCAUGHT_ERROR) {
+    if (_state == _RUNNING_TEST) {
+      // If a random exception is thrown from within a test, we consider that
+      // a test failure too. A test case implicitly has an expectation that it
+      // will run to completion without an uncaught exception being thrown.
+      _tests[_currentTest].fail('Caught $e',
+          trace == null ? '' : trace.toString());
+    } else if (_state != _UNCAUGHT_ERROR) {
       _tests[_currentTest].error('Caught $e',
           trace == null ? '' : trace.toString());
     }
@@ -491,6 +545,10 @@ _completeTests() {
 String _fullSpec(String spec) {
   if (spec === null) return '$_currentGroup';
   return _currentGroup != '' ? '$_currentGroup $spec' : spec;
+}
+
+void _fail(String message) {
+  throw new ExpectException(message);
 }
 
 /**
