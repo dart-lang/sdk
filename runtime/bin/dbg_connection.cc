@@ -225,8 +225,7 @@ void DebuggerConnectionHandler::BreakpointHandler(Dart_Breakpoint bpt,
   // debugger thread and wait until a debugger connection has been
   // established.
   while (!IsConnected()) {
-    printf("Waiting for debugger connection\n");
-    sleep(1);
+    // Busy wait.
   }
   SendBreakpointEvent(bpt, trace);
   HandleMessages();
