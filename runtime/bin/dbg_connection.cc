@@ -4,7 +4,6 @@
 
 #include "bin/dbg_connection.h"
 #include "bin/dartutils.h"
-#include "bin/fdutils.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -149,7 +148,7 @@ void DebuggerConnectionHandler::HandleResumeCmd() {
   int msg_id = msgbuf_->MessageId();
   dart::TextBuffer msg(64);
   msg.Printf("{ \"id\": %d }", msg_id);
-  FDUtils::WriteToBlocking(debugger_fd_, msg.buf(), msg.length());
+  Socket::Write(debugger_fd_, msg.buf(), msg.length());
   // TODO(hausner): Error checking. Probably just shut down the debugger
   // session if we there is an error while writing.
 }
