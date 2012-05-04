@@ -21,8 +21,8 @@ class FactoryProviderImplementation {
   static WebKitPoint createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
   static WebSocket createWebSocket(String url) native "WebSocket_constructor_Callback";
 
-  static IDBKeyRange IDBKeyRange_only(value) native "IDBKeyRange_only_Callback";
-  static IDBKeyRange IDBKeyRange_lowerBound(bound, open) native "IDBKeyRange_lowerBound_Callback";
-  static IDBKeyRange IDBKeyRange_upperBound(bound, open) native "IDBKeyRange_upperBound_Callback";
-  static IDBKeyRange IDBKeyRange_bound(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_Callback";
+  static IDBKeyRange IDBKeyRange_only(value) => IDBKeyRangeImplementation.only(value);
+  static IDBKeyRange IDBKeyRange_lowerBound(bound, open) => IDBKeyRangeImplementation.lowerBound(bound, open);
+  static IDBKeyRange IDBKeyRange_upperBound(bound, open) => IDBKeyRangeImplementation.upperBound(bound, open);
+  static IDBKeyRange IDBKeyRange_bound(lower, upper, lowerOpen, upperOpen) => IDBKeyRangeImplementation.bound(lower, upper,lowerOpen, upperOpen);
 }

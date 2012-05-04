@@ -218,17 +218,6 @@ module storage {
     [Suppressed] IDBRequest openCursor() raises (IDBDatabaseException);
   };
 
-  interface IDBKeyRange {
-    [Suppressed] static IDBKeyRange only(in IDBKey value)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange lowerBound(in IDBKey bound, in optional boolean open)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange upperBound(in IDBKey bound, in optional boolean open)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, in optional boolean lowerOpen, optional boolean upperOpen)
-        raises (IDBDatabaseException);
-  };
-
   interface EntrySync {
     // Native implementation is declared to return EntrySync.
     [Suppressed] DirectoryEntrySync getParent();

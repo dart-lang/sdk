@@ -376,7 +376,10 @@ class WrappingInterfaceGenerator(object):
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
 
-  def GenerateSingleOperation(self,  emitter, info, indent, operation):
+  def AddStaticOperation(self, info):
+    pass
+
+  def GenerateSingleOperation(self, emitter, info, indent, operation):
     """Generates a call to a single operation.
 
     Arguments:

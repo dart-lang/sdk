@@ -370,3 +370,6 @@ class FrogInterfaceGenerator(object):
         NAME=info.name,
         PARAMS=params,
         NATIVESTRING=native_string)
+
+  def AddStaticOperation(self, info):
+    pass

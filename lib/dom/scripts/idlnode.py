@@ -408,6 +408,7 @@ class IDLMember(IDLNode):
     self._convert_annotations(ast)
     self.doc_js_interface_name = doc_js_interface_name
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
+    self.is_static = self._has(ast, 'Static')
 
 
 class IDLOperation(IDLMember):
@@ -419,7 +420,6 @@ class IDLOperation(IDLMember):
     self.raises = self._convert_first(ast, 'Raises', IDLType)
     self.specials = self._find_all(ast, 'Special')
     self.is_stringifier = self._has(ast, 'Stringifier')
-    self.is_static = self._has(ast, 'Static')
   def _extra_repr(self):
     return [self.arguments]
 

@@ -6271,22 +6271,6 @@ class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
 
 class _DOMURLImpl extends _DOMTypeBase implements DOMURL {
   _DOMURLImpl._wrap(ptr) : super._wrap(ptr);
-
-  String createObjectURL(blob_OR_stream) {
-    if (blob_OR_stream is MediaStream) {
-      return _wrap(_ptr.createObjectURL(_unwrap(blob_OR_stream)));
-    } else {
-      if (blob_OR_stream is Blob) {
-        return _wrap(_ptr.createObjectURL(_unwrap(blob_OR_stream)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void revokeObjectURL(String url) {
-    _ptr.revokeObjectURL(_unwrap(url));
-    return;
-  }
 }
 
 class _DataTransferItemImpl extends _DOMTypeBase implements DataTransferItem {
@@ -27144,12 +27128,6 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
-
-  /** @domName DOMURL.createObjectURL */
-  String createObjectURL(blob_OR_stream);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

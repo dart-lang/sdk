@@ -377,6 +377,11 @@ class OperationInfo(object):
       argtexts.append('[' + ', '.join(map(FormatParam, optional)) + ']')
     return ', '.join(argtexts)
 
+  def IsStatic(self):
+    is_static = self.overloads[0].is_static
+    assert any([is_static == o.is_static for o in self.overloads])
+    return is_static
+
 
 def AttributeOutputOrder(a, b):
   """Canonical output ordering for attributes."""

@@ -304,7 +304,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     # Process constructor arguments.
     for (i, argument) in enumerate(constructor_info.idl_args):
       argument_expression = self._GenerateParameterAdapter(
-          parameter_definitions_emitter, argument, i - 1)
+          parameter_definitions_emitter, argument, i)
       arguments.append(argument_expression)
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
@@ -538,7 +538,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         webcore_function_name += 'Animated'
 
     argument_expression = self._GenerateParameterAdapter(
-        parameter_definitions_emitter, attr, 0, adapter_name='value')
+        parameter_definitions_emitter, attr, 1, adapter_name='value')
     arguments.append(argument_expression)
 
     parameter_definitions = parameter_definitions_emitter.Fragments()
@@ -563,7 +563,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
 
-  def AddOperation(self, info):
+  def _AddOperation(self, info):
     """
     Arguments:
       info: An OperationInfo object.
@@ -581,11 +581,15 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
           'Callback', True)
       return
 
+    modifier = ''
+    if info.IsStatic():
+      modifier = 'static '
     body = self._members_emitter.Emit(
         '\n'
-        '  $TYPE $NAME($PARAMETERS) {\n'
+        '  $MODIFIER$TYPE $NAME($PARAMETERS) {\n'
         '$!BODY'
         '  }\n',
+        MODIFIER=modifier,
         TYPE=info.type_name,
         NAME=info.name,
         PARAMETERS=info.ParametersImplementationDeclaration())
@@ -598,6 +602,12 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     fallthrough = self.GenerateDispatch(body, info, '    ', 0, overloads)
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
+
+  def AddOperation(self, info):
+    self._AddOperation(info)
+
+  def AddStaticOperation(self, info):
+    self._AddOperation(info)
 
   def GenerateSingleOperation(self,  dispatch_emitter, info, indent, operation):
     """Generates a call to a single operation.
@@ -629,7 +639,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
                             NATIVENAME=native_name,
                             ARGS=argument_list)
     # Generate binding.
-    dart_declaration = '%s _%s(%s)' % (info.type_name, native_name,
+    modifier = ''
+    if operation.is_static:
+      modifier = 'static '
+    dart_declaration = '%s%s _%s(%s)' % (modifier, info.type_name, native_name,
                                        argument_list)
     is_custom = 'Custom' in operation.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(
@@ -648,6 +661,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     raises_exceptions = raises_exceptions or len(operation.arguments) > 0 or operation.raises
 
     # Process Dart arguments.
+    start_index = 1
+    if operation.is_static:
+      start_index = 0
     for (i, argument) in enumerate(operation.arguments):
       if (i == len(operation.arguments) - 1 and
           self._interface.id == 'Console' and
@@ -656,7 +672,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
       argument_expression = self._GenerateParameterAdapter(
-          parameter_definitions_emitter, argument, i)
+          parameter_definitions_emitter, argument, start_index + i)
       arguments.append(argument_expression)
 
     if operation.id in ['addEventListener', 'removeEventListener']:
@@ -679,7 +695,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         operation.type.id, operation.ext_attrs, operation.raises)
     self._GenerateNativeCallback(cpp_callback_name,
         parameter_definitions=parameter_definitions_emitter.Fragments(),
-        needs_receiver=True, invocation=invocation,
+        needs_receiver=not operation.is_static, invocation=invocation,
         raises_exceptions=raises_exceptions)
 
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
@@ -742,7 +758,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         '        }\n',
         ADAPTER_TYPE=adapter_type,
         NAME=adapter_name,
-        INDEX=index + 1,
+        INDEX=index,
         FLAGS=flags)
 
     conversion = '%s'
@@ -792,6 +808,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   def _GenerateWebCoreFunctionExpression(self, function_name, idl_node):
     if 'ImplementedBy' in idl_node.ext_attrs:
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
+    if idl_node.is_static:
+      return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
     return '%s%s' % (self._interface_type_info.receiver(), function_name)
 
   def _GenerateWebCoreInvocation(self, function_expression, arguments,

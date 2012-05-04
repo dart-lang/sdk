@@ -423,7 +423,10 @@ class DartGenerator(object):
       operations = operationsById[id]
       info = AnalyzeOperation(interface, operations)
       for generator in generators:
-        generator.AddOperation(info)
+        if info.IsStatic():
+          generator.AddStaticOperation(info)
+        else:
+          generator.AddOperation(info)
 
     # With multiple inheritance, attributes and operations of non-first
     # interfaces need to be added.  Sometimes the attribute or operation is
@@ -636,6 +639,9 @@ class DummyInterfaceGenerator(object):
     pass
 
   def AddOperation(self, info):
+    pass
+
+  def AddStaticOperation(self, info):
     pass
 
   def AddEventAttributes(self, event_attrs):

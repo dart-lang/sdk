@@ -4487,10 +4487,6 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 }
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
-
-  String createObjectURL(blob_OR_stream) native;
-
-  void revokeObjectURL(String url) native;
 }
 
 class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
@@ -21690,12 +21686,6 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
-
-  /** @domName DOMURL.createObjectURL */
-  String createObjectURL(blob_OR_stream);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
