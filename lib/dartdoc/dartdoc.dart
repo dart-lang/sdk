@@ -446,7 +446,7 @@ class Dartdoc {
     writeln(
         '''
         <meta charset="utf-8">
-        <title>$title</title>
+        <title>$title / $mainTitle</title>
         <link rel="stylesheet" type="text/css"
             href="${relativePath('styles.css')}">
         <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
@@ -595,8 +595,9 @@ class Dartdoc {
     _currentType = null;
 
     startFile(libraryUrl(library));
-    writeHeader(library.name, [library.name, libraryUrl(library)]);
-    writeln('<h2>Library <strong>${library.name}</strong></h2>');
+    writeHeader('${library.name} Library',
+        [library.name, libraryUrl(library)]);
+    writeln('<h2><strong>${library.name}</strong> library</h2>');
 
     // Look for a comment for the entire library.
     final comment = _comments.findLibrary(library.baseSource);
@@ -664,14 +665,15 @@ class Dartdoc {
     startFile(typeUrl(type));
 
     final typeTitle =
-      '${type.isClass ? "Class" : "Interface"} ${typeName(type)}';
-    writeHeader('Library ${type.library.name} / $typeTitle',
+      '${typeName(type)} ${type.isClass ? "Class" : "Interface"}';
+    writeHeader('$typeTitle / ${type.library.name} Library',
         [type.library.name, libraryUrl(type.library),
          typeName(type), typeUrl(type)]);
     writeln(
         '''
-        <h2>${type.isClass ? "Class" : "Interface"}
-            <strong>${typeName(type, showBounds: true)}</strong></h2>
+        <h2><strong>${typeName(type, showBounds: true)}</strong>
+          ${type.isClass ? "Class" : "Interface"}
+        </h2>
         ''');
 
     docCode(type.span, getTypeComment(type));
