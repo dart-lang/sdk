@@ -29,6 +29,7 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'dart2js',
+        'compiler',
       ],
       'actions': [
         {

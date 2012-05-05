@@ -11,6 +11,18 @@
     {
       'target_name': 'dartc',
       'type': 'none',
+      'conditions': [
+        [ 'OS!="win"', {
+          'variables': {
+            'script_suffix': '',
+          },
+        }],
+        [ 'OS=="win"', {
+          'variables': {
+            'script_suffix': '.bat',
+          },
+        }],
+      ],
       'actions': [
         {
           'action_name': 'build_dartc',
@@ -40,7 +52,7 @@
             '<(PRODUCT_DIR)/compiler/lib/guava/r09/guava-r09.jar',
           ],
           'action' : [
-            '../third_party/apache_ant/v1_7_1/bin/ant',
+            '../third_party/apache_ant/v1_7_1/bin/ant<(script_suffix)',
             '-f', 'dartc.xml',
             '-Dbuild.dir=<(INTERMEDIATE_DIR)/<(_target_name)',
             '-Ddist.dir=<(PRODUCT_DIR)/compiler',
