@@ -27,13 +27,13 @@ class StaticResolutionException implements Exception {}
 void assert(condition) {}
 
 // TODO(ahe): Not sure ByteArray belongs in the core library.
-interface ByteArray extends List default _InternalByteArray {
-  ByteArray(int length);
+interface Uint8List extends List default _InternalByteArray {
+  Uint8List(int length);
 }
 
 class _InternalByteArray {
-  factory ByteArray(int length) {
-    throw new UnsupportedOperationException("new ByteArray($length)");
+  factory Uint8List(int length) {
+    throw new UnsupportedOperationException("new Uint8List($length)");
   }
 }
 

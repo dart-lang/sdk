@@ -54,7 +54,7 @@ interface ByteArrayViewable {
 
   int lengthInBytes();
 
-  ByteArray asByteArray([int offsetInBytes, int lengthInBytes]);
+  ByteArray asByteArray([int start, int length]);
 }
 
 
@@ -284,11 +284,11 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
-  ByteArray asByteArray([int offsetInBytes = 0, int lengthInBytes]) {
-    if (lengthInBytes === null) {
-      lengthInBytes = this.lengthInBytes();
+  ByteArray asByteArray([int start = 0, int length]) {
+    if (length === null) {
+      length = this.lengthInBytes();
     }
-    return new _ByteArrayView(this, offsetInBytes, lengthInBytes);
+    return new _ByteArrayView(this, start, length);
   }
 
   int _length() native "ByteArray_getLength";
