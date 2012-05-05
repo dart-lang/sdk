@@ -10345,9 +10345,100 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
   // Use implementation from Uint8Array.
   // final int length;
 
+  int operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int last() => this[length - 1];
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
+
+  // -- end List<int> mixins.
+
   void setElements(Object array, [int offset = null]) native 'set';
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
+
+  // From ArrayBufferView
+
+  // Use implementation from ArrayBufferView.
+  // final _ArrayBufferJs buffer;
+
+  // Use implementation from ArrayBufferView.
+  // final int byteLength;
+
+  // Use implementation from ArrayBufferView.
+  // final int byteOffset;
 }
 
 class _ValidityStateJs extends _DOMTypeJs implements ValidityState native "*ValidityState" {
@@ -22362,7 +22453,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
-interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 

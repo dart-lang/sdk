@@ -53,30 +53,30 @@ main() {
 
       var a2 = new Uint32Array.fromBuffer(a1.buffer);
       Expect.equals(1024 ~/ 4, a2.length);
-      // Expect.equals(0x03020100, a2[0]);
-      // Expect.equals(0x07060504, a2[1]);
-      // Expect.equals(0x0B0A0908, a2[2]);
-      // Expect.equals(0xCBCAC9C8, a2[50]);
-      // Expect.equals(0xCFCECDCC, a2[51]);
-      // Expect.equals(0x03020100, a2[64]);
+      Expect.equals(0x03020100, a2[0]);
+      Expect.equals(0x07060504, a2[1]);
+      Expect.equals(0x0B0A0908, a2[2]);
+      Expect.equals(0xCBCAC9C8, a2[50]);
+      Expect.equals(0xCFCECDCC, a2[51]);
+      Expect.equals(0xFFFFFFFF, a2[64]);
 
       a2 = new Uint32Array.fromBuffer(a1.buffer, 200);
       Expect.equals((1024 - 200) ~/ 4, a2.length);
-      // Expect.equals(0xCBCAC9C8, a2[0]);
-      // Expect.equals(0xCFCECDCC, a2[1]);
-      // Expect.equals(0x03020100, a2[14]);
+      Expect.equals(0xCBCAC9C8, a2[0]);
+      Expect.equals(0xCFCECDCC, a2[1]);
+      Expect.equals(0xFFFFFFFF, a2[14]);
 
       a2 = new Uint32Array.fromBuffer(a1.buffer, 456, 20);
       Expect.equals(20, a2.length);
-      // Expect.equals(0xCBCAC9C8, a2[0]);
-      // Expect.equals(0xCFCECDCC, a2[1]);
-      // Expect.equals(0x03020100, a2[14]);
+      Expect.equals(0xFFFFFFFF, a2[0]);
+      Expect.equals(0xFFFFFFFF, a2[1]);
+      Expect.equals(0xFFFFFFFF, a2[14]);
 
       a2 = new Uint32Array.fromBuffer(a1.buffer, length: 30, byteOffset: 456);
       Expect.equals(30, a2.length);
-      // Expect.equals(0xCBCAC9C8, a2[0]);
-      // Expect.equals(0xCFCECDCC, a2[1]);
-      // Expect.equals(0x03020100, a2[14]);
+      Expect.equals(0xFFFFFFFF, a2[0]);
+      Expect.equals(0xFFFFFFFF, a2[1]);
+      Expect.equals(0xFFFFFFFF, a2[14]);
   });
 
   test('fromBufferTest_typed', () {
@@ -117,29 +117,31 @@ main() {
         a1[i] = i;
       }
 
-      Uint32Array a2 = new Uint32Array.fromBuffer(a1.buffer);
+      var a2 = new Uint32Array.fromBuffer(a1.buffer);
       Expect.equals(1024 ~/ 4, a2.length);
-      // Expect.equals(0x03020100, a2[0]);
-      // Expect.equals(0xCBCAC9C8, a2[50]);
-      // Expect.equals(0xCFCECDCC, a2[51]);
-      // Expect.equals(0x03020100, a2[64]);
+      Expect.equals(0x03020100, a2[0]);
+      Expect.equals(0x07060504, a2[1]);
+      Expect.equals(0x0B0A0908, a2[2]);
+      Expect.equals(0xCBCAC9C8, a2[50]);
+      Expect.equals(0xCFCECDCC, a2[51]);
+      Expect.equals(0xFFFFFFFF, a2[64]);
 
       a2 = new Uint32Array.fromBuffer(a1.buffer, 200);
       Expect.equals((1024 - 200) ~/ 4, a2.length);
-      // Expect.equals(0xCBCAC9C8, a2[0]);
-      // Expect.equals(0xCFCECDCC, a2[1]);
-      // Expect.equals(0x03020100, a2[14]);
+      Expect.equals(0xCBCAC9C8, a2[0]);
+      Expect.equals(0xCFCECDCC, a2[1]);
+      Expect.equals(0xFFFFFFFF, a2[14]);
 
       a2 = new Uint32Array.fromBuffer(a1.buffer, 456, 20);
       Expect.equals(20, a2.length);
-      // Expect.equals(0xCBCAC9C8, a2[0]);
-      // Expect.equals(0xCFCECDCC, a2[1]);
-      // Expect.equals(0x03020100, a2[14]);
+      Expect.equals(0xFFFFFFFF, a2[0]);
+      Expect.equals(0xFFFFFFFF, a2[1]);
+      Expect.equals(0xFFFFFFFF, a2[14]);
 
       a2 = new Uint32Array.fromBuffer(a1.buffer, length: 30, byteOffset: 456);
       Expect.equals(30, a2.length);
-      // Expect.equals(0xCBCAC9C8, a2[0]);
-      // Expect.equals(0xCFCECDCC, a2[1]);
-      // Expect.equals(0x03020100, a2[14]);
+      Expect.equals(0xFFFFFFFF, a2[0]);
+      Expect.equals(0xFFFFFFFF, a2[1]);
+      Expect.equals(0xFFFFFFFF, a2[14]);
   });
 }

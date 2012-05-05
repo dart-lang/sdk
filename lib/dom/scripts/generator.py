@@ -110,8 +110,6 @@ def MaybeTypedArrayElementType(interface):
   for parent in interface.parents:
     if  parent.type.id == 'ArrayBufferView':
       return MaybeListElementType(interface)
-    if  parent.type.id == 'Uint8Array':
-      return 'int'
   return None
 
 def MakeNativeSpec(javascript_binding_name):

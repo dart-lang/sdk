@@ -34,11 +34,10 @@ main() {
 
       Expect.equals(50, a1.indexOf(50));
       Expect.equals(50, a1.indexOf(50, 50));
-      // Expect.equals(256 + 50, a1.indexOf(50, 51));
+      Expect.equals(-1, a1.indexOf(50, 51));
 
-      // Expect.equals(768 + 50, a1.lastIndexOf(50));
-      // Expect.equals(768 + 50, a1.lastIndexOf(50, 768 + 50));
-      // Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
+      Expect.equals(50, a1.lastIndexOf(50));
+      Expect.equals(-1, a1.lastIndexOf(50, 49));
   });
 
   test('indexOf_typed', () {
@@ -56,6 +55,7 @@ main() {
       Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
   });
 
+  if (false)
   test('indexOfClamped_typed', () {
       Uint8ClampedArray a1 = new Uint8ClampedArray(1024);
       for (int i = 0; i < a1.length; i++) {
@@ -64,10 +64,9 @@ main() {
 
       Expect.equals(50, a1.indexOf(50));
       Expect.equals(50, a1.indexOf(50, 50));
-      // Expect.equals(256 + 50, a1.indexOf(50, 51));
+      Expect.equals(-1, a1.indexOf(50, 51));
 
-      // Expect.equals(768 + 50, a1.lastIndexOf(50));
-      // Expect.equals(768 + 50, a1.lastIndexOf(50, 768 + 50));
-      // Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
+      Expect.equals(50, a1.lastIndexOf(50));
+      Expect.equals(-1, a1.lastIndexOf(50, 49));
   });
 }
