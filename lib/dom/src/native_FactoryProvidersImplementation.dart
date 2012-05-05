@@ -15,6 +15,7 @@ class FactoryProviderImplementation {
   static Int16Array I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
   static Int32Array I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
   static Uint8Array U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
+  static Uint8Array U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
   static Uint16Array U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
   static Uint32Array U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
   
