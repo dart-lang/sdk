@@ -46,6 +46,8 @@ void compile(List<String> argv) {
       options.add(argument);
     } else if ('--no-colors' == argument) {
       colors.enabled = false;
+    } else if ('--enable-checked-mode' == argument) {
+      options.add(argument);
     } else if (argument.startsWith('-')) {
       fail('Unknown option $argument.');
     } else {

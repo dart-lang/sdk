@@ -36,6 +36,7 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
+  bool enableTypeAssertions = false;
 
   final Tracer tracer;
 

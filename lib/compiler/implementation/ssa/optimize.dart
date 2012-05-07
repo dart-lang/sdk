@@ -130,7 +130,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (input.propagatedType.isUseful()) {
+    Type type = input.propagatedType.computeType(compiler);
+    if (type !== null && type.element !== compiler.boolClass) {
       return graph.addConstantBool(false);
     }
     return node;
@@ -437,7 +438,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (right.isConstantNull()) {
-      if (left.propagatedType.isUseful()) {
+      if (left.propagatedType.isPrimitive()) {
         return graph.addConstantBool(false);
       } else {
         // TODO(floitsch): cache interceptors.
@@ -1054,6 +1055,10 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
   void visitIs(HIs instruction) {
     HInstruction input = instruction.expression;
+    HType convertedType =
+        new HType.fromBoundedType(instruction.typeExpression, compiler);
+    if (convertedType === null) return;
+
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];
 
@@ -1068,9 +1073,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
     }
 
     if (ifUsers.isEmpty() && notIfUsers.isEmpty()) return;
-
-    HType convertedType =
-        new HType.fromBoundedType(instruction.typeExpression, compiler);
 
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);

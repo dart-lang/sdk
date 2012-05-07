@@ -42,10 +42,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     }
   }
 
-  void visitTypeConversion(HTypeConversion instruction) {
-    generateAtUseSite.add(instruction);
-  }
-
   // The codegen might use the input multiple times, so it must not be
   // set generate at use site.
   void visitIs(HIs instruction) {}
@@ -58,6 +54,10 @@ class SsaInstructionMerger extends HBaseVisitor {
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}
 
+  // TODO(ngeoffray): This should not be needed. The codegen should
+  // cope better with this instruction.
+  void visitTypeConversion(HTypeConversion instruction) {}
+
   void tryGenerateAtUseSite(HInstruction instruction) {
     // A type guard should never be generate at use site, otherwise we
     // cannot bailout.
@@ -66,6 +66,10 @@ class SsaInstructionMerger extends HBaseVisitor {
     // A check should never be generate at use site, otherwise we
     // cannot throw.
     if (instruction is HCheck) return;
+
+    // TODO(ngeoffray): This should not be needed. The codegen should
+    // cope better with this instruction.
+    if (instruction is HTypeConversion) return;
 
     generateAtUseSite.add(instruction);
   }

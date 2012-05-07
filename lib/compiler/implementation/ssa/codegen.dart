@@ -1067,8 +1067,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         return;
       } else if (!isGenerateAtUseSite(instruction)) {
-        if (instruction is !HIf && instruction is !HTypeGuard &&
-            instruction is !HLoopBranch && !isGeneratingExpression()) {
+        if (instruction is !HIf
+            && instruction is !HTypeGuard
+            && instruction is !HLoopBranch
+            && !isGeneratingExpression()) {
           addIndentation();
         }
         if (isGeneratingExpression()) {
@@ -1083,8 +1085,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         // Control flow instructions, and some other instructions,
         // know how to handle ';'.
-        if (instruction is !HControlFlow && instruction is !HTypeGuard &&
-            !isGeneratingExpression()) {
+        if (instruction is !HControlFlow
+            && instruction is !HTypeGuard
+            && !isGeneratingExpression()) {
           buffer.add(';\n');
         }
       } else if (instruction is HIf) {
@@ -1884,7 +1887,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkExtendableArray(HInstruction input) {
-    compiler.unimplemented("check extendable array");
+    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    buffer.add('!!');
+    use(input, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.fixed\$length');
+    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
   }
 
   void checkNull(HInstruction input) {
@@ -2026,8 +2033,60 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    assert(isGenerateAtUseSite(node));
-    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+    if (node.checked) {
+      Element element = node.type.computeType(compiler).element;
+      compiler.registerIsCheck(element);
+      SourceString helper;
+      String additionalArgument;
+      bool nativeCheck =
+          compiler.emitter.nativeEmitter.requiresNativeIsCheck(element);
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+
+      if (element == compiler.stringClass) {
+        helper = const SourceString('stringTypeCheck');
+      } else if (element == compiler.doubleClass) {
+        helper = const SourceString('doubleTypeCheck');
+      } else if (element == compiler.numClass) {
+        helper = const SourceString('numTypeCheck');
+      } else if (element == compiler.boolClass) {
+        helper = const SourceString('boolTypeCheck');
+      } else if (element == compiler.functionClass || element.isTypedef()) {
+        helper = const SourceString('functionTypeCheck');
+      } else if (element == compiler.intClass) {
+        helper = const SourceString('intTypeCheck');
+      } else if (Elements.isStringSupertype(element, compiler)) {
+        if (nativeCheck) {
+          helper = const SourceString('stringSuperNativeTypeCheck');
+        } else {
+          helper = const SourceString('stringSuperTypeCheck');
+        }
+      } else if (element === compiler.listClass) {
+        helper = const SourceString('listTypeCheck');
+      } else {
+        additionalArgument = compiler.namer.operatorIs(element);
+        if (Elements.isListSupertype(element, compiler)) {
+          if (nativeCheck) {
+            helper = const SourceString('listSuperNativeTypeCheck');
+          } else {
+            helper = const SourceString('listSuperTypeCheck');
+          }
+        } else if (nativeCheck) {
+          helper = const SourceString('callTypeCheck');
+        } else {
+          helper = const SourceString('propertyTypeCheck');
+        }
+      }
+      Element helperElement = compiler.findHelper(helper);
+      compiler.registerStaticUse(helperElement);
+      buffer.add(compiler.namer.isolateAccess(helperElement));
+      buffer.add('(');
+      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      if (additionalArgument !== null) buffer.add(", '$additionalArgument'");
+      buffer.add(')');
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
+    } else {
+      use(node.inputs[0], expectedPrecedence);
+    }
   }
 }
 

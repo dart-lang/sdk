@@ -454,7 +454,21 @@ constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
 *: Skip
 
 [ $compiler == dart2js && $checked ]
-*: Skip
+assign_static_type_test/01: Fail
+assign_static_type_test/02: Fail
+assign_static_type_test/03: Fail
+assign_static_type_test/04: Fail
+assign_static_type_test/05: Fail
+type_variable_bounds_test/01: Fail
+type_variable_bounds_test/02: Fail
+type_variable_bounds_test/04: Fail
+type_variable_bounds_test/05: Fail
+type_variable_bounds2_test/00: Fail
+type_variable_bounds2_test/02: Pass # For the wrong reasons.
+type_variable_bounds2_test/03: Fail
+type_variable_bounds2_test/05: Fail
+type_variable_bounds2_test/06: Pass # For the wrong reasons.
+assign_top_method_negative_test: Pass # For the wrong reasons.
 
 
 [ $compiler == dart2js]

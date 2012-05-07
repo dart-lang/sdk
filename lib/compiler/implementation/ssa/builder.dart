@@ -305,8 +305,9 @@ class LocalsHandler {
 
     FunctionSignature params = function.computeSignature(builder.compiler);
     params.forEachParameter((Element element) {
-      HParameterValue parameter = new HParameterValue(element);
+      HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
+      parameter = builder.potentiallyCheckType(parameter, element);
       directLocals[element] = parameter;
     });
 
@@ -1029,6 +1030,34 @@ class SsaBuilder implements Visitor {
     close(new HGoto()).addSuccessor(block);
 
     open(block);
+  }
+
+  HInstruction potentiallyCheckType(HInstruction original,
+                                    Element sourceElement) {
+    if (!compiler.enableTypeAssertions) return original;
+
+    Type type = sourceElement.computeType(compiler);
+    if (type === null) return original;
+    if (type.element === compiler.dynamicClass) return original;
+    if (type.element === compiler.objectClass) return original;
+
+    HType convertedType = new HType.fromBoundedType(type, compiler, true);
+
+    // TODO(ngeoffray): the factory method should never return null.
+    if (convertedType === null) {
+      return original;
+    }
+
+    // No need to convert if we know the instruction has
+    // [convertedType] as a bound.
+    if (original.guaranteedType == convertedType) {
+      return original;
+    }
+
+    HInstruction instruction =
+        new HTypeConversion(convertedType, original, true);
+    add(instruction);
+    return instruction;
   }
 
   HGraph closeFunction() {
@@ -1795,12 +1824,17 @@ class SsaBuilder implements Visitor {
       HInstruction receiver = generateInstanceSendReceiver(send);
       generateInstanceSetterWithCompiledReceiver(send, receiver, value);
     } else {
-      localsHandler.updateLocal(element, value);
       stack.add(value);
       // If the value does not already have a name, give it here.
       if (value.sourceElement === null) {
         value.sourceElement = element;
       }
+      HInstruction checked = potentiallyCheckType(value, element);
+      if (checked !== value) {
+        pop();
+        stack.add(checked);
+      }
+      localsHandler.updateLocal(element, checked);
     }
   }
 

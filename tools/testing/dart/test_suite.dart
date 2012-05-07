@@ -1337,6 +1337,9 @@ class TestUtils {
     }
     if (configuration["compiler"] == "dart2js") {
       args = [];
+      if (configuration["checked"]) {
+        args.add('--enable-checked-mode');
+      }
       args.add("--verbose");
       if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");

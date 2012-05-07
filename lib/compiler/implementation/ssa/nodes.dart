@@ -2146,21 +2146,18 @@ class HIs extends HInstruction {
 
 class HTypeConversion extends HInstruction {
   HType type;
+  final bool checked;
 
-  HTypeConversion(HType this.type, HInstruction input)
-    : super(<HInstruction>[input]);
+  HTypeConversion(HType this.type,
+                  HInstruction input,
+                  [bool this.checked = false])
+    : super(<HInstruction>[input]) {
+      sourceElement = input.sourceElement;
+  }
 
   HType get guaranteedType() => type;
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
-
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
-  int typeCode() => 27;
-  bool typeEquals(other) => other is HTypeConversion;
-  bool dataEquals(HTypeConversion other) => type == other.type;
 }
 
 /**

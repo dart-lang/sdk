@@ -23,7 +23,9 @@ class Compiler extends leg.Compiler {
   bool mockableLibraryUsed = false;
 
   Compiler(this.provider, this.handler, this.libraryRoot, this.options)
-    : super(tracer: new ssa.HTracer());
+    : super(tracer: new ssa.HTracer()) {
+    enableTypeAssertions = options.indexOf('--enable-checked-mode') !== -1;
+  }
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
