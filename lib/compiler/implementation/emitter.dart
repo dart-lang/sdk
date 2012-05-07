@@ -175,10 +175,12 @@ function() {
   }
 
   void addDefineClassAndFinishClassFunctionsIfNecessary(StringBuffer buffer) {
-    String isolate = namer.ISOLATE;
-    buffer.add("$defineClassName = $defineClassFunction;\n");
-    buffer.add("$pendingClassesName = {};\n");
-    buffer.add("$finishClassesName = $finishClassesFunction;\n");
+    if (needsDefineClass) {
+      String isolate = namer.ISOLATE;
+      buffer.add("$defineClassName = $defineClassFunction;\n");
+      buffer.add("$pendingClassesName = {};\n");
+      buffer.add("$finishClassesName = $finishClassesFunction;\n");
+    }
   }
 
   void emitFinishIsolateConstructor(StringBuffer buffer) {
