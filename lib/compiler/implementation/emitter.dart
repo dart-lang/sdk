@@ -198,7 +198,7 @@ function() {
                         Selector selector,
                         void defineInstanceMember(String invocationName,
                                                   String definition)) {
-    FunctionParameters parameters = member.computeParameters(compiler);
+    FunctionSignature parameters = member.computeSignature(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
       assert(selector.namedArgumentCount == 0);
@@ -330,7 +330,7 @@ function() {
         defineInstanceMember(compiler.namer.getBailoutName(member), codeBlock);
       }
       FunctionElement function = member;
-      FunctionParameters parameters = function.computeParameters(compiler);
+      FunctionSignature parameters = function.computeSignature(compiler);
       if (!parameters.optionalParameters.isEmpty()) {
         addParameterStubs(member, defineInstanceMember);
       }

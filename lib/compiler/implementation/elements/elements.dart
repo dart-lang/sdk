@@ -507,15 +507,17 @@ class AbstractFieldElement extends Element {
   }
 }
 
-class FunctionParameters {
+class FunctionSignature {
   Link<Element> requiredParameters;
   Link<Element> optionalParameters;
+  Type returnType;
   int requiredParameterCount;
   int optionalParameterCount;
-  FunctionParameters(this.requiredParameters,
-                     this.optionalParameters,
-                     this.requiredParameterCount,
-                     this.optionalParameterCount);
+  FunctionSignature(this.requiredParameters,
+                    this.optionalParameters,
+                    this.requiredParameterCount,
+                    this.optionalParameterCount,
+                    this.returnType);
 
   void forEachParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
@@ -538,7 +540,7 @@ class FunctionElement extends Element {
   Type type;
   final Modifiers modifiers;
 
-  FunctionParameters functionParameters;
+  FunctionSignature functionSignature;
 
   /**
    * If this is an interface constructor, [defaultImplementation] will
@@ -565,14 +567,14 @@ class FunctionElement extends Element {
                        Element enclosing)
     : this.tooMuchOverloading(name, other.cachedNode, other.kind,
                               other.modifiers, enclosing,
-                              other.functionParameters);
+                              other.functionSignature);
 
   FunctionElement.tooMuchOverloading(SourceString name,
                                      FunctionExpression this.cachedNode,
                                      ElementKind kind,
                                      Modifiers this.modifiers,
                                      Element enclosing,
-                                     FunctionParameters this.functionParameters)
+                                     FunctionSignature this.functionSignature)
     : super(name, kind, enclosing)
   {
     defaultImplementation = this;
@@ -585,42 +587,42 @@ class FunctionElement extends Element {
            && !modifiers.isStatic();
   }
 
-  FunctionParameters computeParameters(Compiler compiler) {
-    if (functionParameters !== null) return functionParameters;
-    functionParameters = compiler.resolveSignature(this);
-    return functionParameters;
+  FunctionSignature computeSignature(Compiler compiler) {
+    if (functionSignature !== null) return functionSignature;
+    compiler.withCurrentElement(this, () {
+      functionSignature = compiler.resolveSignature(this);
+    });
+    return functionSignature;
   }
 
   int requiredParameterCount(Compiler compiler) {
-    return computeParameters(compiler).requiredParameterCount;
+    return computeSignature(compiler).requiredParameterCount;
   }
 
   int optionalParameterCount(Compiler compiler) {
-    return computeParameters(compiler).optionalParameterCount;
+    return computeSignature(compiler).optionalParameterCount;
   }
 
   int parameterCount(Compiler compiler) {
-    return computeParameters(compiler).parameterCount;
+    return computeSignature(compiler).parameterCount;
   }
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    return compiler.withCurrentElement(this, () {
-      FunctionParameters parameters = computeParameters(compiler);
-      Types types = compiler.types;
-      FunctionExpression node =
-          compiler.parser.measure(() => parseNode(compiler));
-      Type returnType = compiler.resolveTypeAnnotation(this, node.returnType);
-
+    compiler.withCurrentElement(this, () {
+      FunctionSignature signature = computeSignature(compiler);
       LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-      for (Link<Element> link = parameters.requiredParameters;
+      for (Link<Element> link = signature.requiredParameters;
            !link.isEmpty();
            link = link.tail) {
-        parameterTypes.addLast(link.head.computeType(compiler));
+         parameterTypes.addLast(link.head.computeType(compiler));
+         // TODO(karlklose): optional parameters.
       }
-      type = new FunctionType(returnType, parameterTypes.toLink(), this);
-      return type;
+      type = new FunctionType(signature.returnType,
+                              parameterTypes.toLink(),
+                              this);
     });
+    return type;
   }
 
   Node parseNode(DiagnosticListener listener) => cachedNode;
@@ -637,7 +639,7 @@ class ConstructorBodyElement extends FunctionElement {
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               null,
               constructor.enclosingElement) {
-    functionParameters = constructor.functionParameters;
+    functionSignature = constructor.functionSignature;
   }
 
   bool isInstanceMember() => true;

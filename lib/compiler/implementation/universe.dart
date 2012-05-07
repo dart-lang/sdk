@@ -139,7 +139,7 @@ class Selector implements Hashable {
     if (kind === SelectorKind.GETTER) return true;
 
     FunctionElement function = element;
-    FunctionParameters parameters = function.computeParameters(compiler);
+    FunctionSignature parameters = function.computeSignature(compiler);
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -190,7 +190,7 @@ class Selector implements Hashable {
 
     void addMatchingArgumentsToList(Link<Node> link) {}
 
-    FunctionParameters parameters = element.computeParameters(compiler);
+    FunctionSignature parameters = element.computeSignature(compiler);
     if (this.positionalArgumentCount == parameters.parameterCount) {
       for (Link<Node> link = arguments; !link.isEmpty(); link = link.tail) {
         list.add(compileArgument(link.head));

@@ -233,7 +233,7 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  FunctionParameters resolveSignature(FunctionElement element) {
+  FunctionSignature resolveSignature(FunctionElement element) {
     return measure(() => SignatureResolver.analyze(compiler, element));
   }
 
@@ -682,8 +682,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void setupFunction(FunctionExpression node, FunctionElement function) {
     context = new MethodScope(context, function);
     // Put the parameters in scope.
-    FunctionParameters functionParameters =
-        function.computeParameters(compiler);
+    FunctionSignature functionParameters =
+        function.computeSignature(compiler);
     Link<Node> parameterNodes = node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
@@ -1645,8 +1645,6 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   Element visitVariableDefinitions(VariableDefinitions node) {
-    resolveType(node.type);
-
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty()) {
       cancel(node, 'internal error: no parameter definition');
@@ -1746,26 +1744,25 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     return elements;
   }
 
-  static FunctionParameters analyze(Compiler compiler,
-                                    FunctionElement element) {
-    FunctionExpression node = element.parseNode(compiler);
+  static FunctionSignature analyze(Compiler compiler,
+                                   FunctionElement element) {
+    FunctionExpression node =
+          compiler.parser.measure(() => element.parseNode(compiler));
     SignatureResolver visitor = new SignatureResolver(compiler, element);
     Link<Node> nodes = node.parameters.nodes;
-    LinkBuilder<Element> parameters = visitor.analyzeNodes(nodes);
-    return new FunctionParameters(parameters.toLink(),
-                                  visitor.optionalParameters,
-                                  parameters.length,
-                                  visitor.optionalParameterCount);
+    LinkBuilder<Element> parametersBuilder = visitor.analyzeNodes(nodes);
+    Link<Element> parameters = parametersBuilder.toLink();
+    Type returnType =
+        compiler.resolveTypeAnnotation(element, node.returnType);
+    return new FunctionSignature(parameters,
+                                 visitor.optionalParameters,
+                                 parametersBuilder.length,
+                                 visitor.optionalParameterCount,
+                                 returnType);
   }
 
   // TODO(ahe): This is temporary.
   void resolveExpression(Node node) {
-    if (node == null) return;
-    node.accept(new ResolverVisitor(compiler, enclosingElement));
-  }
-
-  // TODO(ahe): This is temporary.
-  void resolveType(Node node) {
     if (node == null) return;
     node.accept(new ResolverVisitor(compiler, enclosingElement));
   }

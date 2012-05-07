@@ -303,7 +303,7 @@ class LocalsHandler {
         new ClosureTranslator(builder.compiler, builder.elements);
     closureData = translator.translate(node);
 
-    FunctionParameters params = function.computeParameters(builder.compiler);
+    FunctionSignature params = function.computeSignature(builder.compiler);
     params.forEachParameter((Element element) {
       HParameterValue parameter = new HParameterValue(element);
       builder.add(parameter);
@@ -864,7 +864,7 @@ class SsaBuilder implements Visitor {
     }
 
     int index = 0;
-    FunctionParameters parameters = constructor.computeParameters(compiler);
+    FunctionSignature parameters = constructor.computeSignature(compiler);
     parameters.forEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
@@ -963,7 +963,7 @@ class SsaBuilder implements Visitor {
     openFunction(functionElement, function);
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
-    FunctionParameters parameters = functionElement.computeParameters(compiler);
+    FunctionSignature parameters = functionElement.computeSignature(compiler);
     parameters.forEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter (such as [:this.x:] then
@@ -1007,7 +1007,7 @@ class SsaBuilder implements Visitor {
       if (body === null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
-      body.functionParameters.forEachParameter((parameter) {
+      body.functionSignature.forEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
       // TODO(ahe): The constructor name is statically resolved. See
@@ -2132,7 +2132,7 @@ class SsaBuilder implements Visitor {
           node: closure);
     }
     FunctionElement function = element;
-    FunctionParameters parameters = function.computeParameters(compiler);
+    FunctionSignature parameters = function.computeSignature(compiler);
     if (parameters.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',

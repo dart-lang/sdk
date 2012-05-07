@@ -200,7 +200,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (element != null && element.isFunction()) {
         if (node.selector.applies(element, compiler)) {
           FunctionElement method = element;
-          FunctionParameters parameters = method.computeParameters(compiler);
+          FunctionSignature parameters = method.computeSignature(compiler);
           if (parameters.optionalParameterCount == 0) {
             node.element = element;
           }

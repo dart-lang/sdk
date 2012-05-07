@@ -292,7 +292,7 @@ class Compiler implements DiagnosticListener {
           cancel('main is not a function', element: main);
         }
         FunctionElement mainMethod = main;
-        FunctionParameters parameters = mainMethod.computeParameters(this);
+        FunctionSignature parameters = mainMethod.computeSignature(this);
         if (parameters.parameterCount > 0) {
           cancel('main cannot have parameters', element: mainMethod);
         }
@@ -420,7 +420,7 @@ class Compiler implements DiagnosticListener {
     return resolver.resolveTypeAnnotation(element, annotation);
   }
 
-  FunctionParameters resolveSignature(FunctionElement element) {
+  FunctionSignature resolveSignature(FunctionElement element) {
     return withCurrentElement(element,
                               () => resolver.resolveSignature(element));
   }

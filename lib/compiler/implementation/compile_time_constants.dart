@@ -1043,7 +1043,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void assignArgumentsToParameters(List<Constant> arguments) {
     // Assign arguments to parameters.
-    FunctionParameters parameters = constructor.computeParameters(compiler);
+    FunctionSignature parameters = constructor.computeSignature(compiler);
     int index = 0;
     parameters.forEachParameter((Element parameter) {
       Constant argument = arguments[index++];

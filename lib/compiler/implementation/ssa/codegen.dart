@@ -95,7 +95,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // The dom/html libraries have inline JS code that reference
     // parameter names directly. Long-term such code will be rejected.
     // Now, just don't mangle the parameter name.
-    function.computeParameters(compiler).forEachParameter((Element element) {
+    function.computeSignature(compiler).forEachParameter((Element element) {
       parameterNames[element] = function.isNative()
           ? element.name.slowToString()
           : JsNames.getValid('${element.name.slowToString()}');
