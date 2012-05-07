@@ -163,21 +163,25 @@ static bool ProcessMainOptions(const char* option) {
 static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
+                          char** executable_name,
                           char** script_name,
                           CommandLineOptions* dart_options) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
-  // Skip the binary name.
+  // Get the executable name.
+  *executable_name = argv[0];
+
+  // Start the rest after the executable name.
   int i = 1;
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessMainOptions(argv[i])) {
-      i += 1;
+      ++i;
     } else {
       vm_options->AddArgument(argv[i]);
-      i += 1;
+      ++i;
     }
   }
   if (generate_pprof_symbols_filename != NULL) {
@@ -187,7 +191,7 @@ static int ParseArguments(int argc,
   // Get the script name.
   if (i < argc) {
     *script_name = argv[i];
-    i += 1;
+    ++i;
   } else {
     return -1;
   }
@@ -203,8 +207,13 @@ static int ParseArguments(int argc,
 
 
 static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
+                                       const char* executable_name,
                                        const char* script_name) {
   int options_count = options->count();
+  Dart_Handle dart_executable = Dart_NewString(executable_name);
+  if (Dart_IsError(dart_executable)) {
+    return dart_executable;
+  }
   Dart_Handle dart_script = Dart_NewString(script_name);
   if (Dart_IsError(dart_script)) {
     return dart_script;
@@ -239,6 +248,17 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
       core_lib, runtime_options_class_name);
   if (Dart_IsError(runtime_options_class)) {
     return runtime_options_class;
+  }
+  Dart_Handle executable_name_name = Dart_NewString("_nativeExecutable");
+  if (Dart_IsError(executable_name_name)) {
+    return executable_name_name;
+  }
+  Dart_Handle set_executable_name =
+      Dart_SetField(runtime_options_class,
+                    executable_name_name,
+                    dart_executable);
+  if (Dart_IsError(set_executable_name)) {
+    return set_executable_name;
   }
   Dart_Handle script_name_name = Dart_NewString("_nativeScript");
   if (Dart_IsError(script_name_name)) {
@@ -569,6 +589,7 @@ static int ErrorExit(const char* format, ...) {
 
 
 int main(int argc, char** argv) {
+  char* executable_name;
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
@@ -584,6 +605,7 @@ int main(int argc, char** argv) {
   if (ParseArguments(argc,
                      argv,
                      &vm_options,
+                     &executable_name,
                      &script_name,
                      &dart_options) < 0) {
     PrintUsage();
@@ -627,7 +649,7 @@ int main(int argc, char** argv) {
 
   // Create a dart options object that can be accessed from dart code.
   Dart_Handle options_result =
-      SetupRuntimeOptions(&dart_options, original_script_name);
+      SetupRuntimeOptions(&dart_options, executable_name, original_script_name);
   if (Dart_IsError(options_result)) {
     return ErrorExit("%s\n", Dart_GetError(options_result));
   }

@@ -45,7 +45,7 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
   var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
   return new TestCase(testName,
-                      [new Command(getDartFileName(),
+                      [new Command(new Options().executable,
                                    <String>["--ignore-unrecognized-flags",
                                             "--enable_type_checks",
                                             test_path])],
