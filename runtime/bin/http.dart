@@ -271,7 +271,7 @@ interface HttpHeaders default _HttpHeaders {
 
   /**
    * Enumerate the headers applying the function [f] to each
-   * header. The header names in passed in [name] will be all lower
+   * header. The header names passed in [name] will be all lower
    * case.
    */
   void forEach(void f(String name, List<String> values));
