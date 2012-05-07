@@ -174,6 +174,7 @@ class ArgParser {
   static final _ABBR_OPT = const RegExp(@'^-([a-z0-9]+)(.*)$');
   static final _LONG_OPT = const RegExp(@'^--([a-z\-_0-9]+)(=(.*))?$');
 
+  final String _usage;
   final Map<String, _Option> _options;
 
   /**
@@ -189,10 +190,24 @@ class ArgParser {
   /** Index of the current argument being parsed in [_args]. */
   int _current;
 
-  /** Creates a new ArgParser. */
-  ArgParser()
-    : _options = <_Option>{},
-      _optionNames = <String>[];
+  /**
+   * Creates a new ArgParser. If provided [usage] will be included when usage
+   * information is displayed. It is typically the example command-line shown
+   * at the top of help documentation like:
+   *
+   *     myapp [options] <arg> <another>
+   *
+   * If [includeHelp] is `true` (or omitted), it will automatically add a
+   * `--help` flag.
+   */
+  ArgParser([String usage, bool includeHelp = true])
+    : _usage = usage,
+      _options = <_Option>{},
+      _optionNames = <String>[] {
+    if (includeHelp) {
+      addFlag('help', abbr: 'h', help: 'Display usage information');
+    }
+  }
 
   /**
    * Defines a flag. Throws an [IllegalArgumentException] if:
@@ -292,6 +307,34 @@ class ArgParser {
   }
 
   /**
+   * Parses [args], a list of command-line arguments, matches them against the
+   * flags and options defined by this parser, and returns the result. If
+   * `--help` is specified, then it prints usage information to stdout and
+   * exits the process.
+   *
+   * If an error occurs (i.e. an [ArgFormatException] is thrown while parsing),
+   * it prints the error and the usage information and then exits the process
+   * with exit code 1.
+   *
+   * Otherwise, it will return the results of parsing.
+   */
+  ArgResults process(List<String> args) {
+    try {
+      var results = parse(args);
+
+      if (results['help']) {
+        print(getUsage());
+        exit(0);
+      }
+
+      return results;
+    } catch (ArgFormatException ex) {
+      print('${ex.message} Usage:\n\n${getUsage()}');
+      exit(1);
+    }
+  }
+
+  /**
    * Generates a string displaying usage information for the defined options.
    * This is basically the help text shown on the command line.
    */
@@ -348,8 +391,7 @@ class ArgParser {
     if (soloOpt == null) return false;
 
     var option = _findByAbbr(soloOpt[1]);
-    _validate(option != null,
-        'Could not find an option or flag "-${soloOpt[1]}".');
+    _validate(option != null, 'Unknown option "-${soloOpt[1]}".');
 
     if (option.isFlag) {
       _setOption(results, option, true);
@@ -374,7 +416,7 @@ class ArgParser {
     var c = abbrOpt[1].substring(0, 1);
     var first = _findByAbbr(c);
     if (first == null) {
-      _validate(false, 'Could not find an option with short name "-$c".');
+      _validate(false, 'Unknown option "-$c".');
     } else if (!first.isFlag) {
       // The first character is a non-flag option, so the rest must be the
       // value.
@@ -392,7 +434,7 @@ class ArgParser {
         var c = abbrOpt[1].substring(i, i + 1);
         var option = _findByAbbr(c);
         _validate(option != null,
-            'Could not find an option with short name "-$c".');
+            'Unknown option "-$c".');
 
         // In a list of short options, only the first can be a non-flag. If
         // we get here we've checked that already.
@@ -433,12 +475,12 @@ class ArgParser {
       // See if it's a negated flag.
       name = name.substring('no-'.length);
       option = _options[name];
-      _validate(option != null, 'Could not find an option named "$name".');
+      _validate(option != null, 'Unknown option "$name".');
       _validate(option.isFlag, 'Cannot negate non-flag option "$name.');
 
       _setOption(results, option, false);
     } else {
-      _validate(option != null, 'Could not find an option named "$name".');
+      _validate(option != null, 'Unknown option "$name".');
     }
 
     return true;
@@ -563,6 +605,8 @@ class _Usage {
    */
   String generate() {
     buffer = new StringBuffer();
+
+    if (args._usage != null) buffer.add('${args._usage}\n\n');
 
     calculateColumnWidths();
 

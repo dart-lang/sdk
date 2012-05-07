@@ -8,6 +8,25 @@
 #import('../../../lib/args/args.dart');
 
 main() {
+  group('ArgParser()', () {
+    test('adds a help option if includeHelp is true', () {
+      var parser = new ArgParser(includeHelp: true);
+      var results = parser.parse(['-h']);
+      expect(results['help']).isTrue();
+    });
+
+    test('does not add a help option if includeHelp is false', () {
+      var parser = new ArgParser(includeHelp: false);
+      throwsBadFormat(parser, ['-h']);
+    });
+
+    test('includeHelp defaults to true', () {
+      var parser = new ArgParser();
+      var results = parser.parse(['-h']);
+      expect(results['help']).isTrue();
+    });
+  });
+
   group('ArgParser.addFlag()', () {
     test('throws IllegalArgumentException if the flag already exists', () {
       var parser = new ArgParser();
@@ -380,8 +399,32 @@ main() {
   });
 
   group('ArgParser.getUsage()', () {
-    test('flags show "no-" in title', () {
-      var parser = new ArgParser();
+    test('shows usage if provided', () {
+      var parser = new ArgParser(usage: 'myapp [options]');
+      parser.addFlag('mode', help: 'The mode');
+
+      validateUsage(parser,
+          '''
+          myapp [options]
+
+          -h, --[no-]help    Display usage information
+              --[no-]mode    The mode
+          ''');
+    });
+
+    test('shows help if included', () {
+      var parser = new ArgParser(includeHelp: true);
+      parser.addFlag('mode', help: 'The mode');
+
+      validateUsage(parser,
+          '''
+          -h, --[no-]help    Display usage information
+              --[no-]mode    The mode
+          ''');
+    });
+
+    test('shows "no-" in flag titles', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('mode', help: 'The mode');
 
       validateUsage(parser,
@@ -390,8 +433,8 @@ main() {
           ''');
     });
 
-    test('if there are no abbreviations, there is no column for them', () {
-      var parser = new ArgParser();
+    test('omits the column if there are no abbreviations', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('mode', help: 'The mode');
 
       validateUsage(parser,
@@ -400,8 +443,8 @@ main() {
           ''');
     });
 
-    test('options are lined up past abbreviations', () {
-      var parser = new ArgParser();
+    test('lines up options past abbreviations', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('mode', abbr: 'm', help: 'The mode');
       parser.addOption('long', help: 'Lacks an abbreviation');
 
@@ -412,8 +455,8 @@ main() {
           ''');
     });
 
-    test('help text is lined up past the longest option', () {
-      var parser = new ArgParser();
+    test('lines up help text past the longest option', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('mode', abbr: 'm', help: 'Lined up with below');
       parser.addOption('a-really-long-name', help: 'Its help text');
 
@@ -424,8 +467,8 @@ main() {
           ''');
     });
 
-    test('leading empty lines are ignored in help text', () {
-      var parser = new ArgParser();
+    test('ignores leading empty lines in help text', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('mode', help: '\n\n\n\nAfter newlines');
 
       validateUsage(parser,
@@ -434,8 +477,8 @@ main() {
           ''');
     });
 
-    test('trailing empty lines are ignored in help text', () {
-      var parser = new ArgParser();
+    test('ignores trailing empty lines in help text', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('mode', help: 'Before newlines\n\n\n\n');
 
       validateUsage(parser,
@@ -444,8 +487,8 @@ main() {
           ''');
     });
 
-    test('options are documented in the order they were added', () {
-      var parser = new ArgParser();
+    test('documents options in the order they were added', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('zebra', help: 'First');
       parser.addFlag('monkey', help: 'Second');
       parser.addFlag('wombat', help: 'Third');
@@ -458,8 +501,8 @@ main() {
           ''');
     });
 
-    test('the default value for a flag is shown if on', () {
-      var parser = new ArgParser();
+    test('shows the default value for a flag if true', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addFlag('affirm', help: 'Should be on', defaultsTo: true);
       parser.addFlag('negate', help: 'Should be off', defaultsTo: false);
 
@@ -472,8 +515,8 @@ main() {
           ''');
     });
 
-    test('the default value for an option with no allowed list is shown', () {
-      var parser = new ArgParser();
+    test('shows the default value for an option with no allowed list', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addOption('any', help: 'Can be anything', defaultsTo: 'whatevs');
 
       validateUsage(parser,
@@ -483,8 +526,8 @@ main() {
           ''');
     });
 
-    test('the allowed list is shown', () {
-      var parser = new ArgParser();
+    test('shows the allowed list', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addOption('suit', help: 'Like in cards',
           allowed: ['spades', 'clubs', 'hearts', 'diamonds']);
 
@@ -495,8 +538,8 @@ main() {
           ''');
     });
 
-    test('the default is highlighted in the allowed list', () {
-      var parser = new ArgParser();
+    test('highlights the default in the allowed list', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addOption('suit', help: 'Like in cards', defaultsTo: 'clubs',
           allowed: ['spades', 'clubs', 'hearts', 'diamonds']);
 
@@ -507,8 +550,8 @@ main() {
           ''');
     });
 
-    test('the allowed help is shown', () {
-      var parser = new ArgParser();
+    test('shows the allowed help', () {
+      var parser = new ArgParser(includeHelp: false);
       parser.addOption('suit', help: 'Like in cards', defaultsTo: 'clubs',
           allowed: ['spades', 'clubs', 'diamonds', 'hearts'],
           allowedHelp: {
