@@ -7672,6 +7672,9 @@ AstNode* Parser::ParseNewOperator() {
              "type parameter '%s' cannot be instantiated",
              String::Handle(type.Name()).ToCString());
   }
+  if (type.IsDynamicType()) {
+    ErrorMsg(type_pos, "Dynamic cannot be instantiated");
+  }
   Class& type_class = Class::Handle(type.type_class());
   String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
