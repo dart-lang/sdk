@@ -179,6 +179,13 @@ class Element implements Hashable {
     return null;
   }
 
+  Element getEnclosingMember() {
+    for (Element e = this; e !== null; e = e.enclosingElement) {
+      if (e.isMember()) return e;
+    }
+    return null;
+  }
+
   toString() => '$kind(${name.slowToString()})';
 
   bool _isNative = false;

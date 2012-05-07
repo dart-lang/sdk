@@ -577,12 +577,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       this.enclosingElement = element,
       inInstanceContext = element.isInstanceMember()
           || element.isGenerativeConstructor(),
-      this.context  = element.isMember()
-        ? new ClassScope(element.enclosingElement, element.getLibrary())
-        : new TopScope(element.getLibrary()),
       this.currentClass = element.isMember() ? element.enclosingElement : null,
       this.statementScope = new StatementScope(),
-      super(compiler);
+      super(compiler) {
+    LibraryElement library = element.getLibrary();
+    element = element.getEnclosingMember();
+    if (element !== null) {
+      context = new ClassScope(element.enclosingElement, library);
+    } else {
+      this.context = new TopScope(library);
+    }
+  }
 
   Element lookup(Node node, SourceString name) {
     Element result = context.lookup(name);
@@ -1068,8 +1073,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (send !== null) {
       typeName = send.selector;
     }
-    if (typeName.source == Types.VOID) return compiler.types.voidType.element;
-    if (send !== null) {
+    if (typeName.source == Types.VOID) {
+      return compiler.types.voidType.element;
+    } else if (send !== null) {
       Element e = context.lookup(send.receiver.asIdentifier().source);
       if (e !== null && e.kind === ElementKind.PREFIX) {
         // The receiver is a prefix. Lookup in the imported members.
