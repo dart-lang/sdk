@@ -139,8 +139,35 @@ void testHost() {
   Expect.equals(1234, headers.port);
 }
 
+void testEnumeration() {
+  _HttpHeaders headers = new _HttpHeaders();
+  Expect.isNull(headers[HttpHeaders.PRAGMA]);
+  headers.add("My-Header-1", "value 1");
+  headers.add("My-Header-2", "value 2");
+  headers.add("My-Header-1", "value 3");
+  bool myHeader1 = false;
+  bool myHeader2 = false;
+  int totalValues = 0;
+  headers.forEach(f(String name, List<String> values) {
+    totalValues += values.length;
+    if (name == "my-header-1") {
+      myHeader1 = true;
+      Expect.isTrue(values.indexOf("value 1") != -1);
+      Expect.isTrue(values.indexOf("value 3") != -1);
+    }
+    if (name == "my-header-2") {
+      myHeader2 = true;
+      Expect.isTrue(values.indexOf("value 2") != -1);
+    }
+  });
+  Expect.isTrue(myHeader1);
+  Expect.isTrue(myHeader2);
+  Expect.equals(3, totalValues);
+}
+
 main() {
   testMultiValue();
   testExpires();
   testHost();
+  testEnumeration();
 }

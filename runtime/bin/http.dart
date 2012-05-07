@@ -270,6 +270,13 @@ interface HttpHeaders default _HttpHeaders {
   void removeAll(String name);
 
   /**
+   * Enumerate the headers applying the function [f] to each
+   * header. The header names in passed in [name] will be all lower
+   * case.
+   */
+  void forEach(void f(String name, List<String> values));
+
+  /**
    * Gets and sets the date. The value of this property will
    * reflect the "Date" header
    */

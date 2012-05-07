@@ -55,6 +55,10 @@ class _HttpHeaders implements HttpHeaders {
     _headers.remove(name);
   }
 
+  void forEach(void f(String name, List<String> values)) {
+    _headers.forEach(f);
+  }
+
   String get host() => _host;
 
   void set host(String host) {
