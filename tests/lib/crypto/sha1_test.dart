@@ -19,14 +19,6 @@ List<int> createTestArr(int len) {
   return arr;
 }
 
-String digestToString(List<int> digest) {
-  var buf = new StringBuffer();
-  for (var part in digest) {
-    buf.add("${(part < 16) ? "0" : ""}${part.toRadixString(16).toLowerCase()}");
-  }
-  return buf.toString();
-}
-
 void test() {
   final expected_values = const [
     "da39a3ee5e6b4b0d3255bfef95601890afd80709",
@@ -543,8 +535,8 @@ void test() {
     "11bca5b61fc1f6d59078ec5354bc6d9adecc0c5d",
   ];
   for (var i = 0; i < expected_values.length; i++) {
-    Expect.equals(expected_values[i],
-                  digestToString(new SHA1().update(createTestArr(i)).digest()));
+    var digest = new SHA1().update(createTestArr(i)).digest();
+    Expect.equals(expected_values[i], CryptoUtils.bytesToHex(digest));
   }
 }
 
@@ -563,7 +555,7 @@ void testRepeatedDigest() {
 void testStandardVectors(inputs, mds) {
   for (var i = 0; i < inputs.length; i++) {
     var d = new SHA1().update(inputs[i]).digest();
-    Expect.equals(mds[i], digestToString(d), '$i');
+    Expect.equals(mds[i], CryptoUtils.bytesToHex(d), '$i');
   }
 }
 
