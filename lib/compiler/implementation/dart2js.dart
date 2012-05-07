@@ -8,7 +8,6 @@
 #import('dart:uri');
 #import('dart:utf');
 
-#import('../../args/args.dart');
 #import('../compiler.dart', prefix: 'api');
 #import('colors.dart', prefix: 'colors');
 #import('source_file.dart');
@@ -17,54 +16,47 @@
 
 final String LIBRARY_ROOT = '../../../..';
 
-ArgResults parseCommandLine(List<String> argv) {
-  // Set up and parse the command line arguments.
-  ArgParser parser = new ArgParser(usage: 'dart2js [options...] <dart file>');
-  parser.addFlag('throw-on-error',
-      help: 'Throw an exception if a fatal error occurs.');
-  parser.addFlag('suppress-warnings',
-      help: 'Display static warnings');
-  parser.addFlag('verbose', abbr: 'v',
-      help: 'Display verbose output');
-  parser.addFlag('allow-mock-compilation');
-  parser.addFlag('colors', defaultsTo: true,
-      help: 'Use color when displaying output');
-  parser.addOption('library-root',
-      help: 'Path to core lib directory');
-  parser.addOption('out', abbr: 'o',
-      help: 'Output JavaScript file to create',
-      defaultsTo: 'out.js');
-
-  return parser.process(argv);
-}
-
-void compile(ArgResults args) {
-  colors.enabled = args['colors'];
-  bool throwOnError = args['throw-on-error'];
-  bool showWarnings = !args['suppress-warnings'];
-  bool verbose = args['verbose'];
-
+void compile(List<String> argv) {
   Uri cwd = getCurrentDirectory();
+  bool throwOnError = false;
+  bool showWarnings = true;
+  bool verbose = false;
   Uri libraryRoot = cwd;
-  if (args['library-root'] != null) {
-    String path = nativeToUriPath(args['library-root']);
-    if (!path.endsWith("/")) path = "$path/";
-    libraryRoot = cwd.resolve(path);
-  }
-
-  Uri out = cwd.resolve(args['out']);
-
+  Uri out = cwd.resolve('out.js');
   List<String> options = new List<String>();
-  if (args['allow-mock-compilation']) {
-    options.add('--allow-mock-compilation');
+
+  List<String> arguments = <String>[];
+  for (String argument in argv) {
+    if ('--throw-on-error' == argument) {
+      throwOnError = true;
+    } else if ('--suppress-warnings' == argument) {
+      showWarnings = false;
+    } else if ('--verbose' == argument) {
+      verbose = true;
+    } else if (argument.startsWith('--library-root=')) {
+      String path =
+          nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
+      if (!path.endsWith("/")) path = "$path/";
+      libraryRoot = cwd.resolve(path);
+    } else if (argument.startsWith('--out=')) {
+      String path =
+          nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
+      out = cwd.resolve(path);
+    } else if ('--allow-mock-compilation' == argument) {
+      options.add(argument);
+    } else if ('--no-colors' == argument) {
+      colors.enabled = false;
+    } else if ('--enable-checked-mode' == argument) {
+      options.add(argument);
+    } else if (argument.startsWith('-')) {
+      fail('Unknown option $argument.');
+    } else {
+      arguments.add(nativeToUriPath(argument));
+    }
   }
-
-  List<String> arguments = args.rest.map(nativeToUriPath);
-
   if (arguments.isEmpty()) {
     fail('No file to compile.');
   }
-
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
     fail('Extra arguments: $extra.');
@@ -153,8 +145,7 @@ void compilerMain(Options options) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
   List<String> argv = ['--library-root=${options.script}$root'];
   argv.addAll(options.arguments);
-  ArgResults results = parseCommandLine(argv);
-  compile(results);
+  compile(argv);
 }
 
 void main() {
