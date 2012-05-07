@@ -1262,6 +1262,8 @@ class _HttpClientConnection
     if (e != null) {
       if (_onErrorCallback != null) {
         _onErrorCallback(e);
+      } else {
+        throw e;
       }
     }
     _closing = true;
@@ -1366,6 +1368,9 @@ class _HttpClient implements HttpClient {
   HttpClientConnection open(
       String method, String host, int port, String path) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
+    if (method == null || host == null || port == null || path == null) {
+      throw new IllegalArgumentException(null);
+    }
     return _prepareHttpClientConnection(host, port, method, path);
   }
 
