@@ -174,10 +174,10 @@ function() {
   var isolateProperties = oldIsolate.${namer.ISOLATE_PROPERTIES};
   var isolatePrototype = oldIsolate.prototype;
   var str = "{\\n";
-  str += "var isolateProperties = $isolate.${namer.ISOLATE_PROPERTIES};\\n";
+  str += "var properties = $isolate.${namer.ISOLATE_PROPERTIES};\\n";
   for (var staticName in isolateProperties) {
     if (Object.prototype.hasOwnProperty.call(isolateProperties, staticName)) {
-      str += "this." + staticName + "= isolateProperties." + staticName + ";\\n";
+      str += "this." + staticName + "= properties." + staticName + ";\\n";
     }
   }
   str += "}\\n";
