@@ -403,7 +403,7 @@ function() {
       superName = namer.getName(superclass);
     }
     String constructorName = namer.safeName(classElement.name.slowToString());
-    buffer.add('$defineClassName("$className", "$superName",\n');
+    buffer.add('$defineClassName("$className", "$superName", ');
     buffer.add('function $constructorName(');
     StringBuffer bodyBuffer = new StringBuffer();
     // If the class is never instantiated we still need to set it up for
@@ -413,7 +413,7 @@ function() {
     }
     buffer.add(') {\n');
     buffer.add(bodyBuffer);
-    buffer.add('}, ');
+    buffer.add(' }, ');
 
     buffer.add('{\n');
 
