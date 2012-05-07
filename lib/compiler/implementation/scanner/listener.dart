@@ -1459,7 +1459,7 @@ class PartialFunctionElement extends FunctionElement {
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    FunctionExpression parseFunction(Parser p) {
+    Token parseFunction(Parser p) {
       if (isMember()) {
         return p.parseMember(beginToken);
       } else {
