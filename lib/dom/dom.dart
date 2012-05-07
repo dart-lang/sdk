@@ -2948,7 +2948,7 @@ interface FileException {
 
 // WARNING: Do not edit - generated code.
 
-interface FileList {
+interface FileList extends List<File> {
 
   final int length;
 

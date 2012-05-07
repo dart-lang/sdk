@@ -2,10 +2,11 @@
 // This file introduces / supplements and forces Dart declarations.
 
 module default {
-  NamedNodeMap implements sequence<Node>;
-  NodeList implements sequence<Node>;
+  FileList implements sequence<File>;
   HTMLCollection implements sequence<Node>;
   MediaList implements sequence<DOMString>;
+  NamedNodeMap implements sequence<Node>;
+  NodeList implements sequence<Node>;
   StyleSheetList implements sequence<StyleSheet>;
   TouchList implements sequence<Touch>;
 

@@ -6783,6 +6783,88 @@ class _FileListImpl implements FileList native "*FileList" {
 
   final int length;
 
+  _FileImpl operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, _FileImpl value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(File element)) => _Collections.forEach(this, f);
+
+  Collection map(f(File element)) => _Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     _Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => _Collections.every(this, f);
+
+  bool some(bool f(File element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<File>:
+
+  void sort(int compare(File a, File b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  File last() => this[length - 1];
+
+  File removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
+
   _FileImpl item(int index) native;
 }
 
@@ -23557,7 +23639,7 @@ interface FileException {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileList
-interface FileList {
+interface FileList extends List<File> {
 
   /** @domName FileList.length */
   final int length;
