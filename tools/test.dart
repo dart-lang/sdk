@@ -29,10 +29,9 @@
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
 
-#import("../client/tests/dartc/test_config.dart");
 #import("../compiler/tests/dartc/test_config.dart");
-#import("../frog/tests/await/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
+#import("../samples/tests/dartc/test_config.dart");
 #import("../tests/co19/test_config.dart");
 
 /**
@@ -43,10 +42,12 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'frog/tests/await',
   'frog/tests/frog',
   'frog/tests/frog_native',
   'frog/tests/leg',
   'frog/tests/leg_only',
+  'runtime/tests/vm',
   'samples/tests/samples',
   'tests/benchmark_smoke',
   'tests/corelib',
@@ -104,14 +105,12 @@ main() {
       if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
+        // vm tests contain both cc tests (added here) and dart tests (added in
+        // [TEST_SUITE_DIRECTORIES]).
         queue.addTestSuite(new VMTestSuite(conf));
-        queue.addTestSuite(new VMDartTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
-        queue.addTestSuite(new ClientDartcTestSuite(conf));
-      } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
+        queue.addTestSuite(new SamplesDartcTestSuite(conf));
         queue.addTestSuite(new JUnitDartcTestSuite(conf));
-      } else if (key == 'await') {
-        queue.addTestSuite(new AwaitTestSuite(conf));
       }
     }
 

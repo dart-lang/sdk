@@ -7,7 +7,7 @@
 #source('process_test_util.dart');
 
 runEnvironmentProcess(Map environment, name, callback) {
-  var dartExecutable = getDartFileName();
+  var dartExecutable = new Options().executable;
   var options = new ProcessOptions();
   options.environment = environment;
   var printEnv = 'tests/standalone/io/print_env.dart';
@@ -26,7 +26,7 @@ runEnvironmentProcess(Map environment, name, callback) {
 
 testEnvironment() {
   var donePort = new ReceivePort();
-  Map env = Platform.environment();
+  Map env = Platform.environment;
   Expect.isFalse(env.isEmpty());
   // Check that some value in the environment stays the same when passed
   // to another process.

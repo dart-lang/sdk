@@ -6,7 +6,6 @@ webgl_1_test: Skip  # Issue 1495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
-indexeddb_4_test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
 
 [ $compiler == none && $runtime == dartium ]
 request_animation_frame_test: Skip # Uses layoutTestController.

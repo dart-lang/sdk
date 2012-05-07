@@ -10,27 +10,27 @@ class Platform {
   /**
    * Get the number of processors of the machine.
    */
-  static int numberOfProcessors() => _Platform.numberOfProcessors();
+  static int get numberOfProcessors() => _Platform.numberOfProcessors;
 
   /**
    * Get the path separator used by the operating system to separate
    * components in file paths.
    */
-  static String pathSeparator() => _Platform.pathSeparator();
+  static String get pathSeparator() => _Platform.pathSeparator;
 
   /**
    * Get a string ('macos', 'windows', 'linux') representing the
    * operating system.
    */
-  static String operatingSystem() => _Platform.operatingSystem();
+  static String get operatingSystem() => _Platform.operatingSystem;
 
   /**
    * Get the local hostname for the system.
    */
-  static String localHostname() => _Platform.localHostname();
+  static String get localHostname() => _Platform.localHostname;
 
   /**
    * Get the environment for this process.
    */
-  static Map<String, String> environment() => _Platform.environment();
+  static Map<String, String> get environment() => _Platform.environment;
 }

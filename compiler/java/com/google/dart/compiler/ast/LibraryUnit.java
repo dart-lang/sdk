@@ -17,10 +17,13 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -121,6 +124,30 @@ public class LibraryUnit {
 
   public String getPrefixOf(LibraryUnit library) {
     return prefixes.get(library);
+  }
+
+  public LibraryUnit getLibraryWithPrefix(String prefixToMatch) {
+    Iterator<LibraryUnit> libraries = prefixes.keySet().iterator();
+    Iterator<String> prefixStrings = prefixes.values().iterator();
+    while (prefixStrings.hasNext()) {
+      LibraryUnit library = libraries.next();
+      String prefix = prefixStrings.next();
+      if (prefix.equals(prefixToMatch)) {
+        return library;
+      }
+    }
+    return null;
+  }
+
+  public Collection<LibraryUnit> getLibrariesWithPrefix(String prefixToMatch) {
+    Set<Entry<LibraryUnit,String>> entries = prefixes.entrySet();
+    List<LibraryUnit> result = new ArrayList<LibraryUnit>(entries.size());
+    for (Entry<LibraryUnit,String> entry : entries) {
+      if (entry.getValue().equals(prefixToMatch)) {
+        result.add(entry.getKey());
+      }
+    }
+    return result;
   }
 
   public LibraryElement getElement() {

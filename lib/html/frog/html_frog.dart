@@ -552,13 +552,6 @@ class _BlobImpl implements Blob native "*Blob" {
   _BlobImpl webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }
 
-class _BlobBuilderImpl implements BlobBuilder native "*WebKitBlobBuilder" {
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
-
-  _BlobImpl getBlob([String contentType = null]) native;
-}
-
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
   _BodyElementEventsImpl get on() =>
@@ -4494,10 +4487,6 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 }
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
-
-  String createObjectURL(blob_OR_stream) native;
-
-  void revokeObjectURL(String url) native;
 }
 
 class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
@@ -6794,6 +6783,88 @@ class _FileListImpl implements FileList native "*FileList" {
 
   final int length;
 
+  _FileImpl operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, _FileImpl value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(File element)) => _Collections.forEach(this, f);
+
+  Collection map(f(File element)) => _Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     _Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => _Collections.every(this, f);
+
+  bool some(bool f(File element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<File>:
+
+  void sort(int compare(File a, File b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  File last() => this[length - 1];
+
+  File removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
+
   _FileImpl item(int index) native;
 }
 
@@ -7413,6 +7484,8 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final Dynamic source;
 
+  void advance(int count) native;
+
   void continueFunction([key = null]) native "continue";
 
   _IDBRequestImpl delete() native;
@@ -7529,9 +7602,9 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestImpl getKey(key) native;
 
-  _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range = null, int direction = null]) native;
 
-  _IDBRequestImpl openKeyCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
+  _IDBRequestImpl openKeyCursor([key_OR_range = null, int direction = null]) native;
 }
 
 class _IDBKeyImpl implements IDBKey native "*IDBKey" {
@@ -7574,7 +7647,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBIndexImpl index(String name) native;
 
-  _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range = null, int direction = null]) native;
 
   _IDBRequestImpl put(value, [key = null]) native;
 }
@@ -8528,13 +8601,9 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayImpl initData = null]) native;
 
-  void webkitSourceAddId(String id, String type) native;
-
   void webkitSourceAppend(_Uint8ArrayImpl data) native;
 
   void webkitSourceEndOfStream(int status) native;
-
-  void webkitSourceRemoveId(String id) native;
 }
 
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
@@ -9109,7 +9178,7 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 }
 
 class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -9922,6 +9991,8 @@ class _PerformanceImpl implements Performance native "*Performance" {
   final _PerformanceNavigationImpl navigation;
 
   final _PerformanceTimingImpl timing;
+
+  num webkitNow() native;
 }
 
 class _PerformanceNavigationImpl implements PerformanceNavigation native "*PerformanceNavigation" {
@@ -14322,6 +14393,8 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   _ElementImpl createCaption() native;
 
+  _ElementImpl createTBody() native;
+
   _ElementImpl createTFoot() native;
 
   _ElementImpl createTHead() native;
@@ -15091,9 +15164,100 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
   // Use implementation from Uint8Array.
   // final int length;
 
+  int operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int last() => this[length - 1];
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
+
+  // -- end List<int> mixins.
+
   void setElements(Object array, [int offset = null]) native "set";
 
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
+
+  // From ArrayBufferView
+
+  // Use implementation from ArrayBufferView.
+  // final _ArrayBufferImpl buffer;
+
+  // Use implementation from ArrayBufferView.
+  // final int byteLength;
+
+  // Use implementation from ArrayBufferView.
+  // final int byteOffset;
 }
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
@@ -15613,8 +15777,6 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
@@ -16978,14 +17140,6 @@ class _AudioElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _BlobBuilderFactoryProvider {
-  factory BlobBuilder() native
-      '''return new BlobBuilder();''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _CSSMatrixFactoryProvider {
   factory CSSMatrix([String cssValue = '']) native
       'return new WebKitCSSMatrix(cssValue);';
@@ -18120,23 +18274,6 @@ interface Blob {
 
   /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName WebKitBlobBuilder
-interface BlobBuilder default _BlobBuilderFactoryProvider {
-
-  BlobBuilder();
-
-  /** @domName WebKitBlobBuilder.append */
-  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
-
-  /** @domName WebKitBlobBuilder.getBlob */
-  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21722,12 +21859,6 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
-
-  /** @domName DOMURL.createObjectURL */
-  String createObjectURL(blob_OR_stream);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23508,7 +23639,7 @@ interface FileException {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileList
-interface FileList {
+interface FileList extends List<File> {
 
   /** @domName FileList.length */
   final int length;
@@ -24163,6 +24294,9 @@ interface IDBCursor {
   /** @domName IDBCursor.source */
   final Dynamic source;
 
+  /** @domName IDBCursor.advance */
+  void advance(int count);
+
   /** @domName IDBCursor.continueFunction */
   void continueFunction([/*IDBKey*/ key]);
 
@@ -24342,10 +24476,10 @@ interface IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24363,7 +24497,29 @@ interface IDBKey {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBKeyRange
-interface IDBKeyRange {
+interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
+
+  /**
+   * @domName IDBKeyRange.only
+   */
+  IDBKeyRange.only(/*IDBKey*/ value);
+
+  /**
+   * @domName IDBKeyRange.lowerBound
+   */
+  IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]);
+
+  /**
+   * @domName IDBKeyRange.upperBound
+   */
+  IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]);
+
+  /**
+   * @domName IDBKeyRange.bound
+   */
+  IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                    [bool lowerOpen, bool upperOpen]);
+
 
   /** @domName IDBKeyRange.lower */
   final Dynamic lower;
@@ -24423,7 +24579,7 @@ interface IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
@@ -25567,17 +25723,11 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  /** @domName HTMLMediaElement.webkitSourceAddId */
-  void webkitSourceAddId(String id, String type);
-
   /** @domName HTMLMediaElement.webkitSourceAppend */
   void webkitSourceAppend(Uint8Array data);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
-
-  /** @domName HTMLMediaElement.webkitSourceRemoveId */
-  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -26302,7 +26452,7 @@ interface Navigator {
   void registerProtocolHandler(String scheme, String url, String title);
 
   /** @domName Navigator.webkitGetUserMedia */
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27145,6 +27295,9 @@ interface Performance {
 
   /** @domName Performance.timing */
   final PerformanceTiming timing;
+
+  /** @domName Performance.webkitNow */
+  num webkitNow();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27628,7 +27781,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef bool RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32014,6 +32167,9 @@ interface TableElement extends Element {
   /** @domName HTMLTableElement.createCaption */
   Element createCaption();
 
+  /** @domName HTMLTableElement.createTBody */
+  Element createTBody();
+
   /** @domName HTMLTableElement.createTFoot */
   Element createTFoot();
 
@@ -32795,7 +32951,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint8ClampedArray
-interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 
@@ -33475,8 +33631,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
@@ -36253,6 +36407,53 @@ class _WebSocketFactoryProvider {
 
 class _TextFactoryProvider {
   factory Text(String data) native "return document.createTextNode(data);";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _IDBKeyRangeFactoryProvider {
+
+  factory IDBKeyRange.only(/*IDBKey*/ value) =>
+      _only(_class(), _translateKey(value));
+
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
+      _lowerBound(_class(), _translateKey(bound), open);
+
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
+      _upperBound(_class(), _translateKey(bound), open);
+
+  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                            [bool lowerOpen = false, bool upperOpen = false]) =>
+      _bound(_class(), _translateKey(lower), _translateKey(upper),
+             lowerOpen, upperOpen);
+
+  static var _cachedClass;
+
+  static _class() {
+    if (_cachedClass != null) return _cachedClass;
+    return _cachedClass = _uncachedClass();
+  }
+
+  static _uncachedClass() native '''
+      return window.webkitIDBKeyRange || window.mozIDBKeyRange ||
+             window.msIDBKeyRange || window.IDBKeyRange;
+  ''';
+
+  static _translateKey(idbkey) => idbkey;  // TODO: fixme.
+
+  static _IDBKeyRangeImpl _only(cls, value) native
+      '''return cls.only(value);''';
+
+  static _IDBKeyRangeImpl _lowerBound(cls, bound, open) native
+      '''return cls.lowerBound(bound, open);''';
+
+  static _IDBKeyRangeImpl _upperBound(cls, bound, open) native
+      '''return cls.upperBound(bound, open);''';
+
+  static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) native
+      '''return cls.bound(lower, upper, lowerOpen, upperOpen);''';
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -10,18 +10,10 @@
 
 #source('hmac_sha1_test_vectors.dart');
 
-String digestToString(List<int> digest) {
-  var buf = new StringBuffer();
-  for (var part in digest) {
-    buf.add("${(part < 16) ? "0" : ""}${part.toRadixString(16).toLowerCase()}");
-  }
-  return buf.toString();
-}
-
 void testStandardVectors(inputs, keys, macs) {
   for (var i = 0; i < inputs.length; i++) {
     var d = new HMAC(new SHA1(), keys[i]).update(inputs[i]).digest();
-    Expect.isTrue(digestToString(d).startsWith(macs[i]), '$i');
+    Expect.isTrue(CryptoUtils.bytesToHex(d).startsWith(macs[i]), '$i');
   }
 }
 

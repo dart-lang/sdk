@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_JSON_H_
-#define VM_JSON_H_
+#ifndef PLATFORM_JSON_H_
+#define PLATFORM_JSON_H_
 
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -77,6 +77,10 @@ class JSONReader : ValueObject {
   // Returns true if a syntax error was found.
   bool Error() const { return error_; }
 
+  // Returns a pointer to the matching closing brace if the text starts
+  // with a valid JSON object. Returns NULL otherwise.
+  const char* EndOfObject();
+
   JSONType Type() const;
   const char* ValueChars() const {
     return (Type() != kNone) ? scanner_.TokenChars() : NULL;
@@ -115,6 +119,7 @@ class TextBuffer : ValueObject {
   void Clear();
 
   char* buf() { return buf_; }
+  intptr_t length() { return msg_len_; }
 
  private:
   void GrowBuffer(intptr_t len);
@@ -125,4 +130,4 @@ class TextBuffer : ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_JSON_H_
+#endif  // PLATFORM_JSON_H_

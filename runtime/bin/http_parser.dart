@@ -497,13 +497,13 @@ class _HttpParser {
           case _State.BODY:
             // The body is not handled one byte at a time but in blocks.
             int dataAvailable = lastIndex - index;
-            ByteArray data;
+            List<int> data;
             if (_remainingContent == null ||
                 dataAvailable <= _remainingContent) {
-              data = new ByteArray(dataAvailable);
+              data = new Uint8List(dataAvailable);
               data.setRange(0, dataAvailable, buffer, index);
             } else {
-              data = new ByteArray(_remainingContent);
+              data = new Uint8List(_remainingContent);
               data.setRange(0, _remainingContent, buffer, index);
             }
 

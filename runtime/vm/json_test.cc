@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
-#include "vm/json.h"
+#include "platform/json.h"
 #include "vm/unit_test.h"
 
 namespace dart {

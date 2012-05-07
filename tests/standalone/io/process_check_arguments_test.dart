@@ -6,7 +6,7 @@
 #source("process_test_util.dart");
 
 test(args) {
-  Process process = new Process.start(getDartFileName(), args);
+  Process process = new Process.start(new Options().executable, args);
   // Wait for the process to exit and then check result.
   process.onExit = (exitCode) {
     Expect.equals(0, exitCode);

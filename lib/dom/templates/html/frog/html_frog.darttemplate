@@ -18,6 +18,7 @@ $!GENERATED_DART_FILES
 #source('../../html/src/Measurement.dart');
 #source('../../html/src/shared_FactoryProviders.dart');
 #source('../../html/src/frog_FactoryProviders.dart');
+#source('../../html/src/frog_IDBKeyRangeFactoryProvider.dart');
 #source('../../dom/src/frog_TypedArrayFactoryProvider.dart');
 #source('../../html/src/_Testing.dart');
 #source('../../html/src/Device.dart');

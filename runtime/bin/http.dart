@@ -270,6 +270,13 @@ interface HttpHeaders default _HttpHeaders {
   void removeAll(String name);
 
   /**
+   * Enumerate the headers applying the function [f] to each
+   * header. The header names passed in [name] will be all lower
+   * case.
+   */
+  void forEach(void f(String name, List<String> values));
+
+  /**
    * Gets and sets the date. The value of this property will
    * reflect the "Date" header
    */
@@ -304,6 +311,11 @@ interface HttpRequest default _HttpRequest {
    * the request body is not known in advance this -1.
    */
   int get contentLength();
+
+  /**
+   * Returns the persistent connection state signaled by the client.
+   */
+  bool get persistentConnection();
 
   /**
    * Returns the method for the request.
@@ -366,6 +378,13 @@ interface HttpResponse default _HttpResponse {
    * set a default reason phrase is provided.
    */
   String reasonPhrase;
+
+  /**
+   * Gets and sets the persistent connection state. The initial value
+   * of this property is the persistent connection state from the
+   * request.
+   */
+  bool persistentConnection;
 
   /**
    * Returns the response headers.

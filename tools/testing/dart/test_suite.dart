@@ -100,6 +100,7 @@ class CCTestListerIsolate extends Isolate {
 class CCTestSuite implements TestSuite {
   Map configuration;
   final String suiteName;
+  final String testPrefix;
   String runnerPath;
   final String dartDir;
   List<String> statusFilePaths;
@@ -111,7 +112,8 @@ class CCTestSuite implements TestSuite {
   CCTestSuite(Map this.configuration,
               String this.suiteName,
               String runnerName,
-              List<String> this.statusFilePaths)
+              List<String> this.statusFilePaths,
+              [this.testPrefix = ''])
       : dartDir = TestUtils.dartDir() {
     runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
   }
@@ -124,10 +126,11 @@ class CCTestSuite implements TestSuite {
       // Only run the tests that match the pattern. Use the name
       // "suiteName/testName" for cc tests.
       RegExp pattern = configuration['selectors'][suiteName];
-      String constructedName = '$suiteName/$testName';
+      String constructedName = '$suiteName/$testPrefix$testName';
       if (!pattern.hasMatch(constructedName)) return;
 
-      var expectations = testExpectations.expectations(testName);
+      var expectations = testExpectations.expectations(
+          '$testPrefix$testName');
 
       if (configuration["report"]) {
         SummaryReport.add(expectations);
@@ -140,7 +143,7 @@ class CCTestSuite implements TestSuite {
       var args = [testName];
       args.addAll(TestUtils.standardOptions(configuration));
 
-      doTest(new TestCase('$suiteName/$testName',
+      doTest(new TestCase(constructedName,
                           [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
@@ -366,8 +369,10 @@ class StandardTestSuite implements TestSuite {
       testName = filename.substring(start + 1, middle) + '/' +
           filename.substring(middle + 1, filename.length - 5);
     } else {
-      // This case is hit by the dartc client compilation
-      // tests. These tests are pretty broken compared to the
+      // This branch is hit in two cases: standard test suites created with
+      // forDirectory and dartc code compilation tests.
+
+      // Dartc compilation tests are pretty broken compared to the
       // rest. They use the .dart suffix in the status files. They
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
@@ -590,7 +595,7 @@ class StandardTestSuite implements TestSuite {
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
       String filePrefix = '';
-      if (Platform.operatingSystem() == 'windows') {
+      if (Platform.operatingSystem == 'windows') {
         // Firefox on Windows does not like absolute file path names that start
         // with 'C:' adding 'file:///' solves the problem.
         filePrefix = 'file:///';
@@ -811,7 +816,7 @@ class StandardTestSuite implements TestSuite {
     if (configuration['drt'] != '') {
       return configuration['drt'];
     }
-    if (Platform.operatingSystem() == 'macos') {
+    if (Platform.operatingSystem == 'macos') {
       return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/'
           'MacOS/DumpRenderTree';
     }
@@ -822,7 +827,7 @@ class StandardTestSuite implements TestSuite {
     if (configuration['dartium'] != '') {
       return configuration['dartium'];
     }
-    if (Platform.operatingSystem() == 'macos') {
+    if (Platform.operatingSystem == 'macos') {
       return '$dartDir/client/tests/dartium/Chromium.app/Contents/'
           'MacOS/Chromium';
     }
@@ -1144,7 +1149,7 @@ class JUnitTestSuite implements TestSuite {
             dartDir + '/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
-    
+
     // Lengthen the timeout for JUnit tests.  It is normal for them
     // to run for a few minutes.
     Map updatedConfiguration = new Map();
@@ -1215,7 +1220,7 @@ class TestUtils {
   }
 
   static String executableSuffix(String executable) {
-    if (Platform.operatingSystem() == 'windows') {
+    if (Platform.operatingSystem == 'windows') {
       if (executable == 'd8' || executable == 'vm' || executable == 'none') {
         return '.exe';
       } else {
@@ -1332,6 +1337,9 @@ class TestUtils {
     }
     if (configuration["compiler"] == "dart2js") {
       args = [];
+      if (configuration["checked"]) {
+        args.add('--enable-checked-mode');
+      }
       args.add("--verbose");
       if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");

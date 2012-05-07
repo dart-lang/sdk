@@ -9,6 +9,7 @@
     'c99_support_win.h',
     'globals.h',
     'inttypes_support_win.h',
+    'json.h',
     'thread.h',
     'thread_linux.h',
     'thread_macos.h',

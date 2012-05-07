@@ -32,7 +32,8 @@ class ClassTable {
   void Print();
 
  private:
-  static const int initial_capacity_ = 32 * 1024;
+  static const int initial_capacity_ = 512;
+  static const int capacity_increment_ = 256;
 
   intptr_t top_;
   intptr_t capacity_;

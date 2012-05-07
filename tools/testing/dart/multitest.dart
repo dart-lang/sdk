@@ -155,7 +155,7 @@ class _Annotation {
 Set<String> _findAllRelativeImports(String topLibrary) {
   Set<String> toSearch = new Set<String>.from([topLibrary]);
   Set<String> foundImports = new HashSet<String>();
-  String pathSep = Platform.pathSeparator();
+  String pathSep = Platform.pathSeparator;
   int end = topLibrary.lastIndexOf(pathSep);
   String libraryDir = topLibrary.substring(0, end);
 
@@ -209,7 +209,7 @@ void DoMultitest(String filename,
 
   String directory = CreateMultitestDirectory(outputDir, testDir);
   Expect.isNotNull(directory);
-  String pathSep = Platform.pathSeparator();
+  String pathSep = Platform.pathSeparator;
   int start = filename.lastIndexOf(pathSep) + 1;
   int end = filename.indexOf('.dart', start);
   String baseFilename = filename.substring(start, end);

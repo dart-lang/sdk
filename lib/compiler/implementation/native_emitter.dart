@@ -149,7 +149,7 @@ class NativeEmitter {
 
   void potentiallyConvertDartClosuresToJs(StringBuffer code,
                                           FunctionElement member) {
-    FunctionParameters parameters = member.computeParameters(compiler);
+    FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
         compiler.findHelper(const SourceString('convertDartClosureToJS'));
     String closureConverter = compiler.namer.isolateAccess(converter);

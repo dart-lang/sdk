@@ -3,10 +3,29 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
-RunLoop_ExceptionChild: Fail
+cc/RunLoop_ExceptionChild: Fail
 
 [ $arch == x64 ]
-IsolateInterrupt: Skip
+cc/IsolateInterrupt: Skip
+
+# The following section refers to the dart vm tests which live under
+# runtime/tests/vm/dart.
 
 [ $system == windows ]
-Dart2JSCompileAll: Skip
+cc/Dart2JSCompileAll: Skip
+dart/isolate_mirror_self_test: Skip  # TODO(turnidge): Fix this
+
+[ $runtime == drt ]
+dart/import_map_test: Skip
+dart/isolate_mirror_self_test: Skip  # TODO(turnidge,antonm): investigate
+
+[ $compiler == dart2js || $compiler == frog || $compiler == dartc ]
+dart/import_map_test: Skip # compilers not aware of import maps.
+dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
+dart/byte_array_test: Skip # compilers not aware of byte arrays
+
+[ $arch == arm ]
+dart/*: Skip
+
+[ $arch == simarm ]
+dart/*: Skip

@@ -302,9 +302,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         raise Exception('Unsupported CallWith=%s attribute' % call_with)
 
     # Process constructor arguments.
-    for (i, arg) in enumerate(constructor_info.idl_args):
-      self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
-      arguments.append(arg.id)
+    for (i, argument) in enumerate(constructor_info.idl_args):
+      argument_expression = self._GenerateToNative(
+          parameter_definitions_emitter, argument, i)
+      arguments.append(argument_expression)
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
@@ -386,7 +387,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
           '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception);\n')
     else:
       to_native_emitter.Emit(
-          '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception)\n'
+          '    static NativeType* toNative(Dart_Handle handle, Dart_Handle& exception)\n'
           '    {\n'
           '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
           '    }\n',
@@ -536,12 +537,11 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    arguments.append('value')
+    argument_expression = self._GenerateToNative(
+        parameter_definitions_emitter, attr, 1, argument_name='value')
+    arguments.append(argument_expression)
 
-    self._GenerateParameterAdapter(
-        parameter_definitions_emitter, attr, 0, adapter_name='value')
     parameter_definitions = parameter_definitions_emitter.Fragments()
-
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     invocation = self._GenerateWebCoreInvocation(function_expression,
         arguments, 'void', attr.ext_attrs, attr.set_raises)
@@ -563,7 +563,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
 
-  def AddOperation(self, info):
+  def _AddOperation(self, info):
     """
     Arguments:
       info: An OperationInfo object.
@@ -576,16 +576,20 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if 'Custom' in info.overloads[0].ext_attrs:
       parameters = info.ParametersImplementationDeclaration()
       dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
-      argument_count = 1 + len(info.param_infos)
+      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
       self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
           'Callback', True)
       return
 
+    modifier = ''
+    if info.IsStatic():
+      modifier = 'static '
     body = self._members_emitter.Emit(
         '\n'
-        '  $TYPE $NAME($PARAMETERS) {\n'
+        '  $MODIFIER$TYPE $NAME($PARAMETERS) {\n'
         '$!BODY'
         '  }\n',
+        MODIFIER=modifier,
         TYPE=info.type_name,
         NAME=info.name,
         PARAMETERS=info.ParametersImplementationDeclaration())
@@ -598,6 +602,12 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     fallthrough = self.GenerateDispatch(body, info, '    ', 0, overloads)
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
+
+  def AddOperation(self, info):
+    self._AddOperation(info)
+
+  def AddStaticOperation(self, info):
+    self._AddOperation(info)
 
   def GenerateSingleOperation(self,  dispatch_emitter, info, indent, operation):
     """Generates a call to a single operation.
@@ -629,11 +639,14 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
                             NATIVENAME=native_name,
                             ARGS=argument_list)
     # Generate binding.
-    dart_declaration = '%s _%s(%s)' % (info.type_name, native_name,
+    modifier = ''
+    if operation.is_static:
+      modifier = 'static '
+    dart_declaration = '%s%s _%s(%s)' % (modifier, info.type_name, native_name,
                                        argument_list)
     is_custom = 'Custom' in operation.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(
-        native_name, 1 + len(operation.arguments), dart_declaration, 'Callback',
+        native_name, (0 if operation.is_static else 1) + len(operation.arguments), dart_declaration, 'Callback',
         is_custom)
     if is_custom:
       return
@@ -648,6 +661,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     raises_exceptions = raises_exceptions or len(operation.arguments) > 0 or operation.raises
 
     # Process Dart arguments.
+    start_index = 1
+    if operation.is_static:
+      start_index = 0
     for (i, argument) in enumerate(operation.arguments):
       if (i == len(operation.arguments) - 1 and
           self._interface.id == 'Console' and
@@ -655,8 +671,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
-      self._GenerateParameterAdapter(parameter_definitions_emitter, argument, i)
-      arguments.append(argument.id)
+      argument_expression = self._GenerateToNative(
+          parameter_definitions_emitter, argument, start_index + i)
+      arguments.append(argument_expression)
 
     if operation.id in ['addEventListener', 'removeEventListener']:
       # addEventListener's and removeEventListener's last argument is marked
@@ -678,7 +695,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         operation.type.id, operation.ext_attrs, operation.raises)
     self._GenerateNativeCallback(cpp_callback_name,
         parameter_definitions=parameter_definitions_emitter.Fragments(),
-        needs_receiver=True, invocation=invocation,
+        needs_receiver=not operation.is_static, invocation=invocation,
         raises_exceptions=raises_exceptions)
 
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
@@ -702,7 +719,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     if raises_exceptions:
       body = emitter.Format(
-          '    Dart_Handle exception;\n'
+          '    Dart_Handle exception = 0;\n'
           '$BODY'
           '\n'
           'fail:\n'
@@ -720,28 +737,15 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         CALLBACK_NAME=callback_name,
         BODY=body)
 
-  def _GenerateParameterAdapter(self, emitter, idl_node, index,
-                                adapter_name=None):
+  def _GenerateToNative(self, emitter, idl_node, index,
+                                argument_name=None):
     """idl_node is IDLArgument or IDLAttribute."""
     type_info = GetIDLTypeInfo(idl_node.type.id)
-    (adapter_type, include_name) = type_info.parameter_adapter_info()
-    if include_name:
-      self._cpp_impl_includes.add(include_name)
-    flags = ''
-    if (idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString' or
-        'RequiredCppParameter' in idl_node.ext_attrs):
-      flags = ', DartUtilities::ConvertNullToDefaultValue'
-    emitter.Emit(
-        '\n'
-        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX)$FLAGS);\n'
-        '        if (!$NAME.conversionSuccessful()) {\n'
-        '            exception = $NAME.exception();\n'
-        '            goto fail;\n'
-        '        }\n',
-        ADAPTER_TYPE=adapter_type,
-        NAME=adapter_name or idl_node.id,
-        INDEX=index + 1,
-        FLAGS=flags)
+    if not IsPrimitiveType(idl_node.type.id):
+      self._cpp_impl_includes.add('"Dart%s.h"' % type_info.idl_type())
+    argument_name = argument_name or idl_node.id
+    handle = 'Dart_GetNativeArgument(args, %i)' % index
+    return type_info.emit_to_native(emitter, idl_node, argument_name, handle, self._interface.id)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
@@ -783,6 +787,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   def _GenerateWebCoreFunctionExpression(self, function_name, idl_node):
     if 'ImplementedBy' in idl_node.ext_attrs:
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
+    if idl_node.is_static:
+      return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
     return '%s%s' % (self._interface_type_info.receiver(), function_name)
 
   def _GenerateWebCoreInvocation(self, function_expression, arguments,

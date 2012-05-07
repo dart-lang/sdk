@@ -31,7 +31,7 @@ test(scriptFile, encoding, stream) {
   var options = new ProcessOptions();
   if (stream == 'stdout') {
     options.stdoutEncoding = enc;
-    new Process.run(getDartFileName(), [scriptFile, encoding, stream],
+    new Process.run(new Options().executable, [scriptFile, encoding, stream],
                     options, (exit, out, err) {
       Expect.equals(exit, 0);
       Expect.equals(err, '');
@@ -39,7 +39,7 @@ test(scriptFile, encoding, stream) {
     });
   } else {
     options.stderrEncoding = enc;
-    new Process.run(getDartFileName(), [scriptFile, encoding, stream],
+    new Process.run(new Options().executable, [scriptFile, encoding, stream],
                     options, (exit, out, err) {
       Expect.equals(exit, 0);
       Expect.equals(out, '');

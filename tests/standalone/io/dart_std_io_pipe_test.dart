@@ -38,8 +38,9 @@ void test(String shellScript, String dartScript, String type) {
   // number of different redirections of stdio.
   String pipeOutFile = "${dir.path}/pipe";
   String redirectOutFile = "${dir.path}/redirect";
+  String executable = new Options().executable;
   List args =
-      [getDartFileName(), dartScript, type, pipeOutFile, redirectOutFile];
+      [executable, dartScript, type, pipeOutFile, redirectOutFile];
   Process process = new Process.start(shellScript, args);
 
   // Wait for the process to exit and then check result.
@@ -79,7 +80,7 @@ void test(String shellScript, String dartScript, String type) {
 // and can pipe to stdout.
 main() {
   // Don't try to run shell scripts on Windows.
-  var os = Platform.operatingSystem();
+  var os = Platform.operatingSystem;
   if (os == 'windows') return;
 
   // Get the shell script for testing the Standalone Dart VM with

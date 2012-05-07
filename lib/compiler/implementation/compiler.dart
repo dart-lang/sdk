@@ -36,6 +36,7 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
+  bool enableTypeAssertions = false;
 
   final Tracer tracer;
 
@@ -292,7 +293,7 @@ class Compiler implements DiagnosticListener {
           cancel('main is not a function', element: main);
         }
         FunctionElement mainMethod = main;
-        FunctionParameters parameters = mainMethod.computeParameters(this);
+        FunctionSignature parameters = mainMethod.computeSignature(this);
         if (parameters.parameterCount > 0) {
           cancel('main cannot have parameters', element: mainMethod);
         }
@@ -416,7 +417,11 @@ class Compiler implements DiagnosticListener {
     withCurrentElement(element, () => resolver.resolveClass(element));
   }
 
-  FunctionParameters resolveSignature(FunctionElement element) {
+  Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+    return resolver.resolveTypeAnnotation(element, annotation);
+  }
+
+  FunctionSignature resolveSignature(FunctionElement element) {
     return withCurrentElement(element,
                               () => resolver.resolveSignature(element));
   }

@@ -4,9 +4,9 @@
 
 #include "vm/bootstrap_natives.h"
 
+#include "platform/json.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
-#include "vm/json.h"
 #include "vm/message.h"
 #include "vm/port.h"
 #include "vm/resolver.h"

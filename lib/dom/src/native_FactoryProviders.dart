@@ -41,6 +41,11 @@ class _TypedArrayFactoryProvider {
   factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length])
       => FactoryProviderImplementation.U8(buffer, byteOffset, length);
 
+  factory Uint8ClampedArray(int length) => FactoryProviderImplementation.U8C(length);
+  factory Uint8ClampedArray.fromList(List<num> list) => FactoryProviderImplementation.U8C(list);
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      => FactoryProviderImplementation.U8C(buffer, byteOffset, length);
+
   factory Uint16Array(int length) => FactoryProviderImplementation.U16(length);
   factory Uint16Array.fromList(List<num> list) => FactoryProviderImplementation.U16(list);
   factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length])

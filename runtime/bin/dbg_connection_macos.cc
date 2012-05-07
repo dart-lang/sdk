@@ -1,0 +1,158 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/event.h>
+#include <unistd.h>
+
+#include "bin/dartutils.h"
+#include "bin/dbg_connection.h"
+#include "bin/fdutils.h"
+#include "bin/socket.h"
+#include "platform/thread.h"
+#include "platform/utils.h"
+
+
+#define INVALID_FD -1
+
+int DebuggerConnectionImpl::kqueue_fd_ = INVALID_FD;
+int DebuggerConnectionImpl::wakeup_fds_[2] = {INVALID_FD, INVALID_FD};
+
+
+// Used by VM threads to send a message to the debugger connetion
+// handler thread.
+void DebuggerConnectionImpl::SendMessage(MessageType id) {
+  ASSERT(wakeup_fds_[1] != INVALID_FD);
+  struct Message msg;
+  msg.msg_id = id;
+  int result = FDUtils::WriteToBlocking(wakeup_fds_[1], &msg, sizeof(msg));
+  if (result != sizeof(msg)) {
+    if (result == -1) {
+      perror("Wakeup message failure: ");
+    }
+    FATAL1("Wakeup message failure. Wrote %d bytes.", result);
+  }
+}
+
+
+// Used by the debugger connection handler to read the messages sent
+// by the VM.
+bool DebuggerConnectionImpl::ReceiveMessage(Message* msg) {
+  int total_read = 0;
+  int bytes_read = 0;
+  int remaining = sizeof(Message);
+  uint8_t* buf = reinterpret_cast<uint8_t*>(msg);
+  while (remaining > 0) {
+    bytes_read =
+        TEMP_FAILURE_RETRY(read(wakeup_fds_[0], buf + total_read, remaining));
+    if ((bytes_read < 0) && (total_read == 0)) {
+      return false;
+    }
+    if (bytes_read > 0) {
+      total_read += bytes_read;
+      remaining -= bytes_read;
+    }
+  }
+  ASSERT(remaining >= 0);
+  return remaining == 0;
+}
+
+
+void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
+  int ident = event->ident;
+  if (ident == DebuggerConnectionHandler::listener_fd_) {
+    if (DebuggerConnectionHandler::IsConnected()) {
+      FATAL("Cannot connect to more than one debugger.\n");
+    }
+    int fd = ServerSocket::Accept(ident);
+    if (fd < 0) {
+      FATAL("Accepting new debugger connection failed.\n");
+    }
+    FDUtils::SetBlocking(fd);
+    DebuggerConnectionHandler::AcceptDbgConnection(fd);
+
+    /* For now, don't poll the debugger connection.
+    struct kevent ev_add;
+    EV_SET(&ev_add, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    int status =
+        TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &ev_add, 1, NULL, 0, NULL));
+    if (status == -1) {
+      FATAL1("Failed adding debugger socket to kqueue: %s\n", strerror(errno));
+    }
+    */
+  } else if (ident == DebuggerConnectionHandler::debugger_fd_) {
+    printf("unexpected: receiving debugger connection event.\n");
+    UNIMPLEMENTED();
+  } else {
+    Message msg;
+    if (ReceiveMessage(&msg)) {
+      printf("Received sync message id %d.\n", msg.msg_id);
+    }
+  }
+}
+
+
+void DebuggerConnectionImpl::Handler(uword args) {
+  static const intptr_t kMaxEvents = 4;
+  struct kevent events[kMaxEvents];
+
+  while (1) {
+    // Wait indefinitely for an event.
+    int result = TEMP_FAILURE_RETRY(
+        kevent(kqueue_fd_, NULL, 0, events, kMaxEvents, NULL));
+    if (result == -1) {
+      FATAL1("kevent failed %s\n", strerror(errno));
+    } else {
+      ASSERT(result <= kMaxEvents);
+      for (int i = 0; i < result; i++) {
+        HandleEvent(&events[i]);
+      }
+    }
+  }
+  printf("shutting down debugger thread\n");
+}
+
+
+void DebuggerConnectionImpl::SetupPollQueue() {
+  int result;
+  result = TEMP_FAILURE_RETRY(pipe(wakeup_fds_));
+  if (result != 0) {
+    FATAL1("Pipe creation failed with error %d\n", result);
+  }
+  FDUtils::SetNonBlocking(wakeup_fds_[0]);
+
+  kqueue_fd_ = TEMP_FAILURE_RETRY(kqueue());
+  if (kqueue_fd_ == -1) {
+    FATAL("Failed creating kqueue\n");
+  }
+  // Register the wakeup_fd_ with the kqueue.
+  struct kevent event;
+  EV_SET(&event, wakeup_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
+  int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  if (status == -1) {
+    FATAL1("Failed adding wakeup pipe fd to kqueue: %s\n", strerror(errno));
+  }
+
+  // Register the listening socket.
+  EV_SET(&event, DebuggerConnectionHandler::listener_fd_,
+         EVFILT_READ, EV_ADD, 0, 0, NULL);
+  status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  if (status == -1) {
+    FATAL1("Failed adding listener socket to kqueue: %s\n", strerror(errno));
+  }
+}
+
+
+void DebuggerConnectionImpl::StartHandler(int port_number) {
+  ASSERT(DebuggerConnectionHandler::listener_fd_ != -1);
+  SetupPollQueue();
+  int result =
+      dart::Thread::Start(&DebuggerConnectionImpl::Handler, 0);
+  if (result != 0) {
+    FATAL1("Failed to start debugger connection handler thread: %d\n", result);
+  }
+}

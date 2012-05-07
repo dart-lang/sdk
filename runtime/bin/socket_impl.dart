@@ -411,10 +411,10 @@ class _Socket extends _SocketBase implements Socket {
       // supplied List to a ByteArray if it isn't already.
       List outBuffer;
       int outOffset = offset;
-      if (buffer is ByteArray || buffer is ObjectArray) {
+      if (buffer is Uint8List || buffer is ObjectArray) {
         outBuffer = buffer;
       } else {
-        outBuffer = new ByteArray(bytes);
+        outBuffer = new Uint8List(bytes);
         outOffset = 0;
         int j = offset;
         for (int i = 0; i < bytes; i++) {
@@ -429,10 +429,10 @@ class _Socket extends _SocketBase implements Socket {
       }
       var result = _writeList(outBuffer, outOffset, bytes);
       if (result is OSError) {
+        _reportError(result, "Write failed");
         // If writing fails we return 0 as the number of bytes and
         // report the error on the error handler.
         result = 0;
-        _reportError(result, "Write failed");
       }
       return result;
     }

@@ -28,7 +28,9 @@ class CodeEmitterTask extends CompilerTask {
   final NativeEmitter nativeEmitter;
   StringBuffer boundClosureBuffer;
   StringBuffer mainBuffer;
-  String isolatePrototype;
+  /** Shorter access to [isolatePropertiesName]. Both here in the code, as
+      well as in the generated code. */
+  String isolateProperties;
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
@@ -39,15 +41,24 @@ class CodeEmitterTask extends CompilerTask {
 
   String get name() => 'CodeEmitter';
 
-  String get defineClassName() => '${namer.ISOLATE}.\$defineClass';
-  String get finishClassesName() => '${namer.ISOLATE}.\$finishClasses';
+  String get defineClassName()
+      => '${namer.ISOLATE}.\$defineClass';
+  String get finishClassesName()
+      => '${namer.ISOLATE}.\$finishClasses';
+  String get finishIsolateConstructorName()
+      => '${namer.ISOLATE}.\$finishIsolateConstructor';
+  String get pendingClassesName()
+      => '${namer.ISOLATE}.\$pendingClasses';
+  String get isolatePropertiesName()
+      => '${namer.ISOLATE}.${namer.ISOLATE_PROPERTIES}';
 
-  String buildDefineClassFunction(String isolate) {
+  String get defineClassFunction() {
+    // First the class name, then the super class name, followed by the fields
+    // (in an array) and the members (inside an Object literal).
+    // The caller can also pass in the constructor as a function if needed.
+    //
     // Example:
-    // defineClass("A", "B",
-    // function(x) {          /* The JavaScript constructor. */
-    //   this.x = x;
-    // }, {                   /* The members inside an Object literal. */
+    // defineClass("A", "B", ["x", "y"], {
     //  foo$1: function(y) {
     //   print(this.x + y);
     //  },
@@ -56,16 +67,30 @@ class CodeEmitterTask extends CompilerTask {
     //  },
     // });
     return """
-function(cls, superclass, constructor, prototype) {
-  $isolate.prototype[cls] = constructor;
+function(cls, superclass, fields, prototype) {
+  var constructor;
+  if (typeof fields == 'function') {
+    constructor = fields;
+  } else {
+    var str = "(function " + cls + "(";
+    var body = "";
+    for (var i = 0; i < fields.length; i++) {
+      if (i != 0) str += ", ";
+      str += fields[i];
+      body += "this." + fields[i] + " = " + fields[i] + ";\\n";
+    }
+    str += ") {" + body + "})";
+    constructor = eval(str);
+  }
+  $isolatePropertiesName[cls] = constructor;
   constructor.prototype = prototype;
   if (superclass !== "") {
-    $isolate.pendingClasses[cls] = superclass;
+    $pendingClassesName[cls] = superclass;
   }
 }""";
   }
 
-  String buildFinishClassesFunction(String isolate) {
+  String get finishClassesFunction() {
     // 'defineClass' does not require the classes to be constructed in order.
     // Classes are initially just stored in the 'pendingClasses' field.
     // 'finishClasses' takes all pending classes and sets up the prototype.
@@ -80,10 +105,10 @@ function(cls, superclass, constructor, prototype) {
     // object and copy over the members.
     return '''
 function() {
-  var pendingClasses = $isolate.pendingClasses;
+  var pendingClasses = $pendingClassesName;
 '''/* FinishClasses can be called multiple times. This means that we need to
       clear the pendingClasses property. */'''
-  $isolate.pendingClasses = {};
+  $pendingClassesName = {};
   var finishedClasses = {};
   function finishClass(cls) {
     if (finishedClasses[cls]) return;
@@ -92,8 +117,8 @@ function() {
 '''/* The superclass is only false (empty string) for Dart's Object class. */'''
     if (!superclass) return;
     finishClass(superclass);
-    var constructor = $isolate.prototype[cls];
-    var superConstructor = $isolate.prototype[superclass];
+    var constructor = $isolatePropertiesName[cls];
+    var superConstructor = $isolatePropertiesName[superclass];
     var prototype = constructor.prototype;
     if (prototype.__proto__) {
 '''/* On Firefox and Webkit browsers we can manipulate the __proto__
@@ -120,23 +145,75 @@ function() {
     }
   }
   for (var cls in pendingClasses) finishClass(cls);
-};
-''';
+}''';
+  }
+
+  String get finishIsolateConstructorFunction() {
+    String isolate = namer.ISOLATE;
+    // We replace the old Isolate function with a new one that initializes
+    // all its field with the initial (and often final) value of all globals.
+    // This has two advantages:
+    //   1. the properties are in the object itself (thus avoiding to go through
+    //      the prototype when looking up globals.
+    //   2. a new isolate goes through a (usually well optimized) constructor
+    //      function of the form: "function() { this.x = ...; this.y = ...; }".
+    //
+    // Example: If [isolateProperties] is an object containing: x = 3 and
+    // A = function A() { /* constructor of class A. */ }, then we generate:
+    // str = "{
+    //   var isolateProperties = Isolate.$isolateProperties;
+    //   this.x = isolateProperties.x;
+    //   this.A = isolateProperties.A;
+    // }";
+    // which is then dynamically evaluated:
+    //   var newIsolate = new Function(str);
+    //
+    // We also copy over old values like the prototype, and the
+    // isolateProperties themselves.
+    return """function(oldIsolate) {
+  var isolateProperties = oldIsolate.${namer.ISOLATE_PROPERTIES};
+  var isolatePrototype = oldIsolate.prototype;
+  var str = "{\\n";
+  str += "var properties = $isolate.${namer.ISOLATE_PROPERTIES};\\n";
+  for (var staticName in isolateProperties) {
+    if (Object.prototype.hasOwnProperty.call(isolateProperties, staticName)) {
+      str += "this." + staticName + "= properties." + staticName + ";\\n";
+    }
+  }
+  str += "}\\n";
+  var newIsolate = new Function(str);
+  newIsolate.prototype = isolatePrototype;
+  isolatePrototype.constructor = newIsolate;
+  newIsolate.${namer.ISOLATE_PROPERTIES} = isolateProperties;
+  return newIsolate;
+}""";
   }
 
   void addDefineClassAndFinishClassFunctionsIfNecessary(StringBuffer buffer) {
+    if (needsDefineClass) {
+      String isolate = namer.ISOLATE;
+      buffer.add("$defineClassName = $defineClassFunction;\n");
+      buffer.add("$pendingClassesName = {};\n");
+      buffer.add("$finishClassesName = $finishClassesFunction;\n");
+    }
+  }
+
+  void emitFinishIsolateConstructor(StringBuffer buffer) {
+    String name = finishIsolateConstructorName;
+    String value = finishIsolateConstructorFunction;
+    buffer.add("$name = $value;\n");
+  }
+
+  void emitFinishIsolateConstructorInvocation(StringBuffer buffer) {
     String isolate = namer.ISOLATE;
-    buffer.add("$defineClassName = ${buildDefineClassFunction(isolate)};\n");
-    buffer.add("$isolate.pendingClasses = {};\n");
-    buffer.add("$finishClassesName = ${buildFinishClassesFunction(isolate)};");
-    buffer.add("\n");
+    buffer.add("$isolate = $finishIsolateConstructorName($isolate);\n");
   }
 
   void addParameterStub(FunctionElement member,
                         Selector selector,
                         void defineInstanceMember(String invocationName,
                                                   String definition)) {
-    FunctionParameters parameters = member.computeParameters(compiler);
+    FunctionSignature parameters = member.computeSignature(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
       assert(selector.namedArgumentCount == 0);
@@ -268,7 +345,7 @@ function() {
         defineInstanceMember(compiler.namer.getBailoutName(member), codeBlock);
       }
       FunctionElement function = member;
-      FunctionParameters parameters = function.computeParameters(compiler);
+      FunctionSignature parameters = function.computeSignature(compiler);
       if (!parameters.optionalParameters.isEmpty()) {
         addParameterStubs(member, defineInstanceMember);
       }
@@ -297,30 +374,16 @@ function() {
     emitExtraAccessors(member, defineInstanceMember);
   }
 
-  bool generateFieldInits(ClassElement classElement,
-                          StringBuffer argumentsBuffer,
-                          StringBuffer bodyBuffer) {
-    bool isFirst = true;
-    void generateFieldInit(ClassElement enclosingClass, Element member) {
-      // TODO(floitsch): make sure there are no name clashes.
-      String className = namer.getName(enclosingClass);
-      if (!isFirst) argumentsBuffer.add(', ');
-      isFirst = false;
-      String memberName = namer.instanceFieldName(member.getLibrary(),
-                                                  member.name);
-      String parameter;
-      if (classElement === enclosingClass) {
-        parameter = memberName;
-      } else {
-        parameter = '${className}_$memberName';
-      }
-      argumentsBuffer.add(parameter);
-      bodyBuffer.add('  this.$memberName = $parameter;\n');
+  List<String> generateFieldList(ClassElement classElement) {
+    List<String> result = <String>[];
+    void addField(ClassElement enclosingClass, Element member) {
+      result.add(namer.instanceFieldName(member.getLibrary(), member.name));
     }
 
-    classElement.forEachInstanceField(generateFieldInit,
+    classElement.forEachInstanceField(addField,
                                       includeBackendMembers: true,
                                       includeSuperMembers: true);
+    return result;
   }
 
   void generateClass(ClassElement classElement, StringBuffer buffer) {
@@ -343,19 +406,21 @@ function() {
       superName = namer.getName(superclass);
     }
     String constructorName = namer.safeName(classElement.name.slowToString());
-    buffer.add('$defineClassName("$className", "$superName",\n');
-    buffer.add('function $constructorName(');
-    StringBuffer bodyBuffer = new StringBuffer();
+    buffer.add('$defineClassName("$className", "$superName", ');
     // If the class is never instantiated we still need to set it up for
-    // inheritance purposes, but we can leave its JavaScript constructor empty.
-    if (compiler.universe.instantiatedClasses.contains(classElement)) {
-      generateFieldInits(classElement, buffer, bodyBuffer);
+    // inheritance purposes, but we can simplify its JavaScript constructor.
+    if (!compiler.universe.instantiatedClasses.contains(classElement)) {
+      buffer.add("[]");
+    } else {
+      List<String> fields = generateFieldList(classElement);
+      buffer.add('[');
+      for (int i = 0; i < fields.length; i++) {
+        if (i != 0) buffer.add(", ");
+        buffer.add('"${fields[i]}"');
+      }
+      buffer.add(']');
     }
-    buffer.add(') {\n');
-    buffer.add(bodyBuffer);
-    buffer.add('}, ');
-
-    buffer.add('{\n');
+    buffer.add(', {\n');
 
     void defineInstanceMember(String name, String value) {
       buffer.add(' $name: $value,\n');
@@ -443,10 +508,8 @@ function() {
                                     String functionNamer(Element element)) {
     generatedCode.forEach((Element element, String codeBlock) {
       if (!element.isInstanceMember()) {
-        buffer.add(isolatePrototype);
-        buffer.add('.${functionNamer(element)} = ');
-        buffer.add(codeBlock);
-        buffer.add(';\n\n');
+        String functionName = functionNamer(element);
+        buffer.add('$isolateProperties.$functionName = $codeBlock;\n\n');
       }
     });
   }
@@ -475,12 +538,10 @@ function() {
       String invocationName =
           namer.instanceMethodName(element.getLibrary(), callElement.name,
                                    parameterCount);
-      buffer.add(isolatePrototype);
-      buffer.add(".$staticName.$invocationName = ");
-      buffer.add(isolatePrototype);
-      buffer.add(".$staticName;\n");
+      String fieldAccess = '$isolateProperties.$staticName';
+      buffer.add("$fieldAccess.$invocationName = $fieldAccess;\n");
       addParameterStubs(callElement, (String name, String value) {
-        buffer.add('$isolatePrototype.$staticName.$name = $value;\n');
+        buffer.add('$fieldAccess.$name = $value;\n');
       });
     }
   }
@@ -586,18 +647,11 @@ function() {
   }
 
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
-    // Adds initializations inside the Isolate constructor.
-    // Example:
-    //    function Isolate() {
-    //       this.staticNonFinal = Isolate.prototype.someVal;
-    //       ...
-    //    }
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
-    if (!staticNonFinalFields.isEmpty()) buffer.add('\n');
     for (Element element in staticNonFinalFields) {
-      buffer.add('  this.${namer.getName(element)} = ');
+      buffer.add('$isolateProperties.${namer.getName(element)} = ');
       compiler.withCurrentElement(element, () {
           handler.writeJsCodeForVariable(buffer, element);
         });
@@ -619,14 +673,14 @@ function() {
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
       }
-      buffer.add('$isolatePrototype.$name = ');
+      buffer.add('$isolateProperties.$name = ');
       handler.writeJsCode(buffer, constant);
       buffer.add(';\n');
     }
   }
 
   void emitMakeConstantList(StringBuffer buffer) {
-    buffer.add(isolatePrototype);
+    buffer.add(namer.ISOLATE);
     buffer.add(@'''.makeConstantList = function(list) {
   list.immutable$list = true;
   list.fixed$length = true;
@@ -808,13 +862,11 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
 
   String assembleProgram() {
     measure(() {
-      mainBuffer.add('function ${namer.ISOLATE}() {');
-      emitStaticNonFinalFieldInitializations(mainBuffer);
-      mainBuffer.add('}\n');
+      mainBuffer.add('function ${namer.ISOLATE}() {}\n');
       mainBuffer.add('init();\n\n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
-      isolatePrototype = namer.CURRENT_ISOLATE;
-      mainBuffer.add('var $isolatePrototype = ${namer.ISOLATE}.prototype;\n');
+      isolateProperties = namer.CURRENT_ISOLATE;
+      mainBuffer.add('var $isolateProperties = $isolatePropertiesName;\n');
       emitClasses(mainBuffer);
       mainBuffer.add(boundClosureBuffer);
       // Clear the buffer, so that we can reuse it for the native classes.
@@ -825,17 +877,28 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       // constants.
       emitFinishClassesInvocationIfNecessary(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
+      // Static field initializations require the classes and compile-time
+      // constants to be set up.
+      emitStaticNonFinalFieldInitializations(mainBuffer);
 
-      isolatePrototype = '${namer.ISOLATE}.prototype;\n';
-      mainBuffer.add(
-          'var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
+      isolateProperties = isolatePropertiesName;
+      // The following code should not use the short-hand for the
+      // initialStatics.
+      mainBuffer.add('var ${namer.CURRENT_ISOLATE} = null;\n');
       nativeEmitter.emitDynamicDispatchMetadata();
-      nativeEmitter.assembleCode(mainBuffer);
       mainBuffer.add(boundClosureBuffer);
       emitFinishClassesInvocationIfNecessary(mainBuffer);
+
+      emitFinishIsolateConstructorInvocation(mainBuffer);
+      mainBuffer.add(
+        'var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
+
+      nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
       mainBuffer.add('function init() {\n');
+      mainBuffer.add('  $isolateProperties = {};\n');
       addDefineClassAndFinishClassFunctionsIfNecessary(mainBuffer);
+      emitFinishIsolateConstructor(mainBuffer);
       mainBuffer.add('}\n');
       compiler.assembledCode = mainBuffer.toString();
     });

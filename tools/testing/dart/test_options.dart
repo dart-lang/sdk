@@ -113,7 +113,7 @@ is 'dart file.dart' and you specify special command
               'The operating system to run tests on',
               ['-s', '--system'],
               ['linux', 'macos', 'windows'],
-              Platform.operatingSystem()),
+              Platform.operatingSystem),
           new _TestOptionSpecification(
               'checked',
               'Run tests in checked mode',
@@ -154,7 +154,7 @@ is 'dart file.dart' and you specify special command
               'The number of parallel tasks to run',
               ['-j', '--tasks'],
               [],
-              Platform.numberOfProcessors(),
+              Platform.numberOfProcessors,
               'int'),
           new _TestOptionSpecification(
               'shards',
@@ -418,7 +418,7 @@ Note: currently only implemented for dart2js.''',
           "${config['runtime']} is invalid. Skipping this combination.");
     }
     if (config['runtime'] == 'ie' &&
-        Platform.operatingSystem() != 'windows') {
+        Platform.operatingSystem != 'windows') {
       isValid = false;
       print("Warning cannot run Internet Explorer on non-Windows operating" +
           " system.");

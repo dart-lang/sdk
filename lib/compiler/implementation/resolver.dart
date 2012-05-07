@@ -211,6 +211,17 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
+  Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+    if (annotation === null) return compiler.types.dynamicType;
+    ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+    Type result = visitor.resolveTypeAnnotation(annotation);
+    if (result === null) {
+      // TODO(karklose): warning.
+      return compiler.types.dynamicType;
+    }
+    return result;
+  }
+
   void resolveClass(ClassElement element) {
     if (element.isResolved) return;
     measure(() {
@@ -222,7 +233,7 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  FunctionParameters resolveSignature(FunctionElement element) {
+  FunctionSignature resolveSignature(FunctionElement element) {
     return measure(() => SignatureResolver.analyze(compiler, element));
   }
 
@@ -566,12 +577,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       this.enclosingElement = element,
       inInstanceContext = element.isInstanceMember()
           || element.isGenerativeConstructor(),
-      this.context  = element.isMember()
-        ? new ClassScope(element.enclosingElement, element.getLibrary())
-        : new TopScope(element.getLibrary()),
       this.currentClass = element.isMember() ? element.enclosingElement : null,
       this.statementScope = new StatementScope(),
-      super(compiler);
+      super(compiler) {
+    LibraryElement library = element.getLibrary();
+    element = element.getEnclosingMember();
+    if (element !== null) {
+      context = new ClassScope(element.enclosingElement, library);
+    } else {
+      this.context = new TopScope(library);
+    }
+  }
 
   Element lookup(Node node, SourceString name) {
     Element result = context.lookup(name);
@@ -666,8 +682,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void setupFunction(FunctionExpression node, FunctionElement function) {
     context = new MethodScope(context, function);
     // Put the parameters in scope.
-    FunctionParameters functionParameters =
-        function.computeParameters(compiler);
+    FunctionSignature functionParameters =
+        function.computeSignature(compiler);
     Link<Node> parameterNodes = node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
@@ -1057,8 +1073,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (send !== null) {
       typeName = send.selector;
     }
-    if (typeName.source == Types.VOID) return compiler.types.voidType.element;
-    if (send !== null) {
+    if (typeName.source == Types.VOID) {
+      return compiler.types.voidType.element;
+    } else if (send !== null) {
       Element e = context.lookup(send.receiver.asIdentifier().source);
       if (e !== null && e.kind === ElementKind.PREFIX) {
         // The receiver is a prefix. Lookup in the imported members.
@@ -1107,11 +1124,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         }
         if (cls.typeParameters.length == 0) {
           // Return the canonical type if it has no type parameters.
-          type = element.computeType(compiler);
+          type = cls.computeType(compiler);
         } else {
           type = new InterfaceType(cls, arguments.toLink());
         }
-      } else if (element.isTypedef() || element.isTypeVariable()) {
+      } else if (element.isTypedef()) {
+        // TODO(ngeoffray): This is a hack to help us get support for the
+        // DOM library.
+        // TODO(ngeoffray): The list of types for the argument is wrong.
+        type = new FunctionType(compiler.types.dynamicType,
+                                const EmptyLink<Type>(),
+                                element);
+      } else if (element.isTypeVariable()) {
         type = element.computeType(compiler);
       } else {
         compiler.cancel("unexpected element kind ${element.kind}",
@@ -1621,8 +1645,6 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   Element visitVariableDefinitions(VariableDefinitions node) {
-    resolveType(node.type);
-
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty()) {
       cancel(node, 'internal error: no parameter definition');
@@ -1722,26 +1744,25 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     return elements;
   }
 
-  static FunctionParameters analyze(Compiler compiler,
-                                    FunctionElement element) {
-    FunctionExpression node = element.parseNode(compiler);
+  static FunctionSignature analyze(Compiler compiler,
+                                   FunctionElement element) {
+    FunctionExpression node =
+          compiler.parser.measure(() => element.parseNode(compiler));
     SignatureResolver visitor = new SignatureResolver(compiler, element);
     Link<Node> nodes = node.parameters.nodes;
-    LinkBuilder<Element> parameters = visitor.analyzeNodes(nodes);
-    return new FunctionParameters(parameters.toLink(),
-                                  visitor.optionalParameters,
-                                  parameters.length,
-                                  visitor.optionalParameterCount);
+    LinkBuilder<Element> parametersBuilder = visitor.analyzeNodes(nodes);
+    Link<Element> parameters = parametersBuilder.toLink();
+    Type returnType =
+        compiler.resolveTypeAnnotation(element, node.returnType);
+    return new FunctionSignature(parameters,
+                                 visitor.optionalParameters,
+                                 parametersBuilder.length,
+                                 visitor.optionalParameterCount,
+                                 returnType);
   }
 
   // TODO(ahe): This is temporary.
   void resolveExpression(Node node) {
-    if (node == null) return;
-    node.accept(new ResolverVisitor(compiler, enclosingElement));
-  }
-
-  // TODO(ahe): This is temporary.
-  void resolveType(Node node) {
     if (node == null) return;
     node.accept(new ResolverVisitor(compiler, enclosingElement));
   }

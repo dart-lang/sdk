@@ -52,7 +52,7 @@ class ApiMessageReader : public BaseReader {
   // Allocates a Dart_CObject object for string data.
   Dart_CObject* AllocateDartCObjectString(intptr_t length);
   // Allocates a C Dart_CObject object for byte data.
-  Dart_CObject* AllocateDartCObjectByteArray(intptr_t length);
+  Dart_CObject* AllocateDartCObjectUint8Array(intptr_t length);
   // Allocates a C array of Dart_CObject objects.
   Dart_CObject* AllocateDartCObjectArray(intptr_t length);
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/json.h"
+#include "platform/json.h"
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -212,6 +212,7 @@ void JSONReader::Set(const char* json_object) {
 
 
 bool JSONReader::Seek(const char* name) {
+  error_ = false;
   scanner_.SetText(json_object_);
   scanner_.Scan();
   if (scanner_.CurrentToken() != JSONScanner::TokenLBrace) {
@@ -219,6 +220,9 @@ bool JSONReader::Seek(const char* name) {
     return false;
   }
   scanner_.Scan();
+  if (scanner_.CurrentToken() == JSONScanner::TokenRBrace) {
+    return false;
+  }
   while (scanner_.CurrentToken() == JSONScanner::TokenString) {
     bool found = scanner_.IsStringLiteral(name);
     scanner_.Scan();
@@ -261,13 +265,27 @@ bool JSONReader::Seek(const char* name) {
     scanner_.Scan();  // Value or closing brace or bracket.
     if (scanner_.CurrentToken() == JSONScanner::TokenComma) {
       scanner_.Scan();
+    } else if (scanner_.CurrentToken() == JSONScanner::TokenRBrace) {
+      return false;
     } else {
-      // End of json object or malformed object. Value not found.
       error_ = true;
-      break;
+      return false;
     }
   }
+  error_ = true;
   return false;
+}
+
+
+const char* JSONReader::EndOfObject() {
+  bool found = Seek("***");  // Look for illegally named value.
+  ASSERT(!found);
+  if (!found && !error_) {
+    const char* s = scanner_.TokenChars();
+    ASSERT(*s == '}');
+    return s;
+  }
+  return NULL;
 }
 
 

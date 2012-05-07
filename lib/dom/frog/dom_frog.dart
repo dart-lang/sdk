@@ -1240,10 +1240,6 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 }
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
-
-  String createObjectURL(blob_OR_stream) native;
-
-  void revokeObjectURL(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2273,6 +2269,88 @@ class _FileExceptionJs extends _DOMTypeJs implements FileException native "*File
 class _FileListJs extends _DOMTypeJs implements FileList native "*FileList" {
 
   final int length;
+
+  _FileJs operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, _FileJs value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(File element)) => _Collections.forEach(this, f);
+
+  Collection map(f(File element)) => _Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     _Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => _Collections.every(this, f);
+
+  bool some(bool f(File element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<File>:
+
+  void sort(int compare(File a, File b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  File last() => this[length - 1];
+
+  File removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
 
   _FileJs item(int index) native;
 }
@@ -3540,13 +3618,9 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayJs initData = null]) native;
 
-  void webkitSourceAddId(String id, String type) native;
-
   void webkitSourceAppend(_Uint8ArrayJs data) native;
 
   void webkitSourceEndOfStream(int status) native;
-
-  void webkitSourceRemoveId(String id) native;
 }
 
 class _HTMLMenuElementJs extends _HTMLElementJs implements HTMLMenuElement native "*HTMLMenuElement" {
@@ -3937,6 +4011,8 @@ class _HTMLTableElementJs extends _HTMLElementJs implements HTMLTableElement nat
 
   _HTMLElementJs createCaption() native;
 
+  _HTMLElementJs createTBody() native;
+
   _HTMLElementJs createTFoot() native;
 
   _HTMLElementJs createTHead() native;
@@ -4166,6 +4242,8 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   final source;
 
+  void advance(int count) native;
+
   void continueFunction([key = null]) native '''
         if (key == null) return this['continue']();
         return this['continue'](key);
@@ -4272,9 +4350,9 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestJs getKey(key) native;
 
-  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openCursor([key_OR_range = null, int direction = null]) native;
 
-  _IDBRequestJs openKeyCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openKeyCursor([key_OR_range = null, int direction = null]) native;
 }
 
 class _IDBKeyJs extends _DOMTypeJs implements IDBKey native "*IDBKey" {
@@ -4317,7 +4395,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBIndexJs index(String name) native;
 
-  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openCursor([key_OR_range = null, int direction = null]) native;
 
   _IDBRequestJs put(value, [key = null]) native;
 }
@@ -5311,7 +5389,7 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 }
 
 class _NavigatorUserMediaErrorJs extends _DOMTypeJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -5779,6 +5857,8 @@ class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performa
   final _PerformanceNavigationJs navigation;
 
   final _PerformanceTimingJs timing;
+
+  num webkitNow() native;
 }
 
 class _PerformanceNavigationJs extends _DOMTypeJs implements PerformanceNavigation native "*PerformanceNavigation" {
@@ -10347,9 +10427,100 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
   // Use implementation from Uint8Array.
   // final int length;
 
+  int operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int last() => this[length - 1];
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
+
+  // -- end List<int> mixins.
+
   void setElements(Object array, [int offset = null]) native 'set';
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
+
+  // From ArrayBufferView
+
+  // Use implementation from ArrayBufferView.
+  // final _ArrayBufferJs buffer;
+
+  // Use implementation from ArrayBufferView.
+  // final int byteLength;
+
+  // Use implementation from ArrayBufferView.
+  // final int byteOffset;
 }
 
 class _ValidityStateJs extends _DOMTypeJs implements ValidityState native "*ValidityState" {
@@ -10837,8 +11008,6 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
@@ -11393,13 +11562,6 @@ class _WebKitAnimationListJs extends _DOMTypeJs implements WebKitAnimationList n
   final int length;
 
   _WebKitAnimationJs item(int index) native;
-}
-
-class _WebKitBlobBuilderJs extends _DOMTypeJs implements WebKitBlobBuilder native "*WebKitBlobBuilder" {
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
-
-  _BlobJs getBlob([String contentType = null]) native;
 }
 
 class _WebKitCSSFilterValueJs extends _CSSValueListJs implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
@@ -12134,14 +12296,6 @@ if (pauseOnExit == null)
   return new TextTrackCue(id, startTime, endTime, text, settings);
 return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
 ''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _WebKitBlobBuilderFactoryProvider {
-  factory WebKitBlobBuilder() native
-      '''return new WebKitBlobBuilder();''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13696,10 +13850,6 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
-
-  String createObjectURL(blob_OR_stream);
-
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14948,7 +15098,7 @@ interface FileException {
 
 // WARNING: Do not edit - generated code.
 
-interface FileList {
+interface FileList extends List<File> {
 
   final int length;
 
@@ -16240,13 +16390,9 @@ interface HTMLMediaElement extends HTMLElement {
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  void webkitSourceAddId(String id, String type);
-
   void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16762,6 +16908,8 @@ interface HTMLTableElement extends HTMLElement {
 
   HTMLElement createCaption();
 
+  HTMLElement createTBody();
+
   HTMLElement createTFoot();
 
   HTMLElement createTHead();
@@ -17050,6 +17198,8 @@ interface IDBCursor {
 
   final /*IDBAny*/ source;
 
+  void advance(int count);
+
   void continueFunction([/*IDBKey*/ key]);
 
   IDBRequest delete();
@@ -17178,9 +17328,9 @@ interface IDBIndex {
 
   IDBRequest getKey(key);
 
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
-  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17248,7 +17398,7 @@ interface IDBObjectStore {
 
   IDBIndex index(String name);
 
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
@@ -18052,7 +18202,7 @@ interface Navigator {
 
   void registerProtocolHandler(String scheme, String url, String title);
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18551,6 +18701,8 @@ interface Performance {
   final PerformanceNavigation navigation;
 
   final PerformanceTiming timing;
+
+  num webkitNow();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18872,7 +19024,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef bool RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22383,7 +22535,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
-interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 
@@ -22965,8 +23117,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
@@ -23561,20 +23711,6 @@ interface WebKitAnimationList {
   final int length;
 
   WebKitAnimation item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
-
-  WebKitBlobBuilder();
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
-
-  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

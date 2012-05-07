@@ -4,6 +4,7 @@
 
 #library('crypto');
 
+#source('crypto_utils.dart');
 #source('hmac.dart');
 #source('sha_utils.dart');
 #source('sha1.dart');
@@ -59,7 +60,6 @@ interface SHA256 extends Hash default _SHA256 {
   SHA256();
 }
 
-
 /**
  * Hash-based Message Authentication Code support.
  *
@@ -84,6 +84,18 @@ interface HMAC default _HMAC {
   List<int> digest();
 }
 
+/**
+ * Utility methods for working with message digests.
+ */
+class CryptoUtils {
+  /**
+   * Convert a list of bytes (for example a message digest) into a hex
+   * string.
+   */
+  static String bytesToHex(List<int> bytes) {
+    return _CryptoUtils.bytesToHex(bytes);
+  }
+}
 
 /**
  * HashExceptions are thrown on invalid use of a Hash

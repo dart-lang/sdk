@@ -25,6 +25,7 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'runtime/tests/vm',
   'tests/corelib',
   'tests/isolate',
   'tests/language',
@@ -74,8 +75,9 @@ main() {
       queue.addTestSuite(new Co19TestSuite(conf));
     }
     if (conf['runtime'] == 'vm' && selectors.containsKey('vm')) {
+      // vm tests contain both cc tests (added here) and dart tests (added in
+      // [TEST_SUITE_DIRECTORIES]).
       queue.addTestSuite(new VMTestSuite(conf));
-      queue.addTestSuite(new VMDartTestSuite(conf));
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {

@@ -14,7 +14,7 @@
 // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
 
 String nativeToUriPath(String filename) {
-  if (Platform.operatingSystem() != 'windows') return filename;
+  if (Platform.operatingSystem != 'windows') return filename;
   filename = filename.toLowerCase();
   filename = filename.replaceAll('\\', '/');
   if (filename.length > 2 && filename[1] == ':') {
@@ -24,7 +24,7 @@ String nativeToUriPath(String filename) {
 }
 
 String uriPathToNative(String path) {
-  if (Platform.operatingSystem() != 'windows') return path;
+  if (Platform.operatingSystem != 'windows') return path;
   path = path.toLowerCase();
   if (path.length > 3 && path[0] == '/' && path[2] == ':') {
     return path.substring(1).replaceAll('/', '\\');

@@ -131,7 +131,7 @@ class CObject {
   bool IsDouble() { return type() == Dart_CObject::kDouble; }
   bool IsString() { return type() == Dart_CObject::kString; }
   bool IsArray() { return type() == Dart_CObject::kArray; }
-  bool IsByteArray() { return type() == Dart_CObject::kByteArray; }
+  bool IsUint8Array() { return type() == Dart_CObject::kUint8Array; }
 
   bool IsTrue() {
     return type() == Dart_CObject::kBool && cobject_->value.as_bool;
@@ -157,7 +157,7 @@ class CObject {
   static Dart_CObject* NewString(int length);
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(int length);
-  static Dart_CObject* NewByteArray(int length);
+  static Dart_CObject* NewUint8Array(int length);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
 
@@ -286,9 +286,9 @@ class CObjectArray : public CObject {
 };
 
 
-class CObjectByteArray : public CObject {
+class CObjectUint8Array : public CObject {
  public:
-  DECLARE_COBJECT_CONSTRUCTORS(ByteArray)
+  DECLARE_COBJECT_CONSTRUCTORS(Uint8Array)
 
   int Length() const { return cobject_->value.as_byte_array.length; }
   uint8_t* Buffer() const { return cobject_->value.as_byte_array.values; }

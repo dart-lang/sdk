@@ -298,47 +298,8 @@ const char* UnaryOpNode::Name() const {
 }
 
 
-const char* IncrOpLocalNode::Name() const {
-  switch (kind_) {
-    case Token::kINCR:
-      return prefix_ ? "local_pre_++" : "local_post_++";
-    case Token::kDECR:
-      return prefix_ ? "local_pre_--" : "local_post_--";
-    default:
-      UNREACHABLE();
-      return NULL;
-  }
-}
-
-
-const char* IncrOpInstanceFieldNode::Name() const {
-  switch (kind_) {
-    case Token::kINCR:
-      return prefix_ ? "instance_field_pre_++" : "instance_field_post_++";
-    case Token::kDECR:
-      return prefix_ ? "instance_field_pre_--" : "instance_field_post_--";
-    default:
-      UNREACHABLE();
-      return NULL;
-  }
-}
-
-
 const char* JumpNode::Name() const {
   return Token::Str(kind_);
-}
-
-
-const char* IncrOpIndexedNode::Name() const {
-  switch (kind_) {
-    case Token::kINCR:
-      return prefix_ ? "indexed_pre_++" : "indexed_post_++";
-    case Token::kDECR:
-      return prefix_ ? "indexed_pre_--" : "indexed_post_--";
-    default:
-      UNREACHABLE();
-      return NULL;
-  }
 }
 
 
@@ -346,17 +307,10 @@ AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (local().is_final()) {
     return NULL;
   }
-  return new StoreLocalNode(token_index(), local(), rhs);
-}
-
-
-AstNode* LoadLocalNode::MakeIncrOpNode(intptr_t token_index,
-                                       Token::Kind kind,
-                                       bool is_prefix) {
-  if (local().is_final()) {
+  if (HasPseudo()) {
     return NULL;
   }
-  return new IncrOpLocalNode(token_index, kind, is_prefix, local());
+  return new StoreLocalNode(token_index(), local(), rhs);
 }
 
 
@@ -365,43 +319,13 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
 }
 
 
-AstNode* LoadStaticFieldNode::MakeIncrOpNode(intptr_t token_index,
-                                             Token::Kind kind,
-                                             bool is_prefix) {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
   return new InstanceSetterNode(token_index(), receiver(), field_name(), rhs);
 }
 
 
-AstNode* InstanceGetterNode::MakeIncrOpNode(intptr_t token_index,
-                                            Token::Kind kind,
-                                            bool is_prefix) {
-  return new IncrOpInstanceFieldNode(token_index,
-                                     kind,
-                                     is_prefix,
-                                     receiver(),
-                                     field_name());
-}
-
-
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
   return new StoreIndexedNode(token_index(), array(), index_expr(), rhs);
-}
-
-
-AstNode* LoadIndexedNode::MakeIncrOpNode(intptr_t token_index,
-                                         Token::Kind kind,
-                                         bool is_prefix) {
-  return new IncrOpIndexedNode(token_index,
-                               kind,
-                               is_prefix,
-                               array(),
-                               index_expr());
 }
 
 
@@ -428,14 +352,6 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   } else {
     return new StaticSetterNode(token_index(), cls(), field_name(), rhs);
   }
-}
-
-
-AstNode* StaticGetterNode::MakeIncrOpNode(intptr_t token_index,
-                                          Token::Kind kind,
-                                          bool is_prefix) {
-  UNIMPLEMENTED();
-  return NULL;
 }
 
 

@@ -322,7 +322,7 @@ class DirectoryTest {
     Directory tempDirectory = new Directory("");
     tempDirectory.createTemp(() {
       String filename = tempDirectory.path +
-          Platform.pathSeparator() + "dart_testfile";
+          Platform.pathSeparator + "dart_testfile";
       File file = new File(filename);
       Expect.isFalse(file.existsSync());
       file.onError = (e) {
@@ -347,7 +347,7 @@ class DirectoryTest {
 
   static void testCurrent() {
     Directory current = new Directory.current();
-    if (Platform.operatingSystem() != "windows") {
+    if (Platform.operatingSystem != "windows") {
       Expect.equals("/", current.path.substring(0, 1));
     }
   }
@@ -387,7 +387,7 @@ class NestedTempDirectoryTest {
   void createPhaseCallback() {
     createdDirectories.add(current);
     int nestingDepth = 6;
-    var os = Platform.operatingSystem();
+    var os = Platform.operatingSystem;
     if (os == "windows") nestingDepth = 2;
     if (createdDirectories.length < nestingDepth) {
       current = new Directory(
@@ -416,7 +416,7 @@ class NestedTempDirectoryTest {
 
 String illegalTempDirectoryLocation() {
   // Determine a platform specific illegal location for a temporary directory.
-  var os = Platform.operatingSystem();
+  var os = Platform.operatingSystem;
   if (os == "linux" || os == "macos") {
     return "/dev/zero/";
   }

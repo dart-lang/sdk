@@ -41,13 +41,20 @@ class ListLiteral4Test<T> {
     } catch (TypeError error) {
       result += 100000;
     }
+    try {
+      var m = <T>[0, 1];  // OK. Tested above.
+      List<String> ls = m;  // m is a List<int>, not a List<String>.
+    } catch (TypeError error) {
+      result += 1000000;
+    }
+
     return result;
   }
 }
 
 main() {
   var t = new ListLiteral4Test<int>();
-  Expect.equals(110111, t.test());
+  Expect.equals(1110111, t.test());
 }
 
 

@@ -160,13 +160,6 @@ class _TextTrackCueFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _WebKitBlobBuilderFactoryProvider {
-  factory WebKitBlobBuilder() => _dummy();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _WebKitCSSMatrixFactoryProvider {
   factory WebKitCSSMatrix([String cssValue = null]) => _dummy();
 }
@@ -1707,10 +1700,6 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
-
-  String createObjectURL(blob_OR_stream);
-
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2959,7 +2948,7 @@ interface FileException {
 
 // WARNING: Do not edit - generated code.
 
-interface FileList {
+interface FileList extends List<File> {
 
   final int length;
 
@@ -4251,13 +4240,9 @@ interface HTMLMediaElement extends HTMLElement {
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  void webkitSourceAddId(String id, String type);
-
   void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4773,6 +4758,8 @@ interface HTMLTableElement extends HTMLElement {
 
   HTMLElement createCaption();
 
+  HTMLElement createTBody();
+
   HTMLElement createTFoot();
 
   HTMLElement createTHead();
@@ -5061,6 +5048,8 @@ interface IDBCursor {
 
   final /*IDBAny*/ source;
 
+  void advance(int count);
+
   void continueFunction([/*IDBKey*/ key]);
 
   IDBRequest delete();
@@ -5189,9 +5178,9 @@ interface IDBIndex {
 
   IDBRequest getKey(key);
 
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
-  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5259,7 +5248,7 @@ interface IDBObjectStore {
 
   IDBIndex index(String name);
 
-  IDBRequest openCursor([IDBKeyRange range, int direction]);
+  IDBRequest openCursor([key_OR_range, int direction]);
 
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
@@ -6063,7 +6052,7 @@ interface Navigator {
 
   void registerProtocolHandler(String scheme, String url, String title);
 
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6562,6 +6551,8 @@ interface Performance {
   final PerformanceNavigation navigation;
 
   final PerformanceTiming timing;
+
+  num webkitNow();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6883,7 +6874,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef bool RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10394,7 +10385,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
-interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 
@@ -10976,8 +10967,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int SCISSOR_BOX = 0x0C10;
 
   static final int SCISSOR_TEST = 0x0C11;
-
-  static final int SHADER_COMPILER = 0x8DFA;
 
   static final int SHADER_TYPE = 0x8B4F;
 
@@ -11572,20 +11561,6 @@ interface WebKitAnimationList {
   final int length;
 
   WebKitAnimation item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
-
-  WebKitBlobBuilder();
-
-  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
-
-  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

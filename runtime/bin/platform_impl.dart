@@ -9,19 +9,19 @@ class _Platform {
   static _localHostname() native "Platform_LocalHostname";
   static _environment() native "Platform_Environment";
 
-  static int numberOfProcessors() {
+  static int get numberOfProcessors() {
     return _numberOfProcessors();
   }
 
-  static String pathSeparator() {
+  static String get pathSeparator() {
     return _pathSeparator();
   }
 
-  static String operatingSystem() {
+  static String get operatingSystem() {
     return _operatingSystem();
   }
 
-  static String localHostname() {
+  static String get localHostname() {
     var result = _localHostname();
     if (result is OSError) {
       throw result;
@@ -30,7 +30,7 @@ class _Platform {
     }
   }
 
-  static Map<String, String> environment() {
+  static Map<String, String> get environment() {
     var env = _environment();
     if (env is OSError) {
       throw env;

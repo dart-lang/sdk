@@ -1,0 +1,6 @@
+#!/bin/sh
+# Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
+# structure.
+
+SCRIPTPATH=`dirname $0`
+$SCRIPTPATH/dart $SCRIPTPATH/../util/pub/pub.dart $@

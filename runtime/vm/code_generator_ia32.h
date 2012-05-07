@@ -180,9 +180,12 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateArgumentTypeChecks();
   void GenerateConditionTypeCheck(intptr_t node_id, intptr_t token_index);
 
-  void GenerateInstantiatorTypeArguments(intptr_t token_index);
-  void GenerateTypeArguments(ConstructorCallNode* node,
-                             bool is_cls_parameterized);
+  void GenerateInstantiatorTypeArguments(intptr_t token_index,
+                                         bool push_instantiator);
+  void GenerateTypeArguments(intptr_t node_id,
+                             intptr_t token_index,
+                             const AbstractTypeArguments& type_arguments,
+                             bool instantiate_type_arguments);
 
   intptr_t locals_space_size() const { return locals_space_size_; }
   void set_locals_space_size(intptr_t value) { locals_space_size_ = value; }
@@ -198,30 +201,35 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   void GenerateInlinedFinallyBlocks(SourceLabel* label);
 
-  void GenerateInlineInstanceof(intptr_t node_id,
-                                intptr_t token_index,
-                                const AbstractType& type,
-                                Label* is_instance_lbl,
-                                Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t node_id,
+                                                intptr_t token_index,
+                                                const AbstractType& type,
+                                                Label* is_instance_lbl,
+                                                Label* is_not_instance_lbl);
 
-  void GenerateInstantiatedTypeWithArgumentsTest(intptr_t node_id,
-                                                 intptr_t token_index,
-                                                 const AbstractType& dst_type,
-                                                 Label* is_instance_lbl,
-                                                 Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
+      intptr_t node_id,
+      intptr_t token_index,
+      const AbstractType& dst_type,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
   void GenerateInstantiatedTypeNoArgumentsTest(intptr_t node_id,
                                                intptr_t token_index,
                                                const AbstractType& dst_type,
                                                Label* is_instance_lbl,
                                                Label* is_not_instance_lbl);
-  void GenerateUninstantiatedTypeTest(const AbstractType& dst_type,
-                                      intptr_t token_index,
-                                      Label* is_instance_lbl);
-  void GenerateSubtypeTestCacheLookup(intptr_t node_id,
-                                      intptr_t token_index,
-                                      const Class& type_class,
-                                      Label* is_instance_lbl,
-                                      Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+      const AbstractType& dst_type,
+      intptr_t node_id,
+      intptr_t token_index,
+      Label* is_instance_lbl,
+      Label* is_not_instance_label);
+  RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
+      intptr_t node_id,
+      intptr_t token_index,
+      const Class& type_class,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
 
   void HandleBackwardBranch(intptr_t loop_id, intptr_t token_index);
 

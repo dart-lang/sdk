@@ -12,6 +12,7 @@ main() {
   Expect.equals(10, Math.parseInt(opts.arguments[0]));
   Expect.equals("options_test", opts.arguments[1]);
   Expect.equals(20, Math.parseInt(opts.arguments[2]));
+  Expect.isTrue(opts.executable.contains('dart'));
   Expect.isTrue(opts.script.replaceAll('\\', '/').
                 endsWith('tests/standalone/io/options_test.dart'));
 

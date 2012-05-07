@@ -467,6 +467,7 @@ class Parser : ValueObject {
   void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
 
+  const LocalVariable& GetIncrementTempLocal();
 
   const Script& script_;
   const TokenStream& tokens_;
@@ -500,6 +501,9 @@ class Parser : ValueObject {
   // code at all points in the try block where an exit from the block is
   // done using 'return', 'break' or 'continue' statements.
   TryBlocks* try_blocks_list_;
+
+  // Allocate temporary only once per function.
+  LocalVariable* increment_temp_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

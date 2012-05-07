@@ -10,6 +10,8 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+indexeddb_3_test: Fail  # exception not caught - not 'is IDBDatabaseException' ?
+indexeddb_4_test: Fail  # exception not caught - not 'is IDBDatabaseException' ?
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
@@ -24,6 +26,7 @@ request_animation_frame_test: Skip   # drt hangs
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html frog.
+inner_frame_test: Fail # Issue 2774
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
@@ -66,7 +69,7 @@ cssstyledeclaration_test: Fail
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
-dart_object_local_storage_test: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
 element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
@@ -132,9 +135,6 @@ css_test: Pass, Fail # Test is flaky Issue #2823
 [ $compiler == frog && $runtime == none ]
 *: Skip
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
-request_animation_frame_test: Skip # Async test hangs.
-
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
 documentfragment_test: Fail
@@ -150,9 +150,13 @@ svgelement_test: Fail
 dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html
+inner_frame_test: Fail # Issue 2774
+indexeddb_3_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
+indexeddb_4_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
 
 # DOM errors.
 indexeddb_2_test: Fail # Uncaught error

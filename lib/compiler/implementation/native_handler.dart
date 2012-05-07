@@ -250,7 +250,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     compiler.emitter.nativeEmitter.nativeMethods.add(element);
   }
 
-  FunctionParameters parameters = element.computeParameters(builder.compiler);
+  FunctionSignature parameters = element.computeSignature(builder.compiler);
   if (!hasBody) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
@@ -317,10 +317,9 @@ void generateMethodWithPrototypeCheckForElement(Compiler compiler,
   String methodName;
   Namer namer = compiler.namer;
   if (element.kind == ElementKind.FUNCTION) {
-    FunctionParameters computedParameters =
-        element.computeParameters(compiler);
+    FunctionSignature signature = element.computeSignature(compiler);
     methodName = namer.instanceMethodName(
-        element.getLibrary(), element.name, computedParameters.parameterCount);
+        element.getLibrary(), element.name, signature.parameterCount);
   } else if (element.kind == ElementKind.GETTER) {
     methodName = namer.getterName(element.getLibrary(), element.name);
   } else if (element.kind == ElementKind.SETTER) {

@@ -26,6 +26,20 @@ main() {
       Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
   });
 
+  test('indexOfClamped_dynamic', () {
+      var a1 = new Uint8ClampedArray(1024);
+      for (int i = 0; i < a1.length; i++) {
+        a1[i] = i;
+      }
+
+      Expect.equals(50, a1.indexOf(50));
+      Expect.equals(50, a1.indexOf(50, 50));
+      Expect.equals(-1, a1.indexOf(50, 51));
+
+      Expect.equals(50, a1.lastIndexOf(50));
+      Expect.equals(-1, a1.lastIndexOf(50, 49));
+  });
+
   test('indexOf_typed', () {
       Uint8Array a1 = new Uint8Array(1024);
       for (int i = 0; i < a1.length; i++) {
@@ -39,5 +53,20 @@ main() {
       Expect.equals(768 + 50, a1.lastIndexOf(50));
       Expect.equals(768 + 50, a1.lastIndexOf(50, 768 + 50));
       Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
+  });
+
+  if (false)
+  test('indexOfClamped_typed', () {
+      Uint8ClampedArray a1 = new Uint8ClampedArray(1024);
+      for (int i = 0; i < a1.length; i++) {
+        a1[i] = i;
+      }
+
+      Expect.equals(50, a1.indexOf(50));
+      Expect.equals(50, a1.indexOf(50, 50));
+      Expect.equals(-1, a1.indexOf(50, 51));
+
+      Expect.equals(50, a1.lastIndexOf(50));
+      Expect.equals(-1, a1.lastIndexOf(50, 49));
   });
 }

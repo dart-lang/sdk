@@ -150,7 +150,7 @@ main() {
   testRequestResponseClientCloses(2, null, null);
   testRequestResponseClientCloses(2, 3001, null);
   testRequestResponseClientCloses(2, 3002, "Got tired");
-  testRequestResponseServerCloses(1, null, null);
+  testRequestResponseServerCloses(2, null, null);
   testRequestResponseServerCloses(2, 3001, null);
   testRequestResponseServerCloses(2, 3002, "Got tired");
   testNoUpgrade();

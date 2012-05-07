@@ -59,15 +59,15 @@ class Test {
     IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
     IDBRequest cursorRequest = objectStore.openCursor(range);
     int itemCount = 0;
-    int firstKey = null;
-    int lastKey = null;
+    num firstKey = null;
+    num lastKey = null;
     cursorRequest.addEventListener("success", (e) {
         var cursor = e.target.result;
         if (cursor != null) {
           if (firstKey == null) firstKey = cursor.key;
           lastKey = cursor.key;
           itemCount += 1;
-          Expect.equals('Item ${cursor.key}', cursor.value);
+          Expect.equals('Item ${cursor.key.toStringAsFixed(0)}', cursor.value);
           cursor.continueFunction();
         } else {
           // Done

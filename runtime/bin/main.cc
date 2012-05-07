@@ -11,6 +11,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/dbg_connection.h"
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
@@ -44,6 +45,15 @@ static const char* generate_pprof_symbols_filename = NULL;
 // This pointer points into an argv buffer and does not need to be
 // free'd.
 static const char* breakpoint_at = NULL;
+
+
+// Global state that indicates whether we should open a connection
+// and listen for a debugger to connect.
+static bool start_debugger = false;
+static const int DEFAULT_DEBUG_PORT = 5858;
+static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
+static const char* debug_ip = DEFAULT_DEBUG_IP;
+static int debug_port = 0;
 
 
 // Value of the --package-root flag.
@@ -84,6 +94,28 @@ static void ProcessCompileAllOption(const char* compile_all) {
 }
 
 
+static void ProcessDebugOption(const char* port) {
+  // TODO(hausner): Add support for specifying an IP address on which
+  // the debugger should listen.
+  ASSERT(port != NULL);
+  debug_port = 0;
+  if (*port == '\0') {
+    debug_port = DEFAULT_DEBUG_PORT;
+  } else {
+    if ((*port == '=') || (*port == ':')) {
+      debug_port = atoi(port + 1);
+    }
+  }
+  if (debug_port == 0) {
+    fprintf(stderr, "unrecognized --debug option syntax. "
+                    "Use --debug[:<port number>]\n");
+    return;
+  }
+  breakpoint_at = "main";
+  start_debugger = true;
+}
+
+
 static void ProcessPprofOption(const char* filename) {
   ASSERT(filename != NULL);
   generate_pprof_symbols_filename = filename;
@@ -102,6 +134,7 @@ static struct {
 } main_options[] = {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
+  { "--debug", ProcessDebugOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--import_map=", ProcessImportMapOption },
   { "--package-root=", ProcessPackageRootOption },
@@ -130,21 +163,25 @@ static bool ProcessMainOptions(const char* option) {
 static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
+                          char** executable_name,
                           char** script_name,
                           CommandLineOptions* dart_options) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
-  // Skip the binary name.
+  // Get the executable name.
+  *executable_name = argv[0];
+
+  // Start the rest after the executable name.
   int i = 1;
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessMainOptions(argv[i])) {
-      i += 1;
+      ++i;
     } else {
       vm_options->AddArgument(argv[i]);
-      i += 1;
+      ++i;
     }
   }
   if (generate_pprof_symbols_filename != NULL) {
@@ -154,7 +191,7 @@ static int ParseArguments(int argc,
   // Get the script name.
   if (i < argc) {
     *script_name = argv[i];
-    i += 1;
+    ++i;
   } else {
     return -1;
   }
@@ -170,8 +207,13 @@ static int ParseArguments(int argc,
 
 
 static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
+                                       const char* executable_name,
                                        const char* script_name) {
   int options_count = options->count();
+  Dart_Handle dart_executable = Dart_NewString(executable_name);
+  if (Dart_IsError(dart_executable)) {
+    return dart_executable;
+  }
   Dart_Handle dart_script = Dart_NewString(script_name);
   if (Dart_IsError(dart_script)) {
     return dart_script;
@@ -206,6 +248,17 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
       core_lib, runtime_options_class_name);
   if (Dart_IsError(runtime_options_class)) {
     return runtime_options_class;
+  }
+  Dart_Handle executable_name_name = Dart_NewString("_nativeExecutable");
+  if (Dart_IsError(executable_name_name)) {
+    return executable_name_name;
+  }
+  Dart_Handle set_executable_name =
+      Dart_SetField(runtime_options_class,
+                    executable_name_name,
+                    dart_executable);
+  if (Dart_IsError(set_executable_name)) {
+    return set_executable_name;
   }
   Dart_Handle script_name_name = Dart_NewString("_nativeScript");
   if (Dart_IsError(script_name_name)) {
@@ -536,6 +589,7 @@ static int ErrorExit(const char* format, ...) {
 
 
 int main(int argc, char** argv) {
+  char* executable_name;
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
@@ -551,6 +605,7 @@ int main(int argc, char** argv) {
   if (ParseArguments(argc,
                      argv,
                      &vm_options,
+                     &executable_name,
                      &script_name,
                      &dart_options) < 0) {
     PrintUsage();
@@ -594,7 +649,7 @@ int main(int argc, char** argv) {
 
   // Create a dart options object that can be accessed from dart code.
   Dart_Handle options_result =
-      SetupRuntimeOptions(&dart_options, original_script_name);
+      SetupRuntimeOptions(&dart_options, executable_name, original_script_name);
   if (Dart_IsError(options_result)) {
     return ErrorExit("%s\n", Dart_GetError(options_result));
   }
@@ -613,6 +668,13 @@ int main(int argc, char** argv) {
           Dart_GetError(result));
     }
   }
+
+  // Start the debugger wire protocol handler if necessary.
+  if (start_debugger) {
+    ASSERT(debug_port != 0);
+    DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
+  }
+
   // Lookup and invoke the top level main function.
   result = Dart_Invoke(library, Dart_NewString("main"), 0, NULL);
   if (Dart_IsError(result)) {

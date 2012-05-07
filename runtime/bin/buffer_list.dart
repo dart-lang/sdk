@@ -80,7 +80,7 @@ class _BufferList {
         }
         return result;
       } else {
-        result = new ByteArray(count);
+        result = new Uint8List(count);
         int remaining = count;
         while (remaining > 0) {
           int bytesInFirst = _buffers.first().length - _index;

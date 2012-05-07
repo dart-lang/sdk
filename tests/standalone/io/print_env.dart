@@ -5,5 +5,5 @@
 #import('dart:io');
 
 main() {
-  print(Platform.environment()[new Options().arguments[0]]);
+  print(Platform.environment[new Options().arguments[0]]);
 }

@@ -578,7 +578,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
   /** Dart Programming Language Specification: 11.10 Return */
   Type visitReturn(Return node) {
     final expression = node.expression;
-    final isVoidFunction = (expectedReturnType === types.voidType);
+    final isVoidFunction =
+        (expectedReturnType.element === compiler.types.voidType.element);
 
     // Executing a return statement return e; [...] It is a static type warning
     // if the type of e may not be assigned to the declared return type of the

@@ -239,7 +239,7 @@ interface _StringEncoder {
 class _UTF8Encoder implements _StringEncoder {
   List<int> encodeString(String string) {
     int size = _encodingSize(string);
-    ByteArray result = new ByteArray(size);
+    List<int> result = new Uint8List(size);
     _encodeString(string, result);
     return result;
   }
@@ -286,7 +286,7 @@ class _UTF8Encoder implements _StringEncoder {
 // Utility class for encoding a string into a Latin1 byte stream.
 class _Latin1Encoder implements _StringEncoder {
   List<int> encodeString(String string) {
-    ByteArray result = new ByteArray(string.length);
+    List<int> result = new Uint8List(string.length);
     for (int i = 0; i < string.length; i++) {
       int charCode = string.charCodeAt(i);
       if (charCode > 255) {
@@ -303,7 +303,7 @@ class _Latin1Encoder implements _StringEncoder {
 // Utility class for encoding a string into an ASCII byte stream.
 class _AsciiEncoder implements _StringEncoder {
   List<int> encodeString(String string) {
-    ByteArray result = new ByteArray(string.length);
+    List<int> result = new Uint8List(string.length);
     for (int i = 0; i < string.length; i++) {
       int charCode = string.charCodeAt(i);
       if (charCode > 127) {

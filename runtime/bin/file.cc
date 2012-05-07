@@ -768,8 +768,8 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
     File* file = CObjectToFilePointer(request[1]);
     if (file != NULL && !file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
-      CObjectByteArray* byte_array =
-          new CObjectByteArray(CObject::NewByteArray(length));
+      CObjectUint8Array* byte_array =
+          new CObjectUint8Array(CObject::NewUint8Array(length));
       void* buffer = reinterpret_cast<void*>(byte_array->Buffer());
       int bytes_read = file->Read(buffer, byte_array->Length());
       if (bytes_read >= 0) {
@@ -792,7 +792,7 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
 static CObject* FileWriteListRequest(const CObjectArray& request) {
   if (request.Length() == 5 &&
       request[1]->IsIntptr() &&
-      (request[2]->IsByteArray() || request[2]->IsArray()) &&
+      (request[2]->IsUint8Array() || request[2]->IsArray()) &&
       request[3]->IsInt32OrInt64() &&
       request[4]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
@@ -800,8 +800,8 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
       int64_t offset = CObjectInt32OrInt64ToInt64(request[3]);
       int64_t length = CObjectInt32OrInt64ToInt64(request[4]);
       uint8_t* buffer_start;
-      if (request[2]->IsByteArray()) {
-        CObjectByteArray byte_array(request[2]);
+      if (request[2]->IsUint8Array()) {
+        CObjectUint8Array byte_array(request[2]);
         buffer_start = byte_array.Buffer() + offset;
       } else {
         CObjectArray array(request[2]);
@@ -820,7 +820,7 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
       }
       int64_t bytes_written =
           file->Write(reinterpret_cast<void*>(buffer_start), length);
-      if (!request[2]->IsByteArray()) {
+      if (!request[2]->IsUint8Array()) {
         delete[] buffer_start;
       }
       if (bytes_written >= 0) {

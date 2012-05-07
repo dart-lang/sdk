@@ -24,8 +24,8 @@ createLink(String dst, String link, bool symbolic, void callback()) {
 testFileExistsCreate() {
   var temp = new Directory('');
   temp.createTempSync();
-  var x = '${temp.path}${Platform.pathSeparator()}x';
-  var y = '${temp.path}${Platform.pathSeparator()}y';
+  var x = '${temp.path}${Platform.pathSeparator}x';
+  var y = '${temp.path}${Platform.pathSeparator}y';
   createLink(x, y, true, () {
     Expect.isFalse(new File(x).existsSync());
     Expect.isFalse(new File(y).existsSync());
@@ -40,8 +40,8 @@ testFileExistsCreate() {
 testFileDelete() {
   var temp = new Directory('');
   temp.createTempSync();
-  var x = '${temp.path}${Platform.pathSeparator()}x';
-  var y = '${temp.path}${Platform.pathSeparator()}y';
+  var x = '${temp.path}${Platform.pathSeparator}x';
+  var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
   createLink(x, y, true, () {
     Expect.isTrue(new File(x).existsSync());
@@ -64,8 +64,8 @@ testFileDelete() {
 testFileWriteRead() {
   var temp = new Directory('');
   temp.createTempSync();
-  var x = '${temp.path}${Platform.pathSeparator()}x';
-  var y = '${temp.path}${Platform.pathSeparator()}y';
+  var x = '${temp.path}${Platform.pathSeparator}x';
+  var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
   createLink(x, y, true, () {
     var data = "asdf".charCodes();
@@ -86,8 +86,8 @@ testFileWriteRead() {
 testDirectoryExistsCreate() {
   var temp = new Directory('');
   temp.createTempSync();
-  var x = '${temp.path}${Platform.pathSeparator()}x';
-  var y = '${temp.path}${Platform.pathSeparator()}y';
+  var x = '${temp.path}${Platform.pathSeparator}x';
+  var y = '${temp.path}${Platform.pathSeparator}y';
   createLink(x, y, true, () {
     Expect.isFalse(new Directory(x).existsSync());
     Expect.isFalse(new Directory(y).existsSync());
@@ -102,8 +102,8 @@ testDirectoryDelete() {
   temp.createTempSync();
   var temp2 = new Directory('');
   temp2.createTempSync();
-  var y = '${temp.path}${Platform.pathSeparator()}y';
-  var x = '${temp2.path}${Platform.pathSeparator()}x';
+  var y = '${temp.path}${Platform.pathSeparator}y';
+  var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
   createLink(temp2.path, y, true, () {
     var link = new Directory(y);
@@ -129,8 +129,8 @@ testDirectoryListing() {
   temp.createTempSync();
   var temp2 = new Directory('');
   temp2.createTempSync();
-  var y = '${temp.path}${Platform.pathSeparator()}y';
-  var x = '${temp2.path}${Platform.pathSeparator()}x';
+  var y = '${temp.path}${Platform.pathSeparator}y';
+  var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
   createLink(temp2.path, y, true, () {
     var files = [];

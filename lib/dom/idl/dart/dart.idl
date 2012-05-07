@@ -2,10 +2,11 @@
 // This file introduces / supplements and forces Dart declarations.
 
 module default {
-  NamedNodeMap implements sequence<Node>;
-  NodeList implements sequence<Node>;
+  FileList implements sequence<File>;
   HTMLCollection implements sequence<Node>;
   MediaList implements sequence<DOMString>;
+  NamedNodeMap implements sequence<Node>;
+  NodeList implements sequence<Node>;
   StyleSheetList implements sequence<StyleSheet>;
   TouchList implements sequence<Touch>;
 
@@ -15,6 +16,14 @@ module default {
   Int16Array implements sequence<int>;
   Int32Array implements sequence<int>;
   Uint8Array implements sequence<int>;
+  // Ugliness ahead: we cannot analyse inheritance right now when deducing if
+  // given interface is a typed array (database is not accessible), so I have
+  // to duplicate both sequence<int> and ArrayBufferView to make our heuristics
+  // work.
+  // FIXME: thread datatbase to all the clients that need it and probably
+  // move the method itself to database.
+  Uint8ClampedArray implements sequence<int>;
+  Uint8ClampedArray implements ArrayBufferView;
   Uint16Array implements sequence<int>;
   Uint32Array implements sequence<int>;
 
@@ -215,17 +224,7 @@ module storage {
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
     [DartName=getObject] IDBRequest get(in IDBKeyRange key);
-  };
-
-  interface IDBKeyRange {
-    [Suppressed] static IDBKeyRange only(in IDBKey value)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange lowerBound(in IDBKey bound, in optional boolean open)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange upperBound(in IDBKey bound, in optional boolean open)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, in optional boolean lowerOpen, optional boolean upperOpen)
-        raises (IDBDatabaseException);
+    [Suppressed] IDBRequest openCursor() raises (IDBDatabaseException);
   };
 
   interface EntrySync {

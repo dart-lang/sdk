@@ -51,8 +51,26 @@ class ObjectStore {
     kArrayClass,
     kImmutableArrayClass,
     kGrowableObjectArrayClass,
-    kInternalByteArrayClass,
-    kExternalByteArrayClass,
+    kInt8ArrayClass,
+    kUint8ArrayClass,
+    kInt16ArrayClass,
+    kUint16ArrayClass,
+    kInt32ArrayClass,
+    kUint32ArrayClass,
+    kInt64ArrayClass,
+    kUint64ArrayClass,
+    kFloat32ArrayClass,
+    kFloat64ArrayClass,
+    kExternalInt8ArrayClass,
+    kExternalUint8ArrayClass,
+    kExternalInt16ArrayClass,
+    kExternalUint16ArrayClass,
+    kExternalInt32ArrayClass,
+    kExternalUint32ArrayClass,
+    kExternalInt64ArrayClass,
+    kExternalUint64ArrayClass,
+    kExternalFloat32ArrayClass,
+    kExternalFloat64ArrayClass,
     kStacktraceClass,
     kJSRegExpClass,
     kMaxId,
@@ -207,18 +225,144 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, growable_object_array_class_);
   }
 
-  RawClass* internal_byte_array_class() const {
-    return internal_byte_array_class_;
+  RawClass* int8_array_class() const {
+    return int8_array_class_;
   }
-  void set_internal_byte_array_class(const Class& value) {
-    internal_byte_array_class_ = value.raw();
+  void set_int8_array_class(const Class& value) {
+    int8_array_class_ = value.raw();
   }
 
-  RawClass* external_byte_array_class() const {
-    return external_byte_array_class_;
+  RawClass* uint8_array_class() const {
+    return uint8_array_class_;
   }
-  void set_external_byte_array_class(const Class& value) {
-    external_byte_array_class_ = value.raw();
+  void set_uint8_array_class(const Class& value) {
+    uint8_array_class_ = value.raw();
+  }
+
+  RawClass* int16_array_class() const {
+    return int16_array_class_;
+  }
+  void set_int16_array_class(const Class& value) {
+    int16_array_class_ = value.raw();
+  }
+
+  RawClass* uint16_array_class() const {
+    return uint16_array_class_;
+  }
+  void set_uint16_array_class(const Class& value) {
+    uint16_array_class_ = value.raw();
+  }
+
+  RawClass* int32_array_class() const {
+    return int32_array_class_;
+  }
+  void set_int32_array_class(const Class& value) {
+    int32_array_class_ = value.raw();
+  }
+
+  RawClass* uint32_array_class() const {
+    return uint32_array_class_;
+  }
+  void set_uint32_array_class(const Class& value) {
+    uint32_array_class_ = value.raw();
+  }
+
+  RawClass* int64_array_class() const {
+    return int64_array_class_;
+  }
+  void set_int64_array_class(const Class& value) {
+    int64_array_class_ = value.raw();
+  }
+
+  RawClass* uint64_array_class() const {
+    return uint64_array_class_;
+  }
+  void set_uint64_array_class(const Class& value) {
+    uint64_array_class_ = value.raw();
+  }
+
+  RawClass* float32_array_class() const {
+    return float32_array_class_;
+  }
+  void set_float32_array_class(const Class& value) {
+    float32_array_class_ = value.raw();
+  }
+
+  RawClass* float64_array_class() const {
+    return float64_array_class_;
+  }
+  void set_float64_array_class(const Class& value) {
+    float64_array_class_ = value.raw();
+  }
+
+  RawClass* external_int8_array_class() const {
+    return external_int8_array_class_;
+  }
+  void set_external_int8_array_class(const Class& value) {
+    external_int8_array_class_ = value.raw();
+  }
+
+  RawClass* external_uint8_array_class() const {
+    return external_uint8_array_class_;
+  }
+  void set_external_uint8_array_class(const Class& value) {
+    external_uint8_array_class_ = value.raw();
+  }
+
+  RawClass* external_int16_array_class() const {
+    return external_int16_array_class_;
+  }
+  void set_external_int16_array_class(const Class& value) {
+    external_int16_array_class_ = value.raw();
+  }
+
+  RawClass* external_uint16_array_class() const {
+    return external_uint16_array_class_;
+  }
+  void set_external_uint16_array_class(const Class& value) {
+    external_uint16_array_class_ = value.raw();
+  }
+
+  RawClass* external_int32_array_class() const {
+    return external_int32_array_class_;
+  }
+  void set_external_int32_array_class(const Class& value) {
+    external_int32_array_class_ = value.raw();
+  }
+
+  RawClass* external_uint32_array_class() const {
+    return external_uint32_array_class_;
+  }
+  void set_external_uint32_array_class(const Class& value) {
+    external_uint32_array_class_ = value.raw();
+  }
+
+  RawClass* external_int64_array_class() const {
+    return external_int64_array_class_;
+  }
+  void set_external_int64_array_class(const Class& value) {
+    external_int64_array_class_ = value.raw();
+  }
+
+  RawClass* external_uint64_array_class() const {
+    return external_uint64_array_class_;
+  }
+  void set_external_uint64_array_class(const Class& value) {
+    external_uint64_array_class_ = value.raw();
+  }
+
+  RawClass* external_float32_array_class() const {
+    return external_float32_array_class_;
+  }
+  void set_external_float32_array_class(const Class& value) {
+    external_float32_array_class_ = value.raw();
+  }
+
+  RawClass* external_float64_array_class() const {
+    return external_float64_array_class_;
+  }
+  void set_external_float64_array_class(const Class& value) {
+    external_float64_array_class_ = value.raw();
   }
 
   RawClass* stacktrace_class() const {
@@ -388,8 +532,26 @@ class ObjectStore {
   RawClass* immutable_array_class_;
   RawClass* growable_object_array_class_;
   RawType* byte_array_interface_;
-  RawClass* internal_byte_array_class_;
-  RawClass* external_byte_array_class_;
+  RawClass* int8_array_class_;
+  RawClass* uint8_array_class_;
+  RawClass* int16_array_class_;
+  RawClass* uint16_array_class_;
+  RawClass* int32_array_class_;
+  RawClass* uint32_array_class_;
+  RawClass* int64_array_class_;
+  RawClass* uint64_array_class_;
+  RawClass* float32_array_class_;
+  RawClass* float64_array_class_;
+  RawClass* external_int8_array_class_;
+  RawClass* external_uint8_array_class_;
+  RawClass* external_int16_array_class_;
+  RawClass* external_uint16_array_class_;
+  RawClass* external_int32_array_class_;
+  RawClass* external_uint32_array_class_;
+  RawClass* external_int64_array_class_;
+  RawClass* external_uint64_array_class_;
+  RawClass* external_float32_array_class_;
+  RawClass* external_float64_array_class_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawBool* true_value_;

@@ -5,26 +5,45 @@
 abstract class HType {
   const HType();
 
-  factory HType.fromBoundedType(Type type, Compiler compiler) {
+  /**
+   * Returns a [HType] that represents all types that have [type] as a
+   * supertype, or the type [type].
+   */
+  factory HType.fromBoundedType(Type type,
+                                Compiler compiler,
+                                [bool canBeNull = false]) {
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("type variables");
     }
 
-    if (element === compiler.intClass) {
-      return HType.INTEGER;
-    } else if (element === compiler.numClass) {
-      return HType.NUMBER;
-    } else if (element === compiler.doubleClass) {
-      return HType.DOUBLE;
-    } else if (element === compiler.stringClass) {
-      return HType.STRING;
-    } else if (element === compiler.listClass
-               || Elements.isStringSupertype(element, compiler)
-               || Elements.isListSupertype(element, compiler)) {
-      return new HBoundedPotentialPrimitiveType(type);
+    if (!canBeNull) {
+      if (element === compiler.intClass) {
+        return HType.INTEGER;
+      } else if (element === compiler.numClass) {
+        return HType.NUMBER;
+      } else if (element === compiler.doubleClass) {
+        return HType.DOUBLE;
+      } else if (element === compiler.stringClass) {
+        return HType.STRING;
+      } else if (element === compiler.boolClass) {
+        return HType.BOOLEAN;
+      }
+    }
+    if (element === compiler.listClass
+        || Elements.isListSupertype(element, compiler)) {
+      return new HBoundedPotentialPrimitiveArray(type, canBeNull);
+    } else if (Elements.isStringSupertype(element, compiler)) {
+      return new HBoundedPotentialPrimitiveString(type, canBeNull);
+    } else if (element === compiler.intClass
+               || element === compiler.boolClass
+               || element === compiler.numClass
+               || element === compiler.doubleClass
+               || element === compiler.stringClass) {
+      // TODO(ngeoffray): Create primitive nullable types.
+      return null;
     } else {
-      return new HBoundedType(type);
+      return new HBoundedType(type, canBeNull);
     }
   }
 
@@ -328,8 +347,11 @@ class HExtendableArrayType extends HMutableArrayType {
 
 class HBoundedType extends HType {
   final Type type;
+  final bool _canBeNull;
 
-  const HBoundedType(Type this.type);
+  bool canBeNull() => _canBeNull;
+
+  const HBoundedType(Type this.type, [bool this._canBeNull = false]);
   String toString() => type.toString();
 
   Type computeType(Compiler compiler) => type;
@@ -369,7 +391,26 @@ class HExactType extends HBoundedType {
   }
 }
 
-class HBoundedPotentialPrimitiveType extends HBoundedType {
-  const HBoundedPotentialPrimitiveType(Type type) : super(type);
+class HBoundedPotentialPrimitiveArray extends HBoundedType {
+  const HBoundedPotentialPrimitiveArray(Type type, bool canBeNull)
+      : super(type, canBeNull);
   bool canBePrimitive() => true;
+
+  HType combine(HType other) {
+    if (other.isReadableArray()) return other;
+    if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
+    return super.combine(other);
+  }
+}
+
+class HBoundedPotentialPrimitiveString extends HBoundedType {
+  const HBoundedPotentialPrimitiveString(Type type, bool canBeNull)
+      : super(type, canBeNull);
+  bool canBePrimitive() => true;
+
+  HType combine(HType other) {
+    if (other.isString()) return other;
+    if (other.isIndexablePrimitive) return HType.STRING;
+    return super.combine(other);
+  }
 }

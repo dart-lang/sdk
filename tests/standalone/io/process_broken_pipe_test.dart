@@ -10,7 +10,7 @@
 
 main() {
   // Running dart without arguments makes it close right away.
-  Process process = new Process.start(getDartFileName(), []);
+  Process process = new Process.start(new Options().executable, []);
 
   // Ignore error on stdin.
   process.stdin.onError = (e) => null;

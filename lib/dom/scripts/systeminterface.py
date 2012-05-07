@@ -213,6 +213,9 @@ class DartInterfaceGenerator(object):
                                NAME=info.name,
                                PARAMS=info.ParametersInterfaceDeclaration())
 
+  def AddStaticOperation(self, info):
+    pass
+
   # Interfaces get secondary members directly via the superinterfaces.
   def AddSecondaryAttribute(self, interface, getter, setter):
     pass

@@ -15,6 +15,7 @@ namespace dart {
 class Class;
 class Function;
 class Library;
+class ParsedFunction;
 class RawInstance;
 class Script;
 class SequenceNode;
@@ -38,6 +39,12 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileOptimizedFunction(const Function& function);
+
+  // Generates code for given parsed function (without parsing it again) and
+  // sets its code field.
+  //
+  // Returns Error::null() if there is no compilation error.
+  static RawError* CompileParsedFunction(const ParsedFunction& parsed_function);
 
   // Generates and executes code for a given code fragment, e.g. a
   // compile time constant expression. Returns the result returned

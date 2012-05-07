@@ -191,6 +191,7 @@ compile_time_constant_k_test: Fail # Constant maps are not canonicalized correct
 compile_time_constant_l_test: Fail # final instance fields with default values are not initialized correctly.
 compile_time_constant_o_test: Fail # String constants with string-interpolation.
 compile_time_constant_p_test/01: Fail # Implicit super calls that don't match are not caught in compile-time constants.
+positive_bit_operations_test: Fail # Frog goes negative.
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 double_to_string_as_exponential_test: Fail # fails due to -0.0.
 # Once the -0.0 in double_to_string_as_fixed_test is fixed it will probably need to
@@ -453,7 +454,21 @@ constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
 *: Skip
 
 [ $compiler == dart2js && $checked ]
-*: Skip
+assign_static_type_test/01: Fail
+assign_static_type_test/02: Fail
+assign_static_type_test/03: Fail
+assign_static_type_test/04: Fail
+assign_static_type_test/05: Fail
+type_variable_bounds_test/01: Fail
+type_variable_bounds_test/02: Fail
+type_variable_bounds_test/04: Fail
+type_variable_bounds_test/05: Fail
+type_variable_bounds2_test/00: Fail
+type_variable_bounds2_test/02: Pass # For the wrong reasons.
+type_variable_bounds2_test/03: Fail
+type_variable_bounds2_test/05: Fail
+type_variable_bounds2_test/06: Pass # For the wrong reasons.
+assign_top_method_negative_test: Pass # For the wrong reasons.
 
 
 [ $compiler == dart2js]
@@ -496,6 +511,7 @@ named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
 named_parameters4_test: Fail # Unimplemented non-matching static call
 naming_test: Fail # Broken because operator negate is not accessible as if it was a method.
+operator6_test: Fail # Constant folding of bit-operations does not agree with runtime behavior. Issue 2887.
 parameter_initializer_test: Fail # internal error: super property read not implemented
 pseudo_kw_test: Fail # Unexpected token '('
 super_field_access_test: Fail # internal error: super property read not implemented
@@ -646,6 +662,7 @@ numbers_test: Fail, OK # (unintended?) VM specific test.
 
 div_by_zero_test: Fail, OK # Leg only has doubles.
 bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
+optimization_test: Fail, OK # Expects negative results of bit-operations.
 
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
 

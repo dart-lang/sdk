@@ -10,19 +10,29 @@
 #include "bin/fdutils.h"
 
 
-bool FDUtils::SetNonBlocking(intptr_t fd) {
+static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   intptr_t status;
   status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL));
   if (status < 0) {
     perror("fcntl F_GETFL failed");
     return false;
   }
-  status = (status | O_NONBLOCK);
+  status = blocking ? (status & ~O_NONBLOCK) : (status | O_NONBLOCK);
   if (TEMP_FAILURE_RETRY(fcntl(fd, F_SETFL, status)) < 0) {
     perror("fcntl F_SETFL failed");
     return false;
   }
   return true;
+}
+
+
+bool FDUtils::SetNonBlocking(intptr_t fd) {
+  return SetBlockingHelper(fd, false);
+}
+
+
+bool FDUtils::SetBlocking(intptr_t fd) {
+  return SetBlockingHelper(fd, true);
 }
 
 

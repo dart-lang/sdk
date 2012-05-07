@@ -122,7 +122,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
 }
 
 
-Dart_CObject* ApiMessageReader::AllocateDartCObjectByteArray(intptr_t length) {
+Dart_CObject* ApiMessageReader::AllocateDartCObjectUint8Array(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of bytes
   // for the byte array content. The pointer to the byte array content
   // is set up to this area.
@@ -130,7 +130,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectByteArray(intptr_t length) {
       reinterpret_cast<Dart_CObject*>(
           alloc_(NULL, 0, sizeof(Dart_CObject) + length));
   ASSERT(value != NULL);
-  value->type = Dart_CObject::kByteArray;
+  value->type = Dart_CObject::kUint8Array;
   value->value.as_array.length = length;
   if (length > 0) {
     value->value.as_byte_array.values =
@@ -276,9 +276,9 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
     case ObjectStore::kFourByteStringClass:
       // Four byte strings not supported.
       return NULL;
-    case ObjectStore::kInternalByteArrayClass: {
+    case ObjectStore::kUint8ArrayClass: {
       intptr_t len = ReadSmiValue();
-      Dart_CObject* object = AllocateDartCObjectByteArray(len);
+      Dart_CObject* object = AllocateDartCObjectUint8Array(len);
       AddBackwardReference(object_id, object);
       if (len > 0) {
         uint8_t* p = object->value.as_byte_array.values;
@@ -306,8 +306,7 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
              object_id == ObjectStore::kDoubleInterface ||
              object_id == ObjectStore::kIntInterface ||
              object_id == ObjectStore::kBoolInterface ||
-             object_id == ObjectStore::kStringInterface ||
-             object_id == ObjectStore::kByteArrayInterface) {
+             object_id == ObjectStore::kStringInterface) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   } else {
@@ -539,11 +538,11 @@ void ApiMessageWriter::WriteCObject(Dart_CObject* object) {
       }
       break;
     }
-    case Dart_CObject::kByteArray: {
+    case Dart_CObject::kUint8Array: {
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteObjectHeader(ObjectStore::kInternalByteArrayClass, 0);
+      WriteObjectHeader(ObjectStore::kUint8ArrayClass, 0);
       uint8_t* bytes = object->value.as_byte_array.values;
       intptr_t len = object->value.as_byte_array.length;
       WriteSmi(len);

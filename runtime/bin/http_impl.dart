@@ -55,6 +55,10 @@ class _HttpHeaders implements HttpHeaders {
     _headers.remove(name);
   }
 
+  void forEach(void f(String name, List<String> values)) {
+    _headers.forEach(f);
+  }
+
   String get host() => _host;
 
   void set host(String host) {
@@ -208,7 +212,7 @@ class _HttpHeaders implements HttpHeaders {
       sb.add(": ");
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
-          sb.add(": ");
+          sb.add(", ");
         }
         sb.add(values[i]);
       }
@@ -238,6 +242,33 @@ class _HttpRequestResponseBase {
 
   int get contentLength() => _contentLength;
   HttpHeaders get headers() => _headers;
+
+  bool get persistentConnection() {
+    List<String> connection = headers[HttpHeaders.CONNECTION];
+    if (_protocolVersion == "1.1") {
+      if (connection == null) return true;
+      return !headers[HttpHeaders.CONNECTION].some(
+          (value) => value.toLowerCase() == "close");
+    } else {
+      if (connection == null) return false;
+      return headers[HttpHeaders.CONNECTION].some(
+          (value) => value.toLowerCase() == "keep-alive");
+    }
+  }
+
+  void set persistentConnection(bool persistentConnection) {
+    if (_outputStream != null) throw new HttpException("Header already sent");
+
+    // Determine the value of the "Connection" header.
+    headers.remove(HttpHeaders.CONNECTION, "close");
+    headers.remove(HttpHeaders.CONNECTION, "keep-alive");
+    if (_protocolVersion == "1.1" && !persistentConnection) {
+      headers.add(HttpHeaders.CONNECTION, "close");
+    } else if (_protocolVersion == "1.0" && persistentConnection) {
+      headers.add(HttpHeaders.CONNECTION, "keep-alive");
+    }
+  }
+
 
   bool _write(List<int> data, bool copyBuffer) {
     _ensureHeadersSent();
@@ -300,7 +331,7 @@ class _HttpRequestResponseBase {
     final List<int> hexDigits = [0x30, 0x31, 0x32, 0x33, 0x34,
                                  0x35, 0x36, 0x37, 0x38, 0x39,
                                  0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
-    ByteArray hex = new ByteArray(10);
+    List<int> hex = new Uint8List(10);
     int index = hex.length;
     while (x > 0) {
       index--;
@@ -338,6 +369,7 @@ class _HttpRequestResponseBase {
 
   _HttpConnectionBase _httpConnection;
   _HttpHeaders _headers;
+  String _protocolVersion = "1.1";
 
   // Length of the content body. If this is set to -1 (default value)
   // when starting to send data chunked transfer encoding will be
@@ -592,18 +624,12 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _httpConnection._write(data);
     _writeCRLF();
 
-    // Determine the value of the "Connection" header.
-    if (_protocolVersion == "1.1" && !_persistentConnection) {
-      _headers.set("Connection", "close");
-    } else if (_protocolVersion == "1.0" && _persistentConnection) {
-      _headers.set("Connection", "keep-alive");
-    }
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known.
     if (_contentLength > 0) {
-      _headers.set("Content-Length", _contentLength.toString());
+      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
-      _headers.set("Transfer-Encoding", "chunked");
+      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
     // Write headers.
@@ -615,8 +641,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   // Response status code.
   int _statusCode;
   String _reasonPhrase;
-  String _protocolVersion;
-  bool _persistentConnection;
   _HttpOutputStream _outputStream;
   Function _streamErrorHandler;
 }
@@ -739,7 +763,7 @@ class _HttpConnectionBase implements Hashable {
       return;
     }
 
-    ByteArray buffer = new ByteArray(available);
+    List<int> buffer = new Uint8List(available);
     int bytesRead = _socket.readList(buffer, 0, available);
     if (bytesRead > 0) {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
@@ -859,6 +883,7 @@ class _HttpConnection extends _HttpConnectionBase {
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
     _request._onRequestStart(method, uri, version);
+    _request._protocolVersion = version;
     _response._protocolVersion = version;
   }
 
@@ -872,7 +897,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onHeadersComplete() {
     _request._onHeadersComplete();
-    _response._persistentConnection = _httpParser.persistentConnection;
+    _response.persistentConnection = _httpParser.persistentConnection;
     if (onRequestReceived != null) {
       onRequestReceived(_request, _response);
     }
@@ -1095,9 +1120,9 @@ class _HttpClientRequest
     // whether the content length is known. If there is no content
     // neither "Content-Length" nor "Transfer-Encoding" is set
     if (_contentLength > 0) {
-      _headers.set("Content-Length", _contentLength.toString());
+      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
-      _headers.set("Transfer-Encoding", "chunked");
+      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
     // Write headers.
@@ -1241,6 +1266,8 @@ class _HttpClientConnection
     if (e != null) {
       if (_onErrorCallback != null) {
         _onErrorCallback(e);
+      } else {
+        throw e;
       }
     }
     _closing = true;
@@ -1345,6 +1372,9 @@ class _HttpClient implements HttpClient {
   HttpClientConnection open(
       String method, String host, int port, String path) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
+    if (method == null || host == null || port == null || path == null) {
+      throw new IllegalArgumentException(null);
+    }
     return _prepareHttpClientConnection(host, port, method, path);
   }
 

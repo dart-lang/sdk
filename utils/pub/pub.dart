@@ -7,7 +7,7 @@
  */
 #library('pub');
 
-#import('../yaml/yaml.dart');
+#import('yaml/yaml.dart');
 
 #import('io.dart');
 #import('utils.dart');

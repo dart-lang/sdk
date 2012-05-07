@@ -90,7 +90,7 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), 'interface', Id, MAYBE(_ParentInterfaces),
          MAYBE(['{', MAYBE(MANY(_Member)), '}']), ';'],
         # WebKit:
-        ['interface', MAYBE(ExtAttrs), Id, MAYBE(_ParentInterfaces),
+        [OR('interface', 'exception'), MAYBE(ExtAttrs), Id, MAYBE(_ParentInterfaces),
          MAYBE(['{', MAYBE(MANY(_Member)), '}']), MAYBE(';')],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), 'interface',

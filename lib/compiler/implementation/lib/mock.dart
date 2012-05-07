@@ -7,7 +7,11 @@
 // TODO(ahe): Remove this file.
 
 class AssertionError {}
-class TypeError extends AssertionError {}
+class TypeError extends AssertionError {
+  final String msg;
+  const TypeError(String this.msg);
+  String toString() => msg;
+}
 
 class FallThroughError {
   const FallThroughError();
@@ -27,13 +31,13 @@ class StaticResolutionException implements Exception {}
 void assert(condition) {}
 
 // TODO(ahe): Not sure ByteArray belongs in the core library.
-interface ByteArray extends List default _InternalByteArray {
-  ByteArray(int length);
+interface Uint8List extends List default _InternalByteArray {
+  Uint8List(int length);
 }
 
 class _InternalByteArray {
-  factory ByteArray(int length) {
-    throw new UnsupportedOperationException("new ByteArray($length)");
+  factory Uint8List(int length) {
+    throw new UnsupportedOperationException("new Uint8List($length)");
   }
 }
 
