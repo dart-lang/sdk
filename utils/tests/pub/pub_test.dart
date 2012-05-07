@@ -18,6 +18,7 @@ final USAGE_STRING = """
 
     The commands are:
 
+      install   install the current package's dependencies
       list      print the contents of repositories
       update    update the current package's dependencies to the latest versions
       version   print Pub version
@@ -57,7 +58,7 @@ main() {
   });
 
   group('pub list', listCommand);
-  group('pub update', updateCommand);
+  group('pub install', installCommand);
   group('pub version', versionCommand);
 }
 
@@ -65,51 +66,60 @@ listCommand() {
   group('cache', () {
     testPub('treats an empty directory as a package',
       cache: [
-        dir('apple'),
-        dir('banana'),
-        dir('cherry')
+        dir('sdk', [
+          dir('apple'),
+          dir('banana'),
+          dir('cherry')
+        ])
       ],
       args: ['list', 'cache'],
       output: '''
-      apple
-      banana
-      cherry
+      From system cache:
+        apple from sdk
+        banana from sdk
+        cherry from sdk
       ''');
   });
 }
 
-updateCommand() {
+installCommand() {
   testPub('adds a dependent package',
-    cache: [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    sdk: [
+      dir('lib', [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
+        ])
       ])
     ],
     app: dir('myapp', [
       file('pubspec', 'dependencies:\n- foo')
     ]),
-    args: ['update'],
+    args: ['install'],
     expectedPackageDir: [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
       ])
     ],
-    output: '');
+    output: '''
+    Dependencies installed!
+    ''');
 
   testPub('adds a transitively dependent package',
-    cache: [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";'),
-        file('pubspec', 'dependencies:\n- bar')
-      ]),
-      dir('bar', [
-        file('bar.dart', 'main() => "bar";'),
+    sdk: [
+      dir('lib', [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";'),
+          file('pubspec', 'dependencies:\n- bar')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";'),
+        ])
       ])
     ],
     app: dir('myapp', [
       file('pubspec', 'dependencies:\n- foo')
     ]),
-    args: ['update'],
+    args: ['install'],
     expectedPackageDir: [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
@@ -118,7 +128,9 @@ updateCommand() {
         file('bar.dart', 'main() => "bar";'),
       ])
     ],
-    output: '');
+    output: '''
+    Dependencies installed!
+    ''');
 }
 
 versionCommand() {

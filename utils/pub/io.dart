@@ -57,11 +57,47 @@ String basename(file) {
 }
 
 /**
+ * Gets the the leading directory path for [file], which can either be a
+ * [String], [File], or [Directory].
+ */
+// TODO(nweiz): Copied from file_system (so that we don't have to add
+// file_system to the SDK). Should unify.
+String dirname(file) {
+  file = _getPath(file).replaceAll('\\', '/');
+
+  int lastSlash = file.lastIndexOf('/', file.length);
+  if (lastSlash == -1) {
+    return '.';
+  } else {
+    return file.substring(0, lastSlash);
+  }
+}
+
+/**
+ * Asynchronously determines if [path], which can be a [String] file path, a
+ * [File], or a [Directory] exists on the file system. Returns a [Future] that
+ * completes with the result.
+ */
+Future<bool> exists(path) {
+  path = _getPath(path);
+  return Futures.wait([fileExists(path), dirExists(path)]).transform((results) {
+    return results[0] || results[1];
+  });
+}
+
+/**
  * Asynchronously determines if [file], which can be a [String] file path or a
  * [File], exists on the file system. Returns a [Future] that completes with
  * the result.
  */
 Future<bool> fileExists(file) {
+  // TODO(nweiz): Currently File#exists will not detect the existence of
+  // symlinks. Issue 2765
+  return runProcess('stat', [_getPath(file)]).
+    transform((result) => result.exitCode == 0);
+
+  // Real code:
+  /*
   final completer = new Completer<bool>();
 
   file = new File(_getPath(file));
@@ -69,6 +105,7 @@ Future<bool> fileExists(file) {
   file.exists((exists) => completer.complete(exists));
 
   return completer.future;
+  */
 }
 
 /**
@@ -114,6 +151,34 @@ Future<Directory> createDir(dir) {
   dir.create(() => completer.complete(dir));
 
   return completer.future;
+}
+
+/**
+ * Ensures that [path] and all its parent directories exist. If they don't
+ * exist, creates them. Returns a [Future] that completes once all the
+ * directories are created.
+ */
+Future<Directory> ensureDir(path) {
+  path = _getPath(path);
+  if (path == '.') return new Future.immediate(new Directory('.'));
+
+  return dirExists(path).chain((exists) {
+    if (exists) return new Future.immediate(new Directory(path));
+    return ensureDir(dirname(path));
+  }).chain((_) {
+    var completer = new Completer<Directory>();
+    var future = createDir(path);
+    future.handleException((error) {
+      if (error is! DirectoryIOException) return false;
+      // Error 17 means the directory already exists.
+      if (error.osError.errorCode != 17) return false;
+
+      completer.complete(_getDirectory(path));
+      return true;
+    });
+    future.then(completer.complete);
+    return completer.future;
+  });
 }
 
 /**

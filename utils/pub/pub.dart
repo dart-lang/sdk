@@ -12,11 +12,15 @@
 #import('io.dart');
 #import('utils.dart');
 
-#source('cache.dart');
+#source('system_cache.dart');
+#source('packages_dir.dart');
 #source('command_list.dart');
+#source('command_install.dart');
 #source('command_update.dart');
 #source('command_version.dart');
 #source('package.dart');
+#source('source.dart');
+#source('sdk_source.dart');
 
 main() {
   final args = new Options().arguments;
@@ -26,6 +30,7 @@ main() {
   // be consistent with other Unix apps.
   final commands = {
     'list': new ListCommand(),
+    'install': new InstallCommand(),
     'update': new UpdateCommand(),
     'version': new VersionCommand()
   };
@@ -52,17 +57,23 @@ main() {
   // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
   // pass in relevant paths. Eventually these should be either environment
   // variables or at least a cleaner arg parser.
-  var cacheDir;
+  var cacheDir, sdkDir;
   for (var i = 0; i < args.length; i++) {
     if (args[i].startsWith('--cachedir=')) {
       cacheDir = args[i].substring('--cachedir='.length);
       args.removeRange(i, 1);
-      break;
+      i--;
+    } else if (args[i].startsWith('--sdkdir=')) {
+      sdkDir = args[i].substring('--sdkdir='.length);
+      args.removeRange(i, 1);
+      i--;
     }
   }
 
   // TODO(rnystrom): Do we want this to be global?
-  final cache = new PackageCache(cacheDir);
+  final cache = new SystemCache(cacheDir);
+
+  Source.defaultSource = new SdkSource(sdkDir);
 
   // Select the command.
   final command = commands[args[0]];
@@ -111,29 +122,25 @@ void printVersion() {
   print('Pub 0.0.0');
 }
 
-/**
- * Gets the package that contains the current working directory. In other words,
- * finds the package that the user is currently "in".
- */
-Future<Package> getWorkingPackage() {
-  // TODO(rnystrom): Will eventually need better logic to walk up
-  // subdirectories until we hit one that looks package-like. For now, just
-  // assume the cwd is it.
-  return Package.load(workingDir);
-}
-
 class PubCommand {
-  PackageCache cache;
+  SystemCache cache;
+  PackagesDir packagesDir;
 
   abstract String get description();
 
-  void run(PackageCache cache_, List<String> args) {
+  void run(SystemCache cache_, List<String> args) {
     cache = cache_;
 
     // TODO(rnystrom): Each command should define the arguments it expects and
     // we can handle them generically here.
 
-    onRun();
+    // TODO(rnystrom): Will eventually need better logic to walk up
+    // subdirectories until we hit one that looks package-like. For now, just
+    // assume the cwd is it.
+    Package.load(workingDir).then((pkg) {
+      packagesDir = new PackagesDir(pkg, cache);
+      onRun();
+    });
   }
 
   abstract void onRun();
