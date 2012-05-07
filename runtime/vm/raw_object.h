@@ -21,7 +21,6 @@ namespace dart {
   V(AbstractType)                                                              \
     V(Type)                                                                    \
     V(TypeParameter)                                                           \
-    V(InstantiatedType)                                                        \
   V(AbstractTypeArguments)                                                     \
     V(TypeArguments)                                                           \
     V(InstantiatedTypeArguments)                                               \

@@ -147,8 +147,6 @@ class Object {
     kUnresolvedClassClass,
     kTypeClass,
     kTypeParameterClass,
-    kInstantiatedTypeClass,
-    kAbstractTypeArgumentsClass,
     kTypeArgumentsClass,
     kInstantiatedTypeArgumentsClass,
     kFunctionClass,
@@ -283,12 +281,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
       return type_class_;
   }
   static RawClass* type_parameter_class() { return type_parameter_class_; }
-  static RawClass* instantiated_type_class() {
-      return instantiated_type_class_;
-  }
-  static RawClass* abstract_type_arguments_class() {
-    return abstract_type_arguments_class_;
-  }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* instantiated_type_arguments_class() {
       return instantiated_type_arguments_class_;
@@ -402,9 +394,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_class_;  // Class of Type.
   static RawClass* type_parameter_class_;  // Class of TypeParameter vm object.
-  static RawClass* instantiated_type_class_;  // Class of InstantiatedType.
-  // Class of AbstractTypeArguments vm object.
-  static RawClass* abstract_type_arguments_class_;
   // Class of the TypeArguments vm object.
   static RawClass* type_arguments_class_;
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
@@ -791,13 +780,7 @@ class UnresolvedClass : public Object {
 
 
 // AbstractType is an abstract superclass.
-// Subclasses of AbstractType are Type, TypeParameter, and
-// InstantiatedType.
-//
-// Caution: 'RawAbstractType*' denotes a 'raw' pointer to a VM object of class
-// AbstractType, as opposed to 'AbstractType' denoting a 'handle' to the same
-// object. 'RawAbstractType' does not relate to a 'raw type', as opposed to a
-// 'cooked type' or 'rare type'.
+// Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Object {
  public:
   virtual bool IsFinalized() const;
@@ -886,10 +869,6 @@ class AbstractType : public Object {
                                            const String& name,
                                            intptr_t token_index);
 
-  static RawAbstractType* NewInstantiatedType(
-      const AbstractType& uninstantiated_type,
-      const AbstractTypeArguments& instantiator_type_arguments);
-
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
@@ -899,6 +878,10 @@ class AbstractType : public Object {
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
 // An unresolved class is a String specifying the class name.
+//
+// Caution: 'RawType*' denotes a 'raw' pointer to a VM object of class Type, as
+// opposed to 'Type' denoting a 'handle' to the same object. 'RawType' does not
+// relate to a 'raw type', as opposed to a 'cooked type' or 'rare type'.
 class Type : public AbstractType {
  public:
   static intptr_t type_class_offset() {
@@ -1042,56 +1025,9 @@ class TypeParameter : public AbstractType {
 };
 
 
-// An instance of InstantiatedType is never encountered at compile time, but
-// only at run time, when type parameters can be matched to actual types.
-// An instance of InstantiatedType consists of an uninstantiated AbstractType
-// object and of a AbstractTypeArguments object. The type is uninstantiated,
-// because it refers to at least one TypeParameter object, i.e. to a type that
-// is not known at compile time.
-// The type argument vector is the instantiator, because each type parameter
-// with index i in the uninstantiated type can be substituted (or
-// "instantiated") with the type at index i in the type argument vector.
-class InstantiatedType : public AbstractType {
- public:
-  virtual bool IsFinalized() const { return true; }
-  virtual bool IsBeingFinalized() const { return false; }
-  virtual bool IsMalformed() const { return false; }
-  virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const { return true; }
-  virtual RawClass* type_class() const;
-  virtual RawAbstractTypeArguments* arguments() const;
-  virtual intptr_t token_index() const;
-  virtual bool IsInstantiated() const { return true; }
-  virtual bool Equals(const AbstractType& other) const;
-
-  RawAbstractType* uninstantiated_type() const {
-    return raw_ptr()->uninstantiated_type_;
-  }
-  RawAbstractTypeArguments* instantiator_type_arguments() const {
-    return raw_ptr()->instantiator_type_arguments_;
-  }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawInstantiatedType));
-  }
-
-  static RawInstantiatedType* New(
-      const AbstractType& uninstantiated_type,
-      const AbstractTypeArguments& instantiator_type_arguments);
-
- private:
-  void set_uninstantiated_type(const AbstractType& value) const;
-  void set_instantiator_type_arguments(
-      const AbstractTypeArguments& value) const;
-  static RawInstantiatedType* New();
-
-  HEAP_OBJECT_IMPLEMENTATION(InstantiatedType, AbstractType);
-  friend class Class;
-};
-
-
 // AbstractTypeArguments is an abstract superclass.
-// Subclasses of AbstractTypeArguments are TypeArguments and InstantiatedTypes.
+// Subclasses of AbstractTypeArguments are TypeArguments and
+// InstantiatedTypeArguments.
 class AbstractTypeArguments : public Object {
  public:
   // Returns true if both arguments represent vectors of equal types.

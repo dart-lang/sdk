@@ -442,7 +442,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     return result.raw();
   }
   UNREACHABLE();
-  return Error::null();
+  return Object::null();
 }
 
 
