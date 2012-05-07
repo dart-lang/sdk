@@ -429,10 +429,10 @@ class _Socket extends _SocketBase implements Socket {
       }
       var result = _writeList(outBuffer, outOffset, bytes);
       if (result is OSError) {
+        _reportError(result, "Write failed");
         // If writing fails we return 0 as the number of bytes and
         // report the error on the error handler.
         result = 0;
-        _reportError(result, "Write failed");
       }
       return result;
     }
