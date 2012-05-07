@@ -425,30 +425,26 @@ static bool OptimizeTypeArguments(const Instance& instance,
   if (!type_class.HasTypeArguments()) {
     return true;
   }
-  const AbstractTypeArguments& type_arguments =
+  AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(instance.GetTypeArguments());
   if (type_arguments.IsNull()) {
     return true;
   }
   if (type_arguments.IsInstantiatedTypeArguments()) {
+    do {
+      InstantiatedTypeArguments& instantiated_type_arguments =
+          InstantiatedTypeArguments::Handle();
+      instantiated_type_arguments ^= type_arguments.raw();
+      const AbstractTypeArguments& uninstantiated =
+          AbstractTypeArguments::Handle(
+              instantiated_type_arguments.uninstantiated_type_arguments());
+      const AbstractTypeArguments& instantiator =
+          AbstractTypeArguments::Handle(
+              instantiated_type_arguments.instantiator_type_arguments());
+      type_arguments = uninstantiated.InstantiateFrom(instantiator);
+    } while (type_arguments.IsInstantiatedTypeArguments());
     TypeArguments& new_type_arguments = TypeArguments::Handle();
-    InstantiatedTypeArguments& instantiated_type_arguments =
-        InstantiatedTypeArguments::Handle();
-    instantiated_type_arguments ^= type_arguments.raw();
-    const AbstractTypeArguments& uninstantiated =
-        AbstractTypeArguments::Handle(
-            instantiated_type_arguments.uninstantiated_type_arguments());
-    const AbstractTypeArguments& instantiator =
-        AbstractTypeArguments::Handle(
-            instantiated_type_arguments.instantiator_type_arguments());
-    AbstractTypeArguments& temp = AbstractTypeArguments::Handle();
-    temp = uninstantiated.InstantiateFrom(instantiator);
-    if (!temp.IsTypeArguments()) {
-      // TODO(srdjan): Figure out why it does not want to convert to
-      // TypeArguments.
-      return false;
-    }
-    new_type_arguments ^= temp.raw();
+    new_type_arguments ^= type_arguments.raw();
     new_type_arguments ^= new_type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
     *type_arguments_replaced = true;
@@ -540,8 +536,13 @@ static void UpdateTypeTestCache(
          instantiator_type_arguments.raw())) {
       if (FLAG_trace_type_checks) {
         OS::Print("%d ", i);
-        PrintTypeCheck("WARNING duplicate cache entry", instance, type,
-            instantiator_type_arguments, result);
+        if (type_arguments_replaced) {
+          PrintTypeCheck("Duplicate cache entry (canonical.)", instance, type,
+              instantiator_type_arguments, result);
+        } else {
+          PrintTypeCheck("WARNING Duplicate cache entry", instance, type,
+              instantiator_type_arguments, result);
+        }
       }
       // Can occur if we have canonicalized arguments.
       // TODO(srdjan): Investigate why this assert can fail.
@@ -554,6 +555,10 @@ static void UpdateTypeTestCache(
                      instantiator_type_arguments,
                      result);
   if (FLAG_trace_type_checks) {
+    AbstractType& test_type = AbstractType::Handle(type.raw());
+    if (!test_type.IsInstantiated()) {
+      test_type = type.InstantiateFrom(instantiator_type_arguments);
+    }
     OS::Print("  Updated test cache 0x%x ix:%d:\n"
         "    [0x%x %s, 0x%x %s]\n"
         "    [0x%x %s, 0x%x %s] %s\n",
@@ -563,8 +568,8 @@ static void UpdateTypeTestCache(
         instance_class.ToCString(),
         instance_type_arguments.raw(),
         instance_type_arguments.ToCString(),
-        type.type_class(),
-        Class::Handle(type.type_class()).ToCString(),
+        test_type.type_class(),
+        Class::Handle(test_type.type_class()).ToCString(),
         instantiator_type_arguments.raw(),
         instantiator_type_arguments.ToCString(),
         result.ToCString());

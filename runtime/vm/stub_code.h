@@ -32,7 +32,6 @@ class RawCode;
   V(Deoptimize)                                                                \
   V(BreakpointStatic)                                                          \
   V(BreakpointReturn)                                                          \
-  V(IsRawSubType)                                                              \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \

@@ -1445,28 +1445,27 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
         GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
                                         is_instance_lbl, is_not_instance_lbl);
   }
-  // Note that the test below must be synced with the tests in
-  // CodeGenerator::UpdateTestCache.
-  // Inline checks for one type argument only.
-  if (type_arguments.Length() != 1) {
-    return SubtypeTestCache::null();
-  }
-  const AbstractType& tp_argument =
-      AbstractType::ZoneHandle(type_arguments.TypeAt(0));
-  if (!tp_argument.IsType()) {
-    // E.g., it is a TypeParameter.
-    return SubtypeTestCache::null();
-  }
-  // Malformed type has been caught in the caller chain of this function.
-  ASSERT(tp_argument.HasResolvedTypeClass());
-  // Check if type argument is dynamic or Object.
-  const Type& object_type =
-      Type::Handle(Isolate::Current()->object_store()->object_type());
-  Error& malformed_error = Error::Handle();
-  if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
-    // Instance class test only necessary.
-    return GenerateSubtype1TestCacheLookup(
-        node_id, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
+  // If one type argument only, quick check.
+  if (type_arguments.Length() == 1) {
+    const AbstractType& tp_argument = AbstractType::ZoneHandle(
+        type_arguments.TypeAt(0));
+    if (tp_argument.IsType()) {
+      // Malformed type has been caught in the caller chain of this function.
+      ASSERT(tp_argument.HasResolvedTypeClass());
+      // Check if type argument is dynamic or Object.
+      const Type& object_type =
+          Type::Handle(Isolate::Current()->object_store()->object_type());
+      Error& malformed_error = Error::Handle();
+      if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
+        // Instance class test only necessary.
+        return GenerateSubtype1TestCacheLookup(
+            node_id,
+            token_index,
+            type_class,
+            is_instance_lbl,
+            is_not_instance_lbl);
+      }
+    }
   }
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
@@ -1613,24 +1612,27 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     __ cmpl(EBX, raw_null);
     __ j(EQUAL, is_instance_lbl);
 
+    // EBX: instantiator type arguments.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
+    // We expect that frequently checked objects wull have their type arguments
+    // converted into instance of TypeArguments.
     __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
     __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
-    // EBX: Instance of TypeArguments.
     __ movl(EDX,
         FieldAddress(EBX, TypeArguments::type_at_offset(type.Index())));
     // EDX: concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(EDX, Type::ZoneHandle(Type::DynamicType()));
     __ j(EQUAL,  is_instance_lbl);
+    __ cmpl(EDX, raw_null);
+    __ j(EQUAL,  is_instance_lbl);
 
-    // Check if the type has type parameters, if not do the class comparison.
+    // For Smi check quickly against int and num interfaces.
     Label not_smi;
     __ testl(EAX, Immediate(kSmiTagMask));  // Value is Smi?
     __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-    // For Smi check quickly against int and num interfaces.
     __ CompareObject(EDX, Type::ZoneHandle(Type::IntInterface()));
     __ j(EQUAL,  is_instance_lbl);
     __ CompareObject(EDX, Type::ZoneHandle(Type::NumberInterface()));
@@ -1638,35 +1640,29 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     __ jmp(&fall_through);
 
     __ Bind(&not_smi);
+    // EBX: instantiator type arguments.
+    // EAX: instance
     // The instantiated type parameter may not be a Type, but could be an
     // InstantiatedType. It is therefore necessary to check its class.
-    __ movl(ECX, FieldAddress(EDX, Object::class_offset()));
-    __ CompareObject(ECX, Object::ZoneHandle(Object::type_class()));
-    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-
-    __ movl(EDX, FieldAddress(EDX, Type::type_class_offset()));
-    __ movl(ECX, FieldAddress(EDX, Class::type_parameters_offset()));
-    // Check that class of type has no type parameters.
+    const SubtypeTestCache& type_test_cache =
+        SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+    __ LoadObject(ECX, type_test_cache);
+    __ pushl(ECX);  // Subtype test cache.
+    __ pushl(EAX);  // Instance.
+    __ pushl(EBX);  // Instantator type arguments.
+    __ call(&StubCode::Subtype3TestCacheLabel());
+    __ popl(EDX);  // Discard type arguments.
+    __ popl(EAX);  // Restore receiver.
+    __ popl(EDX);  // Discard subtype test cache.
+    // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
     __ cmpl(ECX, raw_null);
-    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-    // EAX has non-parameterized class.
-    // Check class equality
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
-    __ cmpl(ECX, EDX);
+    __ j(EQUAL, &fall_through, Assembler::kNearJump);
+    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+    __ CompareObject(ECX, bool_true);
     __ j(EQUAL, is_instance_lbl);
-
-    // We have a non-parameterized class in EDX, compare with class of
-    // value in EAX. EAX, EDX are preserved in stub.
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    __ call(&StubCode::IsRawSubTypeLabel());
-    // Result in EBX: 1 is raw subtype.
-    __ cmpl(EBX, Immediate(1));
-    __ j(EQUAL, is_instance_lbl);
-
-    // Test not conclusive.
+    __ jmp(is_not_instance_lbl);
     __ Bind(&fall_through);
-    return SubtypeTestCache::null();
+    return type_test_cache.raw();
   }
   if (type.IsType()) {
     Label fall_through;

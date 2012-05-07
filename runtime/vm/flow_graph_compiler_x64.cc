@@ -158,12 +158,8 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
         __ movq(R10, FieldAddress(RAX, Object::class_offset()));
         __ cmpq(R10, RCX);
         __ j(EQUAL, is_instance);
-        // RAX, RCX, and RDX are preserved in stub, result is in RBX.
-        __ call(&StubCode::IsRawSubTypeLabel());
-        // Result in RBX: 1 is raw subtype.
-        __ cmpq(RBX, Immediate(1));
-        __ j(EQUAL, is_instance);
-          // Otherwise fall through to runtime call.
+        // TODO(srdjan): Finish implementation.
+        // Otherwise fall through to runtime call.
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -216,15 +212,7 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
           __ cmpq(RCX, raw_null);
           __ j(NOT_EQUAL, is_instance);
         } else {
-          __ LoadObject(RCX, type_class);
-          // RAX: Instance (preserved).
-          // RCX: test class (preserved).
-          // RDX: instantiator type arguments (preserved).
-          __ call(&StubCode::IsRawSubTypeLabel());
-          // Result in RBX: 1 is raw subtype.
-          __ cmpq(RBX, Immediate(1));
-          __ j(EQUAL, is_instance);
-          // Otherwise fallthrough to runtime call.
+          // TODO(srdjan): Finish implementation.
         }
       }
     }
@@ -267,12 +255,7 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
       // Check that class of type has no type parameters.
       __ cmpq(R10, raw_null);
       __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-      // We have a non-parameterized class in RCX, compare with class of
-      // value in RAX. RAX, RCX, and RDX are preserved in stub.
-      __ call(&StubCode::IsRawSubTypeLabel());
-      // Result in EBX: 1 is raw subtype.
-      __ cmpq(RBX, Immediate(1));
-      __ j(EQUAL, is_instance);
+      // TODO(srdjan): Implement subtype test cache.
       // Fall through to runtime call.
     }
   }
