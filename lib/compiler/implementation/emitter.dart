@@ -53,11 +53,12 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.ISOLATE}.${namer.ISOLATE_PROPERTIES}';
 
   String get defineClassFunction() {
+    // First the class name, then the super class name, followed by the fields
+    // (in an array) and the members (inside an Object literal).
+    // The caller can also pass in the constructor as a function if needed.
+    //
     // Example:
-    // defineClass("A", "B",
-    // function(x) {          /* The JavaScript constructor. */
-    //   this.x = x;
-    // }, {                   /* The members inside an Object literal. */
+    // defineClass("A", "B", ["x", "y"], {
     //  foo$1: function(y) {
     //   print(this.x + y);
     //  },
@@ -66,7 +67,21 @@ class CodeEmitterTask extends CompilerTask {
     //  },
     // });
     return """
-function(cls, superclass, constructor, prototype) {
+function(cls, superclass, fields, prototype) {
+  var constructor;
+  if (typeof fields == 'function') {
+    constructor = fields;
+  } else {
+    var str = "(function " + cls + "(";
+    var body = "";
+    for (var i = 0; i < fields.length; i++) {
+      if (i != 0) str += ", ";
+      str += fields[i];
+      body += "this." + fields[i] + " = " + fields[i] + ";\\n";
+    }
+    str += ") {" + body + "})";
+    constructor = eval(str);
+  }
   $isolatePropertiesName[cls] = constructor;
   constructor.prototype = prototype;
   if (superclass !== "") {
@@ -359,30 +374,16 @@ function() {
     emitExtraAccessors(member, defineInstanceMember);
   }
 
-  bool generateFieldInits(ClassElement classElement,
-                          StringBuffer argumentsBuffer,
-                          StringBuffer bodyBuffer) {
-    bool isFirst = true;
-    void generateFieldInit(ClassElement enclosingClass, Element member) {
-      // TODO(floitsch): make sure there are no name clashes.
-      String className = namer.getName(enclosingClass);
-      if (!isFirst) argumentsBuffer.add(', ');
-      isFirst = false;
-      String memberName = namer.instanceFieldName(member.getLibrary(),
-                                                  member.name);
-      String parameter;
-      if (classElement === enclosingClass) {
-        parameter = memberName;
-      } else {
-        parameter = '${className}_$memberName';
-      }
-      argumentsBuffer.add(parameter);
-      bodyBuffer.add('  this.$memberName = $parameter;\n');
+  List<String> generateFieldList(ClassElement classElement) {
+    List<String> result = <String>[];
+    void addField(ClassElement enclosingClass, Element member) {
+      result.add(namer.instanceFieldName(member.getLibrary(), member.name));
     }
 
-    classElement.forEachInstanceField(generateFieldInit,
+    classElement.forEachInstanceField(addField,
                                       includeBackendMembers: true,
                                       includeSuperMembers: true);
+    return result;
   }
 
   void generateClass(ClassElement classElement, StringBuffer buffer) {
@@ -406,18 +407,20 @@ function() {
     }
     String constructorName = namer.safeName(classElement.name.slowToString());
     buffer.add('$defineClassName("$className", "$superName", ');
-    buffer.add('function $constructorName(');
-    StringBuffer bodyBuffer = new StringBuffer();
     // If the class is never instantiated we still need to set it up for
-    // inheritance purposes, but we can leave its JavaScript constructor empty.
-    if (compiler.universe.instantiatedClasses.contains(classElement)) {
-      generateFieldInits(classElement, buffer, bodyBuffer);
+    // inheritance purposes, but we can simplify its JavaScript constructor.
+    if (!compiler.universe.instantiatedClasses.contains(classElement)) {
+      buffer.add("[]");
+    } else {
+      List<String> fields = generateFieldList(classElement);
+      buffer.add('[');
+      for (int i = 0; i < fields.length; i++) {
+        if (i != 0) buffer.add(", ");
+        buffer.add('"${fields[i]}"');
+      }
+      buffer.add(']');
     }
-    buffer.add(') {\n');
-    buffer.add(bodyBuffer);
-    buffer.add(' }, ');
-
-    buffer.add('{\n');
+    buffer.add(', {\n');
 
     void defineInstanceMember(String name, String value) {
       buffer.add(' $name: $value,\n');
