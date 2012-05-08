@@ -1124,8 +1124,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     if (node.builtin){
       beginExpression(unsignedShiftPrecedences.precedence);
+      int oldPrecedence = this.expectedPrecedence;
+      this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
       visitInvokeBinary(node, op);
       buffer.add(' >>> 0');
+      this.expectedPrecedence = oldPrecedence;
       endExpression(unsignedShiftPrecedences.precedence);
     } else {
       visitInvokeBinary(node, op);
@@ -1148,8 +1151,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitInvokeUnary(HInvokeUnary node, String op) {
     if (node.builtin){
       beginExpression(unsignedShiftPrecedences.precedence);
+      int oldPrecedence = this.expectedPrecedence;
+      this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
       visitInvokeUnary(node, op);
       buffer.add(' >>> 0');
+      this.expectedPrecedence = oldPrecedence;
       endExpression(unsignedShiftPrecedences.precedence);
     } else {
       visitInvokeUnary(node, op);
