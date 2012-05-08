@@ -123,15 +123,17 @@ MAIN_ID = "main_id"
 
 # TODO(mattsh): read this from some config file once ahe/zundel create it
 DART_LIBRARIES = {
-    "core" :      "lib/compiler/implementation/lib/core.dart",
-    "coreimpl" :  "lib/compiler/implementation/lib/coreimpl.dart",
-    "dom" :       "lib/dom/frog/dom_frog.dart",
-    "html" :      "lib/html/frog/html_frog.dart",
-    "io" :        "lib/compiler/implementation/lib/io.dart",
-    "isolate" :   "lib/isolate/isolate_leg.dart",
-    "json" :      "lib/json/json.dart",
-    "uri" :       "lib/uri/uri.dart",
-    "utf" :       "lib/utf/utf.dart",
+    "core": "lib/compiler/implementation/lib/core.dart",
+    "coreimpl": "lib/compiler/implementation/lib/coreimpl.dart",
+    "_js_helper": "lib/compiler/implementation/lib/js_helper.dart",
+    "_interceptors": "lib/compiler/implementation/lib/interceptors.dart",
+    "dom": "lib/dom/frog/dom_frog.dart",
+    "html": "lib/html/frog/html_frog.dart",
+    "io": "lib/compiler/implementation/lib/io.dart",
+    "isolate": "lib/isolate/isolate_leg.dart",
+    "json": "lib/json/json.dart",
+    "uri": "lib/uri/uri.dart",
+    "utf": "lib/utf/utf.dart",
 }
 
 class Pad(object):
