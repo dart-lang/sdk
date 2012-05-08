@@ -147,7 +147,7 @@ class TestRunner(object):
     dir_path = os.path.join(DART_INSTALL_LOCATION, 'tools', 
                             'testing', 'perf_testing', dir_name)
     if not os.path.exists(dir_path):
-      os.mkdir(dir_path)
+      os.makedirs(dir_path)
       print 'Creating output directory ', dir_path
 
   def has_new_code(self):
@@ -155,7 +155,7 @@ class TestRunner(object):
     os.chdir(DART_INSTALL_LOCATION)
     # Pass 'p' in if we have a new certificate for the svn server, we want to
     # (p)ermanently accept it.
-    results = self.run_cmd(['svn', 'st', '-u'], std_in='p')
+    results = self.run_cmd(['svn', 'st', '-u'], std_in='p\r\n')
     for line in results:
       if '*' in line:
         return True
@@ -346,15 +346,24 @@ class Test(object):
     
     os.chdir(DART_INSTALL_LOCATION)
     self.test_runner.ensure_output_directory(self.result_folder_name)
+    self.test_runner.ensure_output_directory(os.path.join(
+        'old', self.result_folder_name))
     if not self.test_runner.no_test:
       self.tester.run_tests()
 
     os.chdir(os.path.join('tools', 'testing', 'perf_testing'))
 
+    for afile in os.listdir(os.path.join('old', self.result_folder_name)):
+      if not afile.startswith('.'):
+        self.file_processor.process_file(afile, False)
+
     files = os.listdir(self.result_folder_name)
     for afile in files:
       if not afile.startswith('.'):
-        self.file_processor.process_file(afile)
+        should_move_file = self.file_processor.process_file(afile, True)
+        if should_move_file:
+          shutil.move(os.path.join(self.result_folder_name, afile),
+                      os.path.join('old', self.result_folder_name, afile))
 
     if 'plt' in globals():
       # Only run Matplotlib if it is installed.
@@ -417,14 +426,6 @@ class Processor(object):
   def prepare(self):
     """Perform any initial setup required before the test is run."""
     pass
-
-  def should_report_results(self, afile):
-    """We store all trace files locally, but we don't want to post all of the
-    results every time, so we only attempt to post results for recent runs."""
-    cur_time = time.time()
-    file_mod_time = os.path.getmtime(os.path.join(
-        self.test.result_folder_name, afile))
-    return cur_time - file_mod_time < 1000 # Files modified in the last ~15 min.
 
   def report_results(self, benchmark_name, score, platform, variant, 
                      revision_number, metric):
@@ -681,7 +682,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
               append=True)
 
   class CommonBrowserFileProcessor(Processor):
-    def process_file(self, afile):
+    def process_file(self, afile, should_post_file):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage and/or we can
           delete the trace file."""
@@ -690,7 +691,10 @@ class CommonBrowserTest(RuntimePerformanceTest):
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
-      f = open(os.path.join(self.test.result_folder_name, afile))
+      if should_post_file:
+        f = open(os.path.join(self.test.result_folder_name, afile))
+      else:
+        f = open(os.path.join('old', self.test.result_folder_name, afile))
       lines = f.readlines()
       line = ''
       i = 0
@@ -726,8 +730,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
         bench_dict = self.test.values_dict[browser][version]
         bench_dict[name] += [float(score)]
         self.test.revision_dict[browser][version][name] += [revision_num]
-        if self.should_report_results(afile) and \
-            not self.test.test_runner.no_upload:
+        if not self.test.test_runner.no_upload and should_post_file:
           upload_success = upload_success and self.report_results(
               name, score, browser, version, revision_num, self.SCORE)
         else:
@@ -870,7 +873,7 @@ class DromaeoTest(RuntimePerformanceTest):
 
 
   class DromaeoFileProcessor(Processor):
-    def process_file(self, afile):
+    def process_file(self, afile, should_post_file):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage."""
       parts = afile.split('-')
@@ -906,8 +909,7 @@ class DromaeoTest(RuntimePerformanceTest):
                 bench_dict[name] += [float(score)]
                 self.test.revision_dict[browser][version][name] += \
                     [revision_num]
-                if self.should_report_results(afile) and \
-                    not self.test.test_runner.no_upload:
+                if not self.test.test_runner.no_upload and should_post_file:
                   upload_success = upload_success and self.report_results(
                       name, score, browser, version, revision_num, self.SCORE)
                 else:
@@ -1000,7 +1002,7 @@ class DromaeoSizeTest(Test):
 
 
   class DromaeoSizeProcessor(Processor):
-    def process_file(self, afile):
+    def process_file(self, afile, should_post_file):
       """Pull all the relevant information out of a given tracefile.
 
       Args:
@@ -1033,8 +1035,7 @@ class DromaeoSizeTest(Test):
           self.test.values_dict['commandline'][variant][metric] += [num]
           self.test.revision_dict['commandline'][variant][metric] += \
               [revision_num]
-          if self.should_report_results(afile) and \
-              not self.test.test_runner.no_upload:
+          if not self.test.test_runner.no_upload and should_post_file:
             upload_success = upload_success and self.report_results(
                 metric, num, 'commandline', variant, revision_num,
                 self.CODE_SIZE)
@@ -1130,7 +1131,7 @@ class CompileTimeAndSizeTest(Test):
 
   class CompileProcessor(Processor):
 
-    def process_file(self, afile):
+    def process_file(self, afile, should_post_file):
       """Pull all the relevant information out of a given tracefile.
 
       Args:
@@ -1160,8 +1161,7 @@ class CompileTimeAndSizeTest(Test):
               score_type = self.CODE_SIZE
               if 'Compiling' in metric or 'Bootstrapping' in metric:
                 score_type = self.COMPILE_TIME
-              if self.should_report_results(afile) and \
-                  not self.test.test_runner.no_upload:
+              if not self.test.test_runner.no_upload and should_post_file:
                 if num < self.test.failure_threshold[metric]:
                   num = 0
                 upload_success = upload_success and self.report_results(
