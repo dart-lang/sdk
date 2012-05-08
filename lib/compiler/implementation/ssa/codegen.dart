@@ -595,10 +595,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       buffer.add("\n");
     }
-    if (info.joinBlock !== null) {
-      visitBasicBlock(info.joinBlock);
-    }
     return true;
+  }
+
+  bool visitSequenceInfo(HStatementSequenceInformation info) {
+    return false;
   }
 
   bool visitSubGraphInfo(HSubGraphBlockInformation info) {
@@ -641,27 +642,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       addIndented("}");
     }
     buffer.add("\n");
-    visitBasicBlock(info.joinBlock);
     return true;
   }
 
-  bool visitLoopInfo(HLoopInformation info) {
-    // We must look at the loop information only once, when visiting the
-    // initializer. After that, the initializer has been generated.
-    // The same block information is also put on the condition-block for
-    // the traditional code generation.
-    bool isInitializerBlock = (currentBlock !== info.header);
-    if (!isInitializerBlock && info.kind != HLoopInformation.DO_WHILE_LOOP) {
-      return false;
-    }
-
+  bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
 
     void visitBodyIgnoreLabels() {
       if (info.body.start.isLabeledBlock()) {
         HBlockInformation oldInfo = currentBlockInformation;
-        currentBlockInformation = info.body.start.blockInformation;
+        currentBlockInformation = info.body.start.blockFlow.body;
         generateStatements(info.body);
         currentBlockInformation = oldInfo;
       } else {
@@ -671,9 +662,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
-      case HLoopInformation.FOR_LOOP:
-      case HLoopInformation.WHILE_LOOP:
-      case HLoopInformation.FOR_IN_LOOP: {
+      case HLoopBlockInformation.FOR_LOOP:
+      case HLoopBlockInformation.WHILE_LOOP:
+      case HLoopBlockInformation.FOR_IN_LOOP: {
         HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization !== null) {
@@ -744,7 +735,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         addIndented("}\n");
         break;
       }
-      case HLoopInformation.DO_WHILE_LOOP: {
+      case HLoopBlockInformation.DO_WHILE_LOOP: {
         // Generate do-while loop in all cases.
         if (info.initializer !== null) {
           generateStatements(info.initializer);
@@ -785,7 +776,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           'Unexpected loop kind: ${info.kind}',
           instruction: condition.conditionExpression);
     }
-    visitBasicBlock(info.joinBlock);
     return true;
   }
 
@@ -841,9 +831,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     indent--;
     addIndented('}\n');
 
-    if (labeledBlockInfo.joinBlock !== null) {
-      visitBasicBlock(labeledBlockInfo.joinBlock);
-    }
     if (labeledBlockInfo.isContinue) {
       while (!continueOverrides.isEmpty()) {
         continueAction.remove(continueOverrides.head);
@@ -867,7 +854,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   // Wraps a loop body in a block to make continues have a target to break
   // to (if necessary).
-  void wrapLoopBodyForContinue(HLoopInformation info) {
+  void wrapLoopBodyForContinue(HLoopBlockInformation info) {
     TargetElement target = info.target;
     if (target !== null && target.isContinueTarget) {
       addIndentation();
@@ -897,28 +884,44 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  bool handleBlockFlow(HBlockFlow block) {
+    HBlockInformation info = block.body;
+    // If we reach here again while handling the attached information,
+    // e.g., because we call visitSubGraph on a subgraph starting on
+    // the same block, don't handle it again.
+    // When the structure graph is complete, we will be able to have
+    // different structures starting on the same basic block (e.g., an
+    // "if" and its condition).
+    if (info === currentBlockInformation) return false;
+
+    HBlockInformation oldBlockInformation = currentBlockInformation;
+    currentBlockInformation = info;
+    bool success = info.accept(this);
+    currentBlockInformation = oldBlockInformation;
+    if (success) {
+      HBasicBlock continuation = block.continuation;
+      if (continuation !== null) {
+        visitBasicBlock(continuation);
+      }
+    }
+    return success;
+  }
+
   void visitBasicBlock(HBasicBlock node) {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
 
     currentBlock = node;
-    // If this node has special behavior attached, handle it.
-    // If we reach here again while handling the attached information,
-    // e.g., because we call visitSubGraph on a subgraph starting here,
-    // don't handle it again.
-    if (node.blockInformation !== null &&
-        node.blockInformation !== currentBlockInformation) {
-      HBlockInformation oldBlockInformation = currentBlockInformation;
-      currentBlockInformation = node.blockInformation;
-      bool success = currentBlockInformation.accept(this);
-      currentBlockInformation = oldBlockInformation;
-      if (success) return;
-
-      // If our special handling didn't succeed, we have to emit a generic
-      // version. This still requires special handling for loop-blocks
-      if (node.isLoopHeader()) {
-        beginLoop(node);
-      }
+    // If this node has block-structure based information attached,
+    // try using that to traverse from here.
+    if (node.blockFlow !== null &&
+        handleBlockFlow(node.blockFlow)) {
+      return;
+    }
+    // Flow based traversal.
+    if (node.isLoopHeader() &&
+        node.loopInformation.loopBlockInformation !== currentBlockInformation) {
+      beginLoop(node);
     }
     iterateBasicBlock(node);
   }
@@ -1313,7 +1316,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction condition = node.inputs[0];
     int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
-    HIfBlockInformation info = node.blockInformation;
+    HIfBlockInformation info = node.blockInformation.body;
     if (condition.isConstant()) {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
@@ -1340,11 +1343,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       endIf(node);
     }
-    if (info.joinBlock !== null && info.joinBlock.dominator !== node.block) {
+    HBasicBlock joinBlock = node.joinBlock;
+    if (joinBlock !== null && joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
       // instead.
-      visitBasicBlock(info.joinBlock);
+      visitBasicBlock(joinBlock);
     }
 
     // Visit all the dominated blocks that are not part of the then or else
@@ -2221,7 +2225,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginLoop(HBasicBlock block) {
     addIndentation();
-    HLoopInformation info = block.blockInformation;
+    HLoopInformation info = block.loopInformation;
     for (LabelElement label in info.labels) {
       writeLabel(label);
       buffer.add(":");
@@ -2345,9 +2349,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
   bool visitIfInfo(HIfBlockInformation info) => false;
-  bool visitLoopInfo(HLoopInformation info) => false;
+  bool visitLoopInfo(HLoopBlockInformation info) => false;
   bool visitTryInfo(HTryBlockInformation info) => false;
-
+  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;
@@ -2401,7 +2405,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
-    HLoopInformation loopInformation = block.blockInformation;
+    HLoopInformation loopInformation = block.loopInformation;
     for (LabelElement label in loopInformation.labels) {
       writeLabel(label);
       buffer.add(":");
@@ -2424,7 +2428,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
     if (header.hasGuards()) {
       endBailoutSwitch();
-      HLoopInformation info = header.blockInformation;
+      HLoopInformation info = header.loopInformation;
       if (info.target != null) breakAction.remove(info.target);
     }
     indent--;

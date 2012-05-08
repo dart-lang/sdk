@@ -139,12 +139,11 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(int kind,
-                                    TargetElement target,
+  HBasicBlock addNewLoopHeaderBlock(TargetElement target,
                                     List<LabelElement> labels) {
     HBasicBlock result = addNewBlock();
-    result.blockInformation =
-        new HLoopInformation(kind, result, target, labels);
+    result.loopInformation =
+        new HLoopInformation(result, target, labels);
     return result;
   }
 
@@ -423,7 +422,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   HInstructionList phis;
 
-  HBlockInformation blockInformation = null;
+  HLoopInformation loopInformation = null;
+  HBlockFlow blockFlow = null;
   HBasicBlock parentLoopHeader = null;
   List<HTypeGuard> guards;
 
@@ -448,13 +448,16 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isClosed() => status == STATUS_CLOSED;
 
   bool isLoopHeader() {
-    if (blockInformation is HLoopInformation) {
-      HLoopInformation info = blockInformation;
-      return (this === info.header);
-    }
-    return false;
+    return loopInformation !== null;
   }
-  bool isLabeledBlock() => blockInformation is HLabeledBlockInformation;
+
+  void setBlockFlow(HBlockInformation blockInfo, HBasicBlock continuation) {
+    blockFlow = new HBlockFlow(blockInfo, continuation);
+  }
+
+  bool isLabeledBlock() =>
+    blockFlow !== null &&
+    blockFlow.body is HLabeledBlockInformation;
 
   HBasicBlock get enclosingLoopHeader() {
     if (isLoopHeader()) return this;
@@ -568,7 +571,6 @@ class HBasicBlock extends HInstructionList implements Hashable {
     assert(isLoopHeader());
     // Only the first entry into the loop is from outside the
     // loop. All other entries must be back edges.
-    HLoopInformation loopInformation = this.blockInformation;
     for (int i = 1, length = predecessors.length; i < length; i++) {
       loopInformation.addBackEdge(predecessors[i]);
     }
@@ -1657,7 +1659,7 @@ class HTry extends HControlFlow {
 
 class HIf extends HConditionalBranch {
   bool hasElse;
-  HIfBlockInformation blockInformation = null;
+  HBlockFlow blockInformation = null;
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
   toString() => 'if';
   accept(HVisitor visitor) => visitor.visitIf(this);
@@ -1676,7 +1678,7 @@ class HIf extends HConditionalBranch {
     }
   }
 
-  HBasicBlock get joinBlock() => blockInformation.joinBlock;
+  HBasicBlock get joinBlock() => blockInformation.continuation;
 }
 
 class HLoopBranch extends HConditionalBranch {
@@ -2162,160 +2164,20 @@ class HTypeConversion extends HInstruction {
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 }
 
-/**
- * Information about a syntactic-like structure that can be attached
- * to a [HBasicBlock].
- */
-interface HBlockInformation {
-  HBasicBlock get start();
-  HBasicBlock get end();
-  bool accept(HBlockInformationVisitor visitor);
-}
-
-/**
- * Information about a statement-like structure.
- */
-interface HStatementInformation extends HBlockInformation {
-  bool accept(HStatementInformationVisitor visitor);
-}
-
-/**
- * Information about an expression-like structure.
- */
-interface HExpressionInformation extends HBlockInformation {
-  bool accept(HExpressionInformationVisitor visitor);
-  HInstruction get conditionExpression();
-}
-
-
-interface HStatementInformationVisitor {
-  bool visitLabeledBlockInfo(HLabeledBlockInformation info);
-  bool visitLoopInfo(HLoopInformation info);
-  bool visitIfInfo(HIfBlockInformation info);
-  bool visitTryInfo(HTryBlockInformation info);
-  bool visitSubGraphInfo(HSubGraphBlockInformation info);
-}
-
-interface HExpressionInformationVisitor {
-  bool visitAndOrInfo(HAndOrBlockInformation info);
-  bool visitSubExpressionInfo(HSubExpressionBlockInformation info);
-}
-
-interface HBlockInformationVisitor extends HStatementInformationVisitor,
-                                           HExpressionInformationVisitor {
-}
-
-/**
- * Generic class wrapping a [SubGraph] as a block-information until
- * all structures are handled properly.
- */
-class HSubGraphBlockInformation implements HStatementInformation {
-  final SubGraph subGraph;
-  HSubGraphBlockInformation(this.subGraph);
-
-  HBasicBlock get start() => subGraph.start;
-  HBasicBlock get end() => subGraph.end;
-
-  bool accept(HStatementInformationVisitor visitor) =>
-    visitor.visitSubGraphInfo(this);
-}
-
-
-/**
- * Generic class wrapping a [SubExpression] as a block-information until
- * expressions structures are handled properly.
- */
-class HSubExpressionBlockInformation implements HExpressionInformation {
-  final SubExpression subExpression;
-  HSubExpressionBlockInformation(this.subExpression);
-
-  HBasicBlock get start() => subExpression.start;
-  HBasicBlock get end() => subExpression.end;
-
-  HInstruction get conditionExpression() => subExpression.conditionExpression;
-
-  bool accept(HExpressionInformationVisitor visitor) =>
-    visitor.visitSubExpressionInfo(this);
-}
-
-
-class HLabeledBlockInformation implements HStatementInformation {
-  final HStatementInformation body;
-  final HBasicBlock joinBlock;
-  final List<LabelElement> labels;
-  final TargetElement target;
-  final bool isContinue;
-
-  HLabeledBlockInformation(this.body, this.joinBlock,
-                           List<LabelElement> labels,
-                           [this.isContinue = false]) :
-      this.labels = labels, this.target = labels[0].target;
-
-  HLabeledBlockInformation.implicit(this.body,
-                                    this.joinBlock,
-                                    this.target,
-                                    [this.isContinue = false])
-      : this.labels = const<LabelElement>[];
-
-  HBasicBlock get start() => body.start;
-  HBasicBlock get end() => body.end;
-
-  bool accept(HStatementInformationVisitor visitor) =>
-    visitor.visitLabeledBlockInfo(this);
-}
-
-class LoopTypeVisitor extends AbstractVisitor {
-  const LoopTypeVisitor();
-  int visitNode(Node node) {
-    unreachable();
-  }
-  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
-  int visitFor(For node) => HLoopInformation.FOR_LOOP;
-  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
-  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
-}
-
-class HLoopInformation implements HStatementInformation {
-  static final int WHILE_LOOP = 0;
-  static final int FOR_LOOP = 1;
-  static final int DO_WHILE_LOOP = 2;
-  static final int FOR_IN_LOOP = 3;
-
-  final int kind;
+/** Non-block-based (aka. traditional) loop information. */
+class HLoopInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
   final List<LabelElement> labels;
   final TargetElement target;
-  HExpressionInformation initializer = null;
-  HExpressionInformation condition = null;
-  HStatementInformation body = null;
-  HExpressionInformation updates = null;
-  HBasicBlock joinBlock;
 
-  HLoopInformation(this.kind, this.header, this.target, this.labels)
+  /** Corresponding block information for the loop. */
+  HLoopBlockInformation loopBlockInformation;
+
+  HLoopInformation(this.header, this.target, this.labels)
       : blocks = new List<HBasicBlock>(),
         backEdges = new List<HBasicBlock>();
-
-  HBasicBlock get start() {
-    if (initializer !== null) return initializer.start;
-    if (kind == DO_WHILE_LOOP) {
-      return body.start;
-    }
-    return condition.start;
-  }
-
-  HBasicBlock get end() {
-    if (updates !== null) return updates.end;
-    if (kind == DO_WHILE_LOOP) {
-      return condition.end;
-    }
-    return body.end;
-  }
-
-  static int loopType(Node node) {
-    return node.accept(const LoopTypeVisitor());
-  }
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);
@@ -2352,6 +2214,194 @@ class HLoopInformation implements HStatementInformation {
     }
     return result;
   }
+}
+
+
+/**
+ * Embedding of a [HBlockInformation] for block-structure based traversal
+ * in a dominator based flow traversal by attaching it to a basic block.
+ * To go back to dominator-based traversal, a [HSubGraphBlockInformation]
+ * structure can be added in the block structure.
+ */
+class HBlockFlow {
+  final HBlockInformation body;
+  final HBasicBlock continuation;
+  HBlockFlow(this.body, this.continuation);
+}
+
+
+/**
+ * Information about a syntactic-like structure.
+ */
+interface HBlockInformation {
+  HBasicBlock get start();
+  HBasicBlock get end();
+  bool accept(HBlockInformationVisitor visitor);
+}
+
+
+/**
+ * Information about a statement-like structure.
+ */
+interface HStatementInformation extends HBlockInformation {
+  bool accept(HStatementInformationVisitor visitor);
+}
+
+
+/**
+ * Information about an expression-like structure.
+ */
+interface HExpressionInformation extends HBlockInformation {
+  bool accept(HExpressionInformationVisitor visitor);
+  HInstruction get conditionExpression();
+}
+
+
+interface HStatementInformationVisitor {
+  bool visitLabeledBlockInfo(HLabeledBlockInformation info);
+  bool visitLoopInfo(HLoopBlockInformation info);
+  bool visitIfInfo(HIfBlockInformation info);
+  bool visitTryInfo(HTryBlockInformation info);
+  bool visitSequenceInfo(HStatementSequenceInformation info);
+  // Pseudo-structure embedding a dominator-based traversal into
+  // the block-structure traversal. This will eventually go away.
+  bool visitSubGraphInfo(HSubGraphBlockInformation info);
+}
+
+
+interface HExpressionInformationVisitor {
+  bool visitAndOrInfo(HAndOrBlockInformation info);
+  bool visitSubExpressionInfo(HSubExpressionBlockInformation info);
+}
+
+
+interface HBlockInformationVisitor extends HStatementInformationVisitor,
+                                           HExpressionInformationVisitor {
+}
+
+
+/**
+ * Generic class wrapping a [SubGraph] as a block-information until
+ * all structures are handled properly.
+ */
+class HSubGraphBlockInformation implements HStatementInformation {
+  final SubGraph subGraph;
+  HSubGraphBlockInformation(this.subGraph);
+
+  HBasicBlock get start() => subGraph.start;
+  HBasicBlock get end() => subGraph.end;
+
+  bool accept(HStatementInformationVisitor visitor) =>
+    visitor.visitSubGraphInfo(this);
+}
+
+
+/**
+ * Generic class wrapping a [SubExpression] as a block-information until
+ * expressions structures are handled properly.
+ */
+class HSubExpressionBlockInformation implements HExpressionInformation {
+  final SubExpression subExpression;
+  HSubExpressionBlockInformation(this.subExpression);
+
+  HBasicBlock get start() => subExpression.start;
+  HBasicBlock get end() => subExpression.end;
+
+  HInstruction get conditionExpression() => subExpression.conditionExpression;
+
+  bool accept(HExpressionInformationVisitor visitor) =>
+    visitor.visitSubExpressionInfo(this);
+}
+
+
+/** A sequence of separate statements. */
+class HStatementSequenceInformation implements HStatementInformation {
+  final List<HStatementInformation> statements;
+  HStatementSequenceInformation(this.statements);
+
+  HBasicBlock get start() => statements[0].start;
+  HBasicBlock get end() => statements.last().end;
+
+  bool accept(HStatementInformationVisitor visitor) =>
+    visitor.visitSequenceInfo(this);
+}
+
+
+class HLabeledBlockInformation implements HStatementInformation {
+  final HStatementInformation body;
+  final List<LabelElement> labels;
+  final TargetElement target;
+  final bool isContinue;
+
+  HLabeledBlockInformation(this.body,
+                           List<LabelElement> labels,
+                           [this.isContinue = false]) :
+      this.labels = labels, this.target = labels[0].target;
+
+  HLabeledBlockInformation.implicit(this.body,
+                                    this.target,
+                                    [this.isContinue = false])
+      : this.labels = const<LabelElement>[];
+
+  HBasicBlock get start() => body.start;
+  HBasicBlock get end() => body.end;
+
+  bool accept(HStatementInformationVisitor visitor) =>
+    visitor.visitLabeledBlockInfo(this);
+}
+
+class LoopTypeVisitor extends AbstractVisitor {
+  const LoopTypeVisitor();
+  int visitNode(Node node) {
+    unreachable();
+  }
+  int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;
+  int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
+  int visitDoWhile(DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
+  int visitForIn(ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
+}
+
+class HLoopBlockInformation implements HStatementInformation {
+  static final int WHILE_LOOP = 0;
+  static final int FOR_LOOP = 1;
+  static final int DO_WHILE_LOOP = 2;
+  static final int FOR_IN_LOOP = 3;
+
+  final int kind;
+  final HExpressionInformation initializer;
+  final HExpressionInformation condition;
+  final HStatementInformation body;
+  final HExpressionInformation updates;
+  final TargetElement target;
+  final List<LabelElement> labels;
+
+  HLoopBlockInformation(this.kind,
+                        this.initializer,
+                        this.condition,
+                        this.body,
+                        this.updates,
+                        this.target,
+                        this.labels);
+
+  HBasicBlock get start() {
+    if (initializer !== null) return initializer.start;
+    if (kind == DO_WHILE_LOOP) {
+      return body.start;
+    }
+    return condition.start;
+  }
+
+  HBasicBlock get end() {
+    if (updates !== null) return updates.end;
+    if (kind == DO_WHILE_LOOP) {
+      return condition.end;
+    }
+    return body.end;
+  }
+
+  static int loopType(Node node) {
+    return node.accept(const LoopTypeVisitor());
+  }
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitLoopInfo(this);
@@ -2361,11 +2411,9 @@ class HIfBlockInformation implements HStatementInformation {
   final HExpressionInformation condition;
   final HStatementInformation thenGraph;
   final HStatementInformation elseGraph;
-  final HBasicBlock joinBlock;
   HIfBlockInformation(this.condition,
                       this.thenGraph,
-                      this.elseGraph,
-                      this.joinBlock);
+                      this.elseGraph);
 
   HBasicBlock get start() => condition.start;
   HBasicBlock get end() => elseGraph === null ? thenGraph.end : elseGraph.end;
@@ -2378,11 +2426,9 @@ class HAndOrBlockInformation implements HExpressionInformation {
   final bool isAnd;
   final HExpressionInformation left;
   final HExpressionInformation right;
-  final HBasicBlock joinBlock;
   HAndOrBlockInformation(this.isAnd,
                          this.left,
-                         this.right,
-                         this.joinBlock);
+                         this.right);
 
   HBasicBlock get start() => left.start;
   HBasicBlock get end() => right.end;
@@ -2398,14 +2444,10 @@ class HTryBlockInformation implements HStatementInformation {
   final HParameterValue catchVariable;
   final HStatementInformation catchBlock;
   final HStatementInformation finallyBlock;
-  // TODO: Move joinBlock out of the structure, and into the surrounding
-  // structure.
-  final HBasicBlock joinBlock;
   HTryBlockInformation(this.body,
                        this.catchVariable,
                        this.catchBlock,
-                       this.finallyBlock,
-                       this.joinBlock);
+                       this.finallyBlock);
 
   HBasicBlock get start() => body.start;
   HBasicBlock get end() =>
