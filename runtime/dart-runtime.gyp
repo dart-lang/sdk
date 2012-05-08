@@ -10,6 +10,7 @@
     'third_party/jscre/jscre.gypi',
     'tools/gyp/runtime-configurations.gypi',
     '../tools/gyp/source_filter.gypi',
+    '../samples/sample_extension/sample_extension.gypi',
   ],
   'targets': [
     {
