@@ -688,25 +688,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     }
   }
 
-  // If the type class is a signature class, we are finalizing its signature
-  // type, thereby finalizing the result type and parameter types of its
-  // signature function.
-  // Do this before marking this type as finalized in order to detect cycles.
-  if (type_class.IsSignatureClass()) {
-    // Signature classes are finalized upon creation.
-    ASSERT(type_class.is_finalized());
-    // Resolve and finalize the result and parameter types of the signature
-    // function of this signature class.
-    ResolveAndFinalizeSignature(
-        type_class, Function::Handle(type_class.signature_function()));
-  }
-
-  // Illegally self referencing function types may get finalized indirectly.
-  if (parameterized_type.IsFinalized()) {
-    ASSERT(parameterized_type.IsMalformed());
-    return parameterized_type.raw();
-  }
-
   // The finalized type argument vector needs num_type_arguments types.
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
   // The type class has num_type_parameters type parameters.
@@ -728,8 +709,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // The full type argument vector consists of the type arguments of the
   // super types of type_class, which may be initialized from the parsed
   // type arguments, followed by the parsed type arguments.
+  TypeArguments& full_arguments = TypeArguments::Handle();
   if (num_type_arguments > 0) {
-    TypeArguments& full_arguments = TypeArguments::Handle();
     // If no type arguments were parsed and if the super types do not prepend
     // type arguments to the vector, we can leave the vector as null.
     if (!arguments.IsNull() || (num_type_arguments > num_type_parameters)) {
@@ -769,39 +750,11 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     } else {
       ASSERT(full_arguments.IsNull());  // Use null vector for raw type.
     }
-    // Mark the type as finalized.
-    if (parameterized_type.IsInstantiated()) {
-      parameterized_type.set_is_finalized_instantiated();
-    } else {
-      parameterized_type.set_is_finalized_uninstantiated();
-    }
+  }
 
-    // Upper bounds of the finalized type arguments are only verified in checked
-    // mode, since bound errors are never reported by the vm in production mode.
-    if (FLAG_enable_type_checks &&
-        !full_arguments.IsNull() &&
-        full_arguments.IsInstantiated()) {
-      ResolveAndFinalizeUpperBounds(type_class);
-      Error& malformed_error = Error::Handle();
-      // Pass the full type argument vector as the bounds instantiator.
-      if (!full_arguments.IsWithinBoundsOf(type_class,
-                                           full_arguments,
-                                           &malformed_error)) {
-        ASSERT(!malformed_error.IsNull());
-        // The type argument vector of the type is not within bounds. The type
-        // is malformed. Prepend malformed_error to new malformed type error in
-        // order to report both locations.
-        // Note that malformed bounds never result in a compile time error, even
-        // in checked mode. Therefore, overwrite finalization with kFinalize
-        // when finalizing the malformed type.
-        FinalizeMalformedType(
-            malformed_error,
-            cls, parameterized_type, kFinalize,
-            "type arguments of type '%s' are not within bounds",
-            String::Handle(parameterized_type.Name()).ToCString());
-        return parameterized_type.raw();
-      }
-    }
+  // Illegally self referencing types may get finalized indirectly.
+  if (parameterized_type.IsFinalized()) {
+    ASSERT(parameterized_type.IsMalformed());
   } else {
     // Mark the type as finalized.
     if (parameterized_type.IsInstantiated()) {
@@ -810,6 +763,48 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       parameterized_type.set_is_finalized_uninstantiated();
     }
   }
+
+  // Upper bounds of the finalized type arguments are only verified in checked
+  // mode, since bound errors are never reported by the vm in production mode.
+  if (FLAG_enable_type_checks &&
+      !full_arguments.IsNull() &&
+      full_arguments.IsInstantiated()) {
+    ResolveAndFinalizeUpperBounds(type_class);
+    Error& malformed_error = Error::Handle();
+    // Pass the full type argument vector as the bounds instantiator.
+    if (!full_arguments.IsWithinBoundsOf(type_class,
+                                         full_arguments,
+                                         &malformed_error)) {
+      ASSERT(!malformed_error.IsNull());
+      // The type argument vector of the type is not within bounds. The type
+      // is malformed. Prepend malformed_error to new malformed type error in
+      // order to report both locations.
+      // Note that malformed bounds never result in a compile time error, even
+      // in checked mode. Therefore, overwrite finalization with kFinalize
+      // when finalizing the malformed type.
+      FinalizeMalformedType(
+          malformed_error,
+          cls, parameterized_type, kFinalize,
+          "type arguments of type '%s' are not within bounds",
+          String::Handle(parameterized_type.Name()).ToCString());
+      return parameterized_type.raw();
+    }
+  }
+
+  // If the type class is a signature class, we also finalize its signature
+  // type, thereby finalizing the result type and parameter types of its
+  // signature function.
+  // We do this after marking this type as finalized in order to allow a
+  // function type to refer to itself via its parameter types and result type.
+  if (type_class.IsSignatureClass()) {
+    // Signature classes are finalized upon creation.
+    ASSERT(type_class.is_finalized());
+    // Resolve and finalize the result and parameter types of the signature
+    // function of this signature class.
+    ResolveAndFinalizeSignature(
+        type_class, Function::Handle(type_class.signature_function()));
+  }
+
   return parameterized_type.Canonicalize();
 }
 

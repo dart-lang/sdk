@@ -2267,7 +2267,7 @@ RawString* AbstractType::Name() const {
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
     if (num_type_params > num_args) {
       first_type_param_index = 0;
-      if (!IsFinalized() || IsBeingFinalized()) {
+      if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
         // Most probably an illformed type. Do not fill up with "Dynamic",
         // but use actual vector.
         num_type_params = num_args;
@@ -2282,14 +2282,16 @@ RawString* AbstractType::Name() const {
     if (cls.IsSignatureClass()) {
       // We may be reporting an error about an illformed function type. In that
       // case, avoid instantiating the signature, since it may lead to cycles.
-      if (!IsFinalized() || IsBeingFinalized()) {
+      if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
         return class_name.raw();
       }
-      const Function& signature_function = Function::Handle(
-          cls.signature_function());
-      // Signature classes have no super type.
-      ASSERT(first_type_param_index == 0);
-      return signature_function.InstantiatedSignatureFrom(args);
+      if (num_type_params > 0) {
+        const Function& signature_function = Function::Handle(
+            cls.signature_function());
+        // Signature classes have no super type.
+        ASSERT(first_type_param_index == 0);
+        return signature_function.InstantiatedSignatureFrom(args);
+      }
     }
   } else {
     const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());

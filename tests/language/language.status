@@ -30,7 +30,6 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail          # (Discussion ongoing)
 constructor6_test: Fail          # (Discussion ongoing)
-function_type_alias_negative_test: Fail # Spec not clear about self referencing types.
 
 # Bad tests needing to be fixed.
 type_variable_scope_test/00: Fail # Issue 2395
@@ -270,11 +269,13 @@ final_param_negative_test: Fail
 for2_test: Fail
 function_syntax_test: Fail
 function_test: Fail
-function_type_alias_negative_test: Fail
+function_malformed_result_type_test: Fail
 function_type_alias_test: Fail
 function_type_alias2_test: Fail
 function_type_alias3_test: Fail
 function_type_alias4_test: Fail
+function_type_alias6_test: Fail
+function_type_alias7_test: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 generic_deep_test: Fail
@@ -490,6 +491,8 @@ function_test: Fail # internal error: Closures inside initializers not implement
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
 function_type_alias4_test: Fail # cannot resolve type F
+function_type_alias6_test: Fail # visitIs for typedefs not implemented
+function_type_alias7_test: Fail # visitIs for typedefs not implemented
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
 function_type_parameter_test: Fail # Internal Error: expected optional parameters
@@ -589,7 +592,6 @@ field7a_negative_test: Fail, OK # Negative language test.
 final_for_in_variable_test/01: Fail, OK # Negative language test
 final_param_negative_test: Fail, OK # Negative language test.
 final_var_negative_test: Fail, OK # Negative language test.
-function_type_alias_negative_test: Fail, OK # Negative language test.
 getter_declaration_negative_test: Fail, OK # Negative language test.
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 interface_cycle_negative_test: Fail, OK # Negative language test.
