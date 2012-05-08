@@ -114,6 +114,7 @@ void testNoUpgrade() {
   };
 
   HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
+  conn.followRedirects = false;
   WebSocketClientConnection wsconn = new WebSocketClientConnection(conn);
   wsconn.onNoUpgrade = (response) {
     Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);

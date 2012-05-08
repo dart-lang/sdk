@@ -1148,6 +1148,13 @@ class _HttpClientResponse
   int get statusCode() => _statusCode;
   String get reasonPhrase() => _reasonPhrase;
 
+  bool get isRedirect() {
+    return statusCode == HttpStatus.MOVED_PERMANENTLY ||
+           statusCode == HttpStatus.FOUND ||
+           statusCode == HttpStatus.SEE_OTHER ||
+           statusCode == HttpStatus.TEMPORARY_REDIRECT;
+  }
+
   InputStream get inputStream() {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
@@ -1171,7 +1178,32 @@ class _HttpClientResponse
   void _onHeadersComplete() {
     _headers._mutable = false;
     _buffer = new _BufferList();
-    if (_connection._onResponse != null) {
+    if (isRedirect && _connection.followRedirects) {
+      if (_connection._redirects == null ||
+          _connection._redirects.length < _connection.maxRedirects) {
+        // Check the location header.
+        List<String> location = headers[HttpHeaders.LOCATION];
+        if (location == null || location.length > 1) {
+           throw new RedirectException("Invalid redirect",
+                                       _connection._redirects);
+        }
+        // Check for redirect loop
+        if (_connection._redirects != null) {
+          Uri redirectUrl = new Uri.fromString(location[0]);
+          for (int i = 0; i < _connection._redirects.length; i++) {
+            if (_connection._redirects[i].location.toString() ==
+                redirectUrl.toString()) {
+              throw new RedirectLoop(_connection._redirects);
+            }
+          }
+        }
+        // Drain body and redirect.
+        inputStream.onData = inputStream.read;
+        inputStream.onClosed = _connection.redirect;
+      } else {
+        throw new RedirectLimitExceeded(_connection._redirects);
+      }
+    } else if (_connection._onResponse != null) {
       _connection._onResponse(this);
     }
   }
@@ -1182,8 +1214,8 @@ class _HttpClientResponse
   }
 
   void _onDataEnd() {
-    if (_inputStream != null) _inputStream._closeReceived();
     _connection._responseDone();
+    if (_inputStream != null) _inputStream._closeReceived();
   }
 
   // Delegate functions for the HttpInputStream implementation.
@@ -1322,6 +1354,26 @@ class _HttpClientConnection
     _onErrorCallback = callback;
   }
 
+  void redirect([String method, Uri url]) {
+    if (_socketConn != null) {
+      throw new HttpException("Cannot redirect with body data pending");
+    }
+    if (method == null) method = _method;
+    if (url == null) {
+      url = new Uri.fromString(_response.headers.value(HttpHeaders.LOCATION));
+    }
+    if (_redirects == null) {
+      _redirects = new List<_RedirectInfo>();
+    }
+    _redirects.add(new _RedirectInfo(_response.statusCode, method, url));
+    _request = null;
+    _response = null;
+    // Open redirect URL using the same connection instance.
+    _client._openUrl(method, url, this);
+  }
+
+  List<RedirectInfo> get redirects() => _redirects;
+
   Function _onRequest;
   Function _onResponse;
   Function _onErrorCallback;
@@ -1331,6 +1383,11 @@ class _HttpClientConnection
   HttpClientRequest _request;
   HttpClientResponse _response;
   String _method;
+
+  // Redirect handling
+  bool followRedirects = true;
+  int maxRedirects = 5;
+  List<_RedirectInfo> _redirects;
 
   // Callbacks.
   var requestReceived;
@@ -1371,14 +1428,28 @@ class _HttpClient implements HttpClient {
 
   HttpClientConnection open(
       String method, String host, int port, String path) {
+    _open(method, host, port, path);
+  }
+
+  HttpClientConnection _open(String method,
+                             String host,
+                             int port,
+                             String path,
+                             [_HttpClientConnection connection]) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
     if (method == null || host == null || port == null || path == null) {
       throw new IllegalArgumentException(null);
     }
-    return _prepareHttpClientConnection(host, port, method, path);
+    return _prepareHttpClientConnection(host, port, method, path, connection);
   }
 
   HttpClientConnection openUrl(String method, Uri url) {
+    _openUrl(method, url);
+  }
+
+  HttpClientConnection _openUrl(String method,
+                                Uri url,
+                                [_HttpClientConnection connection]) {
     if (url.scheme != "http") {
       throw new HttpException("Unsupported URL scheme ${url.scheme}");
     }
@@ -1396,20 +1467,20 @@ class _HttpClient implements HttpClient {
     } else {
       path = url.path;
     }
-    return open(method, url.domain, port, path);
+    return _open(method, url.domain, port, path, connection);
   }
 
   HttpClientConnection get(String host, int port, String path) {
-    return open("GET", host, port, path);
+    return _open("GET", host, port, path);
   }
 
-  HttpClientConnection getUrl(Uri url) => openUrl("GET", url);
+  HttpClientConnection getUrl(Uri url) => _openUrl("GET", url);
 
   HttpClientConnection post(String host, int port, String path) {
-    return open("POST", host, port, path);
+    return _open("POST", host, port, path);
   }
 
-  HttpClientConnection postUrl(Uri url) => openUrl("POST", url);
+  HttpClientConnection postUrl(Uri url) => _openUrl("POST", url);
 
   void shutdown() {
      _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
@@ -1432,7 +1503,11 @@ class _HttpClient implements HttpClient {
   }
 
   HttpClientConnection _prepareHttpClientConnection(
-      String host, int port, String method, String path) {
+    String host,
+    int port,
+    String method,
+    String path,
+    [_HttpClientConnection connection]) {
 
     void _connectionOpened(_SocketConnection socketConn,
                            _HttpClientConnection connection) {
@@ -1447,7 +1522,10 @@ class _HttpClient implements HttpClient {
       }
     }
 
-    _HttpClientConnection connection = new _HttpClientConnection(this);
+    // Create a new connection if we are not re-using an existing one.
+    if (connection == null) {
+      connection = new _HttpClientConnection(this);
+    }
 
     // If there are active connections for this key get the first one
     // otherwise create a new one.
@@ -1549,4 +1627,14 @@ class _DetachedSocket implements DetachedSocket {
   List<int> get unparsedData() => _unparsedData;
   Socket _socket;
   List<int> _unparsedData;
+}
+
+
+class _RedirectInfo implements RedirectInfo {
+  const _RedirectInfo(int this.statusCode,
+                      String this.method,
+                      Uri this.location);
+  final int statusCode;
+  final String method;
+  final Uri location;
 }

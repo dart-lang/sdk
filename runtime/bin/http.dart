@@ -506,6 +506,34 @@ interface HttpClientConnection {
   void set onError(void callback(e));
 
   /**
+   * Set this property to [:true:] if this connection should
+   * automatically follow redirects. The default is [:true:].
+   */
+  bool followRedirect;
+
+  /**
+   * Set this property to the maximum number of redirects to follow
+   * when [followRedirect] is [:true:]. If this number is exceeded the
+   * [onError] callback will be called with a [RedirectLimitExceeded]
+   * exception. The default value is 5.
+   */
+  int maxRedirects;
+
+  /**
+   * Returns the series of redirects this connection has been through.
+   */
+  List<RedirectInfo> get redirects();
+
+  /**
+   * Redirect this connection to a new URL. The default value for
+   * [method] is the method for the current request. The default value
+   * for [url] is the value of the [:HttpStatus.LOCATION:] header of
+   * the current response. All body data must have been read from the
+   * current response before calling [redirect].
+   */
+  void redirect([String method, Uri url]);
+
+  /**
    * Detach the underlying socket from the HTTP client. When the
    * socket is detached the HTTP client will no longer perform any
    * operations on it.
@@ -567,6 +595,14 @@ interface HttpClientResponse default _HttpClientResponse {
   int get contentLength();
 
   /**
+   * Returns whether the status code is one of the normal redirect
+   * codes [:HttpStatus.MOVED_PERMANENTLY:], [:HttpStatus.FOUND:],
+   * [:HttpStatus.MOVED_TEMPORARILY:], [:HttpStatus.SEE_OTHER:] and
+   * [:HttpStatus.TEMPORARY_REDIRECT:].
+   */
+  bool get isRedirect();
+
+  /**
    * Returns the response headers.
    */
   HttpHeaders get headers();
@@ -576,6 +612,27 @@ interface HttpClientResponse default _HttpClientResponse {
    * the response data.
    */
   InputStream get inputStream();
+}
+
+
+/**
+ * Redirect information.
+ */
+interface RedirectInfo {
+  /**
+   * Returns the status code used for the redirect.
+   */
+  int get statusCode();
+
+  /**
+   * Returns the method used for the redirect.
+   */
+  String get method();
+
+  /**
+   * Returns the location for the redirect.
+   */
+  Uri get location();
 }
 
 
@@ -596,4 +653,23 @@ class HttpException implements Exception {
   const HttpException([String this.message = ""]);
   String toString() => "HttpException: $message";
   final String message;
+}
+
+
+class RedirectException extends HttpException {
+  const RedirectException(String message,
+                          List<RedirectInfo> this.redirects) : super(message);
+  final List<RedirectInfo> redirects;
+}
+
+
+class RedirectLimitExceeded extends RedirectException {
+  const RedirectLimitExceeded(List<RedirectInfo> redirects)
+      : super("Redirect limit exceeded", redirects);
+}
+
+
+class RedirectLoop extends RedirectException {
+  const RedirectLoop(List<RedirectInfo> redirects)
+      : super("Redirect loop detected", redirects);
 }
