@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // The SHA256 hasher is used to compute an SHA256 message digest.
-class _SHA256 extends _SHAHashBase implements SHA256 {
+class _SHA256 extends _HashBase implements SHA256 {
   // Construct a SHA256 hasher object.
-  _SHA256() : _w = new List(64), super(16, 8) {
+  _SHA256() : _w = new List(64), super(16, 8, true) {
     // Initial value of the hash parts. First 32 bits of the fractional parts
     // of the square roots of the first 8 prime numbers.
     _h[0] = 0x6a09e667;

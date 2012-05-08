@@ -8,17 +8,28 @@ final _MASK_32 = 0xffffffff;
 final _BITS_PER_BYTE = 8;
 final _BYTES_PER_WORD = 4;
 
-// Base class encapsulating common behavior for SHA cryptographic hash
+// Helper functions used by more than one hasher.
+
+// Rotate left limiting to unsigned 32-bit values.
+int _rotl32(int val, int shift) {
+  var mod_shift = shift & 31;
+  return ((val << mod_shift) & _MASK_32) |
+      ((val & _MASK_32) >> (32 - mod_shift));
+}
+
+// Base class encapsulating common behavior for cryptographic hash
 // functions.
-class _SHAHashBase implements Hash {
-  _SHAHashBase(int this._chunkSizeInWords, int this._digestSizeInWords)
+class _HashBase implements Hash {
+  _HashBase(int this._chunkSizeInWords,
+            int this._digestSizeInWords,
+            bool this._bigEndianWords)
       : _pendingData = [] {
     _currentChunk = new List(_chunkSizeInWords);
     _h = new List(_digestSizeInWords);
   }
 
   // Update the hasher with more data.
-  _SHAHashBase update(List<int> data) {
+  _HashBase update(List<int> data) {
     if (_digestCalled) {
       throw new HashException(
           'Hash update method called after digest was retrieved');
@@ -68,11 +79,17 @@ class _SHAHashBase implements Hash {
   // Converts a list of bytes to a chunk of 32-bit words.
   _bytesToChunk(List<int> data, int dataIndex) {
     assert((data.length - dataIndex) >= (_chunkSizeInWords * _BYTES_PER_WORD));
+
     for (var wordIndex = 0; wordIndex < _chunkSizeInWords; wordIndex++) {
-      var word = (data[dataIndex++] & 0xff) << 24;
-      word |= (data[dataIndex++] & _MASK_8) << 16;
-      word |= (data[dataIndex++] & _MASK_8) << 8;
-      word |= (data[dataIndex++] & _MASK_8);
+      var w3 = _bigEndianWords ? data[dataIndex] : data[dataIndex + 3];
+      var w2 = _bigEndianWords ? data[dataIndex + 1] : data[dataIndex + 2];
+      var w1 = _bigEndianWords ? data[dataIndex + 2] : data[dataIndex + 1];
+      var w0 = _bigEndianWords ? data[dataIndex + 3] : data[dataIndex];
+      dataIndex += 4;
+      var word = (w3 & 0xff) << 24;
+      word |= (w2 & _MASK_8) << 16;
+      word |= (w1 & _MASK_8) << 8;
+      word |= (w0 & _MASK_8);
       _currentChunk[wordIndex] = word;
     }
   }
@@ -80,10 +97,10 @@ class _SHAHashBase implements Hash {
   // Convert a 32-bit word to four bytes.
   _wordToBytes(int word) {
     List<int> bytes = new List(_BYTES_PER_WORD);
-    bytes[0] = word >> 24;
-    bytes[1] = (word >> 16) & _MASK_8;
-    bytes[2] = (word >> 8) & _MASK_8;
-    bytes[3] = word & _MASK_8;
+    bytes[0] = (word >> (_bigEndianWords ? 24 : 0)) & _MASK_8;
+    bytes[1] = (word >> (_bigEndianWords ? 16 : 8)) & _MASK_8;
+    bytes[2] = (word >> (_bigEndianWords ? 8 : 16)) & _MASK_8;
+    bytes[3] = (word >> (_bigEndianWords ? 0 : 24)) & _MASK_8;
     return bytes;
   }
 
@@ -104,7 +121,7 @@ class _SHAHashBase implements Hash {
   }
 
   // Finalize the data. Add a 1 bit to the end of the message. Expand with
-  // 0 bits and the length of the message.
+  // 0 bits and add the length of the message.
   _finalizeData() {
     _pendingData.add(0x80);
     var contentsLength = _lengthInBytes + 9;
@@ -115,13 +132,19 @@ class _SHAHashBase implements Hash {
       _pendingData.add(0);
     }
     var lengthInBits = _lengthInBytes * _BITS_PER_BYTE;
-    _pendingData.addAll(_wordToBytes(lengthInBits >> 32));
-    _pendingData.addAll(_wordToBytes(lengthInBits & _MASK_32));
+    if (_bigEndianWords) {
+      _pendingData.addAll(_wordToBytes(lengthInBits >> 32));
+      _pendingData.addAll(_wordToBytes(lengthInBits & _MASK_32));
+    } else {
+      _pendingData.addAll(_wordToBytes(lengthInBits & _MASK_32));
+      _pendingData.addAll(_wordToBytes(lengthInBits >> 32));
+    }
   }
 
   // Hasher state.
   final int _chunkSizeInWords;
   final int _digestSizeInWords;
+  final bool _bigEndianWords;
   int _lengthInBytes = 0;
   List<int> _pendingData;
   List<int> _currentChunk;
