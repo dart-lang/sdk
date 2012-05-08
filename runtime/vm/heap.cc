@@ -93,7 +93,7 @@ uword Heap::AllocateOld(intptr_t size) {
     addr = old_space_->TryAllocate(size);
     if (addr == 0) {
       // TODO(cshapiro): Support possible heap growth and OOM exception.
-      FATAL("Exhausted heap space.");
+      FATAL1("Exhausted heap space, trying to allocate %d bytes.", size);
     }
   }
   return addr;
