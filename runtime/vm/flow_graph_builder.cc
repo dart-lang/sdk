@@ -1182,11 +1182,15 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
   if (function.IsNonImplicitClosureFunction()) {
-    const ContextScope& context_scope = ContextScope::ZoneHandle(
-        node->scope()->PreserveOuterScope(owner()->context_level()));
-    ASSERT(!function.HasCode());
-    ASSERT(function.context_scope() == ContextScope::null());
-    function.set_context_scope(context_scope);
+    // The context scope may have already been set by the new non-optimizing
+    // compiler.  If it was not, set it here.
+    if (function.context_scope() == ContextScope::null()) {
+      const ContextScope& context_scope = ContextScope::ZoneHandle(
+          node->scope()->PreserveOuterScope(owner()->context_level()));
+      ASSERT(!function.HasCode());
+      ASSERT(function.context_scope() == ContextScope::null());
+      function.set_context_scope(context_scope);
+    }
   } else if (function.IsImplicitInstanceClosureFunction()) {
     ValueGraphVisitor for_receiver(owner(), temp_index());
     node->receiver()->Visit(&for_receiver);
@@ -2447,7 +2451,7 @@ void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
 }
 
 
-void FlowGraphBuilder::BuildGraph() {
+void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
@@ -2470,7 +2474,9 @@ void FlowGraphBuilder::BuildGraph() {
                           &preorder_block_entries_,
                           &postorder_block_entries_,
                           &parent);
-    ComputeDominators(&preorder_block_entries_, &parent);
+    if (for_optimized) {
+      ComputeDominators(&preorder_block_entries_, &parent);
+    }
   }
   if (for_effect.entry() != NULL) {
     // Perform a depth-first traversal of the graph to build preorder and
@@ -2479,7 +2485,9 @@ void FlowGraphBuilder::BuildGraph() {
                                        &preorder_block_entries_,
                                        &postorder_block_entries_,
                                        &parent);
-    ComputeDominators(&preorder_block_entries_, &parent);
+    if (for_optimized) {
+      ComputeDominators(&preorder_block_entries_, &parent);
+    }
   }
   isolate->set_computation_id(prev_cid);
   if (FLAG_print_flow_graph) {

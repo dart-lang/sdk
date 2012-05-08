@@ -138,14 +138,19 @@ static void CompileParsedFunctionHelper(
   const Function& function = parsed_function.function();
   const char* function_fullname = function.ToFullyQualifiedCString();
   bool is_compiled = false;
-  if (FLAG_use_new_compiler) {
-    ASSERT(!optimized);
+  // TODO(srdjan): Remove once the old compiler has been ripped out.
+#if defined(TARGET_ARCH_X64)
+  const bool use_new_compiler = true;
+#else
+  const bool use_new_compiler = FLAG_use_new_compiler;
+#endif
+  if (use_new_compiler) {
     LongJump* old_base = isolate->long_jump_base();
     LongJump bailout_jump;
     isolate->set_long_jump_base(&bailout_jump);
     if (setjmp(*bailout_jump.Set()) == 0) {
       FlowGraphBuilder graph_builder(parsed_function);
-      graph_builder.BuildGraph();
+      graph_builder.BuildGraph(optimized);
 
       // The non-optimizing compiler compiles blocks in reverse postorder,
       // because it is a 'natural' order for the human reader of the
@@ -156,23 +161,44 @@ static void CompileParsedFunctionHelper(
         block_order.Add(graph_builder.postorder_block_entries()[i]);
       }
 
+      if (optimized) {
+        // Transition to optimized code only from unoptimized code ...
+        // for now.
+        ASSERT(function.HasCode());
+        ASSERT(!function.HasOptimizedCode());
+        // Do not use type feedback to optimize a function that was
+        // deoptimized too often.
+        if (parsed_function.function().deoptimization_counter() <
+            FLAG_deoptimization_counter_threshold) {
+          // Extract type feedback etc.
+        }
+      }
       Assembler assembler;
       FlowGraphCompiler graph_compiler(&assembler, parsed_function,
-                                       block_order);
+                                       block_order, optimized);
       graph_compiler.CompileGraph();
 
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::codefinalizer_timer);
       const Code& code =
           Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
-      code.set_is_optimized(false);
+      code.set_is_optimized(optimized);
       graph_compiler.FinalizePcDescriptors(code);
       graph_compiler.FinalizeStackmaps(code);
       graph_compiler.FinalizeVarDescriptors(code);
       graph_compiler.FinalizeExceptionHandlers(code);
-      function.set_unoptimized_code(code);
-      function.SetCode(code);
-      ASSERT(CodePatcher::CodeIsPatchable(code));
+      if (optimized) {
+        function.SetCode(code);
+        CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
+        if (FLAG_trace_compiler) {
+          OS::Print("--> patching entry 0x%x\n",
+                    Code::Handle(function.unoptimized_code()).EntryPoint());
+        }
+      } else {
+        function.set_unoptimized_code(code);
+        function.SetCode(code);
+        ASSERT(CodePatcher::CodeIsPatchable(code));
+      }
       is_compiled = true;
     } else {
       // We bailed out.

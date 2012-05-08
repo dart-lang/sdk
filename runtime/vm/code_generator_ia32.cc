@@ -656,7 +656,7 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
       __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
       Label not_yet_hot;
-      __ j(LESS_EQUAL, &not_yet_hot);
+      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
       __ pushl(EAX);  // Preserve result.
       __ pushl(EBX);  // Argument for runtime: function to optimize.
       __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);

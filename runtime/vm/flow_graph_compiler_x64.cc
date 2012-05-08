@@ -33,14 +33,16 @@ DECLARE_FLAG(bool, report_usage_count);
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>& block_order)
+    const GrowableArray<BlockEntryInstr*>& block_order,
+    bool is_optimizing)
     : FlowGraphVisitor(block_order),
       assembler_(assembler),
       parsed_function_(parsed_function),
       block_info_(block_order.length()),
       current_block_(NULL),
       pc_descriptors_list_(new DescriptorList()),
-      exception_handlers_list_(new ExceptionHandlerList()) {
+      exception_handlers_list_(new ExceptionHandlerList()),
+      is_optimizing_(is_optimizing) {
   for (int i = 0; i < block_order.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
@@ -1222,6 +1224,28 @@ void FlowGraphCompiler::VisitBind(BindInstr* instr) {
 
 void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   LoadValue(RAX, instr->value());
+  if (!is_optimizing()) {
+    // Count only in unoptimized code.
+    // TODO(srdjan): Replace the counting code with a type feedback
+    // collection and counting stub.
+    const Function& function =
+          Function::ZoneHandle(parsed_function_.function().raw());
+    __ LoadObject(RCX, function);
+    __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
+    if (CodeGenerator::CanOptimize()) {
+      // Do not optimize if usage count must be reported.
+      __ cmpl(FieldAddress(RCX, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      Label not_yet_hot;
+      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+      __ pushq(RAX);  // Preserve result.
+      __ pushq(RCX);  // Argument for runtime: function to optimize.
+      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+      __ popq(RCX);  // Remove argument.
+      __ popq(RAX);  // Restore result.
+      __ Bind(&not_yet_hot);
+    }
+  }
 
   if (FLAG_trace_functions) {
     __ pushq(RAX);  // Preserve result.

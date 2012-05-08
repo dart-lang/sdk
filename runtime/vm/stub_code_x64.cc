@@ -21,6 +21,7 @@ namespace dart {
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -252,7 +253,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // RBX: function object.
 // R10: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  __ Untested("FixCallersTarget stub");
   __ EnterFrame(0);
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve target function.
@@ -1517,7 +1517,24 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
-  // TODO(srdjan): Add usage counter increment and test (see ia32).
+  __ movq(RCX, FieldAddress(RBX, ICData::function_offset()));
+  __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
+  if (CodeGenerator::CanOptimize()) {
+    __ cmpq(FieldAddress(RCX, Function::usage_counter_offset()),
+        Immediate(FLAG_optimization_counter_threshold));
+    Label not_yet_hot;
+    __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+    __ EnterFrame(0);
+    __ pushq(RBX);  // Preserve inline cache data object.
+    __ pushq(R10);  // Preserve arguments array.
+    __ pushq(RCX);  // Argument for runtime: function object.
+    __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+    __ popq(RCX);  // Remove argument.
+    __ popq(R10);  // Restore arguments array.
+    __ popq(RBX);  // Restore inline cache data object.
+    __ LeaveFrame();
+    __ Bind(&not_yet_hot);
+  }
   ASSERT(num_args > 0);
   // Get receiver (first read number of arguments from argument descriptor array
   // and then access the receiver from the stack).

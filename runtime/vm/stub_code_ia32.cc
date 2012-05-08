@@ -1524,7 +1524,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
         Immediate(FLAG_optimization_counter_threshold));
     Label not_yet_hot;
-    __ j(LESS_EQUAL, &not_yet_hot);
+    __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
     __ EnterFrame(0);
     __ pushl(ECX);  // Preserve inline cache data object.
     __ pushl(EDX);  // Preserve arguments array.

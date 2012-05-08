@@ -35,6 +35,7 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 
 ASSEMBLER_TEST_RUN(Jump, entry) {
   JumpPattern jump1(entry);
+  jump1.IsValid();
   EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2(entry + jump1.pattern_length_in_bytes());
