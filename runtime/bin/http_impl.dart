@@ -976,7 +976,7 @@ class _HttpServer implements HttpServer {
     _closeServer = false;
   }
 
-  addRequestHandler(bool matcher(String path),
+  addRequestHandler(bool matcher(HttpRequest request),
                     void handler(HttpRequest request, HttpResponse response)) {
     _handlers.add(new _RequestHandlerRegistration(matcher, handler));
   }
