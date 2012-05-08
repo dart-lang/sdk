@@ -60,18 +60,18 @@ interface HttpServer default _HttpServer {
 
   /**
    * Start listening for HTTP requests on the specified [host] and
-   * [port]. For each HTTP request the handler set through [onRequest]
-   * will be invoked. If a [port] of 0 is specified the server will
-   * choose an ephemeral port. The optional argument [backlog] can be
-   * used to specify the listen backlog for the underlying OS listen
-   * setup.
+   * [port]. If a [port] of 0 is specified the server will choose an
+   * ephemeral port. The optional argument [backlog] can be used to
+   * specify the listen backlog for the underlying OS listen
+   * setup. See [addRequestHandler] and [defaultRequestHandler] for
+   * information on how incoming HTTP requests are handled.
    */
   void listen(String host, int port, [int backlog]);
 
   /**
-   * Attach the HTTP server to an existing ServerSocket. If the HttpServer is
-   * closed, the HttpServer will just detach itself, and not close
-   * [serverSocket].
+   * Attach the HTTP server to an existing [:ServerSocket:]. If the
+   * [HttpServer] is closed, the [HttpServer] will just detach itself,
+   * and not close [serverSocket].
    */
   void listenOn(ServerSocket serverSocket);
 
@@ -271,7 +271,7 @@ interface HttpHeaders default _HttpHeaders {
 
   /**
    * Enumerate the headers applying the function [f] to each
-   * header. The header names passed in [name] will be all lower
+   * header. The header name passed in [name] will be all lower
    * case.
    */
   void forEach(void f(String name, List<String> values));
