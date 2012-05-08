@@ -444,14 +444,15 @@ class PhiEquivalator {
   PhiEquivalator(this.equivalence, this.logicalOperations);
 
   void analyzeGraph(HGraph graph) {
-    graph.blocks.forEach((HBasicBlock block) => analyzeBlock(block));
+    graph.blocks.forEach(analyzeBlock);
   }
 
   void analyzeBlock(HBasicBlock block) {
     for (HPhi phi = block.phis.first; phi !== null; phi = phi.next) {
       if (!logicalOperations.containsKey(phi) &&
           phi.usedBy.length == 1 &&
-          phi.usedBy[0] is HPhi) {
+          phi.usedBy[0] is HPhi &&
+          phi.block.id < phi.usedBy[0].block.id) {
         equivalence.makeEquivalent(phi, phi.usedBy[0]);
       }
     }
