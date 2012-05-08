@@ -1757,7 +1757,7 @@ class SsaBuilder implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
-      push(new HInvokeInterceptor(selector, getterName, true, inputs));
+      push(new HInvokeInterceptor(selector, getterName, inputs, getter: true));
     } else {
       push(new HInvokeDynamicGetter(selector, null, getterName, receiver));
     }
@@ -1801,7 +1801,8 @@ class SsaBuilder implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
-      add(new HInvokeInterceptor(selector, dartSetterName, false, inputs));
+      add(new HInvokeInterceptor(
+          selector, dartSetterName, inputs, setter: true));
     } else {
       add(new HInvokeDynamicSetter(selector, null, dartSetterName,
                                    receiver, value));
@@ -2008,7 +2009,7 @@ class SsaBuilder implements Visitor {
       visit(node.receiver);
       inputs.add(pop());
       addGenericSendArgumentsToList(node.arguments, inputs);
-      push(new HInvokeInterceptor(selector, dartMethodName, false, inputs));
+      push(new HInvokeInterceptor(selector, dartMethodName, inputs));
       return;
     }
 
@@ -2753,7 +2754,7 @@ class SsaBuilder implements Visitor {
       add(target);
       visit(node.expression);
       List<HInstruction> inputs = <HInstruction>[target, pop()];
-      iterator = new HInvokeInterceptor(selector, iteratorName, false, inputs);
+      iterator = new HInvokeInterceptor(selector, iteratorName, inputs);
       add(iterator);
     }
     HInstruction buildCondition() {

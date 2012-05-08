@@ -1146,12 +1146,14 @@ class HInvokeSuper extends HInvokeStatic {
 class HInvokeInterceptor extends HInvokeStatic {
   final SourceString name;
   final bool getter;
+  final bool setter;
 
   HInvokeInterceptor(Selector selector,
                      SourceString this.name,
-                     bool this.getter,
                      List<HInstruction> inputs,
-                     [HType knownType = HType.UNKNOWN])
+                     [HType knownType = HType.UNKNOWN,
+                      bool this.getter = false,
+                      bool this.setter = false])
       : super(selector, inputs, knownType);
 
   toString() => 'invoke interceptor: ${element.name}';

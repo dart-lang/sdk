@@ -185,7 +185,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node.inputs[1];
     }
 
-    if (!input.canBePrimitive() && !node.getter) {
+    if (!input.canBePrimitive() && !node.getter && !node.setter) {
       return fromInterceptorToDynamicInvocation(node, node.name);
     }
 
@@ -586,8 +586,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     HInvokeInterceptor length = new HInvokeInterceptor(
         Selector.INVOCATION_0,
         const SourceString("length"),
-        true,
-        <HInstruction>[interceptor, receiver]);
+        <HInstruction>[interceptor, receiver],
+        getter: true);
     length.propagatedType = HType.INTEGER;
     node.block.addBefore(node, length);
 
