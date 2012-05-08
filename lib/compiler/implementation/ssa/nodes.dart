@@ -305,9 +305,9 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTry(HTry node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
-  visitTypeGuard(HTypeGuard node) => visitInstruction(node);
+  visitTypeGuard(HTypeGuard node) => visitCheck(node);
   visitIs(HIs node) => visitInstruction(node);
-  visitTypeConversion(HTypeConversion node) => visitInstruction(node);
+  visitTypeConversion(HTypeConversion node) => visitCheck(node);
 }
 
 class SubGraph {
@@ -955,10 +955,10 @@ class HCheck extends HInstruction {
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
 
-  bool isControlFlow() => true;
+  HInstruction get checkedInput() => inputs[0];
 }
 
-class HTypeGuard extends HInstruction {
+class HTypeGuard extends HCheck {
   final int state;
   final HType guardedType;
   bool isOn = false;
@@ -970,6 +970,7 @@ class HTypeGuard extends HInstruction {
   }
 
   HInstruction get guarded() => inputs.last();
+  HInstruction get checkedInput() => guarded;
 
   HType computeTypeFromInputTypes() {
     return isOn ? guardedType : guarded.propagatedType;
@@ -998,8 +999,9 @@ class HBoundsCheck extends HCheck {
 
   HBoundsCheck(length, index) : super(<HInstruction>[length, index]);
 
-  HInstruction get length() => inputs[0];
-  HInstruction get index() => inputs[1];
+  HInstruction get length() => inputs[1];
+  HInstruction get index() => inputs[0];
+  bool isControlFlow() => true;
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -1020,6 +1022,7 @@ class HIntegerCheck extends HCheck {
   HIntegerCheck(value) : super(<HInstruction>[value]);
 
   HInstruction get value() => inputs[0];
+  bool isControlFlow() => true;
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -2148,7 +2151,7 @@ class HIs extends HInstruction {
   toString() => "$expression is $typeExpression";
 }
 
-class HTypeConversion extends HInstruction {
+class HTypeConversion extends HCheck {
   HType type;
   final bool checked;
 
@@ -2162,6 +2165,8 @@ class HTypeConversion extends HInstruction {
   HType get guaranteedType() => type;
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
+
+  bool hasSideEffects() => checked;
 }
 
 /** Non-block-based (aka. traditional) loop information. */

@@ -591,7 +591,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     length.propagatedType = HType.INTEGER;
     node.block.addBefore(node, length);
 
-    HBoundsCheck check = new HBoundsCheck(length, index);
+    HBoundsCheck check = new HBoundsCheck(index, length);
     node.block.addBefore(node, check);
     return check;
   }

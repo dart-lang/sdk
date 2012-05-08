@@ -516,25 +516,107 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  bool needsNewVariable(HInstruction instruction) {
+    bool needsVar = !instruction.usedBy.isEmpty();
+    if (needsVar && instruction is HCheck) {
+      HCheck check = instruction;
+      HInstruction input = check.checkedInput;
+      // We only need a new var if [input] is generated at use site
+      // but is not a trivial code motion invariant instruction like
+      // for parameters or this.
+      //
+      // For example:
+      // Foo a = this;
+      // print(a);
+      // print(a);
+      //
+      // In checked mode no new variable is needed.
+      // FooTypeCheck(this);
+      // print(this);
+      // print(this);
+      //
+      // But for this example:
+      // Foo a = foo();
+      // print(a);
+      // print(a);
+      //
+      // We need a new variable:
+      // var a = FooTypeCheck(foo());
+      // print(a);
+      // print(a);
+      needsVar = isGenerateAtUseSite(input) && !input.isCodeMotionInvariant();
+    }
+    return needsVar;
+  }
+
   void define(HInstruction instruction) {
-    String name = temporary(instruction);
-    declareVariable(name);
-    buffer.add(" = ");
-    visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    if (needsNewVariable(instruction)) {
+      String name = temporary(instruction);
+      declareVariable(name);
+      buffer.add(" = ");
+      visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    } else {
+      visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+    }
   }
 
   void use(HInstruction argument, int expectedPrecedenceForArgument) {
-    if (isGenerateAtUseSite(argument)) {
+    if (argument is HCheck) {
+      HCheck instruction  = argument;
+      HInstruction input = instruction.checkedInput;
+      if (isGenerateAtUseSite(argument) && isGenerateAtUseSite(input)) {
+        // If both instructions can be generated at use site, we can
+        // just visit [argument].
+        //
+        // For example:
+        // Foo a = foo();
+        // print(a);
+        //
+        // In checked mode will turn into:
+        // print(FooTypeCheck(foo()));
+        visit(argument, expectedPrecedenceForArgument);
+      } else if (isGenerateAtUseSite(input)) {
+        // If [argument] cannot be generated at use site, but [input]
+        // can, use the temporary of [argument]. A code motion
+        // invariant instruction does not have a temporary, so we just
+        // 
+        // For example:
+        // Foo a = foo();
+        // print(a);
+        // print(a);
+        //
+        // In checked mode will turn into:
+        // var a = FooTypeCheck(foo());
+        // print(a);
+        // print(a);
+        //
+        // Note that in case the input is code motion invariant, like
+        // for parameters or this, we just need to visit it, since
+        // there is no temporary for such instruction.
+        if (input.isCodeMotionInvariant()) {
+          visit(input, expectedPrecedenceForArgument);
+        } else {
+          buffer.add(temporary(argument));
+        }
+      } else {
+        // Otherwise we just use [input]. [argument] has already been
+        // emitted, and we just need the temporary of [input].
+        //
+        // For example:
+        // var a = foo();
+        // print(a);
+        // Foo b = a;
+        // print(b);
+        //
+        // In checked mode will turn into:
+        // var a = foo();
+        // print(a);
+        // FooTypeCheck(a);
+        // print(a);
+        use(input, expectedPrecedenceForArgument);
+      }
+    } else if (isGenerateAtUseSite(argument)) {
       visit(argument, expectedPrecedenceForArgument);
-    } else if (argument is HIntegerCheck) {
-      HIntegerCheck instruction = argument;
-      use(instruction.value, expectedPrecedenceForArgument);
-    } else if (argument is HBoundsCheck) {
-      HBoundsCheck instruction = argument;
-      use(instruction.index, expectedPrecedenceForArgument);
-    } else if (argument is HTypeGuard) {
-      HTypeGuard instruction = argument;
-      use(instruction.guarded, expectedPrecedenceForArgument);
     } else {
       buffer.add(temporary(argument));
     }
@@ -1066,41 +1148,30 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         assignPhisOfAllSuccessors(node);
       }
 
-      if (instruction is HGoto || instruction is HExit || instruction is HTry) {
-        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
-        return;
-      } else if (!isGenerateAtUseSite(instruction)) {
-        if (instruction is !HIf
-            && instruction is !HTypeGuard
-            && instruction is !HLoopBranch
-            && !isGeneratingExpression()) {
-          addIndentation();
+      if (isGenerateAtUseSite(instruction)) {
+        if (instruction is HIf) {
+          HIf hif = instruction;
+          // The "if" is implementing part of a logical expression.
+          // Skip directly forward to to its latest successor, since everything
+          // in-between must also be generateAtUseSite.
+          assert(hif.trueBranch.id < hif.falseBranch.id);
+          visitBasicBlock(hif.falseBranch);
         }
-        if (isGeneratingExpression()) {
+      } else if (instruction is HControlFlow) {
+        if (instruction is HLoopBranch && isGeneratingExpression()) {
           addExpressionSeparator();
         }
-        if (instruction.usedBy.isEmpty()
-            || instruction is HTypeGuard
-            || instruction is HCheck) {
-          visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+      } else if (instruction is HTypeGuard) {
+        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+      } else {
+        if (isGeneratingExpression()) {
+          addExpressionSeparator();
         } else {
-          define(instruction);
+          addIndentation();
         }
-        // Control flow instructions, and some other instructions,
-        // know how to handle ';'.
-        if (instruction is !HControlFlow
-            && instruction is !HTypeGuard
-            && !isGeneratingExpression()) {
-          buffer.add(';\n');
-        }
-      } else if (instruction is HIf) {
-        HIf hif = instruction;
-        // The "if" is implementing part of a logical expression.
-        // Skip directly forward to to its latest successor, since everything
-        // in-between must also be generateAtUseSite.
-        assert(hif.trueBranch.id < hif.falseBranch.id);
-        visitBasicBlock(hif.falseBranch);
-        return;
+        define(instruction);
+        if (!isGeneratingExpression()) buffer.add(';\n');
       }
       instruction = instruction.next;
     }
@@ -1652,6 +1723,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitReturn(HReturn node) {
+    addIndentation();
     assert(node.inputs.length == 1);
     HInstruction input = node.inputs[0];
     if (input.isConstantNull()) {
@@ -1668,6 +1740,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitThrow(HThrow node) {
+    addIndentation();
     if (node.isRethrow) {
       buffer.add('throw ');
       use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
@@ -2114,12 +2187,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       compiler.registerStaticUse(helperElement);
       buffer.add(compiler.namer.isolateAccess(helperElement));
       buffer.add('(');
-      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      use(node.checkedInput, JSPrecedence.EXPRESSION_PRECEDENCE);
       if (additionalArgument !== null) buffer.add(", '$additionalArgument'");
       buffer.add(')');
       endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
-      use(node.inputs[0], expectedPrecedence);
+      visit(node.checkedInput, expectedPrecedence);
     }
   }
 }
