@@ -1596,10 +1596,34 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitNot(HNot node) {
     assert(node.inputs.length == 1);
-    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add('!');
-    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
-    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    HInstruction input = node.inputs[0];
+    if (input is HBoolify && isGenerateAtUseSite(input)) {
+      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      assert(node.inputs.length == 1);
+      use(node.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(' !== true');
+      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    } else if (input is HRelational &&
+               input.builtin &&
+               isGenerateAtUseSite(input)) {
+      Map<String, String> inverseOperator = const <String>{
+        "==" : "!=",
+        "!=" : "==",
+        "===": "!==",
+        "!==": "===",
+        "<"  : ">=",
+        "<=" : ">",
+        ">"  : "<=",
+        ">=" : "<"
+      };
+      visitInvokeBinary(input,
+                        inverseOperator[input.operation.name.stringValue]);
+    } else {
+      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+      buffer.add('!');
+      use(input, JSPrecedence.PREFIX_PRECEDENCE);
+      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    }
   }
 
   visitParameterValue(HParameterValue node) {

@@ -168,6 +168,7 @@ class ArithmeticNumOperation implements BinaryOperation {
         return new DoubleConstant(foldedValue);
       }
     }
+    return null;
   }
 
   bool isDivide() => false;
