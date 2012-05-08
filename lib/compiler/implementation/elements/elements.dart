@@ -141,7 +141,7 @@ class Element implements Hashable {
   Token position() => null;
 
   Token findMyName(Token token) {
-    for (Token t = token; t !== EOF_TOKEN; t = t.next) {
+    for (Token t = token; t.kind !== EOF_TOKEN; t = t.next) {
       if (t.value == name) return t;
     }
     return token;
@@ -799,7 +799,7 @@ class ClassElement extends ContainerElement {
         }
       }
       classElement = includeSuperMembers ? classElement.superclass : null;
-    } while(classElement !== null);    
+    } while(classElement !== null);
   }
 
   /**
@@ -815,7 +815,7 @@ class ClassElement extends ContainerElement {
   void forEachInstanceField([void f(ClassElement enclosingClass, Element field),
                              includeBackendMembers = false,
                              includeSuperMembers = false]) {
-    // Filters so that [f] is only invoked with instance fields. 
+    // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
         f(enclosingClass, member);
