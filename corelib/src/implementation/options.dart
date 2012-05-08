@@ -25,8 +25,8 @@ class RuntimeOptions implements Options {
   static List<String> _nativeArguments = const [];
 
   // This executable singleton is written to by the embedder if applicable.
-  static String _nativeExecutable = null;
+  static String _nativeExecutable = '';
 
   // This script singleton is written to by the embedder if applicable.
-  static String _nativeScript = null;
+  static String _nativeScript = '';
 }
