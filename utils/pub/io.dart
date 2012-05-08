@@ -91,13 +91,6 @@ Future<bool> exists(path) {
  * the result.
  */
 Future<bool> fileExists(file) {
-  // TODO(nweiz): Currently File#exists will not detect the existence of
-  // symlinks. Issue 2765
-  return runProcess('stat', [_getPath(file)]).
-    transform((result) => result.exitCode == 0);
-
-  // Real code:
-  /*
   final completer = new Completer<bool>();
 
   file = new File(_getPath(file));
@@ -105,7 +98,6 @@ Future<bool> fileExists(file) {
   file.exists((exists) => completer.complete(exists));
 
   return completer.future;
-  */
 }
 
 /**
@@ -200,31 +192,12 @@ Future<Directory> createTempDir(dir) {
  * [Directory]. Returns a [Future] that completes when the deletion is done.
  */
 Future<Directory> deleteDir(dir) {
-  // TODO(rnystrom): Hack! Temporary! Right now, dart:io's Directory delete
-  // method can't handle directories with symlinks, which is exactly what pub
-  // creates and deletes. Instead, we'll just shell out to 'rm'. Remove this
-  // when dartbug.com/2646 is fixed.
-  dir = _getDirectory(dir);
-
-  // Sanity check!
-  if (dir.path == '/' ||
-      dir.path == '.' ||
-      dir.path == '..' ||
-      dir.path == '~' ||
-      dir.path == '*') throw "(O.o) I don't think you want to do that!";
-
-  return runProcess('rm', ['-rf', dir.path]).transform((_) => dir);
-  // End hack!
-
-  // Real code:
-  /*
   final completer = new Completer<Directory>();
   dir = _getDirectory(dir);
   dir.onError = (error) => completer.completeException(error);
   dir.deleteRecursively(() => completer.complete(dir));
 
   return completer.future;
-  */
 }
 
 /**
