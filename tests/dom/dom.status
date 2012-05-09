@@ -22,7 +22,7 @@ audiocontext_test: Skip
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 
-[ $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
+[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
@@ -34,7 +34,7 @@ history_test: Fail
 
 [ $runtime == ie ]
 # TODO(vsm): Triage DOM failures.
-#*: Skip
+*: Skip
 
 [ $runtime == safari ]
 # TODO(vsm): Triage DOM failures.
