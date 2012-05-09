@@ -500,6 +500,7 @@ class ParserError {
  * [compilationUnitElement].
  */
 class ElementListener extends Listener {
+  Function idGenerator;
   final DiagnosticListener listener;
   final CompilationUnitElement compilationUnitElement;
   final StringValidator stringValidator;
@@ -508,8 +509,10 @@ class ElementListener extends Listener {
   Link<Node> nodes = const EmptyLink<Node>();
 
   ElementListener(DiagnosticListener listener,
-                  CompilationUnitElement this.compilationUnitElement)
+                  CompilationUnitElement this.compilationUnitElement,
+                  int idGenerator())
       : this.listener = listener,
+        this.idGenerator = idGenerator,
         stringValidator = new StringValidator(listener),
         interpolationScope = const EmptyLink<StringQuoting>();
 
@@ -558,8 +561,9 @@ class ElementListener extends Listener {
     TypeAnnotation supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
+    int id = idGenerator();
     ClassElement element = new PartialClassElement(
-        name.source, beginToken, endToken, compilationUnitElement);
+        name.source, beginToken, endToken, compilationUnitElement, id);
     element.nativeName = nativeName;
     pushElement(element);
   }
@@ -582,9 +586,9 @@ class ElementListener extends Listener {
         makeNodeList(supertypeCount, extendsKeyword, null, ",");
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushElement(new PartialClassElement(name.source, interfaceKeyword,
-                                        endToken,
-                                        compilationUnitElement));
+    int id = idGenerator();
+    pushElement(new PartialClassElement(
+        name.source, interfaceKeyword, endToken, compilationUnitElement, id));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -877,7 +881,7 @@ class ElementListener extends Listener {
 
 class NodeListener extends ElementListener {
   NodeListener(DiagnosticListener listener, CompilationUnitElement element)
-    : super(listener, element);
+    : super(listener, element, null);
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,

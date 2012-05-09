@@ -16,8 +16,9 @@ class PartialClassElement extends ClassElement {
   PartialClassElement(SourceString name,
                       Token this.beginToken,
                       Token this.endToken,
-                      CompilationUnitElement enclosing)
-    : super(name, enclosing);
+                      CompilationUnitElement enclosing,
+                      int id)
+    : super(name, enclosing, id);
 
   ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;

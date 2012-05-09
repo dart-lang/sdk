@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Universe {
+  int nextFreeClassId = 0;
   Map<Element, String> generatedCode;
   Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
@@ -27,6 +28,8 @@ class Universe {
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<Element>(),
                rti = new RuntimeTypeInformation();
+
+  int getNextFreeClassId() => nextFreeClassId++;
 
   void addGeneratedCode(WorkItem work, String code) {
     generatedCode[work.element] = code;
@@ -59,7 +62,7 @@ class Universe {
   bool hasSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(
         compiler.universe.invokedSetters[member.name], member, compiler);
-  }  
+  }
 }
 
 class SelectorKind {
@@ -95,7 +98,7 @@ class Selector implements Hashable {
           : <SourceString>[];
 
   Selector.invocation(
-      int argumentCount, 
+      int argumentCount,
       [List<SourceString> namedArguments = const <SourceString>[]])
     : this(SelectorKind.INVOCATION, argumentCount, namedArguments);
 
@@ -243,7 +246,7 @@ class Selector implements Hashable {
       if (foundIndex != -1) {
         list.add(compiledNamedArguments[foundIndex]);
       } else {
-        list.add(compileConstant(parameter)); 
+        list.add(compileConstant(parameter));
       }
     }
     return true;

@@ -487,7 +487,15 @@ function() {
         neededClasses.add(superclass);
       }
     }
-    for (ClassElement element in neededClasses) {
+    List<ClassElement> sortedClasses =
+        new List<ClassElement>.from(neededClasses);
+    sortedClasses.sort((ClassElement class1, ClassElement class2) {
+      // We sort by the ids of the classes. There is no guarantee that these
+      // ids are meaningful (or even deterministic), but in the current
+      // implementation they are increasing within a source file.
+      return class1.id - class2.id;
+    });
+    for (ClassElement element in sortedClasses) {
       generateClass(element, buffer);
     }
 

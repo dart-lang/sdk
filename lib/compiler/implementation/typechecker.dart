@@ -119,7 +119,7 @@ class Types {
 
   // TODO(karlklose): should we have a class Void?
   Types.with(Element dynamicElement, LibraryElement library)
-    : voidType = new InterfaceType(new ClassElement(VOID, library)),
+    : voidType = new InterfaceType(new ClassElement(VOID, library, -1)),
       dynamicType = new InterfaceType(dynamicElement);
 
   Type lookup(SourceString s) {

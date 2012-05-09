@@ -665,6 +665,7 @@ class SynthesizedConstructorElement extends FunctionElement {
 }
 
 class ClassElement extends ContainerElement {
+  final int id;
   Type type;
   Type supertype;
   Type defaultClass;
@@ -681,7 +682,7 @@ class ClassElement extends ContainerElement {
 
   Link<Type> allSupertypes;
 
-  ClassElement(SourceString name, CompilationUnitElement enclosing)
+  ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
       typeParameters = new LinkedHashMap<SourceString, TypeVariableElement>(),
@@ -852,6 +853,7 @@ class ClassElement extends ContainerElement {
   bool isInterface() => false;
   bool isNative() => nativeName != null;
   SourceString nativeName;
+  int hashCode() => id;
 }
 
 class Elements {
