@@ -52,6 +52,10 @@ class CodeEmitterTask extends CompilerTask {
   String get isolatePropertiesName()
       => '${namer.ISOLATE}.${namer.ISOLATE_PROPERTIES}';
 
+  final String GETTER_SUFFIX = "?";
+  final String SETTER_SUFFIX = "!";
+  final String GETTER_SETTER_SUFFIX = "=";
+
   String get defineClassFunction() {
     // First the class name, then the super class name, followed by the fields
     // (in an array) and the members (inside an Object literal).
@@ -76,8 +80,27 @@ function(cls, superclass, fields, prototype) {
     var body = "";
     for (var i = 0; i < fields.length; i++) {
       if (i != 0) str += ", ";
-      str += fields[i];
-      body += "this." + fields[i] + " = " + fields[i] + ";\\n";
+      var field = fields[i];
+      var len = field.length;
+      var lastChar = field[len - 1];
+      var needsGetter = false;
+      var needsSetter = false;
+      switch (lastChar) {
+        case '$GETTER_SUFFIX': needsGetter = true; break;
+        case '$GETTER_SETTER_SUFFIX': needsGetter = true; // Fall-through.
+        case '$SETTER_SUFFIX': needsSetter = true;
+      }
+      if (needsGetter || needsSetter) field = field.substring(0, len - 1);
+      str += field;
+      body += "this." + field + " = " + field + ";\\n";
+      if (needsGetter) {
+        var getterString = "return this." + field + ";";
+        prototype["get\$" + field] = new Function(getterString);
+      }
+      if (needsSetter) {
+        var setterString = "this." + field + " = v;";
+        prototype["set\$" + field] = new Function("v", setterString);
+      }
     }
     str += ") {" + body + "})";
     constructor = eval(str);
@@ -326,7 +349,26 @@ function() {
     }
   }
 
+  bool instanceFieldNeedsGetter(Element member) {
+    assert(member.kind === ElementKind.FIELD);
+    return compiler.universe.hasGetter(member, compiler);
+  }
+
+  bool instanceFieldNeedsSetter(Element member) {
+    assert(member.kind === ElementKind.FIELD);
+    return (member.modifiers === null || !member.modifiers.isFinal())
+        && compiler.universe.hasSetter(member, compiler);
+  }
+
+  String compiledFieldName(Element member) {
+    assert(member.kind === ElementKind.FIELD);
+    return member.isNative()
+        ? member.name.slowToString()
+        : namer.getName(member);
+  }
+
   void addInstanceMember(Element member,
+                         bool needGettersAndSetters,
                          void defineInstanceMember(String invocationName,
                                                    String definition)) {
     // TODO(floitsch): we don't need to deal with members of
@@ -350,22 +392,18 @@ function() {
         addParameterStubs(member, defineInstanceMember);
       }
     } else if (member.kind === ElementKind.FIELD) {
-      // TODO(ngeoffray): Have another class generate the code for the
-      // fields.
-      if ((member.modifiers === null || !member.modifiers.isFinal()) &&
-          compiler.universe.hasSetter(member, compiler)) {
-        String setterName = namer.setterName(member.getLibrary(), member.name);
-        String name = member.isNative()
-            ? member.name.slowToString()
-            : namer.getName(member);
-        defineInstanceMember(setterName, "function(v) { this.$name = v; }");
-      }
-      if (compiler.universe.hasGetter(member, compiler)) {
-        String getterName = namer.getterName(member.getLibrary(), member.name);
-        String name = member.isNative()
-            ? member.name.slowToString()
-            : namer.getName(member);
-        defineInstanceMember(getterName, "function() { return this.$name; }");
+      if (needGettersAndSetters) {
+        if (instanceFieldNeedsGetter(member)) {
+          String getter = namer.getterName(member.getLibrary(), member.name);
+          String name = compiledFieldName(member);
+          defineInstanceMember(getter, "function() { return this.$name; }");
+        }
+
+        if (instanceFieldNeedsSetter(member)) {
+          String setter = namer.setterName(member.getLibrary(), member.name);
+          String name = compiledFieldName(member);
+          defineInstanceMember(setter, "function(v) { this.$name = v; }");
+        }
       }
     } else {
       compiler.internalError('unexpected kind: "${member.kind}"',
@@ -374,16 +412,90 @@ function() {
     emitExtraAccessors(member, defineInstanceMember);
   }
 
-  List<String> generateFieldList(ClassElement classElement) {
-    List<String> result = <String>[];
+  Set<Element> emitClassFields(ClassElement classElement, StringBuffer buffer) {
+    // If the class is never instantiated we still need to set it up for
+    // inheritance purposes, but we can simplify its JavaScript constructor.
+    bool isInstantiated =
+        compiler.universe.instantiatedClasses.contains(classElement);
+
+    bool isFirstField = true;
     void addField(ClassElement enclosingClass, Element member) {
-      result.add(namer.instanceFieldName(member.getLibrary(), member.name));
+      assert(!member.isNative());
+      // See if we can dynamically create getters and setters.
+      // We can only generate getters and setters for [classElement] since
+      // the fields of super classes could be overwritten with getters or
+      // setters.
+      bool needsDynamicGetter = false;
+      bool needsDynamicSetter = false;
+      if (enclosingClass === classElement) {
+        needsDynamicGetter = instanceFieldNeedsGetter(member);
+        needsDynamicSetter = instanceFieldNeedsSetter(member);
+      }
+
+      if (isInstantiated || needsDynamicGetter || needsDynamicSetter) {
+        if (isFirstField) {
+          isFirstField = false;
+        } else {
+          buffer.add(", ");
+        }
+        LibraryElement library = member.getLibrary();
+        SourceString name = member.name;
+        String fieldName = namer.instanceFieldName(library, name);
+        // Getters and setters with suffixes will be generated dynamically.
+        buffer.add('"$fieldName');
+        if (needsDynamicGetter || needsDynamicSetter) {
+          if (needsDynamicGetter && needsDynamicSetter) {
+            buffer.add(GETTER_SETTER_SUFFIX);
+          } else if (needsDynamicGetter) {
+            buffer.add(GETTER_SUFFIX);
+          } else {
+            buffer.add(SETTER_SUFFIX);
+          }
+        }
+        buffer.add('"');
+      }
     }
 
+    // If a class is not instantiated then we add the field just so we can
+    // generate the field getter/setter dynamically. Since this is only
+    // allowed on fields that are in [classElement] we don't need to visit
+    // superclasses for non-instantiated classes.
     classElement.forEachInstanceField(addField,
                                       includeBackendMembers: true,
-                                      includeSuperMembers: true);
-    return result;
+                                      includeSuperMembers: isInstantiated);
+  }
+
+  void emitInstanceMembers(ClassElement classElement, StringBuffer buffer) {
+    void defineInstanceMember(String name, String value) {
+      buffer.add(' $name: $value,\n');
+    }
+
+    classElement.forEachMember(includeBackendMembers: true,
+                               f: (ClassElement enclosing, Element member) {
+      if (member.isInstanceMember()) {
+        // All getters and setters for non-native classes are generated
+        // dynamically.
+        bool needGettersAndSetters = false;
+        addInstanceMember(member, needGettersAndSetters, defineInstanceMember);
+      }
+    });
+
+    generateTypeTests(classElement, (Element other) {
+      if (nativeEmitter.requiresNativeIsCheck(other)) {
+        defineInstanceMember(namer.operatorIs(other),
+                             'function() { return true; }');
+      } else {
+        defineInstanceMember(namer.operatorIs(other), 'true');
+      }
+    });
+
+    if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
+      // Emit the noSuchMethods on the Object prototype now, so that
+      // the code in the dynamicMethod can find them. Note that the
+      // code in dynamicMethod is invoked before analyzing the full JS
+      // script.
+      emitNoSuchMethodCalls(defineInstanceMember);
+    }
   }
 
   void generateClass(ClassElement classElement, StringBuffer buffer) {
@@ -406,49 +518,11 @@ function() {
       superName = namer.getName(superclass);
     }
     String constructorName = namer.safeName(classElement.name.slowToString());
-    buffer.add('$defineClassName("$className", "$superName", ');
-    // If the class is never instantiated we still need to set it up for
-    // inheritance purposes, but we can simplify its JavaScript constructor.
-    if (!compiler.universe.instantiatedClasses.contains(classElement)) {
-      buffer.add("[]");
-    } else {
-      List<String> fields = generateFieldList(classElement);
-      buffer.add('[');
-      for (int i = 0; i < fields.length; i++) {
-        if (i != 0) buffer.add(", ");
-        buffer.add('"${fields[i]}"');
-      }
-      buffer.add(']');
-    }
-    buffer.add(', {\n');
 
-    void defineInstanceMember(String name, String value) {
-      buffer.add(' $name: $value,\n');
-    }
-
-    classElement.forEachMember(includeBackendMembers: true,
-                               f: (ClassElement enclosing, Element member) {
-      if (member.isInstanceMember()) {
-        addInstanceMember(member, defineInstanceMember);
-      }
-    });
-
-    generateTypeTests(classElement, (Element other) {
-      if (nativeEmitter.requiresNativeIsCheck(other)) {
-        defineInstanceMember(namer.operatorIs(other),
-                             'function() { return true; }');
-      } else {
-        defineInstanceMember(namer.operatorIs(other), 'true');
-      }
-    });
-
-    if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
-      // Emit the noSuchMethods on the Object prototype now, so that
-      // the code in the dynamicMethod can find them. Note that the
-      // code in dynamicMethod is invoked before analyzing the full JS
-      // script.
-      emitNoSuchMethodCalls(defineInstanceMember);
-    }
+    buffer.add('$defineClassName("$className", "$superName", [');
+    emitClassFields(classElement, buffer);
+    buffer.add('], {\n');
+    emitInstanceMembers(classElement, buffer);
     buffer.add('});\n\n');
   }
 

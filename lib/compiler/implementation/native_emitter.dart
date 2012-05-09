@@ -84,7 +84,9 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(member, defineInstanceMember);
+        bool needGettersAndSetters = true;
+        compiler.emitter.addInstanceMember(
+            member, needGettersAndSetters, defineInstanceMember);
       }
     }
   }
@@ -129,7 +131,9 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(member, defineInstanceMember);
+        bool needGettersAndSetters = true;
+        compiler.emitter.addInstanceMember(
+          member, needGettersAndSetters, defineInstanceMember);
       }
     }
 

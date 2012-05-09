@@ -69,11 +69,15 @@ class Namer {
   }
 
   String setterName(LibraryElement lib, SourceString name) {
-    return 'set\$${privateName(lib, name)}';
+    // We dynamically create setters from the field-name. The setter name must
+    // therefore be derived from the instance field-name.
+    return 'set\$${instanceFieldName(lib, name)}';
   }
 
   String getterName(LibraryElement lib, SourceString name) {
-    return 'get\$${privateName(lib, name)}';
+    // We dynamically create getters from the field-name. The getter name must
+    // therefore be derived from the instance field-name.
+    return 'get\$${instanceFieldName(lib, name)}';
   }
 
   String getFreshGlobalName(String proposedName) {
