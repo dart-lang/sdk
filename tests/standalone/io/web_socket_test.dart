@@ -101,6 +101,7 @@ void testRequestResponseServerCloses(
   }
 }
 
+
 void testNoUpgrade() {
   HttpServer server = new HttpServer();
   HttpClient client = new HttpClient();
@@ -122,6 +123,7 @@ void testNoUpgrade() {
     server.close();
   };
 }
+
 
 void testUsePOST() {
   HttpServer server = new HttpServer();
@@ -147,6 +149,80 @@ void testUsePOST() {
   };
 }
 
+
+void testW3CInterface(
+    int totalConnections, int closeStatus, String closeReason) {
+  HttpServer server = new HttpServer();
+
+  server.listen("127.0.0.1", 0, totalConnections);
+
+  // Create a web socket handler and set is as the HTTP server default
+  // handler.
+  int closeCount = 0;
+  WebSocketHandler wsHandler = new WebSocketHandler();
+  wsHandler.onOpen = (WebSocketConnection conn) {
+    String messageText = "Hello, world!";
+    int messageCount = 0;
+    conn.onMessage = (Object message) {
+      messageCount++;
+      if (messageCount < 10) {
+        Expect.equals(messageText, message);
+        conn.send(message);
+      } else {
+        conn.close(closeStatus, closeReason);
+      }
+    };
+    conn.onClosed = (status, reason) {
+      Expect.equals(closeStatus, status);
+      Expect.isNull(reason);
+      closeCount++;
+      if (closeCount == totalConnections) {
+        server.close();
+      }
+    };
+    conn.send(messageText);
+  };
+  server.defaultRequestHandler = wsHandler.onRequest;
+
+  void webSocketConnection() {
+    bool onopenCalled = false;
+    int onmessageCalled = 0;
+    bool oncloseCalled = false;
+
+    var websocket = new WebSocket("ws://127.0.0.1:${server.port}");
+    Expect.equals(WebSocket.CONNECTING, websocket.readyState);
+    websocket.onopen = () {
+      Expect.isFalse(onopenCalled);
+      Expect.equals(0, onmessageCalled);
+      Expect.isFalse(oncloseCalled);
+      onopenCalled = true;
+      Expect.equals(WebSocket.OPEN, websocket.readyState);
+    };
+    websocket.onmessage = (event) {
+      onmessageCalled++;
+      Expect.isTrue(onopenCalled);
+      Expect.isFalse(oncloseCalled);
+      Expect.equals(WebSocket.OPEN, websocket.readyState);
+      websocket.send(event.data);
+    };
+    websocket.onclose = (event) {
+      Expect.isTrue(onopenCalled);
+      Expect.equals(10, onmessageCalled);
+      Expect.isFalse(oncloseCalled);
+      oncloseCalled = true;
+      Expect.isTrue(event.wasClean);
+      Expect.equals(3002, event.code);
+      Expect.equals("Got tired", event.reason);
+      Expect.equals(WebSocket.CLOSED, websocket.readyState);
+    };
+  }
+
+  for (int i = 0; i < totalConnections; i++) {
+    webSocketConnection();
+  }
+}
+
+
 main() {
   testRequestResponseClientCloses(2, null, null);
   testRequestResponseClientCloses(2, 3001, null);
@@ -156,4 +232,6 @@ main() {
   testRequestResponseServerCloses(2, 3002, "Got tired");
   testNoUpgrade();
   testUsePOST();
+
+  testW3CInterface(2, 3002, "Got tired");
 }

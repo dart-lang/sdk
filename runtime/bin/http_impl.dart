@@ -1428,7 +1428,7 @@ class _HttpClient implements HttpClient {
 
   HttpClientConnection open(
       String method, String host, int port, String path) {
-    _open(method, host, port, path);
+    return _open(method, host, port, path);
   }
 
   HttpClientConnection _open(String method,
@@ -1526,6 +1526,7 @@ class _HttpClient implements HttpClient {
     if (connection == null) {
       connection = new _HttpClientConnection(this);
     }
+    connection.onDetach = () => _activeSockets.remove(connection._socketConn);
 
     // If there are active connections for this key get the first one
     // otherwise create a new one.
