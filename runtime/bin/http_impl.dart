@@ -317,6 +317,7 @@ class _HttpRequestResponseBase {
       }
       assert(_bodyBytesWritten == _contentLength);
     }
+    if (!persistentConnection) _httpConnection._close();
     return allWritten;
   }
 
@@ -754,6 +755,11 @@ class _HttpConnectionBase implements Hashable {
 
   bool _close() {
     _closing = true;
+    _socket.outputStream.close();
+  }
+
+  bool _destroy() {
+    _closing = true;
     _socket.close();
   }
 
@@ -771,7 +777,7 @@ class _HttpConnectionBase implements Hashable {
         if (parsed != bytesRead) {
           if (_socket != null) {
             // TODO(sgjesse): Error handling.
-            _close();
+            _destroy();
           }
         }
       }
@@ -863,7 +869,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
     // If currently not processing any request just close the socket.
     if (_httpParser.isIdle) {
-      _close();
+      _destroy();
       if (onClosed != null && e == null) {
         // Don't call onClosed if onError has been called.
         onClosed();
