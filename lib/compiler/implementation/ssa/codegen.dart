@@ -2191,7 +2191,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(')');
       endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
-      visit(node.checkedInput, expectedPrecedence);
+      use(node.checkedInput, expectedPrecedence);
     }
   }
 }
