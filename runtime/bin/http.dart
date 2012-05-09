@@ -352,6 +352,12 @@ interface HttpRequest default _HttpRequest {
    * the request data.
    */
   InputStream get inputStream();
+
+  /**
+   * Returns the HTTP protocol version used in the request. This will
+   * be "1.0" or "1.1".
+   */
+  String get protocolVersion();
 }
 
 

@@ -400,6 +400,8 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     return _inputStream;
   }
 
+  String get protocolVersion() => _protocolVersion;
+
   void _onRequestStart(String method, String uri, String version) {
     _method = method;
     _uri = uri;
@@ -610,6 +612,11 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
   bool _writeHeader() {
     List<int> data;
+
+    // HTTP/1.0 does not support chunked.
+    if (_protocolVersion == "1.0" && _contentLength < 0) {
+      throw new HttpException("Content length required for HTTP 1.0");
+    }
 
     // Write status line.
     if (_protocolVersion == "1.1") {
@@ -1035,6 +1042,9 @@ class _HttpServer implements HttpServer {
       _defaultHandler(request, response);
     } else {
       response.statusCode = HttpStatus.NOT_FOUND;
+      if (request.protocolVersion == "1.0") {
+        response.contentLength = 0;
+      }
       response.outputStream.close();
     }
   }
