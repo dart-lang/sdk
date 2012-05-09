@@ -1675,6 +1675,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitNot(HNot node) {
+    bool isBuiltinRelational(HInstruction instruction) {
+      if (instruction is !HRelational) return false;
+      HRelational relational = instruction;
+      return relational.builtin;
+    }
+
     assert(node.inputs.length == 1);
     HInstruction input = node.inputs[0];
     if (input is HBoolify && isGenerateAtUseSite(input)) {
@@ -1683,9 +1689,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
       buffer.add(' !== true');
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    } else if (input is HRelational &&
-               input.builtin &&
-               isGenerateAtUseSite(input)) {
+    } else if (isBuiltinRelational(input) && isGenerateAtUseSite(input)) {
       Map<String, String> inverseOperator = const <String>{
         "==" : "!=",
         "!=" : "==",
@@ -1696,8 +1700,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ">"  : "<=",
         ">=" : "<"
       };
+      HRelational relational = input;
       visitInvokeBinary(input,
-                        inverseOperator[input.operation.name.stringValue]);
+                        inverseOperator[relational.operation.name.stringValue]);
     } else {
       beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
       buffer.add('!');
