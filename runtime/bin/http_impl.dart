@@ -1209,7 +1209,7 @@ class _HttpClientResponse
           for (int i = 0; i < _connection._redirects.length; i++) {
             if (_connection._redirects[i].location.toString() ==
                 redirectUrl.toString()) {
-              throw new RedirectLoop(_connection._redirects);
+              throw new RedirectLoopException(_connection._redirects);
             }
           }
         }
@@ -1217,7 +1217,7 @@ class _HttpClientResponse
         inputStream.onData = inputStream.read;
         inputStream.onClosed = _connection.redirect;
       } else {
-        throw new RedirectLimitExceeded(_connection._redirects);
+        throw new RedirectLimitExceededException(_connection._redirects);
       }
     } else if (_connection._onResponse != null) {
       _connection._onResponse(this);

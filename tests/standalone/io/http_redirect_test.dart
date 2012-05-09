@@ -101,7 +101,7 @@ void testAutoRedirect() {
     response.inputStream.onClosed = () => Expect.fail("Response not expected");
   };
   conn.onError = (e) {
-    Expect.isTrue(e is RedirectLimitExceeded);
+    Expect.isTrue(e is RedirectLimitExceededException);
     Expect.equals(5, e.redirects.length);
     server.close();
     client.shutdown();
@@ -120,7 +120,7 @@ void testRedirectLoop() {
     response.inputStream.onClosed = () => Expect.fail("Response not expected");
   };
   conn.onError = (e) {
-    Expect.isTrue(e is RedirectLoop);
+    Expect.isTrue(e is RedirectLoopException);
     Expect.equals(2, e.redirects.length);
     server.close();
     client.shutdown();

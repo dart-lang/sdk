@@ -669,13 +669,13 @@ class RedirectException extends HttpException {
 }
 
 
-class RedirectLimitExceeded extends RedirectException {
-  const RedirectLimitExceeded(List<RedirectInfo> redirects)
+class RedirectLimitExceededException extends RedirectException {
+  const RedirectLimitExceededException(List<RedirectInfo> redirects)
       : super("Redirect limit exceeded", redirects);
 }
 
 
-class RedirectLoop extends RedirectException {
-  const RedirectLoop(List<RedirectInfo> redirects)
+class RedirectLoopException extends RedirectException {
+  const RedirectLoopException(List<RedirectInfo> redirects)
       : super("Redirect loop detected", redirects);
 }
