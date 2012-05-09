@@ -553,6 +553,24 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType combinedType = value.propagatedType.union(node.propagatedType);
     return (combinedType == value.propagatedType) ? value : node;
   }
+
+  HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    HInstruction receiver = node.inputs[0];
+    if (!receiver.propagatedType.isUseful()) return node;
+    Type type = receiver.propagatedType.computeType(compiler);
+    if (type === null) return node;
+    if (!compiler.world.isOnlyFields(type, node.name)) return node;
+    return new HFieldGet(node.name, node.inputs[0]);
+  }
+
+  HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
+    HInstruction receiver = node.inputs[0];
+    if (!receiver.propagatedType.isUseful()) return node;
+    Type type = receiver.propagatedType.computeType(compiler);
+    if (type === null) return node;
+    if (!compiler.world.isOnlyFields(type, node.name)) return node;
+    return new HFieldSet(node.name, node.inputs[0], node.inputs[1]);
+  }
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {

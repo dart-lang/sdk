@@ -394,7 +394,7 @@ class LocalsHandler {
       // itself.
       HInstruction receiver = new HThis();
       builder.add(receiver);
-      HInstruction fieldGet = new HFieldGet(redirect, receiver);
+      HInstruction fieldGet = new HFieldGet(redirect.name, receiver);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -406,12 +406,12 @@ class LocalsHandler {
       // the box.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      HInstruction lookup = new HFieldGet(redirect, box);
+      HInstruction lookup = new HFieldGet(redirect.name, box);
       builder.add(lookup);
       return lookup;
     } else {
       assert(isUsedInTry(element));
-      HInstruction variable = new HFieldGet.fromActivation(element);
+      HInstruction variable = new HFieldGet.fromActivation(element.name);
       builder.add(variable);
       return variable;
     }
@@ -448,7 +448,7 @@ class LocalsHandler {
       // itself.
       HInstruction receiver = new HThis();
       builder.add(receiver);
-      builder.add(new HFieldSet(redirect, receiver, value));
+      builder.add(new HFieldSet(redirect.name, receiver, value));
     } else if (isBoxed(element)) {
       Element redirect = redirectionMapping[element];
       // The box itself could be captured, or be local. A local variable that
@@ -457,10 +457,10 @@ class LocalsHandler {
       // be accessed directly.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      builder.add(new HFieldSet(redirect, box, value));
+      builder.add(new HFieldSet(redirect.name, box, value));
     } else {
       assert(isUsedInTry(element));
-      builder.add(new HFieldSet.fromActivation(element,value));
+      builder.add(new HFieldSet.fromActivation(element.name, value));
     }
   }
 

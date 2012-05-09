@@ -548,7 +548,6 @@ abstract_static_negative_test: Fail, OK # Negative language test.
 abstract_syntax_test/01: Fail, OK # Negative language test.
 abstract_syntax_test/02: Fail, OK # Negative language test.
 assign_top_method_negative_test: Fail, OK # Negative language test.
-class_cycle_negative_test: Fail, OK # Negative language test.
 class_extends_negative_test: Fail, OK # Negative language test.
 class_override_negative_test: Fail, OK # Negative language test.
 const_constructor_syntax_test/01: Fail, OK # Negative language test.
@@ -580,21 +579,17 @@ factory3_negative_test: Fail, OK # Negative language test.
 factory_negative_test: Fail, OK # Negative language test.
 fauxverride_test/03: Fail, OK # Negative language test.
 fauxverride_test/05: Fail, OK # Negative language test.
-field1_negative_test: Fail, OK # Negative language test.
 field2_negative_test: Fail, OK # Negative language test.
 field3_negative_test: Fail, OK # Negative language test.
 field4_negative_test: Fail, OK # Negative language test.
 field5_negative_test: Fail, OK # Negative language test.
-field6_negative_test: Fail, OK # Negative language test.
 field6a_negative_test: Fail, OK # Negative language test.
-field7_negative_test: Fail, OK # Negative language test.
 field7a_negative_test: Fail, OK # Negative language test.
 final_for_in_variable_test/01: Fail, OK # Negative language test
 final_param_negative_test: Fail, OK # Negative language test.
 final_var_negative_test: Fail, OK # Negative language test.
 getter_declaration_negative_test: Fail, OK # Negative language test.
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
-interface_cycle_negative_test: Fail, OK # Negative language test.
 interface_factory3_negative_test: Fail, OK # Negative language test.
 interface_factory_constructor_negative_test: Fail, OK # Negative language test.
 interface_static_method_negative_test: Fail, OK # Negative language test.
@@ -636,6 +631,8 @@ pseudo_kw_illegal_test/16: Fail, OK # Negative language test.
 scope_negative_test: Fail, OK # Negative language test.
 setter_declaration2_negative_test: Fail, OK # Negative language test.
 setter_declaration_negative_test: Fail, OK # Negative language test.
+static_field1_run_negative_test: Fail, OK # Negative language test.
+static_field2_run_negative_test: Fail, OK # Negative language test.
 static_final_field2_negative_test: Fail, OK # Negative language test.
 static_final_field_negative_test: Fail, OK # Negative language test.
 static_top_level_test/00: Fail, OK # Negative language test.
@@ -645,7 +642,6 @@ static_top_level_test/03: Fail, OK # Negative language test.
 static_top_level_test/04: Fail, OK # Negative language test.
 static_top_level_test/05: Fail, OK # Negative language test.
 string_interpolation7_negative_test: Fail, OK # Negative language test.
-syntax_test/47: Fail, OK # No error on body in const constructor.
 throw7_negative_test: Fail, OK # Negative language test.
 try_catch_syntax_test/08: Fail, OK # Negative language test.
 type_variable_bounds_test/00: Fail, OK # Negative language test.

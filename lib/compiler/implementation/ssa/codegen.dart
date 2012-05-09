@@ -1548,14 +1548,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldGet(HFieldGet node) {
     if (node.receiver !== null) {
       String name =
-          compiler.namer.instanceFieldName(currentLibrary, node.element.name);
+          compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     } else {
-      buffer.add(JsNames.getValid(node.element.name.slowToString()));
+      buffer.add(JsNames.getValid(node.name.slowToString()));
     }
   }
 
@@ -1563,7 +1563,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name;
     if (node.receiver !== null) {
       name =
-          compiler.namer.instanceFieldName(currentLibrary, node.element.name);
+          compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
@@ -1571,7 +1571,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       // TODO(ngeoffray): Remove the 'var' once we don't globally box
       // variables used in a try/catch.
-      name = JsNames.getValid(node.element.name.slowToString());
+      name = JsNames.getValid(node.name.slowToString());
       declareVariable(name);
     }
     buffer.add(' = ');

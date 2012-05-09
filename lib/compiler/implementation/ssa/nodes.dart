@@ -1212,20 +1212,28 @@ class HInvokeInterceptor extends HInvokeStatic {
 }
 
 class HFieldGet extends HInstruction {
-  final Element element;
-  HFieldGet(Element this.element, HInstruction receiver)
+  final SourceString name;
+  HFieldGet(this.name, HInstruction receiver)
       : super(<HInstruction>[receiver]);
-  HFieldGet.fromActivation(Element this.element) : super(<HInstruction>[]);
+  HFieldGet.fromActivation(this.name) : super(<HInstruction>[]);
 
   HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
+
+  void prepareGvn() {
+    clearAllSideEffects();
+  }
+
+  int typeCode() => 27;
+  bool typeEquals(other) => other is HFieldGet;
+  bool dataEquals(HFieldGet other) => name == other.name;
 }
 
 class HFieldSet extends HInstruction {
-  final Element element;
-  HFieldSet(Element this.element, HInstruction receiver, HInstruction value)
+  final SourceString name;
+  HFieldSet(this.name, HInstruction receiver, HInstruction value)
       : super(<HInstruction>[receiver, value]);
-  HFieldSet.fromActivation(Element this.element, HInstruction value)
+  HFieldSet.fromActivation(this.name, HInstruction value)
       : super(<HInstruction>[value]);
 
   HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
