@@ -60,6 +60,12 @@ class StatementType implements Type {
   String toString() => stringName;
 }
 
+class VoidType implements Type {
+  const VoidType(this.element);
+  SourceString get name() => Types.VOID;
+  final VoidElement element;
+}
+
 class InterfaceType implements Type {
   final Element element;
   final Link<Type> arguments;
@@ -111,7 +117,7 @@ class Types {
   static final OBJECT = const SourceString('Object');
   static final LIST = const SourceString('List');
 
-  final InterfaceType voidType;
+  final VoidType voidType;
   final InterfaceType dynamicType;
 
   Types(Element dynamicElement)
@@ -119,7 +125,7 @@ class Types {
 
   // TODO(karlklose): should we have a class Void?
   Types.with(Element dynamicElement, LibraryElement library)
-    : voidType = new InterfaceType(new ClassElement(VOID, library, -1)),
+    : voidType = new VoidType(new VoidElement(library)),
       dynamicType = new InterfaceType(dynamicElement);
 
   Type lookup(SourceString s) {
@@ -135,7 +141,9 @@ class Types {
   bool isSubtype(Type t, Type s) {
     if (t === s || t === dynamicType || s === dynamicType ||
         s.name == OBJECT) return true;
-    if (t is InterfaceType) {
+    if (t is VoidType) {
+      return false;
+    } else if (t is InterfaceType) {
       if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
       if (tc === s.element) return true;
@@ -578,8 +586,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   /** Dart Programming Language Specification: 11.10 Return */
   Type visitReturn(Return node) {
     final expression = node.expression;
-    final isVoidFunction =
-        (expectedReturnType.element === compiler.types.voidType.element);
+    final isVoidFunction = (expectedReturnType === types.voidType);
 
     // Executing a return statement return e; [...] It is a static type warning
     // if the type of e may not be assigned to the declared return type of the

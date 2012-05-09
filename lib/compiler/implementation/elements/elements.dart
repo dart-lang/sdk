@@ -92,6 +92,8 @@ class ElementKind {
     const ElementKind('statement', ElementCategory.NONE);
   static final ElementKind LABEL =
     const ElementKind('label', ElementCategory.NONE);
+  static final ElementKind VOID =
+    const ElementKind('void', ElementCategory.NONE);
 
   toString() => id;
 }
@@ -662,6 +664,16 @@ class SynthesizedConstructorElement extends FunctionElement {
             null, enclosing);
 
   Token position() => enclosingElement.position();
+}
+
+class VoidElement extends Element {
+  VoidElement(Element enclosing)
+      : super(Types.VOID, ElementKind.VOID, enclosing);
+  Type computeType(compiler) => compiler.types.voidType;
+  Node parseNode(_) {
+    throw 'internal error: parseNode on void';
+  }
+  bool impliesType() => true;
 }
 
 class ClassElement extends ContainerElement {
