@@ -461,7 +461,10 @@ class Dartdoc {
         <div class="clear"></div>
         </div>
         ${preFooterText}
-        <div class="footer">$footerText</div>
+        <div class="footer">
+          <p>This page generated at ${new Date.now()}</p>
+          <div>$footerText</div>
+        </div>
         <script async src="${relativePath('$clientScript.js')}"></script>
         </body></html>
         ''');
