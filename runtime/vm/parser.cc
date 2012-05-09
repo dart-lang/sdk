@@ -5184,13 +5184,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // operator.
   bool catch_seen = false;
   bool generic_catch_seen = false;
-  intptr_t catch_clause_count = 0;
   SequenceNode* catch_handler_list = NULL;
   const intptr_t handler_pos = token_index_;
   OpenBlock();  // Start the catch block sequence.
   current_block_->scope->AddLabel(end_catch_label);
   while (CurrentToken() == Token::kCATCH) {
-    catch_clause_count++;
     catch_seen = true;
     const intptr_t catch_pos = token_index_;
     ConsumeToken();  // Consume the 'catch'.
@@ -5263,21 +5261,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       AstNode* exception_var = new LoadLocalNode(catch_pos, *catch_excp_var);
       AstNode* type_cond_expr = new ComparisonNode(
           catch_pos, Token::kIS, exception_var, exception_type);
-      if (catch_clause_count == 1) {
-        // Null is also allowed, but check only in the first clause.
-        AstNode* null_literal =
-            new LiteralNode(catch_pos, Instance::ZoneHandle(Instance::null()));
-        AstNode* null_cond_expr = new ComparisonNode(
-            catch_pos, Token::kEQ_STRICT, exception_var, null_literal);
-        EnsureExpressionTemp();
-        AstNode* or_node = new BinaryOpNode(
-            catch_pos, Token::kOR, null_cond_expr, type_cond_expr);
-        current_block_->statements->Add(
-            new IfNode(catch_pos, or_node, catch_handler, NULL));
-      } else {
-        current_block_->statements->Add(
-            new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
-      }
+      current_block_->statements->Add(
+          new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
     } else {
       // No exception type exists in the catch specifier so execute the
       // catch handler code unconditionally.

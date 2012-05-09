@@ -475,7 +475,7 @@ assign_top_method_negative_test: Pass # For the wrong reasons.
 [ $compiler == dart2js]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
-
+exception_test: Fail # "throw null" throws NullPointerException.
 
 # Compilation errors.
 ct_const_test: Fail # We don't take the generic type into account yet.
