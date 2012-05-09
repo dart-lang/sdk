@@ -53,10 +53,31 @@ void testIndexOutOfRange() {
   });
 }
 
+void testIndexOf() {
+  var list = new Uint8List(10);
+  for (int i = 0; i < list.length; i++) {
+    list[i] = i + 10;
+  }
+  Expect.equals(0, list.indexOf(10));
+  Expect.equals(5, list.indexOf(15));
+  Expect.equals(9, list.indexOf(19));
+  Expect.equals(-1, list.indexOf(20));
+
+  list = new Float32List(10);
+  for (int i = 0; i < list.length; i++) {
+    list[i] = i + 10.0;
+  }
+  Expect.equals(0, list.indexOf(10.0));
+  Expect.equals(5, list.indexOf(15.0));
+  Expect.equals(9, list.indexOf(19.0));
+  Expect.equals(-1, list.indexOf(20.0));
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateByteArray();
     testSetRange();
     testIndexOutOfRange();
+    testIndexOf();
   }
 }

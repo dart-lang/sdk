@@ -260,6 +260,13 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
+  int indexOf(element, [int start = 0]) {
+    for (int i = start; i < length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
   void insertRange(int start, int length, [initialValue]) {
     throw const UnsupportedOperationException(
         "Cannot add to a non-extendable array");
