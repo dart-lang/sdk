@@ -40,10 +40,17 @@ FlowGraphCompiler::FlowGraphCompiler(
       parsed_function_(parsed_function),
       block_info_(block_order.length()),
       current_block_(NULL),
-      pc_descriptors_list_(new DescriptorList()),
-      exception_handlers_list_(new ExceptionHandlerList()),
+      pc_descriptors_list_(NULL),
+      exception_handlers_list_(NULL),
       is_optimizing_(is_optimizing) {
-  for (int i = 0; i < block_order.length(); ++i) {
+}
+
+
+void FlowGraphCompiler::InitCompiler() {
+  pc_descriptors_list_ = new DescriptorList();
+  exception_handlers_list_ = new ExceptionHandlerList();
+  block_info_.Clear();
+  for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
 }
@@ -1581,7 +1588,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 // TODO(srdjan): Investigate where to put the argument type checks for
 // checked mode.
 void FlowGraphCompiler::CompileGraph() {
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphcompiler_timer);
+  InitCompiler();
   if (TryIntrinsify()) {
     // Make it patchable: code must have a minimum code size, nop(2) increases
     // the minimum code size appropriately.

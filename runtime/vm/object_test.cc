@@ -2382,12 +2382,21 @@ TEST_CASE(CheckedHandle) {
 
 // only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+
+static Function* CreateFunction(const char* name) {
+  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  Function& function = Function::ZoneHandle(
+      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+  return &function;
+}
+
 // Test for Code and Instruction object creation.
 TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode("Test_Code", &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
   typedef int (*IncrementCode)();
   EXPECT_EQ(2, reinterpret_cast<IncrementCode>(instructions.EntryPoint())());
@@ -2403,8 +2412,8 @@ TEST_CASE(EmbedStringInCode) {
   word expected_length = static_cast<word>(strlen(kHello));
   Assembler _assembler_;
   GenerateEmbedStringInCode(&_assembler_, kHello);
-  Code& code = Code::Handle(
-      Code::FinalizeCode("Test_EmbedStringInCode", &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_EmbedStringInCode"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
   typedef uword (*EmbedStringCode)();
   uword retval = reinterpret_cast<EmbedStringCode>(instructions.EntryPoint())();
@@ -2424,8 +2433,8 @@ TEST_CASE(EmbedSmiInCode) {
   const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
-  Code& code = Code::Handle(
-      Code::FinalizeCode("Test_EmbedSmiInCode", &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_EmbedSmiInCode"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
   typedef intptr_t (*EmbedSmiCode)();
   intptr_t retval =
@@ -2441,8 +2450,8 @@ TEST_CASE(EmbedSmiIn64BitCode) {
   const intptr_t kSmiTestValue = 5L << 32;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
-  Code& code = Code::Handle(
-      Code::FinalizeCode("Test_EmbedSmiIn64BitCode", &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_EmbedSmiIn64BitCode"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
   typedef intptr_t (*EmbedSmiCode)();
   intptr_t retval =
@@ -2467,7 +2476,8 @@ TEST_CASE(ExceptionHandlers) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode("Test_Code", &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
   code.set_exception_handlers(exception_handlers);
 
   // Verify the exception handler table entries by accessing them.
@@ -2496,7 +2506,8 @@ TEST_CASE(PcDescriptors) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode("Test_Code", &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.

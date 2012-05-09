@@ -72,6 +72,10 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
   ASSERT(assembler_ != NULL);
   ASSERT(parsed_function.node_sequence() != NULL);
   ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
+}
+
+
+void CodeGenerator::InitGenerator() {
   pc_descriptors_list_ = new DescriptorList();
   // We do not build any stack maps in the unoptimizing compiler.
   exception_handlers_list_ = new ExceptionHandlerList();
@@ -148,6 +152,7 @@ bool CodeGenerator::IsResultNeeded(AstNode* node) const {
 // NOTE: First 5 bytes of the code may be patched with a jump instruction. Do
 // not emit any objects in the first 5 bytes.
 void CodeGenerator::GenerateCode() {
+  InitGenerator();
   CodeGeneratorState codegen_state(this);
   if (FLAG_print_scopes && FLAG_print_ast) {
     // Print the function scope before code generation.

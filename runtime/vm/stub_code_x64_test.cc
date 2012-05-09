@@ -44,6 +44,14 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
 }
 
 
+static Function* CreateFunction(const char* name) {
+  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  Function& function = Function::ZoneHandle(
+      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+  return &function;
+}
+
+
 TEST_CASE(CallRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
@@ -52,8 +60,8 @@ TEST_CASE(CallRuntimeStubCode) {
   const char* kName = "Test_CallRuntimeStubCode";
   Assembler _assembler_;
   GenerateCallToCallRuntimeStub(&_assembler_, value1, value2);
-  const Code& code = Code::Handle(
-      Code::FinalizeCode("Test_CallRuntimeStubCode", &_assembler_));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_CallRuntimeStubCode"), &_assembler_));
   const Function& function = RegisterFakeFunction(kName, code);
   GrowableArray<const Object*>  arguments;
   const Array& kNoArgumentNames = Array::Handle();
@@ -100,8 +108,8 @@ TEST_CASE(CallNativeCFunctionStubCode) {
   const char* kName = "Test_CallNativeCFunctionStubCode";
   Assembler _assembler_;
   GenerateCallToCallNativeCFunctionStub(&_assembler_, value1, value2);
-  const Code& code = Code::Handle(
-      Code::FinalizeCode(kName, &_assembler_));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction(kName), &_assembler_));
   const Function& function = RegisterFakeFunction(kName, code);
   GrowableArray<const Object*>  arguments;
   const Array& kNoArgumentNames = Array::Handle();

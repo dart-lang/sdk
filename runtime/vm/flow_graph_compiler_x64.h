@@ -39,6 +39,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeExceptionHandlers(const Code& code);
 
  private:
+  // Constructor is lighweight, major initialization work should occur here.
+  // This makes it easier to measure time spent in the compiler.
+  void InitCompiler();
+
   struct BlockInfo : public ZoneAllocated {
    public:
     BlockInfo() : label() { }

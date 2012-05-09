@@ -38,14 +38,22 @@ class Timer : public ValueObject {
     }
   }
 
-  // Get total cummulative elapsed time in micros and reset the counters.
-  int64_t TotalElapsedTime() {
+  // Get total cummulative elapsed time in micros.
+  int64_t TotalElapsedTime() const {
     if (enabled_) {
       int64_t result = total_;
-      Reset();
       return result;
     }
     return 0;
+  }
+
+  void Reset() {
+    if (enabled_) {
+      start_ = 0;
+      stop_ = 0;
+      total_ = 0;
+      running_ = false;
+    }
   }
 
   // Accessors.
@@ -61,15 +69,6 @@ class Timer : public ValueObject {
       return stop_ - start_;
     }
     return 0;
-  }
-
-  void Reset() {
-    if (enabled_) {
-      start_ = 0;
-      stop_ = 0;
-      total_ = 0;
-      running_ = false;
-    }
   }
 
   int64_t start_;
@@ -140,10 +139,10 @@ class TimerList : public ValueObject {
 //   code that needs to be timed.
 //   ....
 // }
-class TimerScope : public ValueObject {
+class TimerScope : public StackResource {
  public:
-  TimerScope(bool flag, Timer* timer)
-      : flag_(flag), nested_(false), timer_(timer) {
+  TimerScope(bool flag, Timer* timer, BaseIsolate* isolate = NULL)
+      : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
     if (flag_) {
       if (!timer_->running()) {
         timer_->Start();

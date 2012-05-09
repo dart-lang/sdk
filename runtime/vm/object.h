@@ -2203,7 +2203,7 @@ class Code : public Object {
     return RoundedAllocationSize(
         sizeof(RawCode) + (pointer_offsets_length * kEntrySize));
   }
-  static RawCode* FinalizeCode(const char* name, Assembler* assembler);
+  static RawCode* FinalizeCode(const Function& function, Assembler* assembler);
   static RawCode* FinalizeStubCode(const char* name, Assembler* assembler);
 
   int32_t GetPointerOffsetAt(int index) const {

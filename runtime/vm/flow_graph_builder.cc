@@ -1182,7 +1182,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
   if (function.IsNonImplicitClosureFunction()) {
-    // The context scope may have already been set by the new non-optimizing
+    // The context scope may have already been set by the non-optimizing
     // compiler.  If it was not, set it here.
     if (function.context_scope() == ContextScope::null()) {
       const ContextScope& context_scope = ContextScope::ZoneHandle(
@@ -2456,7 +2456,6 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphbuilder_timer);
   // Compilation can be nested, preserve the computation-id.
   Isolate* isolate = Isolate::Current();
   const intptr_t prev_cid = isolate->computation_id();

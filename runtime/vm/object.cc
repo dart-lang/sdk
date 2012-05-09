@@ -6089,12 +6089,14 @@ RawCode* Code::FinalizeCode(const char* name,
   assembler->FinalizeInstructions(region);
   DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
   if (pprof_symbol_generator != NULL) {
+    ASSERT(strlen(name) != 0);
     pprof_symbol_generator->AddCode(instrs.EntryPoint(), instrs.size());
     pprof_symbol_generator->AddCodeRegion(name,
                                           instrs.EntryPoint(),
                                           instrs.size());
   }
   if (FLAG_generate_gdb_symbols) {
+    ASSERT(strlen(name) != 0);
     intptr_t prolog_offset = assembler->prolog_offset();
     if (prolog_offset > 0) {
       // In order to ensure that gdb sees the first instruction of a function
@@ -6142,8 +6144,15 @@ RawCode* Code::FinalizeCode(const char* name,
 }
 
 
-RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
-  return FinalizeCode(name, assembler, Heap::kDartCode);
+RawCode* Code::FinalizeCode(const Function& function, Assembler* assembler) {
+  // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
+  if (FLAG_generate_gdb_symbols || (Dart::pprof_symbol_generator() != NULL)) {
+    return FinalizeCode(function.ToFullyQualifiedCString(),
+                        assembler,
+                        Heap::kDartCode);
+  } else {
+    return FinalizeCode("", assembler, Heap::kDartCode);
+  }
 }
 
 

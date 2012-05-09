@@ -241,7 +241,7 @@ OptimizingCodeGenerator::OptimizingCodeGenerator(
     Assembler* assembler, const ParsedFunction& parsed_function)
         : CodeGenerator(assembler, parsed_function),
           deoptimization_blobs_(4),
-          classes_for_locals_(new ClassesForLocals()),
+          classes_for_locals_(NULL),
           smi_class_(Class::ZoneHandle(Isolate::Current()->object_store()
               ->smi_class())),
           double_class_(Class::ZoneHandle(Isolate::Current()->object_store()
@@ -249,6 +249,12 @@ OptimizingCodeGenerator::OptimizingCodeGenerator(
           growable_object_array_class_(Class::ZoneHandle(Isolate::Current()
               ->object_store()->growable_object_array_class())) {
   ASSERT(parsed_function.function().is_optimizable());
+}
+
+
+void OptimizingCodeGenerator::InitGenerator() {
+  CodeGenerator::InitGenerator();
+  classes_for_locals_ = new ClassesForLocals();
 }
 
 
