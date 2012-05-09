@@ -970,6 +970,7 @@ class _HttpServer implements HttpServer {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(this);
       connection._connectionEstablished(socket);
+      _connections.add(connection);
       connection.onRequestReceived = _handleRequest;
       connection.onClosed = () => _connections.remove(connection);
       connection.onDetach = () => _connections.remove(connection);
@@ -981,8 +982,6 @@ class _HttpServer implements HttpServer {
           throw(e);
         }
       };
-      connection._connectionEstablished(socket);
-      _connections.add(connection);
     }
     serverSocket.onConnection = onConnection;
     _server = serverSocket;
@@ -1005,7 +1004,7 @@ class _HttpServer implements HttpServer {
     }
     _server = null;
     for (_HttpConnection connection in _connections) {
-      connection._close();
+      connection._destroy();
     }
     _connections.clear();
   }
