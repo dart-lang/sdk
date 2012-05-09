@@ -1680,7 +1680,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (input is HBoolify && isGenerateAtUseSite(input)) {
       beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
       assert(node.inputs.length == 1);
-      use(node.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
+      use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
       buffer.add(' !== true');
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     } else if (input is HRelational &&
