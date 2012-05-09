@@ -817,7 +817,12 @@ class SsaBuilder implements Visitor {
     assert(constructor.kind === ElementKind.GENERATIVE_CONSTRUCTOR);
     if (constructor is SynthesizedConstructorElement) return null;
     FunctionExpression node = constructor.parseNode(compiler);
-    if (!node.hasBody()) return null;
+    // If we know the body doesn't have any code, we don't generate
+    // it.
+    if (node.body.asBlock() !== null) {
+      NodeList statements = node.body.asBlock().statements;
+      if (statements.isEmpty()) return null;
+    }
     ClassElement classElement = constructor.enclosingElement;
     ConstructorBodyElement bodyElement;
     for (Link<Element> backendMembers = classElement.backendMembers;
