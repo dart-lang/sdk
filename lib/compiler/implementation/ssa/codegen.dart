@@ -579,7 +579,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If [argument] cannot be generated at use site, but [input]
         // can, use the temporary of [argument]. A code motion
         // invariant instruction does not have a temporary, so we just
-        // 
+        //
         // For example:
         // Foo a = foo();
         // print(a);
@@ -686,8 +686,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool visitSubGraphInfo(HSubGraphBlockInformation info) {
     visitSubGraph(info.subGraph);
-    // A [HSubGraphBlockInformation] is always part of another block
-    // information structure, so it doesn't have a joinBlock.
+    return true;
   }
 
   bool visitSubExpressionInfo(HSubExpressionBlockInformation info) {
