@@ -516,25 +516,107 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  bool needsNewVariable(HInstruction instruction) {
+    bool needsVar = !instruction.usedBy.isEmpty();
+    if (needsVar && instruction is HCheck) {
+      HCheck check = instruction;
+      HInstruction input = check.checkedInput;
+      // We only need a new var if [input] is generated at use site
+      // but is not a trivial code motion invariant instruction like
+      // for parameters or this.
+      //
+      // For example:
+      // Foo a = this;
+      // print(a);
+      // print(a);
+      //
+      // In checked mode no new variable is needed.
+      // FooTypeCheck(this);
+      // print(this);
+      // print(this);
+      //
+      // But for this example:
+      // Foo a = foo();
+      // print(a);
+      // print(a);
+      //
+      // We need a new variable:
+      // var a = FooTypeCheck(foo());
+      // print(a);
+      // print(a);
+      needsVar = isGenerateAtUseSite(input) && !input.isCodeMotionInvariant();
+    }
+    return needsVar;
+  }
+
   void define(HInstruction instruction) {
-    String name = temporary(instruction);
-    declareVariable(name);
-    buffer.add(" = ");
-    visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    if (needsNewVariable(instruction)) {
+      String name = temporary(instruction);
+      declareVariable(name);
+      buffer.add(" = ");
+      visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    } else {
+      visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+    }
   }
 
   void use(HInstruction argument, int expectedPrecedenceForArgument) {
-    if (isGenerateAtUseSite(argument)) {
+    if (argument is HCheck) {
+      HCheck instruction  = argument;
+      HInstruction input = instruction.checkedInput;
+      if (isGenerateAtUseSite(argument) && isGenerateAtUseSite(input)) {
+        // If both instructions can be generated at use site, we can
+        // just visit [argument].
+        //
+        // For example:
+        // Foo a = foo();
+        // print(a);
+        //
+        // In checked mode will turn into:
+        // print(FooTypeCheck(foo()));
+        visit(argument, expectedPrecedenceForArgument);
+      } else if (isGenerateAtUseSite(input)) {
+        // If [argument] cannot be generated at use site, but [input]
+        // can, use the temporary of [argument]. A code motion
+        // invariant instruction does not have a temporary, so we just
+        //
+        // For example:
+        // Foo a = foo();
+        // print(a);
+        // print(a);
+        //
+        // In checked mode will turn into:
+        // var a = FooTypeCheck(foo());
+        // print(a);
+        // print(a);
+        //
+        // Note that in case the input is code motion invariant, like
+        // for parameters or this, we just need to visit it, since
+        // there is no temporary for such instruction.
+        if (input.isCodeMotionInvariant()) {
+          visit(input, expectedPrecedenceForArgument);
+        } else {
+          buffer.add(temporary(argument));
+        }
+      } else {
+        // Otherwise we just use [input]. [argument] has already been
+        // emitted, and we just need the temporary of [input].
+        //
+        // For example:
+        // var a = foo();
+        // print(a);
+        // Foo b = a;
+        // print(b);
+        //
+        // In checked mode will turn into:
+        // var a = foo();
+        // print(a);
+        // FooTypeCheck(a);
+        // print(a);
+        use(input, expectedPrecedenceForArgument);
+      }
+    } else if (isGenerateAtUseSite(argument)) {
       visit(argument, expectedPrecedenceForArgument);
-    } else if (argument is HIntegerCheck) {
-      HIntegerCheck instruction = argument;
-      use(instruction.value, expectedPrecedenceForArgument);
-    } else if (argument is HBoundsCheck) {
-      HBoundsCheck instruction = argument;
-      use(instruction.index, expectedPrecedenceForArgument);
-    } else if (argument is HTypeGuard) {
-      HTypeGuard instruction = argument;
-      use(instruction.guarded, expectedPrecedenceForArgument);
     } else {
       buffer.add(temporary(argument));
     }
@@ -595,16 +677,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       buffer.add("\n");
     }
-    if (info.joinBlock !== null) {
-      visitBasicBlock(info.joinBlock);
-    }
     return true;
+  }
+
+  bool visitSequenceInfo(HStatementSequenceInformation info) {
+    return false;
   }
 
   bool visitSubGraphInfo(HSubGraphBlockInformation info) {
     visitSubGraph(info.subGraph);
-    // A [HSubGraphBlockInformation] is always part of another block
-    // information structure, so it doesn't have a joinBlock.
+    return true;
   }
 
   bool visitSubExpressionInfo(HSubExpressionBlockInformation info) {
@@ -641,27 +723,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       addIndented("}");
     }
     buffer.add("\n");
-    visitBasicBlock(info.joinBlock);
     return true;
   }
 
-  bool visitLoopInfo(HLoopInformation info) {
-    // We must look at the loop information only once, when visiting the
-    // initializer. After that, the initializer has been generated.
-    // The same block information is also put on the condition-block for
-    // the traditional code generation.
-    bool isInitializerBlock = (currentBlock !== info.header);
-    if (!isInitializerBlock && info.kind != HLoopInformation.DO_WHILE_LOOP) {
-      return false;
-    }
-
+  bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
 
     void visitBodyIgnoreLabels() {
       if (info.body.start.isLabeledBlock()) {
         HBlockInformation oldInfo = currentBlockInformation;
-        currentBlockInformation = info.body.start.blockInformation;
+        currentBlockInformation = info.body.start.blockFlow.body;
         generateStatements(info.body);
         currentBlockInformation = oldInfo;
       } else {
@@ -671,9 +743,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
-      case HLoopInformation.FOR_LOOP:
-      case HLoopInformation.WHILE_LOOP:
-      case HLoopInformation.FOR_IN_LOOP: {
+      case HLoopBlockInformation.FOR_LOOP:
+      case HLoopBlockInformation.WHILE_LOOP:
+      case HLoopBlockInformation.FOR_IN_LOOP: {
         HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization !== null) {
@@ -744,7 +816,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         addIndented("}\n");
         break;
       }
-      case HLoopInformation.DO_WHILE_LOOP: {
+      case HLoopBlockInformation.DO_WHILE_LOOP: {
         // Generate do-while loop in all cases.
         if (info.initializer !== null) {
           generateStatements(info.initializer);
@@ -785,7 +857,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           'Unexpected loop kind: ${info.kind}',
           instruction: condition.conditionExpression);
     }
-    visitBasicBlock(info.joinBlock);
     return true;
   }
 
@@ -841,9 +912,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     indent--;
     addIndented('}\n');
 
-    if (labeledBlockInfo.joinBlock !== null) {
-      visitBasicBlock(labeledBlockInfo.joinBlock);
-    }
     if (labeledBlockInfo.isContinue) {
       while (!continueOverrides.isEmpty()) {
         continueAction.remove(continueOverrides.head);
@@ -867,7 +935,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   // Wraps a loop body in a block to make continues have a target to break
   // to (if necessary).
-  void wrapLoopBodyForContinue(HLoopInformation info) {
+  void wrapLoopBodyForContinue(HLoopBlockInformation info) {
     TargetElement target = info.target;
     if (target !== null && target.isContinueTarget) {
       addIndentation();
@@ -897,28 +965,44 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  bool handleBlockFlow(HBlockFlow block) {
+    HBlockInformation info = block.body;
+    // If we reach here again while handling the attached information,
+    // e.g., because we call visitSubGraph on a subgraph starting on
+    // the same block, don't handle it again.
+    // When the structure graph is complete, we will be able to have
+    // different structures starting on the same basic block (e.g., an
+    // "if" and its condition).
+    if (info === currentBlockInformation) return false;
+
+    HBlockInformation oldBlockInformation = currentBlockInformation;
+    currentBlockInformation = info;
+    bool success = info.accept(this);
+    currentBlockInformation = oldBlockInformation;
+    if (success) {
+      HBasicBlock continuation = block.continuation;
+      if (continuation !== null) {
+        visitBasicBlock(continuation);
+      }
+    }
+    return success;
+  }
+
   void visitBasicBlock(HBasicBlock node) {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
 
     currentBlock = node;
-    // If this node has special behavior attached, handle it.
-    // If we reach here again while handling the attached information,
-    // e.g., because we call visitSubGraph on a subgraph starting here,
-    // don't handle it again.
-    if (node.blockInformation !== null &&
-        node.blockInformation !== currentBlockInformation) {
-      HBlockInformation oldBlockInformation = currentBlockInformation;
-      currentBlockInformation = node.blockInformation;
-      bool success = currentBlockInformation.accept(this);
-      currentBlockInformation = oldBlockInformation;
-      if (success) return;
-
-      // If our special handling didn't succeed, we have to emit a generic
-      // version. This still requires special handling for loop-blocks
-      if (node.isLoopHeader()) {
-        beginLoop(node);
-      }
+    // If this node has block-structure based information attached,
+    // try using that to traverse from here.
+    if (node.blockFlow !== null &&
+        handleBlockFlow(node.blockFlow)) {
+      return;
+    }
+    // Flow based traversal.
+    if (node.isLoopHeader() &&
+        node.loopInformation.loopBlockInformation !== currentBlockInformation) {
+      beginLoop(node);
     }
     iterateBasicBlock(node);
   }
@@ -1063,41 +1147,30 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         assignPhisOfAllSuccessors(node);
       }
 
-      if (instruction is HGoto || instruction is HExit || instruction is HTry) {
-        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
-        return;
-      } else if (!isGenerateAtUseSite(instruction)) {
-        if (instruction is !HIf
-            && instruction is !HTypeGuard
-            && instruction is !HLoopBranch
-            && !isGeneratingExpression()) {
-          addIndentation();
+      if (isGenerateAtUseSite(instruction)) {
+        if (instruction is HIf) {
+          HIf hif = instruction;
+          // The "if" is implementing part of a logical expression.
+          // Skip directly forward to to its latest successor, since everything
+          // in-between must also be generateAtUseSite.
+          assert(hif.trueBranch.id < hif.falseBranch.id);
+          visitBasicBlock(hif.falseBranch);
         }
-        if (isGeneratingExpression()) {
+      } else if (instruction is HControlFlow) {
+        if (instruction is HLoopBranch && isGeneratingExpression()) {
           addExpressionSeparator();
         }
-        if (instruction.usedBy.isEmpty()
-            || instruction is HTypeGuard
-            || instruction is HCheck) {
-          visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+      } else if (instruction is HTypeGuard) {
+        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+      } else {
+        if (isGeneratingExpression()) {
+          addExpressionSeparator();
         } else {
-          define(instruction);
+          addIndentation();
         }
-        // Control flow instructions, and some other instructions,
-        // know how to handle ';'.
-        if (instruction is !HControlFlow
-            && instruction is !HTypeGuard
-            && !isGeneratingExpression()) {
-          buffer.add(';\n');
-        }
-      } else if (instruction is HIf) {
-        HIf hif = instruction;
-        // The "if" is implementing part of a logical expression.
-        // Skip directly forward to to its latest successor, since everything
-        // in-between must also be generateAtUseSite.
-        assert(hif.trueBranch.id < hif.falseBranch.id);
-        visitBasicBlock(hif.falseBranch);
-        return;
+        define(instruction);
+        if (!isGeneratingExpression()) buffer.add(';\n');
       }
       instruction = instruction.next;
     }
@@ -1121,8 +1194,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     if (node.builtin){
       beginExpression(unsignedShiftPrecedences.precedence);
+      int oldPrecedence = this.expectedPrecedence;
+      this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
       visitInvokeBinary(node, op);
       buffer.add(' >>> 0');
+      this.expectedPrecedence = oldPrecedence;
       endExpression(unsignedShiftPrecedences.precedence);
     } else {
       visitInvokeBinary(node, op);
@@ -1145,8 +1221,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitInvokeUnary(HInvokeUnary node, String op) {
     if (node.builtin){
       beginExpression(unsignedShiftPrecedences.precedence);
+      int oldPrecedence = this.expectedPrecedence;
+      this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
       visitInvokeUnary(node, op);
       buffer.add(' >>> 0');
+      this.expectedPrecedence = oldPrecedence;
       endExpression(unsignedShiftPrecedences.precedence);
     } else {
       visitInvokeUnary(node, op);
@@ -1313,7 +1392,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction condition = node.inputs[0];
     int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
-    HIfBlockInformation info = node.blockInformation;
+    HIfBlockInformation info = node.blockInformation.body;
     if (condition.isConstant()) {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
@@ -1340,11 +1419,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       endIf(node);
     }
-    if (info.joinBlock !== null && info.joinBlock.dominator !== node.block) {
+    HBasicBlock joinBlock = node.joinBlock;
+    if (joinBlock !== null && joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
       // instead.
-      visitBasicBlock(info.joinBlock);
+      visitBasicBlock(joinBlock);
     }
 
     // Visit all the dominated blocks that are not part of the then or else
@@ -1468,14 +1548,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldGet(HFieldGet node) {
     if (node.receiver !== null) {
       String name =
-          compiler.namer.instanceFieldName(currentLibrary, node.element.name);
+          compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     } else {
-      buffer.add(JsNames.getValid(node.element.name.slowToString()));
+      buffer.add(JsNames.getValid(node.name.slowToString()));
     }
   }
 
@@ -1483,7 +1563,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name;
     if (node.receiver !== null) {
       name =
-          compiler.namer.instanceFieldName(currentLibrary, node.element.name);
+          compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
@@ -1491,7 +1571,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       // TODO(ngeoffray): Remove the 'var' once we don't globally box
       // variables used in a try/catch.
-      name = JsNames.getValid(node.element.name.slowToString());
+      name = JsNames.getValid(node.name.slowToString());
       declareVariable(name);
     }
     buffer.add(' = ');
@@ -1595,11 +1675,40 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitNot(HNot node) {
+    bool isBuiltinRelational(HInstruction instruction) {
+      if (instruction is !HRelational) return false;
+      HRelational relational = instruction;
+      return relational.builtin;
+    }
+
     assert(node.inputs.length == 1);
-    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add('!');
-    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
-    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    HInstruction input = node.inputs[0];
+    if (input is HBoolify && isGenerateAtUseSite(input)) {
+      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      assert(node.inputs.length == 1);
+      use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(' !== true');
+      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    } else if (isBuiltinRelational(input) && isGenerateAtUseSite(input)) {
+      Map<String, String> inverseOperator = const <String>{
+        "==" : "!=",
+        "!=" : "==",
+        "===": "!==",
+        "!==": "===",
+        "<"  : ">=",
+        "<=" : ">",
+        ">"  : "<=",
+        ">=" : "<"
+      };
+      HRelational relational = input;
+      visitInvokeBinary(input,
+                        inverseOperator[relational.operation.name.stringValue]);
+    } else {
+      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+      buffer.add('!');
+      use(input, JSPrecedence.PREFIX_PRECEDENCE);
+      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    }
   }
 
   visitParameterValue(HParameterValue node) {
@@ -1618,6 +1727,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitReturn(HReturn node) {
+    addIndentation();
     assert(node.inputs.length == 1);
     HInstruction input = node.inputs[0];
     if (input.isConstantNull()) {
@@ -1634,6 +1744,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitThrow(HThrow node) {
+    addIndentation();
     if (node.isRethrow) {
       buffer.add('throw ');
       use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
@@ -2080,12 +2191,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       compiler.registerStaticUse(helperElement);
       buffer.add(compiler.namer.isolateAccess(helperElement));
       buffer.add('(');
-      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      use(node.checkedInput, JSPrecedence.EXPRESSION_PRECEDENCE);
       if (additionalArgument !== null) buffer.add(", '$additionalArgument'");
       buffer.add(')');
       endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
-      use(node.inputs[0], expectedPrecedence);
+      use(node.checkedInput, expectedPrecedence);
     }
   }
 }
@@ -2197,7 +2308,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginLoop(HBasicBlock block) {
     addIndentation();
-    HLoopInformation info = block.blockInformation;
+    HLoopInformation info = block.loopInformation;
     for (LabelElement label in info.labels) {
       writeLabel(label);
       buffer.add(":");
@@ -2321,9 +2432,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
   bool visitIfInfo(HIfBlockInformation info) => false;
-  bool visitLoopInfo(HLoopInformation info) => false;
+  bool visitLoopInfo(HLoopBlockInformation info) => false;
   bool visitTryInfo(HTryBlockInformation info) => false;
-
+  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;
@@ -2377,7 +2488,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
-    HLoopInformation loopInformation = block.blockInformation;
+    HLoopInformation loopInformation = block.loopInformation;
     for (LabelElement label in loopInformation.labels) {
       writeLabel(label);
       buffer.add(":");
@@ -2400,7 +2511,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
     if (header.hasGuards()) {
       endBailoutSwitch();
-      HLoopInformation info = header.blockInformation;
+      HLoopInformation info = header.loopInformation;
       if (info.target != null) breakAction.remove(info.target);
     }
     indent--;

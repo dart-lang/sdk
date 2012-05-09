@@ -33,6 +33,7 @@ class WorkItem {
 class Compiler implements DiagnosticListener {
   Queue<WorkItem> worklist;
   Universe universe;
+  World world;
   String assembledCode;
   Namer namer;
   Types types;
@@ -100,6 +101,7 @@ class Compiler implements DiagnosticListener {
 
   Compiler([this.tracer = const Tracer()])
       : universe = new Universe(),
+        world = new World(),
         worklist = new Queue<WorkItem>(),
         codegenProgress = new Stopwatch.start() {
     namer = new Namer(this);
@@ -299,7 +301,9 @@ class Compiler implements DiagnosticListener {
         }
       });
     }
-    native.processNativeClasses(this, universe.libraries.getValues());
+    Collection<LibraryElement> libraries = universe.libraries.getValues();
+    native.processNativeClasses(this, libraries);
+    world.populate(this, libraries);
     enqueue(new WorkItem.toCompile(main));
     codegenProgress.reset();
     while (!worklist.isEmpty()) {

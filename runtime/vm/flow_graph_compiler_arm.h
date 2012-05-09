@@ -24,8 +24,11 @@ class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>& blocks)
-      : FlowGraphVisitor(blocks), parsed_function_(parsed_function) {
+                    const GrowableArray<BlockEntryInstr*>& blocks,
+                    bool is_optimizing)
+      : FlowGraphVisitor(blocks),
+        parsed_function_(parsed_function),
+        is_optimizing_(is_optimizing) {
   }
 
   virtual ~FlowGraphCompiler() { }
@@ -43,6 +46,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void Bailout(const char* reason);
 
   const ParsedFunction& parsed_function_;
+  const bool is_optimizing_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

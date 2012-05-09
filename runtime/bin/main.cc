@@ -178,10 +178,10 @@ static int ParseArguments(int argc,
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessMainOptions(argv[i])) {
-      ++i;
+      i++;
     } else {
       vm_options->AddArgument(argv[i]);
-      ++i;
+      i++;
     }
   }
   if (generate_pprof_symbols_filename != NULL) {
@@ -191,7 +191,7 @@ static int ParseArguments(int argc,
   // Get the script name.
   if (i < argc) {
     *script_name = argv[i];
-    ++i;
+    i++;
   } else {
     return -1;
   }
@@ -199,7 +199,7 @@ static int ParseArguments(int argc,
   // Parse out options to be passed to dart main.
   while (i < argc) {
     dart_options->AddArgument(argv[i]);
-    i += 1;
+    i++;
   }
 
   return 0;

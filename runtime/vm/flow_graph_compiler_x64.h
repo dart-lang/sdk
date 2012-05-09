@@ -25,7 +25,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>& block_order);
+                    const GrowableArray<BlockEntryInstr*>& block_order,
+                    bool is_optimizing);
 
   virtual ~FlowGraphCompiler();
 
@@ -38,6 +39,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeExceptionHandlers(const Code& code);
 
  private:
+  // Constructor is lighweight, major initialization work should occur here.
+  // This makes it easier to measure time spent in the compiler.
+  void InitCompiler();
+
   struct BlockInfo : public ZoneAllocated {
    public:
     BlockInfo() : label() { }
@@ -46,6 +51,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   };
 
   BlockEntryInstr* current_block() const { return current_block_; }
+
+  bool is_optimizing() const { return is_optimizing_; }
 
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
@@ -134,6 +141,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   BlockEntryInstr* current_block_;
   DescriptorList* pc_descriptors_list_;
   ExceptionHandlerList* exception_handlers_list_;
+  const bool is_optimizing_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

@@ -185,7 +185,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node.inputs[1];
     }
 
-    if (!input.canBePrimitive() && !node.getter) {
+    if (!input.canBePrimitive() && !node.getter && !node.setter) {
       return fromInterceptorToDynamicInvocation(node, node.name);
     }
 
@@ -553,6 +553,24 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType combinedType = value.propagatedType.union(node.propagatedType);
     return (combinedType == value.propagatedType) ? value : node;
   }
+
+  HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    HInstruction receiver = node.inputs[0];
+    if (!receiver.propagatedType.isUseful()) return node;
+    Type type = receiver.propagatedType.computeType(compiler);
+    if (type === null) return node;
+    if (!compiler.world.isOnlyFields(type, node.name)) return node;
+    return new HFieldGet(node.name, node.inputs[0]);
+  }
+
+  HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
+    HInstruction receiver = node.inputs[0];
+    if (!receiver.propagatedType.isUseful()) return node;
+    Type type = receiver.propagatedType.computeType(compiler);
+    if (type === null) return node;
+    if (!compiler.world.isOnlyFields(type, node.name)) return node;
+    return new HFieldSet(node.name, node.inputs[0], node.inputs[1]);
+  }
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
@@ -586,12 +604,12 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     HInvokeInterceptor length = new HInvokeInterceptor(
         Selector.INVOCATION_0,
         const SourceString("length"),
-        true,
-        <HInstruction>[interceptor, receiver]);
+        <HInstruction>[interceptor, receiver],
+        getter: true);
     length.propagatedType = HType.INTEGER;
     node.block.addBefore(node, length);
 
-    HBoundsCheck check = new HBoundsCheck(length, index);
+    HBoundsCheck check = new HBoundsCheck(index, length);
     node.block.addBefore(node, check);
     return check;
   }
@@ -782,7 +800,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       HBasicBlock block = graph.blocks[i];
       if (block.isLoopHeader()) {
         int changesFlags = loopChangesFlags[block.id];
-        HLoopInformation info = block.blockInformation;
+        HLoopInformation info = block.loopInformation;
         HBasicBlock last = info.getLastBackEdge();
         for (int j = block.id; j <= last.id; j++) {
           moveLoopInvariantCodeFromBlock(graph.blocks[j], block, changesFlags);

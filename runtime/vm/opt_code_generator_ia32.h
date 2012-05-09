@@ -52,6 +52,8 @@ class OptimizingCodeGenerator : public CodeGenerator {
 
   virtual void GenerateDeferredCode();
 
+  virtual void InitGenerator();
+
  private:
   friend class DeoptimizationBlob;
 

@@ -77,6 +77,9 @@ class CodeGenerator : public AstNodeVisitor {
 
   void GenerateCode();
   virtual void GenerateDeferredCode();
+  // Constructor is lighweight, major initialization work should occur here.
+  // This makes it easier to measure time spent in the code generator.
+  virtual void InitGenerator();
 
 #define DEFINE_VISITOR_FUNCTION(type, name)                                    \
   virtual void Visit##type(type* node);

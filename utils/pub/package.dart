@@ -28,12 +28,10 @@ class Package implements Hashable {
   final String name;
 
   /**
-   * The names of the packages that this package depends on. This is what is
+   * The ids of the packages that this package depends on. This is what is
    * specified in the pubspec when this package depends on another.
    */
-  // TODO(rnystrom): When packages are versioned and sourced, this will likely
-  // be something more than just a string.
-  final Collection<String> dependencies;
+  final Collection<PackageId> dependencies;
 
   /**
    * Constructs a package. This should not be called directly. Instead, acquire
@@ -42,45 +40,6 @@ class Package implements Hashable {
   Package._(String dir, this.dependencies)
   : dir = dir,
     name = basename(dir);
-
-  /**
-   * Reads and returns all of the packages this package immediately depends on.
-   */
-  Future<Collection<Package>> loadDependencies(PackageCache cache) {
-    return Futures.wait(dependencies.map((name) => cache.find(name)));
-  }
-
-  /**
-   * Walks the entire dependency graph starting at this package and returns a
-   * [Set] of all of the packages dependend on by this one, directly or
-   * indirectly. This package is included in the result set.
-   */
-  Future<Set<Package>> traverseDependencies(PackageCache cache) {
-    final completer = new Completer<Set<Package>>();
-    final packages = new Set<Package>();
-
-    var pendingAsyncCalls = 0;
-
-    walkPackage(Package package) {
-      // Skip packages we've already traversed.
-      if (packages.contains(package)) return;
-
-      // Add the package.
-      packages.add(package);
-
-      // Recurse into its dependencies.
-      pendingAsyncCalls++;
-      package.loadDependencies(cache).then((dependencies) {
-        dependencies.forEach(walkPackage);
-        pendingAsyncCalls--;
-        if (pendingAsyncCalls == 0) completer.complete(packages);
-      });
-    }
-
-    walkPackage(this);
-
-    return completer.future;
-  }
 
   /**
    * Generates a hashcode for the package.
@@ -98,8 +57,8 @@ class Package implements Hashable {
    * Parses the pubspec at the given path and returns the list of package
    * dependencies it exposes.
    */
-  static Future<List<String>> _parsePubspec(String path) {
-    final completer = new Completer<List<String>>();
+  static Future<List<PackageId>> _parsePubspec(String path) {
+    final completer = new Completer<List<PackageId>>();
 
     // TODO(rnystrom): Handle the directory not existing.
     // TODO(rnystrom): Error-handling.
@@ -108,7 +67,7 @@ class Package implements Hashable {
       // If there is no pubspec, we implicitly treat that as a package with no
       // dependencies.
       // TODO(rnystrom): Distinguish file not found from other real errors.
-      completer.complete(<String>[]);
+      completer.complete(<PackageId>[]);
       return true;
     });
 
@@ -134,9 +93,63 @@ class Package implements Hashable {
             'The pubspec dependencies must be a list of package names.');
       }
 
-      completer.complete(dependencies);
+      var dependencyIds =
+        dependencies.map((name) => new PackageId(name, Source.defaultSource));
+      completer.complete(dependencyIds);
     });
 
     return completer.future;
+  }
+}
+
+/**
+ * A unique identifier for a package. A given package id specifies a single
+ * chunk of code and resources.
+ *
+ * Note that it's possible for multiple package ids to point to identical
+ * packages. For example, the same package may be available from multiple
+ * sources. As far as Pub is concerned, those packages are different.
+ */
+// TODO(nweiz, rnystrom): this should include version eventually
+class PackageId implements Hashable, Comparable {
+  /**
+   * The name used by the [source] to look up the package.
+   *
+   * Note that this may be distinct from [name], which is the name of the
+   * package itself. The [source] uses this name to locate the package and
+   * returns the true package name. For example, for a Git source [fullName]
+   * might be the URL "git://github.com/dart/uilib.git", while [name] would just
+   * be "uilib". It would be up to the source to take the URL and extract the
+   * package name.
+   */
+  final String fullName;
+
+  /**
+   * The [Source] used to look up the package given the [fullName].
+   */
+  final Source source;
+
+  PackageId(String this.fullName, Source this.source);
+
+  /**
+   * The name of the package being imported. Not necessarily the same as
+   * [fullName].
+   */
+  String get name() => source.packageName(this);
+
+  int hashCode() => fullName.hashCode() ^ source.name.hashCode();
+
+  bool operator ==(other) {
+    if (other is! PackageId) return false;
+    return other.fullName == fullName && other.source.name == source.name;
+  }
+
+  String toString() => "$fullName from ${source.name}";
+
+  int compareTo(Comparable other) {
+    if (other is! PackageId) throw new IllegalArgumentException(other);
+    var sourceComp = this.source.name.compareTo(other.source.name);
+    if (sourceComp != 0) return sourceComp;
+    return this.fullName.compareTo(other.fullName);
   }
 }

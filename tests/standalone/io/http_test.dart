@@ -431,6 +431,7 @@ void testReasonPhrase() {
     HttpClient httpClient = new HttpClient();
     HttpClientConnection conn =
         httpClient.get("127.0.0.1", port, "/reasonformoving");
+    conn.followRedirects = false;
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
       Expect.equals("Don't come looking here any more", response.reasonPhrase);

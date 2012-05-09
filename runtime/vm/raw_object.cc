@@ -340,13 +340,6 @@ intptr_t RawTypeParameter::VisitTypeParameterPointers(
 }
 
 
-intptr_t RawInstantiatedType::VisitInstantiatedTypePointers(
-    RawInstantiatedType* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return InstantiatedType::InstanceSize();
-}
-
-
 intptr_t RawAbstractTypeArguments::VisitAbstractTypeArgumentsPointers(
     RawAbstractTypeArguments* raw_obj, ObjectPointerVisitor* visitor) {
   // RawAbstractTypeArguments is an abstract class.

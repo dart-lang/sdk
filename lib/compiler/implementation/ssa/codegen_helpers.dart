@@ -54,23 +54,13 @@ class SsaInstructionMerger extends HBaseVisitor {
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}
 
-  // TODO(ngeoffray): This should not be needed. The codegen should
-  // cope better with this instruction.
-  void visitTypeConversion(HTypeConversion instruction) {}
+  void visitTypeConversion(HTypeConversion instruction) {
+    if (!instruction.checked) generateAtUseSite.add(instruction);
+    visitInstruction(instruction);
+  }
 
   void tryGenerateAtUseSite(HInstruction instruction) {
-    // A type guard should never be generate at use site, otherwise we
-    // cannot bailout.
-    if (instruction is HTypeGuard) return;
-
-    // A check should never be generate at use site, otherwise we
-    // cannot throw.
-    if (instruction is HCheck) return;
-
-    // TODO(ngeoffray): This should not be needed. The codegen should
-    // cope better with this instruction.
-    if (instruction is HTypeConversion) return;
-
+    if (instruction.isControlFlow()) return;
     generateAtUseSite.add(instruction);
   }
 
@@ -444,14 +434,15 @@ class PhiEquivalator {
   PhiEquivalator(this.equivalence, this.logicalOperations);
 
   void analyzeGraph(HGraph graph) {
-    graph.blocks.forEach((HBasicBlock block) => analyzeBlock(block));
+    graph.blocks.forEach(analyzeBlock);
   }
 
   void analyzeBlock(HBasicBlock block) {
     for (HPhi phi = block.phis.first; phi !== null; phi = phi.next) {
       if (!logicalOperations.containsKey(phi) &&
           phi.usedBy.length == 1 &&
-          phi.usedBy[0] is HPhi) {
+          phi.usedBy[0] is HPhi &&
+          phi.block.id < phi.usedBy[0].block.id) {
         equivalence.makeEquivalent(phi, phi.usedBy[0]);
       }
     }

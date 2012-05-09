@@ -33,15 +33,24 @@ DECLARE_FLAG(bool, report_usage_count);
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>& block_order)
+    const GrowableArray<BlockEntryInstr*>& block_order,
+    bool is_optimizing)
     : FlowGraphVisitor(block_order),
       assembler_(assembler),
       parsed_function_(parsed_function),
       block_info_(block_order.length()),
       current_block_(NULL),
-      pc_descriptors_list_(new DescriptorList()),
-      exception_handlers_list_(new ExceptionHandlerList()) {
-  for (int i = 0; i < block_order.length(); ++i) {
+      pc_descriptors_list_(NULL),
+      exception_handlers_list_(NULL),
+      is_optimizing_(is_optimizing) {
+}
+
+
+void FlowGraphCompiler::InitCompiler() {
+  pc_descriptors_list_ = new DescriptorList();
+  exception_handlers_list_ = new ExceptionHandlerList();
+  block_info_.Clear();
+  for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
 }
@@ -158,12 +167,8 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
         __ movq(R10, FieldAddress(RAX, Object::class_offset()));
         __ cmpq(R10, RCX);
         __ j(EQUAL, is_instance);
-        // RAX, RCX, and RDX are preserved in stub, result is in RBX.
-        __ call(&StubCode::IsRawSubTypeLabel());
-        // Result in RBX: 1 is raw subtype.
-        __ cmpq(RBX, Immediate(1));
-        __ j(EQUAL, is_instance);
-          // Otherwise fall through to runtime call.
+        // TODO(srdjan): Finish implementation.
+        // Otherwise fall through to runtime call.
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -216,15 +221,7 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
           __ cmpq(RCX, raw_null);
           __ j(NOT_EQUAL, is_instance);
         } else {
-          __ LoadObject(RCX, type_class);
-          // RAX: Instance (preserved).
-          // RCX: test class (preserved).
-          // RDX: instantiator type arguments (preserved).
-          __ call(&StubCode::IsRawSubTypeLabel());
-          // Result in RBX: 1 is raw subtype.
-          __ cmpq(RBX, Immediate(1));
-          __ j(EQUAL, is_instance);
-          // Otherwise fallthrough to runtime call.
+          // TODO(srdjan): Finish implementation.
         }
       }
     }
@@ -267,12 +264,7 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
       // Check that class of type has no type parameters.
       __ cmpq(R10, raw_null);
       __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-      // We have a non-parameterized class in RCX, compare with class of
-      // value in RAX. RAX, RCX, and RDX are preserved in stub.
-      __ call(&StubCode::IsRawSubTypeLabel());
-      // Result in EBX: 1 is raw subtype.
-      __ cmpq(RBX, Immediate(1));
-      __ j(EQUAL, is_instance);
+      // TODO(srdjan): Implement subtype test cache.
       // Fall through to runtime call.
     }
   }
@@ -1239,6 +1231,28 @@ void FlowGraphCompiler::VisitBind(BindInstr* instr) {
 
 void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   LoadValue(RAX, instr->value());
+  if (!is_optimizing()) {
+    // Count only in unoptimized code.
+    // TODO(srdjan): Replace the counting code with a type feedback
+    // collection and counting stub.
+    const Function& function =
+          Function::ZoneHandle(parsed_function_.function().raw());
+    __ LoadObject(RCX, function);
+    __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
+    if (CodeGenerator::CanOptimize()) {
+      // Do not optimize if usage count must be reported.
+      __ cmpl(FieldAddress(RCX, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      Label not_yet_hot;
+      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+      __ pushq(RAX);  // Preserve result.
+      __ pushq(RCX);  // Argument for runtime: function to optimize.
+      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+      __ popq(RCX);  // Remove argument.
+      __ popq(RAX);  // Restore result.
+      __ Bind(&not_yet_hot);
+    }
+  }
 
   if (FLAG_trace_functions) {
     __ pushq(RAX);  // Preserve result.
@@ -1574,7 +1588,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 // TODO(srdjan): Investigate where to put the argument type checks for
 // checked mode.
 void FlowGraphCompiler::CompileGraph() {
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphcompiler_timer);
+  InitCompiler();
   if (TryIntrinsify()) {
     // Make it patchable: code must have a minimum code size, nop(2) increases
     // the minimum code size appropriately.

@@ -19,3 +19,34 @@ String padRight(String source, int length) {
 
   return result.toString();
 }
+
+/**
+ * Runs [fn] after [future] completes, whether it completes successfully or not.
+ * Essentially an asynchronous `finally` block.
+ */
+always(Future future, fn()) {
+  var completer = new Completer();
+  future.then((_) => fn());
+  future.handleException((_) {
+    fn();
+    return false;
+  });
+}
+
+/**
+ * Flattens nested lists into a single list containing only non-list elements.
+ */
+List flatten(List nested) {
+  var result = [];
+  helper(list) {
+    for (var element in list) {
+      if (element is List) {
+        helper(element);
+      } else {
+        result.add(element);
+      }
+    }
+  }
+  helper(nested);
+  return result;
+}

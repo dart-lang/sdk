@@ -34,7 +34,7 @@ void main() {
   int mode = doc.MODE_STATIC;
   String outputDir = 'docs';
   String compilerPath;
-  bool generateAppCache = true;
+  bool generateAppCache = false;
 
   // Parse the command-line arguments.
   for (int i = 0; i < args.length; i++) {
@@ -49,8 +49,8 @@ void main() {
         mode = doc.MODE_LIVE_NAV;
         break;
 
-      case '--generate-app-cache=false':
-        generateAppCache = false;
+      case '--generate-app-cache=true':
+        generateAppCache = true;
         break;
 
       default:

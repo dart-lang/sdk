@@ -92,6 +92,8 @@ class ElementKind {
     const ElementKind('statement', ElementCategory.NONE);
   static final ElementKind LABEL =
     const ElementKind('label', ElementCategory.NONE);
+  static final ElementKind VOID =
+    const ElementKind('void', ElementCategory.NONE);
 
   toString() => id;
 }
@@ -141,7 +143,7 @@ class Element implements Hashable {
   Token position() => null;
 
   Token findMyName(Token token) {
-    for (Token t = token; t !== EOF_TOKEN; t = t.next) {
+    for (Token t = token; t.kind !== EOF_TOKEN; t = t.next) {
       if (t.value == name) return t;
     }
     return token;
@@ -664,7 +666,18 @@ class SynthesizedConstructorElement extends FunctionElement {
   Token position() => enclosingElement.position();
 }
 
+class VoidElement extends Element {
+  VoidElement(Element enclosing)
+      : super(Types.VOID, ElementKind.VOID, enclosing);
+  Type computeType(compiler) => compiler.types.voidType;
+  Node parseNode(_) {
+    throw 'internal error: parseNode on void';
+  }
+  bool impliesType() => true;
+}
+
 class ClassElement extends ContainerElement {
+  final int id;
   Type type;
   Type supertype;
   Type defaultClass;
@@ -681,7 +694,7 @@ class ClassElement extends ContainerElement {
 
   Link<Type> allSupertypes;
 
-  ClassElement(SourceString name, CompilationUnitElement enclosing)
+  ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
       typeParameters = new LinkedHashMap<SourceString, TypeVariableElement>(),
@@ -799,7 +812,7 @@ class ClassElement extends ContainerElement {
         }
       }
       classElement = includeSuperMembers ? classElement.superclass : null;
-    } while(classElement !== null);    
+    } while(classElement !== null);
   }
 
   /**
@@ -815,7 +828,7 @@ class ClassElement extends ContainerElement {
   void forEachInstanceField([void f(ClassElement enclosingClass, Element field),
                              includeBackendMembers = false,
                              includeSuperMembers = false]) {
-    // Filters so that [f] is only invoked with instance fields. 
+    // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
         f(enclosingClass, member);
@@ -852,6 +865,7 @@ class ClassElement extends ContainerElement {
   bool isInterface() => false;
   bool isNative() => nativeName != null;
   SourceString nativeName;
+  int hashCode() => id;
 }
 
 class Elements {

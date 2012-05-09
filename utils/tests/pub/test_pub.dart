@@ -30,10 +30,11 @@ DirectoryDescriptor dir(String name, [List<Descriptor> contents]) =>
 
 void testPub(String description, [List<Descriptor> cache, Descriptor app,
     List<String> args, List<Descriptor> expectedPackageDir,
-    String output, int exitCode = 0]) {
+    List<Descriptor> sdk, String output, int exitCode = 0]) {
   asyncTest(description, 1, () {
     var createdSandboxDir;
     var createdAppDir;
+    var createdSdkDir;
 
     deleteSandboxIfCreated() {
       if (createdSandboxDir != null) {
@@ -50,6 +51,9 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
       return _setUpApp(sandboxDir, app);
     }).chain((appDir) {
       createdAppDir = appDir;
+      return _setUpSdk(createdSandboxDir, sdk);
+    }).chain((sdkDir) {
+      createdSdkDir = sdkDir;
       return _setUpCache(createdSandboxDir, cache);
     }).chain((cacheDir) {
       var workingDir;
@@ -59,6 +63,12 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
         // TODO(rnystrom): Hack in the cache directory path. Should pass this
         // in using environment var once #752 is done.
         args.add('--cachedir=${getFullPath(cacheDir)}');
+      }
+
+      if (createdSdkDir != null) {
+        // TODO(rnystrom): Hack in the SDK path. Should pass this in using
+        // environment var once #752 is done.
+        args.add('--sdkdir=${getFullPath(createdSdkDir)}');
       }
 
       return _runPub(args, workingDir);
@@ -84,7 +94,15 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
 
     future.handleException((error) {
       deleteSandboxIfCreated();
-      return false;
+      // If we encounter an error, we want to pass it to the test framework. In
+      // order to get the stack trace information, we need to re-throw and
+      // re-catch it.
+      try {
+        throw error;
+      } catch (var e, var stack) {
+        reportTestError('$e', '$stack');
+      }
+      return true;
     });
   });
 }
@@ -105,6 +123,13 @@ Future _setUpApp(Directory sandboxDir, Descriptor app) {
   if (app == null) return new Future.immediate(null);
 
   return app.create(sandboxDir);
+}
+
+Future _setUpSdk(Directory sandboxDir, List<Descriptor> sdk) {
+  // No SDK directory.
+  if (sdk == null) return new Future.immediate(null);
+
+  return dir('sdk', sdk).create(sandboxDir);
 }
 
 Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {

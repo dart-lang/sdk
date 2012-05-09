@@ -57,6 +57,35 @@ String basename(file) {
 }
 
 /**
+ * Gets the the leading directory path for [file], which can either be a
+ * [String], [File], or [Directory].
+ */
+// TODO(nweiz): Copied from file_system (so that we don't have to add
+// file_system to the SDK). Should unify.
+String dirname(file) {
+  file = _getPath(file).replaceAll('\\', '/');
+
+  int lastSlash = file.lastIndexOf('/', file.length);
+  if (lastSlash == -1) {
+    return '.';
+  } else {
+    return file.substring(0, lastSlash);
+  }
+}
+
+/**
+ * Asynchronously determines if [path], which can be a [String] file path, a
+ * [File], or a [Directory] exists on the file system. Returns a [Future] that
+ * completes with the result.
+ */
+Future<bool> exists(path) {
+  path = _getPath(path);
+  return Futures.wait([fileExists(path), dirExists(path)]).transform((results) {
+    return results[0] || results[1];
+  });
+}
+
+/**
  * Asynchronously determines if [file], which can be a [String] file path or a
  * [File], exists on the file system. Returns a [Future] that completes with
  * the result.
@@ -117,6 +146,34 @@ Future<Directory> createDir(dir) {
 }
 
 /**
+ * Ensures that [path] and all its parent directories exist. If they don't
+ * exist, creates them. Returns a [Future] that completes once all the
+ * directories are created.
+ */
+Future<Directory> ensureDir(path) {
+  path = _getPath(path);
+  if (path == '.') return new Future.immediate(new Directory('.'));
+
+  return dirExists(path).chain((exists) {
+    if (exists) return new Future.immediate(new Directory(path));
+    return ensureDir(dirname(path));
+  }).chain((_) {
+    var completer = new Completer<Directory>();
+    var future = createDir(path);
+    future.handleException((error) {
+      if (error is! DirectoryIOException) return false;
+      // Error 17 means the directory already exists.
+      if (error.osError.errorCode != 17) return false;
+
+      completer.complete(_getDirectory(path));
+      return true;
+    });
+    future.then(completer.complete);
+    return completer.future;
+  });
+}
+
+/**
  * Creates a temp directory whose name will be based on [dir] with a unique
  * suffix appended to it. Returns a [Future] that completes when the directory
  * is created.
@@ -135,31 +192,12 @@ Future<Directory> createTempDir(dir) {
  * [Directory]. Returns a [Future] that completes when the deletion is done.
  */
 Future<Directory> deleteDir(dir) {
-  // TODO(rnystrom): Hack! Temporary! Right now, dart:io's Directory delete
-  // method can't handle directories with symlinks, which is exactly what pub
-  // creates and deletes. Instead, we'll just shell out to 'rm'. Remove this
-  // when dartbug.com/2646 is fixed.
-  dir = _getDirectory(dir);
-
-  // Sanity check!
-  if (dir.path == '/' ||
-      dir.path == '.' ||
-      dir.path == '..' ||
-      dir.path == '~' ||
-      dir.path == '*') throw "(O.o) I don't think you want to do that!";
-
-  return runProcess('rm', ['-rf', dir.path]).transform((_) => dir);
-  // End hack!
-
-  // Real code:
-  /*
   final completer = new Completer<Directory>();
   dir = _getDirectory(dir);
   dir.onError = (error) => completer.completeException(error);
   dir.deleteRecursively(() => completer.complete(dir));
 
   return completer.future;
-  */
 }
 
 /**

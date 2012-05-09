@@ -346,17 +346,23 @@ class _WebSocketProtocolProcessor {
 
 
 class _WebSocketConnectionBase  {
-  void _socketReady(DetachedSocket detached) {
-    assert(detached.socket != null);
-    _socket = detached.socket;
+  void _socketConnected(Socket socket) {
+    _socket = socket;
+    _socket.onError = (e) {
+      _reportError(e);
+      _socket.close();
+    };
+  }
+
+  void _startProcessing(List<int> unparsedData) {
     _WebSocketProtocolProcessor processor = new _WebSocketProtocolProcessor();
     processor.onMessageStart = _onWebSocketMessageStart;
     processor.onMessageData = _onWebSocketMessageData;
     processor.onMessageEnd = _onWebSocketMessageEnd;
     processor.onClosed = _onWebSocketClosed;
     processor.onError = _onWebSocketError;
-    if (detached.unparsedData != null) {
-      processor.update(detached.unparsedData, 0, detached.unparsedData.length);
+    if (unparsedData != null) {
+      processor.update(unparsedData, 0, unparsedData.length);
     }
     _socket.onData = () {
       int available = _socket.available();
@@ -373,10 +379,6 @@ class _WebSocketConnectionBase  {
       } else {
         _reportError(new WebSocketException("Unexpected close"));
       }
-      _socket.close();
-    };
-    _socket.onError = (e) {
-      _reportError(e);
       _socket.close();
     };
   }
@@ -560,7 +562,8 @@ class _WebSocketConnectionBase  {
 class _WebSocketConnection
     extends _WebSocketConnectionBase implements WebSocketConnection {
   _WebSocketConnection(DetachedSocket detached) {
-    _socketReady(detached);
+    _socketConnected(detached.socket);
+    _startProcessing(detached.unparsedData);
   }
 }
 
@@ -678,8 +681,10 @@ class _WebSocketClientConnection
     }
 
     // Connection upgrade successful.
-    _socketReady(_conn.detachSocket());
+    DetachedSocket detached = _conn.detachSocket();
+    _socketConnected(detached.socket);
     if (_onOpen != null) _onOpen();
+    _startProcessing(detached.unparsedData);
   }
 
   void _generateNonce() {
@@ -732,4 +737,113 @@ class _WebSocketClientConnection
   Function _onNoUpgrade;
   HttpClientConnection _conn;
   String _nonce;
+}
+
+
+class _WebSocket implements WebSocket {
+  _WebSocket(String url, [protocols]) {
+    Uri uri = new Uri.fromString(url);
+    if (uri.scheme != "ws") {
+      throw new WebSocketException("Unsupported URL scheme ${uri.scheme}");
+    }
+    if (uri.userInfo != "") {
+      throw new WebSocketException("Unsupported user info ${uri.userInfo}");
+    }
+    int port = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
+    String path;
+    if (uri.query != "") {
+      if (uri.fragment != "") {
+        path = "${uri.path}?${uri.query}#${uri.fragment}";
+      } else {
+        path = "${uri.path}?${uri.query}";
+      }
+    } else {
+      path = uri.path;
+    }
+
+    HttpClient client = new HttpClient();
+    HttpClientConnection conn = client.open("GET", uri.domain, port, path);
+    if (protocols is String) protocols = [protocols];
+    _wsconn = new WebSocketClientConnection(conn, protocols);
+    _wsconn.onOpen = () {
+      // HTTP client not needed after socket have been detached.
+      client.shutdown();
+      client = null;
+      _readyState = WebSocket.OPEN;
+      if (_onopen != null) _onopen();
+    };
+    _wsconn.onMessage = (message) {
+      if (_onmessage != null) {
+        _onmessage(new _WebSocketMessageEvent(message));
+      }
+    };
+    _wsconn.onClosed = (status, reason) {
+      _readyState = WebSocket.CLOSED;
+      if (_onclose != null) {
+        _onclose(new _WebSocketCloseEvent(true, status, reason));
+      }
+    };
+    _wsconn.onNoUpgrade = (response) {
+      if (_onerror != null) _onerror("Failed web socket connection");
+    };
+    _wsconn.onError = (e) {
+      if (_onerror != null) _onerror(e);
+    };
+  }
+
+  int get readyState() => _readyState;
+  int get bufferedAmount() => 0;
+
+  void set onopen(Function callback) {
+    _onopen = callback;
+  }
+
+  void set onerror(Function callback) {
+    _onerror = callback;
+  }
+
+  void set onclose(Function callback) {
+    _onclose = callback;
+  }
+
+  String get extensions() => null;
+  String get protocol() => null;
+
+  void close(int code, String reason) {
+    if (_readyState < WebSocket.CLOSING) _readyState = WebSocket.CLOSING;
+    _wsconn.close(code, reason);
+  }
+
+  void set onmessage(Function callback) {
+    _onmessage = callback;
+  }
+
+  void send(data) {
+    _wsconn.send(data);
+  }
+
+  WebSocketClientConnection _wsconn;
+  int _readyState = WebSocket.CONNECTING;
+  Function _onopen;
+  Function _onerror;
+  Function _onclose;
+  Function _onmessage;
+}
+
+
+class _WebSocketMessageEvent implements MessageEvent {
+  _WebSocketMessageEvent(this._data);
+  get data() => _data;
+  var _data;
+}
+
+
+class _WebSocketCloseEvent implements CloseEvent {
+  _WebSocketCloseEvent(this._wasClean, this._code, this._reason);
+  bool get wasClean() => _wasClean;
+  int get code() => _code;
+  String get reason() => _reason;
+  bool _wasClean;
+  int _code;
+  String _reason;
 }

@@ -134,7 +134,10 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 
 
 uword AssemblerTest::Assemble() {
-  const Code& code = Code::Handle(Code::FinalizeCode(name_, assembler_));
+  const String& function_name = String::ZoneHandle(String::NewSymbol(name_));
+  Function& function = Function::ZoneHandle(
+      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+  const Code& code = Code::Handle(Code::FinalizeCode(function, assembler_));
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =

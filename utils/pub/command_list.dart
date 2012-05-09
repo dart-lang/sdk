@@ -12,11 +12,19 @@ class ListCommand extends PubCommand {
   String get description() => 'print the contents of repositories';
 
   void onRun() {
-    cache.listAll().then((packages) {
-      packages.sort((a, b) => a.name.compareTo(b.name));
-      for (final package in packages) {
-        print(package.name);
-      }
-    });
+    // TODO(nweiz): also list the contents of the packages directory when it's
+    // able to determine the source of its packages (that is, when we have a
+    // lockfile).
+    cache.listAll().then((ids) => _printIds('system cache', ids));
+  }
+
+  _printIds(String title, List<PackageId> ids) {
+    ids = new List<PackageId>.from(ids);
+    ids.sort((a, b) => a.compareTo(b));
+
+    print('From $title:');
+    for (var id in ids) {
+      print('  $id');
+    }
   }
 }

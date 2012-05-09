@@ -5,8 +5,9 @@
 #library('crypto');
 
 #source('crypto_utils.dart');
+#source('hash_utils.dart');
 #source('hmac.dart');
-#source('sha_utils.dart');
+#source('md5.dart');
 #source('sha1.dart');
 #source('sha256.dart');
 
@@ -58,6 +59,16 @@ interface SHA1 extends Hash default _SHA1 {
  */
 interface SHA256 extends Hash default _SHA256 {
   SHA256();
+}
+
+/**
+ * MD5 hash function implementation.
+ *
+ * WARNING: MD5 has known collisions and should only be used when
+ * required for backwards compatibility.
+ */
+interface MD5 extends Hash default _MD5 {
+  MD5();
 }
 
 /**

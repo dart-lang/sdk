@@ -59,7 +59,7 @@ class ScannerTask extends CompilerTask {
         tagState = checkTag(TagState.SOURCE, tag);
         Script script = compiler.readScript(resolved, tag);
         CompilationUnitElement unit =
-          new CompilationUnitElement(script, library);
+            new CompilationUnitElement(script, library);
         compiler.withCurrentElement(unit, () => scan(unit));
       } else if (tag.isResource()) {
         tagState = checkTag(TagState.RESOURCE, tag);
@@ -177,7 +177,9 @@ class DietParserTask extends CompilerTask {
 
   dietParse(CompilationUnitElement compilationUnit, Token tokens) {
     measure(() {
-      ElementListener listener = new ElementListener(compiler, compilationUnit);
+      Function idGenerator = compiler.universe.getNextFreeClassId;
+      ElementListener listener =
+          new ElementListener(compiler, compilationUnit, idGenerator);
       PartialParser parser = new PartialParser(listener);
       parser.parseUnit(tokens);
     });

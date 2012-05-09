@@ -24,7 +24,6 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 
 void FlowGraphCompiler::CompileGraph() {
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphcompiler_timer);
   Bailout("CompileGraph");
 }
 

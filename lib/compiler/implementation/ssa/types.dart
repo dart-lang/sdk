@@ -410,7 +410,7 @@ class HBoundedPotentialPrimitiveString extends HBoundedType {
 
   HType combine(HType other) {
     if (other.isString()) return other;
-    if (other.isIndexablePrimitive) return HType.STRING;
+    if (other.isIndexablePrimitive()) return HType.STRING;
     return super.combine(other);
   }
 }

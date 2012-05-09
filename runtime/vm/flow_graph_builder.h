@@ -20,7 +20,7 @@ class FlowGraphBuilder: public ValueObject {
  public:
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function);
 
-  void BuildGraph();
+  void BuildGraph(bool for_optimized);
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 

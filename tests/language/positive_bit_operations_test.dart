@@ -108,8 +108,17 @@ speculative() {
   }
 }
 
+// Due to bad precedence rules this example was broken in Dart2Js.
+precedence() {
+  Expect.equals(0x80000000, -1 & 0x80000000);
+  Expect.equals(0x80000000, id(-1) & 0x80000000);
+  Expect.equals(0x80000000, ~(~(0x80000000)));
+  Expect.equals(0x80000000, ~(~(id(0x80000000))));
+}
+
 main() {
   constants();
   interceptors();
   speculative();
+  precedence();
 }

@@ -105,10 +105,6 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ Unimplemented("BreakpointDynamic stub");
 }
 
-void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
-  __ Unimplemented("IsRawSubType Stub");
-}
-
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype1TestCache Stub");
 }

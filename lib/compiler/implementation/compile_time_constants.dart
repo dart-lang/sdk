@@ -79,7 +79,7 @@ class NumConstant extends PrimitiveConstant {
 class IntConstant extends NumConstant {
   final int value;
   factory IntConstant(int value) {
-    switch(value) {
+    switch (value) {
       case 0: return const IntConstant._internal(0);
       case 1: return const IntConstant._internal(1);
       case 2: return const IntConstant._internal(2);
@@ -675,16 +675,15 @@ class ConstantHandler extends CompilerTask {
         } else if (code >= 0x80) {
           if (code < 0x100) {
             buffer.add(@'\x');
-            buffer.add(code.toRadixString(16));
           } else {
             buffer.add(@'\u');
             if (code < 0x1000) {
               buffer.add('0');
             }
-            buffer.add(code.toRadixString(16));
           }
+          buffer.add(code.toRadixString(16));
         } else {
-          buffer.add(new String.fromCharCodes(<int>[code]));
+          buffer.addCharCode(code);
         }
       }
     }

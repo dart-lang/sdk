@@ -283,51 +283,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawInstantiatedType* InstantiatedType::ReadFrom(SnapshotReader* reader,
-                                                intptr_t object_id,
-                                                intptr_t tags,
-                                                Snapshot::Kind kind) {
-  ASSERT(reader != NULL);
-  ASSERT(kind == Snapshot::kMessage);
-
-  // Allocate instantiated type object.
-  InstantiatedType& instantiated_type =
-      InstantiatedType::ZoneHandle(reader->isolate(), InstantiatedType::New());
-  reader->AddBackwardReference(object_id, &instantiated_type);
-
-  // Set the object tags.
-  instantiated_type.set_tags(tags);
-
-  // Now set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (instantiated_type.raw()->to() -
-                       instantiated_type.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    *(instantiated_type.raw()->from() + i) = reader->ReadObject();
-  }
-  return instantiated_type.raw();
-}
-
-
-void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
-                                  intptr_t object_id,
-                                  Snapshot::Kind kind) {
-  ASSERT(writer != NULL);
-  ASSERT(kind == Snapshot::kMessage);
-
-  // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
-
-  // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kInstantiatedTypeClass, ptr()->tags_);
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
-}
-
-
 RawAbstractTypeArguments* AbstractTypeArguments::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,

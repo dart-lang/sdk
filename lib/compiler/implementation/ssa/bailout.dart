@@ -316,7 +316,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (block.isLoopHeader()) {
       blocks.addLast(block);
     } else if (block.isLabeledBlock() && blocks.last() !== block) {
-      HLabeledBlockInformation info = block.blockInformation;
+      HLabeledBlockInformation info = block.blockFlow.body;
       visitStatements(info.body);
       return;
     }
@@ -344,16 +344,16 @@ class SsaBailoutPropagator extends HBaseVisitor {
     subGraph = oldSubGraph;
 
     if (start.isLabeledBlock()) {
-      HLabeledBlockInformation info = start.blockInformation;
-      if (info.joinBlock !== null) {
-        visitBasicBlock(info.joinBlock);
+      HBasicBlock continuation = start.blockFlow.continuation;
+      if (continuation !== null) {
+        visitBasicBlock(continuation);
       }
     }
   }
 
   void visitIf(HIf instruction) {
     int preVisitedBlocks = 0;
-    HIfBlockInformation info = instruction.blockInformation;
+    HIfBlockInformation info = instruction.blockInformation.body;
     visitStatements(info.thenGraph);
     preVisitedBlocks++;
     if (instruction.hasElse) {
@@ -361,12 +361,13 @@ class SsaBailoutPropagator extends HBaseVisitor {
       preVisitedBlocks++;
     }
 
-    if (info.joinBlock !== null
-        && info.joinBlock.dominator !== instruction.block) {
+    HBasicBlock joinBlock = instruction.joinBlock;
+    if (joinBlock !== null
+        && joinBlock.dominator !== instruction.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
       // instead.
-      visitBasicBlock(info.joinBlock);
+      visitBasicBlock(joinBlock);
     }
 
     // Visit all the dominated blocks that are not part of the then or else
