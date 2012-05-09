@@ -491,6 +491,10 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     ParsedFunction parsed_function(func);
     parsed_function.SetNodeSequence(fragment);
     parsed_function.set_default_parameter_values(Array::Handle());
+    parsed_function.set_expression_temp_var(
+        ParsedFunction::CreateExpressionTempVar(0));
+    fragment->scope()->AddVariable(parsed_function.expression_temp_var());
+    parsed_function.AllocateVariables();
 
     CompileParsedFunctionHelper(parsed_function, false);  // Non-optimized.
 

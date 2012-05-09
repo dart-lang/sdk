@@ -400,21 +400,42 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     }
     BindInstr* constant_true = new BindInstr(new ConstantVal(bool_true));
     for_right.AddInstruction(constant_true);
-    StrictCompareComp* comp = new StrictCompareComp(Token::kEQ_STRICT,
-        right_value, new UseVal(constant_true));
-    for_right.AddInstruction(new BindInstr(comp));
+    BindInstr* comp =
+        new BindInstr(new StrictCompareComp(Token::kEQ_STRICT,
+                                            right_value,
+                                            new UseVal(constant_true)));
+    for_right.AddInstruction(comp);
+    for_right.AddInstruction(
+        new DoInstr(new StoreLocalComp(
+            *owner()->parsed_function().expression_temp_var(),
+            new UseVal(comp),
+            owner()->context_level())));
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index());
-      for_false.ReturnComputation(new ConstantVal(bool_false));
+      BindInstr* constant_false = new BindInstr(new ConstantVal(bool_false));
+      for_false.AddInstruction(constant_false);
+      for_false.AddInstruction(
+          new DoInstr(new StoreLocalComp(
+              *owner()->parsed_function().expression_temp_var(),
+              new UseVal(constant_false),
+              owner()->context_level())));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner(), temp_index());
-      for_true.ReturnComputation(new ConstantVal(bool_true));
+      BindInstr* constant_true = new BindInstr(new ConstantVal(bool_true));
+      for_true.AddInstruction(constant_true);
+      for_true.AddInstruction(
+          new DoInstr(new StoreLocalComp(
+              *owner()->parsed_function().expression_temp_var(),
+              new UseVal(constant_true),
+              owner()->context_level())));
       Join(for_test, for_true, for_right);
     }
-    ReturnValue(new TempVal(temp_index() - 1));
+    ReturnComputation(
+        new LoadLocalComp(*owner()->parsed_function().expression_temp_var(),
+                          owner()->context_level()));
     return;
   }
   EffectGraphVisitor::VisitBinaryOpNode(node);
@@ -746,20 +767,28 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
                             node->condition()->token_index());
   node->condition()->Visit(&for_test);
 
-  // Ensure that the value of the true/false subexpressions are named with
-  // the same temporary name.
   ValueGraphVisitor for_true(owner(), temp_index());
   node->true_expr()->Visit(&for_true);
   ASSERT(for_true.is_open());
-  ASSERT(for_true.value()->IsTemp() || for_true.value()->IsUse());
+  for_true.AddInstruction(
+      new DoInstr(
+          new StoreLocalComp(*owner()->parsed_function().expression_temp_var(),
+                             for_true.value(),
+                             owner()->context_level())));
 
   ValueGraphVisitor for_false(owner(), temp_index());
   node->false_expr()->Visit(&for_false);
   ASSERT(for_false.is_open());
-  ASSERT(for_false.value()->IsTemp() || for_false.value()->IsUse());
+  for_false.AddInstruction(
+      new DoInstr(
+          new StoreLocalComp(*owner()->parsed_function().expression_temp_var(),
+                             for_false.value(),
+                             owner()->context_level())));
 
   Join(for_test, for_true, for_false);
-  ReturnValue(new TempVal(temp_index() - 1));
+  ReturnComputation(
+      new LoadLocalComp(*owner()->parsed_function().expression_temp_var(),
+                        owner()->context_level()));
 }
 
 
@@ -2085,13 +2114,8 @@ void FlowGraphPrinter::VisitBlocks() {
 }
 
 
-void FlowGraphPrinter::VisitTemp(TempVal* val) {
-  OS::Print("t%d", val->index());
-}
-
-
 void FlowGraphPrinter::VisitUse(UseVal* val) {
-  OS::Print("s%d", val->definition()->temp_index());
+  OS::Print("t%d", val->definition()->temp_index());
 }
 
 

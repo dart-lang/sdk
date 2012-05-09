@@ -365,14 +365,9 @@ void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
       __ LoadObject(dst, value->AsConstant()->value());
     }
   } else {
-    ASSERT(value->IsTemp() || value->IsUse());
+    ASSERT(value->IsUse());
     __ popq(dst);
   }
-}
-
-
-void FlowGraphCompiler::VisitTemp(TempVal* val) {
-  LoadValue(RAX, val);
 }
 
 
@@ -431,11 +426,9 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
   // they are on top of the stack.
   intptr_t previous = -1;
   for (int i = 0; i < comp->ArgumentCount(); ++i) {
-    TempVal* temp = comp->ArgumentAt(i)->AsTemp();
-    UseVal* use = comp->ArgumentAt(i)->AsUse();
-    if ((temp == NULL) && (use == NULL)) return false;
-    intptr_t current =
-        (temp != NULL) ? temp->index() : use->definition()->temp_index();
+    Value* val = comp->ArgumentAt(i);
+    if (!val->IsUse()) return false;
+    intptr_t current = val->AsUse()->definition()->temp_index();
     if (i != 0) {
       if (current != (previous + 1)) return false;
     }
@@ -447,8 +440,9 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
 
 // Truee iff. the v2 is above v1 on stack, or one of them is constant.
 static bool VerifyValues(Value* v1, Value* v2) {
-  if (v1->IsTemp() && v2->IsTemp()) {
-    return (v1->AsTemp()->index() + 1) == v2->AsTemp()->index();
+  if (v1->IsUse() && v2->IsUse()) {
+    return (v1->AsUse()->definition()->temp_index() + 1) ==
+        v2->AsUse()->definition()->temp_index();
   }
   return true;
 }
@@ -518,7 +512,7 @@ void FlowGraphCompiler::VisitStoreContext(StoreContextComp* comp) {
 
 
 void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
-  ASSERT(comp->context()->IsTemp() || comp->context()->IsUse());
+  ASSERT(comp->context()->IsUse());
   ASSERT(VerifyCallComputation(comp));
   // The arguments to the stub include the closure.  The arguments
   // descriptor describes the closure's arguments (and so does not include
@@ -926,7 +920,7 @@ void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
   // 2. Initialize the array in RAX with the element values.
   __ leaq(RCX, FieldAddress(RAX, Array::data_offset()));
   for (int i = comp->ElementCount() - 1; i >= 0; --i) {
-    if (comp->ElementAt(i)->IsTemp()) {
+    if (comp->ElementAt(i)->IsUse()) {
       __ popq(Address(RCX, i * kWordSize));
     } else {
       LoadValue(RDX, comp->ElementAt(i));

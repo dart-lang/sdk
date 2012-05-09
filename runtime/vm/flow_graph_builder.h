@@ -218,7 +218,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
  private:
   // Helper to set the output state to return a Value.
   virtual void ReturnValue(Value* value) {
-    ASSERT(value->IsUse() || value->IsTemp());
+    ASSERT(value->IsUse());
     value_ = value;
   }
 

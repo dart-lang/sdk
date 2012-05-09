@@ -19,7 +19,6 @@ class LocalVariable;
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
-  M(Temp, TempVal)                                                             \
   M(Use, UseVal)                                                               \
   M(Constant, ConstantVal)                                                     \
 
@@ -162,21 +161,6 @@ class Value : public TemplateComputation<0> {
 #define DECLARE_VALUE(ShortName)                                               \
   DECLARE_COMPUTATION(ShortName)                                               \
   virtual ShortName##Val* As##ShortName() { return this; }
-
-
-class TempVal : public Value {
- public:
-  explicit TempVal(intptr_t index) : index_(index) { }
-
-  DECLARE_VALUE(Temp)
-
-  intptr_t index() const { return index_; }
-
- private:
-  const intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(TempVal);
-};
 
 
 // Definitions and uses are mutually recursive.
@@ -324,7 +308,7 @@ class ClosureCallComp : public Computation {
         try_index_(try_index),
         context_(context),
         arguments_(arguments) {
-    ASSERT(context->IsTemp() || context->IsUse());
+    ASSERT(context->IsUse());
   }
 
   DECLARE_COMPUTATION(ClosureCall)

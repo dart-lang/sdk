@@ -112,6 +112,13 @@ static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
 }
 
 
+LocalVariable* ParsedFunction::CreateExpressionTempVar(intptr_t token_index) {
+  return new LocalVariable(token_index,
+                           String::ZoneHandle(String::NewSymbol(":expr_temp")),
+                           Type::ZoneHandle(Type::DynamicType()));
+}
+
+
 void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
   ASSERT(node_sequence_ == NULL);
   ASSERT(node_sequence != NULL);
@@ -128,6 +135,7 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
   }
   node_sequence_->set_last_parameter_id(parameter_id);
 }
+
 
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
@@ -228,7 +236,8 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 }
 
 
-Parser::Parser(const Script& script, const Library& library)
+Parser::Parser(const Script& script,
+               const Library& library)
     : script_(script),
       tokens_(TokenStream::Handle(script.tokens())),
       token_index_(0),
@@ -240,7 +249,7 @@ Parser::Parser(const Script& script, const Library& library)
       current_class_(Class::Handle()),
       library_(library),
       try_blocks_list_(NULL),
-      increment_temp_(NULL) {
+      expression_temp_(NULL) {
   ASSERT(!tokens_.IsNull());
   ASSERT(!library.IsNull());
   SetPosition(0);
@@ -261,7 +270,7 @@ Parser::Parser(const Script& script,
       current_class_(Class::Handle(current_function_.owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL),
-      increment_temp_(NULL)  {
+      expression_temp_(NULL)  {
   ASSERT(!tokens_.IsNull());
   ASSERT(!function.IsNull());
   SetPosition(token_index);
@@ -685,8 +694,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(parser.token_index_));
   }
-  if (parser.increment_temp_ != NULL) {
-    node_sequence->scope()->AddVariable(parser.increment_temp_);
+  if (parser.expression_temp_ != NULL) {
+    parsed_function->set_expression_temp_var(parser.expression_temp_);
+  }
+  if (parsed_function->has_expression_temp_var()) {
+    node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
   }
   parsed_function->SetNodeSequence(node_sequence);
 
@@ -5257,6 +5269,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
             new LiteralNode(catch_pos, Instance::ZoneHandle(Instance::null()));
         AstNode* null_cond_expr = new ComparisonNode(
             catch_pos, Token::kEQ_STRICT, exception_var, null_literal);
+        EnsureExpressionTemp();
         AstNode* or_node = new BinaryOpNode(
             catch_pos, Token::kOR, null_cond_expr, type_cond_expr);
         current_block_->statements->Add(
@@ -5904,14 +5917,19 @@ AstNode* Parser::ParseExprList() {
 
 
 const LocalVariable& Parser::GetIncrementTempLocal() {
-  if (increment_temp_ == NULL) {
-    increment_temp_ =
-        new LocalVariable(current_function_.token_index(),
-                          String::ZoneHandle(String::NewSymbol(":incrtemp")),
-                          Type::ZoneHandle(Type::DynamicType()));
+  if (expression_temp_ == NULL) {
+    expression_temp_ = ParsedFunction::CreateExpressionTempVar(
+        current_function().token_index());
   }
-  return *increment_temp_;
+  return *expression_temp_;
 }
+
+
+void Parser::EnsureExpressionTemp() {
+  // Temporary used later by the flow_graph_builder.
+  GetIncrementTempLocal();
+}
+
 
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_index,
                                                intptr_t token_id,
@@ -5948,6 +5966,9 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
         return new LiteralNode(op_pos, dbl_obj);
       }
     }
+  }
+  if ((binary_op == Token::kAND) || (binary_op == Token::kOR)) {
+    EnsureExpressionTemp();
   }
   return new BinaryOpNode(op_pos, binary_op, lhs, rhs);
 }
@@ -6119,6 +6140,7 @@ AstNode* Parser::ParseConditionalExpr() {
   const intptr_t expr_pos = token_index_;
   AstNode* expr = ParseBinaryExpr(Token::Precedence(Token::kOR));
   if (CurrentToken() == Token::kCONDITIONAL) {
+    EnsureExpressionTemp();
     ConsumeToken();
     AstNode* expr1 = ParseExpr(kAllowConst);
     ExpectToken(Token::kCOLON);
