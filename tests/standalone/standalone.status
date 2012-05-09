@@ -29,6 +29,7 @@ io/http_server_handler_test: Skip # Issue 2637
 io/test_extension_test: Skip  # Extensions not implemented on Windows
 io/http_shutdown_test: Skip  # Currently times out on windows
 io/file_system_links_test: Skip  # No links on Windows.
+io/http_connection_header_test: Pass, Fail  # Issue 2959
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
