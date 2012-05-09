@@ -10,9 +10,9 @@ class World {
   void populate(Compiler compiler, Collection<LibraryElement> libraries) {
     void addSubtypes(ClassElement cls) {
       for (Type type in cls.allSupertypes) {
-        List<Element> subtypes = subtypes.putIfAbsent(
+        Set<Element> subtypes = subtypes.putIfAbsent(
           type.element,
-          () => <ClassElement>[]);
+          () => new Set<ClassElement>());
         subtypes.add(cls);
       }
     }
