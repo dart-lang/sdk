@@ -177,6 +177,7 @@ compile_time_constant_c_test/01: Fail # integers as keys in literal maps.
 operator4_test: Fail
 
 [ $compiler == frog ]
+bit_shift_test: Fail # Frog copies JS semantics: 499 >> 33 !== 0.
 static_initializer_type_error_test: Fail # Checked mode not implemented.
 exception_test: Fail # Issue 1785
 factory3_test: Fail # Issue 417
