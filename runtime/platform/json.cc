@@ -5,6 +5,7 @@
 #include "platform/json.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "platform/utils.h"
 #include "vm/os.h"
 
