@@ -1931,28 +1931,13 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle import_map);
 
 /**
- * Set library tag handler for the current isolate. This handler is used to
- * handle the various tags encountered while loading libraries or scripts in
- * the isolate.
- *
- * \param handler Handler code to be used for handling the various tags
- *   encountered while loading libraries or scripts in the isolate.
- *
- * \return If no error occurs, the handler is set for the isolate.
- *   Otherwise an error handle is returned.
- *
- * TODO(turnidge): Document.
- */
-DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
-    Dart_LibraryTagHandler handler);
-
-/**
  * Loads the root script for the current isolate.
  *
  * TODO(turnidge): Document.
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
+                                        Dart_LibraryTagHandler handler,
                                         Dart_Handle import_map);
 
 /**

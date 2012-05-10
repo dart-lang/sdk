@@ -105,11 +105,9 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_Handle import_map) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
-  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
-  EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source, import_map);
+  Dart_Handle lib = Dart_LoadScript(url, source, LibraryTagHandler, import_map);
   DART_CHECK_VALID(lib);
-  result = Dart_SetNativeResolver(lib, resolver);
+  Dart_Handle result = Dart_SetNativeResolver(lib, resolver);
   DART_CHECK_VALID(result);
   return lib;
 }

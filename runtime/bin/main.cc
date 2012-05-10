@@ -429,7 +429,7 @@ static Dart_Handle LoadScript(Dart_Handle builtin_lib,
     }
     free(name);
   }
-  return Dart_LoadScript(script_url, source, import_map);
+  return Dart_LoadScript(script_url, source, LibraryTagHandler, import_map);
 }
 
 
@@ -450,13 +450,6 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
 
-  // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
-  if (Dart_IsError(result)) {
-    *error = strdup(Dart_GetError(result));
-    return false;
-  }
-
   // Prepare builtin and its dependent libraries for use to resolve URIs.
   Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
   if (Dart_IsError(uri_lib)) {
@@ -466,6 +459,11 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
   Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
   if (Dart_IsError(builtin_lib)) {
     *error = strdup(Dart_GetError(builtin_lib));
+    return false;
+  }
+  Dart_Handle library = Dart_LibraryImportLibrary(builtin_lib, uri_lib);
+  if (Dart_IsError(library)) {
+    *error = strdup(Dart_GetError(library));
     return false;
   }
 
@@ -488,7 +486,7 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
   }
 
   // Load the specified application script into the newly created isolate.
-  Dart_Handle library = LoadScript(builtin_lib, import_map_options);
+  library = LoadScript(builtin_lib, import_map_options);
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
     Dart_ExitScope();

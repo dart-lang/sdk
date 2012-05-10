@@ -2994,15 +2994,6 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
 // --- Scripts and Libraries ---
 
 
-DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
-    Dart_LibraryTagHandler handler) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  isolate->set_library_tag_handler(handler);
-  return Api::Success(isolate);
-}
-
-
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
@@ -3037,6 +3028,7 @@ static void CompileSource(Isolate* isolate,
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
+                                        Dart_LibraryTagHandler handler,
                                         Dart_Handle import_map) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
@@ -3057,6 +3049,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     return Api::NewError("%s: A script has already been loaded from '%s'.",
                          CURRENT_FUNC, library_url.ToCString());
   }
+  isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
   if (mapping_array.IsNull()) {
     library.set_import_map(Array::Handle(isolate, Array::Empty()));
