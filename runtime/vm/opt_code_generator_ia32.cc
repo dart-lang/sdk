@@ -320,7 +320,7 @@ static const ZoneGrowableArray<const Class*>*
     CollectedClassesAtNode(AstNode* node) {
   ZoneGrowableArray<const Class*>* result =
       new ZoneGrowableArray<const Class*>();
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     return result;
   }
@@ -336,10 +336,10 @@ static const ZoneGrowableArray<const Class*>*
 
 
 // Debugging helper function.
-void OptimizingCodeGenerator::PrintCollectedClassesAtId(AstNode* node,
-                                                        intptr_t id) {
-  const ICData& ic_data = node->ICDataAtId(id);
-  OS::Print("Collected classes id %d num: %d\n", id, ic_data.NumberOfChecks());
+void OptimizingCodeGenerator::PrintCollectedClasses(AstNode* node) {
+  const ICData& ic_data = node->ic_data();
+  OS::Print("Collected classes id %d num: %d\n",
+      node->id(), ic_data.NumberOfChecks());
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     Function& target = Function::Handle();
     GrowableArray<const Class*> classes;
@@ -551,7 +551,7 @@ static bool NodeHasBothReceiverClasses(AstNode* node,
                                        const Class& cls2) {
   ASSERT(node != NULL);
   ASSERT(!cls1.IsNull() && !cls2.IsNull());
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   bool cls1_found = false;
   bool cls2_found = false;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -576,13 +576,12 @@ static bool NodeHasBothReceiverClasses(AstNode* node,
 
 // Look only at the first class in all check groups. Returns true if all
 // receiver classes are 'cls'.
-static bool AtIdNodeHasClassAt(AstNode* node,
-                               intptr_t id,
-                               const Class& cls,
-                               intptr_t arg_index) {
+static bool NodeHasClassAt(AstNode* node,
+                           const Class& cls,
+                           intptr_t arg_index) {
   ASSERT(node != NULL);
   ASSERT(!cls.IsNull());
-  const ICData& ic_data = node->ICDataAtId(id);
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     return false;
   }
@@ -604,13 +603,12 @@ static bool AtIdNodeHasClassAt(AstNode* node,
 
 // IC data may have only one check, and it has to contain the two classes in
 // specified order.
-static bool AtIdNodeHasTwoClasses(AstNode* node,
-                                  intptr_t id,
-                                  const Class& cls0,
-                                  const Class& cls1) {
+static bool NodeHasTwoClasses(AstNode* node,
+                              const Class& cls0,
+                              const Class& cls1) {
   ASSERT(node != NULL);
   ASSERT(!cls0.IsNull() && !cls1.IsNull());
-  const ICData& ic_data = node->ICDataAtId(id);
+  const ICData& ic_data = node->ic_data();
   ASSERT(ic_data.num_args_tested() == 2);
   if (ic_data.NumberOfChecks() != 1) {
     return false;
@@ -689,7 +687,6 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
       const Array& no_optional_argument_names = Array::Handle();
       GenerateCheckedInstanceCalls(node,
                                    node->left(),
-                                   node->id(),
                                    node->token_index(),
                                    number_of_arguments,
                                    no_optional_argument_names);
@@ -734,7 +731,6 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
   const Array& no_optional_argument_names = Array::Handle();
   GenerateCheckedInstanceCalls(node,
                                node->left(),
-                               node->id(),
                                node->token_index(),
                                number_of_arguments,
                                no_optional_argument_names);
@@ -744,7 +740,7 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
 
 // Implement Token::kSUB and Token::kBIT_NOT.
 void OptimizingCodeGenerator::GenerateSmiUnaryOp(UnaryOpNode* node) {
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   ASSERT(ic_data.num_args_tested() == 1);
   DeoptReasonId deopt_reason_id = ic_data.NumberOfChecks() == 0 ?
       kDeoptNoTypeFeedback : kDeoptUnaryOp;
@@ -779,7 +775,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
   const Register kOperandRegister = ECX;
   const Register kTempRegister = EBX;
   const Register kResultRegister = EAX;
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   DeoptReasonId deopt_reason_id = ic_data.NumberOfChecks() == 0 ?
       kDeoptNoTypeFeedback : kDeoptUnaryOp;
   DeoptimizationBlob* deopt_blob =
@@ -848,7 +844,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       (kind == Token::kBIT_XOR)) {
     TraceOpt(node, kOptMessage);
     // Check if both arguments are expected to be Smi.
-    const ICData& ic_data = node->ICDataAtId(node->id());
+    const ICData& ic_data = node->ic_data();
     ASSERT(ic_data.num_args_tested() == 2);
     ASSERT(ic_data.NumberOfChecks() > 0);
     Function& target = Function::Handle();
@@ -1005,7 +1001,6 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     const Array& no_optional_argument_names = Array::Handle();
     GenerateCheckedInstanceCalls(node,
                                  node->left(),
-                                 node->id(),
                                  node->token_index(),
                                  number_of_arguments,
                                  no_optional_argument_names);
@@ -1158,8 +1153,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
       }
     }
 
-    const bool right_must_be_double =
-        AtIdNodeHasClassAt(node, node->id(), double_class_, 1);
+    const bool right_must_be_double = NodeHasClassAt(node, double_class_, 1);
 
     // If arguments are of same type (e.g., same local), then the test of left
     // argument was sufficient.
@@ -1302,7 +1296,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
     return;
   }
 
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
     DeoptimizationBlob* deopt_blob =
@@ -1313,18 +1307,18 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
 
   ASSERT(ic_data.num_args_tested() == 2);
 
-  if (AtIdNodeHasTwoClasses(node, node->id(), smi_class_, smi_class_)) {
+  if (NodeHasTwoClasses(node, smi_class_, smi_class_)) {
     GenerateSmiBinaryOp(node);
     return;
   }
 
-  if (AtIdNodeHasClassAt(node, node->id(), double_class_, 0)) {
+  if (NodeHasClassAt(node, double_class_, 0)) {
     const bool receiver_can_be_smi = false;
     GenerateDoubleBinaryOp(node, receiver_can_be_smi);
     return;
   }
 
-  if (AtIdNodeHasTwoClasses(node, node->id(), smi_class_, double_class_)) {
+  if (NodeHasTwoClasses(node, smi_class_, double_class_)) {
     const bool receiver_can_be_smi = true;
     GenerateDoubleBinaryOp(node, receiver_can_be_smi);
     return;
@@ -1332,7 +1326,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
 
   const Class& mint_class =
       Class::Handle(Isolate::Current()->object_store()->mint_class());
-  if (AtIdNodeHasClassAt(node, node->id(), mint_class, 0)) {
+  if (NodeHasClassAt(node, mint_class, 0)) {
     GenerateMintBinaryOp(node, false);
     return;
   }
@@ -1352,7 +1346,6 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   const Array& no_optional_argument_names = Array::Handle();
   GenerateCheckedInstanceCalls(node,
                                node->left(),
-                               node->id(),
                                node->token_index(),
                                number_of_arguments,
                                no_optional_argument_names);
@@ -1410,7 +1403,6 @@ bool OptimizingCodeGenerator::NodeMayBeSmi(AstNode* node) const {
 // Result is returned in EAX.
 void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     AstNode* node,
-    intptr_t id,
     AstNode* receiver,
     const String& field_name,
     Register recv_reg) {
@@ -1426,7 +1418,7 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
   }
 
   __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
-  const ICData& ic_data = node->ICDataAtId(id);
+  const ICData& ic_data = node->ic_data();
   Function& target = Function::Handle();
   Label load_field;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -1516,13 +1508,11 @@ static bool ICDataToSameInlineableInstanceGetter(const ICData& ic_data) {
 
 
 void OptimizingCodeGenerator::InlineInstanceGetter(AstNode* node,
-                                                   intptr_t id,
                                                    AstNode* receiver,
                                                    const String& field_name,
                                                    Register recv_reg) {
-  if (ICDataToSameInlineableInstanceGetter(node->ICDataAtId(id))) {
+  if (ICDataToSameInlineableInstanceGetter(node->ic_data())) {
     InlineInstanceGettersWithSameTarget(node,
-                                        id,
                                         receiver,
                                         field_name,
                                         recv_reg);
@@ -1533,7 +1523,6 @@ void OptimizingCodeGenerator::InlineInstanceGetter(AstNode* node,
     const Array& kNoArgumentNames = Array::Handle();
     GenerateCheckedInstanceCalls(node,
                                  receiver,
-                                 id,
                                  node->token_index(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
@@ -1545,7 +1534,7 @@ void OptimizingCodeGenerator::InlineInstanceGetter(AstNode* node,
 // For every class inline its implicit getter, or call the instance getter.
 void OptimizingCodeGenerator::VisitInstanceGetterNode(
     InstanceGetterNode* node) {
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     node->receiver()->Visit(this);
@@ -1557,7 +1546,6 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
 
   VisitLoadOne(node->receiver(), EBX);
   InlineInstanceGetter(node,
-                       node->id(),
                        node->receiver(),
                        node->field_name(),
                        EBX);
@@ -1604,7 +1592,6 @@ void OptimizingCodeGenerator::GenerateInstanceSetter(
 
 // Returns value in 'value_reg', clobbers EBX.
 void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
-                                                   intptr_t id,
                                                    AstNode* receiver,
                                                    const String& field_name,
                                                    Register recv_reg,
@@ -1615,7 +1602,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   GrowableArray<Function*> targets;
   bool unique_target = true;
   {
-    const ICData& ic_data = node->ICDataAtId(id);
+    const ICData& ic_data = node->ic_data();
     ASSERT(ic_data.NumberOfChecks() > 0);
     ASSERT(ic_data.num_args_tested() == 1);
     for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -1643,7 +1630,8 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   __ movl(EBX, FieldAddress(recv_reg, Object::class_offset()));
   // Initialize setter arguments, but leave the class and target fields NULL.
   InstanceSetterArgs setter_args =
-      {NULL, NULL, &field_name, recv_reg, value_reg, id, node->token_index()};
+      {NULL, NULL, &field_name, recv_reg, value_reg,
+      node->id(), node->token_index()};
 
   if (unique_target) {
     Label store_field;
@@ -1692,7 +1680,7 @@ void OptimizingCodeGenerator::VisitInstanceSetterNode(
     return;
   }
   VisitLoadTwo(node->receiver(), node->value(), EDX, EAX);
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EDX, EAX, kDeoptInstanceSetter);
@@ -1701,7 +1689,6 @@ void OptimizingCodeGenerator::VisitInstanceSetterNode(
   }
   // Value in EAX survives and will be stored on stack if result is needed.
   InlineInstanceSetter(node,
-                       node->id(),
                        node->receiver(),
                        node->field_name(),
                        EDX,
@@ -1836,7 +1823,6 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
     __ pushl(EDX);
     GenerateCheckedInstanceCalls(node,
                                  node->left(),
-                                 node->id(),
                                  node->token_index(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
@@ -2141,13 +2127,13 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
-  if (AtIdNodeHasClassAt(node, node->id(), smi_class_, 0)) {
+  if (NodeHasClassAt(node, smi_class_, 0)) {
     if (GenerateSmiComparison(node)) {
       // The comparison was handled, code was emitted.
       return;
     }
     // Fall through if condition is not supported.
-  } else if (AtIdNodeHasClassAt(node, node->id(), double_class_, 0)) {
+  } else if (NodeHasClassAt(node, double_class_, 0)) {
     // Double comparison.
     if (GenerateDoubleComparison(node)) {
       return;
@@ -2172,17 +2158,15 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
       Class::ZoneHandle(object_store->array_class());
   const Class& immutable_object_array_class =
       Class::ZoneHandle(object_store->immutable_array_class());
-  if (AtIdNodeHasClassAt(node, node->id(), object_array_class, 0) ||
-      AtIdNodeHasClassAt(node, node->id(),
-          immutable_object_array_class, 0)) {
+  if (NodeHasClassAt(node, object_array_class, 0) ||
+      NodeHasClassAt(node, immutable_object_array_class, 0)) {
     CodeGenInfo array_info(node->array());
     CodeGenInfo index_info(node->index_expr());
     VisitLoadTwo(node->array(), node->index_expr(), EBX, EDX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EBX, EDX, kDeoptLoadIndexedFixedArray);
-    const Class& test_class =
-        AtIdNodeHasClassAt(node, node->id(), object_array_class, 0) ?
-            object_array_class : immutable_object_array_class;
+    const Class& test_class = NodeHasClassAt(node, object_array_class, 0) ?
+        object_array_class : immutable_object_array_class;
     // Type checks of array.
     if (!array_info.IsClass(test_class)) {
       __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
@@ -2210,7 +2194,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     return;
   }
 
-  if (AtIdNodeHasClassAt(node, node->id(), growable_object_array_class_, 0)) {
+  if (NodeHasClassAt(node, growable_object_array_class_, 0)) {
     CodeGenInfo array_info(node->array());
     CodeGenInfo index_info(node->index_expr());
     VisitLoadTwo(node->array(), node->index_expr(), EDX, EAX);
@@ -2264,7 +2248,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Class& object_array_class =
       Class::ZoneHandle(object_store->array_class());
-  const ICData& ic_data = node->ICDataAtId(node->id());
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
     DeoptimizationBlob* deopt_blob =
@@ -2274,7 +2258,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
   }
 
 
-  if (AtIdNodeHasClassAt(node, node->id(), object_array_class, 0)) {
+  if (NodeHasClassAt(node, object_array_class, 0)) {
     // Release CodeGenInfo of index quickly as it may be used in the value,
     // e.g. a[i] += 3. Fixes issue 1570.
     bool index_is_smi = false;
@@ -2315,7 +2299,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     return;
   }
 
-  if (AtIdNodeHasClassAt(node, node->id(), growable_object_array_class_, 0)) {
+  if (NodeHasClassAt(node, growable_object_array_class_, 0)) {
     bool index_is_smi = false;
     // Release CodeGenInfo of index quickly as it may be used in the value,
     // e.g. a[i] += 3. Fixes issue 1570.
@@ -2594,21 +2578,20 @@ void OptimizingCodeGenerator::NormalizeClassChecks(
 void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     AstNode* node,
     AstNode* receiver,
-    intptr_t node_id,
     intptr_t token_index,
     intptr_t num_args,
     const Array& optional_arguments_names) {
   ASSERT(node != NULL);
   ASSERT(receiver != NULL);
   ASSERT(num_args > 0);
-  const ICData& ic_data = node->ICDataAtId(node_id);
+  const ICData& ic_data = node->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback means node was never executed. However that can be
     // a common case especially in case of large switch statements.
     // Use a special inline cache call which can help us decide when to
     // re-optimize this optiumized function.
     GenerateInlineCacheCall(
-        node_id, token_index, ic_data, num_args, optional_arguments_names);
+        node->id(), token_index, ic_data, num_args, optional_arguments_names);
     return;
   }
 
@@ -2640,7 +2623,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallSmiOnly);
       __ j(NOT_ZERO, deopt_blob->label());
-      GenerateDirectCall(node_id,
+      GenerateDirectCall(node->id(),
                          token_index,
                          *targets[0],
                          num_args,
@@ -2649,7 +2632,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     }
     Label not_smi;
     __ j(NOT_ZERO, &not_smi);
-    GenerateDirectCall(node_id,
+    GenerateDirectCall(node->id(),
                        token_index,
                        *targets[0],
                        num_args,
@@ -2674,7 +2657,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallCheckFail);
       __ j(NOT_EQUAL, deopt_blob->label());
-      GenerateDirectCall(node_id,
+      GenerateDirectCall(node->id(),
                          token_index,
                          target,
                          num_args,
@@ -2682,7 +2665,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     } else {
       Label next;
       __ j(NOT_EQUAL, &next);
-      GenerateDirectCall(node_id,
+      GenerateDirectCall(node->id(),
                          token_index,
                          target,
                          num_args,
@@ -2706,7 +2689,6 @@ void OptimizingCodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
   } else {
     GenerateCheckedInstanceCalls(node,
                                  node->receiver(),
-                                 node->id(),
                                  node->token_index(),
                                  number_of_arguments,
                                  node->arguments()->names());
@@ -2736,7 +2718,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
           Recognizer::KindToCString(recognized));
     }
     if ((recognized == Recognizer::kIntegerToDouble) &&
-        AtIdNodeHasClassAt(node, node->id(), smi_class_, 0)) {
+        NodeHasClassAt(node, smi_class_, 0)) {
       // TODO(srdjan): Check if we could use temporary double instead of
       // allocating a new object every time.
       const Code& stub =
@@ -2756,7 +2738,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
     }
 
     if ((recognized == Recognizer::kDoubleToDouble) &&
-        AtIdNodeHasClassAt(node, node->id(), double_class_, 0)) {
+        NodeHasClassAt(node, double_class_, 0)) {
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, EAX, kDeoptDoubleToDouble);
       __ popl(EAX);
@@ -2903,16 +2885,16 @@ void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
 
   if ((node->kind() == Token::kSUB) || (node->kind() == Token::kBIT_NOT)) {
-    if (AtIdNodeHasClassAt(node, node->id(), smi_class_, 0)) {
-      const ICData& ic_data = node->ICDataAtId(node->id());
+    if (NodeHasClassAt(node, smi_class_, 0)) {
+      const ICData& ic_data = node->ic_data();
       ASSERT(ic_data.num_args_tested() == 1);
       GenerateSmiUnaryOp(node);
       return;
     }
   }
   if (node->kind() == Token::kSUB) {
-    if (AtIdNodeHasClassAt(node, node->id(), double_class_, 0)) {
-      const ICData& ic_data = node->ICDataAtId(node->id());
+    if (NodeHasClassAt(node, double_class_, 0)) {
+      const ICData& ic_data = node->ic_data();
       ASSERT(ic_data.num_args_tested() == 1);
       GenerateDoubleUnaryOp(node);
       return;

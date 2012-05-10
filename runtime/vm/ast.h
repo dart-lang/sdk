@@ -105,17 +105,11 @@ class AstNode : public ZoneAllocated {
 
   intptr_t token_index() const { return token_index_; }
 
-  virtual void SetIcDataAtId(intptr_t node_id, const ICData& value) {
-    ASSERT(id() == node_id);
-    set_ic_data(value);
-  }
 
-  virtual const ICData& ICDataAtId(intptr_t node_id) const {
-    ASSERT(id() == node_id);
-    return ic_data_;
+  const ICData& ic_data() const { return ic_data_; }
+  void set_ic_data(const ICData& value) {
+    ic_data_ = value.raw();
   }
-
-  virtual bool HasId(intptr_t value) const { return id_ == value; }
 
   intptr_t id() const { return id_; }
 
@@ -163,11 +157,6 @@ NODE_LIST(AST_TYPE_CHECK)
 
  protected:
   friend class ParsedFunction;
-
-  const ICData& ic_data() const { return ic_data_; }
-  void set_ic_data(const ICData& value) {
-    ic_data_ = value.raw();
-  }
 
   static intptr_t GetNextId() {
     Isolate* isolate = Isolate::Current();

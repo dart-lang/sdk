@@ -70,12 +70,12 @@ static void ExtractTypeFeedback(const Code& code,
     intptr_t node_id = node_ids[i];
     bool found_node = false;
     for (intptr_t n = 0; n < all_nodes.length(); n++) {
-      if (all_nodes[n]->HasId(node_id)) {
+      if (all_nodes[n]->id() == node_id) {
         found_node = true;
         // Make sure we assign ic data array only once.
-        ASSERT(all_nodes[n]->ICDataAtId(node_id).IsNull());
+        ASSERT(all_nodes[n]->ic_data().IsNull());
         ic_data_obj ^= ic_data_objs.At(i);
-        all_nodes[n]->SetIcDataAtId(node_id, ic_data_obj);
+        all_nodes[n]->set_ic_data(ic_data_obj);
       }
     }
     ASSERT(found_node);
