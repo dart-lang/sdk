@@ -11,6 +11,10 @@
 
 namespace dart {
 
+#ifndef va_copy
+#define va_copy(dst, src) (memmove(&(dst), &(src), sizeof(dst)))
+#endif  /* va_copy */
+
 
 JSONScanner::JSONScanner(const char* json_text) {
   SetText(json_text);
