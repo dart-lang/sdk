@@ -1689,7 +1689,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
       buffer.add(' !== true');
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    } else if (isBuiltinRelational(input) && isGenerateAtUseSite(input)) {
+    } else if (isBuiltinRelational(input) &&
+               isGenerateAtUseSite(input) &&
+               input.inputs[0].propagatedType.isUseful() &&
+               !input.inputs[0].isDouble() &&
+               input.inputs[1].propagatedType.isUseful() &&
+               !input.inputs[1].isDouble()) {
+      // This optimization doesn't work for NaN, so we only do it if the
+      // type is known to be non-Double.
       Map<String, String> inverseOperator = const <String>{
         "==" : "!=",
         "!=" : "==",
