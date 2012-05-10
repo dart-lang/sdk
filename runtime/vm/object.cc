@@ -6218,7 +6218,7 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 }
 
 
-void Code::ExtractIcDataArraysAtCalls(
+intptr_t Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
     const GrowableObjectArray& ic_data_objs) const {
   ASSERT(node_ids != NULL);
@@ -6226,13 +6226,19 @@ void Code::ExtractIcDataArraysAtCalls(
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
   ICData& ic_data_obj = ICData::Handle();
+  intptr_t max_id = -1;
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
-      node_ids->Add(descriptors.NodeId(i));
+      intptr_t node_id = descriptors.NodeId(i);
+      if (node_id > max_id) {
+        max_id = node_id;
+      }
+      node_ids->Add(node_id);
       ic_data_obj = CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i));
       ic_data_objs.Add(ic_data_obj);
     }
   }
+  return max_id;
 }
 
 

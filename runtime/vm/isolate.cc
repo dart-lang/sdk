@@ -151,6 +151,8 @@ Isolate::Isolate()
       long_jump_base_(NULL),
       timer_list_(),
       ast_node_id_(AstNode::kNoId),
+      computation_id_(AstNode::kNoId),
+      ic_data_array_(Array::null()),
       mutex_(new Mutex()),
       stack_limit_(0),
       saved_stack_limit_(0),
@@ -444,6 +446,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the top context which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
+
+  // Visit the currently active IC data array.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ic_data_array_));
 
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);

@@ -2222,7 +2222,8 @@ class Code : public Object {
   bool ObjectExistInArea(intptr_t start_offest, intptr_t end_offset) const;
 
   // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
-  void ExtractIcDataArraysAtCalls(
+  // Returns the maximum id found.
+  intptr_t ExtractIcDataArraysAtCalls(
       GrowableArray<intptr_t>* node_ids,
       const GrowableObjectArray& ic_data_objs) const;
 

@@ -83,6 +83,23 @@ static void ExtractTypeFeedback(const Code& code,
 }
 
 
+// Returns an array indexed by computation id, containing the extracted ICData.
+static RawArray* ExtractTypeFeedbackArray(const Code& code) {
+  ASSERT(!code.IsNull() && !code.is_optimized());
+  GrowableArray<intptr_t> computation_ids;
+  const GrowableObjectArray& ic_data_objs =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const intptr_t max_id =
+      code.ExtractIcDataArraysAtCalls(&computation_ids, ic_data_objs);
+  const Array& result = Array::Handle(Array::New(max_id + 1));
+  for (intptr_t i = 0; i < computation_ids.length(); i++) {
+    ASSERT(result.At(i) == Object::null());
+    result.SetAt(i, Object::Handle(ic_data_objs.At(i)));
+  }
+  return result.raw();
+}
+
+
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   Isolate* isolate = Isolate::Current();
   LongJump* base = isolate->long_jump_base();
@@ -168,7 +185,10 @@ static bool CompileWithNewCompiler(
         // deoptimized too often.
         if (parsed_function.function().deoptimization_counter() <
             FLAG_deoptimization_counter_threshold) {
-          // Extract type feedback etc.
+          const Code& unoptimized_code =
+              Code::Handle(parsed_function.function().unoptimized_code());
+          isolate->set_ic_data_array(
+              ExtractTypeFeedbackArray(unoptimized_code));
         }
       }
     }
@@ -181,6 +201,7 @@ static bool CompileWithNewCompiler(
                        &CompilerStats::graphcompiler_timer,
                        isolate);
       graph_compiler.CompileGraph();
+      isolate->set_ic_data_array(Array::null());
     }
     {
       TimerScope timer(FLAG_compiler_stats,

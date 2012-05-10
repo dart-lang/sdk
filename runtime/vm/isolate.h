@@ -28,6 +28,7 @@ class MessageHandler;
 class Mutex;
 class ObjectPointerVisitor;
 class ObjectStore;
+class RawArray;
 class RawContext;
 class RawError;
 class StackResource;
@@ -167,6 +168,9 @@ class Isolate : public BaseIsolate {
   intptr_t computation_id() const { return computation_id_; }
   void set_computation_id(int value) { computation_id_ = value; }
 
+  RawArray* ic_data_array() const { return ic_data_array_; }
+  void set_ic_data_array(RawArray* value) { ic_data_array_ = value; }
+
   Debugger* debugger() const { return debugger_; }
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cback);
@@ -214,6 +218,7 @@ class Isolate : public BaseIsolate {
   TimerList timer_list_;
   intptr_t ast_node_id_;  // Deprecate.
   intptr_t computation_id_;
+  RawArray* ic_data_array_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;
