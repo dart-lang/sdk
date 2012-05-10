@@ -20,6 +20,7 @@ interface Visitor<R> {
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
   R visitIf(If node);
+  R visitLabel(Label node);
   R visitLabeledStatement(LabeledStatement node);
   R visitLiteralBool(LiteralBool node);
   R visitLiteralDouble(LiteralDouble node);
@@ -126,6 +127,7 @@ class Node implements Hashable {
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
+  Label asLabel() => null;
   LabeledStatement asLabeledStatement() => null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
@@ -1326,7 +1328,7 @@ class SwitchCase extends Node {
   // The 'case' keywords can be obtained using [caseKeywords()].
   // Any actual switch case must have at least one 'case' or 'default'
   // clause.
-  final Identifier label;
+  final Label label;
   final NodeList expressions;
   final Token defaultKeyword;
   final NodeList statements;
@@ -1449,12 +1451,31 @@ class ForIn extends Loop {
   Token getEndToken() => body.getEndToken();
 }
 
-class LabeledStatement extends Statement {
-  final Identifier label;
+class Label extends Node {
+  final Identifier identifier;
   final Token colonToken;
+
+  Label(this.identifier, this.colonToken);
+
+  String slowToString() => identifier.source.slowToString();
+
+  Label asLabel() => this;
+
+  accept(Visitor visitor) => visitor.visitLabel(this);
+
+  void visitChildren(Visitor visitor) {
+    identifier.accept(visitor);
+  }
+
+  Token getBeginToken() => identifier.token;
+  Token getEndToken() => colonToken;
+}
+
+class LabeledStatement extends Statement {
+  final Label label;
   final Statement statement;
 
-  LabeledStatement(this.label, this.colonToken, this.statement);
+  LabeledStatement(this.label, this.statement);
 
   LabeledStatement asLabeledStatement() => this;
 

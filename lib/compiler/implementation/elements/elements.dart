@@ -985,15 +985,16 @@ class Elements {
 
 
 class LabelElement extends Element {
-  final Identifier label;
+  // We store the original label here so it can be returned by [parseNode].
+  final Label label;
   final String labelName;
   final TargetElement target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-  LabelElement(Identifier label, this.labelName, this.target,
+  LabelElement(Label label, this.labelName, this.target,
                Element enclosingElement)
       : this.label = label,
-        super(label.source, ElementKind.LABEL, enclosingElement);
+        super(label.identifier.source, ElementKind.LABEL, enclosingElement);
 
   void setBreakTarget() {
     isBreakTarget = true;
@@ -1007,14 +1008,13 @@ class LabelElement extends Element {
   bool get isTarget() => isBreakTarget || isContinueTarget;
   Node parseNode(DiagnosticListener l) => label;
 
-  Token position() => label.token;
+  Token position() => label.getBeginToken();
   String toString() => "${labelName}:";
 }
 
-// Represents a reference to a statement, either a label or the
+// Represents a reference to a statement or switch-case, either by label or the
 // default target of a break or continue.
 class TargetElement extends Element {
-  // TODO(lrn): StatementElement is not just referencing statements anymore.
   final Node statement;
   final int nestingLevel;
   Link<LabelElement> labels = const EmptyLink<LabelElement>();
@@ -1025,7 +1025,7 @@ class TargetElement extends Element {
       : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
   bool get isTarget() => isBreakTarget || isContinueTarget;
 
-  LabelElement addLabel(Identifier label, String labelName) {
+  LabelElement addLabel(Label label, String labelName) {
     LabelElement result = new LabelElement(label, labelName, this,
                                            enclosingElement);
     labels = labels.prepend(result);

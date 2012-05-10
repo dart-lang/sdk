@@ -2815,6 +2815,10 @@ class SsaBuilder implements Visitor {
     handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
   }
 
+  visitLabel(Label node) {
+    compiler.internalError('SsaBuilder.visitLabel', node: node);
+  }
+
   visitLabeledStatement(LabeledStatement node) {
     Statement body = node.getBody();
     if (body is Loop || body is SwitchStatement) {

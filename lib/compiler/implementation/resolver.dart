@@ -138,7 +138,7 @@ class ResolverTask extends CompilerTask {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
       } else if (tree.initializers != null) {
-        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);        
+        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
       }
       visitor.visit(tree.body);
 
@@ -402,7 +402,7 @@ class InitializerResolver {
         final Send call = link.head.asSend();
         if (Initializers.isSuperConstructorCall(call)) {
           if (resolvedSuper) {
-            error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);          
+            error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
           }
           resolveSuperOrThisForSend(constructor, functionNode, call);
           resolvedSuper = true;
@@ -1238,7 +1238,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    String labelName = node.label.source.slowToString();
+    String labelName = node.label.slowToString();
     LabelElement existingElement = statementScope.lookupLabel(labelName);
     if (existingElement !== null) {
       warning(node.label, MessageKind.DUPLICATE_LABEL, [labelName]);
@@ -1284,19 +1284,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     while (!cases.isEmpty()) {
       SwitchCase switchCase = cases.head;
       if (switchCase.label !== null) {
-        Identifier labelIdentifier = switchCase.label;
-        String labelName = labelIdentifier.source.slowToString();
+        Label label = switchCase.label;
+        String labelName = label.slowToString();
 
         LabelElement existingElement = continueLabels[labelName];
         if (existingElement !== null) {
           // It's an error if the same label occurs twice in the same switch.
-          warning(labelIdentifier, MessageKind.DUPLICATE_LABEL, [labelName]);
+          warning(label, MessageKind.DUPLICATE_LABEL, [labelName]);
           error(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
         } else {
           // It's only a warning if it shadows another label.
           existingElement = statementScope.lookupLabel(labelName);
           if (existingElement !== null) {
-            warning(labelIdentifier, MessageKind.DUPLICATE_LABEL, [labelName]);
+            warning(label, MessageKind.DUPLICATE_LABEL, [labelName]);
             warning(existingElement.label,
                     MessageKind.EXISTING_LABEL, [labelName]);
           }
@@ -1308,11 +1308,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                               enclosingElement);
         mapping[switchCase] = targetElement;
 
-        LabelElement label =
-            new LabelElement(labelIdentifier, labelName,
+        LabelElement labelElement =
+            new LabelElement(label, labelName,
                              targetElement, enclosingElement);
-        mapping[labelIdentifier] = label;
-        continueLabels[labelName] = label;
+        mapping[label] = labelElement;
+        continueLabels[labelName] = labelElement;
       }
       cases = cases.tail;
       if (switchCase.defaultKeyword !== null && !cases.isEmpty()) {

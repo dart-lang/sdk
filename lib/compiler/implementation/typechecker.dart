@@ -703,6 +703,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return bodyType.join(StatementType.NOT_RETURNING);
   }
 
+  visitLabel(Label node) { }
+
   visitLabeledStatement(LabeledStatement node) {
     return node.statement.accept(this);
   }
