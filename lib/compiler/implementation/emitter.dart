@@ -466,8 +466,12 @@ function() {
   }
 
   void emitInstanceMembers(ClassElement classElement, StringBuffer buffer) {
+    bool isFirst = true;
     void defineInstanceMember(String name, String value) {
-      buffer.add(' $name: $value,\n');
+      if (!isFirst) buffer.add(',');
+      isFirst = false;
+      buffer.add('\n');
+      buffer.add(' $name: $value');
     }
 
     classElement.forEachMember(includeBackendMembers: true,
@@ -521,9 +525,9 @@ function() {
 
     buffer.add('$defineClassName("$className", "$superName", [');
     emitClassFields(classElement, buffer);
-    buffer.add('], {\n');
+    buffer.add('], {');
     emitInstanceMembers(classElement, buffer);
-    buffer.add('});\n\n');
+    buffer.add('\n});\n\n');
   }
 
   void generateTypeTests(ClassElement cls,
