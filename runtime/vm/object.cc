@@ -606,7 +606,7 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_object_class(cls);
   cls.set_name(String::Handle(String::NewSymbol("Object")));
   cls.set_script(script);
-  cls.set_class_state(RawClass::kPreFinalized);
+  cls.set_is_prefinalized();
   core_lib.AddClass(cls);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -998,6 +998,14 @@ RawString* Class::Name() const {
 
 
 RawType* Class::SignatureType() const {
+  ASSERT(IsSignatureClass());
+  const Function& function = Function::Handle(signature_function());
+  ASSERT(!function.IsNull());
+  if (function.signature_class() != raw()) {
+    // This class is a function type alias. Return the canonical signature type.
+    const Class& canonical_class = Class::Handle(function.signature_class());
+    return canonical_class.SignatureType();
+  }
   // Return the first canonical signature type if already computed.
   const Array& signature_types = Array::Handle(canonical_types());
   if (signature_types.Length() > 0) {
@@ -1007,7 +1015,6 @@ RawType* Class::SignatureType() const {
       return signature_type.raw();
     }
   }
-  ASSERT(IsSignatureClass());
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
@@ -1463,8 +1470,14 @@ RawClass* Class::NewSignatureClass(const String& name,
   // the signature class.
   if (signature_function.signature_class() == Object::null()) {
     signature_function.set_signature_class(result);
+    result.set_is_finalized();
+  } else {
+    // This new signature class is an alias.
+    ASSERT(!result.IsCanonicalSignatureClass());
+    // Do not yet mark it as finalized, so that the class finalizer can check it
+    // for illegal self references.
+    result.set_is_prefinalized();
   }
-  result.set_is_finalized();
   // Instances of a signature class can only be closures.
   ASSERT(result.instance_size() == Closure::InstanceSize());
   // Cache the signature type as the first canonicalized type in result.
@@ -1654,6 +1667,12 @@ void Class::set_is_const() const {
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_class_state(RawClass::kFinalized);
+}
+
+
+void Class::set_is_prefinalized() const {
+  ASSERT(!is_finalized());
+  set_class_state(RawClass::kPreFinalized);
 }
 
 

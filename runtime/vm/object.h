@@ -655,6 +655,8 @@ class Class : public Object {
     return raw_ptr()->class_state_ == RawClass::kPreFinalized;
   }
 
+  void set_is_prefinalized() const;
+
   bool is_const() const {
     return raw_ptr()->is_const_;
   }

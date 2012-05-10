@@ -2962,6 +2962,10 @@ void Parser::ParseFunctionTypeAlias(
       Class::NewSignatureClass(*alias_name,
                                signature_function,
                                script_));
+  // This alias should not be marked as finalized yet, since it needs to be
+  // checked in the class finalizer for illegal self references.
+  ASSERT(!function_type_alias.IsCanonicalSignatureClass());
+  ASSERT(!function_type_alias.is_finalized());
   library_.AddClass(function_type_alias);
   ExpectSemicolon();
   pending_classes.Add(function_type_alias, Heap::kOld);
