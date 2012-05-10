@@ -268,12 +268,7 @@ _html_library_remove = set([
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     "Notification.dispatchEvent",
     "Notification.addEventListener",
-    "Notification.removeEventListener",
-    "IFrameElement.get:contentDocument",
-    "IFrameElement.get:contentWindow",
-    "Window.get:frameElement",
-    "Window.get:top",
-    ])
+    "Notification.removeEventListener"])
 
 # Events without onEventName attributes in the  IDL we want to support.
 # We can automatically extract most event event names by checking for

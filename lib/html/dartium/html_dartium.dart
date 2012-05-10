@@ -10739,6 +10739,10 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
 
   void set align(String value) { _ptr.align = _unwrap(value); }
 
+  Document get contentDocument() => _wrap(_ptr.contentDocument);
+
+  Window get contentWindow() => _wrap(_ptr.contentWindow);
+
   String get frameBorder() => _wrap(_ptr.frameBorder);
 
   void set frameBorder(String value) { _ptr.frameBorder = _unwrap(value); }
@@ -21518,6 +21522,8 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   Event get event() => _wrap(_ptr.event);
 
+  Element get frameElement() => _wrap(_ptr.frameElement);
+
   Window get frames() => _wrap(_ptr.frames);
 
   History get history() => _wrap(_ptr.history);
@@ -21591,6 +21597,8 @@ class _WindowImpl extends _EventTargetImpl implements Window {
   StyleMedia get styleMedia() => _wrap(_ptr.styleMedia);
 
   BarInfo get toolbar() => _wrap(_ptr.toolbar);
+
+  Window get top() => _wrap(_ptr.top);
 
   IDBFactory get webkitIndexedDB() => _wrap(_ptr.webkitIndexedDB);
 
@@ -30161,6 +30169,12 @@ interface IFrameElement extends Element {
 
   /** @domName HTMLIFrameElement.align */
   String align;
+
+  /** @domName HTMLIFrameElement.contentDocument */
+  final Document contentDocument;
+
+  /** @domName HTMLIFrameElement.contentWindow */
+  final Window contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -40002,6 +40016,9 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.event */
   final Event event;
 
+  /** @domName DOMWindow.frameElement */
+  final Element frameElement;
+
   /** @domName DOMWindow.frames */
   final Window frames;
 
@@ -40103,6 +40120,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.toolbar */
   final BarInfo toolbar;
+
+  /** @domName DOMWindow.top */
+  final Window top;
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;

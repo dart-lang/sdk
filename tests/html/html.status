@@ -25,6 +25,8 @@ request_animation_frame_test: Skip   # drt hangs
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
+cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html frog.
+inner_frame_test: Fail # Issue 2774
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
@@ -151,6 +153,8 @@ dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
+cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html
+inner_frame_test: Fail # Issue 2774
 indexeddb_3_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
 indexeddb_4_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
 
