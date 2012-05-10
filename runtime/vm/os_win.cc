@@ -143,12 +143,6 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 }
 
 
-// TODO(asiva): Consider moving this to "globals.h".
-#ifndef va_copy
-#define va_copy(dst, src) (memmove(&(dst), &(src), sizeof(dst)))
-#endif  /* va_copy */
-
-
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   if (str == NULL || size == 0) {
     return _vscprintf(format, args);

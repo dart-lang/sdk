@@ -43,9 +43,18 @@ class DebuggerConnectionHandler {
   static void CloseDbgConnection();
 
   static void HandleMessages();
-  static void HandleResumeCmd();
+  static void HandleResumeCmd(const char* msg);
+  static void HandleStepIntoCmd(const char* msg);
+  static void HandleStepOverCmd(const char* msg);
+  static void HandleStepOutCmd(const char* msg);
+  static void HandleGetLibraryURLsCmd(const char* json_msg);
+  static void HandleGetScriptURLsCmd(const char* json_msg);
+
+  static void SendError(int msg_id, const char* format, ...);
 
   static bool handler_started_;
+
+  static bool request_resume_;
 
   // The socket that is listening for incoming debugger connections.
   // This descriptor is created and closed by a VM thread.

@@ -22,11 +22,19 @@ dart::Monitor DebuggerConnectionHandler::is_connected_;
 MessageBuffer* DebuggerConnectionHandler::msgbuf_ = NULL;
 
 bool DebuggerConnectionHandler::handler_started_ = false;
+bool DebuggerConnectionHandler::request_resume_ = false;
 
 
 // TODO(hausner): Need better error handling.
 #define ASSERT_NOT_ERROR(handle)                                               \
   ASSERT(!Dart_IsError(handle))
+
+typedef void (*CommandHandler)(const char* json_cmd);
+
+struct JSONDebuggerCommand {
+  const char* cmd_string;
+  CommandHandler handler_function;
+};
 
 
 class MessageBuffer {
@@ -37,6 +45,7 @@ class MessageBuffer {
   bool IsValidMessage() const;
   void PopMessage();
   int MessageId() const;
+  const char* Params() const;
   char* buf() const { return buf_; }
   bool Alive() const { return connection_is_alive_; }
 
@@ -95,6 +104,17 @@ int MessageBuffer::MessageId() const {
 }
 
 
+const char* MessageBuffer::Params() const {
+  dart::JSONReader r(buf_);
+  r.Seek("param");
+  if (r.Type() == dart::JSONReader::kObject) {
+    return r.ValueChars();
+  } else {
+    return NULL;
+  }
+}
+
+
 void MessageBuffer::ReadData() {
   ASSERT(data_length_ >= 0);
   ASSERT(data_length_ < buf_length_);
@@ -145,10 +165,105 @@ static bool IsValidJSON(const char* msg) {
 }
 
 
-void DebuggerConnectionHandler::HandleResumeCmd() {
+void DebuggerConnectionHandler::SendError(int msg_id,
+                                          const char* format, ...) {
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\": %d, \"error\": \"", msg_id);
+  va_list args;
+  va_start(args, format);
+  msg.Printf(format, args);
+  va_end(args);
+  msg.Printf("\"}");
+  Socket::Write(debugger_fd_, msg.buf(), msg.length());
+  // TODO(hausner): Error checking. Probably just shut down the debugger
+  // session if we there is an error while writing.
+}
+
+
+void DebuggerConnectionHandler::HandleResumeCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   dart::TextBuffer msg(64);
   msg.Printf("{ \"id\": %d }", msg_id);
+  Socket::Write(debugger_fd_, msg.buf(), msg.length());
+  // TODO(hausner): Error checking. Probably just shut down the debugger
+  // session if we there is an error while writing.
+  request_resume_ = true;
+}
+
+
+void DebuggerConnectionHandler::HandleStepIntoCmd(const char* json_msg) {
+  Dart_Handle res = Dart_SetStepInto();
+  ASSERT_NOT_ERROR(res);
+  HandleResumeCmd(json_msg);
+}
+
+
+void DebuggerConnectionHandler::HandleStepOutCmd(const char* json_msg) {
+  Dart_Handle res = Dart_SetStepOut();
+  ASSERT_NOT_ERROR(res);
+  HandleResumeCmd(json_msg);
+}
+
+
+void DebuggerConnectionHandler::HandleStepOverCmd(const char* json_msg) {
+  Dart_Handle res = Dart_SetStepOver();
+  ASSERT_NOT_ERROR(res);
+  HandleResumeCmd(json_msg);
+}
+
+
+void DebuggerConnectionHandler::HandleGetScriptURLsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  dart::TextBuffer msg(64);
+  const char* params = msgbuf_->Params();
+  ASSERT(params != NULL);
+  dart::JSONReader pr(params);
+  pr.Seek("library");
+  ASSERT(pr.Type() == dart::JSONReader::kString);
+  char lib_url_chars[128];
+  pr.GetValueChars(lib_url_chars, sizeof(lib_url_chars));
+  Dart_Handle lib_url = Dart_NewString(lib_url_chars);
+  ASSERT_NOT_ERROR(lib_url);
+  Dart_Handle urls = Dart_GetScriptURLs(lib_url);
+  if (Dart_IsError(urls)) {
+    SendError(msg_id, "Error: '%s'.", Dart_GetError(urls));
+    return;
+  }
+  ASSERT(Dart_IsList(urls));
+  intptr_t num_urls = 0;
+  Dart_ListLength(urls, &num_urls);
+  msg.Printf("{ \"id\": %d, ", msg_id);
+  msg.Printf("\"result\": { \"urls\": [");
+  for (int i = 0; i < num_urls; i++) {
+    Dart_Handle script_url = Dart_ListGetAt(urls, i);
+    ASSERT(Dart_IsString(script_url));
+    char const* chars;
+    Dart_StringToCString(lib_url, &chars);
+    msg.Printf("%s\"%s\"", (i == 0) ? "" : ", ", chars);
+  }
+  msg.Printf("] }}");
+  Socket::Write(debugger_fd_, msg.buf(), msg.length());
+  // TODO(hausner): Error checking. Probably just shut down the debugger
+  // session if we there is an error while writing.
+}
+
+
+void DebuggerConnectionHandler::HandleGetLibraryURLsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  dart::TextBuffer msg(64);
+  msg.Printf("{ \"id\": %d, \"result\": { \"urls\": [", msg_id);
+  Dart_Handle urls = Dart_GetLibraryURLs();
+  ASSERT_NOT_ERROR(urls);
+  intptr_t num_libs;
+  Dart_ListLength(urls, &num_libs);
+  for (int i = 0; i < num_libs; i++) {
+    Dart_Handle lib_url = Dart_ListGetAt(urls, i);
+    ASSERT(Dart_IsString(lib_url));
+    char const* chars;
+    Dart_StringToCString(lib_url, &chars);
+    msg.Printf("%s\"%s\"", (i == 0) ? "" : ", ", chars);
+  }
+  msg.Printf("] }}");
   Socket::Write(debugger_fd_, msg.buf(), msg.length());
   // TODO(hausner): Error checking. Probably just shut down the debugger
   // session if we there is an error while writing.
@@ -156,6 +271,16 @@ void DebuggerConnectionHandler::HandleResumeCmd() {
 
 
 void DebuggerConnectionHandler::HandleMessages() {
+  static JSONDebuggerCommand debugger_commands[] = {
+    { "resume", HandleResumeCmd },
+    { "getLibraryURLs", HandleGetLibraryURLsCmd},
+    { "getScriptURLs", HandleGetScriptURLsCmd },
+    { "stepInto", HandleStepIntoCmd },
+    { "stepOut", HandleStepOutCmd },
+    { "stepOver", HandleStepOverCmd },
+    { NULL, NULL }
+  };
+
   for (;;) {
     while (!msgbuf_->IsValidMessage() && msgbuf_->Alive()) {
       msgbuf_->ReadData();
@@ -171,11 +296,23 @@ void DebuggerConnectionHandler::HandleMessages() {
     if (!found) {
       printf("'command' not found in JSON message: '%s'\n", msgbuf_->buf());
       msgbuf_->PopMessage();
-    } else if (r.IsStringLiteral("resume")) {
-      HandleResumeCmd();
-      msgbuf_->PopMessage();
-      return;
-    } else {
+    }
+    int i = 0;
+    bool is_handled = false;
+    request_resume_ = false;
+    while (debugger_commands[i].cmd_string != NULL) {
+      if (r.IsStringLiteral(debugger_commands[i].cmd_string)) {
+        is_handled = true;
+        (*debugger_commands[i].handler_function)(msgbuf_->buf());
+        msgbuf_->PopMessage();
+        if (request_resume_) {
+          return;
+        }
+        break;
+      }
+      i++;
+    }
+    if (!is_handled) {
       printf("unrecognized command received: '%s'\n", msgbuf_->buf());
       msgbuf_->PopMessage();
     }
@@ -189,7 +326,7 @@ void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
   intptr_t trace_len = 0;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   ASSERT_NOT_ERROR(res);
-  msg.Printf("{ \"command\" : \"paused\", \"params\" : ");
+  msg.Printf("{ \"event\": \"paused\", \"params\": ");
   msg.Printf("{ \"callFrames\" : [ ");
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
@@ -204,7 +341,7 @@ void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
     ASSERT(Dart_IsString(func_name));
     const char* func_name_chars;
     Dart_StringToCString(func_name, &func_name_chars);
-    msg.Printf("%s { \"functionName\" : \"%s\" , ",
+    msg.Printf("%s { \"functionName\": \"%s\" , ",
               i > 0 ? "," : "",
               func_name_chars);
     ASSERT(Dart_IsString(script_url));
@@ -229,11 +366,13 @@ void DebuggerConnectionHandler::BreakpointHandler(Dart_Breakpoint bpt,
       ASSERT(res == dart::Monitor::kNotified);
     }
   }
+  Dart_EnterScope();
   SendBreakpointEvent(bpt, trace);
   HandleMessages();
   if (!msgbuf_->Alive()) {
     CloseDbgConnection();
   }
+  Dart_ExitScope();
 }
 
 

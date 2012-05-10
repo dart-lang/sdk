@@ -312,6 +312,23 @@ JSONReader::JSONType JSONReader::Type() const {
 }
 
 
+void JSONReader::GetValueChars(char* buf, intptr_t buflen) const {
+  if (Type() == kNone) {
+    return;
+  }
+  intptr_t max = buflen - 1;
+  if (ValueLen() < max) {
+    max = ValueLen();
+  }
+  const char* val = ValueChars();
+  intptr_t i = 0;
+  for (; i < max; i++) {
+    buf[i] = val[i];
+  }
+  buf[i] = '\0';
+}
+
+
 TextBuffer::TextBuffer(intptr_t buf_size) {
   ASSERT(buf_size > 0);
   buf_ = reinterpret_cast<char*>(malloc(buf_size));
@@ -332,26 +349,35 @@ void TextBuffer::Clear() {
 }
 
 
-intptr_t TextBuffer::Printf(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
+intptr_t TextBuffer::Printf(const char* format, va_list args) {
+  va_list args1;
+  va_copy(args1, args);
   intptr_t remaining = buf_size_ - msg_len_;
   ASSERT(remaining >= 0);
-  intptr_t len = OS::VSNPrint(buf_ + msg_len_, remaining, format, args);
-  va_end(args);
+  intptr_t len = OS::VSNPrint(buf_ + msg_len_, remaining, format, args1);
+  va_end(args1);
   if (len >= remaining) {
     const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
     GrowBuffer(len + kBufferSpareCapacity);
     remaining = buf_size_ - msg_len_;
     ASSERT(remaining > len);
     va_list args2;
-    va_start(args2, format);
+    va_copy(args2, args);
     intptr_t len2 = OS::VSNPrint(buf_ + msg_len_, remaining, format, args2);
     va_end(args2);
     ASSERT(len == len2);
   }
   msg_len_ += len;
   buf_[msg_len_] = '\0';
+  return len;
+}
+
+
+intptr_t TextBuffer::Printf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = this->Printf(format, args);
+  va_end(args);
   return len;
 }
 
