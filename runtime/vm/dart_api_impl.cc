@@ -900,7 +900,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
-  nmh->Run(Dart::thread_pool(), NULL, NULL, NULL);
+  nmh->Run(Dart::thread_pool(), NULL, NULL, 0);
   return port_id;
 }
 
