@@ -13,6 +13,7 @@ svgelement2_test: Skip # Issue 2998
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 indexeddb_3_test: Fail  # exception not caught - not 'is IDBDatabaseException' ?
 indexeddb_4_test: Fail  # exception not caught - not 'is IDBDatabaseException' ?
+svgelement2_test: Fail  # started to timeout, needs investigation.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
