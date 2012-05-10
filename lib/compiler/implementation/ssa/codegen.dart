@@ -145,6 +145,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
   final Set<String> usedNames;
+  final Set<HInstruction> declaredInstructions;
   final Map<String, int> prefixes;
   final Set<HInstruction> generateAtUseSite;
   final Map<HPhi, String> logicalOperations;
@@ -190,6 +191,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     : names = new Map<int, String>(),
       prefixes = new Map<String, int>(),
       usedNames = new Set<String>(),
+      declaredInstructions = new Set<HInstruction>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       logicalOperations = new Map<HPhi, String>(),
@@ -449,10 +451,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return result;
   }
 
-  bool temporaryExists(HInstruction instruction) {
-    return names.containsKey(instruction.id);
-  }
-
   String newName(int id, String name) {
     String result = JsNames.getValid(name);
     names[id] = result;
@@ -516,6 +514,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void declareInstruction(HInstruction instruction) {
+    declaredInstructions.add(instruction);
+    String name = temporary(instruction);
+    declareVariable(name);
+  }
+
   bool needsNewVariable(HInstruction instruction) {
     bool needsVar = !instruction.usedBy.isEmpty();
     if (needsVar && instruction is HCheck) {
@@ -551,8 +555,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void define(HInstruction instruction) {
     if (needsNewVariable(instruction)) {
-      String name = temporary(instruction);
-      declareVariable(name);
+      declareInstruction(instruction);
       buffer.add(" = ");
       visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
     } else {
@@ -1030,8 +1033,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           temporaryNamesOfPhis.containsKey(canonicalPhi)) {
         // This is the assignment to the temporary.
         declareVariable(temporaryNamesOfPhis[canonicalPhi]);
-      } else if (!temporaryExists(canonicalPhi)) {
-        declareVariable(temporary(canonicalPhi));
+      } else if (!declaredInstructions.contains(canonicalPhi)) {
+        declareInstruction(canonicalPhi);
       } else {
         buffer.add(temporary(canonicalPhi));
       }
