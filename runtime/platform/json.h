@@ -117,7 +117,6 @@ class TextBuffer : ValueObject {
   ~TextBuffer();
 
   intptr_t Printf(const char* format, ...);
-  intptr_t Printf(const char* format, va_list args);
 
   void Clear();
 

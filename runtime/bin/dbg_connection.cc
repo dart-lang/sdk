@@ -166,14 +166,9 @@ static bool IsValidJSON(const char* msg) {
 
 
 void DebuggerConnectionHandler::SendError(int msg_id,
-                                          const char* format, ...) {
+                                          const char* err_msg) {
   dart::TextBuffer msg(64);
-  msg.Printf("{\"id\": %d, \"error\": \"", msg_id);
-  va_list args;
-  va_start(args, format);
-  msg.Printf(format, args);
-  va_end(args);
-  msg.Printf("\"}");
+  msg.Printf("{\"id\": %d, \"error\": \"Error: %s\"}", msg_id, err_msg);
   Socket::Write(debugger_fd_, msg.buf(), msg.length());
   // TODO(hausner): Error checking. Probably just shut down the debugger
   // session if we there is an error while writing.
@@ -226,7 +221,7 @@ void DebuggerConnectionHandler::HandleGetScriptURLsCmd(const char* json_msg) {
   ASSERT_NOT_ERROR(lib_url);
   Dart_Handle urls = Dart_GetScriptURLs(lib_url);
   if (Dart_IsError(urls)) {
-    SendError(msg_id, "Error: '%s'.", Dart_GetError(urls));
+    SendError(msg_id, Dart_GetError(urls));
     return;
   }
   ASSERT(Dart_IsList(urls));

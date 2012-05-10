@@ -50,7 +50,7 @@ class DebuggerConnectionHandler {
   static void HandleGetLibraryURLsCmd(const char* json_msg);
   static void HandleGetScriptURLsCmd(const char* json_msg);
 
-  static void SendError(int msg_id, const char* format, ...);
+  static void SendError(int msg_id, const char* err_msg);
 
   static bool handler_started_;
 

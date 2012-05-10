@@ -11,11 +11,6 @@
 
 namespace dart {
 
-#ifndef va_copy
-#define va_copy(dst, src) (memmove(&(dst), &(src), sizeof(dst)))
-#endif  /* va_copy */
-
-
 JSONScanner::JSONScanner(const char* json_text) {
   SetText(json_text);
 }
@@ -354,35 +349,26 @@ void TextBuffer::Clear() {
 }
 
 
-intptr_t TextBuffer::Printf(const char* format, va_list args) {
-  va_list args1;
-  va_copy(args1, args);
+intptr_t TextBuffer::Printf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
   intptr_t remaining = buf_size_ - msg_len_;
   ASSERT(remaining >= 0);
-  intptr_t len = OS::VSNPrint(buf_ + msg_len_, remaining, format, args1);
-  va_end(args1);
+  intptr_t len = OS::VSNPrint(buf_ + msg_len_, remaining, format, args);
+  va_end(args);
   if (len >= remaining) {
     const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
     GrowBuffer(len + kBufferSpareCapacity);
     remaining = buf_size_ - msg_len_;
     ASSERT(remaining > len);
     va_list args2;
-    va_copy(args2, args);
+    va_start(args2, format);
     intptr_t len2 = OS::VSNPrint(buf_ + msg_len_, remaining, format, args2);
     va_end(args2);
     ASSERT(len == len2);
   }
   msg_len_ += len;
   buf_[msg_len_] = '\0';
-  return len;
-}
-
-
-intptr_t TextBuffer::Printf(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  intptr_t len = this->Printf(format, args);
-  va_end(args);
   return len;
 }
 
