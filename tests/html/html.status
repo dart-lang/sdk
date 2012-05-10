@@ -7,6 +7,7 @@ webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
 measurement_test: Pass, Fail  # Issue 1940
+svgelement2_test: Skip # Issue 2998
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
@@ -27,7 +28,6 @@ request_animation_frame_test: Skip   # drt hangs
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html frog.
 inner_frame_test: Fail # Issue 2774
-svgelement2_test: Fail
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
@@ -54,7 +54,6 @@ element_test: Fail
 localstorage_test: Fail
 node_test: Fail
 svgelement_test: Fail
-svgelement2_test: Fail
 xhr_test: Fail
 
 [ $runtime == safari ]
@@ -63,7 +62,6 @@ cssstyledeclaration_test: Fail
 element_test: Fail
 node_test: Fail
 svgelement_test: Fail
-svgelement2_test: Fail
 
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
@@ -91,7 +89,6 @@ localstorage_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
-svgelement2_test: Fail
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
 #   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
 # Note this test now passes for the wrong reasons. It used to be that the only
@@ -143,7 +140,6 @@ css_test: Pass, Fail # Test is flaky Issue #2823
 # Unknown error - should investigate.
 element_test: Fail
 measurement_test: Fail
-svgelement2_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

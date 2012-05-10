@@ -8,7 +8,7 @@
 #import('dart:html');
 
 class A {
-  _this;
+  var _this;
   A(x) : this._this = x;
 }
 
