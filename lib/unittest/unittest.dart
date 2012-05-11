@@ -285,7 +285,7 @@ class _SpreadArgsHelper {
 
   invoke([arg0 = _sentinel, arg1 = _sentinel, arg2 = _sentinel,
           arg3 = _sentinel, arg4 = _sentinel]) {
-    return _guard(() {
+    return guardAsync(() {
       if (!_incrementCall()) {
         return;
       } else if (arg0 == _sentinel) {
@@ -308,19 +308,19 @@ class _SpreadArgsHelper {
   }
 
   invoke0() {
-    return _guard(
+    return guardAsync(
         () => _incrementCall() ? callback() : null,
         () { if (calls == expectedCalls) callbackDone(); });
   }
 
   invoke1(arg1) {
-    return _guard(
+    return guardAsync(
         () => _incrementCall() ? callback(arg1) : null,
         () { if (calls == expectedCalls) callbackDone(); });
   }
 
   invoke2(arg1, arg2) {
-    return _guard(
+    return guardAsync(
         () => _incrementCall() ? callback(arg1, arg2) : null,
         () { if (calls == expectedCalls) callbackDone(); });
   }
@@ -468,7 +468,7 @@ _runTests() {
  * Run [tryBody] guarded in a try-catch block. If an exception is thrown, update
  * the [_currentTest] status accordingly.
  */
-_guard(tryBody, [finallyBody]) {
+guardAsync(tryBody, [finallyBody]) {
   try {
     return tryBody();
   } catch (ExpectException e, var trace) {
@@ -501,7 +501,7 @@ _guard(tryBody, [finallyBody]) {
 _nextBatch() {
   while (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
-    _guard(() {
+    guardAsync(() {
       _callbacksCalled = 0;
       _state = _RUNNING_TEST;
 
