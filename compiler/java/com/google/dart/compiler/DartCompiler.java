@@ -855,13 +855,15 @@ public class DartCompiler {
     private final Map<URI, LibraryUnit> resolvedLibraries;
     private final Map<URI,DartUnit> parsedUnits;
     private Collection<LibraryUnit> librariesToProcess;
+    private final SystemLibraryManager libraryManager;
 
     private SelectiveCompiler(LibrarySource app, Map<URI, LibraryUnit> resolvedLibraries,
         Map<URI,DartUnit> parsedUnits, CompilerConfiguration config,
-        DartCompilerMainContext context) {
+        DartCompilerMainContext context, SystemLibraryManager libraryManager) {
       super(app, Collections.<LibrarySource>emptyList(), config, context);
       this.resolvedLibraries = resolvedLibraries;
       this.parsedUnits = parsedUnits;
+      this.libraryManager = libraryManager;
       addResolvedLibraries(resolvedLibraries);
     }
 
@@ -884,7 +886,17 @@ public class DartCompiler {
       // Remove the parsed unit from the map if present
       // so that it will not be consumed a 2nd time if it is sourced by multiple libraries
       DartUnit parsedUnit = parsedUnits.remove(srcUri);
-      return parsedUnit == null ? super.parse(dartSrc, prefixes, diet) : parsedUnit;
+      if (parsedUnit != null) {
+        return parsedUnit;
+      }
+      if (libraryManager != null) {
+        URI fileUri = libraryManager.resolveDartUri(srcUri);
+        parsedUnit = parsedUnits.remove(fileUri);
+        if (parsedUnit != null) {
+          return parsedUnit;
+        }
+      }
+      return super.parse(dartSrc, prefixes, diet);
     }
   }
 
@@ -1148,7 +1160,7 @@ public class DartCompiler {
       CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
       throws IOException {
     HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
-    return analyzeLibraries(lib, resolvedLibs, parsedUnits, config, provider, listener, false).get(lib.getUri());
+    return analyzeLibraries(lib, resolvedLibs, parsedUnits, config, provider, null, listener, false).get(lib.getUri());
   }
 
   /**
@@ -1166,6 +1178,7 @@ public class DartCompiler {
    * will not be used), but resolution and type-analysis will be
    * invoked
    * @param provider A mechanism for specifying where code should be generated
+   * @param libraryManager 
    * @param listener An object notified when compilation errors occur
    * @param resolveAllNewLibs <code>true</code> if all new libraries should be resolved
    * or false if only the library specified by the "lib" parameter should be resolved
@@ -1175,14 +1188,14 @@ public class DartCompiler {
    */
   public static Map<URI, LibraryUnit> analyzeLibraries(LibrarySource lib,
       Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits,
-      CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener,
-      boolean resolveAllNewLibs) throws IOException {
+      CompilerConfiguration config, DartArtifactProvider provider, SystemLibraryManager libraryManager, 
+      DartCompilerListener listener, boolean resolveAllNewLibs) throws IOException {
     lib.getClass(); // Quick null check.
     provider.getClass(); // Quick null check.
     listener.getClass(); // Quick null check.
     resolvedLibs.getClass(); // Quick null check.
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
-    Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context);
+    Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context, libraryManager);
 
     LibraryUnit topLibUnit = compiler.updateAndResolve();
     if (topLibUnit == null) {
