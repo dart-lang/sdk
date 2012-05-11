@@ -1048,9 +1048,6 @@ class DartcCompilationTestSuite extends StandardTestSuite {
       Directory dir = new Directory("$directoryPath/$testDir");
       if (dir.existsSync()) {
         activityStarted();
-        dir.onError = (s) {
-          throw s;
-        };
         var lister = dir.list(recursive: listRecursively());
         lister.onFile = processFile;
         lister.onDone = (ignore) => activityCompleted();
@@ -1115,9 +1112,6 @@ class JUnitTestSuite implements TestSuite {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
-    dir.onError = (s) {
-      throw s;
-    };
     var lister = dir.list(recursive: true);
     lister.onFile = processFile;
     lister.onDone = createTest;
