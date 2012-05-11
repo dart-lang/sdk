@@ -552,22 +552,17 @@ class CompilerCancelledException implements Exception {
   }
 }
 
-interface Tracer default LTracer {
-  const Tracer();
-  final bool enabled;
-  void traceCompilation(String methodName);
-  void traceGraph(String name, var graph);
-  void close();
-}
-
-// TODO(ahe): Remove when the VM supports implicit interfaces.
-class LTracer implements Tracer {
-  const LTracer();
+class Tracer {
   final bool enabled = false;
+
+  const Tracer();
+
   void traceCompilation(String methodName) {
   }
+
   void traceGraph(String name, var graph) {
   }
+
   void close() {
   }
 }
