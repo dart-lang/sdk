@@ -46,11 +46,7 @@ class Configuration {
       print('${t.result.toUpperCase()}: ${t.description}');
 
       if (t.message != '') {
-        print(_indent(t.message));
-      }
-
-      if (t.stackTrace != null && t.stackTrace != '') {
-        print(_indent(t.stackTrace));
+        print('  ${t.message}');
       }
     }
 
@@ -74,12 +70,5 @@ class Configuration {
 
     // An exception is used by the test infrastructure to detect failure.
     if (!success) throw new Exception("Some tests failed.");
-  }
-
-  String _indent(String str) {
-    // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
-    // return str.replaceAll(const RegExp("^", multiLine: true), "  ");
-
-    return Strings.join(str.split("\n").map((line) => "  $line"), "\n");
   }
 }

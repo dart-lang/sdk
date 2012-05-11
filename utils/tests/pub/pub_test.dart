@@ -31,27 +31,30 @@ final VERSION_STRING = '''
     ''';
 
 main() {
-  test('running pub with no command displays usage', () =>
-      runPub(args: [], output: USAGE_STRING));
+  testPub('running pub with no command displays usage',
+    args: [],
+    output: USAGE_STRING);
 
-  test('running pub with just --help displays usage', () =>
-      runPub(args: ['--help'], output: USAGE_STRING));
+  testPub('running pub with just --help displays usage',
+    args: ['--help'],
+    output: USAGE_STRING);
 
-  test('running pub with just -h displays usage', () =>
-      runPub(args: ['-h'], output: USAGE_STRING));
+  testPub('running pub with just -h displays usage',
+    args: ['-h'],
+    output: USAGE_STRING);
 
-  test('running pub with just --version displays version', () =>
-      runPub(args: ['--version'], output: VERSION_STRING));
+  testPub('running pub with just --version displays version',
+    args: ['--version'],
+    output: VERSION_STRING);
 
   group('an unknown command', () {
-    test('displays an error message', () {
-      runPub(args: ['quylthulg'],
-          output: '''
-          Unknown command "quylthulg".
-          Run "pub help" to see available commands.
-          ''',
-          exitCode: 64);
-    });
+    testPub('displays an error message',
+      args: ['quylthulg'],
+      output: '''
+      Unknown command "quylthulg".
+      Run "pub help" to see available commands.
+      ''',
+      exitCode: 64);
   });
 
   group('pub list', listCommand);
@@ -61,54 +64,48 @@ main() {
 
 listCommand() {
   group('cache', () {
-    test('treats an empty directory as a package', () {
-      dir(cachePath, [
+    testPub('treats an empty directory as a package',
+      cache: [
         dir('sdk', [
           dir('apple'),
           dir('banana'),
           dir('cherry')
         ])
-      ]).scheduleCreate();
-
-      runPub(args: ['list', 'cache'],
-          output: '''
-          From system cache:
-            apple from sdk
-            banana from sdk
-            cherry from sdk
-          ''');
-    });
+      ],
+      args: ['list', 'cache'],
+      output: '''
+      From system cache:
+        apple from sdk
+        banana from sdk
+        cherry from sdk
+      ''');
   });
 }
 
 installCommand() {
-  test('adds a dependent package', () {
-    dir(sdkPath, [
+  testPub('adds a dependent package',
+    sdk: [
       dir('lib', [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
         ])
       ])
-    ]).scheduleCreate();
-
-    dir(appPath, [
+    ],
+    app: dir('myapp', [
       file('pubspec', 'dependencies:\n- foo')
-    ]).scheduleCreate();
-
-    dir(packagesPath, [
+    ]),
+    args: ['install'],
+    expectedPackageDir: [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ],
+    output: '''
+    Dependencies installed!
+    ''');
 
-    runPub(args: ['install'],
-        output: '''
-        Dependencies installed!
-        ''');
-  });
-
-  test('adds a transitively dependent package', () {
-    dir(sdkPath, [
+  testPub('adds a transitively dependent package',
+    sdk: [
       dir('lib', [
         dir('foo', [
           file('foo.dart', 'main() => "foo";'),
@@ -118,29 +115,26 @@ installCommand() {
           file('bar.dart', 'main() => "bar";'),
         ])
       ])
-    ]).scheduleCreate();
-
-    dir(appPath, [
+    ],
+    app: dir('myapp', [
       file('pubspec', 'dependencies:\n- foo')
-    ]).scheduleCreate();
-
-    dir(packagesPath, [
+    ]),
+    args: ['install'],
+    expectedPackageDir: [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
       ]),
       dir('bar', [
         file('bar.dart', 'main() => "bar";'),
       ])
-    ]).scheduleValidate();
-
-    runPub(args: ['install'],
-        output: '''
-        Dependencies installed!
-        ''');
-  });
+    ],
+    output: '''
+    Dependencies installed!
+    ''');
 }
 
 versionCommand() {
-  test('displays the current version', () =>
-    runPub(args: ['version'], output: VERSION_STRING));
+  testPub('displays the current version',
+    args: ['version'],
+    output: VERSION_STRING);
 }

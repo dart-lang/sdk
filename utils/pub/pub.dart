@@ -35,22 +35,6 @@ main() {
     'version': new VersionCommand()
   };
 
-  // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
-  // pass in relevant paths. Eventually these should be either environment
-  // variables or at least a cleaner arg parser.
-  var cacheDir, sdkDir;
-  for (var i = 0; i < args.length; i++) {
-    if (args[i].startsWith('--cachedir=')) {
-      cacheDir = args[i].substring('--cachedir='.length);
-      args.removeRange(i, 1);
-      i--;
-    } else if (args[i].startsWith('--sdkdir=')) {
-      sdkDir = args[i].substring('--sdkdir='.length);
-      args.removeRange(i, 1);
-      i--;
-    }
-  }
-
   if (args.length == 0) {
     printUsage(commands);
     return;
@@ -67,6 +51,22 @@ main() {
     if (args[0] == '--version') {
       printVersion();
       return;
+    }
+  }
+
+  // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
+  // pass in relevant paths. Eventually these should be either environment
+  // variables or at least a cleaner arg parser.
+  var cacheDir, sdkDir;
+  for (var i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--cachedir=')) {
+      cacheDir = args[i].substring('--cachedir='.length);
+      args.removeRange(i, 1);
+      i--;
+    } else if (args[i].startsWith('--sdkdir=')) {
+      sdkDir = args[i].substring('--sdkdir='.length);
+      args.removeRange(i, 1);
+      i--;
     }
   }
 
