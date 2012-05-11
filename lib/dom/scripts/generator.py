@@ -148,6 +148,11 @@ class ParamInfo(object):
     self.dart_type = dart_type
     self.default_value = default_value
 
+  def __repr__(self):
+    content = 'name = %s, type_id = %s, dart_type = %s, default_value = %s' % (
+        self.name, self.type_id, self.dart_type, self.default_value))
+    return '<ParamInfo(%s)>' % content
+
 
 # Given a list of overloaded arguments, render a dart argument.
 def _DartArg(args, interface):

@@ -463,6 +463,9 @@ class IDLArgument(IDLNode):
     self.is_optional = self._has(ast, 'Optional') \
       or ('Optional' in self.ext_attrs)
 
+  def __repr__(self):
+    return '<IDLArgument(type = %s, id = %s)>' % (self.type, self.id)
+
 
 class IDLImplementsStatement(IDLNode):
   """IDLNode specialization for 'X implements Y' declarations."""
