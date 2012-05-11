@@ -2258,7 +2258,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void visitTypeGuard(HTypeGuard node) {
     addIndentation();
     HInstruction input = node.guarded;
-    assert(!isGenerateAtUseSite(input) || input.isCodeMotionInvariant());
     if (node.isInteger()) {
       buffer.add('if (');
       checkInt(input, '!==');
