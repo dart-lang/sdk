@@ -7,36 +7,30 @@
 #import("dart:io");
 
 void main() {
-  Expect.throws(() => new Process.start(["true"], []),
+  Expect.throws(() => Process.start(["true"], []),
                 (e) => e is IllegalArgumentException);
-  Expect.throws(() => new Process.start("true", "asdf"),
+  Expect.throws(() => Process.start("true", "asdf"),
                 (e) => e is IllegalArgumentException);
-  Expect.throws(() => new Process.start("true", ["asdf", 1]),
+  Expect.throws(() => Process.start("true", ["asdf", 1]),
                 (e) => e is IllegalArgumentException);
-  Expect.throws(() => new Process.run(["true"], [], null,
-                                      (exit, out, err) => null),
+  Expect.throws(() => Process.run(["true"], [], null),
                 (e) => e is IllegalArgumentException);
-  Expect.throws(() => new Process.run("true", "asdf", null,
-                                      (exit, out, err) => null),
+  Expect.throws(() => Process.run("true", "asdf", null),
                 (e) => e is IllegalArgumentException);
-  Expect.throws(() => new Process.run("true", ["asdf", 1], null,
-                                      (exit, out, err) => null),
+  Expect.throws(() => Process.run("true", ["asdf", 1], null),
                 (e) => e is IllegalArgumentException);
   var options = new ProcessOptions();
   options.workingDirectory = 23;
-  Expect.throws(() => new Process.start("true", [], options),
+  Expect.throws(() => Process.start("true", [], options),
                 (e) => e is IllegalArgumentException);
-  Expect.throws(() => new Process.run("true", [], options,
-                                      (exit, out, err) => null),
+  Expect.throws(() => Process.run("true", [], options),
                 (e) => e is IllegalArgumentException);
   options = new ProcessOptions();
   options.stdoutEncoding = 23;
-  Expect.throws(() => new Process.run("true", [], options,
-                                      (exit, out, err) => null),
+  Expect.throws(() => Process.run("true", [], options),
                 (e) => e is IllegalArgumentException);
   options = new ProcessOptions();
   options.stderrEncoding = 23;
-  Expect.throws(() => new Process.run("true", [], options,
-                                      (exit, out, err) => null),
+  Expect.throws(() => Process.run("true", [], options),
                 (e) => e is IllegalArgumentException);
 }

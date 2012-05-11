@@ -50,6 +50,7 @@ Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail # co19 issue 116
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # co19 issue 97.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # co19 issue 91: map literals illegal at statement beginning.
+Language/11_Statements/09_Try_A02_t02: Fail # co19 issue 119
 Language/11_Statements/09_Try_A05_t06: Fail # issue 430
 Language/13_Types/5_Function_Types_A02_t01: Fail # issue 1604 (call operator not implemented)
 LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
@@ -81,6 +82,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 [ $runtime == vm ]
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
+LibTest/core/Expect/throws_A01_t04: Fail # Issue co19 - 119
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Match/pattern_A01_t01: Fail

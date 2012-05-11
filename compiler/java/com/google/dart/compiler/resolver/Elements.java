@@ -606,7 +606,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * or if it is on the left hand side of an assignment and uses one of the assignment 
    * operators other than plain '='.
    */
-  public static boolean inGetterContext(DartPropertyAccess node) {
+  public static boolean inGetterContext(DartNode node) {
     if (node.getParent() instanceof DartBinaryExpression) {
       DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
       if (Token.ASSIGN.equals(expr.getOperator()) && expr.getArg1() == node) {

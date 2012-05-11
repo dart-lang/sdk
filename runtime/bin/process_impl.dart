@@ -8,37 +8,22 @@ class _ProcessStartStatus {
 }
 
 
-// Abstract factory class capable of producing interactive and
-// non-interactive processes.
-class _Process {
-
-  factory Process.start(String path,
-                        List<String> arguments,
-                        [ProcessOptions options]) {
-    return new _InteractiveProcess.start(path, arguments, options);
+class _Process extends Process {
+  static Process start(String path,
+                                  List<String> arguments,
+                                  [ProcessOptions options]) {
+    return new _Process.start(path, arguments, options);
   }
 
-  factory Process.run(String path,
-                      List<String> arguments,
-                      ProcessOptions options,
-                      void callback(int exitCode,
-                                    String stdout,
-                                    String stderr)) {
-    return new _NonInteractiveProcess.start(path,
-                                            arguments,
-                                            options,
-                                            callback);
+  static Future<ProcessResult> run(String path,
+                                   List<String> arguments,
+                                   [ProcessOptions options]) {
+    return new _NonInteractiveProcess._start(path, arguments, options)._result;
   }
-}
 
-
-// _InteractiveProcess is the actual implementation of all processes
-// started from Dart code.
-class _InteractiveProcess implements Process {
-
-  _InteractiveProcess.start(String path,
-                            List<String> arguments,
-                            ProcessOptions options) {
+  _Process.start(String path,
+                 List<String> arguments,
+                 ProcessOptions options) {
     if (path is !String) {
       throw new IllegalArgumentException("Path is not a String: $path");
     }
@@ -97,7 +82,7 @@ class _InteractiveProcess implements Process {
     _onExit = null;
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
-    new Timer(0, (Timer ignore) => start());
+    new Timer(0, (Timer ignore) => _start());
   }
 
   String _windowsArgumentEscape(String argument) {
@@ -153,20 +138,21 @@ class _InteractiveProcess implements Process {
             (bytes[offset + 3] << 24));
   }
 
-  void start() {
+  void _start() {
     var status = new _ProcessStartStatus();
-    bool success = _start(_path,
-                          _arguments,
-                          _workingDirectory,
-                          _environment,
-                          _in,
-                          _out,
-                          _err,
-                          _exitHandler,
-                          status);
+    bool success = _startNative(_path,
+                                _arguments,
+                                _workingDirectory,
+                                _environment,
+                                _in,
+                                _out,
+                                _err,
+                                _exitHandler,
+                                status);
     if (!success) {
       close();
-      _reportError(new ProcessException(status._errorMessage, status._errorCode));
+      _reportError(new ProcessException(status._errorMessage,
+                                        status._errorCode));
       return;
     }
     _started = true;
@@ -207,15 +193,15 @@ class _InteractiveProcess implements Process {
     }
   }
 
-  bool _start(String path,
-              List<String> arguments,
-              String workingDirectory,
-              List<String> environment,
-              Socket input,
-              Socket output,
-              Socket error,
-              Socket exitHandler,
-              _ProcessStartStatus status) native "Process_Start";
+  bool _startNative(String path,
+                    List<String> arguments,
+                    String workingDirectory,
+                    List<String> environment,
+                    Socket input,
+                    Socket output,
+                    Socket error,
+                    Socket exitHandler,
+                    _ProcessStartStatus status) native "Process_Start";
 
   InputStream get stdout() {
     if (_closed) {
@@ -314,14 +300,14 @@ class _InteractiveProcess implements Process {
 
 
 // _NonInteractiveProcess is a wrapper around an interactive process
-// that restricts the interface to disallow access to the streams and
-// buffers output so it can be delivered to the callback when the
-// process exits.
-class _NonInteractiveProcess implements Process {
-  _NonInteractiveProcess.start(String path,
-                               List<String> arguments,
-                               ProcessOptions options,
-                               Function this._callback) {
+// that buffers output so it can be delivered when the process exits.
+// _NonInteractiveProcess is used to implement the Process.run
+// method.
+class _NonInteractiveProcess {
+  _NonInteractiveProcess._start(String path,
+                                List<String> arguments,
+                                ProcessOptions options) {
+    _completer = new Completer<ProcessResult>();
     // Extract output encoding options and verify arguments.
     var stdoutEncoding = Encoding.UTF_8;
     var stderrEncoding = Encoding.UTF_8;
@@ -343,7 +329,10 @@ class _NonInteractiveProcess implements Process {
     }
 
     // Start the underlying process.
-    _process = new _InteractiveProcess.start(path, arguments, options);
+    _process = new _Process.start(path, arguments, options);
+
+    // Setup process error handling.
+    _process.onError = (e) => _completer.completeException(e);
 
     // Setup process exit handling.
     _process.onExit = (exitCode) {
@@ -378,52 +367,30 @@ class _NonInteractiveProcess implements Process {
 
   void _checkDone() {
     if (_exitCode != null && _stderrClosed && _stdoutClosed) {
-      _callback(_exitCode, _stdoutBuffer.toString(), _stderrBuffer.toString());
+      _completer.complete(new _ProcessResult(_exitCode,
+                                             _stdoutBuffer.toString(),
+                                             _stderrBuffer.toString()));
     }
   }
 
-  InputStream get stdout() {
-    throw new UnsupportedOperationException(
-        'Cannot get stdout stream for process started with '
-        'the run constructor. The entire stdout '
-        'will be supplied in the callback on completion.');
-  }
+  Future<ProcessResult> get _result() => _completer.future;
 
-  InputStream get stderr() {
-    throw new UnsupportedOperationException(
-        'Cannot get stderr stream for process started with '
-        'the run constructor. The entire stderr '
-        'will be supplied in the callback on completion.');
-  }
-
-  OutputStream get stdin() {
-    throw new UnsupportedOperationException(
-        'Cannot communicate via stdin with process started with '
-        'the run constructor');
-  }
-
-  void set onStart(void callback()) => _process.onStart = callback;
-
-  void set onExit(void callback(int exitCode)) {
-    throw new UnsupportedOperationException(
-        'Cannot set exit handler on process started with '
-        'the run constructor. The exit code will '
-        'be supplied in the callback on completion.');
-  }
-
-  void set onError(void callback(e)) {
-    _process.onError = callback;
-  }
-
-  void kill() => _process.kill();
-
-  void close() => _process.close();
-
+  Completer<ProcessResult> _completer;
   Process _process;
-  Function _callback;
   StringBuffer _stdoutBuffer;
   StringBuffer _stderrBuffer;
   int _exitCode;
   bool _stdoutClosed = false;
   bool _stderrClosed = false;
+}
+
+
+class _ProcessResult implements ProcessResult {
+  const _ProcessResult(int this.exitCode,
+                       String this.stdout,
+                       String this.stderr);
+
+  final int exitCode;
+  final String stdout;
+  final String stderr;
 }

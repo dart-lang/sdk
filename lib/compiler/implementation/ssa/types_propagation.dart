@@ -15,6 +15,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
 
 
   HType computeType(HInstruction instruction) {
+    if (instruction.hasGuaranteedType()) return instruction.guaranteedType;
     return instruction.computeTypeFromInputTypes();
   }
 
@@ -22,9 +23,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   // whether or not the type was changed.
   bool updateType(HInstruction instruction) {
     HType oldType = instruction.propagatedType;
-    HType newType = instruction.hasGuaranteedType()
-                    ? instruction.guaranteedType
-                    : computeType(instruction);
+    HType newType = computeType(instruction);
     // We unconditionally replace the propagated type with the new type. The
     // computeType must make sure that we eventually reach a stable state.
     instruction.propagatedType = newType;

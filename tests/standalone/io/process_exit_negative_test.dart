@@ -9,8 +9,8 @@
 #source("process_test_util.dart");
 
 void main() {
-  Process p = new Process.start(getProcessTestFileName(),
-                                const ["0", "0", "0", "0"]);
+  Process p = Process.start(getProcessTestFileName(),
+                            const ["0", "0", "0", "0"]);
   p.onExit = (int s) {
     print(a.toString());  // Should cause a compilation error here.
     p.close();

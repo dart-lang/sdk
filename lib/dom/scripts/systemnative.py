@@ -8,7 +8,6 @@ native binding from the IDL database."""
 
 import emitter
 import os
-import systemwrapping
 from generator import *
 from systembase import *
 
@@ -206,7 +205,7 @@ class NativeImplementationSystem(System):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
 
 
-class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
+class NativeImplementationGenerator(object):
   """Generates Dart implementation for one DOM IDL interface."""
 
   def __init__(self, system, interface,
@@ -318,6 +317,32 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   def _ImplClassName(self, interface_name):
     return interface_name + 'Implementation'
 
+  def _BaseClassName(self):
+    if not self._interface.parents:
+      return 'DOMWrapperBase'
+
+    supertype = self._interface.parents[0].type.id
+
+    # FIXME: We're currently injecting List<..> and EventTarget as
+    # supertypes in dart.idl. We should annotate/preserve as
+    # attributes instead.  For now, this hack lets the self._interfaces
+    # inherit, but not the classes.
+    # List methods are injected in AddIndexer.
+    if IsDartListType(supertype) or IsDartCollectionType(supertype):
+      return 'DOMWrapperBase'
+
+    if supertype == 'EventTarget':
+      # Most implementors of EventTarget specify the EventListener operations
+      # again.  If the operations are not specified, try to inherit from the
+      # EventTarget implementation.
+      #
+      # Applies to MessagePort.
+      if not [op for op in self._interface.operations if op.id == 'addEventListener']:
+        return self._ImplClassName(supertype)
+      return 'DOMWrapperBase'
+
+    return self._ImplClassName(supertype)
+
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
@@ -365,7 +390,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         NATIVE_NAME=native_implementation_function)
 
   def FinishInterface(self):
-    base = self._BaseClassName(self._interface)
+    base = self._BaseClassName()
     self._dart_impl_emitter.Emit(
         self._templates.Load('dart_implementation.darttemplate'),
         CLASS=self._class_name, BASE=base, INTERFACE=self._interface.id,
@@ -458,6 +483,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     return False
 
+  def AddConstant(self, constant):
+    # Constants are already defined on the interface.
+    pass
+
   def AddAttribute(self, getter, setter):
     if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
       # FIXME: exclude from interface as well.
@@ -467,6 +496,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._AddGetter(getter)
     if setter:
       self._AddSetter(setter)
+
+  def AddSecondaryAttribute(self, interface, getter, setter):
+    self.AddAttribute(getter, setter)
 
   def _AddGetter(self, attr):
     type_info = GetIDLTypeInfo(attr.type.id)
@@ -549,16 +581,142 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
         True, invocation, raises_exceptions=True)
 
-  def _HasNativeIndexGetter(self, interface):
-    return ('CustomIndexedGetter' in interface.ext_attrs or
-            'NumericIndexedGetter' in interface.ext_attrs)
+  def AddIndexer(self, element_type):
+    """Adds all the methods required to complete implementation of List."""
+    # We would like to simply inherit the implementation of everything except
+    # get length(), [], and maybe []=.  It is possible to extend from a base
+    # array implementation class only when there is no other implementation
+    # inheritance.  There might be no implementation inheritance other than
+    # DOMBaseWrapper for many classes, but there might be some where the
+    # array-ness is introduced by a non-root interface:
+    #
+    #   interface Y extends X, List<T> ...
+    #
+    # In the non-root case we have to choose between:
+    #
+    #   class YImpl extends XImpl { add List<T> methods; }
+    #
+    # and
+    #
+    #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
+    #
+    dart_element_type = DartType(element_type)
+    if ('CustomIndexedGetter' in self._interface.ext_attrs or
+        'NumericIndexedGetter' in self._interface.ext_attrs):
+      self._EmitNativeIndexGetter(dart_element_type)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) {\n'
+          '    return item(index);\n'
+          '  }\n',
+          TYPE=dart_element_type)
 
-  def _EmitNativeIndexGetter(self, interface, element_type):
+    if 'CustomIndexedSetter' in self._interface.ext_attrs:
+      self._EmitNativeIndexSetter(dart_element_type)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=dart_element_type)
+
+    self._members_emitter.Emit(
+        '\n'
+        '  void add($TYPE value) {\n'
+        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  void addLast($TYPE value) {\n'
+        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  void addAll(Collection<$TYPE> collection) {\n'
+        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  void sort(int compare($TYPE a, $TYPE b)) {\n'
+        '    throw new UnsupportedOperationException("Cannot sort immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  void copyFrom(List<Object> src, int srcStart, '
+        'int dstStart, int count) {\n'
+        '    throw new UnsupportedOperationException("This object is immutable.");\n'
+        '  }\n'
+        '\n'
+        '  int indexOf($TYPE element, [int start = 0]) {\n'
+        '    return _Lists.indexOf(this, element, start, this.length);\n'
+        '  }\n'
+        '\n'
+        '  int lastIndexOf($TYPE element, [int start = null]) {\n'
+        '    if (start === null) start = length - 1;\n'
+        '    return _Lists.lastIndexOf(this, element, start);\n'
+        '  }\n'
+        '\n'
+        '  int clear() {\n'
+        '    throw new UnsupportedOperationException("Cannot clear immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  $TYPE removeLast() {\n'
+        '    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  $TYPE last() {\n'
+        '    return this[length - 1];\n'
+        '  }\n'
+        '\n'
+        '  void forEach(void f($TYPE element)) {\n'
+        '    _Collections.forEach(this, f);\n'
+        '  }\n'
+        '\n'
+        '  Collection map(f($TYPE element)) {\n'
+        '    return _Collections.map(this, [], f);\n'
+        '  }\n'
+        '\n'
+        '  Collection<$TYPE> filter(bool f($TYPE element)) {\n'
+        '    return _Collections.filter(this, new List<$TYPE>(), f);\n'
+        '  }\n'
+        '\n'
+        '  bool every(bool f($TYPE element)) {\n'
+        '    return _Collections.every(this, f);\n'
+        '  }\n'
+        '\n'
+        '  bool some(bool f($TYPE element)) {\n'
+        '    return _Collections.some(this, f);\n'
+        '  }\n'
+        '\n'
+        '  void setRange(int start, int length, List<$TYPE> from, [int startFrom]) {\n'
+        '    throw new UnsupportedOperationException("Cannot setRange on immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  void removeRange(int start, int length) {\n'
+        '    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  void insertRange(int start, int length, [$TYPE initialValue]) {\n'
+        '    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");\n'
+        '  }\n'
+        '\n'
+        '  List<$TYPE> getRange(int start, int length) {\n'
+        '    throw new NotImplementedException();\n'
+        '  }\n'
+        '\n'
+        '  bool isEmpty() {\n'
+        '    return length == 0;\n'
+        '  }\n'
+        '\n'
+        '  Iterator<$TYPE> iterator() {\n'
+        '    return new _FixedSizeListIterator<$TYPE>(this);\n'
+        '  }\n',
+        TYPE=dart_element_type)
+
+  def _EmitNativeIndexGetter(self, element_type):
     dart_declaration = '%s operator[](int index)' % element_type
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
         'Callback', True)
 
-  def _EmitNativeIndexSetter(self, interface, element_type):
+  def _EmitNativeIndexSetter(self, element_type):
     dart_declaration = 'void operator[]=(int index, %s value)' % element_type
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
@@ -603,11 +761,132 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
 
+  def GenerateDispatch(self, emitter, info, indent, position, overloads):
+    """Generates a dispatch to one of the overloads.
+
+    Arguments:
+      emitter: an Emitter for the body of a block of code.
+      info: the compound information about the operation and its overloads.
+      indent: an indentation string for generated code.
+      position: the index of the parameter to dispatch on.
+      overloads: a list of the remaining IDLOperations to dispatch.
+
+    Returns True if the dispatch can fall through on failure, False if the code
+    always dispatches.
+    """
+
+    def NullCheck(name):
+      return '%s === null' % name
+
+    def TypeCheck(name, type):
+      return '%s is %s' % (name, type)
+
+    def ShouldGenerateSingleOperation():
+      if position == len(info.param_infos):
+        if len(overloads) > 1:
+          raise Exception('Duplicate operations ' + str(overloads))
+        return True
+
+      # Check if we dispatch on RequiredCppParameter arguments.  In this
+      # case all trailing arguments must be RequiredCppParameter and there
+      # is no need in dispatch.
+      # TODO(antonm): better diagnositics.
+      if position >= len(overloads[0].arguments):
+        def IsRequiredCppParameter(arg):
+          return 'RequiredCppParameter' in arg.ext_attrs
+        last_overload = overloads[-1]
+        if (len(last_overload.arguments) > position and
+            IsRequiredCppParameter(last_overload.arguments[position])):
+          for overload in overloads:
+            args = overload.arguments[position:]
+            if not all([IsRequiredCppParameter(arg) for arg in args]):
+              raise Exception('Invalid overload for RequiredCppParameter')
+          return True
+
+      return False
+
+    if ShouldGenerateSingleOperation():
+      self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
+      return False
+
+    # FIXME: Consider a simpler dispatch that iterates over the
+    # overloads and generates an overload specific check.  Revisit
+    # when we move to named optional arguments.
+
+    # Partition the overloads to divide and conquer on the dispatch.
+    positive = []
+    negative = []
+    first_overload = overloads[0]
+    param = info.param_infos[position]
+
+    if position < len(first_overload.arguments):
+      # FIXME: This will not work if the second overload has a more
+      # precise type than the first.  E.g.,
+      # void foo(Node x);
+      # void foo(Element x);
+      type = DartType(first_overload.arguments[position].type.id)
+      test = TypeCheck(param.name, type)
+      pred = lambda op: len(op.arguments) > position and DartType(op.arguments[position].type.id) == type
+    else:
+      type = None
+      test = NullCheck(param.name)
+      pred = lambda op: position >= len(op.arguments)
+
+    for overload in overloads:
+      if pred(overload):
+        positive.append(overload)
+      else:
+        negative.append(overload)
+
+    if positive and negative:
+      (true_code, false_code) = emitter.Emit(
+          '$(INDENT)if ($COND) {\n'
+          '$!TRUE'
+          '$(INDENT)} else {\n'
+          '$!FALSE'
+          '$(INDENT)}\n',
+          COND=test, INDENT=indent)
+      fallthrough1 = self.GenerateDispatch(
+          true_code, info, indent + '  ', position + 1, positive)
+      fallthrough2 = self.GenerateDispatch(
+          false_code, info, indent + '  ', position, negative)
+      return fallthrough1 or fallthrough2
+
+    if negative:
+      raise Exception('Internal error, must be all positive')
+
+    # All overloads require the same test.  Do we bother?
+
+    # If the test is the same as the method's formal parameter then checked mode
+    # will have done the test already. (It could be null too but we ignore that
+    # case since all the overload behave the same and we don't know which types
+    # in the IDL are not nullable.)
+    if type == param.dart_type:
+      return self.GenerateDispatch(
+          emitter, info, indent, position + 1, positive)
+
+    # Otherwise the overloads have the same type but the type is a subtype of
+    # the method's synthesized formal parameter. e.g we have overloads f(X) and
+    # f(Y), implemented by the synthesized method f(Z) where X<Z and Y<Z. The
+    # dispatch has removed f(X), leaving only f(Y), but there is no guarantee
+    # that Y = Z-X, so we need to check for Y.
+    true_code = emitter.Emit(
+        '$(INDENT)if ($COND) {\n'
+        '$!TRUE'
+        '$(INDENT)}\n',
+        COND=test, INDENT=indent)
+    self.GenerateDispatch(
+        true_code, info, indent + '  ', position + 1, positive)
+    return True
+
   def AddOperation(self, info):
     self._AddOperation(info)
 
   def AddStaticOperation(self, info):
     self._AddOperation(info)
+
+  def AddSecondaryOperation(self, interface, info):
+    self.AddOperation(info)
 
   def GenerateSingleOperation(self,  dispatch_emitter, info, indent, operation):
     """Generates a call to a single operation.

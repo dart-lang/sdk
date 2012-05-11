@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -427,6 +427,18 @@ class Processor(object):
     """Perform any initial setup required before the test is run."""
     pass
 
+  def open_trace_file(self, afile, not_yet_uploaded):
+    """Find the correct location for the trace file, and open it.
+    Args: 
+      afile: The tracefile name.
+      not_yet_uploaded: True if this file is to be found in a directory that
+         contains un-uploaded data.
+    Returns: A file object corresponding to the given file name."""
+    file_path = os.path.join(self.test.result_folder_name, afile)
+    if not not_yet_uploaded:
+      file_path = os.path.join('old', file_path)
+    return open(file_path)
+
   def report_results(self, benchmark_name, score, platform, variant, 
                      revision_number, metric):
     """Store the results of the benchmark run.
@@ -691,10 +703,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
-      if should_post_file:
-        f = open(os.path.join(self.test.result_folder_name, afile))
-      else:
-        f = open(os.path.join('old', self.test.result_folder_name, afile))
+      f = self.open_trace_file(afile, should_post_file)
       lines = f.readlines()
       line = ''
       i = 0
@@ -882,7 +891,7 @@ class DromaeoTest(RuntimePerformanceTest):
 
       bench_dict = self.test.values_dict[browser][version]
 
-      f = open(os.path.join(self.test.result_folder_name, afile))
+      f = self.open_trace_file(afile, should_post_file)
       lines = f.readlines()
       i = 0
       revision_num = 0
@@ -1010,7 +1019,7 @@ class DromaeoSizeTest(Test):
       Returns: True if we successfully posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
-      f = open(os.path.join(self.test.result_folder_name, afile))
+      f = self.open_trace_file(afile, should_post_file)
       tabulate_data = False
       revision_num = 0
       revision_pattern = r'Revision: (\d+)'
@@ -1139,7 +1148,7 @@ class CompileTimeAndSizeTest(Test):
       Returns: True if we successfully posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
-      f = open(os.path.join(self.test.result_folder_name, afile))
+      f = self.open_trace_file(afile, should_post_file)
       tabulate_data = False
       revision_num = 0
       upload_success = True
@@ -1171,15 +1180,20 @@ class CompileTimeAndSizeTest(Test):
                 upload_success = False
       if revision_num != 0:
         for metric in self.test.values_list:
-          self.test.revision_dict['commandline']['frog'][metric].pop()
-          self.test.revision_dict['commandline']['frog'][metric] += \
-              [revision_num]
-          # Fill in 0 if compilation failed.
-          if self.test.values_dict['commandline']['frog'][metric][-1] < \
-              self.test.failure_threshold[metric]:
-            self.test.values_dict['commandline']['frog'][metric] += [0]
+          try:
+            self.test.revision_dict['commandline']['frog'][metric].pop()
             self.test.revision_dict['commandline']['frog'][metric] += \
                 [revision_num]
+            # Fill in 0 if compilation failed.
+            if self.test.values_dict['commandline']['frog'][metric][-1] < \
+                self.test.failure_threshold[metric]:
+              self.test.values_dict['commandline']['frog'][metric] += [0]
+              self.test.revision_dict['commandline']['frog'][metric] += \
+                  [revision_num]
+          except IndexError:
+            # We tried to pop from an empty list. This happens if the first
+            # trace file we encounter is incomplete.
+            pass
 
       f.close()
       return upload_success

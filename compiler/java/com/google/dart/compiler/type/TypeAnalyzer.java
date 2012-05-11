@@ -107,6 +107,7 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -1053,6 +1054,27 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
 
         case FIELD:
+          type = typeAsMemberOf(element, currentClass);
+          type.getClass(); // quick null check
+          // try to resolve as getter/setter
+          if (element.getModifiers().isAbstractField()
+              && element.getEnclosingElement() instanceof LibraryElement) {
+            FieldElement fieldElement = (FieldElement) element;
+            if (Elements.inGetterContext(node)) {
+              MethodElement getter = fieldElement.getGetter();
+              if (getter != null) {
+                node.setElement(getter);
+              }
+            }
+            if (Elements.inSetterContext(node)) {
+              MethodElement setter = fieldElement.getSetter();
+              if (setter != null) {
+                node.setElement(setter);
+              }
+            }
+          }
+          break;
+
         case METHOD:
           type = typeAsMemberOf(element, currentClass);
           type.getClass(); // quick null check

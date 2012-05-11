@@ -21,9 +21,11 @@ class ExceptionTest {
 
     bool correctCatch = false;
     try {
+      // This throws NullPointerException.
       throw null;
     } catch (String s) {
-      // null exception object is caught here.
+      correctCatch = false;
+    } catch (NullPointerException e) {
       correctCatch = true;
     } catch (var x) {
       correctCatch = false;

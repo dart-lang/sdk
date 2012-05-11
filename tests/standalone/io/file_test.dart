@@ -17,21 +17,22 @@ class MyListOfOneElement implements List {
 class FileTest {
   static Directory tempDirectory;
   static int numLiveAsyncTests = 0;
+  static ReceivePort port;
 
   static void asyncTestStarted() { ++numLiveAsyncTests; }
   static void asyncTestDone(String name) {
     --numLiveAsyncTests;
     if (numLiveAsyncTests == 0) {
       deleteTempDirectory();
+      port.close();
     }
   }
 
   static void createTempDirectory(Function doNext) {
-    tempDirectory = new Directory('');
-    tempDirectory.onError = (e) {
-      Expect.fail("Failed creating temporary directory");
-    };
-    tempDirectory.createTemp(doNext);
+    new Directory('').createTemp().then((temp) {
+      tempDirectory = temp;
+      doNext();
+    });
   }
 
   static void deleteTempDirectory() {
@@ -149,17 +150,15 @@ class FileTest {
   }
 
   static void testRead() {
+    ReceivePort port = new ReceivePort();
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    file.onError = (e) {
-      Expect.fail("No errors expected : $e");
-    };
-    file.open(FileMode.READ, (RandomAccessFile file) {
+    file.open(FileMode.READ).then((RandomAccessFile file) {
       List<int> buffer = new List<int>(10);
-      file.readList(buffer, 0, 5, (bytes_read) {
+      file.readList(buffer, 0, 5).then((bytes_read) {
         Expect.equals(5, bytes_read);
-        file.readList(buffer, 5, 5, (bytes_read) {
+        file.readList(buffer, 5, 5).then((bytes_read) {
           Expect.equals(5, bytes_read);
           Expect.equals(47, buffer[0]);  // represents '/' in the file.
           Expect.equals(47, buffer[1]);  // represents '/' in the file.
@@ -171,7 +170,7 @@ class FileTest {
           Expect.equals(114, buffer[7]);  // represents 'r' in the file.
           Expect.equals(105, buffer[8]);  // represents 'i' in the file.
           Expect.equals(103, buffer[9]);  // represents 'g' in the file.
-          file.close(() => null);
+          file.close().then((ignore) => port.close());
         });
       });
     });
@@ -206,48 +205,29 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     final File file = new File(inFilename);
-    file.onError = (e) {
-      Expect.fail("No errors expected : $e");
-    };
-    file.open(FileMode.READ, (RandomAccessFile openedFile) {
-      openedFile.onError = (s) {
-        Expect.fail("No errors expected : $s");
-      };
+    file.open(FileMode.READ).then((openedFile) {
       List<int> buffer1 = new List<int>(42);
-      openedFile.readList(buffer1, 0, 42, (bytes_read) {
+      openedFile.readList(buffer1, 0, 42).then((bytes_read) {
         Expect.equals(42, bytes_read);
-        openedFile.close(() {
+        openedFile.close().then((ignore) {
           // Write the contents of the file just read into another file.
           String outFilename = tempDirectory.path + "/out_read_write";
           final File file2 = new File(outFilename);
-          file2.onError = (e) {
-            Expect.fail("No errors expected : $e");
-          };
-          file2.create(() {
-            file2.fullPath((s) {
+          file2.create().then((ignore) {
+            file2.fullPath().then((s) {
               Expect.isTrue(new File(s).existsSync());
               if (s[0] != '/' && s[0] != '\\' && s[1] != ':') {
                 Expect.fail("Not a full path");
               }
-              file2.open(FileMode.WRITE, (RandomAccessFile openedFile2) {
-                openedFile2.onError = (s) {
-                  Expect.fail("No errors expected : $s");
-                };
-                openedFile2.writeList(buffer1, 0, bytes_read);
-                openedFile2.onNoPendingWrites = () {
-                  openedFile2.close(() {
+              file2.open(FileMode.WRITE).then((openedFile2) {
+                openedFile2.writeList(buffer1, 0, bytes_read).then((ignore) {
+                  openedFile2.close().then((ignore) {
                     List<int> buffer2 = new List<int>(bytes_read);
                     final File file3 = new File(outFilename);
-                    file3.onError = (e) {
-                      Expect.fail("No errors expected : $e");
-                    };
-                    file3.open(FileMode.READ, (RandomAccessFile openedFile3) {
-                      openedFile3.onError = (s) {
-                        Expect.fail("No errors expected : $s");
-                      };
-                      openedFile3.readList(buffer2, 0, 42, (bytes_read) {
-                       Expect.equals(42, bytes_read);
-                        openedFile3.close(() {
+                    file3.open(FileMode.READ).then((openedFile3) {
+                      openedFile3.readList(buffer2, 0, 42).then((bytes_read) {
+                        Expect.equals(42, bytes_read);
+                        openedFile3.close().then((ignore) {
                           // Now compare the two buffers to check if they
                           // are identical.
                           Expect.equals(buffer1.length, buffer2.length);
@@ -256,8 +236,8 @@ class FileTest {
                           }
                           // Delete the output file.
                           final file4 = file3;
-                          file4.delete(() {
-                            file4.exists((exists) {
+                          file4.delete().then((ignore) {
+                            file4.exists().then((exists) {
                               Expect.isFalse(exists);
                               asyncTestDone("testReadWrite");
                             });
@@ -266,7 +246,7 @@ class FileTest {
                       });
                     });
                   });
-                };
+                });
               });
             });
           });
@@ -319,11 +299,11 @@ class FileTest {
           appendingOutput.close();
           appendingOutput.onClosed = () {
             File file3 = new File(filename);
-            file3.open(FileMode.READ, (RandomAccessFile openedFile) {
-              openedFile.length((int length) {
+            file3.open(FileMode.READ).then((RandomAccessFile openedFile) {
+              openedFile.length().then((int length) {
                 Expect.equals(content.length * 2, length);
-                openedFile.close(() {
-                  file3.delete(() {
+                openedFile.close().then((ignore) {
+                  file3.delete().then((ignore) {
                     asyncTestDone("testOutputStreamWriteAppend");
                   });
                 });
@@ -354,6 +334,9 @@ class FileTest {
       outStream.onClosed = () {
         RandomAccessFile raf = file.openSync();
         Expect.equals(38, raf.lengthSync());
+        raf.close().then((ignore) {
+          asyncTestDone("testOutputStreamWriteString");
+        });
       };
     };
     asyncTestStarted();
@@ -411,23 +394,16 @@ class FileTest {
   static void testReadEmptyFile() {
     String fileName = tempDirectory.path + "/empty_file";
     File file = new File(fileName);
-    file.onError = (e) {
-      Expect.fail("No errors expected : $e");
-    };
     asyncTestStarted();
-    file.create(() {
-      file.open(FileMode.READ, (RandomAccessFile openedFile) {
-        openedFile.readByte((int byte) {
+    file.create().then((ignore) {
+      file.open(FileMode.READ).then((RandomAccessFile openedFile) {
+        var readByteFuture = openedFile.readByte();
+        readByteFuture.then((int byte) {
           Expect.equals(-1, byte);
-        });
-        openedFile.onError = (e) {
-          Expect.isTrue(e is FileIOException);
-          openedFile.close(() {
-            file.delete(() {
-              asyncTestDone("testReadEmptyFile");
-            });
+          openedFile.close().then((ignore) {
+            asyncTestDone("testReadEmptyFile");
           });
-        };
+        });
       });
     });
   }
@@ -437,9 +413,8 @@ class FileTest {
     asyncTestStarted();
     final String fileName = "${tempDirectory.path}/testWriteVariousLists";
     final File file = new File(fileName);
-    file.onError = (e) => Expect.fail("No errors expected : $e");
-    file.create(() {
-      file.open(FileMode.WRITE, (RandomAccessFile openedFile) {
+    file.create().then((ignore) {
+      file.open(FileMode.WRITE).then((RandomAccessFile openedFile) {
         // Write bytes from 0 to 7.
         openedFile.writeList([0], 0, 1);
         openedFile.writeList(const [1], 0, 1);
@@ -452,11 +427,8 @@ class FileTest {
         openedFile.writeList(new MyListOfOneElement(262), 0, 1);
         x = 12345678901234567890123456789012345678901234567890;
         y = 12345678901234567890123456789012345678901234568153;
-        openedFile.writeList([y - x], 0, 1);
-
-        openedFile.onError = (e) => Expect.fail("No errors expected : $e");
-        openedFile.onNoPendingWrites = () {
-          openedFile.close(() {
+        openedFile.writeList([y - x], 0, 1).then((ignore) {
+          openedFile.close().then((ignore) {
             // Check the written bytes.
             final File file2 = new File(fileName);
             var openedFile2 = file2.openSync();
@@ -471,7 +443,7 @@ class FileTest {
             file2.deleteSync();
             asyncTestDone("testWriteVariousLists");
           });
-        };
+        });
       });
     });
   }
@@ -490,28 +462,34 @@ class FileTest {
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectory");
     var errors = 0;
-    file.directory((d) => Expect.fail("non-existing file"));
-    file.onError = (e) {
-      file.onError = (e) => Expect.fail("no error expected");
-      file.create(() {
-        file.directory((Directory d) {
-          d.onError = (s) => Expect.fail("no error expected");
-          d.exists((exists) {
+    var dirFuture = file.directory();
+    dirFuture.then((d) => Expect.fail("non-existing file"));
+    dirFuture.handleException((e) {
+      file.create().then((ignore) {
+        file.directory().then((Directory d) {
+          d.exists().then((exists) {
             Expect.isTrue(exists);
             Expect.isTrue(d.path.endsWith(tempDir));
-            file.delete(() {
-              var file_dir = new File(".");
-              file_dir.directory((d) => Expect.fail("non-existing file"));
-              file_dir.onError = (e) {
-                var file_dir = new File(tempDir);
-                file_dir.directory((d) => Expect.fail("non-existing file"));
-                file_dir.onError = (e) => port.toSendPort().send(1);
-              };
+            file.delete().then((ignore) {
+              var fileDir = new File(".");
+              var dirFuture2 = fileDir.directory();
+              dirFuture2.then((d) => Expect.fail("non-existing file"));
+              dirFuture2.handleException((e) {
+                var fileDir = new File(tempDir);
+                var dirFuture3 = fileDir.directory();
+                dirFuture3.then((d) => Expect.fail("non-existing file"));
+                dirFuture3.handleException((e) {
+                  port.toSendPort().send(1);
+                  return true;
+                });
+                return true;
+              });
             });
           });
         });
       });
-    };
+      return true;
+    });
   }
 
   static void testDirectorySync() {
@@ -534,16 +512,15 @@ class FileTest {
 
   // Test for file length functionality.
   static void testLength() {
+    var port = new ReceivePort();
     String filename = getFilename("tests/vm/data/fixed_length_file");
     File file = new File(filename);
     RandomAccessFile openedFile = file.openSync();
-    openedFile.onError = (e) => Expect.fail("No errors expected");
-    file.onError = (e) => Expect.fail("No errors expected");
-    openedFile.length((length) {
+    openedFile.length().then((length) {
       Expect.equals(42, length);
-      openedFile.close(() => null);
+      openedFile.close().then((ignore) => port.close());
     });
-    file.length((length) {
+    file.length().then((length) {
       Expect.equals(42, length);
     });
   }
@@ -559,22 +536,22 @@ class FileTest {
 
   // Test for file position functionality.
   static void testPosition() {
+    var port = new ReceivePort();
     String filename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
-    input.onError = (e) => Expect.fail("No errors expected");
-    input.position((position) {
+    input.position().then((position) {
       Expect.equals(0, position);
       List<int> buffer = new List<int>(100);
-      input.readList(buffer, 0, 12, (bytes_read) {
-        input.position((position) {
+      input.readList(buffer, 0, 12).then((bytes_read) {
+        input.position().then((position) {
           Expect.equals(12, position);
-          input.readList(buffer, 12, 6, (bytes_read) {
-            input.position((position) {
+          input.readList(buffer, 12, 6).then((bytes_read) {
+            input.position().then((position) {
               Expect.equals(18, position);
-              input.setPosition(8, () {
-                input.position((position) {
+              input.setPosition(8).then((ignore) {
+                input.position().then((position) {
                   Expect.equals(8, position);
-                  input.close(() => null);
+                  input.close().then((ignore) => port.close());
                 });
               });
             });
@@ -601,18 +578,16 @@ class FileTest {
   static void testTruncate() {
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    file.onError = (e) => Expect.fail("No errors expected: $e");
-    file.open(FileMode.WRITE, (RandomAccessFile openedFile) {
-      openedFile.writeList(buffer, 0, 10);
-      openedFile.onNoPendingWrites = () {
-        openedFile.length((length) {
+    file.open(FileMode.WRITE).then((RandomAccessFile openedFile) {
+      openedFile.writeList(buffer, 0, 10).then((ignore) {
+        openedFile.length().then((length) {
           Expect.equals(10, length);
-          openedFile.truncate(5, () {
-            openedFile.length((length) {
+          openedFile.truncate(5).then((ignore) {
+            openedFile.length().then((length) {
               Expect.equals(5, length);
-              openedFile.close(() {
-                file.delete(() {
-                  file.exists((exists) {
+              openedFile.close().then((ignore) {
+                file.delete().then((ignore) {
+                  file.exists().then((exists) {
                     Expect.isFalse(exists);
                     asyncTestDone("testTruncate");
                   });
@@ -621,7 +596,7 @@ class FileTest {
             });
           });
         });
-      };
+      });
     });
     asyncTestStarted();
   }
@@ -849,8 +824,9 @@ class FileTest {
 
   static void testOpenDirectoryAsFile() {
     var f = new File('.');
-    f.open(FileMode.READ, (r) => Expect.fail('Directory opened as file'));
-    f.onError = (e) => null;
+    var future = f.open(FileMode.READ);
+    future.then((r) => Expect.fail('Directory opened as file'));
+    future.handleException((e) => true);
   }
 
   static void testOpenDirectoryAsFileSync() {
@@ -871,11 +847,10 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsBytes((bytes) {
+    f.readAsBytes().then((bytes) {
       Expect.isTrue(new String.fromCharCodes(bytes).endsWith("42 bytes."));
       port.toSendPort().send(bytes.length);
     });
-    f.onError = (e) => Expect.fail("No errors expected: $e");
   }
 
   static void testReadAsBytesSync() {
@@ -893,32 +868,30 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsText(Encoding.UTF_8, (text) {
+    f.readAsText(Encoding.UTF_8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getDataFilename("tests/standalone/io/read_as_text.dat");
       var f = new File(name);
-      f.onError = (e) => Expect.fail("No errors expected: $e");
-      f.readAsText(Encoding.UTF_8, (text) {
+      f.readAsText(Encoding.UTF_8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.charCodes());
-        f.readAsText(Encoding.ISO_8859_1, (text) {
+        f.readAsText(Encoding.ISO_8859_1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.charCodes());
-          f.onError = (e) {
-            port.toSendPort().send(1);
-          };
-          f.readAsText(Encoding.ASCII, (text) {
+          var readAsTextFuture = f.readAsText(Encoding.ASCII);
+          readAsTextFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
+          });
+          readAsTextFuture.handleException((e) {
+            port.toSendPort().send(1);
+            return true;
           });
         });
       });
     });
-    f.onError = (e) {
-      Expect.fail("No errors expected: $e");
-    };
   }
 
   static void testReadAsTextSync() {
@@ -946,13 +919,12 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsLines(Encoding.UTF_8, (lines) {
+    f.readAsLines(Encoding.UTF_8).then((lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
       port.toSendPort().send(line.length);
     });
-    f.onError = (e) => Expect.fail("No errors expected: $e");
   }
 
   static void testReadAsLinesSync() {
@@ -978,46 +950,51 @@ class FileTest {
     Expect.throws(f.readAsBytesSync, (e) => e is FileIOException);
     Expect.throws(f.readAsTextSync, (e) => e is FileIOException);
     Expect.throws(f.readAsLinesSync, (e) => e is FileIOException);
-    f.readAsBytes((bytes) => Expect.fail("no bytes expected"));
-    f.onError = (e) {
-      f.readAsText(Encoding.UTF_8, (text) => Expect.fail("no text expected"));
-      f.onError = (e) {
-        f.readAsLines(Encoding.UTF_8,
-                      (lines) => Expect.fail("no lines expected"));
-        f.onError = (e) => port.toSendPort().send(1);
-      };
-    };
+    var readAsBytesFuture = f.readAsBytes();
+    readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"));
+    readAsBytesFuture.handleException((e) {
+      var readAsTextFuture = f.readAsText(Encoding.UTF_8);
+      readAsTextFuture.then((text) => Expect.fail("no text expected"));
+      readAsTextFuture.handleException((e) {
+        var readAsLinesFuture = f.readAsLines(Encoding.UTF_8);
+        readAsLinesFuture.then((lines) => Expect.fail("no lines expected"));
+        readAsLinesFuture.handleException((e) {
+          port.toSendPort().send(1);
+          return true;
+        });
+        return true;
+      });
+      return true;
+    });
   }
 
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
     var file = new File('${tempDirectory.path}/out_append');
-    file.open(FileMode.WRITE, (openedFile) {
-      openedFile.writeString("asdf");
-      openedFile.onNoPendingWrites = () {
-        openedFile.close(() {
-          file.open(FileMode.APPEND, (openedFile) {
-            openedFile.length((length) {
+    file.open(FileMode.WRITE).then((openedFile) {
+      openedFile.writeString("asdf").then((ignore) {
+        openedFile.close().then((ignore) {
+          file.open(FileMode.APPEND).then((openedFile) {
+            openedFile.length().then((length) {
               Expect.equals(4, length);
-              openedFile.writeString("asdf");
-              openedFile.onNoPendingWrites = () {
-                openedFile.length((length) {
+              openedFile.writeString("asdf").then((ignore) {
+                openedFile.length().then((length) {
                   Expect.equals(8, length);
-                  openedFile.close(() {
-                    file.delete(() {
-                      file.exists((exists) {
+                  openedFile.close().then((ignore) {
+                    file.delete().then((ignore) {
+                      file.exists().then((exists) {
                         Expect.isFalse(exists);
                         asyncTestDone("testAppend");
                       });
                     });
                   });
                 });
-              };
+              });
             });
           });
         });
-      };
+      });
     });
     asyncTestStarted();
   }
@@ -1047,6 +1024,7 @@ class FileTest {
 
   // Main test entrypoint.
   static testMain() {
+    port = new ReceivePort();
     testRead();
     testReadSync();
     testReadStream();

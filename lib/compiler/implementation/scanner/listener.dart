@@ -162,10 +162,13 @@ class Listener {
                     Token extendsKeyword, Token endToken) {
   }
 
+  void handleLabel(Token token) {
+  }
+
   void beginLabeledStatement(Token token) {
   }
 
-  void endLabeledStatement(Token colon) {
+  void endLabeledStatement() {
   }
 
   void beginLiteralMapEntry(Token token) {
@@ -1355,7 +1358,7 @@ class NodeListener extends ElementListener {
                         Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     NodeList expressions = makeNodeList(expressionCount, null, null, null);
-    Identifier label = null;
+    Label label = null;
     if (labelToken !== null) {
       label = popNode();
     }
@@ -1431,10 +1434,15 @@ class NodeListener extends ElementListener {
     pushNode(new Send(expression, new Operator(operathor), arguments));
   }
 
-  void endLabeledStatement(Token colon) {
+  void handleLabel(Token colon) {
+    Identifier name = popNode();
+    pushNode(new Label(name, colon));
+  }
+
+  void endLabeledStatement() {
     Statement statement = popNode();
-    Identifier label = popNode();
-    pushNode(new LabeledStatement(label, colon, statement));
+    Label label = popNode();
+    pushNode(new LabeledStatement(label, statement));
   }
 
   void log(message) {

@@ -1,0 +1,49 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+application: dartlang-api
+version: 17
+
+runtime: python27
+api_version: 1
+threadsafe: true
+
+#default_expiration: "2h"
+
+handlers:
+
+- url: /dom.*
+  script: scripts.redirector.application
+
+- url: /(.*\.png)
+  static_files: static/\1
+  expiration: 1d
+  upload: static/(.*\.png)
+
+- url: /(.*\.ico)
+  static_files: static/\1
+  expiration: 7d
+  upload: static/(.*\.ico)
+
+- url: /(.*\.html)
+  static_files: static/\1
+  expiration: 2h
+  upload: static/(.*\.html)
+
+- url: /(.*\.css)
+  static_files: static/\1
+  expiration: 1d
+  upload: static/(.*\.css)
+
+- url: /appcache.manifest
+  static_files: static/appcache.manifest
+  upload: static/appcache.manifest
+  mime_type: text/cache-manifest
+
+- url: (.*)/
+  static_files: static\1/index.html
+  upload: static/index.html
+
+- url: /
+  static_dir: static

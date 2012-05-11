@@ -165,20 +165,21 @@ void cleanOutputDirectory(String path) {
 Future copyFiles(String from, String to) {
   final completer = new Completer();
   final fromDir = new Directory(from);
-  fromDir.onFile = (path) {
+  final lister = fromDir.list(recursive: false);
+
+  lister.onFile = (path) {
     final name = basename(path);
     // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
     if (name.startsWith('.')) return;
 
-    new File(path).readAsBytes((bytes) {
+    new File(path).readAsBytes().then((bytes) {
       final outFile = new File('$to/$name');
       final stream = outFile.openOutputStream(FileMode.WRITE);
       stream.write(bytes, copyBuffer: false);
       stream.close();
     });
   };
-  fromDir.onDone = (done) => completer.complete(true);
-  fromDir.list(recursive: false);
+  lister.onDone = (done) => completer.complete(true);
   return completer.future;
 }
 
@@ -189,12 +190,12 @@ Future copyFiles(String from, String to) {
 Future compileScript(String compilerPath, String libDir,
     String dartPath, String jsPath) {
   final completer = new Completer();
-  onExit(int exitCode, String stdout, String stderr) {
-    if (exitCode != 0) {
+  onExit(ProcessResult result) {
+    if (result.exitCode != 0) {
       final message = 'Non-zero exit code from $compilerPath';
       print('$message.');
-      print(stdout);
-      print(stderr);
+      print(result.stdout);
+      print(result.stderr);
       throw message;
     }
     completer.complete(true);
@@ -207,10 +208,14 @@ Future compileScript(String compilerPath, String libDir,
   }
 
   print('Compiling $dartPath to $jsPath');
-  new Process.run(compilerPath, [
+  var processFuture = Process.run(compilerPath, [
     '--libdir=$libDir', '--out=$jsPath',
     '--compile-only', '--enable-type-checks', '--warnings-as-errors',
-    dartPath], null, onExit).onError = onError;
+    dartPath]);
+
+  processFuture.handleException(onError);
+  processFuture.then(onExit);
+
   return completer.future;
 }
 

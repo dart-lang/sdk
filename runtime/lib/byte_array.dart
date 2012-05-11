@@ -240,6 +240,49 @@ class _Float64ArrayFactory {
 
 
 abstract class _ByteArrayBase {
+
+  // Methods implementing the Collection interface.
+
+  void forEach(void f(element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  Collection map(f(element)) {
+    return Collections.map(this,
+                           new GrowableObjectArray.withCapacity(length),
+                           f);
+  }
+
+  Collection filter(bool f(element)) {
+    return Collections.filter(this, new GrowableObjectArray(), f);
+  }
+
+  bool every(bool f(element)) {
+    return Collections.every(this, f);
+  }
+
+  bool some(bool f(element)) {
+    return Collections.some(this, f);;
+  }
+
+  bool isEmpty() {
+    return this.length === 0;
+  }
+
+  int get length() {
+    return _length();
+  }
+
+  // Methods implementing the List interface.
+
+  set length(newLength) {
+    throw const UnsupportedOperationException(
+        "Cannot resize a non-extendable array");
+  }
+
   void add(value) {
     throw const UnsupportedOperationException(
         "Cannot add to a non-extendable array");
@@ -255,30 +298,22 @@ abstract class _ByteArrayBase {
         "Cannot add to a non-extendable array");
   }
 
-  void clear() {
-    throw const UnsupportedOperationException(
-        "Cannot remove from a non-extendable array");
+  void sort(int compare(a, b)) {
+    DualPivotQuicksort.sort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
-    for (int i = start; i < length; i++) {
-      if (this[i] == element) return i;
-    }
-    return -1;
+    return Arrays.indexOf(this, element, start, this.length);
   }
 
-  void insertRange(int start, int length, [initialValue]) {
+  int lastIndexOf(element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
+  }
+
+  void clear() {
     throw const UnsupportedOperationException(
-        "Cannot add to a non-extendable array");
-  }
-
-  int get length() {
-    return _length();
-  }
-
-  set length(newLength) {
-    throw const UnsupportedOperationException(
-        "Cannot resize a non-extendable array");
+        "Cannot remove from a non-extendable array");
   }
 
   int removeLast() {
@@ -286,9 +321,18 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
+  last() {
+    return this[length - 1];
+  }
+
   void removeRange(int start, int length) {
     throw const UnsupportedOperationException(
         "Cannot remove from a non-extendable array");
+  }
+
+  void insertRange(int start, int length, [initialValue]) {
+    throw const UnsupportedOperationException(
+        "Cannot add to a non-extendable array");
   }
 
   ByteArray asByteArray([int start = 0, int length]) {
@@ -1647,6 +1691,49 @@ class _ByteArrayView implements ByteArray {
 
 
 class _ByteArrayViewBase {
+
+  // Methods implementing the Collection interface.
+
+  void forEach(void f(element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  Collection map(f(element)) {
+    return Collections.map(this,
+                           new GrowableObjectArray.withCapacity(length),
+                           f);
+  }
+
+  Collection filter(bool f(element)) {
+    return Collections.filter(this, new GrowableObjectArray(), f);
+  }
+
+  bool every(bool f(element)) {
+    return Collections.every(this, f);
+  }
+
+  bool some(bool f(element)) {
+    return Collections.some(this, f);;
+  }
+
+  bool isEmpty() {
+    return this.length === 0;
+  }
+
+  int get length() {
+    return _length();
+  }
+
+  // Methods implementing the List interface.
+
+  set length(newLength) {
+    throw const UnsupportedOperationException(
+        "Cannot resize a non-extendable array");
+  }
+
   void add(value) {
     throw const UnsupportedOperationException(
         "Cannot add to a non-extendable array");
@@ -1662,19 +1749,22 @@ class _ByteArrayViewBase {
         "Cannot add to a non-extendable array");
   }
 
+  void sort(int compare(a, b)) {
+    DualPivotQuicksort.sort(this, compare);
+  }
+
+  int indexOf(element, [int start = 0]) {
+    return Arrays.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
+  }
+
   void clear() {
     throw const UnsupportedOperationException(
         "Cannot remove from a non-extendable array");
-  }
-
-  void insertRange(int start, int length, [initialValue]) {
-    throw const UnsupportedOperationException(
-        "Cannot add to a non-extendable array");
-  }
-
-  set length(int newLength) {
-    throw const UnsupportedOperationException(
-        "Cannot resize a non-extendable array");
   }
 
   int removeLast() {
@@ -1682,9 +1772,18 @@ class _ByteArrayViewBase {
         "Cannot remove from a non-extendable array");
   }
 
+  last() {
+    return this[length - 1];
+  }
+
   void removeRange(int start, int length) {
     throw const UnsupportedOperationException(
         "Cannot remove from a non-extendable array");
+  }
+
+  void insertRange(int start, int length, [initialValue]) {
+    throw const UnsupportedOperationException(
+        "Cannot add to a non-extendable array");
   }
 }
 

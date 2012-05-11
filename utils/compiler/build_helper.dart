@@ -51,14 +51,14 @@ writeScript(Uri uri, List<String> scripts) {
   }
 
   if (Platform.operatingSystem != 'windows') {
-    onExit(int exitCode, String stdout, String stderr) {
-      if (exitCode != 0) {
-        print(stdout);
-        print(stderr);
-        exit(exitCode);
+    onExit(ProcessResult result) {
+      if (result.exitCode != 0) {
+        print(result.stdout);
+        print(result.stderr);
+        exit(result.exitCode);
       }
     }
-    new Process.run('/bin/chmod', ['+x', uri.path], null, onExit);
+    Process.run('/bin/chmod', ['+x', uri.path]).then(onExit);
   }
 }
 

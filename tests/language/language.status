@@ -89,6 +89,9 @@ duplicate_implements_test: Skip # Issue 976
 field3a_negative_test: Fail
 field_method4_negative_test: Fail
 final_syntax_test/*: Skip  # can't handle base case
+function_type_alias5_test/00: Fail # Legally self referencing typedef
+function_type_alias5_test/01: Fail # Legally self referencing typedef
+function_type_alias5_test/02: Fail # Legally self referencing typedef
 function_type_alias_negative_test: Fail  # Bug 5231617.
 generic_parameterized_extends_test: Skip  # Bug 5392297
 getters_setters_type3_test: Fail # Issue 2351
@@ -177,6 +180,7 @@ compile_time_constant_c_test/01: Fail # integers as keys in literal maps.
 operator4_test: Fail
 
 [ $compiler == frog ]
+bit_shift_test: Fail # Frog copies JS semantics: 499 >> 33 !== 0.
 static_initializer_type_error_test: Fail # Checked mode not implemented.
 exception_test: Fail # Issue 1785
 factory3_test: Fail # Issue 417
@@ -274,8 +278,10 @@ function_type_alias_test: Fail
 function_type_alias2_test: Fail
 function_type_alias3_test: Fail
 function_type_alias4_test: Fail
+function_type_alias5_test/00: Fail
+function_type_alias5_test/01: Fail
+function_type_alias5_test/02: Fail
 function_type_alias6_test: Fail
-function_type_alias7_test: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 generic_deep_test: Fail
@@ -459,23 +465,25 @@ assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
-assign_static_type_test/05: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
 type_variable_bounds_test/05: Fail
 type_variable_bounds2_test/00: Fail
-type_variable_bounds2_test/02: Pass # For the wrong reasons.
 type_variable_bounds2_test/03: Fail
 type_variable_bounds2_test/05: Fail
 type_variable_bounds2_test/06: Pass # For the wrong reasons.
 assign_top_method_negative_test: Pass # For the wrong reasons.
+f_bounded_quantification_test/01: Fail
+f_bounded_quantification_test/02: Fail
+
+arithmetic_test: Fail
 
 
 [ $compiler == dart2js]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
-
+exception_test: Fail # "throw null" throws NullPointerException.
 
 # Compilation errors.
 ct_const_test: Fail # We don't take the generic type into account yet.
@@ -491,8 +499,10 @@ function_test: Fail # internal error: Closures inside initializers not implement
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
 function_type_alias4_test: Fail # cannot resolve type F
+function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
+function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
+function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
 function_type_alias6_test: Fail # visitIs for typedefs not implemented
-function_type_alias7_test: Fail # visitIs for typedefs not implemented
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
 function_type_parameter_test: Fail # Internal Error: expected optional parameters

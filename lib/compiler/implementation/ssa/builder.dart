@@ -1048,11 +1048,6 @@ class SsaBuilder implements Visitor {
 
     HType convertedType = new HType.fromBoundedType(type, compiler, true);
 
-    // TODO(ngeoffray): the factory method should never return null.
-    if (convertedType === null) {
-      return original;
-    }
-
     // No need to convert if we know the instruction has
     // [convertedType] as a bound.
     if (original.guaranteedType == convertedType) {
@@ -2813,6 +2808,10 @@ class SsaBuilder implements Visitor {
       visit(node.body);
     }
     handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
+  }
+
+  visitLabel(Label node) {
+    compiler.internalError('SsaBuilder.visitLabel', node: node);
   }
 
   visitLabeledStatement(LabeledStatement node) {

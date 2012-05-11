@@ -563,9 +563,8 @@ void ClassFinalizer::FinalizeTypeArguments(
     FinalizationKind finalization) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_finalized()) {
-    const GrowableObjectArray& visited =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-    ResolveInterfaces(cls, visited);
+    GrowableArray<intptr_t> visited_interfaces;
+    ResolveInterfaces(cls, &visited_interfaces);
     FinalizeTypeParameters(cls);
   }
   Type& super_type = Type::Handle(cls.super_type());
@@ -669,9 +668,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // parameters of the type class must be finalized.
   Class& type_class = Class::Handle(parameterized_type.type_class());
   if (!type_class.is_finalized()) {
-    const GrowableObjectArray& visited =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-    ResolveInterfaces(type_class, visited);
+    GrowableArray<intptr_t> visited_interfaces;
+    ResolveInterfaces(type_class, &visited_interfaces);
     FinalizeTypeParameters(type_class);
   }
 
@@ -752,10 +750,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     }
   }
 
-  // Illegally self referencing types may get finalized indirectly.
-  if (parameterized_type.IsFinalized()) {
-    ASSERT(parameterized_type.IsMalformed());
-  } else {
+  // Self referencing types may get finalized indirectly.
+  if (!parameterized_type.IsFinalized()) {
     // Mark the type as finalized.
     if (parameterized_type.IsInstantiated()) {
       parameterized_type.set_is_finalized_instantiated();
@@ -791,18 +787,30 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     }
   }
 
-  // If the type class is a signature class, we also finalize its signature
-  // type, thereby finalizing the result type and parameter types of its
-  // signature function.
+  // If the type class is a signature class, we are currently finalizing a
+  // signature type, i.e. finalizing the result type and parameter types of the
+  // signature function of this signature type.
   // We do this after marking this type as finalized in order to allow a
   // function type to refer to itself via its parameter types and result type.
   if (type_class.IsSignatureClass()) {
-    // Signature classes are finalized upon creation.
-    ASSERT(type_class.is_finalized());
-    // Resolve and finalize the result and parameter types of the signature
-    // function of this signature class.
-    ResolveAndFinalizeSignature(
-        type_class, Function::Handle(type_class.signature_function()));
+    // Signature classes are finalized upon creation, except function type
+    // aliases.
+    if (type_class.IsCanonicalSignatureClass()) {
+      ASSERT(type_class.is_finalized());
+      // Resolve and finalize the result and parameter types of the signature
+      // function of this signature class.
+      ASSERT(type_class.SignatureType() == type.raw());
+      ResolveAndFinalizeSignature(
+          type_class, Function::Handle(type_class.signature_function()));
+    } else {
+      // This type is a function type alias. Its class may need to be finalized
+      // and checked for illegal self reference.
+      FinalizeClass(type_class, false);
+      // Finalizing the signature function here (as in the canonical case above)
+      // would not mark the canonical signature type as finalized.
+      const Type& signature_type = Type::Handle(type_class.SignatureType());
+      FinalizeType(cls, signature_type, finalization);
+    }
   }
 
   return parameterized_type.Canonicalize();
@@ -1059,8 +1067,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   if (FLAG_trace_class_finalization) {
     OS::Print("Finalize %s\n", cls.ToCString());
   }
-  // Signature classes are finalized upon creation.
-  ASSERT(!cls.IsSignatureClass());
   if (!IsSuperCycleFree(cls)) {
     const String& name = String::Handle(cls.Name());
     const Script& script = Script::Handle(cls.script());
@@ -1068,9 +1074,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
                 "class '%s' has a cycle in its superclass relationship",
                 name.ToCString());
   }
-  const GrowableObjectArray& visited =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  ResolveInterfaces(cls, visited);
+  GrowableArray<intptr_t> visited_interfaces;
+  ResolveInterfaces(cls, &visited_interfaces);
   // Finalize super class.
   const Class& super_class = Class::Handle(cls.SuperClass());
   if (!super_class.IsNull()) {
@@ -1083,6 +1088,24 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   if (!super_type.IsNull()) {
     super_type ^= FinalizeType(cls, super_type, kFinalizeWellFormed);
     cls.set_super_type(super_type);
+  }
+  // Signature classes are finalized upon creation, except function type
+  // aliases.
+  if (cls.IsSignatureClass()) {
+    ASSERT(!cls.IsCanonicalSignatureClass());
+    // Check for illegal self references.
+    GrowableArray<intptr_t> visited_aliases;
+    if (!IsAliasCycleFree(cls, &visited_aliases)) {
+      const String& name = String::Handle(cls.Name());
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, cls.token_index(),
+                  "typedef '%s' illegally refers to itself",
+                  name.ToCString());
+    }
+    // TODO(regis): Also check this: "It is a compile-time error if any default
+    // values are specified in the signature of a function type alias".
+    cls.Finalize();
+    return;
   }
   // Finalize factory class, if any.
   if (cls.is_interface()) {
@@ -1153,6 +1176,58 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
 }
 
 
+// Returns false if the function type alias illegally refers to itself.
+bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
+                                      GrowableArray<intptr_t>* visited) {
+  ASSERT(cls.IsSignatureClass());
+  ASSERT(!cls.IsCanonicalSignatureClass());
+  ASSERT(!cls.is_finalized());
+  ASSERT(visited != NULL);
+  const intptr_t cls_index = cls.index();
+  for (int i = 0; i < visited->length(); i++) {
+    if ((*visited)[i] == cls_index) {
+      // We have already visited alias 'cls'. We found a cycle.
+      return false;
+    }
+  }
+
+  // Visit the result type and parameter types of this signature type.
+  visited->Add(cls.index());
+  const Function& function = Function::Handle(cls.signature_function());
+  // Check class of result type.
+  AbstractType& type = AbstractType::Handle(function.result_type());
+  ResolveType(cls, type, kFinalize);
+  if (type.IsType() && !type.IsMalformed()) {
+    const Class& type_class = Class::Handle(type.type_class());
+    if (!type_class.is_finalized() &&
+        type_class.IsSignatureClass() &&
+        !type_class.IsCanonicalSignatureClass()) {
+      if (!IsAliasCycleFree(type_class, visited)) {
+        return false;
+      }
+    }
+  }
+  // Check classes of formal parameter types.
+  const intptr_t num_parameters = function.NumberOfParameters();
+  for (intptr_t i = 0; i < num_parameters; i++) {
+    type = function.ParameterTypeAt(i);
+    ResolveType(cls, type, kFinalize);
+    if (type.IsType() && !type.IsMalformed()) {
+      const Class& type_class = Class::Handle(type.type_class());
+      if (!type_class.is_finalized() &&
+          type_class.IsSignatureClass() &&
+          !type_class.IsCanonicalSignatureClass()) {
+        if (!IsAliasCycleFree(type_class, visited)) {
+          return false;
+        }
+      }
+    }
+  }
+  visited->RemoveLast();
+  return true;
+}
+
+
 bool ClassFinalizer::AddInterfaceIfUnique(
     const GrowableObjectArray& interface_list,
     const AbstractType& interface,
@@ -1191,12 +1266,11 @@ bool ClassFinalizer::AddInterfaceIfUnique(
 // graph. If we visit an interface a second time on a given path,
 // we found a loop.
 void ClassFinalizer::ResolveInterfaces(const Class& cls,
-                                       const GrowableObjectArray& visited) {
-  ASSERT(!visited.IsNull());
-  Class& visited_cls = Class::Handle();
-  for (int i = 0; i < visited.Length(); i++) {
-    visited_cls ^= visited.At(i);
-    if (visited_cls.raw() == cls.raw()) {
+                                       GrowableArray<intptr_t>* visited) {
+  ASSERT(visited != NULL);
+  const intptr_t cls_index = cls.index();
+  for (int i = 0; i < visited->length(); i++) {
+    if ((*visited)[i] == cls_index) {
       // We have already visited interface class 'cls'. We found a cycle.
       const String& interface_name = String::Handle(cls.Name());
       const Script& script = Script::Handle(cls.script());
@@ -1219,7 +1293,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
       (cls.library() == Library::CoreImplLibrary());
 
   // Resolve and check the interfaces of cls.
-  visited.Add(cls);
+  visited->Add(cls_index);
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
@@ -1260,7 +1334,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);
   }
-  visited.RemoveLast();
+  visited->RemoveLast();
 }
 
 

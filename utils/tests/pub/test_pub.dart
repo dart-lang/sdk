@@ -137,7 +137,7 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   // test infrastructure uses.
   final scriptDir = new File(new Options().script).directorySync().path;
   final platform = Platform.operatingSystem;
-  final dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
+  final dartBin = new File(new Options().executable).fullPathSync();
 
   // Find the main pub entrypoint.
   final pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');

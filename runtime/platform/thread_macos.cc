@@ -72,7 +72,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   RETURN_ON_PTHREAD_FAILURE(result);
 
 #ifdef DEBUG
-  const int kStackSize = (256 * KB);
+  const int kStackSize = (512 * KB);
 #else
   const int kStackSize = (128 * KB);
 #endif

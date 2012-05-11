@@ -655,6 +655,8 @@ class Class : public Object {
     return raw_ptr()->class_state_ == RawClass::kPreFinalized;
   }
 
+  void set_is_prefinalized() const;
+
   bool is_const() const {
     return raw_ptr()->is_const_;
   }
@@ -2222,7 +2224,8 @@ class Code : public Object {
   bool ObjectExistInArea(intptr_t start_offest, intptr_t end_offset) const;
 
   // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
-  void ExtractIcDataArraysAtCalls(
+  // Returns the maximum id found.
+  intptr_t ExtractIcDataArraysAtCalls(
       GrowableArray<intptr_t>* node_ids,
       const GrowableObjectArray& ic_data_objs) const;
 

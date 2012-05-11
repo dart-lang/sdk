@@ -4,6 +4,8 @@
 
 #library('uri');
 
+#source('helpers.dart');
+
 /**
  * A parsed URI, inspired by Closure's [URI][] class. Implements [RFC-3986][].
  * [uri]: http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
@@ -187,28 +189,4 @@ class Uri {
       sb.add(second === null ? "null" : second);
     }
   }
-}
-
-String merge(String base, String reference) {
-  if (base == "") return "/$reference";
-  return "${base.substring(0, base.lastIndexOf("/") + 1)}$reference";
-}
-
-String removeDotSegments(String path) {
-  List<String> output = [];
-  bool appendSlash = false;
-  for (String segment in path.split("/")) {
-    appendSlash = false;
-    if (segment == "..") {
-      if (!output.isEmpty() &&
-          ((output.length != 1) || (output[0] != ""))) output.removeLast();
-      appendSlash = true;
-    } else if ("." == segment) {
-      appendSlash = true;
-    } else {
-      output.add(segment);
-    }
-  }
-  if (appendSlash) output.add("");
-  return Strings.join(output, "/");
 }

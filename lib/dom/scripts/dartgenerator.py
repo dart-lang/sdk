@@ -18,7 +18,6 @@ from systemfrog import *
 from systemhtml import *
 from systeminterface import *
 from systemnative import *
-from systemwrapping import *
 from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartgenerator')
@@ -257,16 +256,6 @@ class DartGenerator(object):
           self._output_dir)
 
       self._systems.append(native_system)
-
-    if 'wrapping' in systems:
-      wrapping_system = WrappingImplementationSystem(
-          TemplateLoader(self._template_dir, ['dom/wrapping', 'dom', '']),
-          self._database, self._emitters, self._output_dir)
-
-      # Makes interface files available for listing in the library for the
-      # wrapping implementation.
-      wrapping_system._interface_system = interface_system
-      self._systems.append(wrapping_system)
 
     if 'dummy' in systems:
       dummy_system = DummyImplementationSystem(

@@ -17,15 +17,14 @@ class ProcessWorkingDirectoryTest {
   }
 
   static void testValidDirectory() {
-    Directory directory = new Directory("");
-    directory.createTempSync();
+    Directory directory = new Directory("").createTempSync();
     Expect.isTrue(directory.existsSync());
 
     var options = new ProcessOptions();
     options.workingDirectory = directory.path;
-    Process process = new Process.start(fullTestFilePath,
-                                        const ["0", "0", "99", "0"],
-                                        options);
+    Process process = Process.start(fullTestFilePath,
+                                    const ["0", "0", "99", "0"],
+                                    options);
 
     process.onExit = (int exitCode) {
       Expect.equals(exitCode, 99);
@@ -40,15 +39,14 @@ class ProcessWorkingDirectoryTest {
   }
 
   static void testInvalidDirectory() {
-    Directory directory = new Directory("");
-    directory.createTempSync();
+    Directory directory = new Directory("").createTempSync();
     Expect.isTrue(directory.existsSync());
 
     var options = new ProcessOptions();
     options.workingDirectory = directory.path + "/subPath";
-    Process process = new Process.start(fullTestFilePath,
-                                        const ["0", "0", "99", "0"],
-                                        options);
+    Process process = Process.start(fullTestFilePath,
+                                    const ["0", "0", "99", "0"],
+                                    options);
 
     process.onExit = (int exitCode) {
       Expect.fail("bad process completed");

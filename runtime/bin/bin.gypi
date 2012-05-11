@@ -111,13 +111,32 @@
       'includes': [
         'uri_sources.gypi',
       ],
+      'variables': {
+        'uri_dart': '<(SHARED_INTERMEDIATE_DIR)/uri.dart',
+      },
       'actions': [
+        {
+          'action_name': 'generate_uri_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(uri_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(uri_dart)',
+          ],
+          'message': 'Generating ''<(uri_dart)'' file.'
+        },
         {
           'action_name': 'generate_uri_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(uri_dart)',
           ],
           'outputs': [
             '<(uri_cc_file)',
@@ -129,7 +148,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
             '--var_name', 'Builtin::uri_source_',
-            '<@(_sources)',
+            '<(uri_dart)',
           ],
           'message': 'Generating ''<(uri_cc_file)'' file.'
         },

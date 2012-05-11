@@ -131,7 +131,6 @@ def build_database(idl_files, database_dir, feature_defines = None):
 
   optional_argument_whitelist = [
       ('CSSStyleDeclaration', 'setProperty', 'priority'),
-      ('IDBDatabase', 'transaction', 'mode'),
       ]
 
   # Import WebKit IDLs.

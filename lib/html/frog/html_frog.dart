@@ -7748,14 +7748,13 @@ class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implement
 
   EventListenerList get blocked() => _get('blocked');
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*HTMLIFrameElement" {
 
   String align;
-
-  final _DocumentImpl contentDocument;
-
-  final _WindowImpl contentWindow;
 
   String frameBorder;
 
@@ -7780,6 +7779,14 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String width;
 
   _SVGDocumentImpl getSVGDocument() native;
+
+
+  Window get _contentWindow() native "return this.contentWindow;";
+
+  // Override contentWindow to return secure wrapper.
+  Window get contentWindow() {
+    return _DOMWindowCrossFrameImpl._createSafe(_contentWindow);
+  }
 }
 
 class _IceCandidateImpl implements IceCandidate native "*IceCandidate" {
@@ -16426,6 +16433,11 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _DocumentImpl get document() native "return this.document;";
 
+  Window get _top() native "return this.top;";
+
+  // Override top to return secure wrapper.
+  Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
+
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }
@@ -16473,8 +16485,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final num devicePixelRatio;
 
   final _EventImpl event;
-
-  final _ElementImpl frameElement;
 
   final _WindowImpl frames;
 
@@ -16543,8 +16553,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _StyleMediaImpl styleMedia;
 
   final _BarInfoImpl toolbar;
-
-  final _WindowImpl top;
 
   final _IDBFactoryImpl webkitIndexedDB;
 
@@ -24728,12 +24736,6 @@ interface IFrameElement extends Element {
 
   /** @domName HTMLIFrameElement.align */
   String align;
-
-  /** @domName HTMLIFrameElement.contentDocument */
-  final Document contentDocument;
-
-  /** @domName HTMLIFrameElement.contentWindow */
-  final Window contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -34575,9 +34577,6 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.event */
   final Event event;
 
-  /** @domName DOMWindow.frameElement */
-  final Element frameElement;
-
   /** @domName DOMWindow.frames */
   final Window frames;
 
@@ -34679,9 +34678,6 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.toolbar */
   final BarInfo toolbar;
-
-  /** @domName DOMWindow.top */
-  final Window top;
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
@@ -36381,6 +36377,53 @@ class _SVGSVGElementFactoryProvider {
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
     return el;
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(vsm): Unify with Dartium version.
+class _DOMWindowCrossFrameImpl implements Window {
+  // Private window.
+  _WindowImpl _window;
+
+  // Fields.
+  // TODO(vsm): Implement history and location getters.
+
+  bool get closed() => _window.closed;
+  int get length() => _window.length;
+  Window get opener() => _createSafe(_window.opener);
+  Window get parent() => _createSafe(_window.parent);
+  Window get top() => _createSafe(_window.top);
+
+  // Methods.
+  void focus() => _window.focus();
+
+  void blur() => _window.blur();
+
+  void close() => _window.close();
+
+  void postMessage(Dynamic message,
+                   String targetOrigin,
+                   [List messagePorts = null]) {
+    if (messagePorts == null) {
+      _window.postMessage(message, targetOrigin);
+    } else {
+      _window.postMessage(message, targetOrigin, messagePorts);
+    }
+  }
+
+  // Implementation support.
+  _DOMWindowCrossFrameImpl(this._window);
+
+  static Window _createSafe(w) {
+    if (w === window) {
+      return w;
+    } else {
+      // TODO(vsm): Cache or implement equality.
+      return new _DOMWindowCrossFrameImpl(w);
+    }
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

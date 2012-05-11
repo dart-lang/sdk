@@ -626,7 +626,7 @@ class ApiNativeScope {
 
   ~ApiNativeScope() {
     ASSERT(Current() == this);
-    Thread::SetThreadLocal(Api::api_native_key_, NULL);
+    Thread::SetThreadLocal(Api::api_native_key_, 0);
   }
 
   static inline ApiNativeScope* Current() {

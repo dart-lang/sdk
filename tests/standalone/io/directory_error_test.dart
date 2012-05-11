@@ -8,9 +8,7 @@
 #import("dart:isolate");
 
 Directory tempDir() {
-  var d = new Directory('');
-  d.createTempSync();
-  return d;
+  return new Directory('').createTempSync();
 }
 
 
@@ -40,11 +38,11 @@ void testCreateInNonExistent(Directory temp, Function done) {
   Expect.throws(() => inNonExistent.createSync(),
                 (e) => checkCreateInNonExistentFileException(e));
 
-  inNonExistent.create(() => Expect.fail("Unreachable code"));
-  inNonExistent.onError = (e) {
+  inNonExistent.create().handleException((e) {
     checkCreateInNonExistentFileException(e);
     done();
-  };
+    return true;
+  });
 }
 
 
@@ -75,11 +73,11 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.createTempSync(),
                 (e) => checkCreateTempInNonExistentFileException(e));
 
-  nonExistent.createTemp(() => Expect.fail("Unreachable code"));
-  nonExistent.onError = (e) {
+  nonExistent.createTemp().handleException((e) {
     checkCreateTempInNonExistentFileException(e);
     done();
-  };
+    return true;
+  });
 }
 
 
@@ -108,11 +106,11 @@ void testDeleteNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.deleteSync(),
                 (e) => checkDeleteNonExistentFileException(e));
 
-  nonExistent.delete(() => Expect.fail("Unreachable code"));
-  nonExistent.onError = (e) {
+  nonExistent.delete().handleException((e) {
     checkDeleteNonExistentFileException(e);
     done();
-  };
+    return true;
+  });
 }
 
 
@@ -142,11 +140,11 @@ void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.deleteRecursivelySync(),
                 (e) => checkDeleteRecursivelyNonExistentFileException(e));
 
-  nonExistent.deleteRecursively(() => Expect.fail("Unreachable code"));
-  nonExistent.onError = (e) {
+  nonExistent.deleteRecursively().handleException((e) {
     checkDeleteRecursivelyNonExistentFileException(e);
     done();
-  };
+    return true;
+  });
 }
 
 
@@ -173,8 +171,8 @@ bool checkListNonExistentFileException(e) {
 
 void testListNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
-  nonExistent.list();
-  nonExistent.onError = (e) {
+  var lister = nonExistent.list();
+  lister.onError = (e) {
     checkListNonExistentFileException(e);
     done();
   };
@@ -183,8 +181,7 @@ void testListNonExistent(Directory temp, Function done) {
 
 void runTest(Function test) {
   // Create a temporary directory for the test.
-  var temp = new Directory('');
-  temp.createTempSync();
+  var temp = new Directory('').createTempSync();
 
   // Wait for the test to finish and delete the temporary directory.
   ReceivePort p = new ReceivePort();

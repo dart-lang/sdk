@@ -88,6 +88,7 @@ class JSONReader : ValueObject {
   int ValueLen() const {
     return (Type() != kNone) ? scanner_.TokenLen() : 0;
   }
+  void GetValueChars(char* buf, intptr_t buflen) const;
   bool IsStringLiteral(const char* literal) const {
     return scanner_.IsStringLiteral(literal);
   }
@@ -116,6 +117,7 @@ class TextBuffer : ValueObject {
   ~TextBuffer();
 
   intptr_t Printf(const char* format, ...);
+
   void Clear();
 
   char* buf() { return buf_; }

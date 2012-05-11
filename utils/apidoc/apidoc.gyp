@@ -17,7 +17,7 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/frog/bin/frog',
-            '<!@(["python", "../../tools/list_files.py", "\\.(css|dart|ico|js|json|png|sh|txt)$", ".", "../../lib/dartdoc"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.(css|dart|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../lib/dartdoc"])',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',

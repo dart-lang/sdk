@@ -149,7 +149,7 @@ def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='frog,dummy,wrapping,htmlfrog,htmldartium',
+                    default='frog,dummy,htmlfrog,htmldartium',
                     help='Systems to generate (frog, native, dummy, '
                          'htmlfrog, htmldartium)')
   parser.add_option('--output-dir', dest='output_dir',

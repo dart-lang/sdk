@@ -85,8 +85,7 @@ class PipeServerGame {
 
       fileInput.onClosed = () {
         SocketInputStream socketInput = _socket.inputStream;
-        var tempDir = new Directory('');
-        tempDir.createTempSync();
+        var tempDir = new Directory('').createTempSync();
         var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);
         dstFile.createSync();
@@ -170,8 +169,7 @@ testFileToFilePipe1() {
       getDataFilename("tests/standalone/io/readline_test1.dat");
   var srcStream = new File(srcFileName).openInputStream();
 
-  var tempDir = new Directory('');
-  tempDir.createTempSync();
+  var tempDir = new Directory('').createTempSync();
   String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
   var dstStream = new File(dstFileName).openOutputStream();
@@ -201,8 +199,7 @@ testFileToFilePipe2() {
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openInputStream();
 
-  var tempDir = new Directory('');
-  tempDir.createTempSync();
+  var tempDir = new Directory('').createTempSync();
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
@@ -248,8 +245,7 @@ testFileToFilePipe3() {
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openInputStream();
 
-  var tempDir = new Directory('');
-  tempDir.createTempSync();
+  var tempDir = new Directory('').createTempSync();
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();

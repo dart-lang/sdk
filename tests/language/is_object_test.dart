@@ -42,5 +42,4 @@ main() {
   testTryCatch(444);
   testTryCatch('abc');
   testTryCatch(true);
-  testTryCatch(null);
 }

@@ -842,13 +842,19 @@ class Parser {
     return parseExpressionStatement(token);
   }
 
-  Token parseLabeledStatement(Token token) {
-    listener.beginLabeledStatement(token);
+  Token parseLabel(Token token) {
     token = parseIdentifier(token);
     Token colon = token;
     token = expect(':', token);
+    listener.handleLabel(colon);
+    return token;
+  }
+
+  Token parseLabeledStatement(Token token) {
+    listener.beginLabeledStatement(token);
+    token = parseLabel(token);
     token = parseStatement(token);
-    listener.endLabeledStatement(colon);
+    listener.endLabeledStatement();
     return token;
   }
 
@@ -1571,8 +1577,7 @@ class Parser {
     // First an optional label.
     if (isIdentifier(token)) {
       label = token;
-      token = parseIdentifier(token);
-      token = expect(':', token);
+      token = parseLabel(token);
     }
     // Then one or more case expressions, the last of which may be
     // 'default' instead.

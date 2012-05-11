@@ -148,7 +148,7 @@ class HGraph {
   }
 
   static HType mapConstantTypeToSsaType(Constant constant) {
-    if (constant.isNull()) return HType.UNKNOWN;
+    if (constant.isNull()) return HType.NULL;
     if (constant.isBool()) return HType.BOOLEAN;
     if (constant.isInt()) return HType.INTEGER;
     if (constant.isDouble()) return HType.DOUBLE;

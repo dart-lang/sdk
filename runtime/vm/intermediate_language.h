@@ -19,7 +19,6 @@ class LocalVariable;
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
-  M(Temp, TempVal)                                                             \
   M(Use, UseVal)                                                               \
   M(Constant, ConstantVal)                                                     \
 
@@ -71,10 +70,16 @@ class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(GetNextCid()) { }
+  Computation() : cid_(-1), ic_data_(NULL) {
+    Isolate* isolate = Isolate::Current();
+    cid_ = GetNextCid(isolate);
+    ic_data_ = GetICDataForCid(cid_, isolate);
+  }
 
   // Unique computation/instruction id, used for deoptimization.
   intptr_t cid() const { return cid_; }
+
+  const ICData* ic_data() const { return ic_data_; }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -83,14 +88,26 @@ class Computation : public ZoneAllocated {
 
  private:
   friend class Instruction;
-  static intptr_t GetNextCid() {
-    Isolate* isolate = Isolate::Current();
+  static intptr_t GetNextCid(Isolate* isolate) {
     intptr_t tmp = isolate->computation_id();
     isolate->set_computation_id(tmp + 1);
     return tmp;
   }
+  static ICData* GetICDataForCid(intptr_t cid, Isolate* isolate) {
+    if (isolate->ic_data_array() == Array::null()) {
+      return NULL;
+    } else {
+      const Array& array_handle = Array::Handle(isolate->ic_data_array());
+      ICData& ic_data_handle = ICData::ZoneHandle();
+      if (cid < array_handle.Length()) {
+        ic_data_handle ^= array_handle.At(cid);
+      }
+      return &ic_data_handle;
+    }
+  }
 
-  const intptr_t cid_;
+  intptr_t cid_;
+  ICData* ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
 };
@@ -162,21 +179,6 @@ class Value : public TemplateComputation<0> {
 #define DECLARE_VALUE(ShortName)                                               \
   DECLARE_COMPUTATION(ShortName)                                               \
   virtual ShortName##Val* As##ShortName() { return this; }
-
-
-class TempVal : public Value {
- public:
-  explicit TempVal(intptr_t index) : index_(index) { }
-
-  DECLARE_VALUE(Temp)
-
-  intptr_t index() const { return index_; }
-
- private:
-  const intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(TempVal);
-};
 
 
 // Definitions and uses are mutually recursive.
@@ -324,7 +326,7 @@ class ClosureCallComp : public Computation {
         try_index_(try_index),
         context_(context),
         arguments_(arguments) {
-    ASSERT(context->IsTemp() || context->IsUse());
+    ASSERT(context->IsUse());
   }
 
   DECLARE_COMPUTATION(ClosureCall)
@@ -1154,11 +1156,17 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() : cid_(Computation::GetNextCid()) { }
+  Instruction() : cid_(-1), ic_data_(NULL) {
+    Isolate* isolate = Isolate::Current();
+    cid_ = Computation::GetNextCid(isolate);
+    ic_data_ = Computation::GetICDataForCid(cid_, isolate);
+  }
 
   // Unique computation/instruction id, used for deoptimization, e.g. for
   // ReturnInstr, ThrowInstr and ReThrowInstr.
   intptr_t cid() const { return cid_; }
+
+  const ICData* ic_data() const { return ic_data_; }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -1204,7 +1212,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
 
  private:
-  const intptr_t cid_;
+  intptr_t cid_;
+  ICData* ic_data_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 

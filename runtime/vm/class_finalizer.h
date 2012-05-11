@@ -90,13 +90,15 @@ class ClassFinalizer : public AllStatic {
   static bool FinalizePendingClasses(bool generating_snapshot);
   static void FinalizeClass(const Class& cls, bool generating_snapshot);
   static bool IsSuperCycleFree(const Class& cls);
+  static bool IsAliasCycleFree(const Class& cls,
+                               GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
   static void ResolveSuperType(const Class& cls);
   static void ResolveFactoryClass(const Class& cls);
   static void ResolveInterfaces(const Class& cls,
-                                const GrowableObjectArray& visited);
+                                GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,

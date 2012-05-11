@@ -157,7 +157,6 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
 
   return Dart_LoadScript(url,
                          source,
-                         CreateSnapshotLibraryTagHandler,
                          import_map);
 }
 
@@ -277,19 +276,29 @@ int main(int argc, char** argv) {
   ASSERT(snapshot_filename != NULL);
   // Load up the script before a snapshot is created.
   if (app_script_name != NULL) {
+    // Set up the library tag handler for this isolate.
+    result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
+    if (Dart_IsError(result)) {
+      fprintf(stderr, "%s", Dart_GetError(result));
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      exit(255);
+    }
     // Load the specified script.
     library = LoadSnapshotCreationScript(app_script_name);
     VerifyLoaded(library);
   } else {
-    // Load a dummy script as the script to setup the tag handler.
-    Dart_Handle empty_string = Dart_NewString("");
-    library = Dart_LoadScript(empty_string,
-                                      empty_string,
-                                      BuiltinLibraryTagHandler,
-                                      Dart_Null());
-    VerifyLoaded(library);
+    // Set up the library tag handler for this isolate.
+    result = Dart_SetLibraryTagHandler(BuiltinLibraryTagHandler);
+    if (Dart_IsError(result)) {
+      fprintf(stderr, "%s", Dart_GetError(result));
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      exit(255);
+    }
     // This is a generic dart snapshot which needs builtin library setup.
-    library = LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
+    Dart_Handle library =
+        LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
     VerifyLoaded(library);
     library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
     VerifyLoaded(library);

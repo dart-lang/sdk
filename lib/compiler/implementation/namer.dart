@@ -23,10 +23,12 @@ class Namer {
 
   Map<Element, String> globals;
   Map<String, int> usedGlobals;
+  Map<String, LibraryElement> shortPrivateNameOwners;
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
-        usedGlobals = new Map<String, int>();
+        usedGlobals = new Map<String, int>(),
+        shortPrivateNameOwners = new Map<String, LibraryElement>();
 
   final String CURRENT_ISOLATE = "\$";
   final String ISOLATE = "Isolate";
@@ -41,9 +43,24 @@ class Namer {
 
   String privateName(LibraryElement lib, SourceString name) {
     if (name.isPrivate()) {
-      return '_${getName(lib)}${name.slowToString()}';
+      String nameString = name.slowToString();
+
+      // The first library asking for a short private name wins.
+      LibraryElement owner =
+          shortPrivateNameOwners.putIfAbsent(nameString, () => lib);
+      // If a private name could clash with a mangled private name we don't
+      // use the short name. For example a private name "_lib3_foo" would
+      // clash with "_foo" from "lib3".
+      if (owner === lib && !nameString.startsWith('_$LIBRARY_PREFIX')) {
+        return nameString;
+      }
+      String libName = getName(lib);
+      // If a library name does not start with the [LIBRARY_PREFIX] then our
+      // assumptions about clashing with mangled private members do not hold.
+      assert(libName.startsWith(LIBRARY_PREFIX));
+      return '_$libName$nameString';
     } else {
-      return '${name.slowToString()}';
+      return name.slowToString();
     }
   }
 
@@ -98,6 +115,8 @@ class Namer {
     }
   }
 
+  static final String LIBRARY_PREFIX = "lib";
+
   /**
    * Returns a preferred JS-id for the given top-level or static element.
    * The returned id is guaranteed to be a valid JS-id.
@@ -123,7 +142,7 @@ class Namer {
         name = element.name.slowToString();
         name = '$name\$${functionElement.parameterCount(compiler)}';
       } else if (element.kind === ElementKind.LIBRARY) {
-        name = 'lib';
+        name = LIBRARY_PREFIX;
       } else {
         name = element.name.slowToString();
       }

@@ -63,8 +63,13 @@ static void FindErrorHandler(uword* handler_pc,
 }
 
 
-static void ThrowExceptionHelper(const Instance& exception,
+static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
+  Instance& exception = Instance::Handle(incoming_exception.raw());
+  if (exception.IsNull()) {
+    GrowableArray<const Object*> arguments;
+    exception ^= Exceptions::Create(Exceptions::kNullPointer, arguments);
+  }
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;

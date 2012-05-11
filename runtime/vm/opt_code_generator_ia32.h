@@ -73,7 +73,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
                                             DeoptReasonId reason_id);
 
   void InlineInstanceGettersWithSameTarget(AstNode* node,
-                                           intptr_t id,
                                            AstNode* receiver,
                                            const String& field_name,
                                            Register recv_reg);
@@ -87,14 +86,12 @@ class OptimizingCodeGenerator : public CodeGenerator {
                     Register right_reg);
 
   void InlineInstanceGetter(AstNode* node,
-                            intptr_t id,
                             AstNode* receiver,
                             const String& field_name,
                             Register recv_reg);
 
   void GenerateInstanceSetter(const InstanceSetterArgs& args);
   void InlineInstanceSetter(AstNode* node,
-                            intptr_t id,
                             AstNode* receiver,
                             const String& field_name,
                             Register recv_reg,
@@ -121,15 +118,14 @@ class OptimizingCodeGenerator : public CodeGenerator {
                           const Array& optional_argument_names);
   void GenerateCheckedInstanceCalls(AstNode* node,
                                     AstNode* receiver,
-                                    intptr_t node_id,
                                     intptr_t token_index,
                                     intptr_t num_args,
                                     const Array& optional_arguments_names);
   void GenerateInlineCacheCall(intptr_t node_id,
-                                intptr_t token_index,
-                                const ICData& ic_data,
-                                intptr_t num_args,
-                                const Array& optional_arguments_names);
+                               intptr_t token_index,
+                               const ICData& ic_data,
+                               intptr_t num_args,
+                               const Array& optional_arguments_names);
   void NormalizeClassChecks(const ICData& ic_data,
                             const Function& null_target,
                             GrowableArray<const Class*>* classes,
@@ -149,7 +145,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   void HandleResult(AstNode* node, Register result_reg);
   void PropagateBackLocalClass(AstNode* node, const Class& cls);
 
-  void PrintCollectedClassesAtId(AstNode* node, intptr_t id);
+  void PrintCollectedClasses(AstNode* node);
   void TraceOpt(AstNode* node, const char* message);
   void TraceNotOpt(AstNode* node, const char* message);
 

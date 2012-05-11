@@ -5,11 +5,11 @@
 #include "platform/json.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "platform/utils.h"
 #include "vm/os.h"
 
 namespace dart {
-
 
 JSONScanner::JSONScanner(const char* json_text) {
   SetText(json_text);
@@ -309,6 +309,23 @@ JSONReader::JSONType JSONReader::Type() const {
     default:
       return kNone;
   }
+}
+
+
+void JSONReader::GetValueChars(char* buf, intptr_t buflen) const {
+  if (Type() == kNone) {
+    return;
+  }
+  intptr_t max = buflen - 1;
+  if (ValueLen() < max) {
+    max = ValueLen();
+  }
+  const char* val = ValueChars();
+  intptr_t i = 0;
+  for (; i < max; i++) {
+    buf[i] = val[i];
+  }
+  buf[i] = '\0';
 }
 
 

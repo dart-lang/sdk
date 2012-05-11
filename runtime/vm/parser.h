@@ -36,6 +36,7 @@ class ParsedFunction : ValueObject {
         instantiator_(NULL),
         default_parameter_values_(Array::Handle()),
         saved_context_var_(NULL),
+        expression_temp_var_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         copied_parameter_count_(0),
@@ -65,6 +66,19 @@ class ParsedFunction : ValueObject {
     saved_context_var_ = saved_context_var;
   }
 
+  LocalVariable* expression_temp_var() const {
+    ASSERT(has_expression_temp_var());
+    return expression_temp_var_;
+  }
+  void set_expression_temp_var(LocalVariable* value) {
+    ASSERT(!has_expression_temp_var());
+    expression_temp_var_ = value;
+  }
+  bool has_expression_temp_var() const {
+    return expression_temp_var_ != NULL;
+  }
+  static LocalVariable* CreateExpressionTempVar(intptr_t token_index);
+
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
   int copied_parameter_count() const { return copied_parameter_count_; }
@@ -78,6 +92,7 @@ class ParsedFunction : ValueObject {
   AstNode* instantiator_;
   Array& default_parameter_values_;
   LocalVariable* saved_context_var_;
+  LocalVariable* expression_temp_var_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
@@ -468,6 +483,7 @@ class Parser : ValueObject {
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
 
   const LocalVariable& GetIncrementTempLocal();
+  void EnsureExpressionTemp();
 
   const Script& script_;
   const TokenStream& tokens_;
@@ -503,7 +519,7 @@ class Parser : ValueObject {
   TryBlocks* try_blocks_list_;
 
   // Allocate temporary only once per function.
-  LocalVariable* increment_temp_;
+  LocalVariable* expression_temp_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

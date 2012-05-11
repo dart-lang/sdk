@@ -30,10 +30,10 @@ var _is_windows;
 
 // The URI that the entrypoint script was loaded from. Remembered so that
 // package imports can be resolved relative to it.
-Uri _entrypoint;
+var _entrypoint;
 
 // The directory to look in to resolve "package:" scheme URIs.
-String _packageRoot;
+var _packageRoot;
 
 void _logResolution(String msg) {
   final enabled = false;

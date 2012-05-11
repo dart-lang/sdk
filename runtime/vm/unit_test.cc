@@ -105,9 +105,11 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_Handle import_map) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
-  Dart_Handle lib = Dart_LoadScript(url, source, LibraryTagHandler, import_map);
+  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
+  EXPECT_VALID(result);
+  Dart_Handle lib = Dart_LoadScript(url, source, import_map);
   DART_CHECK_VALID(lib);
-  Dart_Handle result = Dart_SetNativeResolver(lib, resolver);
+  result = Dart_SetNativeResolver(lib, resolver);
   DART_CHECK_VALID(result);
   return lib;
 }
@@ -179,6 +181,9 @@ void CodeGenTest::Compile() {
   parsed_function.SetNodeSequence(node_sequence_);
   parsed_function.set_instantiator(NULL);
   parsed_function.set_default_parameter_values(default_parameter_values_);
+  parsed_function.set_expression_temp_var(
+      ParsedFunction::CreateExpressionTempVar(0));
+  node_sequence_->scope()->AddVariable(parsed_function.expression_temp_var());
   parsed_function.AllocateVariables();
   const Error& error =
       Error::Handle(Compiler::CompileParsedFunction(parsed_function));

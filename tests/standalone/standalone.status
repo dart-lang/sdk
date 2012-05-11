@@ -8,6 +8,8 @@ out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+io/http_test: Pass, Fail  # Issue 2987
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
@@ -65,6 +67,9 @@ deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/http_parser_test: Fail, OK # ByteArray
 io/options_test: Fail, OK # Cannot pass options to d8.
+
+[ $compiler == dart2js && $checked ]
+crypto/sha1_test: Fail # 2147483648 does not implement int
 
 [ $compiler == dart2js && $runtime == none ]
 fail_test: Skip # fails only at runtime, overrides default expectation from standalone.status

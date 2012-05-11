@@ -13,5 +13,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
       webkitRequestAnimationFrame(callback);
 
+  Window get top() => _wrap(_ptr.top);
+
 $!MEMBERS
 }

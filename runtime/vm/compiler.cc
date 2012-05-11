@@ -70,16 +70,33 @@ static void ExtractTypeFeedback(const Code& code,
     intptr_t node_id = node_ids[i];
     bool found_node = false;
     for (intptr_t n = 0; n < all_nodes.length(); n++) {
-      if (all_nodes[n]->HasId(node_id)) {
+      if (all_nodes[n]->id() == node_id) {
         found_node = true;
         // Make sure we assign ic data array only once.
-        ASSERT(all_nodes[n]->ICDataAtId(node_id).IsNull());
+        ASSERT(all_nodes[n]->ic_data().IsNull());
         ic_data_obj ^= ic_data_objs.At(i);
-        all_nodes[n]->SetIcDataAtId(node_id, ic_data_obj);
+        all_nodes[n]->set_ic_data(ic_data_obj);
       }
     }
     ASSERT(found_node);
   }
+}
+
+
+// Returns an array indexed by computation id, containing the extracted ICData.
+static RawArray* ExtractTypeFeedbackArray(const Code& code) {
+  ASSERT(!code.IsNull() && !code.is_optimized());
+  GrowableArray<intptr_t> computation_ids;
+  const GrowableObjectArray& ic_data_objs =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const intptr_t max_id =
+      code.ExtractIcDataArraysAtCalls(&computation_ids, ic_data_objs);
+  const Array& result = Array::Handle(Array::New(max_id + 1));
+  for (intptr_t i = 0; i < computation_ids.length(); i++) {
+    ASSERT(result.At(i) == Object::null());
+    result.SetAt(i, Object::Handle(ic_data_objs.At(i)));
+  }
+  return result.raw();
 }
 
 
@@ -168,7 +185,10 @@ static bool CompileWithNewCompiler(
         // deoptimized too often.
         if (parsed_function.function().deoptimization_counter() <
             FLAG_deoptimization_counter_threshold) {
-          // Extract type feedback etc.
+          const Code& unoptimized_code =
+              Code::Handle(parsed_function.function().unoptimized_code());
+          isolate->set_ic_data_array(
+              ExtractTypeFeedbackArray(unoptimized_code));
         }
       }
     }
@@ -181,6 +201,7 @@ static bool CompileWithNewCompiler(
                        &CompilerStats::graphcompiler_timer,
                        isolate);
       graph_compiler.CompileGraph();
+      isolate->set_ic_data_array(Array::null());
     }
     {
       TimerScope timer(FLAG_compiler_stats,
@@ -491,6 +512,10 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     ParsedFunction parsed_function(func);
     parsed_function.SetNodeSequence(fragment);
     parsed_function.set_default_parameter_values(Array::Handle());
+    parsed_function.set_expression_temp_var(
+        ParsedFunction::CreateExpressionTempVar(0));
+    fragment->scope()->AddVariable(parsed_function.expression_temp_var());
+    parsed_function.AllocateVariables();
 
     CompileParsedFunctionHelper(parsed_function, false);  // Non-optimized.
 

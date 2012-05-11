@@ -307,9 +307,13 @@ class Unparser implements Visitor {
     visit(node.body);
   }
 
+  visitLabel(Label node) {
+    visit(node.identifier);
+    add(node.colonToken.value);
+   }
+
   visitLabeledStatement(LabeledStatement node) {
     visit(node.label);
-    add(node.colonToken.value);
     sb.add(' ');
     visit(node.statement);
   }

@@ -11,8 +11,8 @@ createLink(String dst, String link, bool symbolic, void callback()) {
   if (!new File(script).existsSync()) {
     script = '../$script';
   }
-  new Process.run(script, args, null, (exit, out, err) {
-    if (exit == 0) {
+  Process.run(script, args).then((result) {
+    if (result.exitCode == 0) {
       callback();
     } else {
       throw new Exception('link creation failed');
@@ -22,8 +22,7 @@ createLink(String dst, String link, bool symbolic, void callback()) {
 
 
 testFileExistsCreate() {
-  var temp = new Directory('');
-  temp.createTempSync();
+  var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   createLink(x, y, true, () {
@@ -38,8 +37,7 @@ testFileExistsCreate() {
 
 
 testFileDelete() {
-  var temp = new Directory('');
-  temp.createTempSync();
+  var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
@@ -62,8 +60,7 @@ testFileDelete() {
 
 
 testFileWriteRead() {
-  var temp = new Directory('');
-  temp.createTempSync();
+  var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
@@ -84,8 +81,7 @@ testFileWriteRead() {
 
 
 testDirectoryExistsCreate() {
-  var temp = new Directory('');
-  temp.createTempSync();
+  var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   createLink(x, y, true, () {
@@ -98,10 +94,8 @@ testDirectoryExistsCreate() {
 
 
 testDirectoryDelete() {
-  var temp = new Directory('');
-  temp.createTempSync();
-  var temp2 = new Directory('');
-  temp2.createTempSync();
+  var temp = new Directory('').createTempSync();
+  var temp2 = new Directory('').createTempSync();
   var y = '${temp.path}${Platform.pathSeparator}y';
   var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
@@ -125,20 +119,18 @@ testDirectoryDelete() {
 
 
 testDirectoryListing() {
-  var temp = new Directory('');
-  temp.createTempSync();
-  var temp2 = new Directory('');
-  temp2.createTempSync();
+  var temp = new Directory('').createTempSync();
+  var temp2 = new Directory('').createTempSync();
   var y = '${temp.path}${Platform.pathSeparator}y';
   var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
   createLink(temp2.path, y, true, () {
     var files = [];
     var dirs = [];
-    temp.list(recursive: true);
-    temp.onFile = (f) => files.add(f);
-    temp.onDir = (d) => dirs.add(d);
-    temp.onDone = (success) {
+    var lister = temp.list(recursive: true);
+    lister.onFile = (f) => files.add(f);
+    lister.onDir = (d) => dirs.add(d);
+    lister.onDone = (success) {
       Expect.isTrue(success);
       Expect.equals(1, files.length);
       Expect.isTrue(files[0].endsWith(x));

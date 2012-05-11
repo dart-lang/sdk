@@ -25,7 +25,7 @@ class _DartiumUpdater {
       isActive = true;
       print('Updating $name.');
       onUpdated = [() {updated = true;} ];
-      _updatingProcess = new Process.start('python', _getUpdateCommand);
+      _updatingProcess = Process.start('python', _getUpdateCommand);
       _updatingProcess.onExit = _onUpdatedHandler;
       _updatingProcess.onError = (error) {
         print("Error starting $script process: $error");

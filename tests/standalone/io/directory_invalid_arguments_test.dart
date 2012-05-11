@@ -7,15 +7,15 @@
 class DirectoryInvalidArgumentsTest {
   static void testFailingList(Directory d, var recursive) {
     int errors = 0;
-    d.onError = (error) {
+    var lister = d.list(recursive);
+    lister.onError = (error) {
       errors += 1;
     };
-    d.onDone = (completed) {
+    lister.onDone = (completed) {
       Expect.equals(1, errors);
       Expect.isFalse(completed);
     };
     Expect.equals(0, errors);
-    d.list(recursive);
   }
 
   static void testInvalidArguments() {

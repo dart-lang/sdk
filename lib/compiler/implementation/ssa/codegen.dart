@@ -145,6 +145,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
   final Set<String> usedNames;
+  final Set<HInstruction> declaredInstructions;
   final Map<String, int> prefixes;
   final Set<HInstruction> generateAtUseSite;
   final Map<HPhi, String> logicalOperations;
@@ -190,6 +191,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     : names = new Map<int, String>(),
       prefixes = new Map<String, int>(),
       usedNames = new Set<String>(),
+      declaredInstructions = new Set<HInstruction>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       logicalOperations = new Map<HPhi, String>(),
@@ -449,10 +451,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return result;
   }
 
-  bool temporaryExists(HInstruction instruction) {
-    return names.containsKey(instruction.id);
-  }
-
   String newName(int id, String name) {
     String result = JsNames.getValid(name);
     names[id] = result;
@@ -516,6 +514,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void declareInstruction(HInstruction instruction) {
+    declaredInstructions.add(instruction);
+    String name = temporary(instruction);
+    declareVariable(name);
+  }
+
   bool needsNewVariable(HInstruction instruction) {
     bool needsVar = !instruction.usedBy.isEmpty();
     if (needsVar && instruction is HCheck) {
@@ -551,8 +555,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void define(HInstruction instruction) {
     if (needsNewVariable(instruction)) {
-      String name = temporary(instruction);
-      declareVariable(name);
+      declareInstruction(instruction);
       buffer.add(" = ");
       visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
     } else {
@@ -576,6 +579,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // print(FooTypeCheck(foo()));
         visit(argument, expectedPrecedenceForArgument);
       } else if (isGenerateAtUseSite(input)) {
+        // Get the real input of that checked instruction.
+        while (input is HCheck) input = input.checkedInput;
+
         // If [argument] cannot be generated at use site, but [input]
         // can, use the temporary of [argument]. A code motion
         // invariant instruction does not have a temporary, so we just
@@ -1030,8 +1036,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           temporaryNamesOfPhis.containsKey(canonicalPhi)) {
         // This is the assignment to the temporary.
         declareVariable(temporaryNamesOfPhis[canonicalPhi]);
-      } else if (!temporaryExists(canonicalPhi)) {
-        declareVariable(temporary(canonicalPhi));
+      } else if (!declaredInstructions.contains(canonicalPhi)) {
+        declareInstruction(canonicalPhi);
       } else {
         buffer.add(temporary(canonicalPhi));
       }
@@ -1689,7 +1695,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
       buffer.add(' !== true');
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    } else if (isBuiltinRelational(input) && isGenerateAtUseSite(input)) {
+    } else if (isBuiltinRelational(input) &&
+               isGenerateAtUseSite(input) &&
+               input.inputs[0].propagatedType.isUseful() &&
+               !input.inputs[0].isDouble() &&
+               input.inputs[1].propagatedType.isUseful() &&
+               !input.inputs[1].isDouble()) {
+      // This optimization doesn't work for NaN, so we only do it if the
+      // type is known to be non-Double.
       Map<String, String> inverseOperator = const <String>{
         "==" : "!=",
         "!=" : "==",
@@ -2245,7 +2258,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void visitTypeGuard(HTypeGuard node) {
     addIndentation();
     HInstruction input = node.guarded;
-    assert(!isGenerateAtUseSite(input) || input.isCodeMotionInvariant());
     if (node.isInteger()) {
       buffer.add('if (');
       checkInt(input, '!==');
