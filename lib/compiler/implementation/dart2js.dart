@@ -56,6 +56,7 @@ void compile(List<String> argv) {
   Uri libraryRoot = cwd;
   Uri out = cwd.resolve('out.js');
   List<String> options = new List<String>();
+  bool explicitOut = false;
 
   passThrough(String argument) => options.add(argument);
 
@@ -70,6 +71,7 @@ void compile(List<String> argv) {
       libraryRoot = cwd.resolve(path);
     }),
     new OptionHandler('--out=.*', (String argument) {
+      explicitOut = true;
       out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
     }),
     new OptionHandler('--allow-mock-compilation', passThrough),
@@ -79,7 +81,7 @@ void compile(List<String> argv) {
     new OptionHandler('--help', (_) => helpAndExit()),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
-      fail('Error: unknown option "$argument".');
+      helpAndFail('Error: Unknown option "$argument".');
     }),
     new OptionHandler('.*', (String argument) {
       arguments.add(nativeToUriPath(argument));
@@ -89,11 +91,11 @@ void compile(List<String> argv) {
   parseCommandLine(handlers, argv);
 
   if (arguments.isEmpty()) {
-    helpAndFail('Error: no file to compile.');
+    helpAndFail('Error: No Dart file specified.');
   }
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
-    helpAndFail('Error: extra arguments: ${Strings.join(extra, " ")}');
+    helpAndFail('Error: Extra arguments: ${Strings.join(extra, " ")}');
   }
 
   Map<String, SourceFile> sourceFiles = <SourceFile>{};
@@ -138,12 +140,17 @@ void compile(List<String> argv) {
   // directly. In effect, we don't support truly asynchronous API.
   String code = api.compile(uri, libraryRoot, provider, handler, options).value;
   if (code === null) {
-    fail('Error: compilation failed.');
+    fail('Error: Compilation failed.');
   }
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
        + 'in ${relativize(cwd, out)}');
+  if (!explicitOut) {
+    String input = uriPathToNative(arguments[0]);
+    String output = relativize(cwd, out);
+    print('Dart file $input compiled to JavaScript: $output');
+  }
 }
 
 class AbortLeg {
@@ -154,7 +161,7 @@ class AbortLeg {
 
 void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
-    fail('Error: unhandled scheme ${uri.scheme}.');
+    fail('Error: Unhandled scheme ${uri.scheme}.');
   }
   var file = new File(uriPathToNative(uri.path)).openSync(FileMode.WRITE);
   file.writeStringSync(text);
@@ -187,21 +194,14 @@ void help() {
   // terminal size normally 80x24. Two lines are used for the prompts
   // before and after running the compiler.
   print('''
-dart2js [OPTIONS...] DART-FILE
+Usage: dart2js [OPTIONS] DARTFILE
 
-A Dart to JavaScript compiler.
-
-By default, the compiled JavaScript code is saved to a file named
-out.js in the current directory.
+Compiles Dart to JavaScript.
 
 Common options:
-
   --help      Display this message.
-
-  --out=FILE  Save the output to FILE (default is out.js).
-
-  --checked   Turn on checked mode in generated JavaScript code.
-''');
+  --out=FILE  Save the output to FILE (default: out.js).
+  --checked   Turn on checked mode in generated JavaScript code.''');
 }
 
 void helpAndExit() {
@@ -211,6 +211,7 @@ void helpAndExit() {
 
 void helpAndFail(String message) {
   help();
+  print('');
   fail(message);
 }
 
