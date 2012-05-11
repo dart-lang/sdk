@@ -164,23 +164,13 @@ static bool CompileWithNewCompiler(
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphbuilder_timer,
                        isolate);
-      CompilerStats::graphbuilder_timer.Start();
-      FlowGraphBuilder graph_builder(parsed_function);
-      graph_builder.BuildGraph(optimized);
-
-      // The non-optimizing compiler compiles blocks in reverse postorder,
-      // because it is a 'natural' order for the human reader of the
-      // generated code.
-      intptr_t length = graph_builder.postorder_block_entries().length();
-      for (intptr_t i = length - 1; i >= 0; --i) {
-        block_order.Add(graph_builder.postorder_block_entries()[i]);
-      }
-
       if (optimized) {
         // Transition to optimized code only from unoptimized code ...
         // for now.
         ASSERT(parsed_function.function().HasCode());
         ASSERT(!parsed_function.function().HasOptimizedCode());
+        // Extract type feedback before the graph is built, as the graph
+        // builder uses it to attach it to nodes.
         // Do not use type feedback to optimize a function that was
         // deoptimized too often.
         if (parsed_function.function().deoptimization_counter() <
@@ -190,6 +180,16 @@ static bool CompileWithNewCompiler(
           isolate->set_ic_data_array(
               ExtractTypeFeedbackArray(unoptimized_code));
         }
+      }
+      FlowGraphBuilder graph_builder(parsed_function);
+      graph_builder.BuildGraph(optimized);
+
+      // The non-optimizing compiler compiles blocks in reverse postorder,
+      // because it is a 'natural' order for the human reader of the
+      // generated code.
+      intptr_t length = graph_builder.postorder_block_entries().length();
+      for (intptr_t i = length - 1; i >= 0; --i) {
+        block_order.Add(graph_builder.postorder_block_entries()[i]);
       }
     }
 
