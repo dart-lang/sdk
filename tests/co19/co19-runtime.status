@@ -85,7 +85,6 @@ LibTest/core/Date/Date_A01_t01: Fail # Issue 445
 LibTest/core/Expect/throws_A01_t04: Fail # Issue co19 - 119
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
-LibTest/core/Match/pattern_A01_t01: Fail
 LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
 LibTest/core/Math/pow_A11_t01: Fail  # Issue 449
 LibTest/core/Math/pow_A13_t01: Fail  # Issue 449
