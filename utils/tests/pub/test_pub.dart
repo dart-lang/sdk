@@ -28,82 +28,104 @@ FileDescriptor file(String name, String contents) =>
 DirectoryDescriptor dir(String name, [List<Descriptor> contents]) =>
     new DirectoryDescriptor(name, contents);
 
-void testPub(String description, [List<Descriptor> cache, Descriptor app,
-    List<String> args, List<Descriptor> expectedPackageDir,
-    List<Descriptor> sdk, String output, int exitCode = 0]) {
-  asyncTest(description, 1, () {
-    var createdSandboxDir;
-    var createdAppDir;
-    var createdSdkDir;
+/**
+ * The path of the package cache directory used for tests. Relative to the
+ * sandbox directory.
+ */
+final String cachePath = "cache";
 
-    deleteSandboxIfCreated() {
-      if (createdSandboxDir != null) {
-        deleteDir(createdSandboxDir).then((_) {
-          callbackDone();
-        });
-      } else {
-        callbackDone();
-      }
+/**
+ * The path of the mock SDK directory used for tests. Relative to the sandbox
+ * directory.
+ */
+final String sdkPath = "sdk";
+
+/**
+ * The path of the mock app directory used for tests. Relative to the sandbox
+ * directory.
+ */
+final String appPath = "myapp";
+
+/**
+ * The path of the packages directory in the mock app used for tests. Relative
+ * to the sandbox directory.
+ */
+final String packagesPath = "$appPath/packages";
+
+/**
+ * The type for callbacks that will be fired during [runPub]. Takes the sandbox
+ * directory as a parameter.
+ */
+typedef Future _ScheduledEvent(Directory parentDir);
+
+/**
+ * The list of events that are scheduled to run after the sandbox directory has
+ * been created but before Pub is run.
+ */
+List<_ScheduledEvent> _scheduledBeforePub;
+
+/**
+ * The list of events that are scheduled to run after Pub has been run.
+ */
+List<_ScheduledEvent> _scheduledAfterPub;
+
+void runPub([List<String> args, String output, int exitCode = 0]) {
+  var createdSandboxDir;
+
+  var asyncDone = expectAsync0(() {});
+
+  deleteSandboxIfCreated(onDeleted()) {
+    _scheduledBeforePub = null;
+    _scheduledAfterPub = null;
+    if (createdSandboxDir != null) {
+      deleteDir(createdSandboxDir).then((_) => onDeleted());
+    } else {
+      onDeleted();
     }
+  }
 
-    final future = _setUpSandbox().chain((sandboxDir) {
-      createdSandboxDir = sandboxDir;
-      return _setUpApp(sandboxDir, app);
-    }).chain((appDir) {
-      createdAppDir = appDir;
-      return _setUpSdk(createdSandboxDir, sdk);
-    }).chain((sdkDir) {
-      createdSdkDir = sdkDir;
-      return _setUpCache(createdSandboxDir, cache);
-    }).chain((cacheDir) {
-      var workingDir;
-      if (createdAppDir != null) workingDir = createdAppDir.path;
+  String pathInSandbox(path) => join(getFullPath(createdSandboxDir), path);
 
-      if (cacheDir != null) {
-        // TODO(rnystrom): Hack in the cache directory path. Should pass this
-        // in using environment var once #752 is done.
-        args.add('--cachedir=${getFullPath(cacheDir)}');
-      }
+  final future = _setUpSandbox().chain((sandboxDir) {
+    createdSandboxDir = sandboxDir;
+    return _runScheduled(sandboxDir, _scheduledBeforePub);
+  }).chain((_) {
+    return ensureDir(pathInSandbox(appPath));
+  }).chain((_) {
+    // TODO(rnystrom): Hack in the cache directory path. Should pass this
+    // in using environment var once #752 is done.
+    args.add('--cachedir=${pathInSandbox(cachePath)}');
 
-      if (createdSdkDir != null) {
-        // TODO(rnystrom): Hack in the SDK path. Should pass this in using
-        // environment var once #752 is done.
-        args.add('--sdkdir=${getFullPath(createdSdkDir)}');
-      }
+    // TODO(rnystrom): Hack in the SDK path. Should pass this in using
+    // environment var once #752 is done.
+    args.add('--sdkdir=${pathInSandbox(sdkPath)}');
 
-      return _runPub(args, workingDir);
-    }).chain((result) {
-      _validateOutput(output, result.stdout);
+    return _runPub(args, pathInSandbox(appPath));
+  }).chain((result) {
+    _validateOutput(output, result.stdout);
 
-      Expect.equals(result.stderr.length, 0,
-          'Did not expect any output on stderr, and got:\n' +
-          Strings.join(result.stderr, '\n'));
+    Expect.equals(result.stderr.length, 0,
+        'Did not expect any output on stderr, and got:\n' +
+        Strings.join(result.stderr, '\n'));
 
-      Expect.equals(result.exitCode, exitCode,
-          'Pub returned exit code ${result.exitCode}, expected $exitCode.');
+    Expect.equals(result.exitCode, exitCode,
+        'Pub returned exit code ${result.exitCode}, expected $exitCode.');
 
-      return _validateExpectedPackages(createdAppDir, expectedPackageDir);
+    return _runScheduled(createdSandboxDir, _scheduledAfterPub);
+  });
+
+  future.then((_) {
+    deleteSandboxIfCreated(asyncDone);
+  });
+
+  future.handleException((error) {
+    // If an error occurs during testing, delete the sandbox, throw the error so
+    // that the test framework sees it, then finally call asyncDone so that the
+    // test framework knows we're done doing asynchronous stuff.
+    deleteSandboxIfCreated(() {
+      guardAsync(() { throw error; }, asyncDone);
     });
-
-    future.then((error) {
-      // Null means there were no errors.
-      if (error != null) Expect.fail(error);
-
-      deleteSandboxIfCreated();
-    });
-
-    future.handleException((error) {
-      deleteSandboxIfCreated();
-      // If we encounter an error, we want to pass it to the test framework. In
-      // order to get the stack trace information, we need to re-throw and
-      // re-catch it.
-      try {
-        throw error;
-      } catch (var e, var stack) {
-        reportTestError('$e', '$stack');
-      }
-      return true;
-    });
+    return true;
   });
 }
 
@@ -111,25 +133,11 @@ Future<Directory> _setUpSandbox() {
   return createTempDir('pub-test-sandbox-');
 }
 
-Future _setUpCache(Directory sandboxDir, List<Descriptor> cache) {
-  // No cache.
-  if (cache == null) return new Future.immediate(null);
-
-  return dir('pub-cache', cache).create(sandboxDir);
-}
-
-Future _setUpApp(Directory sandboxDir, Descriptor app) {
-  // No app directory.
-  if (app == null) return new Future.immediate(null);
-
-  return app.create(sandboxDir);
-}
-
-Future _setUpSdk(Directory sandboxDir, List<Descriptor> sdk) {
-  // No SDK directory.
-  if (sdk == null) return new Future.immediate(null);
-
-  return dir('sdk', sdk).create(sandboxDir);
+_runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
+  if (scheduled == null) return new Future.immediate(null);
+  var future = Futures.wait(scheduled.map((event) => event(parentDir)));
+  scheduled.clear();
+  return future;
 }
 
 Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
@@ -146,18 +154,6 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   args.addAll(pubArgs);
 
   return runProcess(dartBin, args, workingDir);
-}
-
-/**
- * Validates the contents of the "packages" directory inside [appDir] against
- * [expectedPackageDir].
- */
-Future<String> _validateExpectedPackages(Directory appDir,
-    List<Descriptor> expectedPackageDir) {
-  // No expectation.
-  if (expectedPackageDir == null) return new Future.immediate(null);
-
-  return dir('packages', expectedPackageDir).validate(appDir.path);
 }
 
 /**
@@ -226,9 +222,22 @@ class Descriptor {
   /**
    * Validates that this descriptor correctly matches the corresponding file
    * system entry within [dir]. Returns a [Future] that completes to `null` if
-   * the entry is valid, or a message describing the error if it failed.
+   * the entry is valid, or throws an error if it failed.
    */
-  abstract Future<String> validate(String dir);
+  abstract Future validate(String dir);
+
+  /**
+   * Schedules the directory to be created before Pub is run with [runPub]. The
+   * directory will be created relative to the sandbox directory.
+   */
+  void scheduleCreate() => _scheduleBeforePub(create);
+
+  /**
+   * Schedules the directory to be validated after Pub is run with [runPub]. The
+   * directory will be validated relative to the sandbox directory.
+   */
+  void scheduleValidate() =>
+    _scheduleAfterPub((parentDir) => validate(parentDir));
 }
 
 /**
@@ -255,18 +264,16 @@ class FileDescriptor extends Descriptor {
   /**
    * Validates that this file correctly matches the actual file at [path].
    */
-  Future<String> validate(String path) {
+  Future validate(String path) {
     path = join(path, name);
     return fileExists(path).chain((exists) {
-      if (!exists) {
-        return new Future.immediate('Expected file $path does not exist.');
-      }
+      if (!exists) Expect.fail('Expected file $path does not exist.');
 
       return readTextFile(path).transform((text) {
         if (text == contents) return null;
 
-        return 'File $path should contain:\n\n$contents\n\n'
-               'but contained:\n\n$text';
+        Expect.fail('File $path should contain:\n\n$contents\n\n'
+                    'but contained:\n\n$text');
       });
     });
   }
@@ -315,19 +322,28 @@ class DirectoryDescriptor extends Descriptor {
    * directory doesn't contain other unexpected stuff, just that it *does*
    * contain the stuff we do expect.
    */
-  Future<String> validate(String path) {
+  Future validate(String path) {
     // Validate each of the items in this directory.
     final entryFutures = contents.map(
         (entry) => entry.validate(join(path, name)));
 
     // If they are all valid, the directory is valid.
-    return Futures.wait(entryFutures).transform((entries) {
-      for (final entry in entries) {
-        if (entry != null) return entry;
-      }
-
-      // If we got here, all of the sub-entries were valid.
-      return null;
-    });
+    return Futures.wait(entryFutures).transform((entries) => null);
   }
+}
+
+/**
+ * Schedules a callback to be called before Pub is run with [runPub].
+ */
+void _scheduleBeforePub(_ScheduledEvent event) {
+  if (_scheduledBeforePub == null) _scheduledBeforePub = [];
+  _scheduledBeforePub.add(event);
+}
+
+/**
+ * Schedules a callback to be called after Pub is run with [runPub].
+ */
+void _scheduleAfterPub(_ScheduledEvent event) {
+  if (_scheduledAfterPub == null) _scheduledAfterPub = [];
+  _scheduledAfterPub.add(event);
 }
