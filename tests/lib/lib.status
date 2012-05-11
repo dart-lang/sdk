@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $compiler == dartc || $compiler == frog || $compiler == dart2js]
+[ $compiler == dartc || $compiler == frog ]
 *: Skip
 
 [ $arch == arm ]
