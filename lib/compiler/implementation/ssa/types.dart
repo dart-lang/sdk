@@ -50,6 +50,7 @@ abstract class HType {
   static final HType READABLE_ARRAY = const HReadableArrayType();
   static final HType MUTABLE_ARRAY = const HMutableArrayType();
   static final HType EXTENDABLE_ARRAY = const HExtendableArrayType();
+  static final HType NULL = const HNullType();
 
   static final HType BOOLEAN_OR_NULL = const HBooleanOrNullType();
   static final HType NUMBER_OR_NULL = const HNumberOrNullType();
@@ -59,6 +60,7 @@ abstract class HType {
 
   bool isConflicting() => this === CONFLICTING;
   bool isUnknown() => this === UNKNOWN;
+  bool isNull() => false;
   bool isBoolean() => false;
   bool isNumber() => false;
   bool isInteger() => false;
@@ -79,8 +81,8 @@ abstract class HType {
   bool canBePrimitive() => false;
   bool canBeNull() => false;
 
-  /** A type is useful it is not unknown and not conflicting. */
-  bool isUseful() => !isUnknown() && !isConflicting();
+  /** A type is useful it is not unknown, not conflicting, and not null. */
+  bool isUseful() => !isUnknown() && !isConflicting() && !isNull();
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
 
@@ -142,6 +144,33 @@ abstract class HPrimitiveType extends HType {
   bool canBePrimitive() => true;
 }
 
+class HNullType extends HPrimitiveType {
+  const HNullType();
+  bool canBeNull() => true;
+  bool isNull() => true;
+  String toString() => 'null';
+
+  Type computeType(Compiler compiler) => null;
+
+  HType union(HType other) {
+    if (other.isUnknown()) return HType.NULL;
+    if (other.isString()) return HType.STRING_OR_NULL;
+    if (other.isInteger()) return HType.INTEGER_OR_NULL;
+    if (other.isDouble()) return HType.DOUBLE_OR_NULL;
+    if (other.isNumber()) return HType.NUMBER_OR_NULL;
+    if (other.isBoolean()) return HType.BOOLEAN_OR_NULL;
+    if (!other.canBeNull()) return HType.CONFLICTING;
+    return other;
+  }
+
+  HType intersection(HType other) {
+    if (other.isUnknown()) return HType.NULL;
+    if (other.isConflicting()) return HType.CONFLICTING;
+    if (!other.canBeNull()) return HType.CONFLICTING;
+    return HType.NULL;
+  }
+}
+
 abstract class HPrimitiveOrNullType extends HType {
   const HPrimitiveOrNullType();
   bool canBePrimitive() => true;
@@ -161,6 +190,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
     if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
     if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN_OR_NULL;
+    if (other.isNull()) return HType.BOOLEAN_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -168,6 +198,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
     if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
     if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -185,6 +216,7 @@ class HBooleanType extends HPrimitiveType {
     if (other.isUnknown()) return HType.BOOLEAN;
     if (other.isBoolean()) return HType.BOOLEAN;
     if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
+    if (other.isNull()) return HType.BOOLEAN_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -209,6 +241,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
     if (other.isUnknown()) return HType.NUMBER_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
     if (other.isNumber()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.NUMBER_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -220,6 +253,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -237,6 +271,7 @@ class HNumberType extends HPrimitiveType {
     if (other.isNumber()) return HType.NUMBER;
     if (other.isUnknown()) return HType.NUMBER;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.NUMBER_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -265,6 +300,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isInteger()) return HType.INTEGER_OR_NULL;
     if (other.isNumber()) return HType.NUMBER_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.INTEGER_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -276,6 +312,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.CONFLICTING;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -295,6 +332,7 @@ class HIntegerType extends HNumberType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isNumber()) return HType.NUMBER;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.INTEGER_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -325,6 +363,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
     if (other.isDouble()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.NUMBER_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.DOUBLE_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -336,6 +375,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.DOUBLE_OR_NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -355,6 +395,7 @@ class HDoubleType extends HNumberType {
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.NUMBER;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isNull()) return HType.DOUBLE_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -429,6 +470,7 @@ class HStringOrNullType extends HPrimitiveOrNullType {
         return new HBoundedPotentialPrimitiveString(boundedType.type, true);
       }
     }
+    if (other.isNull()) return HType.STRING_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -441,6 +483,7 @@ class HStringOrNullType extends HPrimitiveOrNullType {
     if (other is HBoundedPotentialPrimitiveString) {
       return other.canBeNull() ? HType.STRING_OR_NULL : HType.STRING;
     }
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -460,6 +503,7 @@ class HStringType extends HIndexablePrimitiveType {
     if (other.isStringOrNull()) return HType.STRING_OR_NULL;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
     if (other is HBoundedPotentialPrimitiveString) return other;
+    if (other.isNull()) return HType.STRING_OR_NULL;
     return HType.CONFLICTING;
   }
 
@@ -572,9 +616,23 @@ class HBoundedType extends HType {
   }
 
   // As long as we don't keep track of super/sub types for non-primitive types
-  // the intersection and union is the same.
-  HType intersection(HType other) => combine(other);
-  HType union(HType other) => combine(other);
+  // the intersection and union is the same, except when [other] is
+  // null.
+  HType intersection(HType other) {
+    if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
+    return combine(other);
+  }
+
+  HType union(HType other) {
+    if (other.isNull()) {
+      if (canBeNull()) {
+        return this;
+      } else {
+        return new HBoundedType(type, true);
+      }
+    }
+    return combine(other);
+  }
 }
 
 class HExactType extends HBoundedType {
@@ -594,6 +652,11 @@ class HExactType extends HBoundedType {
     if (other.isUnknown()) return this;
     return HType.CONFLICTING;
   }
+
+  HType union(HType other) {
+    if (other.isNull()) return HType.CONFLICTING;
+    return combine(other);
+  }
 }
 
 class HBoundedPotentialPrimitiveType extends HBoundedType {
@@ -611,6 +674,13 @@ class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
     if (other.isReadableArray()) return this;
     // TODO(ngeoffray): implement union types.
     if (other.isIndexablePrimitive()) return HType.CONFLICTING;
+    if (other.isNull()) {
+      if (canBeNull()) {
+        return this;
+      } else {
+        return new HBoundedPotentialPrimitiveArray(type, true);
+      }
+    }
     return super.union(other);
   }
 
@@ -629,6 +699,13 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
   HType union(HType other) {
     if (other.isString()) return this;
     if (other.isStringOrNull()) {
+      if (canBeNull()) {
+        return this;
+      } else {
+        return new HBoundedPotentialPrimitiveString(type, true);
+      }
+    }
+    if (other.isNull()) {
       if (canBeNull()) {
         return this;
       } else {
