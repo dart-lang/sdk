@@ -76,20 +76,15 @@ function(cls, superclass, fields, prototype) {
   if (typeof fields == 'function') {
     constructor = fields;
   } else {
-    var str = "(function " + cls + "(";
+    var str = "function " + cls + "(";
     var body = "";
     for (var i = 0; i < fields.length; i++) {
       if (i != 0) str += ", ";
       var field = fields[i];
       var len = field.length;
       var lastChar = field[len - 1];
-      var needsGetter = false;
-      var needsSetter = false;
-      switch (lastChar) {
-        case '$GETTER_SUFFIX': needsGetter = true; break;
-        case '$GETTER_SETTER_SUFFIX': needsGetter = true; // Fall-through.
-        case '$SETTER_SUFFIX': needsSetter = true;
-      }
+      var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+      var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
       if (needsGetter || needsSetter) field = field.substring(0, len - 1);
       str += field;
       body += "this." + field + " = " + field + ";\\n";
@@ -102,8 +97,9 @@ function(cls, superclass, fields, prototype) {
         prototype["set\$" + field] = new Function("v", setterString);
       }
     }
-    str += ") {" + body + "})";
-    constructor = eval(str);
+    str += ") {" + body + "}\\n";
+    str += "return " + cls + ";";
+    constructor = new Function(str)();
   }
   $isolatePropertiesName[cls] = constructor;
   constructor.prototype = prototype;
