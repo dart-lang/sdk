@@ -10,24 +10,16 @@ class WorkItem {
   List<HTypeGuard> guards = const <HTypeGuard>[];
 
   WorkItem.toCompile(this.element) : resolutionTree = null {
-    run = this.compile;
+    run = (Compiler compiler) => compiler.compile(this);
   }
 
   WorkItem.toCodegen(this.element, this.resolutionTree) {
-    run = this.codegen;
+    run = (Compiler compiler) => compiler.codegen(this);
   }
 
   bool isAnalyzed() => resolutionTree != null;
 
   int hashCode() => element.hashCode();
-
-  String compile(Compiler compiler) {
-    return compiler.compile(this);
-  }
-
-  String codegen(Compiler compiler) {
-    return compiler.codegen(this);
-  }
 }
 
 class Compiler implements DiagnosticListener {
