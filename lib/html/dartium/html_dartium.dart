@@ -10731,17 +10731,19 @@ class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implement
 
   EventListenerList get blocked() => _get('blocked');
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
+
+  Window get contentWindow() => _wrap(_ptr.contentWindow);
+
   _IFrameElementImpl._wrap(ptr) : super._wrap(ptr);
 
   String get align() => _wrap(_ptr.align);
 
   void set align(String value) { _ptr.align = _unwrap(value); }
-
-  Document get contentDocument() => _wrap(_ptr.contentDocument);
-
-  Window get contentWindow() => _wrap(_ptr.contentWindow);
 
   String get frameBorder() => _wrap(_ptr.frameBorder);
 
@@ -10790,6 +10792,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
   SVGDocument getSVGDocument() {
     return _wrap(_ptr.getSVGDocument());
   }
+
 }
 
 class _IceCandidateImpl extends _DOMTypeBase implements IceCandidate {
@@ -21493,6 +21496,8 @@ class _WindowImpl extends _EventTargetImpl implements Window {
   int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
       webkitRequestAnimationFrame(callback);
 
+  Window get top() => _wrap(_ptr.top);
+
   _WindowImpl._wrap(ptr) : super._wrap(ptr);
 
   _WindowEventsImpl get on() {
@@ -21521,8 +21526,6 @@ class _WindowImpl extends _EventTargetImpl implements Window {
   num get devicePixelRatio() => _wrap(_ptr.devicePixelRatio);
 
   Event get event() => _wrap(_ptr.event);
-
-  Element get frameElement() => _wrap(_ptr.frameElement);
 
   Window get frames() => _wrap(_ptr.frames);
 
@@ -21597,8 +21600,6 @@ class _WindowImpl extends _EventTargetImpl implements Window {
   StyleMedia get styleMedia() => _wrap(_ptr.styleMedia);
 
   BarInfo get toolbar() => _wrap(_ptr.toolbar);
-
-  Window get top() => _wrap(_ptr.top);
 
   IDBFactory get webkitIndexedDB() => _wrap(_ptr.webkitIndexedDB);
 
@@ -30169,12 +30170,6 @@ interface IFrameElement extends Element {
 
   /** @domName HTMLIFrameElement.align */
   String align;
-
-  /** @domName HTMLIFrameElement.contentDocument */
-  final Document contentDocument;
-
-  /** @domName HTMLIFrameElement.contentWindow */
-  final Window contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -40016,9 +40011,6 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.event */
   final Event event;
 
-  /** @domName DOMWindow.frameElement */
-  final Element frameElement;
-
   /** @domName DOMWindow.frames */
   final Window frames;
 
@@ -40120,9 +40112,6 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.toolbar */
   final BarInfo toolbar;
-
-  /** @domName DOMWindow.top */
-  final Window top;
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
