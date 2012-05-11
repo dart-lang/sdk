@@ -66,12 +66,15 @@ class SsaOptimizerTask extends CompilerTask {
       // propagate types from the instruction to the type guard. We do it
       // now to be able to optimize further.
       work.guards.forEach((HTypeGuard guard) { guard.isOn = true; });
-      // We also need to insert range and integer checks for the type guards,
-      // now that they know their type. We did not need to do that
-      // before because instructions that reference a guard would
-      // have not tried to use, e.g. native array access, since the
-      // guard was not typed.
-      runPhases(graph, <OptimizationPhase>[new SsaCheckInserter(compiler)]);
+      // We also need to insert range and integer checks for the type
+      // guards. Now that they claim to have a certain type, some
+      // depending instructions might become builtin (like native array
+      // accesses) and need to be checked.
+      // Also run the type propagator, to please the codegen in case
+      // no other optimization is run.
+      runPhases(graph,
+        <OptimizationPhase>[new SsaCheckInserter(compiler),
+                            new SsaTypePropagator(compiler)]);
     });
   }
 }
@@ -473,9 +476,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeGuard(HTypeGuard node) {
     HInstruction value = node.guarded;
-    // If the union of the types is still the guarded type then the incoming
-    // type was a subtype of the guarded type, and no check is required.
-    HType combinedType = value.propagatedType.union(node.guardedType);
+    // If the intersection of the types is still the incoming type then
+    // the incoming type was a subtype of the guarded type, and no check
+    // is required.
+    HType combinedType = value.propagatedType.intersection(node.guardedType);
     return (combinedType == value.propagatedType) ? value : node;
   }
 

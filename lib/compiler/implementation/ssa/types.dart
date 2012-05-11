@@ -237,8 +237,15 @@ class HIndexablePrimitiveType extends HPrimitiveType {
   }
 
   HType union(HType other) {
-    if (other.isIndexablePrimitive() || other.isUnknown()) {
-      return HType.INDEXABLE_PRIMITIVE;
+    if (other.isUnknown()) return HType.INDEXABLE_PRIMITIVE;
+    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
+    if (other is HBoundedPotentialPrimitiveString) {
+      // TODO(ngeoffray): Represent union types.
+      return HType.CONFLICTING;
+    }
+    if (other is HBoundedPotentialPrimitiveArray) {
+      // TODO(ngeoffray): Represent union types.
+      return HType.CONFLICTING;
     }
     return HType.CONFLICTING;
   }
@@ -246,6 +253,8 @@ class HIndexablePrimitiveType extends HPrimitiveType {
   HType intersection(HType other) {
     if (other.isUnknown()) return HType.INDEXABLE_PRIMITIVE;
     if (other.isIndexablePrimitive()) return other;
+    if (other is HBoundedPotentialPrimitiveString) return HType.STRING;
+    if (other is HBoundedPotentialPrimitiveArray) return HType.READABLE_ARRAY;
     return HType.CONFLICTING;
   }
 }
@@ -260,15 +269,19 @@ class HStringType extends HIndexablePrimitiveType {
   }
 
   HType union(HType other) {
-    if (other.isString() || other.isUnknown()) return HType.STRING;
+    if (other.isUnknown()) return HType.STRING;
+    if (other.isString()) return HType.STRING;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
+    if (other is HBoundedPotentialPrimitiveString) return other;
     return HType.CONFLICTING;
   }
 
   HType intersection(HType other) {
-    if (other.isString() || other.isUnknown()) return HType.STRING;
+    if (other.isUnknown()) return HType.STRING;
+    if (other.isString()) return HType.STRING;
     if (other.isArray()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.STRING;
+    if (other is HBoundedPotentialPrimitiveString) return HType.STRING;
     return HType.CONFLICTING;
   }
 }
@@ -283,18 +296,19 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   }
 
   HType union(HType other) {
-    if (other.isReadableArray() || other.isUnknown()) {
-      return HType.READABLE_ARRAY;
-    }
+    if (other.isUnknown()) return HType.READABLE_ARRAY;
+    if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
+    if (other is HBoundedPotentialPrimitiveArray) return other;
     return HType.CONFLICTING;
   }
 
   HType intersection(HType other) {
-    if (this === other || other.isUnknown()) return HType.READABLE_ARRAY;
+    if (other.isUnknown()) return HType.READABLE_ARRAY;
     if (other.isString()) return HType.CONFLICTING;
     if (other.isReadableArray()) return other;
-    if (other.isIndexablePrimitive()) return this;
+    if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
+    if (other is HBoundedPotentialPrimitiveArray) return HType.READABLE_ARRAY;
     return HType.CONFLICTING;
   }
 }
@@ -305,19 +319,20 @@ class HMutableArrayType extends HReadableArrayType {
   String toString() => "mutable array";
 
   HType union(HType other) {
-    if (other.isMutableArray() || other.isUnknown()) {
-      return HType.MUTABLE_ARRAY;
-    }
+    if (other.isUnknown()) return HType.MUTABLE_ARRAY;
+    if (other.isMutableArray()) return HType.MUTABLE_ARRAY;
     if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
+    if (other is HBoundedPotentialPrimitiveArray) return other;
     return HType.CONFLICTING;
   }
 
   HType intersection(HType other) {
-    if (this === other || other.isUnknown()) return HType.MUTABLE_ARRAY;
-    if (other.isString()) return HType.CONFLICTING;
+    if (other.isUnknown()) return HType.MUTABLE_ARRAY;
     if (other.isMutableArray()) return other;
+    if (other.isString()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.MUTABLE_ARRAY;
+    if (other is HBoundedPotentialPrimitiveArray) return HType.MUTABLE_ARRAY;
     return HType.CONFLICTING;
   }
 }
@@ -328,19 +343,21 @@ class HExtendableArrayType extends HMutableArrayType {
   String toString() => "extendable array";
 
   HType union(HType other) {
-    if (other.isExtendableArray() || other.isUnknown()) {
-      return HType.EXTENDABLE_ARRAY;
-    }
+    if (other.isUnknown()) return HType.EXTENDABLE_ARRAY;
+    if (other.isExtendableArray()) return HType.EXTENDABLE_ARRAY;
     if (other.isMutableArray()) return HType.MUTABLE_ARRAY;
     if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
+    if (other is HBoundedPotentialPrimitiveArray) return other;
     return HType.CONFLICTING;
   }
 
   HType intersection(HType other) {
-    if (this === other || other.isUnknown()) return HType.EXTENDABLE_ARRAY;
+    if (other.isUnknown()) return HType.EXTENDABLE_ARRAY;
+    if (other.isExtendableArray()) return HType.EXTENDABLE_ARRAY;
     if (other.isString()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.EXTENDABLE_ARRAY;
+    if (other is HBoundedPotentialPrimitiveArray) return HType.EXTENDABLE_ARRAY;
     return HType.CONFLICTING;
   }
 }
@@ -396,10 +413,19 @@ class HBoundedPotentialPrimitiveArray extends HBoundedType {
       : super(type, canBeNull);
   bool canBePrimitive() => true;
 
-  HType combine(HType other) {
+  HType union(HType other) {
+    if (other.isString()) return HType.CONFLICTING;
+    if (other.isReadableArray()) return this;
+    // TODO(ngeoffray): implement union types.
+    if (other.isIndexablePrimitive()) return HType.CONFLICTING;
+    return super.union(other);
+  }
+
+  HType intersection(HType other) {
+    if (other.isString()) return HType.CONFLICTING;
     if (other.isReadableArray()) return other;
     if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
-    return super.combine(other);
+    return super.intersection(other);
   }
 }
 
@@ -408,9 +434,17 @@ class HBoundedPotentialPrimitiveString extends HBoundedType {
       : super(type, canBeNull);
   bool canBePrimitive() => true;
 
-  HType combine(HType other) {
-    if (other.isString()) return other;
+  HType union(HType other) {
+    if (other.isString()) return this;
+    // TODO(ngeoffray): implement union types.
+    if (other.isIndexablePrimitive()) return HType.CONFLICTING;
+    return super.union(other);
+  }
+
+  HType intersection(HType other) {
+    if (other.isString()) return HType.STRING;
+    if (other.isReadableArray()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.STRING;
-    return super.combine(other);
+    return super.intersection(other);
   }
 }

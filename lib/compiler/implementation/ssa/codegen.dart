@@ -579,6 +579,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // print(FooTypeCheck(foo()));
         visit(argument, expectedPrecedenceForArgument);
       } else if (isGenerateAtUseSite(input)) {
+        // Get the real input of that checked instruction.
+        while (input is HCheck) input = input.checkedInput;
+
         // If [argument] cannot be generated at use site, but [input]
         // can, use the temporary of [argument]. A code motion
         // invariant instruction does not have a temporary, so we just
