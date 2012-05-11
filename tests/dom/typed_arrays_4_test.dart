@@ -55,7 +55,6 @@ main() {
       Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
   });
 
-  if (false)
   test('indexOfClamped_typed', () {
       Uint8ClampedArray a1 = new Uint8ClampedArray(1024);
       for (int i = 0; i < a1.length; i++) {
