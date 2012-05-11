@@ -7,9 +7,8 @@
 #import("dart:io");
 
 testStartError() {
-  Process process =
-      new Process.start("__path_to_something_that_should_not_exist__",
-                        const []);
+  Process process = Process.start("__path_to_something_that_should_not_exist__",
+                                  const []);
 
   process.onExit = (int exitCode) {
     Expect.fail("exit handler called");
@@ -22,17 +21,17 @@ testStartError() {
 
 
 testRunError() {
-  Process process =
-      new Process.run("__path_to_something_that_should_not_exist__",
-                      const [],
-                      null,
-                      (exit, out, err) {
-    Expect.fail("exit handler called");
-  });
+  Future<ProcessResult> processFuture =
+      Process.run("__path_to_something_that_should_not_exist__",
+                  const []);
 
-  process.onError = (ProcessException e) {
+  processFuture.then((result) => Expect.fail("exit handler called"));
+
+  processFuture.handleException((e) {
+    Expect.isTrue(e is ProcessException);
     Expect.equals(2, e.errorCode, e.toString());
-  };
+    return true;
+  });
 }
 
 main() {

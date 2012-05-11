@@ -14,10 +14,12 @@ class FileTest {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (e) {
+    var openFuture = file.open(FileMode.READ);
+    openFuture.handleException((e) {
       Expect.isTrue(e is IllegalArgumentException);
-    };
-    file.open(FileMode.READ, (opened) {
+      return true;
+    });
+    openFuture.then((opened) {
       Expect.fail('non-string name open');
     });
   }
@@ -31,10 +33,12 @@ class FileTest {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (e) {
+    var existsFuture = file.exists();
+    existsFuture.handleException((e) {
       Expect.isTrue(e is IllegalArgumentException);
-    };
-    file.exists((bool) {
+      return true;
+    });
+    existsFuture.then((bool) {
       Expect.fail('non-string name exists');
     });
   }
@@ -48,8 +52,12 @@ class FileTest {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (e) => Expect.isTrue(e is IllegalArgumentException);
-    file.create(() => Expect.fail('non-string name exists'));
+    var createFuture = file.create();
+    createFuture.handleException((e) {
+      Expect.isTrue(e is IllegalArgumentException);
+      return true;
+    });
+    createFuture.then((ignore) => Expect.fail('non-string name exists'));
   }
 
   static void testReadListInvalidArgs(buffer, offset, length) {
@@ -64,15 +72,17 @@ class FileTest {
     }
 
     var errors = 0;
-    file.onError = (s) {
+    var readListFuture = file.readList(buffer, offset, length);
+    readListFuture.handleException((e) {
       errors++;
-      Expect.isTrue(s is FileIOException);
-      Expect.isTrue(s.toString().contains('Invalid arguments'));
-      file.close(() {
+      Expect.isTrue(e is FileIOException);
+      Expect.isTrue(e.toString().contains('Invalid arguments'));
+      file.close().then((ignore) {
         Expect.equals(1, errors);
       });
-    };
-    file.readList(buffer, offset, length, (bytes) {
+      return true;
+    });
+    readListFuture.then((bytes) {
       Expect.fail('read list invalid arguments');
     });
   }
@@ -88,20 +98,16 @@ class FileTest {
       Expect.isTrue(e.toString().contains('Invalid argument'));
     }
 
-    var errors = 0;
-    file.onError = (s) {
-      errors++;
+    var writeByteFuture = file.writeByte(value);
+    writeByteFuture.then((ignore) {
+      Expect.fail('write byte invalid argument');
+    });
+    writeByteFuture.handleException((s) {
       Expect.isTrue(s is FileIOException);
       Expect.isTrue(s.toString().contains('Invalid argument'));
-      file.close(() {
-        Expect.equals(1, errors);
-      });
-    };
-    var calls = 0;
-    file.writeByte(value);
-    file.onNoPendingWrites = () {
-      if (++calls > 1) Expect.fail('write list invalid argument');
-    };
+      file.close();
+      return true;
+    });
   }
 
   static void testWriteListInvalidArgs(buffer, offset, bytes) {
@@ -115,20 +121,16 @@ class FileTest {
       Expect.isTrue(e.toString().contains('Invalid arguments'));
     }
 
-    var errors = 0;
-    file.onError = (s) {
-      errors++;
+    var writeListFuture = file.writeList(buffer, offset, bytes);
+    writeListFuture.then((ignore) {
+      Expect.fail('write list invalid argument');
+    });
+    writeListFuture.handleException((s) {
       Expect.isTrue(s is FileIOException);
       Expect.isTrue(s.toString().contains('Invalid arguments'));
-      file.close(() {
-        Expect.equals(1, errors);
-      });
-    };
-    var calls = 0;
-    file.writeList(buffer, offset, bytes);
-    file.onNoPendingWrites = () {
-      if (++calls > 1) Expect.fail('write string invalid argument');
-    };
+      file.close();
+      return true;
+    });
   }
 
   static void testWriteStringInvalidArgs(string) {
@@ -168,10 +170,12 @@ class FileTest {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (e) {
+    var fullPathFuture = file.fullPath();
+    fullPathFuture.handleException((e) {
       Expect.isTrue(e is IllegalArgumentException);
-    };
-    file.fullPath((path) {
+      return true;
+    });
+    fullPathFuture.then((path) {
       Expect.fail('full path invalid argument');
     });
   }

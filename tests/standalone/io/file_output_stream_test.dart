@@ -7,7 +7,7 @@
 #import("dart:isolate");
 
 void testOpenOutputStreamSync() {
-  Directory tempDirectory = new Directory('');
+  Directory tempDirectory = new Directory('').createTempSync();
 
   // Create a port for waiting on the final result of this test.
   ReceivePort done = new ReceivePort();
@@ -16,7 +16,6 @@ void testOpenOutputStreamSync() {
     done.close();
   });
 
-  tempDirectory.createTempSync();
   String fileName = "${tempDirectory.path}/test";
   File file = new File(fileName);
   file.createSync();
@@ -31,20 +30,19 @@ void testOpenOutputStreamSync() {
 
 
 void testOutputStreamNoPendingWrite() {
-  Directory tempDirectory = new Directory('');
+  var tempDirectory;
 
   // Create a port for waiting on the final result of this test.
   ReceivePort done = new ReceivePort();
   done.receive((message, replyTo) {
-    tempDirectory.deleteRecursively(() {
-      done.close();
-    });
+    tempDirectory.deleteRecursively().then((ignore) => done.close());
   });
 
-  tempDirectory.createTemp(() {
+  new Directory('').createTemp().then((temp) {
+    tempDirectory = temp;
     String fileName = "${tempDirectory.path}/test";
     File file = new File(fileName);
-    file.create(() {
+    file.create().then((ignore) {
       OutputStream stream = file.openOutputStream();
       final total = 100;
       var count = 0;

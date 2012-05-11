@@ -24,18 +24,21 @@ class _Directory implements Directory {
   static _delete(String path, bool recursive) native "Directory_Delete";
   static SendPort _newServicePort() native "Directory_NewServicePort";
 
-  void exists(void callback(bool exists)) {
+  Future<bool> exists() {
     _ensureDirectoryService();
+    Completer<bool> completer = new Completer<bool>();
     List request = new List(2);
     request[0] = kExistsRequest;
     request[1] = _path;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Exists failed");
+        var e = _exceptionFromResponse(response, "Exists failed");
+        completer.completeException(e);
       } else {
-        callback(response == 1);
+        completer.complete(response == 1);
       }
     });
+    return completer.future;
   }
 
   bool existsSync() {
@@ -49,18 +52,21 @@ class _Directory implements Directory {
     return (result == 1);
   }
 
-  void create(void callback()) {
+  Future<Directory> create() {
     _ensureDirectoryService();
+    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(2);
     request[0] = kCreateRequest;
     request[1] = _path;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Creation failed");
+        var e = _exceptionFromResponse(response, "Creation failed");
+        completer.completeException(e);
       } else {
-        callback();
+        completer.complete(this);
       }
     });
+    return completer.future;
   }
 
   void createSync() {
@@ -73,19 +79,23 @@ class _Directory implements Directory {
     }
   }
 
-  void createTemp(void callback()) {
+  Future<Directory> createTemp() {
     _ensureDirectoryService();
+    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(2);
     request[0] = kCreateTempRequest;
     request[1] = _path;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Creation of temporary directory failed");
+        var e =
+            _exceptionFromResponse(response,
+                                   "Creation of temporary directory failed");
+        completer.completeException(e);
       } else {
-        _path = response;
-        callback();
+        completer.complete(new Directory(response));
       }
     });
+    return completer.future;
   }
 
   void createTempSync() {
@@ -98,30 +108,33 @@ class _Directory implements Directory {
                                      _path,
                                      result);
     }
-    _path = result;
+    return new Directory(result);
   }
 
-  void _deleteHelper(bool recursive, String errorMsg, void callback()) {
+  Future<Directory> _deleteHelper(bool recursive, String errorMsg) {
     _ensureDirectoryService();
+    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(3);
     request[0] = kDeleteRequest;
     request[1] = _path;
     request[2] = recursive;
     _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, errorMsg);
+        var e = _exceptionFromResponse(response, errorMsg);
+        completer.completeException(e);
       } else {
-        callback();
+        completer.complete(this);
       }
     });
+    return completer.future;
   }
 
-  void delete(void callback()) {
-    _deleteHelper(false, "Deletion failed", callback);
+  Future<Directory> delete() {
+    return _deleteHelper(false, "Deletion failed");
   }
 
-  void deleteRecursively(void callback()) {
-    _deleteHelper(true, "Deletion failed", callback);
+  Future<Directory> deleteRecursively() {
+    return _deleteHelper(true, "Deletion failed");
   }
 
   void deleteSync() {
@@ -144,7 +157,42 @@ class _Directory implements Directory {
     }
   }
 
-  void list([bool recursive = false]) {
+  DirectoryLister list([bool recursive = false]) {
+    return new _DirectoryLister(_path, recursive);
+  }
+
+  String get path() { return _path; }
+
+  bool _isErrorResponse(response) {
+    return response is List && response[0] != _FileUtils.kSuccessResponse;
+  }
+
+  Exception _exceptionFromResponse(response, String message) {
+    assert(_isErrorResponse(response));
+    switch (response[_FileUtils.kErrorResponseErrorType]) {
+      case _FileUtils.kIllegalArgumentResponse:
+        return new IllegalArgumentException();
+      case _FileUtils.kOSErrorResponse:
+        var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
+                              response[_FileUtils.kOSErrorResponseErrorCode]);
+        return new DirectoryIOException(message, _path, err);
+      default:
+        return new Exception("Unknown error");
+    }
+  }
+
+  void _ensureDirectoryService() {
+    if (_directoryService == null) {
+      _directoryService = _newServicePort();
+    }
+  }
+
+  final String _path;
+  SendPort _directoryService;
+}
+
+class _DirectoryLister implements DirectoryLister {
+  _DirectoryLister(String path, bool recursive) {
     final int kListDirectory = 0;
     final int kListFile = 1;
     final int kListError = 2;
@@ -156,13 +204,13 @@ class _Directory implements Directory {
     final int kResponseError = 2;
 
     List request = new List(3);
-    request[0] = kListRequest;
-    request[1] = _path;
+    request[0] = _Directory.kListRequest;
+    request[1] = path;
     request[2] = recursive;
     ReceivePort responsePort = new ReceivePort();
     // Use a separate directory service port for each listing as
     // listing operations on the same directory can run in parallel.
-    _newServicePort().send(request, responsePort.toSendPort());
+    _Directory._newServicePort().send(request, responsePort.toSendPort());
     responsePort.receive((message, replyTo) {
       if (message is !List || message[kResponseType] is !int) {
         responsePort.close();
@@ -216,14 +264,6 @@ class _Directory implements Directory {
     _onError = onError;
   }
 
-  String get path() { return _path; }
-
-  void _ensureDirectoryService() {
-    if (_directoryService == null) {
-      _directoryService = _newServicePort();
-    }
-  }
-
   void _reportError(e) {
     if (_onError != null) {
       _onError(e);
@@ -232,32 +272,8 @@ class _Directory implements Directory {
     }
   }
 
-  bool _isErrorResponse(response) {
-    return response is List && response[0] != _FileUtils.kSuccessResponse;
-  }
-
-  void _handleErrorResponse(response, String message) {
-    assert(_isErrorResponse(response));
-    switch (response[_FileUtils.kErrorResponseErrorType]) {
-      case _FileUtils.kIllegalArgumentResponse:
-        _reportError(new IllegalArgumentException());
-        break;
-      case _FileUtils.kOSErrorResponse:
-        var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
-                              response[_FileUtils.kOSErrorResponseErrorCode]);
-        _reportError(new DirectoryIOException(message, _path, err));
-        break;
-      default:
-        _reportError(new Exception("Unknown error"));
-        break;
-    }
-  }
-
   Function _onDir;
   Function _onFile;
   Function _onDone;
   Function _onError;
-
-  String _path;
-  SendPort _directoryService;
 }

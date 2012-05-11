@@ -31,8 +31,7 @@ void checkFileContent(String fileName, String content) {
 
 
 void test(String shellScript, String dartScript, String type) {
-  Directory dir = new Directory("");
-  dir.createTempSync();
+  Directory dir = new Directory("").createTempSync();
 
   // The shell script will run the dart executable passed with a
   // number of different redirections of stdio.
@@ -41,7 +40,7 @@ void test(String shellScript, String dartScript, String type) {
   String executable = new Options().executable;
   List args =
       [executable, dartScript, type, pipeOutFile, redirectOutFile];
-  Process process = new Process.start(shellScript, args);
+  Process process = Process.start(shellScript, args);
 
   // Wait for the process to exit and then check result.
   process.onExit = (exitCode) {

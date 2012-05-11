@@ -59,7 +59,7 @@ class CCTestListerIsolate extends Isolate {
 
   void main() {
     port.receive((String runnerPath, SendPort replyTo) {
-      var p = new Process.start(runnerPath, ["--list"]);
+      var p = Process.start(runnerPath, ["--list"]);
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       List<String> tests = new List<String>();
       stdoutStream.onLine = () {
@@ -332,17 +332,14 @@ class StandardTestSuite implements TestSuite {
   void processDirectory() {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
-    dir.onError = (s) {
-      throw s;
-    };
-    dir.exists((bool exists) {
+    dir.exists().then((exists) {
       if (!exists) {
         print('Directory containing tests not found: $directoryPath');
         directoryListingDone(false);
       } else {
-        dir.onFile = processFile;
-        dir.onDone = directoryListingDone;
-        dir.list(recursive: listRecursively());
+        var lister = dir.list(recursive: listRecursively());
+        lister.onFile = processFile;
+        lister.onDone = directoryListingDone;
       }
     });
   }
@@ -1054,9 +1051,9 @@ class DartcCompilationTestSuite extends StandardTestSuite {
         dir.onError = (s) {
           throw s;
         };
-        dir.onFile = processFile;
-        dir.onDone = (ignore) => activityCompleted();
-        dir.list(recursive: listRecursively());
+        var lister = dir.list(recursive: listRecursively());
+        lister.onFile = processFile;
+        lister.onDone = (ignore) => activityCompleted();
       }
     }
     // Completed the enqueueing of listers.
@@ -1121,9 +1118,9 @@ class JUnitTestSuite implements TestSuite {
     dir.onError = (s) {
       throw s;
     };
-    dir.onFile = processFile;
-    dir.onDone = createTest;
-    dir.list(recursive: true);
+    var lister = dir.list(recursive: true);
+    lister.onFile = processFile;
+    lister.onDone = createTest;
   }
 
   void processFile(String filename) {

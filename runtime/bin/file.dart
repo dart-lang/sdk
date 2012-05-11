@@ -29,11 +29,10 @@ interface File default _File {
   File(String name);
 
   /**
-   * Check if the file exists. The callback is called with the result
-   * when the operation completes. The [onError] function registered
-   * on the file object is called if an error occurs.
+   * Check if the file exists. Does not block and returns a
+   * [:Future<bool>:].
    */
-  void exists(void callback(bool exists));
+  Future<bool> exists();
 
   /**
    * Synchronously check if the file exists.
@@ -41,13 +40,14 @@ interface File default _File {
   bool existsSync();
 
   /**
-   * Create the file. The callback is called when the file has been
-   * created. The [onError] function registered on the file object is
-   * called if the file cannot be created. Existing files are left
-   * untouched by create. Calling create on an existing file might
-   * fail if there are restrictive permissions on the file.
+   * Create the file. Returns a [:Future<File>:] that completes with
+   * the file when it has been created.
+   *
+   * Existing files are left untouched by create. Calling create on an
+   * existing file might fail if there are restrictive permissions on
+   * the file.
    */
-  void create(void callback());
+  Future<File> create();
 
   /**
    * Synchronously create the file. Existing files are left untouched
@@ -57,11 +57,10 @@ interface File default _File {
   void createSync();
 
   /**
-   * Delete the file. The callback is called when the file has been
-   * successfully deleted. The [onError] function registered on the
-   * file object is called if the file cannot be deleted.
+   * Delete the file. Returns a [:Future<File>:] that completes with
+   * the file when it has been deleted.
    */
-  void delete(void callback());
+  Future<File> delete();
 
   /**
    * Synchronously delete the file.
@@ -70,11 +69,10 @@ interface File default _File {
 
   /**
    * Get a Directory object for the directory containing this
-   * file. When the operation completes the callback is called with
-   * the result. If the file does not exist the [onError] function
-   * registered on the file object is called.
+   * file. Returns a [:Future<Directory>:] that completes with the
+   * directory.
    */
-  void directory(void callback(Directory dir));
+  Future<Directory> directory();
 
   /**
    * Synchronously get a Directory object for the directory containing
@@ -83,10 +81,10 @@ interface File default _File {
   Directory directorySync();
 
   /**
-   * Get the length of the file. When the operation completes the
-   * callback is called with the length.
+   * Get the length of the file. Returns a [:Future<int>:] that
+   * completes with the length in bytes.
    */
-  void length(void callback(int length));
+  Future<int> length();
 
   /**
    * Synchronously get the length of the file.
@@ -94,10 +92,10 @@ interface File default _File {
   int lengthSync();
 
   /**
-   * Open the file for random access operations. When the file is
-   * opened the callback is called with the resulting
-   * RandomAccessFile. RandomAccessFiles must be closed using the
-   * [close] method. If the file cannot be opened [onError] is called.
+   * Open the file for random access operations. Returns a
+   * [:Future<RandomAccessFile>:] that completes with the opened
+   * random access file. RandomAccessFiles must be closed using the
+   * [close] method.
    *
    * Files can be opened in three modes:
    *
@@ -110,8 +108,10 @@ interface File default _File {
    *
    * FileMode.APPEND: same as FileMode.WRITE except that the file is
    * not truncated.
+   *
+   * The default value for [mode] is [:FileMode.READ:].
    */
-  void open(FileMode mode, void callback(RandomAccessFile opened));
+  Future<RandomAccessFile> open([FileMode mode]);
 
   /**
    * Synchronously open the file for random access operations. The
@@ -126,12 +126,10 @@ interface File default _File {
   RandomAccessFile openSync([FileMode mode]);
 
   /**
-   * Get the canonical full path corresponding to the file name.  The
-   * callback is called with the result when the
-   * fullPath operation completes. If the operation fails the
-   * [onError] function registered on the file object is called.
+   * Get the canonical full path corresponding to the file name.
+   * Returns a [:Future<String>:] that completes with the path.
    */
-  void fullPath(void callback(String path));
+  Future<String> fullPath();
 
   /**
    * Synchronously get the canonical full path corresponding to the file name.
@@ -163,12 +161,11 @@ interface File default _File {
   OutputStream openOutputStream([FileMode mode]);
 
   /**
-   * Read the entire file contents as a list of bytes. When the
-   * operation completes the callback is called. The [onError]
-   * function registered on the file object is called if the operation
-   * fails.
+   * Read the entire file contents as a list of bytes. Returns a
+   * [:Future<List<int>>:] that completes with the list of bytes that
+   * is the contents of the file.
    */
-  void readAsBytes(void callback(List<int> bytes));
+  Future<List<int>> readAsBytes();
 
   /**
    * Synchronously read the entire file contents as a list of bytes.
@@ -177,33 +174,31 @@ interface File default _File {
 
   /**
    * Read the entire file contents as text using the given
-   * [encoding]. The default encoding is UTF-8 - [:Encoding.UTF_8:].
+   * [encoding]. The default encoding is [:Encoding.UTF_8:].
    *
-   * When the operation completes the callback is called. The
-   * [onError] function registered on the file object is called if the
-   * operation fails.
+   * Returns a [:Future<String>:] that completes with the string once
+   * the file contents has been read.
    */
-  void readAsText(Encoding encoding, void callback(String text));
+  Future<String> readAsText([Encoding encoding]);
 
   /**
    * Synchronously read the entire file contents as text using the
-   * given [encoding]. The default encoding is UTF-8 - [:Encoding.UTF_8:].
+   * given [encoding]. The default encoding is [:Encoding.UTF_8:].
    */
   String readAsTextSync([Encoding encoding]);
 
   /**
    * Read the entire file contents as lines of text using the give
-   * [encoding]. The default encoding is UTF-8 - [:Encoding.UTF_8:].
+   * [encoding]. The default encoding is [:Encoding.UTF_8:].
    *
-   * When the operation completes the callback is called. The
-   * [onError] function registered on the file object is called if the
-   * operation fails.
+   * Returns a [:Future<List<String>>:] that completes with the lines
+   * once the file contents has been read.
    */
-  void readAsLines(Encoding encoding, void callback(List<String> lines));
+  Future<List<String>> readAsLines([Encoding encoding]);
 
   /**
    * Synchronously read the entire file contents as lines of text
-   * using the given [encoding] The default encoding is UTF-8 -
+   * using the given [encoding] The default encoding is
    * [:Encoding.UTF_8:].
    */
   List<String> readAsLinesSync([Encoding encoding]);
@@ -212,12 +207,6 @@ interface File default _File {
    * Get the name of the file.
    */
   String get name();
-
-  /**
-   * Sets the handler that gets called when errors occur during
-   * operations on this file.
-   */
-  void set onError(void handler(e));
 }
 
 
@@ -228,9 +217,10 @@ interface File default _File {
  */
 interface RandomAccessFile {
   /**
-   * Close the file. When the file is closed the callback is called.
+   * Close the file. Returns a [:Future<RandomAccessFile>:] that
+   * completes with this RandomAccessFile when it has been closed.
    */
-  void close(void callback());
+  Future<RandomAccessFile> close();
 
   /**
    * Synchronously close the file.
@@ -238,11 +228,10 @@ interface RandomAccessFile {
   void closeSync();
 
   /**
-   * Read a byte from the file. When the byte has been read the
-   * callback is called with the value. If end of file has been
-   * reached the value will be -1.
+   * Read a byte from the file. Returns a [:Future<int>:] that
+   * completes with the byte or -1 if end of file has been reached.
    */
-  void readByte(void callback(int byte));
+  Future<int> readByte();
 
   /**
    * Synchronously read a single byte from the file. If end of file
@@ -251,11 +240,10 @@ interface RandomAccessFile {
   int readByteSync();
 
   /**
-   * Read a List<int> from the file. When the list has been read the
-   * callback is called with an integer indicating how much was read.
+   * Read a List<int> from the file. Returns a [:Future<int>:] that
+   * completes with an indication of how much was read.
    */
-  void readList(List<int> buffer, int offset, int bytes,
-                void callback(int read));
+  Future<int> readList(List<int> buffer, int offset, int bytes);
 
   /**
    * Synchronously read a List<int> from the file. Returns the number
@@ -264,11 +252,11 @@ interface RandomAccessFile {
   int readListSync(List<int> buffer, int offset, int bytes);
 
   /**
-   * Write a single byte to the file. If the byte cannot be written
-   * [onError] is called. When all pending write operations have
-   * finished [onNoPendingWrites] is called.
+   * Write a single byte to the file. Returns a
+   * [:Future<RandomAccessFile>:] that completes with this
+   * RandomAccessFile when the write completes.
    */
-  void writeByte(int value);
+  Future<RandomAccessFile> writeByte(int value);
 
   /**
    * Synchronously write a single byte to the file. Returns the
@@ -277,11 +265,11 @@ interface RandomAccessFile {
   int writeByteSync(int value);
 
   /**
-   * Write a List<int> to the file. If the list cannot be written the
-   * [onError] is called. When all pending write operations have
-   * finished [onNoPendingWrites] is called.
+   * Write a List<int> to the file. Returns a
+   * [:Future<RandomAccessFile>:] that completes with this
+   * RandomAccessFile when the write completes.
    */
-  void writeList(List<int> buffer, int offset, int bytes);
+  Future<RandomAccessFile> writeList(List<int> buffer, int offset, int bytes);
 
   /**
    * Synchronously write a List<int> to the file. Returns the number
@@ -290,14 +278,12 @@ interface RandomAccessFile {
   int writeListSync(List<int> buffer, int offset, int bytes);
 
   /**
-   * Write a string to the file using the given [encoding]. If the
-   * string cannot be written [onError] is called. The default
-   * encoding is UTF-8 - [:Encoding.UTF_8:].
-   *
-   * When all pending write operations have finished
-   * [onNoPendingWrites] is called.
+   * Write a string to the file using the given [encoding]. The
+   * default encoding is UTF-8 - [:Encoding.UTF_8:]. Returns a
+   * [:Future<RandomAccessFile>:] that completes with this
+   * RandomAccessFile when the write completes.
    */
-  void writeString(String string, [Encoding encoding]);
+  Future<RandomAccessFile> writeString(String string, [Encoding encoding]);
 
   /**
    * Synchronously write a single string to the file using the given
@@ -307,10 +293,10 @@ interface RandomAccessFile {
   int writeStringSync(String string, [Encoding encoding]);
 
   /**
-   * Get the current byte position in the file. When the operation
-   * completes the callback is called with the position.
+   * Get the current byte position in the file. Returns a
+   * [:Future<int>:] that completes with the position.
    */
-  void position(void callback(int position));
+  Future<int> position();
 
   /**
    * Synchronously get the current byte position in the file.
@@ -318,10 +304,11 @@ interface RandomAccessFile {
   int positionSync();
 
   /**
-   * Set the byte position in the file. When the operation completes
-   * the callback is called.
+   * Set the byte position in the file. Returns a
+   * [:Future<RandomAccessFile>:] that completes with this
+   * RandomAccessFile when the position has been set.
    */
-  void setPosition(int position, void callback());
+  Future<RandomAccessFile> setPosition(int position);
 
   /**
    * Synchronously set the byte position in the file.
@@ -329,10 +316,11 @@ interface RandomAccessFile {
   void setPositionSync(int position);
 
   /**
-   * Truncate (or extend) the file to [length] bytes. When the
-   * operation completes successfully the callback is called.
+   * Truncate (or extend) the file to [length] bytes. Returns a
+   * [:Future<RandomAccessFile>:] that completes with this
+   * RandomAccessFile when the truncation has been performed.
    */
-  void truncate(int length, void callback());
+  Future<RandomAccessFile> truncate(int length);
 
   /**
    * Synchronously truncate (or extend) the file to [length] bytes.
@@ -340,10 +328,10 @@ interface RandomAccessFile {
   void truncateSync(int length);
 
   /**
-   * Get the length of the file. When the operation completes the
-   * callback is called with the length.
+   * Get the length of the file. Returns a [:Future<int>:] that
+   * completes with the length in bytes.
    */
-  void length(void callback(int length));
+  Future<int> length();
 
   /**
    * Synchronously get the length of the file.
@@ -351,10 +339,11 @@ interface RandomAccessFile {
   int lengthSync();
 
   /**
-   * Flush the contents of the file to disk. The callback is
-   * called when the flush operation completes.
+   * Flush the contents of the file to disk. Returns a
+   * [:Future<RandomAccessFile>:] that completes with this
+   * RandomAccessFile when the flush operation completes.
    */
-  void flush(void callback());
+  Future<RandomAccessFile> flush();
 
   /**
    * Synchronously flush the contents of the file to disk.
@@ -365,18 +354,6 @@ interface RandomAccessFile {
    * Get the name of the file.
    */
   String get name();
-
-  /**
-   * Sets the handler that gets called when there are no more write
-   * operations pending for this file.
-   */
-  void set onNoPendingWrites(void handler());
-
-  /**
-   * Sets the handler that gets called when errors occur when
-   * operating on this file.
-   */
-  void set onError(void handler(e));
 }
 
 

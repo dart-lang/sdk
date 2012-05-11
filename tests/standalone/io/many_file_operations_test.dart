@@ -9,6 +9,6 @@
 main() {
   for (var i = 0; i < 10000; i++) {
     File f = new File("xxx");
-    f.exists((result) => null);
+    f.exists().then((result) => null);
   }
 }

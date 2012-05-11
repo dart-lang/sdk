@@ -3,46 +3,47 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * [Process] objects are used to start new processes and interact with
- * them.
+ * [Process] is used to start new processes using the static
+ * [start] and [run] methods.
  */
-interface Process default _Process {
+class Process {
   /**
-   * Creates a new process object and starts a process running the
-   * [executable] with the specified [arguments]. When the process has
-   * been successfully started [onStart] is called. If the process
-   * fails to start [onError] is called.
+   * Starts a process running the [executable] with the specified
+   * [arguments]. Returns a [Process] instance that can be used to
+   * interact with the process.
    *
    * An optional [ProcessOptions] object can be passed to specify
    * options other than the executable and the arguments.
    *
+   * When the process has been successfully started [onStart] is
+   * called on the returned Process object. If the process fails to
+   * start [onError] is called on the returned Process object.
+   *
    * No data can be written to the process stdin and the process
    * cannot be closed nor killed before [onStart] has been invoked.
    */
-  Process.start(String executable,
-                List<String> arguments,
-                [ProcessOptions options]);
+  static Process start(String executable,
+                       List<String> arguments,
+                       [ProcessOptions options]) {
+    return _Process.start(executable, arguments, options);
+  }
 
   /**
-   * Creates a new process object, starts a process and runs it
-   * non-interactively to completion. The process run is [executable]
-   * with the specified [arguments]. When the process has been
-   * successfully started [onStart] is called. If the process fails to
-   * start [onError] is called.
+   * Starts a process and runs it non-interactively to completion. The
+   * process run is [executable] with the specified [arguments].
    *
-   * Options other than the executable and the arguments are specified
-   * using a [ProcessOptions] object. If no options are required,
-   * [null] can be passed as the options.
+   * An optional [ProcessOptions] object can be passed to specify
+   * options other than the executable and the arguments.
    *
-   * No communication via [stdin], [stdout] or [stderr] can take place
-   * with a non-interactive process. Instead, the process is run to
-   * completion at which point the exit code and stdout and stderr are
-   * supplied to the [callback] parameter.
+   * Returns a [:Future<ProcessResult>:] that completes with the
+   * result of running the process, i.e., exit code, standard out and
+   * standard in.
    */
-  Process.run(String executable,
-              List<String> arguments,
-              ProcessOptions options,
-              void callback(int exitCode, String stdout, String stderr));
+  static Future<ProcessResult> run(String executable,
+                                   List<String> arguments,
+                                   [ProcessOptions options]) {
+    return _Process.run(executable, arguments, options);
+  }
 
   /**
    * Returns an input stream of the process stdout.
@@ -50,7 +51,7 @@ interface Process default _Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  InputStream get stdout();
+  abstract InputStream get stdout();
 
   /**
    * Returns an input stream of the process stderr.
@@ -58,7 +59,7 @@ interface Process default _Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  InputStream get stderr();
+  abstract InputStream get stderr();
 
   /**
    * Returns an output stream to the process stdin.
@@ -66,13 +67,13 @@ interface Process default _Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  OutputStream get stdin();
+  abstract OutputStream get stdin();
 
   /**
    * Set the start handler which gets invoked when the process is
    * successfully started.
    */
-  void set onStart(void callback());
+  abstract void set onStart(void callback());
 
   /**
    * Sets an exit handler which gets invoked when the process
@@ -81,20 +82,20 @@ interface Process default _Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  void set onExit(void callback(int exitCode));
+  abstract void set onExit(void callback(int exitCode));
 
   /**
    * Set an error handler which gets invoked if an operation on the process
    * fails.
    */
-  void set onError(void callback(e));
+  abstract void set onError(void callback(e));
 
   /**
    * Kills the process. When the process terminates as a result of
    * calling [kill] [onExit] is called. If the kill operation fails,
    * [onError] is called.
    */
-  void kill();
+  abstract void kill();
 
   /**
    * Terminates the streams of a process. [close] most be called on a
@@ -103,7 +104,29 @@ interface Process default _Process {
    * closed it can no longer be killed and [onExit] is detached so the
    * application is not notified of process termination.
    */
-  void close();
+  abstract void close();
+}
+
+
+/**
+ * [ProcessResult] represents the result of running a non-interactive
+ * process started with [:Process.run:].
+ */
+interface ProcessResult {
+  /**
+   * Exit code for the process.
+   */
+  int get exitCode();
+
+  /**
+   * Standard output from the process as a string.
+   */
+  String get stdout();
+
+  /**
+   * Standard error from the process as a string.
+   */
+  String get stderr();
 }
 
 
@@ -156,7 +179,7 @@ class ProcessOptions {
 
 class ProcessException implements Exception {
   const ProcessException([String this.message, int this.errorCode = 0]);
-  String toString() => "ProcessException: $message";
+  String toString() => "ProcessException: $message ($errorCode)";
 
   /**
    * Contains the system message for the process exception if any.

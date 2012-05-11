@@ -14,14 +14,10 @@ runEnvironmentProcess(Map environment, name, callback) {
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  var process = new Process.run(dartExecutable,
-                                [printEnv, name],
-                                options,
-                                (exit, out, err) {
-    Expect.equals(0, exit);
-    callback(out);
+  Process.run(dartExecutable, [printEnv, name], options).then((result) {
+    Expect.equals(0, result.exitCode);
+    callback(result.stdout);
   });
-  process.onError = (e) => Expect.fail("Unexpected process start error: '$e'");
 }
 
 testEnvironment() {

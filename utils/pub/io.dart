@@ -91,13 +91,7 @@ Future<bool> exists(path) {
  * the result.
  */
 Future<bool> fileExists(file) {
-  final completer = new Completer<bool>();
-
-  file = new File(_getPath(file));
-  file.onError = (error) => completer.completeException(error);
-  file.exists((exists) => completer.complete(exists));
-
-  return completer.future;
+  return new File(_getPath(file)).exists();
 }
 
 /**
@@ -105,12 +99,7 @@ Future<bool> fileExists(file) {
  * a [File].
  */
 Future<String> readTextFile(file) {
-  file = new File(_getPath(file));
-  final completer = new Completer<String>();
-  file.onError = (error) => completer.completeException(error);
-  file.readAsText(Encoding.UTF_8, (text) => completer.complete(text));
-
-  return completer.future;
+  return new File(_getPath(file)).readAsText(Encoding.UTF_8);
 }
 
 /**
@@ -119,17 +108,11 @@ Future<String> readTextFile(file) {
  */
 Future<File> writeTextFile(file, String contents) {
   file = new File(_getPath(file));
-  final completer = new Completer<File>();
-  file.onError = (error) => completer.completeException(error);
-  file.open(FileMode.WRITE, (opened) {
-    opened.onError = (error) => completer.completeException(error);
-    opened.onNoPendingWrites = () {
-      opened.close(() => completer.complete(file));
-    };
-    opened.writeString(contents);
+  return file.open(FileMode.WRITE).chain((opened) {
+    return opened.writeString(contents).chain((ignore) {
+        return opened.close().transform((ignore) => file);
+    });
   });
-
-  return completer.future;
 }
 
 /**
@@ -137,12 +120,8 @@ Future<File> writeTextFile(file, String contents) {
  * directory is created.
  */
 Future<Directory> createDir(dir) {
-  final completer = new Completer<Directory>();
   dir = _getDirectory(dir);
-  dir.onError = (error) => completer.completeException(error);
-  dir.create(() => completer.complete(dir));
-
-  return completer.future;
+  return dir.create();
 }
 
 /**
@@ -179,12 +158,8 @@ Future<Directory> ensureDir(path) {
  * is created.
  */
 Future<Directory> createTempDir(dir) {
-  final completer = new Completer<Directory>();
   dir = _getDirectory(dir);
-  dir.onError = (error) => completer.completeException(error);
-  dir.createTemp(() => completer.complete(dir));
-
-  return completer.future;
+  return dir.createTemp();
 }
 
 /**
@@ -192,12 +167,8 @@ Future<Directory> createTempDir(dir) {
  * [Directory]. Returns a [Future] that completes when the deletion is done.
  */
 Future<Directory> deleteDir(dir) {
-  final completer = new Completer<Directory>();
   dir = _getDirectory(dir);
-  dir.onError = (error) => completer.completeException(error);
-  dir.deleteRecursively(() => completer.complete(dir));
-
-  return completer.future;
+  return dir.deleteRecursively();
 }
 
 /**
@@ -213,23 +184,22 @@ Future<List<String>> listDir(dir,
   final contents = <String>[];
 
   dir = _getDirectory(dir);
+  var lister = dir.list(recursive: recursive);
 
-  dir.onDone = (done) {
+  lister.onDone = (done) {
     // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
     // aren't guaranteed to be called in a certain order. So far, they seem to.
     if (done) completer.complete(contents);
   };
 
-  dir.onError = (error) => completer.completeException(error);
-  dir.onDir = (file) => contents.add(file);
-  dir.onFile = (file) {
+  lister.onError = (error) => completer.completeException(error);
+  lister.onDir = (file) => contents.add(file);
+  lister.onFile = (file) {
     if (!includeSpecialFiles) {
       if (basename(file) == '.DS_Store') return;
     }
     contents.add(file);
   };
-
-  dir.list(recursive: recursive);
 
   return completer.future;
 }
@@ -240,13 +210,8 @@ Future<List<String>> listDir(dir,
  * completes with the result.
  */
 Future<bool> dirExists(dir) {
-  final completer = new Completer<bool>();
-
   dir = _getDirectory(dir);
-  dir.onError = (error) => completer.completeException(error);
-  dir.exists((exists) => completer.complete(exists));
-
-  return completer.future;
+  return dir.exists();
 }
 
 /**
@@ -294,14 +259,14 @@ String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
  * Returns a [Future] that will complete the results of the process after it
  * has ended.
  */
-Future<ProcessResult> runProcess(String executable, List<String> args,
+Future<PubProcessResult> runProcess(String executable, List<String> args,
     [String workingDir]) {
   int exitCode;
 
   final options = new ProcessOptions();
   if (workingDir != null) options.workingDirectory = workingDir;
 
-  final process = new Process.start(executable, args, options);
+  final process = Process.start(executable, args, options);
 
   final outStream = new StringInputStream(process.stdout);
   final processStdout = <String>[];
@@ -309,7 +274,7 @@ Future<ProcessResult> runProcess(String executable, List<String> args,
   final errStream = new StringInputStream(process.stderr);
   final processStderr = <String>[];
 
-  final completer = new Completer<ProcessResult>();
+  final completer = new Completer<PubProcessResult>();
 
   checkComplete() {
     // Wait until the process is done and its output streams are closed.
@@ -317,7 +282,7 @@ Future<ProcessResult> runProcess(String executable, List<String> args,
     if (!errStream.closed) return;
     if (exitCode == null) return;
 
-    completer.complete(new ProcessResult(
+    completer.complete(new PubProcessResult(
         processStdout, processStderr, exitCode));
   }
 
@@ -342,12 +307,12 @@ Future<ProcessResult> runProcess(String executable, List<String> args,
 /**
  * Contains the results of invoking a [Process] and waiting for it to complete.
  */
-class ProcessResult {
+class PubProcessResult {
   final List<String> stdout;
   final List<String> stderr;
   final int exitCode;
 
-  const ProcessResult(this.stdout, this.stderr, this.exitCode);
+  const PubProcessResult(this.stdout, this.stderr, this.exitCode);
 }
 
 /**

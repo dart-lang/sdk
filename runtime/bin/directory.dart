@@ -20,11 +20,10 @@ interface Directory default _Directory {
   Directory.current();
 
   /**
-   * Check whether a directory with this name already exists. If the
-   * operation completes successfully the callback is called with the
-   * result. Otherwise [onError] is called.
+   * Check whether a directory with this name already exists. Returns
+   * a [:Future<bool>:] that completes with the result.
    */
-  void exists(void callback(bool exists));
+  Future<bool> exists();
 
   /**
    * Synchronously check whether a directory with this name already exists.
@@ -32,11 +31,11 @@ interface Directory default _Directory {
   bool existsSync();
 
   /**
-   * Creates the directory with this name if it does not exist.  If
-   * the directory is successfully created the callback is
-   * called. Otherwise [onError] is called.
+   * Creates the directory with this name if it does not
+   * exist. Returns a [:Future<Directory>:] that completes with this
+   * directory once it has been created.
    */
-  void create(void callback());
+  Future<Directory> create();
 
   /**
    * Synchronously creates the directory with this name if it does not exist.
@@ -51,36 +50,26 @@ interface Directory default _Directory {
    * directory name.  If the path is the empty string, a default
    * system temp directory and name are used for the template.
    *
-   * The path is modified to be the path of the new directory.  After
-   * the new directory is created, and the path modified, the callback
-   * will be called.  The error handler is called if the temporary
-   * directory cannot be created.
+   * Returns a [:Future<Directory>:] that completes with the newly
+   * created temporary directory.
    */
-  void createTemp(void callback());
+  Future<Directory> createTemp();
 
   /**
    * Synchronously creates a temporary directory with a name based on the
    * current path. This name and path is used as a template, and additional
    * characters are appended to it by the call to make a unique directory name.
    * If the path is the empty string, a default system temp directory and name
-   * are used for the template.
-   * The path is modified to be the path of the new directory.
+   * are used for the template. Returns the newly created temporary directory.
    */
-  void createTempSync();
+  Directory createTempSync();
 
   /**
    * Deletes the directory with this name. The directory must be
-   * empty. If the operation completes successfully the callback is
-   * called. Otherwise [onError] is called.
+   * empty. Returns a [:Future<Directory>:] that completes with
+   * this directory when the deletion is done.
    */
-  void delete(void callback());
-
-  /**
-   * Deletes this directory and all sub-directories and files in the
-   * directories. If the operation completes successfully the callback
-   * is called. Otherwise [onError] is called.
-   */
-  void deleteRecursively(void callback());
+  Future<Directory> delete();
 
   /**
    * Synchronously deletes the directory with this name. The directory
@@ -88,6 +77,13 @@ interface Directory default _Directory {
    * deleted.
    */
   void deleteSync();
+
+  /**
+   * Deletes this directory and all sub-directories and files in the
+   * directories. Returns a [:Future<Directory>:] that completes with
+   * this directory when the deletion is done.
+   */
+  Future<Directory> deleteRecursively();
 
   /**
    * Synchronously deletes this directory and all sub-directories and
@@ -98,49 +94,54 @@ interface Directory default _Directory {
 
   /**
    * List the sub-directories and files of this
-   * [Directory]. Optionally recurse into sub-directories. For each
-   * file and directory, the file or directory handler is called. When
-   * all directories have been listed the done handler is called. If
-   * the listing operation is recursive, the error handler is called
-   * if a subdirectory cannot be opened for listing.
+   * [Directory]. Optionally recurse into sub-directories. Returns a
+   * [DirectoryLister] object representing the active listing
+   * operation. Handlers for files and directories should be
+   * registered on this DirectoryLister object.
    */
-  // TODO(ager): Should we change this to return an event emitting
-  // DirectoryLister object. Alternatively, pass in one callback that
-  // gets called with an indication of whether what it is called with
-  // is a file, a directory or an indication that the listing is over.
-  void list([bool recursive]);
-
-  /**
-   * Sets the directory handler that is called for all directories
-   * during listing operations. The directory handler is called with
-   * the full path of the directory.
-   */
-  void set onDir(void onDir(String dir));
-
-  /**
-   * Sets the handler that is called for all files during listing
-   * operations. The file handler is called with the full path of the
-   * file.
-   */
-  void set onFile(void onFile(String file));
-
-  /**
-   * Set the handler that is called when a directory listing is
-   * done. The handler is called with an indication of whether or not
-   * the listing operation completed.
-   */
-  void set onDone(void onDone(bool completed));
-
-  /**
-   * Sets the handler that is called if there is an error while listing
-   * or creating directories.
-   */
-  void set onError(void onError(e));
+  DirectoryLister list([bool recursive]);
 
   /**
    * Gets the path of this directory.
    */
   final String path;
+}
+
+
+/**
+ * A [DirectoryLister] represents an actively running listing operation.
+ *
+ * For each file and directory, the file or directory handler is
+ * called. When all directories have been listed the done handler is
+ * called. If the listing operation is recursive, the error handler is
+ * called if a subdirectory cannot be opened for listing.
+ */
+interface DirectoryLister default _DirectoryLister {
+  /**
+   * Sets the directory handler that is called for all directories
+   * during listing. The directory handler is called with the full
+   * path of the directory.
+   */
+  void set onDir(void onDir(String dir));
+
+  /**
+   * Sets the handler that is called for all files during listing. The
+   * file handler is called with the full path of the file.
+   */
+  void set onFile(void onFile(String file));
+
+  /**
+   * Set the handler that is called when a listing is done. The
+   * handler is called with an indication of whether or not the
+   * listing operation completed.
+   */
+  void set onDone(void onDone(bool completed));
+
+  /**
+   * Sets the handler that is called if there is an error while
+   * listing directories.
+   */
+  void set onError(void onError(e));
 }
 
 

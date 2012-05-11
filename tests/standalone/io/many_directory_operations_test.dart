@@ -8,7 +8,6 @@
 
 main() {
   for (var i = 0; i < 10000; i++) {
-    Directory d = new Directory(".");
-    d.exists((result) => null);
+    new Directory(".").exists().then((result) => null);
   }
 }

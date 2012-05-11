@@ -9,8 +9,8 @@
 #source("process_test_util.dart");
 
 testExit() {
-  Process process = new Process.start(getProcessTestFileName(),
-                                      const ["0", "0", "1", "1"]);
+  Process process = Process.start(getProcessTestFileName(),
+                                  const ["0", "0", "1", "1"]);
 
   process.onExit = (int exitCode) {
     Expect.isTrue(exitCode != 0);
@@ -20,13 +20,11 @@ testExit() {
 
 
 testExitRun() {
-  Process process = new Process.run(getProcessTestFileName(),
-                                    const ["0", "0", "1", "1"],
-                                    null,
-                                    (exit, out, err) {
-    Expect.isTrue(exit != 0);
-    Expect.equals(out, '');
-    Expect.equals(err, '');
+  Process.run(getProcessTestFileName(),
+              const ["0", "0", "1", "1"]).then((result) {
+    Expect.isTrue(result.exitCode != 0);
+    Expect.equals(result.stdout, '');
+    Expect.equals(result.stderr, '');
   });
 }
 

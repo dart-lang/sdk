@@ -604,7 +604,7 @@ class RunningProcess {
       // TODO(efortuna): Remove this when fixed (Issue 1306).
       command.executable = command.executable.replaceAll('/', '\\');
     }
-    process = new Process.start(command.executable, command.arguments);
+    process = Process.start(command.executable, command.arguments);
     process.onExit = exitHandler;
     process.onError = (e) {
       print("Error starting process:");
@@ -808,7 +808,7 @@ class BatchRunnerProcess {
   }
 
   void _startProcess(then) {
-    _process = new Process.start(_executable, _batchArguments);
+    _process = Process.start(_executable, _batchArguments);
     _stdoutStream = new StringInputStream(_process.stdout);
     _stderrStream = new StringInputStream(_process.stderr);
     _testStdout = new List<String>();
@@ -923,8 +923,7 @@ class ProcessQueue {
       throw new Exception(
           'Test suite requires temporary directory. Not supported on Windows.');
     }
-    var tempDir = new Directory('');
-    tempDir.createTempSync();
+    var tempDir = new Directory('').createTempSync();
     _temporaryDirectory = tempDir.path;
     return _temporaryDirectory;
   }
@@ -999,7 +998,7 @@ class ProcessQueue {
         cmd = 'tasklist';
         arg.add('/v');
       }
-      Process p = new Process.start(cmd, arg);
+      Process p = Process.start(cmd, arg);
       final StringInputStream stdoutStringStream =
           new StringInputStream(p.stdout);
       p.onError = (e) {
@@ -1063,11 +1062,11 @@ class ProcessQueue {
     String pathSep = Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
     filePath = filePath.substring(0, index) + '${pathSep}testing${pathSep}';
-    var dir = new Directory(filePath);
-    dir.onFile = (String file) {
+    var lister = new Directory(filePath).list();
+    lister.onFile = (String file) {
       if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
-        _seleniumServer = new Process.start('java', ['-jar', file]);
+        _seleniumServer = Process.start('java', ['-jar', file]);
         _seleniumServer.onError = (e) {
           print("Error starting process:");
           print("  Command: java -jar $file");
@@ -1087,7 +1086,6 @@ class ProcessQueue {
             makeSeleniumServerHandler(stderrStringStream);
       }
     };
-    dir.list();
   }
 
   void _terminateBatchRunners() {
