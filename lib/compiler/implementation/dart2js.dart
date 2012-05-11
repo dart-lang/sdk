@@ -75,7 +75,7 @@ void compile(List<String> argv) {
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--no-colors', (_) => colors.enabled = false),
     new OptionHandler('--enable-checked-mode|--checked|-c',
-                      (_) => passThrough('--enable_checked_mode')),
+                      (_) => passThrough('--enable-checked-mode')),
     new OptionHandler('--help', (_) => helpAndExit()),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {

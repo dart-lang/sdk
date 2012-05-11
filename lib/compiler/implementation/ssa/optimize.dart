@@ -552,9 +552,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
-    // If the union of the types is still the input type then
-    // no conversion is required.
-    HType combinedType = value.propagatedType.union(node.propagatedType);
+    Type type = node.propagatedType.computeType(compiler);
+    if (type.element === compiler.dynamicClass
+        || type.element === compiler.objectClass) {
+      return value;
+    }
+    HType combinedType = value.propagatedType.intersection(node.propagatedType);
     return (combinedType == value.propagatedType) ? value : node;
   }
 
@@ -1079,7 +1082,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
     HInstruction input = instruction.expression;
     HType convertedType =
         new HType.fromBoundedType(instruction.typeExpression, compiler);
-    if (convertedType === null) return;
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];

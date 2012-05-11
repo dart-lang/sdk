@@ -68,6 +68,9 @@ out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/http_parser_test: Fail, OK # ByteArray
 io/options_test: Fail, OK # Cannot pass options to d8.
 
+[ $compiler == dart2js && $checked ]
+crypto/sha1_test: Fail # 2147483648 does not implement int
+
 [ $compiler == dart2js && $runtime == none ]
 fail_test: Skip # fails only at runtime, overrides default expectation from standalone.status
 io/options_test: Fail
