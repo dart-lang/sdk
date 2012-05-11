@@ -6,5 +6,6 @@
 {
   'sources': [
     '../../lib/uri/uri.dart',
+    '../../lib/uri/helpers.dart',
   ],
 }
