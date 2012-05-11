@@ -150,7 +150,7 @@ class ParamInfo(object):
 
   def __repr__(self):
     content = 'name = %s, type_id = %s, dart_type = %s, default_value = %s' % (
-        self.name, self.type_id, self.dart_type, self.default_value))
+        self.name, self.type_id, self.dart_type, self.default_value)
     return '<ParamInfo(%s)>' % content
 
 
