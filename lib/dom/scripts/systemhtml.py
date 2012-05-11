@@ -108,7 +108,7 @@ _injected_doc_fragments = {
 # as a simple table instead is more concise.
 # Syntax is: ClassName.(get\.|set\.)?MemberName
 # Using get: and set: is optional and should only be used when a getter needs
-# to be suppressed but not the setter, etc. 
+# to be suppressed but not the setter, etc.
 # TODO(jacobr): cleanup and augment this list.
 _html_library_remove = set([
     'Window.get:document', # Removed as we have a custom implementation.
@@ -449,7 +449,7 @@ def _OnAttributeToEventName(on_method):
     return event_name
 
 def _DomToHtmlEvents(interface_id, events):
-  event_names = set(map(_OnAttributeToEventName, events)) 
+  event_names = set(map(_OnAttributeToEventName, events))
   if interface_id in _html_manual_events:
     for manual_event_name in _html_manual_events[interface_id]:
       event_names.add(manual_event_name)
@@ -527,7 +527,7 @@ class HtmlSystemShared(object):
         callback(parent_interface)
         self._TraverseParents(parent_interface, callback)
 
-  # TODO(jacobr): this isn't quite right.... 
+  # TODO(jacobr): this isn't quite right....
   def GetParentsEventsClasses(self, interface):
     # Ugly hack as we don't specify that Document and DocumentFragment inherit
     # from Element in our IDL.
@@ -767,7 +767,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
 
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
-                                 TYPE=info.type_name,         
+                                 TYPE=info.type_name,
                                  NAME=html_name,
                                  PARAMS=info.ParametersInterfaceDeclaration())
 
@@ -940,7 +940,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       self._members_emitter.Emit(template, E=DartType(element_type))
 
   def AddAttribute(self, getter, setter):
-  
+
     html_getter_name = self._shared.RenameInHtmlLibrary(
       self._interface, DartDomNameOfAttribute(getter), 'get:',
           implementation_class=True)
@@ -1044,7 +1044,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     # Do we need a native body?
     if html_name != info.declared_name:
       return_type = self._NarrowOutputType(info.type_name)
-      
+
       operation_emitter = self._members_emitter.Emit('$!SCOPE',
           TYPE=return_type,
           HTML_NAME=html_name,
@@ -1229,7 +1229,7 @@ class HtmlDartiumInterfaceGenerator(object):
           class.
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
-      shared: functionaly shared across all Html generators. 
+      shared: functionaly shared across all Html generators.
     """
     self._system = system
     self._interface = interface
@@ -1280,7 +1280,7 @@ class HtmlDartiumInterfaceGenerator(object):
         pass
       else:
         base = self._ImplClassName(supertype)
-   
+
     # TODO(jacobr): this is fragile. There isn't a guarantee that dart:dom
     # will continue to exactly match the IDL names.
     dom_name = interface.javascript_binding_name
@@ -1564,151 +1564,21 @@ class HtmlDartiumInterfaceGenerator(object):
     if not html_name:
       return
 
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $TYPE $HTML_NAME($PARAMS) {\n'
-        '$!BODY'
-        '  }\n',
-        TYPE=info.type_name,
-        HTML_NAME=html_name,
-        PARAMS=info.ParametersImplementationDeclaration())
-
-    # Process in order of ascending number of arguments to ensure missing
-    # optional arguments are processed early.
-    overloads = sorted(info.overloads,
-                       key=lambda overload: len(overload.arguments))
-    self._native_version = 0
-    fallthrough = self.GenerateDispatch(body, info, '    ', 0, overloads)
-    if fallthrough:
-      body.Emit('    throw "Incorrect number or type of arguments";\n');
-
-  def AddStaticOperation(self, info):
-    pass
-
-  def GenerateSingleOperation(self,  emitter, info, indent, operation):
-    """Generates a call to a single operation.
-
-    Arguments:
-      emitter: an Emitter for the body of a block of code.
-      info: the compound information about the operation and its overloads.
-      indent: an indentation string for generated code.
-      operation: the IDLOperation to call.
-    """
-    argument_expressions = self._UnwrappedParameters(
-        info,
-        len(operation.arguments))  # Just the parameters this far.
-
+    arguments = self._UnwrappedParameters(info, len(info.param_infos))
+    function_call = '%s.%s(%s)' % (self.DomObjectName(), info.name, arguments)
     if info.type_name != 'void':
       # We could place the logic for handling Document directly in _wrap
       # but we chose to place it here so that bugs in the wrapper and
-      # wrapperless implementations are more consistent. 
-      emitter.Emit('$(INDENT)return _wrap($(THIS).$NAME($ARGS));\n',
-                   INDENT=indent,
-                   THIS=self.DomObjectName(),
-                   NAME=info.name,
-                   ARGS=argument_expressions)
-    else:
-      emitter.Emit('$(INDENT)$(THIS).$NAME($ARGS);\n'
-                   '$(INDENT)return;\n',
-                   INDENT=indent,
-                   THIS=self.DomObjectName(),
-                   NAME=info.name,
-                   ARGS=argument_expressions)
+      # wrapperless implementations are more consistent.
+      function_call = '_wrap(%s)' % function_call
 
-  def GenerateDispatch(self, emitter, info, indent, position, overloads):
-    """Generates a dispatch to one of the overloads.
+    self._members_emitter.Emit(
+        '\n'
+        '  $TYPE $HTML_NAME($PARAMS) => $FUNCTION_CALL;\n',
+        TYPE=info.type_name,
+        HTML_NAME=html_name,
+        PARAMS=info.ParametersImplementationDeclaration(),
+        FUNCTION_CALL=function_call)
 
-    Arguments:
-      emitter: an Emitter for the body of a block of code.
-      info: the compound information about the operation and its overloads.
-      indent: an indentation string for generated code.
-      position: the index of the parameter to dispatch on.
-      overloads: a list of the remaining IDLOperations to dispatch.
-
-    Returns True if the dispatch can fall through on failure, False if the code
-    always dispatches.
-    """
-
-    def NullCheck(name):
-      return '%s === null' % name
-
-    def TypeCheck(name, type):
-      return '%s is %s' % (name, type)
-
-    if position == len(info.param_infos):
-      if len(overloads) > 1:
-        raise Exception('Duplicate operations ' + str(overloads))
-      operation = overloads[0]
-      self.GenerateSingleOperation(emitter, info, indent, operation)
-      return False
-
-    # FIXME: Consider a simpler dispatch that iterates over the
-    # overloads and generates an overload specific check.  Revisit
-    # when we move to named optional arguments.
-
-    # Partition the overloads to divide and conquer on the dispatch.
-    positive = []
-    negative = []
-    first_overload = overloads[0]
-    param = info.param_infos[position]
-
-    if position < len(first_overload.arguments):
-      # FIXME: This will not work if the second overload has a more
-      # precise type than the first.  E.g.,
-      # void foo(Node x);
-      # void foo(Element x);
-      type = DartType(first_overload.arguments[position].type.id)
-      test = TypeCheck(param.name, type)
-      pred = lambda op: (len(op.arguments) > position and
-          DartType(op.arguments[position].type.id) == type)
-    else:
-      type = None
-      test = NullCheck(param.name)
-      pred = lambda op: position >= len(op.arguments)
-
-    for overload in overloads:
-      if pred(overload):
-        positive.append(overload)
-      else:
-        negative.append(overload)
-
-    if positive and negative:
-      (true_code, false_code) = emitter.Emit(
-          '$(INDENT)if ($COND) {\n'
-          '$!TRUE'
-          '$(INDENT)} else {\n'
-          '$!FALSE'
-          '$(INDENT)}\n',
-          COND=test, INDENT=indent)
-      fallthrough1 = self.GenerateDispatch(
-          true_code, info, indent + '  ', position + 1, positive)
-      fallthrough2 = self.GenerateDispatch(
-          false_code, info, indent + '  ', position, negative)
-      return fallthrough1 or fallthrough2
-
-    if negative:
-      raise Exception('Internal error, must be all positive')
-
-    # All overloads require the same test.  Do we bother?
-
-    # If the test is the same as the method's formal parameter then checked mode
-    # will have done the test already. (It could be null too but we ignore that
-    # case since all the overload behave the same and we don't know which types
-    # in the IDL are not nullable.)
-    if type == param.dart_type:
-      return self.GenerateDispatch(
-          emitter, info, indent, position + 1, positive)
-
-    # Otherwise the overloads have the same type but the type is a substype of
-    # the method's synthesized formal parameter. e.g we have overloads f(X) and
-    # f(Y), implemented by the synthesized method f(Z) where X<Z and Y<Z. The
-    # dispatch has removed f(X), leaving only f(Y), but there is no guarantee
-    # that Y = Z-X, so we need to check for Y.
-    true_code = emitter.Emit(
-        '$(INDENT)if ($COND) {\n'
-        '$!TRUE'
-        '$(INDENT)}\n',
-        COND=test, INDENT=indent)
-    self.GenerateDispatch(
-        true_code, info, indent + '  ', position + 1, positive)
-    return True
+  def AddStaticOperation(self, info):
+    pass
