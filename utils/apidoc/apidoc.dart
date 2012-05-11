@@ -101,7 +101,7 @@ void main() {
   final mdnFile = new File('${doc.scriptDir}/mdn/database.json');
   final mdn = JSON.parse(mdnFile.readAsTextSync());
 
-  print('Cross-referencing dart:dom and dart:html...');
+  print('Cross-referencing dart:html...');
   HtmlDiff.initialize();
   _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
@@ -111,7 +111,6 @@ void main() {
   world.getOrAddLibrary('dart:core');
   world.getOrAddLibrary('dart:coreimpl');
   world.getOrAddLibrary('dart:json');
-  world.getOrAddLibrary('dart:dom');
   world.getOrAddLibrary('dart:html');
   world.getOrAddLibrary('dart:io');
   world.getOrAddLibrary('dart:isolate');
@@ -256,7 +255,7 @@ class Apidoc extends doc.Dartdoc {
     return _mergeDocs(
         includeMdnTypeComment(type),
         super.getTypeComment(type),
-        getTypeDoc(type));
+        /* getTypeDoc(type) */ null);
   }
 
   String getMethodComment(MethodMember method) {
