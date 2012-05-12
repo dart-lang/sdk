@@ -16572,104 +16572,14 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   Uint8Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
-class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray, List<int> {
+class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray {
   _Uint8ClampedArrayImpl._wrap(ptr) : super._wrap(ptr);
 
   int get length() => _wrap(_ptr.length);
 
-  int operator[](int index) => _wrap(_ptr[index]);
-
-  void operator[]=(int index, int value) {
-    return _ptr[index] = _unwrap(value);
-  }
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<int>(this);
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
-
-  Collection map(f(int element)) => _Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => _Collections.every(this, f);
-
-  bool some(bool f(int element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<int>:
-
-  void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  int last() => this[length - 1];
-
-  int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  // FIXME: implement these.
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
-
-  // -- end List<int> mixins.
-
   void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
   Uint8ClampedArray subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-
-  // From ArrayBufferView
-
-  ArrayBuffer get buffer() => _wrap(_ptr.buffer);
-
-  int get byteLength() => _wrap(_ptr.byteLength);
-
-  int get byteOffset() => _wrap(_ptr.byteOffset);
 }
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement {
@@ -33737,7 +33647,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint8ClampedArray
-interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 

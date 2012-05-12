@@ -16,14 +16,6 @@ module default {
   Int16Array implements sequence<int>;
   Int32Array implements sequence<int>;
   Uint8Array implements sequence<int>;
-  // Ugliness ahead: we cannot analyse inheritance right now when deducing if
-  // given interface is a typed array (database is not accessible), so I have
-  // to duplicate both sequence<int> and ArrayBufferView to make our heuristics
-  // work.
-  // FIXME: thread datatbase to all the clients that need it and probably
-  // move the method itself to database.
-  Uint8ClampedArray implements sequence<int>;
-  Uint8ClampedArray implements ArrayBufferView;
   Uint16Array implements sequence<int>;
   Uint32Array implements sequence<int>;
 

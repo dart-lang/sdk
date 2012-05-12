@@ -605,10 +605,10 @@ class HtmlInterfacesSystem(HtmlSystem):
       template = self._templates.Load('interface.darttemplate')
 
     return HtmlDartInterfaceGenerator(
-        interface, dart_interface_code,
+        self, interface, dart_interface_code,
         template,
         common_prefix, super_interface_name,
-        source_filter, self, self._shared)
+        source_filter, self._shared)
 
   def ProcessCallback(self, interface, info):
     """Generates a typedef for the callback interface."""
@@ -633,11 +633,10 @@ class HtmlInterfacesSystem(HtmlSystem):
 class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
-  def __init__(self, interface, emitter, template,
-               common_prefix, super_interface, source_filter, system, shared):
-    super(HtmlDartInterfaceGenerator, self).__init__(interface,
+  def __init__(self, system, interface, emitter, template,
+               common_prefix, super_interface, source_filter, shared):
+    super(HtmlDartInterfaceGenerator, self).__init__(system, interface,
       emitter, template, common_prefix, super_interface, source_filter)
-    self._system = system
     self._shared = shared
 
   def StartInterface(self):
@@ -696,7 +695,8 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
           CTOR=typename,
           PARAMS=constructor_info.ParametersInterfaceDeclaration());
 
-    element_type = MaybeTypedArrayElementType(self._interface)
+    element_type = MaybeTypedArrayElementTypeInHierarchy(
+        self._interface, self._system._database)
     if element_type:
       self._members_emitter.Emit(
           '\n'
@@ -1526,6 +1526,9 @@ class HtmlDartiumInterfaceGenerator(object):
     template_file = 'immutable_list_mixin.darttemplate'
     template = self._system._templates.Load(template_file)
     self._members_emitter.Emit(template, E=DartType(element_type))
+
+  def AmendIndexer(self, element_type):
+    pass
 
   def _HasNativeIndexGetter(self, interface):
     return ('IndexedGetter' in interface.ext_attrs or

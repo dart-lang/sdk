@@ -396,10 +396,14 @@ class DartGenerator(object):
 
     # The implementation should define an indexer if the interface directly
     # extends List.
-    element_type = MaybeListElementType(interface)
+    (element_type, requires_indexer) = ListImplementationInfo(
+          interface, self._database)
     if element_type:
       for generator in generators:
-        generator.AddIndexer(element_type)
+        if requires_indexer:
+          generator.AddIndexer(element_type)
+        else:
+          generator.AmendIndexer(element_type)
     # Group overloaded operations by id
     operationsById = {}
     for operation in interface.operations:
@@ -622,6 +626,9 @@ class DummyInterfaceGenerator(object):
     pass
 
   def AddIndexer(self, element_type):
+    pass
+
+  def AmendIndexer(sefl, element_type):
     pass
 
   def AddTypedArrayConstructors(self, element_type):

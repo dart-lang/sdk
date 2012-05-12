@@ -10385,7 +10385,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
-interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 
