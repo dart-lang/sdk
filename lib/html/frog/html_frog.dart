@@ -7523,7 +7523,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionImpl transaction(storeName_OR_storeNames, [int mode = null]) native;
+  _IDBTransactionImpl transaction(storeName_OR_storeNames, int mode) native;
 }
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -24371,7 +24371,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(storeName_OR_storeNames, [int mode]);
+  IDBTransaction transaction(storeName_OR_storeNames, int mode);
 }
 
 interface IDBDatabaseEvents extends Events {

@@ -604,29 +604,11 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
@@ -716,9 +698,7 @@ class _AnchorElementImpl extends _ElementImpl implements AnchorElement {
 
   void set type(String value) { _ptr.type = _unwrap(value); }
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _AnimationImpl extends _DOMTypeBase implements Animation {
@@ -744,15 +724,9 @@ class _AnimationImpl extends _DOMTypeBase implements Animation {
 
   bool get paused() => _wrap(_ptr.paused);
 
-  void pause() {
-    _ptr.pause();
-    return;
-  }
+  void pause() => _ptr.pause();
 
-  void play() {
-    _ptr.play();
-    return;
-  }
+  void play() => _ptr.play();
 }
 
 class _AnimationEventImpl extends _EventImpl implements AnimationEvent {
@@ -768,9 +742,7 @@ class _AnimationListImpl extends _DOMTypeBase implements AnimationList {
 
   int get length() => _wrap(_ptr.length);
 
-  Animation item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Animation item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _AppletElementImpl extends _ElementImpl implements AppletElement {
@@ -872,13 +844,7 @@ class _ArrayBufferImpl extends _DOMTypeBase implements ArrayBuffer {
 
   int get byteLength() => _wrap(_ptr.byteLength);
 
-  ArrayBuffer slice(int begin, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.slice(_unwrap(begin)));
-    } else {
-      return _wrap(_ptr.slice(_unwrap(begin), _unwrap(end)));
-    }
-  }
+  ArrayBuffer slice(int begin, [int end = null]) => _wrap(_ptr.slice(_unwrap(begin), _unwrap(end)));
 }
 
 class _ArrayBufferViewImpl extends _DOMTypeBase implements ArrayBufferView {
@@ -922,9 +888,7 @@ class _AudioBufferImpl extends _DOMTypeBase implements AudioBuffer {
 
   num get sampleRate() => _wrap(_ptr.sampleRate);
 
-  Float32Array getChannelData(int channelIndex) {
-    return _wrap(_ptr.getChannelData(_unwrap(channelIndex)));
-  }
+  Float32Array getChannelData(int channelIndex) => _wrap(_ptr.getChannelData(_unwrap(channelIndex)));
 }
 
 class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBufferSourceNode {
@@ -948,20 +912,11 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   int get playbackState() => _wrap(_ptr.playbackState);
 
-  void noteGrainOn(num when, num grainOffset, num grainDuration) {
-    _ptr.noteGrainOn(_unwrap(when), _unwrap(grainOffset), _unwrap(grainDuration));
-    return;
-  }
+  void noteGrainOn(num when, num grainOffset, num grainDuration) => _ptr.noteGrainOn(_unwrap(when), _unwrap(grainOffset), _unwrap(grainDuration));
 
-  void noteOff(num when) {
-    _ptr.noteOff(_unwrap(when));
-    return;
-  }
+  void noteOff(num when) => _ptr.noteOff(_unwrap(when));
 
-  void noteOn(num when) {
-    _ptr.noteOn(_unwrap(when));
-    return;
-  }
+  void noteOn(num when) => _ptr.noteOn(_unwrap(when));
 }
 
 class _AudioChannelMergerImpl extends _AudioNodeImpl implements AudioChannelMerger {
@@ -990,120 +945,41 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   num get sampleRate() => _wrap(_ptr.sampleRate);
 
-  RealtimeAnalyserNode createAnalyser() {
-    return _wrap(_ptr.createAnalyser());
-  }
+  RealtimeAnalyserNode createAnalyser() => _wrap(_ptr.createAnalyser());
 
-  BiquadFilterNode createBiquadFilter() {
-    return _wrap(_ptr.createBiquadFilter());
-  }
+  BiquadFilterNode createBiquadFilter() => _wrap(_ptr.createBiquadFilter());
 
-  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) {
-    if (buffer_OR_numberOfChannels is ArrayBuffer) {
-      if (mixToMono_OR_numberOfFrames is bool) {
-        if (sampleRate === null) {
-          return _wrap(_ptr.createBuffer(_unwrap(buffer_OR_numberOfChannels), _unwrap(mixToMono_OR_numberOfFrames)));
-        }
-      }
-    } else {
-      if (buffer_OR_numberOfChannels is int) {
-        if (mixToMono_OR_numberOfFrames is int) {
-          return _wrap(_ptr.createBuffer(_unwrap(buffer_OR_numberOfChannels), _unwrap(mixToMono_OR_numberOfFrames), _unwrap(sampleRate)));
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) => _wrap(_ptr.createBuffer(_unwrap(buffer_OR_numberOfChannels), _unwrap(mixToMono_OR_numberOfFrames), _unwrap(sampleRate)));
 
-  AudioBufferSourceNode createBufferSource() {
-    return _wrap(_ptr.createBufferSource());
-  }
+  AudioBufferSourceNode createBufferSource() => _wrap(_ptr.createBufferSource());
 
-  AudioChannelMerger createChannelMerger([int numberOfInputs = null]) {
-    if (numberOfInputs === null) {
-      return _wrap(_ptr.createChannelMerger());
-    } else {
-      return _wrap(_ptr.createChannelMerger(_unwrap(numberOfInputs)));
-    }
-  }
+  AudioChannelMerger createChannelMerger([int numberOfInputs = null]) => _wrap(_ptr.createChannelMerger(_unwrap(numberOfInputs)));
 
-  AudioChannelSplitter createChannelSplitter([int numberOfOutputs = null]) {
-    if (numberOfOutputs === null) {
-      return _wrap(_ptr.createChannelSplitter());
-    } else {
-      return _wrap(_ptr.createChannelSplitter(_unwrap(numberOfOutputs)));
-    }
-  }
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs = null]) => _wrap(_ptr.createChannelSplitter(_unwrap(numberOfOutputs)));
 
-  ConvolverNode createConvolver() {
-    return _wrap(_ptr.createConvolver());
-  }
+  ConvolverNode createConvolver() => _wrap(_ptr.createConvolver());
 
-  DelayNode createDelayNode([num maxDelayTime = null]) {
-    if (maxDelayTime === null) {
-      return _wrap(_ptr.createDelayNode());
-    } else {
-      return _wrap(_ptr.createDelayNode(_unwrap(maxDelayTime)));
-    }
-  }
+  DelayNode createDelayNode([num maxDelayTime = null]) => _wrap(_ptr.createDelayNode(_unwrap(maxDelayTime)));
 
-  DynamicsCompressorNode createDynamicsCompressor() {
-    return _wrap(_ptr.createDynamicsCompressor());
-  }
+  DynamicsCompressorNode createDynamicsCompressor() => _wrap(_ptr.createDynamicsCompressor());
 
-  AudioGainNode createGainNode() {
-    return _wrap(_ptr.createGainNode());
-  }
+  AudioGainNode createGainNode() => _wrap(_ptr.createGainNode());
 
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) {
-    if (numberOfInputChannels === null) {
-      if (numberOfOutputChannels === null) {
-        return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize)));
-      }
-    } else {
-      if (numberOfOutputChannels === null) {
-        return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize), _unwrap(numberOfInputChannels)));
-      } else {
-        return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize), _unwrap(numberOfInputChannels), _unwrap(numberOfOutputChannels)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) => _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize), _unwrap(numberOfInputChannels), _unwrap(numberOfOutputChannels)));
 
-  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) {
-    return _wrap(_ptr.createMediaElementSource(_unwrap(mediaElement)));
-  }
+  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) => _wrap(_ptr.createMediaElementSource(_unwrap(mediaElement)));
 
-  Oscillator createOscillator() {
-    return _wrap(_ptr.createOscillator());
-  }
+  Oscillator createOscillator() => _wrap(_ptr.createOscillator());
 
-  AudioPannerNode createPanner() {
-    return _wrap(_ptr.createPanner());
-  }
+  AudioPannerNode createPanner() => _wrap(_ptr.createPanner());
 
-  WaveShaperNode createWaveShaper() {
-    return _wrap(_ptr.createWaveShaper());
-  }
+  WaveShaperNode createWaveShaper() => _wrap(_ptr.createWaveShaper());
 
-  WaveTable createWaveTable(Float32Array real, Float32Array imag) {
-    return _wrap(_ptr.createWaveTable(_unwrap(real), _unwrap(imag)));
-  }
+  WaveTable createWaveTable(Float32Array real, Float32Array imag) => _wrap(_ptr.createWaveTable(_unwrap(real), _unwrap(imag)));
 
-  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.decodeAudioData(_unwrap(audioData), _unwrap(successCallback));
-      return;
-    } else {
-      _ptr.decodeAudioData(_unwrap(audioData), _unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) => _ptr.decodeAudioData(_unwrap(audioData), _unwrap(successCallback), _unwrap(errorCallback));
 
-  void startRendering() {
-    _ptr.startRendering();
-    return;
-  }
+  void startRendering() => _ptr.startRendering();
 }
 
 class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
@@ -1143,20 +1019,11 @@ class _AudioListenerImpl extends _DOMTypeBase implements AudioListener {
 
   void set speedOfSound(num value) { _ptr.speedOfSound = _unwrap(value); }
 
-  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) {
-    _ptr.setOrientation(_unwrap(x), _unwrap(y), _unwrap(z), _unwrap(xUp), _unwrap(yUp), _unwrap(zUp));
-    return;
-  }
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) => _ptr.setOrientation(_unwrap(x), _unwrap(y), _unwrap(z), _unwrap(xUp), _unwrap(yUp), _unwrap(zUp));
 
-  void setPosition(num x, num y, num z) {
-    _ptr.setPosition(_unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
+  void setPosition(num x, num y, num z) => _ptr.setPosition(_unwrap(x), _unwrap(y), _unwrap(z));
 
-  void setVelocity(num x, num y, num z) {
-    _ptr.setVelocity(_unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
+  void setVelocity(num x, num y, num z) => _ptr.setVelocity(_unwrap(x), _unwrap(y), _unwrap(z));
 }
 
 class _AudioNodeImpl extends _DOMTypeBase implements AudioNode {
@@ -1168,25 +1035,9 @@ class _AudioNodeImpl extends _DOMTypeBase implements AudioNode {
 
   int get numberOfOutputs() => _wrap(_ptr.numberOfOutputs);
 
-  void connect(destination, int output, [int input = null]) {
-    if (destination is AudioParam) {
-      if (input === null) {
-        _ptr.connect(_unwrap(destination), _unwrap(output));
-        return;
-      }
-    } else {
-      if (destination is AudioNode) {
-        _ptr.connect(_unwrap(destination), _unwrap(output), _unwrap(input));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void connect(destination, int output, [int input = null]) => _ptr.connect(_unwrap(destination), _unwrap(output), _unwrap(input));
 
-  void disconnect(int output) {
-    _ptr.disconnect(_unwrap(output));
-    return;
-  }
+  void disconnect(int output) => _ptr.disconnect(_unwrap(output));
 }
 
 class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
@@ -1228,20 +1079,11 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
 
   void set rolloffFactor(num value) { _ptr.rolloffFactor = _unwrap(value); }
 
-  void setOrientation(num x, num y, num z) {
-    _ptr.setOrientation(_unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
+  void setOrientation(num x, num y, num z) => _ptr.setOrientation(_unwrap(x), _unwrap(y), _unwrap(z));
 
-  void setPosition(num x, num y, num z) {
-    _ptr.setPosition(_unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
+  void setPosition(num x, num y, num z) => _ptr.setPosition(_unwrap(x), _unwrap(y), _unwrap(z));
 
-  void setVelocity(num x, num y, num z) {
-    _ptr.setVelocity(_unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
+  void setVelocity(num x, num y, num z) => _ptr.setVelocity(_unwrap(x), _unwrap(y), _unwrap(z));
 }
 
 class _AudioParamImpl extends _DOMTypeBase implements AudioParam {
@@ -1261,35 +1103,17 @@ class _AudioParamImpl extends _DOMTypeBase implements AudioParam {
 
   void set value(num value) { _ptr.value = _unwrap(value); }
 
-  void cancelScheduledValues(num startTime) {
-    _ptr.cancelScheduledValues(_unwrap(startTime));
-    return;
-  }
+  void cancelScheduledValues(num startTime) => _ptr.cancelScheduledValues(_unwrap(startTime));
 
-  void exponentialRampToValueAtTime(num value, num time) {
-    _ptr.exponentialRampToValueAtTime(_unwrap(value), _unwrap(time));
-    return;
-  }
+  void exponentialRampToValueAtTime(num value, num time) => _ptr.exponentialRampToValueAtTime(_unwrap(value), _unwrap(time));
 
-  void linearRampToValueAtTime(num value, num time) {
-    _ptr.linearRampToValueAtTime(_unwrap(value), _unwrap(time));
-    return;
-  }
+  void linearRampToValueAtTime(num value, num time) => _ptr.linearRampToValueAtTime(_unwrap(value), _unwrap(time));
 
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) {
-    _ptr.setTargetValueAtTime(_unwrap(targetValue), _unwrap(time), _unwrap(timeConstant));
-    return;
-  }
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant) => _ptr.setTargetValueAtTime(_unwrap(targetValue), _unwrap(time), _unwrap(timeConstant));
 
-  void setValueAtTime(num value, num time) {
-    _ptr.setValueAtTime(_unwrap(value), _unwrap(time));
-    return;
-  }
+  void setValueAtTime(num value, num time) => _ptr.setValueAtTime(_unwrap(value), _unwrap(time));
 
-  void setValueCurveAtTime(Float32Array values, num time, num duration) {
-    _ptr.setValueCurveAtTime(_unwrap(values), _unwrap(time), _unwrap(duration));
-    return;
-  }
+  void setValueCurveAtTime(Float32Array values, num time, num duration) => _ptr.setValueCurveAtTime(_unwrap(values), _unwrap(time), _unwrap(duration));
 }
 
 class _AudioProcessingEventImpl extends _EventImpl implements AudioProcessingEvent {
@@ -1362,29 +1186,11 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
   num get level() => _wrap(_ptr.level);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
@@ -1418,10 +1224,7 @@ class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode {
 
   void set type(int value) { _ptr.type = _unwrap(value); }
 
-  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) {
-    _ptr.getFrequencyResponse(_unwrap(frequencyHz), _unwrap(magResponse), _unwrap(phaseResponse));
-    return;
-  }
+  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) => _ptr.getFrequencyResponse(_unwrap(frequencyHz), _unwrap(magResponse), _unwrap(phaseResponse));
 }
 
 class _BlobImpl extends _DOMTypeBase implements Blob {
@@ -1431,28 +1234,7 @@ class _BlobImpl extends _DOMTypeBase implements Blob {
 
   String get type() => _wrap(_ptr.type);
 
-  Blob webkitSlice([int start = null, int end = null, String contentType = null]) {
-    if (start === null) {
-      if (end === null) {
-        if (contentType === null) {
-          return _wrap(_ptr.webkitSlice());
-        }
-      }
-    } else {
-      if (end === null) {
-        if (contentType === null) {
-          return _wrap(_ptr.webkitSlice(_unwrap(start)));
-        }
-      } else {
-        if (contentType === null) {
-          return _wrap(_ptr.webkitSlice(_unwrap(start), _unwrap(end)));
-        } else {
-          return _wrap(_ptr.webkitSlice(_unwrap(start), _unwrap(end), _unwrap(contentType)));
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  Blob webkitSlice([int start = null, int end = null, String contentType = null]) => _wrap(_ptr.webkitSlice(_unwrap(start), _unwrap(end), _unwrap(contentType)));
 }
 
 class _BodyElementImpl extends _ElementImpl implements BodyElement {
@@ -1565,14 +1347,9 @@ class _ButtonElementImpl extends _ElementImpl implements ButtonElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 }
 
 class _CDATASectionImpl extends _TextImpl implements CDATASection {
@@ -1622,19 +1399,11 @@ class _CSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
 
   void set name(String value) { _ptr.name = _unwrap(value); }
 
-  void deleteRule(String key) {
-    _ptr.deleteRule(_unwrap(key));
-    return;
-  }
+  void deleteRule(String key) => _ptr.deleteRule(_unwrap(key));
 
-  CSSKeyframeRule findRule(String key) {
-    return _wrap(_ptr.findRule(_unwrap(key)));
-  }
+  CSSKeyframeRule findRule(String key) => _wrap(_ptr.findRule(_unwrap(key)));
 
-  void insertRule(String rule) {
-    _ptr.insertRule(_unwrap(rule));
-    return;
-  }
+  void insertRule(String rule) => _ptr.insertRule(_unwrap(rule));
 }
 
 class _CSSMatrixImpl extends _DOMTypeBase implements CSSMatrix {
@@ -1728,46 +1497,25 @@ class _CSSMatrixImpl extends _DOMTypeBase implements CSSMatrix {
 
   void set m44(num value) { _ptr.m44 = _unwrap(value); }
 
-  CSSMatrix inverse() {
-    return _wrap(_ptr.inverse());
-  }
+  CSSMatrix inverse() => _wrap(_ptr.inverse());
 
-  CSSMatrix multiply(CSSMatrix secondMatrix) {
-    return _wrap(_ptr.multiply(_unwrap(secondMatrix)));
-  }
+  CSSMatrix multiply(CSSMatrix secondMatrix) => _wrap(_ptr.multiply(_unwrap(secondMatrix)));
 
-  CSSMatrix rotate(num rotX, num rotY, num rotZ) {
-    return _wrap(_ptr.rotate(_unwrap(rotX), _unwrap(rotY), _unwrap(rotZ)));
-  }
+  CSSMatrix rotate(num rotX, num rotY, num rotZ) => _wrap(_ptr.rotate(_unwrap(rotX), _unwrap(rotY), _unwrap(rotZ)));
 
-  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) {
-    return _wrap(_ptr.rotateAxisAngle(_unwrap(x), _unwrap(y), _unwrap(z), _unwrap(angle)));
-  }
+  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) => _wrap(_ptr.rotateAxisAngle(_unwrap(x), _unwrap(y), _unwrap(z), _unwrap(angle)));
 
-  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) {
-    return _wrap(_ptr.scale(_unwrap(scaleX), _unwrap(scaleY), _unwrap(scaleZ)));
-  }
+  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) => _wrap(_ptr.scale(_unwrap(scaleX), _unwrap(scaleY), _unwrap(scaleZ)));
 
-  void setMatrixValue(String string) {
-    _ptr.setMatrixValue(_unwrap(string));
-    return;
-  }
+  void setMatrixValue(String string) => _ptr.setMatrixValue(_unwrap(string));
 
-  CSSMatrix skewX(num angle) {
-    return _wrap(_ptr.skewX(_unwrap(angle)));
-  }
+  CSSMatrix skewX(num angle) => _wrap(_ptr.skewX(_unwrap(angle)));
 
-  CSSMatrix skewY(num angle) {
-    return _wrap(_ptr.skewY(_unwrap(angle)));
-  }
+  CSSMatrix skewY(num angle) => _wrap(_ptr.skewY(_unwrap(angle)));
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 
-  CSSMatrix translate(num x, num y, num z) {
-    return _wrap(_ptr.translate(_unwrap(x), _unwrap(y), _unwrap(z)));
-  }
+  CSSMatrix translate(num x, num y, num z) => _wrap(_ptr.translate(_unwrap(x), _unwrap(y), _unwrap(z)));
 }
 
 class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule {
@@ -1777,14 +1525,9 @@ class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule {
 
   MediaList get media() => _wrap(_ptr.media);
 
-  void deleteRule(int index) {
-    _ptr.deleteRule(_unwrap(index));
-    return;
-  }
+  void deleteRule(int index) => _ptr.deleteRule(_unwrap(index));
 
-  int insertRule(String rule, int index) {
-    return _wrap(_ptr.insertRule(_unwrap(rule), _unwrap(index)));
-  }
+  int insertRule(String rule, int index) => _wrap(_ptr.insertRule(_unwrap(rule), _unwrap(index)));
 }
 
 class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule {
@@ -1802,35 +1545,19 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
 
   int get primitiveType() => _wrap(_ptr.primitiveType);
 
-  Counter getCounterValue() {
-    return _wrap(_ptr.getCounterValue());
-  }
+  Counter getCounterValue() => _wrap(_ptr.getCounterValue());
 
-  num getFloatValue(int unitType) {
-    return _wrap(_ptr.getFloatValue(_unwrap(unitType)));
-  }
+  num getFloatValue(int unitType) => _wrap(_ptr.getFloatValue(_unwrap(unitType)));
 
-  RGBColor getRGBColorValue() {
-    return _wrap(_ptr.getRGBColorValue());
-  }
+  RGBColor getRGBColorValue() => _wrap(_ptr.getRGBColorValue());
 
-  Rect getRectValue() {
-    return _wrap(_ptr.getRectValue());
-  }
+  Rect getRectValue() => _wrap(_ptr.getRectValue());
 
-  String getStringValue() {
-    return _wrap(_ptr.getStringValue());
-  }
+  String getStringValue() => _wrap(_ptr.getStringValue());
 
-  void setFloatValue(int unitType, num floatValue) {
-    _ptr.setFloatValue(_unwrap(unitType), _unwrap(floatValue));
-    return;
-  }
+  void setFloatValue(int unitType, num floatValue) => _ptr.setFloatValue(_unwrap(unitType), _unwrap(floatValue));
 
-  void setStringValue(int stringType, String stringValue) {
-    _ptr.setStringValue(_unwrap(stringType), _unwrap(stringValue));
-    return;
-  }
+  void setStringValue(int stringType, String stringValue) => _ptr.setStringValue(_unwrap(stringType), _unwrap(stringValue));
 }
 
 class _CSSRuleImpl extends _DOMTypeBase implements CSSRule {
@@ -1852,9 +1579,7 @@ class _CSSRuleListImpl extends _DOMTypeBase implements CSSRuleList {
 
   int get length() => _wrap(_ptr.length);
 
-  CSSRule item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  CSSRule item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1886,43 +1611,21 @@ class _CSSStyleDeclarationImpl extends _DOMTypeBase implements CSSStyleDeclarati
 
   CSSRule get parentRule() => _wrap(_ptr.parentRule);
 
-  CSSValue getPropertyCSSValue(String propertyName) {
-    return _wrap(_ptr.getPropertyCSSValue(_unwrap(propertyName)));
-  }
+  CSSValue getPropertyCSSValue(String propertyName) => _wrap(_ptr.getPropertyCSSValue(_unwrap(propertyName)));
 
-  String getPropertyPriority(String propertyName) {
-    return _wrap(_ptr.getPropertyPriority(_unwrap(propertyName)));
-  }
+  String getPropertyPriority(String propertyName) => _wrap(_ptr.getPropertyPriority(_unwrap(propertyName)));
 
-  String getPropertyShorthand(String propertyName) {
-    return _wrap(_ptr.getPropertyShorthand(_unwrap(propertyName)));
-  }
+  String getPropertyShorthand(String propertyName) => _wrap(_ptr.getPropertyShorthand(_unwrap(propertyName)));
 
-  String getPropertyValue(String propertyName) {
-    return _wrap(_ptr.getPropertyValue(_unwrap(propertyName)));
-  }
+  String getPropertyValue(String propertyName) => _wrap(_ptr.getPropertyValue(_unwrap(propertyName)));
 
-  bool isPropertyImplicit(String propertyName) {
-    return _wrap(_ptr.isPropertyImplicit(_unwrap(propertyName)));
-  }
+  bool isPropertyImplicit(String propertyName) => _wrap(_ptr.isPropertyImplicit(_unwrap(propertyName)));
 
-  String item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  String item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  String removeProperty(String propertyName) {
-    return _wrap(_ptr.removeProperty(_unwrap(propertyName)));
-  }
+  String removeProperty(String propertyName) => _wrap(_ptr.removeProperty(_unwrap(propertyName)));
 
-  void setProperty(String propertyName, String value, [String priority = null]) {
-    if (priority === null) {
-      _ptr.setProperty(_unwrap(propertyName), _unwrap(value));
-      return;
-    } else {
-      _ptr.setProperty(_unwrap(propertyName), _unwrap(value), _unwrap(priority));
-      return;
-    }
-  }
+  void setProperty(String propertyName, String value, [String priority = null]) => _ptr.setProperty(_unwrap(propertyName), _unwrap(value), _unwrap(priority));
 
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -4709,27 +4412,13 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 
   CSSRuleList get rules() => _wrap(_ptr.rules);
 
-  int addRule(String selector, String style, [int index = null]) {
-    if (index === null) {
-      return _wrap(_ptr.addRule(_unwrap(selector), _unwrap(style)));
-    } else {
-      return _wrap(_ptr.addRule(_unwrap(selector), _unwrap(style), _unwrap(index)));
-    }
-  }
+  int addRule(String selector, String style, [int index = null]) => _wrap(_ptr.addRule(_unwrap(selector), _unwrap(style), _unwrap(index)));
 
-  void deleteRule(int index) {
-    _ptr.deleteRule(_unwrap(index));
-    return;
-  }
+  void deleteRule(int index) => _ptr.deleteRule(_unwrap(index));
 
-  int insertRule(String rule, int index) {
-    return _wrap(_ptr.insertRule(_unwrap(rule), _unwrap(index)));
-  }
+  int insertRule(String rule, int index) => _wrap(_ptr.insertRule(_unwrap(rule), _unwrap(index)));
 
-  void removeRule(int index) {
-    _ptr.removeRule(_unwrap(index));
-    return;
-  }
+  void removeRule(int index) => _ptr.removeRule(_unwrap(index));
 }
 
 class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
@@ -4757,9 +4446,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
 
   int get length() => _wrap(_ptr.length);
 
-  CSSValue item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  CSSValue item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _CanvasElementImpl extends _ElementImpl implements CanvasElement {
@@ -4773,22 +4460,15 @@ class _CanvasElementImpl extends _ElementImpl implements CanvasElement {
 
   void set width(int value) { _ptr.width = _unwrap(value); }
 
-  Object getContext(String contextId) {
-    return _wrap(_ptr.getContext(_unwrap(contextId)));
-  }
+  Object getContext(String contextId) => _wrap(_ptr.getContext(_unwrap(contextId)));
 
-  String toDataURL(String type) {
-    return _wrap(_ptr.toDataURL(_unwrap(type)));
-  }
+  String toDataURL(String type) => _wrap(_ptr.toDataURL(_unwrap(type)));
 }
 
 class _CanvasGradientImpl extends _DOMTypeBase implements CanvasGradient {
   _CanvasGradientImpl._wrap(ptr) : super._wrap(ptr);
 
-  void addColorStop(num offset, String color) {
-    _ptr.addColorStop(_unwrap(offset), _unwrap(color));
-    return;
-  }
+  void addColorStop(num offset, String color) => _ptr.addColorStop(_unwrap(offset), _unwrap(color));
 }
 
 class _CanvasPatternImpl extends _DOMTypeBase implements CanvasPattern {
@@ -4874,654 +4554,97 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void set webkitLineDashOffset(num value) { _ptr.webkitLineDashOffset = _unwrap(value); }
 
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) {
-    _ptr.arc(_unwrap(x), _unwrap(y), _unwrap(radius), _unwrap(startAngle), _unwrap(endAngle), _unwrap(anticlockwise));
-    return;
-  }
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) => _ptr.arc(_unwrap(x), _unwrap(y), _unwrap(radius), _unwrap(startAngle), _unwrap(endAngle), _unwrap(anticlockwise));
 
-  void arcTo(num x1, num y1, num x2, num y2, num radius) {
-    _ptr.arcTo(_unwrap(x1), _unwrap(y1), _unwrap(x2), _unwrap(y2), _unwrap(radius));
-    return;
-  }
+  void arcTo(num x1, num y1, num x2, num y2, num radius) => _ptr.arcTo(_unwrap(x1), _unwrap(y1), _unwrap(x2), _unwrap(y2), _unwrap(radius));
 
-  void beginPath() {
-    _ptr.beginPath();
-    return;
-  }
+  void beginPath() => _ptr.beginPath();
 
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) {
-    _ptr.bezierCurveTo(_unwrap(cp1x), _unwrap(cp1y), _unwrap(cp2x), _unwrap(cp2y), _unwrap(x), _unwrap(y));
-    return;
-  }
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) => _ptr.bezierCurveTo(_unwrap(cp1x), _unwrap(cp1y), _unwrap(cp2x), _unwrap(cp2y), _unwrap(x), _unwrap(y));
 
-  void clearRect(num x, num y, num width, num height) {
-    _ptr.clearRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-    return;
-  }
+  void clearRect(num x, num y, num width, num height) => _ptr.clearRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
 
-  void clearShadow() {
-    _ptr.clearShadow();
-    return;
-  }
+  void clearShadow() => _ptr.clearShadow();
 
-  void clip() {
-    _ptr.clip();
-    return;
-  }
+  void clip() => _ptr.clip();
 
-  void closePath() {
-    _ptr.closePath();
-    return;
-  }
+  void closePath() => _ptr.closePath();
 
-  ImageData createImageData(imagedata_OR_sw, [num sh = null]) {
-    if (imagedata_OR_sw is ImageData) {
-      if (sh === null) {
-        return _wrap(_ptr.createImageData(_unwrap(imagedata_OR_sw)));
-      }
-    } else {
-      if (imagedata_OR_sw is num) {
-        return _wrap(_ptr.createImageData(_unwrap(imagedata_OR_sw), _unwrap(sh)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  ImageData createImageData(imagedata_OR_sw, [num sh = null]) => _wrap(_ptr.createImageData(_unwrap(imagedata_OR_sw), _unwrap(sh)));
 
-  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) {
-    return _wrap(_ptr.createLinearGradient(_unwrap(x0), _unwrap(y0), _unwrap(x1), _unwrap(y1)));
-  }
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) => _wrap(_ptr.createLinearGradient(_unwrap(x0), _unwrap(y0), _unwrap(x1), _unwrap(y1)));
 
-  CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
-    if (canvas_OR_image is CanvasElement) {
-      return _wrap(_ptr.createPattern(_unwrap(canvas_OR_image), _unwrap(repetitionType)));
-    } else {
-      if (canvas_OR_image is ImageElement) {
-        return _wrap(_ptr.createPattern(_unwrap(canvas_OR_image), _unwrap(repetitionType)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType) => _wrap(_ptr.createPattern(_unwrap(canvas_OR_image), _unwrap(repetitionType)));
 
-  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) {
-    return _wrap(_ptr.createRadialGradient(_unwrap(x0), _unwrap(y0), _unwrap(r0), _unwrap(x1), _unwrap(y1), _unwrap(r1)));
-  }
+  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) => _wrap(_ptr.createRadialGradient(_unwrap(x0), _unwrap(y0), _unwrap(r0), _unwrap(x1), _unwrap(y1), _unwrap(r1)));
 
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
-    if (canvas_OR_image_OR_video is ImageElement) {
-      if (sw_OR_width === null) {
-        if (height_OR_sh === null) {
-          if (dx === null) {
-            if (dy === null) {
-              if (dw === null) {
-                if (dh === null) {
-                  _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y));
-                  return;
-                }
-              }
-            }
-          }
-        }
-      } else {
-        if (dx === null) {
-          if (dy === null) {
-            if (dw === null) {
-              if (dh === null) {
-                _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh));
-                return;
-              }
-            }
-          }
-        } else {
-          _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh));
-          return;
-        }
-      }
-    } else {
-      if (canvas_OR_image_OR_video is CanvasElement) {
-        if (sw_OR_width === null) {
-          if (height_OR_sh === null) {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y));
-                    return;
-                  }
-                }
-              }
-            }
-          }
-        } else {
-          if (dx === null) {
-            if (dy === null) {
-              if (dw === null) {
-                if (dh === null) {
-                  _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh));
-                  return;
-                }
-              }
-            }
-          } else {
-            _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh));
-            return;
-          }
-        }
-      } else {
-        if (canvas_OR_image_OR_video is VideoElement) {
-          if (sw_OR_width === null) {
-            if (height_OR_sh === null) {
-              if (dx === null) {
-                if (dy === null) {
-                  if (dw === null) {
-                    if (dh === null) {
-                      _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y));
-                      return;
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh));
-                    return;
-                  }
-                }
-              }
-            } else {
-              _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh));
-              return;
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) => _ptr.drawImage(_unwrap(canvas_OR_image_OR_video), _unwrap(sx_OR_x), _unwrap(sy_OR_y), _unwrap(sw_OR_width), _unwrap(height_OR_sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh));
 
-  void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
-    if (sx === null) {
-      if (sy === null) {
-        if (sw === null) {
-          if (sh === null) {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image));
-                      return;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    } else {
-      if (sy === null) {
-        if (sw === null) {
-          if (sh === null) {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx));
-                      return;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      } else {
-        if (sw === null) {
-          if (sh === null) {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy));
-                      return;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        } else {
-          if (sh === null) {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw));
-                      return;
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            if (dx === null) {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh));
-                      return;
-                    }
-                  }
-                }
-              }
-            } else {
-              if (dy === null) {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh), _unwrap(dx));
-                      return;
-                    }
-                  }
-                }
-              } else {
-                if (dw === null) {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh), _unwrap(dx), _unwrap(dy));
-                      return;
-                    }
-                  }
-                } else {
-                  if (dh === null) {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh), _unwrap(dx), _unwrap(dy), _unwrap(dw));
-                      return;
-                    }
-                  } else {
-                    if (compositeOperation === null) {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh));
-                      return;
-                    } else {
-                      _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh), _unwrap(compositeOperation));
-                      return;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) => _ptr.drawImageFromRect(_unwrap(image), _unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh), _unwrap(dx), _unwrap(dy), _unwrap(dw), _unwrap(dh), _unwrap(compositeOperation));
 
-  void fill() {
-    _ptr.fill();
-    return;
-  }
+  void fill() => _ptr.fill();
 
-  void fillRect(num x, num y, num width, num height) {
-    _ptr.fillRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-    return;
-  }
+  void fillRect(num x, num y, num width, num height) => _ptr.fillRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
 
-  void fillText(String text, num x, num y, [num maxWidth = null]) {
-    if (maxWidth === null) {
-      _ptr.fillText(_unwrap(text), _unwrap(x), _unwrap(y));
-      return;
-    } else {
-      _ptr.fillText(_unwrap(text), _unwrap(x), _unwrap(y), _unwrap(maxWidth));
-      return;
-    }
-  }
+  void fillText(String text, num x, num y, [num maxWidth = null]) => _ptr.fillText(_unwrap(text), _unwrap(x), _unwrap(y), _unwrap(maxWidth));
 
-  ImageData getImageData(num sx, num sy, num sw, num sh) {
-    return _wrap(_ptr.getImageData(_unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh)));
-  }
+  ImageData getImageData(num sx, num sy, num sw, num sh) => _wrap(_ptr.getImageData(_unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh)));
 
-  bool isPointInPath(num x, num y) {
-    return _wrap(_ptr.isPointInPath(_unwrap(x), _unwrap(y)));
-  }
+  bool isPointInPath(num x, num y) => _wrap(_ptr.isPointInPath(_unwrap(x), _unwrap(y)));
 
-  void lineTo(num x, num y) {
-    _ptr.lineTo(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void lineTo(num x, num y) => _ptr.lineTo(_unwrap(x), _unwrap(y));
 
-  TextMetrics measureText(String text) {
-    return _wrap(_ptr.measureText(_unwrap(text)));
-  }
+  TextMetrics measureText(String text) => _wrap(_ptr.measureText(_unwrap(text)));
 
-  void moveTo(num x, num y) {
-    _ptr.moveTo(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void moveTo(num x, num y) => _ptr.moveTo(_unwrap(x), _unwrap(y));
 
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
-    if (dirtyX === null) {
-      if (dirtyY === null) {
-        if (dirtyWidth === null) {
-          if (dirtyHeight === null) {
-            _ptr.putImageData(_unwrap(imagedata), _unwrap(dx), _unwrap(dy));
-            return;
-          }
-        }
-      }
-    } else {
-      _ptr.putImageData(_unwrap(imagedata), _unwrap(dx), _unwrap(dy), _unwrap(dirtyX), _unwrap(dirtyY), _unwrap(dirtyWidth), _unwrap(dirtyHeight));
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) => _ptr.putImageData(_unwrap(imagedata), _unwrap(dx), _unwrap(dy), _unwrap(dirtyX), _unwrap(dirtyY), _unwrap(dirtyWidth), _unwrap(dirtyHeight));
 
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) {
-    _ptr.quadraticCurveTo(_unwrap(cpx), _unwrap(cpy), _unwrap(x), _unwrap(y));
-    return;
-  }
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) => _ptr.quadraticCurveTo(_unwrap(cpx), _unwrap(cpy), _unwrap(x), _unwrap(y));
 
-  void rect(num x, num y, num width, num height) {
-    _ptr.rect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-    return;
-  }
+  void rect(num x, num y, num width, num height) => _ptr.rect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
 
-  void restore() {
-    _ptr.restore();
-    return;
-  }
+  void restore() => _ptr.restore();
 
-  void rotate(num angle) {
-    _ptr.rotate(_unwrap(angle));
-    return;
-  }
+  void rotate(num angle) => _ptr.rotate(_unwrap(angle));
 
-  void save() {
-    _ptr.save();
-    return;
-  }
+  void save() => _ptr.save();
 
-  void scale(num sx, num sy) {
-    _ptr.scale(_unwrap(sx), _unwrap(sy));
-    return;
-  }
+  void scale(num sx, num sy) => _ptr.scale(_unwrap(sx), _unwrap(sy));
 
-  void setAlpha(num alpha) {
-    _ptr.setAlpha(_unwrap(alpha));
-    return;
-  }
+  void setAlpha(num alpha) => _ptr.setAlpha(_unwrap(alpha));
 
-  void setCompositeOperation(String compositeOperation) {
-    _ptr.setCompositeOperation(_unwrap(compositeOperation));
-    return;
-  }
+  void setCompositeOperation(String compositeOperation) => _ptr.setCompositeOperation(_unwrap(compositeOperation));
 
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is String) {
-      if (alpha_OR_g_OR_m === null) {
-        if (b_OR_y === null) {
-          if (a_OR_k === null) {
-            if (a === null) {
-              _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r));
-              return;
-            }
-          }
-        }
-      } else {
-        if (b_OR_y === null) {
-          if (a_OR_k === null) {
-            if (a === null) {
-              _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m));
-              return;
-            }
-          }
-        }
-      }
-    } else {
-      if (c_OR_color_OR_grayLevel_OR_r is num) {
-        if (alpha_OR_g_OR_m === null) {
-          if (b_OR_y === null) {
-            if (a_OR_k === null) {
-              if (a === null) {
-                _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r));
-                return;
-              }
-            }
-          }
-        } else {
-          if (b_OR_y === null) {
-            if (a_OR_k === null) {
-              if (a === null) {
-                _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m));
-                return;
-              }
-            }
-          } else {
-            if (a === null) {
-              _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k));
-              return;
-            } else {
-              _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k), _unwrap(a));
-              return;
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) => _ptr.setFillColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k), _unwrap(a));
 
-  void setLineCap(String cap) {
-    _ptr.setLineCap(_unwrap(cap));
-    return;
-  }
+  void setLineCap(String cap) => _ptr.setLineCap(_unwrap(cap));
 
-  void setLineJoin(String join) {
-    _ptr.setLineJoin(_unwrap(join));
-    return;
-  }
+  void setLineJoin(String join) => _ptr.setLineJoin(_unwrap(join));
 
-  void setLineWidth(num width) {
-    _ptr.setLineWidth(_unwrap(width));
-    return;
-  }
+  void setLineWidth(num width) => _ptr.setLineWidth(_unwrap(width));
 
-  void setMiterLimit(num limit) {
-    _ptr.setMiterLimit(_unwrap(limit));
-    return;
-  }
+  void setMiterLimit(num limit) => _ptr.setMiterLimit(_unwrap(limit));
 
-  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r === null) {
-      if (alpha_OR_g_OR_m === null) {
-        if (b_OR_y === null) {
-          if (a_OR_k === null) {
-            if (a === null) {
-              _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur));
-              return;
-            }
-          }
-        }
-      }
-    } else {
-      if (c_OR_color_OR_grayLevel_OR_r is String) {
-        if (alpha_OR_g_OR_m === null) {
-          if (b_OR_y === null) {
-            if (a_OR_k === null) {
-              if (a === null) {
-                _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r));
-                return;
-              }
-            }
-          }
-        } else {
-          if (b_OR_y === null) {
-            if (a_OR_k === null) {
-              if (a === null) {
-                _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m));
-                return;
-              }
-            }
-          }
-        }
-      } else {
-        if (c_OR_color_OR_grayLevel_OR_r is num) {
-          if (alpha_OR_g_OR_m === null) {
-            if (b_OR_y === null) {
-              if (a_OR_k === null) {
-                if (a === null) {
-                  _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r));
-                  return;
-                }
-              }
-            }
-          } else {
-            if (b_OR_y === null) {
-              if (a_OR_k === null) {
-                if (a === null) {
-                  _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m));
-                  return;
-                }
-              }
-            } else {
-              if (a === null) {
-                _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k));
-                return;
-              } else {
-                _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k), _unwrap(a));
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) => _ptr.setShadow(_unwrap(width), _unwrap(height), _unwrap(blur), _unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k), _unwrap(a));
 
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is String) {
-      if (alpha_OR_g_OR_m === null) {
-        if (b_OR_y === null) {
-          if (a_OR_k === null) {
-            if (a === null) {
-              _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r));
-              return;
-            }
-          }
-        }
-      } else {
-        if (b_OR_y === null) {
-          if (a_OR_k === null) {
-            if (a === null) {
-              _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m));
-              return;
-            }
-          }
-        }
-      }
-    } else {
-      if (c_OR_color_OR_grayLevel_OR_r is num) {
-        if (alpha_OR_g_OR_m === null) {
-          if (b_OR_y === null) {
-            if (a_OR_k === null) {
-              if (a === null) {
-                _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r));
-                return;
-              }
-            }
-          }
-        } else {
-          if (b_OR_y === null) {
-            if (a_OR_k === null) {
-              if (a === null) {
-                _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m));
-                return;
-              }
-            }
-          } else {
-            if (a === null) {
-              _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k));
-              return;
-            } else {
-              _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k), _unwrap(a));
-              return;
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) => _ptr.setStrokeColor(_unwrap(c_OR_color_OR_grayLevel_OR_r), _unwrap(alpha_OR_g_OR_m), _unwrap(b_OR_y), _unwrap(a_OR_k), _unwrap(a));
 
-  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) {
-    _ptr.setTransform(_unwrap(m11), _unwrap(m12), _unwrap(m21), _unwrap(m22), _unwrap(dx), _unwrap(dy));
-    return;
-  }
+  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) => _ptr.setTransform(_unwrap(m11), _unwrap(m12), _unwrap(m21), _unwrap(m22), _unwrap(dx), _unwrap(dy));
 
-  void stroke() {
-    _ptr.stroke();
-    return;
-  }
+  void stroke() => _ptr.stroke();
 
-  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
-    if (lineWidth === null) {
-      _ptr.strokeRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-      return;
-    } else {
-      _ptr.strokeRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height), _unwrap(lineWidth));
-      return;
-    }
-  }
+  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) => _ptr.strokeRect(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height), _unwrap(lineWidth));
 
-  void strokeText(String text, num x, num y, [num maxWidth = null]) {
-    if (maxWidth === null) {
-      _ptr.strokeText(_unwrap(text), _unwrap(x), _unwrap(y));
-      return;
-    } else {
-      _ptr.strokeText(_unwrap(text), _unwrap(x), _unwrap(y), _unwrap(maxWidth));
-      return;
-    }
-  }
+  void strokeText(String text, num x, num y, [num maxWidth = null]) => _ptr.strokeText(_unwrap(text), _unwrap(x), _unwrap(y), _unwrap(maxWidth));
 
-  void transform(num m11, num m12, num m21, num m22, num dx, num dy) {
-    _ptr.transform(_unwrap(m11), _unwrap(m12), _unwrap(m21), _unwrap(m22), _unwrap(dx), _unwrap(dy));
-    return;
-  }
+  void transform(num m11, num m12, num m21, num m22, num dx, num dy) => _ptr.transform(_unwrap(m11), _unwrap(m12), _unwrap(m21), _unwrap(m22), _unwrap(dx), _unwrap(dy));
 
-  void translate(num tx, num ty) {
-    _ptr.translate(_unwrap(tx), _unwrap(ty));
-    return;
-  }
+  void translate(num tx, num ty) => _ptr.translate(_unwrap(tx), _unwrap(ty));
 
-  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
-    return _wrap(_ptr.webkitGetImageDataHD(_unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh)));
-  }
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) => _wrap(_ptr.webkitGetImageDataHD(_unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh)));
 
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
-    if (dirtyX === null) {
-      if (dirtyY === null) {
-        if (dirtyWidth === null) {
-          if (dirtyHeight === null) {
-            _ptr.webkitPutImageDataHD(_unwrap(imagedata), _unwrap(dx), _unwrap(dy));
-            return;
-          }
-        }
-      }
-    } else {
-      _ptr.webkitPutImageDataHD(_unwrap(imagedata), _unwrap(dx), _unwrap(dy), _unwrap(dirtyX), _unwrap(dirtyY), _unwrap(dirtyWidth), _unwrap(dirtyHeight));
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) => _ptr.webkitPutImageDataHD(_unwrap(imagedata), _unwrap(dx), _unwrap(dy), _unwrap(dirtyX), _unwrap(dirtyY), _unwrap(dirtyWidth), _unwrap(dirtyHeight));
 }
 
 class _CharacterDataImpl extends _NodeImpl implements CharacterData {
@@ -5533,29 +4656,15 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData {
 
   int get length() => _wrap(_ptr.length);
 
-  void appendData(String data) {
-    _ptr.appendData(_unwrap(data));
-    return;
-  }
+  void appendData(String data) => _ptr.appendData(_unwrap(data));
 
-  void deleteData(int offset, int length) {
-    _ptr.deleteData(_unwrap(offset), _unwrap(length));
-    return;
-  }
+  void deleteData(int offset, int length) => _ptr.deleteData(_unwrap(offset), _unwrap(length));
 
-  void insertData(int offset, String data) {
-    _ptr.insertData(_unwrap(offset), _unwrap(data));
-    return;
-  }
+  void insertData(int offset, String data) => _ptr.insertData(_unwrap(offset), _unwrap(data));
 
-  void replaceData(int offset, int length, String data) {
-    _ptr.replaceData(_unwrap(offset), _unwrap(length), _unwrap(data));
-    return;
-  }
+  void replaceData(int offset, int length, String data) => _ptr.replaceData(_unwrap(offset), _unwrap(length), _unwrap(data));
 
-  String substringData(int offset, int length) {
-    return _wrap(_ptr.substringData(_unwrap(offset), _unwrap(length)));
-  }
+  String substringData(int offset, int length) => _wrap(_ptr.substringData(_unwrap(offset), _unwrap(length)));
 }
 
 class _ClientRectImpl extends _DOMTypeBase implements ClientRect {
@@ -5579,9 +4688,7 @@ class _ClientRectListImpl extends _DOMTypeBase implements ClientRectList {
 
   int get length() => _wrap(_ptr.length);
 
-  ClientRect item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  ClientRect item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
@@ -5601,28 +4708,13 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
 
   List get types() => _wrap(_ptr.types);
 
-  void clearData([String type = null]) {
-    if (type === null) {
-      _ptr.clearData();
-      return;
-    } else {
-      _ptr.clearData(_unwrap(type));
-      return;
-    }
-  }
+  void clearData([String type = null]) => _ptr.clearData(_unwrap(type));
 
-  String getData(String type) {
-    return _wrap(_ptr.getData(_unwrap(type)));
-  }
+  String getData(String type) => _wrap(_ptr.getData(_unwrap(type)));
 
-  bool setData(String type, String data) {
-    return _wrap(_ptr.setData(_unwrap(type), _unwrap(data)));
-  }
+  bool setData(String type, String data) => _wrap(_ptr.setData(_unwrap(type), _unwrap(data)));
 
-  void setDragImage(ImageElement image, int x, int y) {
-    _ptr.setDragImage(_unwrap(image), _unwrap(x), _unwrap(y));
-    return;
-  }
+  void setDragImage(ImageElement image, int x, int y) => _ptr.setDragImage(_unwrap(image), _unwrap(x), _unwrap(y));
 }
 
 class _CloseEventImpl extends _EventImpl implements CloseEvent {
@@ -5644,10 +4736,7 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent {
 
   String get data() => _wrap(_ptr.data);
 
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
-    _ptr.initCompositionEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(viewArg), _unwrap(dataArg));
-    return;
-  }
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => _ptr.initCompositionEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(viewArg), _unwrap(dataArg));
 }
 
 class _ConsoleImpl extends _DOMTypeBase implements Console {
@@ -5657,100 +4746,43 @@ class _ConsoleImpl extends _DOMTypeBase implements Console {
 
   List<ScriptProfile> get profiles() => _wrap(_ptr.profiles);
 
-  void assertCondition(bool condition, Object arg) {
-    _ptr.assertCondition(_unwrap(condition), _unwrap(arg));
-    return;
-  }
+  void assertCondition(bool condition, Object arg) => _ptr.assertCondition(_unwrap(condition), _unwrap(arg));
 
-  void count() {
-    _ptr.count();
-    return;
-  }
+  void count() => _ptr.count();
 
-  void debug(Object arg) {
-    _ptr.debug(_unwrap(arg));
-    return;
-  }
+  void debug(Object arg) => _ptr.debug(_unwrap(arg));
 
-  void dir() {
-    _ptr.dir();
-    return;
-  }
+  void dir() => _ptr.dir();
 
-  void dirxml() {
-    _ptr.dirxml();
-    return;
-  }
+  void dirxml() => _ptr.dirxml();
 
-  void error(Object arg) {
-    _ptr.error(_unwrap(arg));
-    return;
-  }
+  void error(Object arg) => _ptr.error(_unwrap(arg));
 
-  void group(Object arg) {
-    _ptr.group(_unwrap(arg));
-    return;
-  }
+  void group(Object arg) => _ptr.group(_unwrap(arg));
 
-  void groupCollapsed(Object arg) {
-    _ptr.groupCollapsed(_unwrap(arg));
-    return;
-  }
+  void groupCollapsed(Object arg) => _ptr.groupCollapsed(_unwrap(arg));
 
-  void groupEnd() {
-    _ptr.groupEnd();
-    return;
-  }
+  void groupEnd() => _ptr.groupEnd();
 
-  void info(Object arg) {
-    _ptr.info(_unwrap(arg));
-    return;
-  }
+  void info(Object arg) => _ptr.info(_unwrap(arg));
 
-  void log(Object arg) {
-    _ptr.log(_unwrap(arg));
-    return;
-  }
+  void log(Object arg) => _ptr.log(_unwrap(arg));
 
-  void markTimeline() {
-    _ptr.markTimeline();
-    return;
-  }
+  void markTimeline() => _ptr.markTimeline();
 
-  void profile(String title) {
-    _ptr.profile(_unwrap(title));
-    return;
-  }
+  void profile(String title) => _ptr.profile(_unwrap(title));
 
-  void profileEnd(String title) {
-    _ptr.profileEnd(_unwrap(title));
-    return;
-  }
+  void profileEnd(String title) => _ptr.profileEnd(_unwrap(title));
 
-  void time(String title) {
-    _ptr.time(_unwrap(title));
-    return;
-  }
+  void time(String title) => _ptr.time(_unwrap(title));
 
-  void timeEnd(String title, Object arg) {
-    _ptr.timeEnd(_unwrap(title), _unwrap(arg));
-    return;
-  }
+  void timeEnd(String title, Object arg) => _ptr.timeEnd(_unwrap(title), _unwrap(arg));
 
-  void timeStamp(Object arg) {
-    _ptr.timeStamp(_unwrap(arg));
-    return;
-  }
+  void timeStamp(Object arg) => _ptr.timeStamp(_unwrap(arg));
 
-  void trace(Object arg) {
-    _ptr.trace(_unwrap(arg));
-    return;
-  }
+  void trace(Object arg) => _ptr.trace(_unwrap(arg));
 
-  void warn(Object arg) {
-    _ptr.warn(_unwrap(arg));
-    return;
-  }
+  void warn(Object arg) => _ptr.warn(_unwrap(arg));
 }
 
 class _ContentElementImpl extends _ElementImpl implements ContentElement {
@@ -5804,10 +4836,7 @@ class _CounterImpl extends _DOMTypeBase implements Counter {
 class _CryptoImpl extends _DOMTypeBase implements Crypto {
   _CryptoImpl._wrap(ptr) : super._wrap(ptr);
 
-  void getRandomValues(ArrayBufferView array) {
-    _ptr.getRandomValues(_unwrap(array));
-    return;
-  }
+  void getRandomValues(ArrayBufferView array) => _ptr.getRandomValues(_unwrap(array));
 }
 
 class _CustomEventImpl extends _EventImpl implements CustomEvent {
@@ -5815,10 +4844,7 @@ class _CustomEventImpl extends _EventImpl implements CustomEvent {
 
   Object get detail() => _wrap(_ptr.detail);
 
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
-    _ptr.initCustomEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(detailArg));
-    return;
-  }
+  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) => _ptr.initCustomEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(detailArg));
 }
 
 class _DListElementImpl extends _ElementImpl implements DListElement {
@@ -5839,44 +4865,17 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   int get status() => _wrap(_ptr.status);
 
-  void abort() {
-    _ptr.abort();
-    return;
-  }
+  void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void swapCache() {
-    _ptr.swapCache();
-    return;
-  }
+  void swapCache() => _ptr.swapCache();
 
-  void update() {
-    _ptr.update();
-    return;
-  }
+  void update() => _ptr.update();
 }
 
 class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
@@ -5908,9 +4907,7 @@ class _DOMExceptionImpl extends _DOMTypeBase implements DOMException {
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _DOMFileSystemImpl extends _DOMTypeBase implements DOMFileSystem {
@@ -5932,34 +4929,21 @@ class _DOMFileSystemSyncImpl extends _DOMTypeBase implements DOMFileSystemSync {
 class _DOMFormDataImpl extends _DOMTypeBase implements DOMFormData {
   _DOMFormDataImpl._wrap(ptr) : super._wrap(ptr);
 
-  void append(String name, String value, String filename) {
-    _ptr.append(_unwrap(name), _unwrap(value), _unwrap(filename));
-    return;
-  }
+  void append(String name, String value, String filename) => _ptr.append(_unwrap(name), _unwrap(value), _unwrap(filename));
 }
 
 class _DOMImplementationImpl extends _DOMTypeBase implements DOMImplementation {
   _DOMImplementationImpl._wrap(ptr) : super._wrap(ptr);
 
-  CSSStyleSheet createCSSStyleSheet(String title, String media) {
-    return _wrap(_ptr.createCSSStyleSheet(_unwrap(title), _unwrap(media)));
-  }
+  CSSStyleSheet createCSSStyleSheet(String title, String media) => _wrap(_ptr.createCSSStyleSheet(_unwrap(title), _unwrap(media)));
 
-  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) {
-    return _wrap(_ptr.createDocument(_unwrap(namespaceURI), _unwrap(qualifiedName), _unwrap(doctype)));
-  }
+  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) => _wrap(_ptr.createDocument(_unwrap(namespaceURI), _unwrap(qualifiedName), _unwrap(doctype)));
 
-  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) {
-    return _wrap(_ptr.createDocumentType(_unwrap(qualifiedName), _unwrap(publicId), _unwrap(systemId)));
-  }
+  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => _wrap(_ptr.createDocumentType(_unwrap(qualifiedName), _unwrap(publicId), _unwrap(systemId)));
 
-  Document createHTMLDocument(String title) {
-    return _wrap(_ptr.createHTMLDocument(_unwrap(title)));
-  }
+  Document createHTMLDocument(String title) => _wrap(_ptr.createHTMLDocument(_unwrap(title)));
 
-  bool hasFeature(String feature, String version) {
-    return _wrap(_ptr.hasFeature(_unwrap(feature), _unwrap(version)));
-  }
+  bool hasFeature(String feature, String version) => _wrap(_ptr.hasFeature(_unwrap(feature), _unwrap(version)));
 }
 
 class _DOMMimeTypeImpl extends _DOMTypeBase implements DOMMimeType {
@@ -5979,21 +4963,15 @@ class _DOMMimeTypeArrayImpl extends _DOMTypeBase implements DOMMimeTypeArray {
 
   int get length() => _wrap(_ptr.length);
 
-  DOMMimeType item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  DOMMimeType item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  DOMMimeType namedItem(String name) {
-    return _wrap(_ptr.namedItem(_unwrap(name)));
-  }
+  DOMMimeType namedItem(String name) => _wrap(_ptr.namedItem(_unwrap(name)));
 }
 
 class _DOMParserImpl extends _DOMTypeBase implements DOMParser {
   _DOMParserImpl._wrap(ptr) : super._wrap(ptr);
 
-  Document parseFromString(String str, String contentType) {
-    return _wrap(_ptr.parseFromString(_unwrap(str), _unwrap(contentType)));
-  }
+  Document parseFromString(String str, String contentType) => _wrap(_ptr.parseFromString(_unwrap(str), _unwrap(contentType)));
 }
 
 class _DOMPluginImpl extends _DOMTypeBase implements DOMPlugin {
@@ -6007,13 +4985,9 @@ class _DOMPluginImpl extends _DOMTypeBase implements DOMPlugin {
 
   String get name() => _wrap(_ptr.name);
 
-  DOMMimeType item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  DOMMimeType item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  DOMMimeType namedItem(String name) {
-    return _wrap(_ptr.namedItem(_unwrap(name)));
-  }
+  DOMMimeType namedItem(String name) => _wrap(_ptr.namedItem(_unwrap(name)));
 }
 
 class _DOMPluginArrayImpl extends _DOMTypeBase implements DOMPluginArray {
@@ -6021,18 +4995,11 @@ class _DOMPluginArrayImpl extends _DOMTypeBase implements DOMPluginArray {
 
   int get length() => _wrap(_ptr.length);
 
-  DOMPlugin item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  DOMPlugin item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  DOMPlugin namedItem(String name) {
-    return _wrap(_ptr.namedItem(_unwrap(name)));
-  }
+  DOMPlugin namedItem(String name) => _wrap(_ptr.namedItem(_unwrap(name)));
 
-  void refresh(bool reload) {
-    _ptr.refresh(_unwrap(reload));
-    return;
-  }
+  void refresh(bool reload) => _ptr.refresh(_unwrap(reload));
 }
 
 class _DOMSelectionImpl extends _DOMTypeBase implements DOMSelection {
@@ -6060,77 +5027,35 @@ class _DOMSelectionImpl extends _DOMTypeBase implements DOMSelection {
 
   String get type() => _wrap(_ptr.type);
 
-  void addRange(Range range) {
-    _ptr.addRange(_unwrap(range));
-    return;
-  }
+  void addRange(Range range) => _ptr.addRange(_unwrap(range));
 
-  void collapse(Node node, int index) {
-    _ptr.collapse(_unwrap(node), _unwrap(index));
-    return;
-  }
+  void collapse(Node node, int index) => _ptr.collapse(_unwrap(node), _unwrap(index));
 
-  void collapseToEnd() {
-    _ptr.collapseToEnd();
-    return;
-  }
+  void collapseToEnd() => _ptr.collapseToEnd();
 
-  void collapseToStart() {
-    _ptr.collapseToStart();
-    return;
-  }
+  void collapseToStart() => _ptr.collapseToStart();
 
-  bool containsNode(Node node, bool allowPartial) {
-    return _wrap(_ptr.containsNode(_unwrap(node), _unwrap(allowPartial)));
-  }
+  bool containsNode(Node node, bool allowPartial) => _wrap(_ptr.containsNode(_unwrap(node), _unwrap(allowPartial)));
 
-  void deleteFromDocument() {
-    _ptr.deleteFromDocument();
-    return;
-  }
+  void deleteFromDocument() => _ptr.deleteFromDocument();
 
-  void empty() {
-    _ptr.empty();
-    return;
-  }
+  void empty() => _ptr.empty();
 
-  void extend(Node node, int offset) {
-    _ptr.extend(_unwrap(node), _unwrap(offset));
-    return;
-  }
+  void extend(Node node, int offset) => _ptr.extend(_unwrap(node), _unwrap(offset));
 
-  Range getRangeAt(int index) {
-    return _wrap(_ptr.getRangeAt(_unwrap(index)));
-  }
+  Range getRangeAt(int index) => _wrap(_ptr.getRangeAt(_unwrap(index)));
 
-  void modify(String alter, String direction, String granularity) {
-    _ptr.modify(_unwrap(alter), _unwrap(direction), _unwrap(granularity));
-    return;
-  }
+  void modify(String alter, String direction, String granularity) => _ptr.modify(_unwrap(alter), _unwrap(direction), _unwrap(granularity));
 
-  void removeAllRanges() {
-    _ptr.removeAllRanges();
-    return;
-  }
+  void removeAllRanges() => _ptr.removeAllRanges();
 
-  void selectAllChildren(Node node) {
-    _ptr.selectAllChildren(_unwrap(node));
-    return;
-  }
+  void selectAllChildren(Node node) => _ptr.selectAllChildren(_unwrap(node));
 
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) {
-    _ptr.setBaseAndExtent(_unwrap(baseNode), _unwrap(baseOffset), _unwrap(extentNode), _unwrap(extentOffset));
-    return;
-  }
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) => _ptr.setBaseAndExtent(_unwrap(baseNode), _unwrap(baseOffset), _unwrap(extentNode), _unwrap(extentOffset));
 
-  void setPosition(Node node, int offset) {
-    _ptr.setPosition(_unwrap(node), _unwrap(offset));
-    return;
-  }
+  void setPosition(Node node, int offset) => _ptr.setPosition(_unwrap(node), _unwrap(offset));
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettableTokenList {
@@ -6228,13 +5153,9 @@ class _DOMStringListImpl extends _DOMTypeBase implements DOMStringList {
 
   // -- end List<String> mixins.
 
-  bool contains(String string) {
-    return _wrap(_ptr.contains(_unwrap(string)));
-  }
+  bool contains(String string) => _wrap(_ptr.contains(_unwrap(string)));
 
-  String item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  String item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
@@ -6242,31 +5163,17 @@ class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
 
   int get length() => _wrap(_ptr.length);
 
-  void add(String token) {
-    _ptr.add(_unwrap(token));
-    return;
-  }
+  void add(String token) => _ptr.add(_unwrap(token));
 
-  bool contains(String token) {
-    return _wrap(_ptr.contains(_unwrap(token)));
-  }
+  bool contains(String token) => _wrap(_ptr.contains(_unwrap(token)));
 
-  String item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  String item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  void remove(String token) {
-    _ptr.remove(_unwrap(token));
-    return;
-  }
+  void remove(String token) => _ptr.remove(_unwrap(token));
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 
-  bool toggle(String token) {
-    return _wrap(_ptr.toggle(_unwrap(token)));
-  }
+  bool toggle(String token) => _wrap(_ptr.toggle(_unwrap(token)));
 }
 
 class _DOMURLImpl extends _DOMTypeBase implements DOMURL {
@@ -6280,29 +5187,11 @@ class _DataTransferItemImpl extends _DOMTypeBase implements DataTransferItem {
 
   String get type() => _wrap(_ptr.type);
 
-  Blob getAsFile() {
-    return _wrap(_ptr.getAsFile());
-  }
+  Blob getAsFile() => _wrap(_ptr.getAsFile());
 
-  void getAsString([StringCallback callback = null]) {
-    if (callback === null) {
-      _ptr.getAsString();
-      return;
-    } else {
-      _ptr.getAsString(_unwrap(callback));
-      return;
-    }
-  }
+  void getAsString([StringCallback callback = null]) => _ptr.getAsString(_unwrap(callback));
 
-  void webkitGetAsEntry([EntryCallback callback = null]) {
-    if (callback === null) {
-      _ptr.webkitGetAsEntry();
-      return;
-    } else {
-      _ptr.webkitGetAsEntry(_unwrap(callback));
-      return;
-    }
-  }
+  void webkitGetAsEntry([EntryCallback callback = null]) => _ptr.webkitGetAsEntry(_unwrap(callback));
 }
 
 class _DataTransferItemListImpl extends _DOMTypeBase implements DataTransferItemList {
@@ -6310,159 +5199,47 @@ class _DataTransferItemListImpl extends _DOMTypeBase implements DataTransferItem
 
   int get length() => _wrap(_ptr.length);
 
-  void add(data_OR_file, [String type = null]) {
-    if (data_OR_file is File) {
-      if (type === null) {
-        _ptr.add(_unwrap(data_OR_file));
-        return;
-      }
-    } else {
-      if (data_OR_file is String) {
-        _ptr.add(_unwrap(data_OR_file), _unwrap(type));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void add(data_OR_file, [String type = null]) => _ptr.add(_unwrap(data_OR_file), _unwrap(type));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  DataTransferItem item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  DataTransferItem item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
   _DataViewImpl._wrap(ptr) : super._wrap(ptr);
 
-  num getFloat32(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      return _wrap(_ptr.getFloat32(_unwrap(byteOffset)));
-    } else {
-      return _wrap(_ptr.getFloat32(_unwrap(byteOffset), _unwrap(littleEndian)));
-    }
-  }
+  num getFloat32(int byteOffset, [bool littleEndian = null]) => _wrap(_ptr.getFloat32(_unwrap(byteOffset), _unwrap(littleEndian)));
 
-  num getFloat64(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      return _wrap(_ptr.getFloat64(_unwrap(byteOffset)));
-    } else {
-      return _wrap(_ptr.getFloat64(_unwrap(byteOffset), _unwrap(littleEndian)));
-    }
-  }
+  num getFloat64(int byteOffset, [bool littleEndian = null]) => _wrap(_ptr.getFloat64(_unwrap(byteOffset), _unwrap(littleEndian)));
 
-  int getInt16(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      return _wrap(_ptr.getInt16(_unwrap(byteOffset)));
-    } else {
-      return _wrap(_ptr.getInt16(_unwrap(byteOffset), _unwrap(littleEndian)));
-    }
-  }
+  int getInt16(int byteOffset, [bool littleEndian = null]) => _wrap(_ptr.getInt16(_unwrap(byteOffset), _unwrap(littleEndian)));
 
-  int getInt32(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      return _wrap(_ptr.getInt32(_unwrap(byteOffset)));
-    } else {
-      return _wrap(_ptr.getInt32(_unwrap(byteOffset), _unwrap(littleEndian)));
-    }
-  }
+  int getInt32(int byteOffset, [bool littleEndian = null]) => _wrap(_ptr.getInt32(_unwrap(byteOffset), _unwrap(littleEndian)));
 
-  Object getInt8() {
-    return _wrap(_ptr.getInt8());
-  }
+  Object getInt8() => _wrap(_ptr.getInt8());
 
-  int getUint16(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      return _wrap(_ptr.getUint16(_unwrap(byteOffset)));
-    } else {
-      return _wrap(_ptr.getUint16(_unwrap(byteOffset), _unwrap(littleEndian)));
-    }
-  }
+  int getUint16(int byteOffset, [bool littleEndian = null]) => _wrap(_ptr.getUint16(_unwrap(byteOffset), _unwrap(littleEndian)));
 
-  int getUint32(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      return _wrap(_ptr.getUint32(_unwrap(byteOffset)));
-    } else {
-      return _wrap(_ptr.getUint32(_unwrap(byteOffset), _unwrap(littleEndian)));
-    }
-  }
+  int getUint32(int byteOffset, [bool littleEndian = null]) => _wrap(_ptr.getUint32(_unwrap(byteOffset), _unwrap(littleEndian)));
 
-  Object getUint8() {
-    return _wrap(_ptr.getUint8());
-  }
+  Object getUint8() => _wrap(_ptr.getUint8());
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      _ptr.setFloat32(_unwrap(byteOffset), _unwrap(value));
-      return;
-    } else {
-      _ptr.setFloat32(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
-      return;
-    }
-  }
+  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) => _ptr.setFloat32(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      _ptr.setFloat64(_unwrap(byteOffset), _unwrap(value));
-      return;
-    } else {
-      _ptr.setFloat64(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
-      return;
-    }
-  }
+  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) => _ptr.setFloat64(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
 
-  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      _ptr.setInt16(_unwrap(byteOffset), _unwrap(value));
-      return;
-    } else {
-      _ptr.setInt16(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
-      return;
-    }
-  }
+  void setInt16(int byteOffset, int value, [bool littleEndian = null]) => _ptr.setInt16(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
 
-  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      _ptr.setInt32(_unwrap(byteOffset), _unwrap(value));
-      return;
-    } else {
-      _ptr.setInt32(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
-      return;
-    }
-  }
+  void setInt32(int byteOffset, int value, [bool littleEndian = null]) => _ptr.setInt32(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
 
-  void setInt8() {
-    _ptr.setInt8();
-    return;
-  }
+  void setInt8() => _ptr.setInt8();
 
-  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      _ptr.setUint16(_unwrap(byteOffset), _unwrap(value));
-      return;
-    } else {
-      _ptr.setUint16(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
-      return;
-    }
-  }
+  void setUint16(int byteOffset, int value, [bool littleEndian = null]) => _ptr.setUint16(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
 
-  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
-      _ptr.setUint32(_unwrap(byteOffset), _unwrap(value));
-      return;
-    } else {
-      _ptr.setUint32(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
-      return;
-    }
-  }
+  void setUint32(int byteOffset, int value, [bool littleEndian = null]) => _ptr.setUint32(_unwrap(byteOffset), _unwrap(value), _unwrap(littleEndian));
 
-  void setUint8() {
-    _ptr.setUint8();
-    return;
-  }
+  void setUint8() => _ptr.setUint8();
 }
 
 class _DatabaseImpl extends _DOMTypeBase implements Database {
@@ -6470,68 +5247,11 @@ class _DatabaseImpl extends _DOMTypeBase implements Database {
 
   String get version() => _wrap(_ptr.version);
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
-    if (callback === null) {
-      if (errorCallback === null) {
-        if (successCallback === null) {
-          _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion));
-          return;
-        }
-      }
-    } else {
-      if (errorCallback === null) {
-        if (successCallback === null) {
-          _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion), _unwrap(callback));
-          return;
-        }
-      } else {
-        if (successCallback === null) {
-          _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion), _unwrap(callback), _unwrap(errorCallback));
-          return;
-        } else {
-          _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion), _unwrap(callback), _unwrap(errorCallback), _unwrap(successCallback));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) => _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion), _unwrap(callback), _unwrap(errorCallback), _unwrap(successCallback));
 
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
-    if (errorCallback === null) {
-      if (successCallback === null) {
-        _ptr.readTransaction(_unwrap(callback));
-        return;
-      }
-    } else {
-      if (successCallback === null) {
-        _ptr.readTransaction(_unwrap(callback), _unwrap(errorCallback));
-        return;
-      } else {
-        _ptr.readTransaction(_unwrap(callback), _unwrap(errorCallback), _unwrap(successCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) => _ptr.readTransaction(_unwrap(callback), _unwrap(errorCallback), _unwrap(successCallback));
 
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
-    if (errorCallback === null) {
-      if (successCallback === null) {
-        _ptr.transaction(_unwrap(callback));
-        return;
-      }
-    } else {
-      if (successCallback === null) {
-        _ptr.transaction(_unwrap(callback), _unwrap(errorCallback));
-        return;
-      } else {
-        _ptr.transaction(_unwrap(callback), _unwrap(errorCallback), _unwrap(successCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) => _ptr.transaction(_unwrap(callback), _unwrap(errorCallback), _unwrap(successCallback));
 }
 
 class _DatabaseSyncImpl extends _DOMTypeBase implements DatabaseSync {
@@ -6541,25 +5261,11 @@ class _DatabaseSyncImpl extends _DOMTypeBase implements DatabaseSync {
 
   String get version() => _wrap(_ptr.version);
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) {
-    if (callback === null) {
-      _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion));
-      return;
-    } else {
-      _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion), _unwrap(callback));
-      return;
-    }
-  }
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) => _ptr.changeVersion(_unwrap(oldVersion), _unwrap(newVersion), _unwrap(callback));
 
-  void readTransaction(SQLTransactionSyncCallback callback) {
-    _ptr.readTransaction(_unwrap(callback));
-    return;
-  }
+  void readTransaction(SQLTransactionSyncCallback callback) => _ptr.readTransaction(_unwrap(callback));
 
-  void transaction(SQLTransactionSyncCallback callback) {
-    _ptr.transaction(_unwrap(callback));
-    return;
-  }
+  void transaction(SQLTransactionSyncCallback callback) => _ptr.transaction(_unwrap(callback));
 }
 
 class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements DedicatedWorkerContext {
@@ -6570,25 +5276,9 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
     return _on;
   }
 
-  void postMessage(Object message, [List messagePorts = null]) {
-    if (messagePorts === null) {
-      _ptr.postMessage(_unwrap(message));
-      return;
-    } else {
-      _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
-      return;
-    }
-  }
+  void postMessage(Object message, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
 
-  void webkitPostMessage(Object message, [List transferList = null]) {
-    if (transferList === null) {
-      _ptr.webkitPostMessage(_unwrap(message));
-      return;
-    } else {
-      _ptr.webkitPostMessage(_unwrap(message), _unwrap(transferList));
-      return;
-    }
-  }
+  void webkitPostMessage(Object message, [List transferList = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(transferList));
 }
 
 class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
@@ -6617,54 +5307,21 @@ class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements Deprecat
 
   MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void addStream(MediaStream stream) {
-    _ptr.addStream(_unwrap(stream));
-    return;
-  }
+  void addStream(MediaStream stream) => _ptr.addStream(_unwrap(stream));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void processSignalingMessage(String message) {
-    _ptr.processSignalingMessage(_unwrap(message));
-    return;
-  }
+  void processSignalingMessage(String message) => _ptr.processSignalingMessage(_unwrap(message));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void removeStream(MediaStream stream) {
-    _ptr.removeStream(_unwrap(stream));
-    return;
-  }
+  void removeStream(MediaStream stream) => _ptr.removeStream(_unwrap(stream));
 
-  void send(String text) {
-    _ptr.send(_unwrap(text));
-    return;
-  }
+  void send(String text) => _ptr.send(_unwrap(text));
 }
 
 class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
@@ -6708,10 +5365,7 @@ class _DeviceOrientationEventImpl extends _EventImpl implements DeviceOrientatio
 
   num get gamma() => _wrap(_ptr.gamma);
 
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) {
-    _ptr.initDeviceOrientationEvent(_unwrap(type), _unwrap(bubbles), _unwrap(cancelable), _unwrap(alpha), _unwrap(beta), _unwrap(gamma), _unwrap(absolute));
-    return;
-  }
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) => _ptr.initDeviceOrientationEvent(_unwrap(type), _unwrap(bubbles), _unwrap(cancelable), _unwrap(alpha), _unwrap(beta), _unwrap(gamma), _unwrap(absolute));
 }
 
 class _DirectoryElementImpl extends _ElementImpl implements DirectoryElement {
@@ -6725,116 +5379,37 @@ class _DirectoryElementImpl extends _ElementImpl implements DirectoryElement {
 class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
   _DirectoryEntryImpl._wrap(ptr) : super._wrap(ptr);
 
-  DirectoryReader createReader() {
-    return _wrap(_ptr.createReader());
-  }
+  DirectoryReader createReader() => _wrap(_ptr.createReader());
 
-  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (flags === null) {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.getDirectory(_unwrap(path));
-          return;
-        }
-      }
-    } else {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.getDirectory(_unwrap(path), _unwrap(flags));
-          return;
-        }
-      } else {
-        if (errorCallback === null) {
-          _ptr.getDirectory(_unwrap(path), _unwrap(flags), _unwrap(successCallback));
-          return;
-        } else {
-          _ptr.getDirectory(_unwrap(path), _unwrap(flags), _unwrap(successCallback), _unwrap(errorCallback));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.getDirectory(_unwrap(path), _unwrap(flags), _unwrap(successCallback), _unwrap(errorCallback));
 
-  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (flags === null) {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.getFile(_unwrap(path));
-          return;
-        }
-      }
-    } else {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.getFile(_unwrap(path), _unwrap(flags));
-          return;
-        }
-      } else {
-        if (errorCallback === null) {
-          _ptr.getFile(_unwrap(path), _unwrap(flags), _unwrap(successCallback));
-          return;
-        } else {
-          _ptr.getFile(_unwrap(path), _unwrap(flags), _unwrap(successCallback), _unwrap(errorCallback));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.getFile(_unwrap(path), _unwrap(flags), _unwrap(successCallback), _unwrap(errorCallback));
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.removeRecursively(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.removeRecursively(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.removeRecursively(_unwrap(successCallback), _unwrap(errorCallback));
 }
 
 class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySync {
   _DirectoryEntrySyncImpl._wrap(ptr) : super._wrap(ptr);
 
-  DirectoryReaderSync createReader() {
-    return _wrap(_ptr.createReader());
-  }
+  DirectoryReaderSync createReader() => _wrap(_ptr.createReader());
 
-  DirectoryEntrySync getDirectory(String path, Object flags) {
-    return _wrap(_ptr.getDirectory(_unwrap(path), _unwrap(flags)));
-  }
+  DirectoryEntrySync getDirectory(String path, Object flags) => _wrap(_ptr.getDirectory(_unwrap(path), _unwrap(flags)));
 
-  FileEntrySync getFile(String path, Object flags) {
-    return _wrap(_ptr.getFile(_unwrap(path), _unwrap(flags)));
-  }
+  FileEntrySync getFile(String path, Object flags) => _wrap(_ptr.getFile(_unwrap(path), _unwrap(flags)));
 
-  void removeRecursively() {
-    _ptr.removeRecursively();
-    return;
-  }
+  void removeRecursively() => _ptr.removeRecursively();
 }
 
 class _DirectoryReaderImpl extends _DOMTypeBase implements DirectoryReader {
   _DirectoryReaderImpl._wrap(ptr) : super._wrap(ptr);
 
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.readEntries(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.readEntries(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.readEntries(_unwrap(successCallback), _unwrap(errorCallback));
 }
 
 class _DirectoryReaderSyncImpl extends _DOMTypeBase implements DirectoryReaderSync {
   _DirectoryReaderSyncImpl._wrap(ptr) : super._wrap(ptr);
 
-  EntryArraySync readEntries() {
-    return _wrap(_ptr.readEntries());
-  }
+  EntryArraySync readEntries() => _wrap(_ptr.readEntries());
 }
 
 class _DivElementImpl extends _ElementImpl implements DivElement {
@@ -6913,115 +5488,59 @@ class _DocumentImpl extends _NodeImpl
 
   String get webkitVisibilityState() => _wrap(_ptr.webkitVisibilityState);
 
-  Range caretRangeFromPoint(int x, int y) {
-    return _wrap(_ptr.caretRangeFromPoint(_unwrap(x), _unwrap(y)));
-  }
+  Range caretRangeFromPoint(int x, int y) => _wrap(_ptr.caretRangeFromPoint(_unwrap(x), _unwrap(y)));
 
-  CDATASection createCDATASection(String data) {
-    return _wrap(_ptr.createCDATASection(_unwrap(data)));
-  }
+  CDATASection createCDATASection(String data) => _wrap(_ptr.createCDATASection(_unwrap(data)));
 
-  DocumentFragment createDocumentFragment() {
-    return _wrap(_ptr.createDocumentFragment());
-  }
+  DocumentFragment createDocumentFragment() => _wrap(_ptr.createDocumentFragment());
 
-  Element $dom_createElement(String tagName) {
-    return _wrap(_ptr.createElement(_unwrap(tagName)));
-  }
+  Element $dom_createElement(String tagName) => _wrap(_ptr.createElement(_unwrap(tagName)));
 
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName) {
-    return _wrap(_ptr.createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
-  }
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName) => _wrap(_ptr.createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
 
-  Event $dom_createEvent(String eventType) {
-    return _wrap(_ptr.createEvent(_unwrap(eventType)));
-  }
+  Event $dom_createEvent(String eventType) => _wrap(_ptr.createEvent(_unwrap(eventType)));
 
-  Range createRange() {
-    return _wrap(_ptr.createRange());
-  }
+  Range createRange() => _wrap(_ptr.createRange());
 
-  Text $dom_createTextNode(String data) {
-    return _wrap(_ptr.createTextNode(_unwrap(data)));
-  }
+  Text $dom_createTextNode(String data) => _wrap(_ptr.createTextNode(_unwrap(data)));
 
-  Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
-    return _wrap(_ptr.createTouch(_unwrap(window), _unwrap(target), _unwrap(identifier), _unwrap(pageX), _unwrap(pageY), _unwrap(screenX), _unwrap(screenY), _unwrap(webkitRadiusX), _unwrap(webkitRadiusY), _unwrap(webkitRotationAngle), _unwrap(webkitForce)));
-  }
+  Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => _wrap(_ptr.createTouch(_unwrap(window), _unwrap(target), _unwrap(identifier), _unwrap(pageX), _unwrap(pageY), _unwrap(screenX), _unwrap(screenY), _unwrap(webkitRadiusX), _unwrap(webkitRadiusY), _unwrap(webkitRotationAngle), _unwrap(webkitForce)));
 
-  TouchList $dom_createTouchList() {
-    return _wrap(_ptr.createTouchList());
-  }
+  TouchList $dom_createTouchList() => _wrap(_ptr.createTouchList());
 
-  Element elementFromPoint(int x, int y) {
-    return _wrap(_ptr.elementFromPoint(_unwrap(x), _unwrap(y)));
-  }
+  Element elementFromPoint(int x, int y) => _wrap(_ptr.elementFromPoint(_unwrap(x), _unwrap(y)));
 
-  bool execCommand(String command, bool userInterface, String value) {
-    return _wrap(_ptr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
-  }
+  bool execCommand(String command, bool userInterface, String value) => _wrap(_ptr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
 
-  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
-    return _wrap(_ptr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
-  }
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) => _wrap(_ptr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
 
-  Element $dom_getElementById(String elementId) {
-    return _wrap(_ptr.getElementById(_unwrap(elementId)));
-  }
+  Element $dom_getElementById(String elementId) => _wrap(_ptr.getElementById(_unwrap(elementId)));
 
-  NodeList $dom_getElementsByClassName(String tagname) {
-    return _wrap(_ptr.getElementsByClassName(_unwrap(tagname)));
-  }
+  NodeList $dom_getElementsByClassName(String tagname) => _wrap(_ptr.getElementsByClassName(_unwrap(tagname)));
 
-  NodeList $dom_getElementsByName(String elementName) {
-    return _wrap(_ptr.getElementsByName(_unwrap(elementName)));
-  }
+  NodeList $dom_getElementsByName(String elementName) => _wrap(_ptr.getElementsByName(_unwrap(elementName)));
 
-  NodeList $dom_getElementsByTagName(String tagname) {
-    return _wrap(_ptr.getElementsByTagName(_unwrap(tagname)));
-  }
+  NodeList $dom_getElementsByTagName(String tagname) => _wrap(_ptr.getElementsByTagName(_unwrap(tagname)));
 
-  bool queryCommandEnabled(String command) {
-    return _wrap(_ptr.queryCommandEnabled(_unwrap(command)));
-  }
+  bool queryCommandEnabled(String command) => _wrap(_ptr.queryCommandEnabled(_unwrap(command)));
 
-  bool queryCommandIndeterm(String command) {
-    return _wrap(_ptr.queryCommandIndeterm(_unwrap(command)));
-  }
+  bool queryCommandIndeterm(String command) => _wrap(_ptr.queryCommandIndeterm(_unwrap(command)));
 
-  bool queryCommandState(String command) {
-    return _wrap(_ptr.queryCommandState(_unwrap(command)));
-  }
+  bool queryCommandState(String command) => _wrap(_ptr.queryCommandState(_unwrap(command)));
 
-  bool queryCommandSupported(String command) {
-    return _wrap(_ptr.queryCommandSupported(_unwrap(command)));
-  }
+  bool queryCommandSupported(String command) => _wrap(_ptr.queryCommandSupported(_unwrap(command)));
 
-  String queryCommandValue(String command) {
-    return _wrap(_ptr.queryCommandValue(_unwrap(command)));
-  }
+  String queryCommandValue(String command) => _wrap(_ptr.queryCommandValue(_unwrap(command)));
 
-  Element _query(String selectors) {
-    return _wrap(_ptr.querySelector(_unwrap(selectors)));
-  }
+  Element _query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) {
-    return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
-  }
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
 
-  void webkitCancelFullScreen() {
-    _ptr.webkitCancelFullScreen();
-    return;
-  }
+  void webkitCancelFullScreen() => _ptr.webkitCancelFullScreen();
 
-  void webkitExitFullscreen() {
-    _ptr.webkitExitFullscreen();
-    return;
-  }
+  void webkitExitFullscreen() => _ptr.webkitExitFullscreen();
 
-  WebKitNamedFlow webkitGetFlowByName(String name) {
-    return _wrap(_ptr.webkitGetFlowByName(_unwrap(name)));
-  }
+  WebKitNamedFlow webkitGetFlowByName(String name) => _wrap(_ptr.webkitGetFlowByName(_unwrap(name)));
 
   // TODO(jacobr): implement all Element methods not on Document. 
 
@@ -7508,13 +6027,9 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
     return _on;
   }
 
-  Element query(String selectors) {
-    return _wrap(_ptr.querySelector(_unwrap(selectors)));
-  }
+  Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) {
-    return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
-  }
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
 
 }
 
@@ -8385,110 +6900,49 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set webkitdropzone(String value) { _ptr.webkitdropzone = _unwrap(value); }
 
-  void blur() {
-    _ptr.blur();
-    return;
-  }
+  void blur() => _ptr.blur();
 
-  void click() {
-    _ptr.click();
-    return;
-  }
+  void click() => _ptr.click();
 
-  void focus() {
-    _ptr.focus();
-    return;
-  }
+  void focus() => _ptr.focus();
 
-  String $dom_getAttribute(String name) {
-    return _wrap(_ptr.getAttribute(_unwrap(name)));
-  }
+  String $dom_getAttribute(String name) => _wrap(_ptr.getAttribute(_unwrap(name)));
 
-  ClientRect $dom_getBoundingClientRect() {
-    return _wrap(_ptr.getBoundingClientRect());
-  }
+  ClientRect $dom_getBoundingClientRect() => _wrap(_ptr.getBoundingClientRect());
 
-  ClientRectList $dom_getClientRects() {
-    return _wrap(_ptr.getClientRects());
-  }
+  ClientRectList $dom_getClientRects() => _wrap(_ptr.getClientRects());
 
-  NodeList $dom_getElementsByClassName(String name) {
-    return _wrap(_ptr.getElementsByClassName(_unwrap(name)));
-  }
+  NodeList $dom_getElementsByClassName(String name) => _wrap(_ptr.getElementsByClassName(_unwrap(name)));
 
-  NodeList $dom_getElementsByTagName(String name) {
-    return _wrap(_ptr.getElementsByTagName(_unwrap(name)));
-  }
+  NodeList $dom_getElementsByTagName(String name) => _wrap(_ptr.getElementsByTagName(_unwrap(name)));
 
-  bool $dom_hasAttribute(String name) {
-    return _wrap(_ptr.hasAttribute(_unwrap(name)));
-  }
+  bool $dom_hasAttribute(String name) => _wrap(_ptr.hasAttribute(_unwrap(name)));
 
-  Element insertAdjacentElement(String where, Element element) {
-    return _wrap(_ptr.insertAdjacentElement(_unwrap(where), _unwrap(element)));
-  }
+  Element insertAdjacentElement(String where, Element element) => _wrap(_ptr.insertAdjacentElement(_unwrap(where), _unwrap(element)));
 
-  void insertAdjacentHTML(String where, String html) {
-    _ptr.insertAdjacentHTML(_unwrap(where), _unwrap(html));
-    return;
-  }
+  void insertAdjacentHTML(String where, String html) => _ptr.insertAdjacentHTML(_unwrap(where), _unwrap(html));
 
-  void insertAdjacentText(String where, String text) {
-    _ptr.insertAdjacentText(_unwrap(where), _unwrap(text));
-    return;
-  }
+  void insertAdjacentText(String where, String text) => _ptr.insertAdjacentText(_unwrap(where), _unwrap(text));
 
-  Element query(String selectors) {
-    return _wrap(_ptr.querySelector(_unwrap(selectors)));
-  }
+  Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) {
-    return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
-  }
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
 
-  void $dom_removeAttribute(String name) {
-    _ptr.removeAttribute(_unwrap(name));
-    return;
-  }
+  void $dom_removeAttribute(String name) => _ptr.removeAttribute(_unwrap(name));
 
-  void scrollByLines(int lines) {
-    _ptr.scrollByLines(_unwrap(lines));
-    return;
-  }
+  void scrollByLines(int lines) => _ptr.scrollByLines(_unwrap(lines));
 
-  void scrollByPages(int pages) {
-    _ptr.scrollByPages(_unwrap(pages));
-    return;
-  }
+  void scrollByPages(int pages) => _ptr.scrollByPages(_unwrap(pages));
 
-  void scrollIntoView([bool centerIfNeeded = null]) {
-    if (centerIfNeeded === null) {
-      _ptr.scrollIntoViewIfNeeded();
-      return;
-    } else {
-      _ptr.scrollIntoViewIfNeeded(_unwrap(centerIfNeeded));
-      return;
-    }
-  }
+  void scrollIntoView([bool centerIfNeeded = null]) => _ptr.scrollIntoViewIfNeeded(_unwrap(centerIfNeeded));
 
-  void $dom_setAttribute(String name, String value) {
-    _ptr.setAttribute(_unwrap(name), _unwrap(value));
-    return;
-  }
+  void $dom_setAttribute(String name, String value) => _ptr.setAttribute(_unwrap(name), _unwrap(value));
 
-  bool matchesSelector(String selectors) {
-    return _wrap(_ptr.webkitMatchesSelector(_unwrap(selectors)));
-  }
+  bool matchesSelector(String selectors) => _wrap(_ptr.webkitMatchesSelector(_unwrap(selectors)));
 
-  void webkitRequestFullScreen(int flags) {
-    _ptr.webkitRequestFullScreen(_unwrap(flags));
-    return;
-  }
+  void webkitRequestFullScreen(int flags) => _ptr.webkitRequestFullScreen(_unwrap(flags));
 
-  void webkitRequestFullscreen() {
-    _ptr.webkitRequestFullscreen();
-    return;
-  }
+  void webkitRequestFullscreen() => _ptr.webkitRequestFullscreen();
 
 }
 
@@ -8651,25 +7105,13 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 class _ElementTimeControlImpl extends _DOMTypeBase implements ElementTimeControl {
   _ElementTimeControlImpl._wrap(ptr) : super._wrap(ptr);
 
-  void beginElement() {
-    _ptr.beginElement();
-    return;
-  }
+  void beginElement() => _ptr.beginElement();
 
-  void beginElementAt(num offset) {
-    _ptr.beginElementAt(_unwrap(offset));
-    return;
-  }
+  void beginElementAt(num offset) => _ptr.beginElementAt(_unwrap(offset));
 
-  void endElement() {
-    _ptr.endElement();
-    return;
-  }
+  void endElement() => _ptr.endElement();
 
-  void endElementAt(num offset) {
-    _ptr.endElementAt(_unwrap(offset));
-    return;
-  }
+  void endElementAt(num offset) => _ptr.endElementAt(_unwrap(offset));
 }
 
 class _ElementTraversalImpl extends _DOMTypeBase implements ElementTraversal {
@@ -8741,101 +7183,17 @@ class _EntryImpl extends _DOMTypeBase implements Entry {
 
   String get name() => _wrap(_ptr.name);
 
-  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (name === null) {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.copyTo(_unwrap(parent));
-          return;
-        }
-      }
-    } else {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.copyTo(_unwrap(parent), _unwrap(name));
-          return;
-        }
-      } else {
-        if (errorCallback === null) {
-          _ptr.copyTo(_unwrap(parent), _unwrap(name), _unwrap(successCallback));
-          return;
-        } else {
-          _ptr.copyTo(_unwrap(parent), _unwrap(name), _unwrap(successCallback), _unwrap(errorCallback));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.copyTo(_unwrap(parent), _unwrap(name), _unwrap(successCallback), _unwrap(errorCallback));
 
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.getMetadata(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.getMetadata(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.getMetadata(_unwrap(successCallback), _unwrap(errorCallback));
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _ptr.getParent();
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _ptr.getParent(_unwrap(successCallback));
-        return;
-      } else {
-        _ptr.getParent(_unwrap(successCallback), _unwrap(errorCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.getParent(_unwrap(successCallback), _unwrap(errorCallback));
 
-  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (name === null) {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.moveTo(_unwrap(parent));
-          return;
-        }
-      }
-    } else {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _ptr.moveTo(_unwrap(parent), _unwrap(name));
-          return;
-        }
-      } else {
-        if (errorCallback === null) {
-          _ptr.moveTo(_unwrap(parent), _unwrap(name), _unwrap(successCallback));
-          return;
-        } else {
-          _ptr.moveTo(_unwrap(parent), _unwrap(name), _unwrap(successCallback), _unwrap(errorCallback));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.moveTo(_unwrap(parent), _unwrap(name), _unwrap(successCallback), _unwrap(errorCallback));
 
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.remove(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.remove(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.remove(_unwrap(successCallback), _unwrap(errorCallback));
 
-  String toURL() {
-    return _wrap(_ptr.toURL());
-  }
+  String toURL() => _wrap(_ptr.toURL());
 }
 
 class _EntryArrayImpl extends _DOMTypeBase implements EntryArray {
@@ -8843,9 +7201,7 @@ class _EntryArrayImpl extends _DOMTypeBase implements EntryArray {
 
   int get length() => _wrap(_ptr.length);
 
-  Entry item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Entry item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _EntryArraySyncImpl extends _DOMTypeBase implements EntryArraySync {
@@ -8853,9 +7209,7 @@ class _EntryArraySyncImpl extends _DOMTypeBase implements EntryArraySync {
 
   int get length() => _wrap(_ptr.length);
 
-  EntrySync item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  EntrySync item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _EntrySyncImpl extends _DOMTypeBase implements EntrySync {
@@ -8871,30 +7225,17 @@ class _EntrySyncImpl extends _DOMTypeBase implements EntrySync {
 
   String get name() => _wrap(_ptr.name);
 
-  EntrySync copyTo(DirectoryEntrySync parent, String name) {
-    return _wrap(_ptr.copyTo(_unwrap(parent), _unwrap(name)));
-  }
+  EntrySync copyTo(DirectoryEntrySync parent, String name) => _wrap(_ptr.copyTo(_unwrap(parent), _unwrap(name)));
 
-  Metadata getMetadata() {
-    return _wrap(_ptr.getMetadata());
-  }
+  Metadata getMetadata() => _wrap(_ptr.getMetadata());
 
-  EntrySync getParent() {
-    return _wrap(_ptr.getParent());
-  }
+  EntrySync getParent() => _wrap(_ptr.getParent());
 
-  EntrySync moveTo(DirectoryEntrySync parent, String name) {
-    return _wrap(_ptr.moveTo(_unwrap(parent), _unwrap(name)));
-  }
+  EntrySync moveTo(DirectoryEntrySync parent, String name) => _wrap(_ptr.moveTo(_unwrap(parent), _unwrap(name)));
 
-  void remove() {
-    _ptr.remove();
-    return;
-  }
+  void remove() => _ptr.remove();
 
-  String toURL() {
-    return _wrap(_ptr.toURL());
-  }
+  String toURL() => _wrap(_ptr.toURL());
 }
 
 class _ErrorEventImpl extends _EventImpl implements ErrorEvent {
@@ -8938,25 +7279,13 @@ class _EventImpl extends _DOMTypeBase implements Event {
 
   String get type() => _wrap(_ptr.type);
 
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
-    _ptr.initEvent(_unwrap(eventTypeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg));
-    return;
-  }
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) => _ptr.initEvent(_unwrap(eventTypeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg));
 
-  void preventDefault() {
-    _ptr.preventDefault();
-    return;
-  }
+  void preventDefault() => _ptr.preventDefault();
 
-  void stopImmediatePropagation() {
-    _ptr.stopImmediatePropagation();
-    return;
-  }
+  void stopImmediatePropagation() => _ptr.stopImmediatePropagation();
 
-  void stopPropagation() {
-    _ptr.stopPropagation();
-    return;
-  }
+  void stopPropagation() => _ptr.stopPropagation();
 }
 
 class _EventExceptionImpl extends _DOMTypeBase implements EventException {
@@ -8968,9 +7297,7 @@ class _EventExceptionImpl extends _DOMTypeBase implements EventException {
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _EventSourceImpl extends _EventTargetImpl implements EventSource {
@@ -8987,34 +7314,13 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
   String get url() => _wrap(_ptr.url);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
@@ -9141,29 +7447,11 @@ class _EventTargetImpl extends _DOMTypeBase implements EventTarget {
 
   _EventTargetImpl._wrap(ptr) : super._wrap(ptr);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
 }
 
@@ -9188,14 +7476,9 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 }
 
 class _FileImpl extends _BlobImpl implements File {
@@ -9211,37 +7494,17 @@ class _FileImpl extends _BlobImpl implements File {
 class _FileEntryImpl extends _EntryImpl implements FileEntry {
   _FileEntryImpl._wrap(ptr) : super._wrap(ptr);
 
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.createWriter(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.createWriter(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.createWriter(_unwrap(successCallback), _unwrap(errorCallback));
 
-  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.file(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.file(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.file(_unwrap(successCallback), _unwrap(errorCallback));
 }
 
 class _FileEntrySyncImpl extends _EntrySyncImpl implements FileEntrySync {
   _FileEntrySyncImpl._wrap(ptr) : super._wrap(ptr);
 
-  FileWriterSync createWriter() {
-    return _wrap(_ptr.createWriter());
-  }
+  FileWriterSync createWriter() => _wrap(_ptr.createWriter());
 
-  File file() {
-    return _wrap(_ptr.file());
-  }
+  File file() => _wrap(_ptr.file());
 }
 
 class _FileErrorImpl extends _DOMTypeBase implements FileError {
@@ -9259,9 +7522,7 @@ class _FileExceptionImpl extends _DOMTypeBase implements FileException {
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _FileListImpl extends _DOMTypeBase implements FileList {
@@ -9351,9 +7612,7 @@ class _FileListImpl extends _DOMTypeBase implements FileList {
 
   // -- end List<File> mixins.
 
-  File item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  File item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _FileReaderImpl extends _EventTargetImpl implements FileReader {
@@ -9370,59 +7629,21 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   Object get result() => _wrap(_ptr.result);
 
-  void abort() {
-    _ptr.abort();
-    return;
-  }
+  void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void readAsArrayBuffer(Blob blob) {
-    _ptr.readAsArrayBuffer(_unwrap(blob));
-    return;
-  }
+  void readAsArrayBuffer(Blob blob) => _ptr.readAsArrayBuffer(_unwrap(blob));
 
-  void readAsBinaryString(Blob blob) {
-    _ptr.readAsBinaryString(_unwrap(blob));
-    return;
-  }
+  void readAsBinaryString(Blob blob) => _ptr.readAsBinaryString(_unwrap(blob));
 
-  void readAsDataURL(Blob blob) {
-    _ptr.readAsDataURL(_unwrap(blob));
-    return;
-  }
+  void readAsDataURL(Blob blob) => _ptr.readAsDataURL(_unwrap(blob));
 
-  void readAsText(Blob blob, [String encoding = null]) {
-    if (encoding === null) {
-      _ptr.readAsText(_unwrap(blob));
-      return;
-    } else {
-      _ptr.readAsText(_unwrap(blob), _unwrap(encoding));
-      return;
-    }
-  }
+  void readAsText(Blob blob, [String encoding = null]) => _ptr.readAsText(_unwrap(blob), _unwrap(encoding));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
@@ -9444,25 +7665,13 @@ class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
 class _FileReaderSyncImpl extends _DOMTypeBase implements FileReaderSync {
   _FileReaderSyncImpl._wrap(ptr) : super._wrap(ptr);
 
-  ArrayBuffer readAsArrayBuffer(Blob blob) {
-    return _wrap(_ptr.readAsArrayBuffer(_unwrap(blob)));
-  }
+  ArrayBuffer readAsArrayBuffer(Blob blob) => _wrap(_ptr.readAsArrayBuffer(_unwrap(blob)));
 
-  String readAsBinaryString(Blob blob) {
-    return _wrap(_ptr.readAsBinaryString(_unwrap(blob)));
-  }
+  String readAsBinaryString(Blob blob) => _wrap(_ptr.readAsBinaryString(_unwrap(blob)));
 
-  String readAsDataURL(Blob blob) {
-    return _wrap(_ptr.readAsDataURL(_unwrap(blob)));
-  }
+  String readAsDataURL(Blob blob) => _wrap(_ptr.readAsDataURL(_unwrap(blob)));
 
-  String readAsText(Blob blob, [String encoding = null]) {
-    if (encoding === null) {
-      return _wrap(_ptr.readAsText(_unwrap(blob)));
-    } else {
-      return _wrap(_ptr.readAsText(_unwrap(blob), _unwrap(encoding)));
-    }
-  }
+  String readAsText(Blob blob, [String encoding = null]) => _wrap(_ptr.readAsText(_unwrap(blob), _unwrap(encoding)));
 }
 
 class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
@@ -9481,49 +7690,19 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
   int get readyState() => _wrap(_ptr.readyState);
 
-  void abort() {
-    _ptr.abort();
-    return;
-  }
+  void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void seek(int position) {
-    _ptr.seek(_unwrap(position));
-    return;
-  }
+  void seek(int position) => _ptr.seek(_unwrap(position));
 
-  void truncate(int size) {
-    _ptr.truncate(_unwrap(size));
-    return;
-  }
+  void truncate(int size) => _ptr.truncate(_unwrap(size));
 
-  void write(Blob data) {
-    _ptr.write(_unwrap(data));
-    return;
-  }
+  void write(Blob data) => _ptr.write(_unwrap(data));
 }
 
 class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
@@ -9549,20 +7728,11 @@ class _FileWriterSyncImpl extends _DOMTypeBase implements FileWriterSync {
 
   int get position() => _wrap(_ptr.position);
 
-  void seek(int position) {
-    _ptr.seek(_unwrap(position));
-    return;
-  }
+  void seek(int position) => _ptr.seek(_unwrap(position));
 
-  void truncate(int size) {
-    _ptr.truncate(_unwrap(size));
-    return;
-  }
+  void truncate(int size) => _ptr.truncate(_unwrap(size));
 
-  void write(Blob data) {
-    _ptr.write(_unwrap(data));
-    return;
-  }
+  void write(Blob data) => _ptr.write(_unwrap(data));
 }
 
 class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num> {
@@ -9652,23 +7822,9 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Float32Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Float32Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num> {
@@ -9758,23 +7914,9 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Float64Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Float64Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _FontElementImpl extends _ElementImpl implements FontElement {
@@ -9834,19 +7976,11 @@ class _FormElementImpl extends _ElementImpl implements FormElement {
 
   void set target(String value) { _ptr.target = _unwrap(value); }
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void reset() {
-    _ptr.reset();
-    return;
-  }
+  void reset() => _ptr.reset();
 
-  void submit() {
-    _ptr.submit();
-    return;
-  }
+  void submit() => _ptr.submit();
 }
 
 class _FrameElementImpl extends _ElementImpl implements FrameElement {
@@ -9896,9 +8030,7 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement {
 
   int get width() => _wrap(_ptr.width);
 
-  SVGDocument getSVGDocument() {
-    return _wrap(_ptr.getSVGDocument());
-  }
+  SVGDocument getSVGDocument() => _wrap(_ptr.getSVGDocument());
 }
 
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement {
@@ -9951,28 +8083,11 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
 class _GeolocationImpl extends _DOMTypeBase implements Geolocation {
   _GeolocationImpl._wrap(ptr) : super._wrap(ptr);
 
-  void clearWatch(int watchId) {
-    _ptr.clearWatch(_unwrap(watchId));
-    return;
-  }
+  void clearWatch(int watchId) => _ptr.clearWatch(_unwrap(watchId));
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.getCurrentPosition(_unwrap(successCallback));
-      return;
-    } else {
-      _ptr.getCurrentPosition(_unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) => _ptr.getCurrentPosition(_unwrap(successCallback), _unwrap(errorCallback));
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      return _wrap(_ptr.watchPosition(_unwrap(successCallback)));
-    } else {
-      return _wrap(_ptr.watchPosition(_unwrap(successCallback), _unwrap(errorCallback)));
-    }
-  }
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) => _wrap(_ptr.watchPosition(_unwrap(successCallback), _unwrap(errorCallback)));
 }
 
 class _GeopositionImpl extends _DOMTypeBase implements Geoposition {
@@ -10008,17 +8123,11 @@ class _HTMLAllCollectionImpl extends _DOMTypeBase implements HTMLAllCollection {
 
   int get length() => _wrap(_ptr.length);
 
-  Node item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Node item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  Node namedItem(String name) {
-    return _wrap(_ptr.namedItem(_unwrap(name)));
-  }
+  Node namedItem(String name) => _wrap(_ptr.namedItem(_unwrap(name)));
 
-  NodeList tags(String name) {
-    return _wrap(_ptr.tags(_unwrap(name)));
-  }
+  NodeList tags(String name) => _wrap(_ptr.tags(_unwrap(name)));
 }
 
 class _HTMLCollectionImpl extends _DOMTypeBase implements HTMLCollection {
@@ -10108,13 +8217,9 @@ class _HTMLCollectionImpl extends _DOMTypeBase implements HTMLCollection {
 
   // -- end List<Node> mixins.
 
-  Node item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Node item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  Node namedItem(String name) {
-    return _wrap(_ptr.namedItem(_unwrap(name)));
-  }
+  Node namedItem(String name) => _wrap(_ptr.namedItem(_unwrap(name)));
 }
 
 class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection {
@@ -10128,10 +8233,7 @@ class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOpti
 
   void set selectedIndex(int value) { _ptr.selectedIndex = _unwrap(value); }
 
-  void remove(int index) {
-    _ptr.remove(_unwrap(index));
-    return;
-  }
+  void remove(int index) => _ptr.remove(_unwrap(index));
 }
 
 class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent {
@@ -10141,10 +8243,7 @@ class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent {
 
   String get oldURL() => _wrap(_ptr.oldURL);
 
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) {
-    _ptr.initHashChangeEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(oldURL), _unwrap(newURL));
-    return;
-  }
+  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) => _ptr.initHashChangeEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(oldURL), _unwrap(newURL));
 }
 
 class _HeadElementImpl extends _ElementImpl implements HeadElement {
@@ -10170,40 +8269,15 @@ class _HistoryImpl extends _DOMTypeBase implements History {
 
   Dynamic get state() => _wrap(_ptr.state);
 
-  void back() {
-    _ptr.back();
-    return;
-  }
+  void back() => _ptr.back();
 
-  void forward() {
-    _ptr.forward();
-    return;
-  }
+  void forward() => _ptr.forward();
 
-  void go(int distance) {
-    _ptr.go(_unwrap(distance));
-    return;
-  }
+  void go(int distance) => _ptr.go(_unwrap(distance));
 
-  void pushState(Object data, String title, [String url = null]) {
-    if (url === null) {
-      _ptr.pushState(_unwrap(data), _unwrap(title));
-      return;
-    } else {
-      _ptr.pushState(_unwrap(data), _unwrap(title), _unwrap(url));
-      return;
-    }
-  }
+  void pushState(Object data, String title, [String url = null]) => _ptr.pushState(_unwrap(data), _unwrap(title), _unwrap(url));
 
-  void replaceState(Object data, String title, [String url = null]) {
-    if (url === null) {
-      _ptr.replaceState(_unwrap(data), _unwrap(title));
-      return;
-    } else {
-      _ptr.replaceState(_unwrap(data), _unwrap(title), _unwrap(url));
-      return;
-    }
-  }
+  void replaceState(Object data, String title, [String url = null]) => _ptr.replaceState(_unwrap(data), _unwrap(title), _unwrap(url));
 }
 
 class _HtmlElementImpl extends _ElementImpl implements HtmlElement {
@@ -10225,28 +8299,13 @@ class _IDBCursorImpl extends _DOMTypeBase implements IDBCursor {
 
   Dynamic get source() => _wrap(_ptr.source);
 
-  void advance(int count) {
-    _ptr.advance(_unwrap(count));
-    return;
-  }
+  void advance(int count) => _ptr.advance(_unwrap(count));
 
-  void continueFunction([/*IDBKey*/ key = null]) {
-    if (key === null) {
-      _ptr.continueFunction();
-      return;
-    } else {
-      _ptr.continueFunction(_unwrap(key));
-      return;
-    }
-  }
+  void continueFunction([/*IDBKey*/ key = null]) => _ptr.continueFunction(_unwrap(key));
 
-  IDBRequest delete() {
-    return _wrap(_ptr.delete());
-  }
+  IDBRequest delete() => _wrap(_ptr.delete());
 
-  IDBRequest update(/*SerializedScriptValue*/ value) {
-    return _wrap(_ptr.update(_unwrap(value)));
-  }
+  IDBRequest update(/*SerializedScriptValue*/ value) => _wrap(_ptr.update(_unwrap(value)));
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue {
@@ -10269,70 +8328,21 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   String get version() => _wrap(_ptr.version);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  IDBObjectStore createObjectStore(String name, [Map options = null]) {
-    if (options === null) {
-      return _wrap(_ptr.createObjectStore(_unwrap(name)));
-    } else {
-      return _wrap(_ptr.createObjectStore(_unwrap(name), _unwrap(options)));
-    }
-  }
+  IDBObjectStore createObjectStore(String name, [Map options = null]) => _wrap(_ptr.createObjectStore(_unwrap(name), _unwrap(options)));
 
-  void deleteObjectStore(String name) {
-    _ptr.deleteObjectStore(_unwrap(name));
-    return;
-  }
+  void deleteObjectStore(String name) => _ptr.deleteObjectStore(_unwrap(name));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  IDBVersionChangeRequest setVersion(String version) {
-    return _wrap(_ptr.setVersion(_unwrap(version)));
-  }
+  IDBVersionChangeRequest setVersion(String version) => _wrap(_ptr.setVersion(_unwrap(version)));
 
-  IDBTransaction transaction(storeName_OR_storeNames, [int mode = null]) {
-    if (storeName_OR_storeNames is List<String>) {
-      if (mode === null) {
-        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames)));
-      } else {
-        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
-      }
-    } else {
-      if (storeName_OR_storeNames is String) {
-        if (mode === null) {
-          return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames)));
-        } else {
-          return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  IDBTransaction transaction(storeName_OR_storeNames, int mode) => _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
 }
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -10354,29 +8364,19 @@ class _IDBDatabaseExceptionImpl extends _DOMTypeBase implements IDBDatabaseExcep
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _IDBFactoryImpl extends _DOMTypeBase implements IDBFactory {
   _IDBFactoryImpl._wrap(ptr) : super._wrap(ptr);
 
-  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
-    return _wrap(_ptr.cmp(_unwrap(first), _unwrap(second)));
-  }
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) => _wrap(_ptr.cmp(_unwrap(first), _unwrap(second)));
 
-  IDBVersionChangeRequest deleteDatabase(String name) {
-    return _wrap(_ptr.deleteDatabase(_unwrap(name)));
-  }
+  IDBVersionChangeRequest deleteDatabase(String name) => _wrap(_ptr.deleteDatabase(_unwrap(name)));
 
-  IDBRequest getDatabaseNames() {
-    return _wrap(_ptr.getDatabaseNames());
-  }
+  IDBRequest getDatabaseNames() => _wrap(_ptr.getDatabaseNames());
 
-  IDBRequest open(String name) {
-    return _wrap(_ptr.open(_unwrap(name)));
-  }
+  IDBRequest open(String name) => _wrap(_ptr.open(_unwrap(name)));
 }
 
 class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
@@ -10392,79 +8392,15 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
 
   bool get unique() => _wrap(_ptr.unique);
 
-  IDBRequest count([key_OR_range = null]) {
-    if (key_OR_range === null) {
-      return _wrap(_ptr.count());
-    } else {
-      if (key_OR_range is IDBKeyRange) {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      } else {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      }
-    }
-  }
+  IDBRequest count([key_OR_range = null]) => _wrap(_ptr.count(_unwrap(key_OR_range)));
 
-  IDBRequest get(key) {
-    if (key is IDBKeyRange) {
-      return _wrap(_ptr.get(_unwrap(key)));
-    } else {
-      return _wrap(_ptr.get(_unwrap(key)));
-    }
-  }
+  IDBRequest get(key) => _wrap(_ptr.get(_unwrap(key)));
 
-  IDBRequest getKey(key) {
-    if (key is IDBKeyRange) {
-      return _wrap(_ptr.getKey(_unwrap(key)));
-    } else {
-      return _wrap(_ptr.getKey(_unwrap(key)));
-    }
-  }
+  IDBRequest getKey(key) => _wrap(_ptr.getKey(_unwrap(key)));
 
-  IDBRequest openCursor([key_OR_range = null, int direction = null]) {
-    if (key_OR_range === null) {
-      if (direction === null) {
-        return _wrap(_ptr.openCursor());
-      }
-    } else {
-      if (key_OR_range is IDBKeyRange) {
-        if (direction === null) {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
-        } else {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
-        }
-      } else {
-        if (direction === null) {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
-        } else {
-          return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  IDBRequest openCursor([key_OR_range = null, int direction = null]) => _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
 
-  IDBRequest openKeyCursor([key_OR_range = null, int direction = null]) {
-    if (key_OR_range === null) {
-      if (direction === null) {
-        return _wrap(_ptr.openKeyCursor());
-      }
-    } else {
-      if (key_OR_range is IDBKeyRange) {
-        if (direction === null) {
-          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range)));
-        } else {
-          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
-        }
-      } else {
-        if (direction === null) {
-          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range)));
-        } else {
-          return _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  IDBRequest openKeyCursor([key_OR_range = null, int direction = null]) => _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
 }
 
 class _IDBKeyImpl extends _DOMTypeBase implements IDBKey {
@@ -10494,86 +8430,25 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
 
   IDBTransaction get transaction() => _wrap(_ptr.transaction);
 
-  IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key = null]) {
-    if (key === null) {
-      return _wrap(_ptr.add(_unwrap(value)));
-    } else {
-      return _wrap(_ptr.add(_unwrap(value), _unwrap(key)));
-    }
-  }
+  IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key = null]) => _wrap(_ptr.add(_unwrap(value), _unwrap(key)));
 
-  IDBRequest clear() {
-    return _wrap(_ptr.clear());
-  }
+  IDBRequest clear() => _wrap(_ptr.clear());
 
-  IDBRequest count([key_OR_range = null]) {
-    if (key_OR_range === null) {
-      return _wrap(_ptr.count());
-    } else {
-      if (key_OR_range is IDBKeyRange) {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      } else {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      }
-    }
-  }
+  IDBRequest count([key_OR_range = null]) => _wrap(_ptr.count(_unwrap(key_OR_range)));
 
-  IDBIndex createIndex(String name, String keyPath, [Map options = null]) {
-    if (options === null) {
-      return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
-    } else {
-      return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath), _unwrap(options)));
-    }
-  }
+  IDBIndex createIndex(String name, String keyPath, [Map options = null]) => _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath), _unwrap(options)));
 
-  IDBRequest delete(key_OR_keyRange) {
-    if (key_OR_keyRange is IDBKeyRange) {
-      return _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
-    } else {
-      return _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
-    }
-  }
+  IDBRequest delete(key_OR_keyRange) => _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
 
-  void deleteIndex(String name) {
-    _ptr.deleteIndex(_unwrap(name));
-    return;
-  }
+  void deleteIndex(String name) => _ptr.deleteIndex(_unwrap(name));
 
-  IDBRequest getObject(key) {
-    if (key is IDBKeyRange) {
-      return _wrap(_ptr.getObject(_unwrap(key)));
-    } else {
-      return _wrap(_ptr.getObject(_unwrap(key)));
-    }
-  }
+  IDBRequest getObject(key) => _wrap(_ptr.getObject(_unwrap(key)));
 
-  IDBIndex index(String name) {
-    return _wrap(_ptr.index(_unwrap(name)));
-  }
+  IDBIndex index(String name) => _wrap(_ptr.index(_unwrap(name)));
 
-  IDBRequest openCursor([key_OR_range = null, int direction = null]) {
-    if (key_OR_range is IDBKeyRange) {
-      if (direction === null) {
-        return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
-      } else {
-        return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
-      }
-    } else {
-      if (direction === null) {
-        return _wrap(_ptr.openCursor(_unwrap(key_OR_range)));
-      } else {
-        return _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
-      }
-    }
-  }
+  IDBRequest openCursor([key_OR_range = null, int direction = null]) => _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
 
-  IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key = null]) {
-    if (key === null) {
-      return _wrap(_ptr.put(_unwrap(value)));
-    } else {
-      return _wrap(_ptr.put(_unwrap(value), _unwrap(key)));
-    }
-  }
+  IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key = null]) => _wrap(_ptr.put(_unwrap(value), _unwrap(key)));
 }
 
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
@@ -10596,29 +8471,11 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   String get webkitErrorMessage() => _wrap(_ptr.webkitErrorMessage);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
@@ -10641,38 +8498,15 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
   int get mode() => _wrap(_ptr.mode);
 
-  void abort() {
-    _ptr.abort();
-    return;
-  }
+  void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  IDBObjectStore objectStore(String name) {
-    return _wrap(_ptr.objectStore(_unwrap(name)));
-  }
+  IDBObjectStore objectStore(String name) => _wrap(_ptr.objectStore(_unwrap(name)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
@@ -10701,29 +8535,11 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
@@ -10789,9 +8605,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
 
   void set width(String value) { _ptr.width = _unwrap(value); }
 
-  SVGDocument getSVGDocument() {
-    return _wrap(_ptr.getSVGDocument());
-  }
+  SVGDocument getSVGDocument() => _wrap(_ptr.getSVGDocument());
 
 }
 
@@ -10800,9 +8614,7 @@ class _IceCandidateImpl extends _DOMTypeBase implements IceCandidate {
 
   String get label() => _wrap(_ptr.label);
 
-  String toSdp() {
-    return _wrap(_ptr.toSdp());
-  }
+  String toSdp() => _wrap(_ptr.toSdp());
 }
 
 class _ImageDataImpl extends _DOMTypeBase implements ImageData {
@@ -11061,49 +8873,17 @@ class _InputElementImpl extends _ElementImpl implements InputElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void select() {
-    _ptr.select();
-    return;
-  }
+  void select() => _ptr.select();
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 
-  void setSelectionRange(int start, int end, [String direction = null]) {
-    if (direction === null) {
-      _ptr.setSelectionRange(_unwrap(start), _unwrap(end));
-      return;
-    } else {
-      _ptr.setSelectionRange(_unwrap(start), _unwrap(end), _unwrap(direction));
-      return;
-    }
-  }
+  void setSelectionRange(int start, int end, [String direction = null]) => _ptr.setSelectionRange(_unwrap(start), _unwrap(end), _unwrap(direction));
 
-  void stepDown([int n = null]) {
-    if (n === null) {
-      _ptr.stepDown();
-      return;
-    } else {
-      _ptr.stepDown(_unwrap(n));
-      return;
-    }
-  }
+  void stepDown([int n = null]) => _ptr.stepDown(_unwrap(n));
 
-  void stepUp([int n = null]) {
-    if (n === null) {
-      _ptr.stepUp();
-      return;
-    } else {
-      _ptr.stepUp(_unwrap(n));
-      return;
-    }
-  }
+  void stepUp([int n = null]) => _ptr.stepUp(_unwrap(n));
 }
 
 class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
@@ -11199,23 +8979,9 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Int16Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Int16Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int> {
@@ -11305,23 +9071,9 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Int32Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Int32Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int> {
@@ -11411,23 +9163,9 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Int8Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Int8Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode {
@@ -11442,29 +9180,11 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
@@ -11492,14 +9212,9 @@ class _JavaScriptCallFrameImpl extends _DOMTypeBase implements JavaScriptCallFra
 
   String get type() => _wrap(_ptr.type);
 
-  void evaluate(String script) {
-    _ptr.evaluate(_unwrap(script));
-    return;
-  }
+  void evaluate(String script) => _ptr.evaluate(_unwrap(script));
 
-  int scopeType(int scopeIndex) {
-    return _wrap(_ptr.scopeType(_unwrap(scopeIndex)));
-  }
+  int scopeType(int scopeIndex) => _wrap(_ptr.scopeType(_unwrap(scopeIndex)));
 }
 
 class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent {
@@ -11519,10 +9234,7 @@ class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent {
 
   bool get shiftKey() => _wrap(_ptr.shiftKey);
 
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
-    _ptr.initKeyboardEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(keyIdentifier), _unwrap(keyLocation), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(altGraphKey));
-    return;
-  }
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) => _ptr.initKeyboardEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(keyIdentifier), _unwrap(keyLocation), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(altGraphKey));
 }
 
 class _KeygenElementImpl extends _ElementImpl implements KeygenElement {
@@ -11560,14 +9272,9 @@ class _KeygenElementImpl extends _ElementImpl implements KeygenElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 }
 
 class _LIElementImpl extends _ElementImpl implements LIElement {
@@ -11653,10 +9360,7 @@ class _LinkElementImpl extends _ElementImpl implements LinkElement {
 class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream {
   _LocalMediaStreamImpl._wrap(ptr) : super._wrap(ptr);
 
-  void stop() {
-    _ptr.stop();
-    return;
-  }
+  void stop() => _ptr.stop();
 }
 
 class _LocationImpl extends _DOMTypeBase implements Location {
@@ -11698,24 +9402,13 @@ class _LocationImpl extends _DOMTypeBase implements Location {
 
   void set search(String value) { _ptr.search = _unwrap(value); }
 
-  void assign(String url) {
-    _ptr.assign(_unwrap(url));
-    return;
-  }
+  void assign(String url) => _ptr.assign(_unwrap(url));
 
-  void reload() {
-    _ptr.reload();
-    return;
-  }
+  void reload() => _ptr.reload();
 
-  void replace(String url) {
-    _ptr.replace(_unwrap(url));
-    return;
-  }
+  void replace(String url) => _ptr.replace(_unwrap(url));
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _MapElementImpl extends _ElementImpl implements MapElement {
@@ -11775,15 +9468,9 @@ class _MarqueeElementImpl extends _ElementImpl implements MarqueeElement {
 
   void set width(String value) { _ptr.width = _unwrap(value); }
 
-  void start() {
-    _ptr.start();
-    return;
-  }
+  void start() => _ptr.start();
 
-  void stop() {
-    _ptr.stop();
-    return;
-  }
+  void stop() => _ptr.stop();
 }
 
 class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
@@ -11819,39 +9506,15 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
   void set volume(num value) { _ptr.volume = _unwrap(value); }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void pause() {
-    _ptr.pause();
-    return;
-  }
+  void pause() => _ptr.pause();
 
-  void play() {
-    _ptr.play();
-    return;
-  }
+  void play() => _ptr.play();
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement {
@@ -11960,77 +9623,25 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement {
 
   int get webkitVideoDecodedByteCount() => _wrap(_ptr.webkitVideoDecodedByteCount);
 
-  TextTrack addTextTrack(String kind, [String label = null, String language = null]) {
-    if (label === null) {
-      if (language === null) {
-        return _wrap(_ptr.addTextTrack(_unwrap(kind)));
-      }
-    } else {
-      if (language === null) {
-        return _wrap(_ptr.addTextTrack(_unwrap(kind), _unwrap(label)));
-      } else {
-        return _wrap(_ptr.addTextTrack(_unwrap(kind), _unwrap(label), _unwrap(language)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  TextTrack addTextTrack(String kind, [String label = null, String language = null]) => _wrap(_ptr.addTextTrack(_unwrap(kind), _unwrap(label), _unwrap(language)));
 
-  String canPlayType(String type, String keySystem) {
-    return _wrap(_ptr.canPlayType(_unwrap(type), _unwrap(keySystem)));
-  }
+  String canPlayType(String type, String keySystem) => _wrap(_ptr.canPlayType(_unwrap(type), _unwrap(keySystem)));
 
-  void load() {
-    _ptr.load();
-    return;
-  }
+  void load() => _ptr.load();
 
-  void pause() {
-    _ptr.pause();
-    return;
-  }
+  void pause() => _ptr.pause();
 
-  void play() {
-    _ptr.play();
-    return;
-  }
+  void play() => _ptr.play();
 
-  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData = null, String sessionId = null]) {
-    if (initData === null) {
-      if (sessionId === null) {
-        _ptr.webkitAddKey(_unwrap(keySystem), _unwrap(key));
-        return;
-      }
-    } else {
-      _ptr.webkitAddKey(_unwrap(keySystem), _unwrap(key), _unwrap(initData), _unwrap(sessionId));
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData = null, String sessionId = null]) => _ptr.webkitAddKey(_unwrap(keySystem), _unwrap(key), _unwrap(initData), _unwrap(sessionId));
 
-  void webkitCancelKeyRequest(String keySystem, String sessionId) {
-    _ptr.webkitCancelKeyRequest(_unwrap(keySystem), _unwrap(sessionId));
-    return;
-  }
+  void webkitCancelKeyRequest(String keySystem, String sessionId) => _ptr.webkitCancelKeyRequest(_unwrap(keySystem), _unwrap(sessionId));
 
-  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData = null]) {
-    if (initData === null) {
-      _ptr.webkitGenerateKeyRequest(_unwrap(keySystem));
-      return;
-    } else {
-      _ptr.webkitGenerateKeyRequest(_unwrap(keySystem), _unwrap(initData));
-      return;
-    }
-  }
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData = null]) => _ptr.webkitGenerateKeyRequest(_unwrap(keySystem), _unwrap(initData));
 
-  void webkitSourceAppend(Uint8Array data) {
-    _ptr.webkitSourceAppend(_unwrap(data));
-    return;
-  }
+  void webkitSourceAppend(Uint8Array data) => _ptr.webkitSourceAppend(_unwrap(data));
 
-  void webkitSourceEndOfStream(int status) {
-    _ptr.webkitSourceEndOfStream(_unwrap(status));
-    return;
-  }
+  void webkitSourceEndOfStream(int status) => _ptr.webkitSourceEndOfStream(_unwrap(status));
 }
 
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
@@ -12172,19 +9783,11 @@ class _MediaListImpl extends _DOMTypeBase implements MediaList {
 
   // -- end List<String> mixins.
 
-  void appendMedium(String newMedium) {
-    _ptr.appendMedium(_unwrap(newMedium));
-    return;
-  }
+  void appendMedium(String newMedium) => _ptr.appendMedium(_unwrap(newMedium));
 
-  void deleteMedium(String oldMedium) {
-    _ptr.deleteMedium(_unwrap(oldMedium));
-    return;
-  }
+  void deleteMedium(String oldMedium) => _ptr.deleteMedium(_unwrap(oldMedium));
 
-  String item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  String item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _MediaQueryListImpl extends _DOMTypeBase implements MediaQueryList {
@@ -12194,24 +9797,15 @@ class _MediaQueryListImpl extends _DOMTypeBase implements MediaQueryList {
 
   String get media() => _wrap(_ptr.media);
 
-  void addListener(MediaQueryListListener listener) {
-    _ptr.addListener(_unwrap(listener));
-    return;
-  }
+  void addListener(MediaQueryListListener listener) => _ptr.addListener(_unwrap(listener));
 
-  void removeListener(MediaQueryListListener listener) {
-    _ptr.removeListener(_unwrap(listener));
-    return;
-  }
+  void removeListener(MediaQueryListListener listener) => _ptr.removeListener(_unwrap(listener));
 }
 
 class _MediaQueryListListenerImpl extends _DOMTypeBase implements MediaQueryListListener {
   _MediaQueryListListenerImpl._wrap(ptr) : super._wrap(ptr);
 
-  void queryChanged(MediaQueryList list) {
-    _ptr.queryChanged(_unwrap(list));
-    return;
-  }
+  void queryChanged(MediaQueryList list) => _ptr.queryChanged(_unwrap(list));
 }
 
 class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
@@ -12230,29 +9824,11 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
   MediaStreamTrackList get videoTracks() => _wrap(_ptr.videoTracks);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
@@ -12272,9 +9848,7 @@ class _MediaStreamListImpl extends _DOMTypeBase implements MediaStreamList {
 
   int get length() => _wrap(_ptr.length);
 
-  MediaStream item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  MediaStream item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _MediaStreamTrackImpl extends _DOMTypeBase implements MediaStreamTrack {
@@ -12294,9 +9868,7 @@ class _MediaStreamTrackListImpl extends _DOMTypeBase implements MediaStreamTrack
 
   int get length() => _wrap(_ptr.length);
 
-  MediaStreamTrack item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  MediaStreamTrack item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _MemoryInfoImpl extends _DOMTypeBase implements MemoryInfo {
@@ -12338,15 +9910,9 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent {
 
   Window get source() => _wrap(_ptr.source);
 
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) {
-    _ptr.initMessageEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(dataArg), _unwrap(originArg), _unwrap(lastEventIdArg), _unwrap(sourceArg), _unwrap(messagePorts));
-    return;
-  }
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) => _ptr.initMessageEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(dataArg), _unwrap(originArg), _unwrap(lastEventIdArg), _unwrap(sourceArg), _unwrap(messagePorts));
 
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) {
-    _ptr.webkitInitMessageEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(dataArg), _unwrap(originArg), _unwrap(lastEventIdArg), _unwrap(sourceArg), _unwrap(transferables));
-    return;
-  }
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) => _ptr.webkitInitMessageEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(dataArg), _unwrap(originArg), _unwrap(lastEventIdArg), _unwrap(sourceArg), _unwrap(transferables));
 }
 
 class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
@@ -12357,59 +9923,19 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void postMessage(String message, [List messagePorts = null]) {
-    if (messagePorts === null) {
-      _ptr.postMessage(_unwrap(message));
-      return;
-    } else {
-      _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
-      return;
-    }
-  }
+  void postMessage(String message, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void start() {
-    _ptr.start();
-    return;
-  }
+  void start() => _ptr.start();
 
-  void webkitPostMessage(String message, [List transfer = null]) {
-    if (transfer === null) {
-      _ptr.webkitPostMessage(_unwrap(message));
-      return;
-    } else {
-      _ptr.webkitPostMessage(_unwrap(message), _unwrap(transfer));
-      return;
-    }
-  }
+  void webkitPostMessage(String message, [List transfer = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(transfer));
 }
 
 class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
@@ -12529,10 +10055,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
   int get y() => _wrap(_ptr.y);
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
-    _ptr.initMouseEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(button), _unwrap(relatedTarget));
-    return;
-  }
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) => _ptr.initMouseEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(button), _unwrap(relatedTarget));
 }
 
 class _MutationCallbackImpl extends _DOMTypeBase implements MutationCallback {
@@ -12552,10 +10075,7 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent {
 
   Node get relatedNode() => _wrap(_ptr.relatedNode);
 
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) {
-    _ptr.initMutationEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(relatedNode), _unwrap(prevValue), _unwrap(newValue), _unwrap(attrName), _unwrap(attrChange));
-    return;
-  }
+  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) => _ptr.initMutationEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(relatedNode), _unwrap(prevValue), _unwrap(newValue), _unwrap(attrName), _unwrap(attrChange));
 }
 
 class _MutationRecordImpl extends _DOMTypeBase implements MutationRecord {
@@ -12667,33 +10187,19 @@ class _NamedNodeMapImpl extends _DOMTypeBase implements NamedNodeMap {
 
   // -- end List<Node> mixins.
 
-  Node getNamedItem(String name) {
-    return _wrap(_ptr.getNamedItem(_unwrap(name)));
-  }
+  Node getNamedItem(String name) => _wrap(_ptr.getNamedItem(_unwrap(name)));
 
-  Node getNamedItemNS(String namespaceURI, String localName) {
-    return _wrap(_ptr.getNamedItemNS(_unwrap(namespaceURI), _unwrap(localName)));
-  }
+  Node getNamedItemNS(String namespaceURI, String localName) => _wrap(_ptr.getNamedItemNS(_unwrap(namespaceURI), _unwrap(localName)));
 
-  Node item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Node item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  Node removeNamedItem(String name) {
-    return _wrap(_ptr.removeNamedItem(_unwrap(name)));
-  }
+  Node removeNamedItem(String name) => _wrap(_ptr.removeNamedItem(_unwrap(name)));
 
-  Node removeNamedItemNS(String namespaceURI, String localName) {
-    return _wrap(_ptr.removeNamedItemNS(_unwrap(namespaceURI), _unwrap(localName)));
-  }
+  Node removeNamedItemNS(String namespaceURI, String localName) => _wrap(_ptr.removeNamedItemNS(_unwrap(namespaceURI), _unwrap(localName)));
 
-  Node setNamedItem(Node node) {
-    return _wrap(_ptr.setNamedItem(_unwrap(node)));
-  }
+  Node setNamedItem(Node node) => _wrap(_ptr.setNamedItem(_unwrap(node)));
 
-  Node setNamedItemNS(Node node) {
-    return _wrap(_ptr.setNamedItemNS(_unwrap(node)));
-  }
+  Node setNamedItemNS(Node node) => _wrap(_ptr.setNamedItemNS(_unwrap(node)));
 }
 
 class _NavigatorImpl extends _DOMTypeBase implements Navigator {
@@ -12733,29 +10239,13 @@ class _NavigatorImpl extends _DOMTypeBase implements Navigator {
 
   PointerLock get webkitPointer() => _wrap(_ptr.webkitPointer);
 
-  void getStorageUpdates() {
-    _ptr.getStorageUpdates();
-    return;
-  }
+  void getStorageUpdates() => _ptr.getStorageUpdates();
 
-  bool javaEnabled() {
-    return _wrap(_ptr.javaEnabled());
-  }
+  bool javaEnabled() => _wrap(_ptr.javaEnabled());
 
-  void registerProtocolHandler(String scheme, String url, String title) {
-    _ptr.registerProtocolHandler(_unwrap(scheme), _unwrap(url), _unwrap(title));
-    return;
-  }
+  void registerProtocolHandler(String scheme, String url, String title) => _ptr.registerProtocolHandler(_unwrap(scheme), _unwrap(url), _unwrap(title));
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.webkitGetUserMedia(_unwrap(options), _unwrap(successCallback));
-      return;
-    } else {
-      _ptr.webkitGetUserMedia(_unwrap(options), _unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) => _ptr.webkitGetUserMedia(_unwrap(options), _unwrap(successCallback), _unwrap(errorCallback));
 }
 
 class _NavigatorUserMediaErrorImpl extends _DOMTypeBase implements NavigatorUserMediaError {
@@ -12926,42 +10416,26 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   void set text(String value) { _ptr.textContent = _unwrap(value); }
 
-  Node $dom_appendChild(Node newChild) {
-    return _wrap(_ptr.appendChild(_unwrap(newChild)));
-  }
+  Node $dom_appendChild(Node newChild) => _wrap(_ptr.appendChild(_unwrap(newChild)));
 
-  Node clone(bool deep) {
-    return _wrap(_ptr.cloneNode(_unwrap(deep)));
-  }
+  Node clone(bool deep) => _wrap(_ptr.cloneNode(_unwrap(deep)));
 
-  bool contains(Node other) {
-    return _wrap(_ptr.contains(_unwrap(other)));
-  }
+  bool contains(Node other) => _wrap(_ptr.contains(_unwrap(other)));
 
-  bool hasChildNodes() {
-    return _wrap(_ptr.hasChildNodes());
-  }
+  bool hasChildNodes() => _wrap(_ptr.hasChildNodes());
 
-  Node insertBefore(Node newChild, Node refChild) {
-    return _wrap(_ptr.insertBefore(_unwrap(newChild), _unwrap(refChild)));
-  }
+  Node insertBefore(Node newChild, Node refChild) => _wrap(_ptr.insertBefore(_unwrap(newChild), _unwrap(refChild)));
 
-  Node $dom_removeChild(Node oldChild) {
-    return _wrap(_ptr.removeChild(_unwrap(oldChild)));
-  }
+  Node $dom_removeChild(Node oldChild) => _wrap(_ptr.removeChild(_unwrap(oldChild)));
 
-  Node $dom_replaceChild(Node newChild, Node oldChild) {
-    return _wrap(_ptr.replaceChild(_unwrap(newChild), _unwrap(oldChild)));
-  }
+  Node $dom_replaceChild(Node newChild, Node oldChild) => _wrap(_ptr.replaceChild(_unwrap(newChild), _unwrap(oldChild)));
 
 }
 
 class _NodeFilterImpl extends _DOMTypeBase implements NodeFilter {
   _NodeFilterImpl._wrap(ptr) : super._wrap(ptr);
 
-  int acceptNode(Node n) {
-    return _wrap(_ptr.acceptNode(_unwrap(n)));
-  }
+  int acceptNode(Node n) => _wrap(_ptr.acceptNode(_unwrap(n)));
 }
 
 class _NodeIteratorImpl extends _DOMTypeBase implements NodeIterator {
@@ -12979,18 +10453,11 @@ class _NodeIteratorImpl extends _DOMTypeBase implements NodeIterator {
 
   int get whatToShow() => _wrap(_ptr.whatToShow);
 
-  void detach() {
-    _ptr.detach();
-    return;
-  }
+  void detach() => _ptr.detach();
 
-  Node nextNode() {
-    return _wrap(_ptr.nextNode());
-  }
+  Node nextNode() => _wrap(_ptr.nextNode());
 
-  Node previousNode() {
-    return _wrap(_ptr.previousNode());
-  }
+  Node previousNode() => _wrap(_ptr.previousNode());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13174,13 +10641,9 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
 class _NodeSelectorImpl extends _DOMTypeBase implements NodeSelector {
   _NodeSelectorImpl._wrap(ptr) : super._wrap(ptr);
 
-  Element query(String selectors) {
-    return _wrap(_ptr.querySelector(_unwrap(selectors)));
-  }
+  Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) {
-    return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
-  }
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
 }
 
 class _NotationImpl extends _NodeImpl implements Notation {
@@ -13211,20 +10674,11 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set tag(String value) { _ptr.tag = _unwrap(value); }
 
-  void cancel() {
-    _ptr.cancel();
-    return;
-  }
+  void cancel() => _ptr.cancel();
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  void show() {
-    _ptr.show();
-    return;
-  }
+  void show() => _ptr.show();
 }
 
 class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
@@ -13244,22 +10698,13 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 class _NotificationCenterImpl extends _DOMTypeBase implements NotificationCenter {
   _NotificationCenterImpl._wrap(ptr) : super._wrap(ptr);
 
-  int checkPermission() {
-    return _wrap(_ptr.checkPermission());
-  }
+  int checkPermission() => _wrap(_ptr.checkPermission());
 
-  Notification createHTMLNotification(String url) {
-    return _wrap(_ptr.createHTMLNotification(_unwrap(url)));
-  }
+  Notification createHTMLNotification(String url) => _wrap(_ptr.createHTMLNotification(_unwrap(url)));
 
-  Notification createNotification(String iconUrl, String title, String body) {
-    return _wrap(_ptr.createNotification(_unwrap(iconUrl), _unwrap(title), _unwrap(body)));
-  }
+  Notification createNotification(String iconUrl, String title, String body) => _wrap(_ptr.createNotification(_unwrap(iconUrl), _unwrap(title), _unwrap(body)));
 
-  void requestPermission(VoidCallback callback) {
-    _ptr.requestPermission(_unwrap(callback));
-    return;
-  }
+  void requestPermission(VoidCallback callback) => _ptr.requestPermission(_unwrap(callback));
 }
 
 class _OESStandardDerivativesImpl extends _DOMTypeBase implements OESStandardDerivatives {
@@ -13273,23 +10718,13 @@ class _OESTextureFloatImpl extends _DOMTypeBase implements OESTextureFloat {
 class _OESVertexArrayObjectImpl extends _DOMTypeBase implements OESVertexArrayObject {
   _OESVertexArrayObjectImpl._wrap(ptr) : super._wrap(ptr);
 
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
-    _ptr.bindVertexArrayOES(_unwrap(arrayObject));
-    return;
-  }
+  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) => _ptr.bindVertexArrayOES(_unwrap(arrayObject));
 
-  WebGLVertexArrayObjectOES createVertexArrayOES() {
-    return _wrap(_ptr.createVertexArrayOES());
-  }
+  WebGLVertexArrayObjectOES createVertexArrayOES() => _wrap(_ptr.createVertexArrayOES());
 
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
-    _ptr.deleteVertexArrayOES(_unwrap(arrayObject));
-    return;
-  }
+  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) => _ptr.deleteVertexArrayOES(_unwrap(arrayObject));
 
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
-    return _wrap(_ptr.isVertexArrayOES(_unwrap(arrayObject)));
-  }
+  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) => _wrap(_ptr.isVertexArrayOES(_unwrap(arrayObject)));
 }
 
 class _OListElementImpl extends _ElementImpl implements OListElement {
@@ -13389,14 +10824,9 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 }
 
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent {
@@ -13414,9 +10844,7 @@ class _OperationNotAllowedExceptionImpl extends _DOMTypeBase implements Operatio
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _OptGroupElementImpl extends _ElementImpl implements OptGroupElement {
@@ -13470,10 +10898,7 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 
   void set type(int value) { _ptr.type = _unwrap(value); }
 
-  void setWaveTable(WaveTable waveTable) {
-    _ptr.setWaveTable(_unwrap(waveTable));
-    return;
-  }
+  void setWaveTable(WaveTable waveTable) => _ptr.setWaveTable(_unwrap(waveTable));
 }
 
 class _OutputElementImpl extends _ElementImpl implements OutputElement {
@@ -13507,14 +10932,9 @@ class _OutputElementImpl extends _ElementImpl implements OutputElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 }
 
 class _OverflowEventImpl extends _EventImpl implements OverflowEvent {
@@ -13581,90 +11001,29 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void addStream(MediaStream stream, [String mediaStreamHints = null]) {
-    if (mediaStreamHints === null) {
-      _ptr.addStream(_unwrap(stream));
-      return;
-    } else {
-      _ptr.addStream(_unwrap(stream), _unwrap(mediaStreamHints));
-      return;
-    }
-  }
+  void addStream(MediaStream stream, [String mediaStreamHints = null]) => _ptr.addStream(_unwrap(stream), _unwrap(mediaStreamHints));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  SessionDescription createAnswer(String offer, [String mediaHints = null]) {
-    if (mediaHints === null) {
-      return _wrap(_ptr.createAnswer(_unwrap(offer)));
-    } else {
-      return _wrap(_ptr.createAnswer(_unwrap(offer), _unwrap(mediaHints)));
-    }
-  }
+  SessionDescription createAnswer(String offer, [String mediaHints = null]) => _wrap(_ptr.createAnswer(_unwrap(offer), _unwrap(mediaHints)));
 
-  SessionDescription createOffer([String mediaHints = null]) {
-    if (mediaHints === null) {
-      return _wrap(_ptr.createOffer());
-    } else {
-      return _wrap(_ptr.createOffer(_unwrap(mediaHints)));
-    }
-  }
+  SessionDescription createOffer([String mediaHints = null]) => _wrap(_ptr.createOffer(_unwrap(mediaHints)));
 
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void processIceMessage(IceCandidate candidate) {
-    _ptr.processIceMessage(_unwrap(candidate));
-    return;
-  }
+  void processIceMessage(IceCandidate candidate) => _ptr.processIceMessage(_unwrap(candidate));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void removeStream(MediaStream stream) {
-    _ptr.removeStream(_unwrap(stream));
-    return;
-  }
+  void removeStream(MediaStream stream) => _ptr.removeStream(_unwrap(stream));
 
-  void setLocalDescription(int action, SessionDescription desc) {
-    _ptr.setLocalDescription(_unwrap(action), _unwrap(desc));
-    return;
-  }
+  void setLocalDescription(int action, SessionDescription desc) => _ptr.setLocalDescription(_unwrap(action), _unwrap(desc));
 
-  void setRemoteDescription(int action, SessionDescription desc) {
-    _ptr.setRemoteDescription(_unwrap(action), _unwrap(desc));
-    return;
-  }
+  void setRemoteDescription(int action, SessionDescription desc) => _ptr.setRemoteDescription(_unwrap(action), _unwrap(desc));
 
-  void startIce([String iceOptions = null]) {
-    if (iceOptions === null) {
-      _ptr.startIce();
-      return;
-    } else {
-      _ptr.startIce(_unwrap(iceOptions));
-      return;
-    }
-  }
+  void startIce([String iceOptions = null]) => _ptr.startIce(_unwrap(iceOptions));
 }
 
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
@@ -13690,9 +11049,7 @@ class _PerformanceImpl extends _DOMTypeBase implements Performance {
 
   PerformanceTiming get timing() => _wrap(_ptr.timing);
 
-  num webkitNow() {
-    return _wrap(_ptr.webkitNow());
-  }
+  num webkitNow() => _wrap(_ptr.webkitNow());
 }
 
 class _PerformanceNavigationImpl extends _DOMTypeBase implements PerformanceNavigation {
@@ -13766,28 +11123,9 @@ class _PointerLockImpl extends _DOMTypeBase implements PointerLock {
 
   bool get isLocked() => _wrap(_ptr.isLocked);
 
-  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) {
-    if (successCallback === null) {
-      if (failureCallback === null) {
-        _ptr.lock(_unwrap(target));
-        return;
-      }
-    } else {
-      if (failureCallback === null) {
-        _ptr.lock(_unwrap(target), _unwrap(successCallback));
-        return;
-      } else {
-        _ptr.lock(_unwrap(target), _unwrap(successCallback), _unwrap(failureCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) => _ptr.lock(_unwrap(target), _unwrap(successCallback), _unwrap(failureCallback));
 
-  void unlock() {
-    _ptr.unlock();
-    return;
-  }
+  void unlock() => _ptr.unlock();
 }
 
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
@@ -13887,119 +11225,55 @@ class _RangeImpl extends _DOMTypeBase implements Range {
 
   int get startOffset() => _wrap(_ptr.startOffset);
 
-  DocumentFragment cloneContents() {
-    return _wrap(_ptr.cloneContents());
-  }
+  DocumentFragment cloneContents() => _wrap(_ptr.cloneContents());
 
-  Range cloneRange() {
-    return _wrap(_ptr.cloneRange());
-  }
+  Range cloneRange() => _wrap(_ptr.cloneRange());
 
-  void collapse(bool toStart) {
-    _ptr.collapse(_unwrap(toStart));
-    return;
-  }
+  void collapse(bool toStart) => _ptr.collapse(_unwrap(toStart));
 
-  int compareNode(Node refNode) {
-    return _wrap(_ptr.compareNode(_unwrap(refNode)));
-  }
+  int compareNode(Node refNode) => _wrap(_ptr.compareNode(_unwrap(refNode)));
 
-  int comparePoint(Node refNode, int offset) {
-    return _wrap(_ptr.comparePoint(_unwrap(refNode), _unwrap(offset)));
-  }
+  int comparePoint(Node refNode, int offset) => _wrap(_ptr.comparePoint(_unwrap(refNode), _unwrap(offset)));
 
-  DocumentFragment createContextualFragment(String html) {
-    return _wrap(_ptr.createContextualFragment(_unwrap(html)));
-  }
+  DocumentFragment createContextualFragment(String html) => _wrap(_ptr.createContextualFragment(_unwrap(html)));
 
-  void deleteContents() {
-    _ptr.deleteContents();
-    return;
-  }
+  void deleteContents() => _ptr.deleteContents();
 
-  void detach() {
-    _ptr.detach();
-    return;
-  }
+  void detach() => _ptr.detach();
 
-  void expand(String unit) {
-    _ptr.expand(_unwrap(unit));
-    return;
-  }
+  void expand(String unit) => _ptr.expand(_unwrap(unit));
 
-  DocumentFragment extractContents() {
-    return _wrap(_ptr.extractContents());
-  }
+  DocumentFragment extractContents() => _wrap(_ptr.extractContents());
 
-  ClientRect getBoundingClientRect() {
-    return _wrap(_ptr.getBoundingClientRect());
-  }
+  ClientRect getBoundingClientRect() => _wrap(_ptr.getBoundingClientRect());
 
-  ClientRectList getClientRects() {
-    return _wrap(_ptr.getClientRects());
-  }
+  ClientRectList getClientRects() => _wrap(_ptr.getClientRects());
 
-  void insertNode(Node newNode) {
-    _ptr.insertNode(_unwrap(newNode));
-    return;
-  }
+  void insertNode(Node newNode) => _ptr.insertNode(_unwrap(newNode));
 
-  bool intersectsNode(Node refNode) {
-    return _wrap(_ptr.intersectsNode(_unwrap(refNode)));
-  }
+  bool intersectsNode(Node refNode) => _wrap(_ptr.intersectsNode(_unwrap(refNode)));
 
-  bool isPointInRange(Node refNode, int offset) {
-    return _wrap(_ptr.isPointInRange(_unwrap(refNode), _unwrap(offset)));
-  }
+  bool isPointInRange(Node refNode, int offset) => _wrap(_ptr.isPointInRange(_unwrap(refNode), _unwrap(offset)));
 
-  void selectNode(Node refNode) {
-    _ptr.selectNode(_unwrap(refNode));
-    return;
-  }
+  void selectNode(Node refNode) => _ptr.selectNode(_unwrap(refNode));
 
-  void selectNodeContents(Node refNode) {
-    _ptr.selectNodeContents(_unwrap(refNode));
-    return;
-  }
+  void selectNodeContents(Node refNode) => _ptr.selectNodeContents(_unwrap(refNode));
 
-  void setEnd(Node refNode, int offset) {
-    _ptr.setEnd(_unwrap(refNode), _unwrap(offset));
-    return;
-  }
+  void setEnd(Node refNode, int offset) => _ptr.setEnd(_unwrap(refNode), _unwrap(offset));
 
-  void setEndAfter(Node refNode) {
-    _ptr.setEndAfter(_unwrap(refNode));
-    return;
-  }
+  void setEndAfter(Node refNode) => _ptr.setEndAfter(_unwrap(refNode));
 
-  void setEndBefore(Node refNode) {
-    _ptr.setEndBefore(_unwrap(refNode));
-    return;
-  }
+  void setEndBefore(Node refNode) => _ptr.setEndBefore(_unwrap(refNode));
 
-  void setStart(Node refNode, int offset) {
-    _ptr.setStart(_unwrap(refNode), _unwrap(offset));
-    return;
-  }
+  void setStart(Node refNode, int offset) => _ptr.setStart(_unwrap(refNode), _unwrap(offset));
 
-  void setStartAfter(Node refNode) {
-    _ptr.setStartAfter(_unwrap(refNode));
-    return;
-  }
+  void setStartAfter(Node refNode) => _ptr.setStartAfter(_unwrap(refNode));
 
-  void setStartBefore(Node refNode) {
-    _ptr.setStartBefore(_unwrap(refNode));
-    return;
-  }
+  void setStartBefore(Node refNode) => _ptr.setStartBefore(_unwrap(refNode));
 
-  void surroundContents(Node newParent) {
-    _ptr.surroundContents(_unwrap(newParent));
-    return;
-  }
+  void surroundContents(Node newParent) => _ptr.surroundContents(_unwrap(newParent));
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _RangeExceptionImpl extends _DOMTypeBase implements RangeException {
@@ -14011,9 +11285,7 @@ class _RangeExceptionImpl extends _DOMTypeBase implements RangeException {
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalyserNode {
@@ -14037,20 +11309,11 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 
   void set smoothingTimeConstant(num value) { _ptr.smoothingTimeConstant = _unwrap(value); }
 
-  void getByteFrequencyData(Uint8Array array) {
-    _ptr.getByteFrequencyData(_unwrap(array));
-    return;
-  }
+  void getByteFrequencyData(Uint8Array array) => _ptr.getByteFrequencyData(_unwrap(array));
 
-  void getByteTimeDomainData(Uint8Array array) {
-    _ptr.getByteTimeDomainData(_unwrap(array));
-    return;
-  }
+  void getByteTimeDomainData(Uint8Array array) => _ptr.getByteTimeDomainData(_unwrap(array));
 
-  void getFloatFrequencyData(Float32Array array) {
-    _ptr.getFloatFrequencyData(_unwrap(array));
-    return;
-  }
+  void getFloatFrequencyData(Float32Array array) => _ptr.getFloatFrequencyData(_unwrap(array));
 }
 
 class _RectImpl extends _DOMTypeBase implements Rect {
@@ -14096,9 +11359,7 @@ class _SQLResultSetRowListImpl extends _DOMTypeBase implements SQLResultSetRowLi
 
   int get length() => _wrap(_ptr.length);
 
-  Object item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Object item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _SQLTransactionImpl extends _DOMTypeBase implements SQLTransaction {
@@ -14126,9 +11387,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -14150,9 +11409,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -14164,21 +11421,13 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGAltGlyphDefElementImpl extends _SVGElementImpl implements SVGAltGlyphDefElement {
@@ -14222,15 +11471,9 @@ class _SVGAngleImpl extends _DOMTypeBase implements SVGAngle {
 
   void set valueInSpecifiedUnits(num value) { _ptr.valueInSpecifiedUnits = _unwrap(value); }
 
-  void convertToSpecifiedUnits(int unitType) {
-    _ptr.convertToSpecifiedUnits(_unwrap(unitType));
-    return;
-  }
+  void convertToSpecifiedUnits(int unitType) => _ptr.convertToSpecifiedUnits(_unwrap(unitType));
 
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) {
-    _ptr.newValueSpecifiedUnits(_unwrap(unitType), _unwrap(valueInSpecifiedUnits));
-    return;
-  }
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _ptr.newValueSpecifiedUnits(_unwrap(unitType), _unwrap(valueInSpecifiedUnits));
 }
 
 class _SVGAnimateColorElementImpl extends _SVGAnimationElementImpl implements SVGAnimateColorElement {
@@ -14360,17 +11603,11 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   SVGElement get targetElement() => _wrap(_ptr.targetElement);
 
-  num getCurrentTime() {
-    return _wrap(_ptr.getCurrentTime());
-  }
+  num getCurrentTime() => _wrap(_ptr.getCurrentTime());
 
-  num getSimpleDuration() {
-    return _wrap(_ptr.getSimpleDuration());
-  }
+  num getSimpleDuration() => _wrap(_ptr.getSimpleDuration());
 
-  num getStartTime() {
-    return _wrap(_ptr.getStartTime());
-  }
+  num getStartTime() => _wrap(_ptr.getStartTime());
 
   // From SVGTests
 
@@ -14380,9 +11617,7 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGExternalResourcesRequired
 
@@ -14390,25 +11625,13 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   // From ElementTimeControl
 
-  void beginElement() {
-    _ptr.beginElement();
-    return;
-  }
+  void beginElement() => _ptr.beginElement();
 
-  void beginElementAt(num offset) {
-    _ptr.beginElementAt(_unwrap(offset));
-    return;
-  }
+  void beginElementAt(num offset) => _ptr.beginElementAt(_unwrap(offset));
 
-  void endElement() {
-    _ptr.endElement();
-    return;
-  }
+  void endElement() => _ptr.endElement();
 
-  void endElementAt(num offset) {
-    _ptr.endElementAt(_unwrap(offset));
-    return;
-  }
+  void endElementAt(num offset) => _ptr.endElementAt(_unwrap(offset));
 }
 
 class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement {
@@ -14428,9 +11651,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -14452,9 +11673,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -14466,21 +11685,13 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElement {
@@ -14496,9 +11707,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -14520,9 +11729,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -14534,21 +11741,13 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGColorImpl extends _CSSValueImpl implements SVGColor {
@@ -14558,20 +11757,11 @@ class _SVGColorImpl extends _CSSValueImpl implements SVGColor {
 
   RGBColor get rgbColor() => _wrap(_ptr.rgbColor);
 
-  void setColor(int colorType, String rgbColor, String iccColor) {
-    _ptr.setColor(_unwrap(colorType), _unwrap(rgbColor), _unwrap(iccColor));
-    return;
-  }
+  void setColor(int colorType, String rgbColor, String iccColor) => _ptr.setColor(_unwrap(colorType), _unwrap(rgbColor), _unwrap(iccColor));
 
-  void setRGBColor(String rgbColor) {
-    _ptr.setRGBColor(_unwrap(rgbColor));
-    return;
-  }
+  void setRGBColor(String rgbColor) => _ptr.setRGBColor(_unwrap(rgbColor));
 
-  void setRGBColorICCColor(String rgbColor, String iccColor) {
-    _ptr.setRGBColorICCColor(_unwrap(rgbColor), _unwrap(iccColor));
-    return;
-  }
+  void setRGBColorICCColor(String rgbColor, String iccColor) => _ptr.setRGBColorICCColor(_unwrap(rgbColor), _unwrap(iccColor));
 }
 
 class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implements SVGComponentTransferFunctionElement {
@@ -14611,9 +11801,7 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGExternalResourcesRequired
 
@@ -14631,9 +11819,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -14655,9 +11841,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -14669,21 +11853,13 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
@@ -14705,9 +11881,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
@@ -14715,9 +11889,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 
   SVGSVGElement get rootElement() => _wrap(_ptr.rootElement);
 
-  Event $dom_createEvent(String eventType) {
-    return _wrap(_ptr.createEvent(_unwrap(eventType)));
-  }
+  Event $dom_createEvent(String eventType) => _wrap(_ptr.createEvent(_unwrap(eventType)));
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14811,29 +11983,11 @@ class _SVGElementInstanceImpl extends _DOMTypeBase implements SVGElementInstance
 
   SVGElementInstance get previousSibling() => _wrap(_ptr.previousSibling);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
+  bool dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
@@ -14925,9 +12079,7 @@ class _SVGElementInstanceListImpl extends _DOMTypeBase implements SVGElementInst
 
   int get length() => _wrap(_ptr.length);
 
-  SVGElementInstance item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  SVGElementInstance item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElement {
@@ -14949,9 +12101,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -14973,9 +12123,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -14987,21 +12135,13 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGExceptionImpl extends _DOMTypeBase implements SVGException {
@@ -15013,9 +12153,7 @@ class _SVGExceptionImpl extends _DOMTypeBase implements SVGException {
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _SVGExternalResourcesRequiredImpl extends _DOMTypeBase implements SVGExternalResourcesRequired {
@@ -15051,9 +12189,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColorMatrixElement {
@@ -15083,9 +12219,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGFEComponentTransferElement {
@@ -15111,9 +12245,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFECompositeElement {
@@ -15151,9 +12283,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFEConvolveMatrixElement {
@@ -15201,9 +12331,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFEDiffuseLightingElement {
@@ -15237,9 +12365,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFEDisplacementMapElement {
@@ -15273,9 +12399,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDistantLightElement {
@@ -15299,10 +12423,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   SVGAnimatedNumber get stdDeviationY() => _wrap(_ptr.stdDeviationY);
 
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) {
-    _ptr.setStdDeviation(_unwrap(stdDeviationX), _unwrap(stdDeviationY));
-    return;
-  }
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) => _ptr.setStdDeviation(_unwrap(stdDeviationX), _unwrap(stdDeviationY));
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -15322,9 +12443,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElement {
@@ -15348,9 +12467,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEFuncAElementImpl extends _SVGComponentTransferFunctionElementImpl implements SVGFEFuncAElement {
@@ -15378,10 +12495,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   SVGAnimatedNumber get stdDeviationY() => _wrap(_ptr.stdDeviationY);
 
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) {
-    _ptr.setStdDeviation(_unwrap(stdDeviationX), _unwrap(stdDeviationY));
-    return;
-  }
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) => _ptr.setStdDeviation(_unwrap(stdDeviationX), _unwrap(stdDeviationY));
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -15401,9 +12515,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElement {
@@ -15447,9 +12559,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElement {
@@ -15473,9 +12583,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNodeElement {
@@ -15495,10 +12603,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   SVGAnimatedNumber get radiusY() => _wrap(_ptr.radiusY);
 
-  void setRadius(num radiusX, num radiusY) {
-    _ptr.setRadius(_unwrap(radiusX), _unwrap(radiusY));
-    return;
-  }
+  void setRadius(num radiusX, num radiusY) => _ptr.setRadius(_unwrap(radiusX), _unwrap(radiusY));
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -15518,9 +12623,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElement {
@@ -15550,9 +12653,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointLightElement {
@@ -15594,9 +12695,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLightElement {
@@ -15642,9 +12741,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbulenceElement {
@@ -15680,9 +12777,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement {
@@ -15704,10 +12799,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   SVGAnimatedLength get y() => _wrap(_ptr.y);
 
-  void setFilterRes(int filterResX, int filterResY) {
-    _ptr.setFilterRes(_unwrap(filterResX), _unwrap(filterResY));
-    return;
-  }
+  void setFilterRes(int filterResX, int filterResY) => _ptr.setFilterRes(_unwrap(filterResX), _unwrap(filterResY));
 
   // From SVGURIReference
 
@@ -15733,9 +12825,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGFilterPrimitiveStandardAttributesImpl extends _SVGStylableImpl implements SVGFilterPrimitiveStandardAttributes {
@@ -15803,9 +12893,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -15827,9 +12915,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -15841,21 +12927,13 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
@@ -15869,9 +12947,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -15893,9 +12969,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -15907,21 +12981,13 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGGlyphElementImpl extends _SVGElementImpl implements SVGGlyphElement {
@@ -15965,9 +13031,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElement {
@@ -15993,9 +13057,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGHKernElementImpl extends _SVGElementImpl implements SVGHKernElement {
@@ -16027,9 +13089,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -16051,9 +13111,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -16065,21 +13123,13 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGLangSpaceImpl extends _DOMTypeBase implements SVGLangSpace {
@@ -16111,15 +13161,9 @@ class _SVGLengthImpl extends _DOMTypeBase implements SVGLength {
 
   void set valueInSpecifiedUnits(num value) { _ptr.valueInSpecifiedUnits = _unwrap(value); }
 
-  void convertToSpecifiedUnits(int unitType) {
-    _ptr.convertToSpecifiedUnits(_unwrap(unitType));
-    return;
-  }
+  void convertToSpecifiedUnits(int unitType) => _ptr.convertToSpecifiedUnits(_unwrap(unitType));
 
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) {
-    _ptr.newValueSpecifiedUnits(_unwrap(unitType), _unwrap(valueInSpecifiedUnits));
-    return;
-  }
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _ptr.newValueSpecifiedUnits(_unwrap(unitType), _unwrap(valueInSpecifiedUnits));
 }
 
 class _SVGLengthListImpl extends _DOMTypeBase implements SVGLengthList {
@@ -16127,34 +13171,19 @@ class _SVGLengthListImpl extends _DOMTypeBase implements SVGLengthList {
 
   int get numberOfItems() => _wrap(_ptr.numberOfItems);
 
-  SVGLength appendItem(SVGLength item) {
-    return _wrap(_ptr.appendItem(_unwrap(item)));
-  }
+  SVGLength appendItem(SVGLength item) => _wrap(_ptr.appendItem(_unwrap(item)));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  SVGLength getItem(int index) {
-    return _wrap(_ptr.getItem(_unwrap(index)));
-  }
+  SVGLength getItem(int index) => _wrap(_ptr.getItem(_unwrap(index)));
 
-  SVGLength initialize(SVGLength item) {
-    return _wrap(_ptr.initialize(_unwrap(item)));
-  }
+  SVGLength initialize(SVGLength item) => _wrap(_ptr.initialize(_unwrap(item)));
 
-  SVGLength insertItemBefore(SVGLength item, int index) {
-    return _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
-  }
+  SVGLength insertItemBefore(SVGLength item, int index) => _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
 
-  SVGLength removeItem(int index) {
-    return _wrap(_ptr.removeItem(_unwrap(index)));
-  }
+  SVGLength removeItem(int index) => _wrap(_ptr.removeItem(_unwrap(index)));
 
-  SVGLength replaceItem(SVGLength item, int index) {
-    return _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
-  }
+  SVGLength replaceItem(SVGLength item, int index) => _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
 }
 
 class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
@@ -16176,9 +13205,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -16200,9 +13227,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -16214,21 +13239,13 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements SVGLinearGradientElement {
@@ -16250,21 +13267,13 @@ class _SVGLocatableImpl extends _DOMTypeBase implements SVGLocatable {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement {
@@ -16296,15 +13305,9 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   SVGAnimatedLength get refY() => _wrap(_ptr.refY);
 
-  void setOrientToAngle(SVGAngle angle) {
-    _ptr.setOrientToAngle(_unwrap(angle));
-    return;
-  }
+  void setOrientToAngle(SVGAngle angle) => _ptr.setOrientToAngle(_unwrap(angle));
 
-  void setOrientToAuto() {
-    _ptr.setOrientToAuto();
-    return;
-  }
+  void setOrientToAuto() => _ptr.setOrientToAuto();
 
   // From SVGLangSpace
 
@@ -16326,9 +13329,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGFitToViewBox
 
@@ -16360,9 +13361,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -16384,9 +13383,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGMatrixImpl extends _DOMTypeBase implements SVGMatrix {
@@ -16416,49 +13413,27 @@ class _SVGMatrixImpl extends _DOMTypeBase implements SVGMatrix {
 
   void set f(num value) { _ptr.f = _unwrap(value); }
 
-  SVGMatrix flipX() {
-    return _wrap(_ptr.flipX());
-  }
+  SVGMatrix flipX() => _wrap(_ptr.flipX());
 
-  SVGMatrix flipY() {
-    return _wrap(_ptr.flipY());
-  }
+  SVGMatrix flipY() => _wrap(_ptr.flipY());
 
-  SVGMatrix inverse() {
-    return _wrap(_ptr.inverse());
-  }
+  SVGMatrix inverse() => _wrap(_ptr.inverse());
 
-  SVGMatrix multiply(SVGMatrix secondMatrix) {
-    return _wrap(_ptr.multiply(_unwrap(secondMatrix)));
-  }
+  SVGMatrix multiply(SVGMatrix secondMatrix) => _wrap(_ptr.multiply(_unwrap(secondMatrix)));
 
-  SVGMatrix rotate(num angle) {
-    return _wrap(_ptr.rotate(_unwrap(angle)));
-  }
+  SVGMatrix rotate(num angle) => _wrap(_ptr.rotate(_unwrap(angle)));
 
-  SVGMatrix rotateFromVector(num x, num y) {
-    return _wrap(_ptr.rotateFromVector(_unwrap(x), _unwrap(y)));
-  }
+  SVGMatrix rotateFromVector(num x, num y) => _wrap(_ptr.rotateFromVector(_unwrap(x), _unwrap(y)));
 
-  SVGMatrix scale(num scaleFactor) {
-    return _wrap(_ptr.scale(_unwrap(scaleFactor)));
-  }
+  SVGMatrix scale(num scaleFactor) => _wrap(_ptr.scale(_unwrap(scaleFactor)));
 
-  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) {
-    return _wrap(_ptr.scaleNonUniform(_unwrap(scaleFactorX), _unwrap(scaleFactorY)));
-  }
+  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) => _wrap(_ptr.scaleNonUniform(_unwrap(scaleFactorX), _unwrap(scaleFactorY)));
 
-  SVGMatrix skewX(num angle) {
-    return _wrap(_ptr.skewX(_unwrap(angle)));
-  }
+  SVGMatrix skewX(num angle) => _wrap(_ptr.skewX(_unwrap(angle)));
 
-  SVGMatrix skewY(num angle) {
-    return _wrap(_ptr.skewY(_unwrap(angle)));
-  }
+  SVGMatrix skewY(num angle) => _wrap(_ptr.skewY(_unwrap(angle)));
 
-  SVGMatrix translate(num x, num y) {
-    return _wrap(_ptr.translate(_unwrap(x), _unwrap(y)));
-  }
+  SVGMatrix translate(num x, num y) => _wrap(_ptr.translate(_unwrap(x), _unwrap(y)));
 }
 
 class _SVGMetadataElementImpl extends _SVGElementImpl implements SVGMetadataElement {
@@ -16482,34 +13457,19 @@ class _SVGNumberListImpl extends _DOMTypeBase implements SVGNumberList {
 
   int get numberOfItems() => _wrap(_ptr.numberOfItems);
 
-  SVGNumber appendItem(SVGNumber item) {
-    return _wrap(_ptr.appendItem(_unwrap(item)));
-  }
+  SVGNumber appendItem(SVGNumber item) => _wrap(_ptr.appendItem(_unwrap(item)));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  SVGNumber getItem(int index) {
-    return _wrap(_ptr.getItem(_unwrap(index)));
-  }
+  SVGNumber getItem(int index) => _wrap(_ptr.getItem(_unwrap(index)));
 
-  SVGNumber initialize(SVGNumber item) {
-    return _wrap(_ptr.initialize(_unwrap(item)));
-  }
+  SVGNumber initialize(SVGNumber item) => _wrap(_ptr.initialize(_unwrap(item)));
 
-  SVGNumber insertItemBefore(SVGNumber item, int index) {
-    return _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
-  }
+  SVGNumber insertItemBefore(SVGNumber item, int index) => _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
 
-  SVGNumber removeItem(int index) {
-    return _wrap(_ptr.removeItem(_unwrap(index)));
-  }
+  SVGNumber removeItem(int index) => _wrap(_ptr.removeItem(_unwrap(index)));
 
-  SVGNumber replaceItem(SVGNumber item, int index) {
-    return _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
-  }
+  SVGNumber replaceItem(SVGNumber item, int index) => _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
 }
 
 class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint {
@@ -16519,15 +13479,9 @@ class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint {
 
   String get uri() => _wrap(_ptr.uri);
 
-  void setPaint(int paintType, String uri, String rgbColor, String iccColor) {
-    _ptr.setPaint(_unwrap(paintType), _unwrap(uri), _unwrap(rgbColor), _unwrap(iccColor));
-    return;
-  }
+  void setPaint(int paintType, String uri, String rgbColor, String iccColor) => _ptr.setPaint(_unwrap(paintType), _unwrap(uri), _unwrap(rgbColor), _unwrap(iccColor));
 
-  void setUri(String uri) {
-    _ptr.setUri(_unwrap(uri));
-    return;
-  }
+  void setUri(String uri) => _ptr.setUri(_unwrap(uri));
 }
 
 class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
@@ -16543,93 +13497,49 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   SVGPathSegList get pathSegList() => _wrap(_ptr.pathSegList);
 
-  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) {
-    return _wrap(_ptr.createSVGPathSegArcAbs(_unwrap(x), _unwrap(y), _unwrap(r1), _unwrap(r2), _unwrap(angle), _unwrap(largeArcFlag), _unwrap(sweepFlag)));
-  }
+  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _wrap(_ptr.createSVGPathSegArcAbs(_unwrap(x), _unwrap(y), _unwrap(r1), _unwrap(r2), _unwrap(angle), _unwrap(largeArcFlag), _unwrap(sweepFlag)));
 
-  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) {
-    return _wrap(_ptr.createSVGPathSegArcRel(_unwrap(x), _unwrap(y), _unwrap(r1), _unwrap(r2), _unwrap(angle), _unwrap(largeArcFlag), _unwrap(sweepFlag)));
-  }
+  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _wrap(_ptr.createSVGPathSegArcRel(_unwrap(x), _unwrap(y), _unwrap(r1), _unwrap(r2), _unwrap(angle), _unwrap(largeArcFlag), _unwrap(sweepFlag)));
 
-  SVGPathSegClosePath createSVGPathSegClosePath() {
-    return _wrap(_ptr.createSVGPathSegClosePath());
-  }
+  SVGPathSegClosePath createSVGPathSegClosePath() => _wrap(_ptr.createSVGPathSegClosePath());
 
-  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) {
-    return _wrap(_ptr.createSVGPathSegCurvetoCubicAbs(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1), _unwrap(x2), _unwrap(y2)));
-  }
+  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) => _wrap(_ptr.createSVGPathSegCurvetoCubicAbs(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1), _unwrap(x2), _unwrap(y2)));
 
-  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) {
-    return _wrap(_ptr.createSVGPathSegCurvetoCubicRel(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1), _unwrap(x2), _unwrap(y2)));
-  }
+  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) => _wrap(_ptr.createSVGPathSegCurvetoCubicRel(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1), _unwrap(x2), _unwrap(y2)));
 
-  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) {
-    return _wrap(_ptr.createSVGPathSegCurvetoCubicSmoothAbs(_unwrap(x), _unwrap(y), _unwrap(x2), _unwrap(y2)));
-  }
+  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) => _wrap(_ptr.createSVGPathSegCurvetoCubicSmoothAbs(_unwrap(x), _unwrap(y), _unwrap(x2), _unwrap(y2)));
 
-  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) {
-    return _wrap(_ptr.createSVGPathSegCurvetoCubicSmoothRel(_unwrap(x), _unwrap(y), _unwrap(x2), _unwrap(y2)));
-  }
+  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) => _wrap(_ptr.createSVGPathSegCurvetoCubicSmoothRel(_unwrap(x), _unwrap(y), _unwrap(x2), _unwrap(y2)));
 
-  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) {
-    return _wrap(_ptr.createSVGPathSegCurvetoQuadraticAbs(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1)));
-  }
+  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) => _wrap(_ptr.createSVGPathSegCurvetoQuadraticAbs(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1)));
 
-  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) {
-    return _wrap(_ptr.createSVGPathSegCurvetoQuadraticRel(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1)));
-  }
+  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) => _wrap(_ptr.createSVGPathSegCurvetoQuadraticRel(_unwrap(x), _unwrap(y), _unwrap(x1), _unwrap(y1)));
 
-  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) {
-    return _wrap(_ptr.createSVGPathSegCurvetoQuadraticSmoothAbs(_unwrap(x), _unwrap(y)));
-  }
+  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) => _wrap(_ptr.createSVGPathSegCurvetoQuadraticSmoothAbs(_unwrap(x), _unwrap(y)));
 
-  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) {
-    return _wrap(_ptr.createSVGPathSegCurvetoQuadraticSmoothRel(_unwrap(x), _unwrap(y)));
-  }
+  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) => _wrap(_ptr.createSVGPathSegCurvetoQuadraticSmoothRel(_unwrap(x), _unwrap(y)));
 
-  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) {
-    return _wrap(_ptr.createSVGPathSegLinetoAbs(_unwrap(x), _unwrap(y)));
-  }
+  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) => _wrap(_ptr.createSVGPathSegLinetoAbs(_unwrap(x), _unwrap(y)));
 
-  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) {
-    return _wrap(_ptr.createSVGPathSegLinetoHorizontalAbs(_unwrap(x)));
-  }
+  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) => _wrap(_ptr.createSVGPathSegLinetoHorizontalAbs(_unwrap(x)));
 
-  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) {
-    return _wrap(_ptr.createSVGPathSegLinetoHorizontalRel(_unwrap(x)));
-  }
+  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) => _wrap(_ptr.createSVGPathSegLinetoHorizontalRel(_unwrap(x)));
 
-  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) {
-    return _wrap(_ptr.createSVGPathSegLinetoRel(_unwrap(x), _unwrap(y)));
-  }
+  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) => _wrap(_ptr.createSVGPathSegLinetoRel(_unwrap(x), _unwrap(y)));
 
-  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) {
-    return _wrap(_ptr.createSVGPathSegLinetoVerticalAbs(_unwrap(y)));
-  }
+  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) => _wrap(_ptr.createSVGPathSegLinetoVerticalAbs(_unwrap(y)));
 
-  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) {
-    return _wrap(_ptr.createSVGPathSegLinetoVerticalRel(_unwrap(y)));
-  }
+  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) => _wrap(_ptr.createSVGPathSegLinetoVerticalRel(_unwrap(y)));
 
-  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) {
-    return _wrap(_ptr.createSVGPathSegMovetoAbs(_unwrap(x), _unwrap(y)));
-  }
+  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) => _wrap(_ptr.createSVGPathSegMovetoAbs(_unwrap(x), _unwrap(y)));
 
-  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) {
-    return _wrap(_ptr.createSVGPathSegMovetoRel(_unwrap(x), _unwrap(y)));
-  }
+  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) => _wrap(_ptr.createSVGPathSegMovetoRel(_unwrap(x), _unwrap(y)));
 
-  int getPathSegAtLength(num distance) {
-    return _wrap(_ptr.getPathSegAtLength(_unwrap(distance)));
-  }
+  int getPathSegAtLength(num distance) => _wrap(_ptr.getPathSegAtLength(_unwrap(distance)));
 
-  SVGPoint getPointAtLength(num distance) {
-    return _wrap(_ptr.getPointAtLength(_unwrap(distance)));
-  }
+  SVGPoint getPointAtLength(num distance) => _wrap(_ptr.getPointAtLength(_unwrap(distance)));
 
-  num getTotalLength() {
-    return _wrap(_ptr.getTotalLength());
-  }
+  num getTotalLength() => _wrap(_ptr.getTotalLength());
 
   // From SVGTests
 
@@ -16639,9 +13549,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -16663,9 +13571,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -16677,21 +13583,13 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGPathSegImpl extends _DOMTypeBase implements SVGPathSeg {
@@ -16991,34 +13889,19 @@ class _SVGPathSegListImpl extends _DOMTypeBase implements SVGPathSegList {
 
   int get numberOfItems() => _wrap(_ptr.numberOfItems);
 
-  SVGPathSeg appendItem(SVGPathSeg newItem) {
-    return _wrap(_ptr.appendItem(_unwrap(newItem)));
-  }
+  SVGPathSeg appendItem(SVGPathSeg newItem) => _wrap(_ptr.appendItem(_unwrap(newItem)));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  SVGPathSeg getItem(int index) {
-    return _wrap(_ptr.getItem(_unwrap(index)));
-  }
+  SVGPathSeg getItem(int index) => _wrap(_ptr.getItem(_unwrap(index)));
 
-  SVGPathSeg initialize(SVGPathSeg newItem) {
-    return _wrap(_ptr.initialize(_unwrap(newItem)));
-  }
+  SVGPathSeg initialize(SVGPathSeg newItem) => _wrap(_ptr.initialize(_unwrap(newItem)));
 
-  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) {
-    return _wrap(_ptr.insertItemBefore(_unwrap(newItem), _unwrap(index)));
-  }
+  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) => _wrap(_ptr.insertItemBefore(_unwrap(newItem), _unwrap(index)));
 
-  SVGPathSeg removeItem(int index) {
-    return _wrap(_ptr.removeItem(_unwrap(index)));
-  }
+  SVGPathSeg removeItem(int index) => _wrap(_ptr.removeItem(_unwrap(index)));
 
-  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) {
-    return _wrap(_ptr.replaceItem(_unwrap(newItem), _unwrap(index)));
-  }
+  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) => _wrap(_ptr.replaceItem(_unwrap(newItem), _unwrap(index)));
 }
 
 class _SVGPathSegMovetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegMovetoAbs {
@@ -17074,9 +13957,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17098,9 +13979,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGFitToViewBox
 
@@ -17120,9 +13999,7 @@ class _SVGPointImpl extends _DOMTypeBase implements SVGPoint {
 
   void set y(num value) { _ptr.y = _unwrap(value); }
 
-  SVGPoint matrixTransform(SVGMatrix matrix) {
-    return _wrap(_ptr.matrixTransform(_unwrap(matrix)));
-  }
+  SVGPoint matrixTransform(SVGMatrix matrix) => _wrap(_ptr.matrixTransform(_unwrap(matrix)));
 }
 
 class _SVGPointListImpl extends _DOMTypeBase implements SVGPointList {
@@ -17130,34 +14007,19 @@ class _SVGPointListImpl extends _DOMTypeBase implements SVGPointList {
 
   int get numberOfItems() => _wrap(_ptr.numberOfItems);
 
-  SVGPoint appendItem(SVGPoint item) {
-    return _wrap(_ptr.appendItem(_unwrap(item)));
-  }
+  SVGPoint appendItem(SVGPoint item) => _wrap(_ptr.appendItem(_unwrap(item)));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  SVGPoint getItem(int index) {
-    return _wrap(_ptr.getItem(_unwrap(index)));
-  }
+  SVGPoint getItem(int index) => _wrap(_ptr.getItem(_unwrap(index)));
 
-  SVGPoint initialize(SVGPoint item) {
-    return _wrap(_ptr.initialize(_unwrap(item)));
-  }
+  SVGPoint initialize(SVGPoint item) => _wrap(_ptr.initialize(_unwrap(item)));
 
-  SVGPoint insertItemBefore(SVGPoint item, int index) {
-    return _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
-  }
+  SVGPoint insertItemBefore(SVGPoint item, int index) => _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
 
-  SVGPoint removeItem(int index) {
-    return _wrap(_ptr.removeItem(_unwrap(index)));
-  }
+  SVGPoint removeItem(int index) => _wrap(_ptr.removeItem(_unwrap(index)));
 
-  SVGPoint replaceItem(SVGPoint item, int index) {
-    return _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
-  }
+  SVGPoint replaceItem(SVGPoint item, int index) => _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
 }
 
 class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElement {
@@ -17175,9 +14037,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17199,9 +14059,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -17213,21 +14071,13 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElement {
@@ -17245,9 +14095,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17269,9 +14117,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -17283,21 +14129,13 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGPreserveAspectRatioImpl extends _DOMTypeBase implements SVGPreserveAspectRatio {
@@ -17369,9 +14207,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17393,9 +14229,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -17407,21 +14241,13 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGRenderingIntentImpl extends _DOMTypeBase implements SVGRenderingIntent {
@@ -17467,104 +14293,51 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   SVGAnimatedLength get y() => _wrap(_ptr.y);
 
-  bool animationsPaused() {
-    return _wrap(_ptr.animationsPaused());
-  }
+  bool animationsPaused() => _wrap(_ptr.animationsPaused());
 
-  bool checkEnclosure(SVGElement element, SVGRect rect) {
-    return _wrap(_ptr.checkEnclosure(_unwrap(element), _unwrap(rect)));
-  }
+  bool checkEnclosure(SVGElement element, SVGRect rect) => _wrap(_ptr.checkEnclosure(_unwrap(element), _unwrap(rect)));
 
-  bool checkIntersection(SVGElement element, SVGRect rect) {
-    return _wrap(_ptr.checkIntersection(_unwrap(element), _unwrap(rect)));
-  }
+  bool checkIntersection(SVGElement element, SVGRect rect) => _wrap(_ptr.checkIntersection(_unwrap(element), _unwrap(rect)));
 
-  SVGAngle createSVGAngle() {
-    return _wrap(_ptr.createSVGAngle());
-  }
+  SVGAngle createSVGAngle() => _wrap(_ptr.createSVGAngle());
 
-  SVGLength createSVGLength() {
-    return _wrap(_ptr.createSVGLength());
-  }
+  SVGLength createSVGLength() => _wrap(_ptr.createSVGLength());
 
-  SVGMatrix createSVGMatrix() {
-    return _wrap(_ptr.createSVGMatrix());
-  }
+  SVGMatrix createSVGMatrix() => _wrap(_ptr.createSVGMatrix());
 
-  SVGNumber createSVGNumber() {
-    return _wrap(_ptr.createSVGNumber());
-  }
+  SVGNumber createSVGNumber() => _wrap(_ptr.createSVGNumber());
 
-  SVGPoint createSVGPoint() {
-    return _wrap(_ptr.createSVGPoint());
-  }
+  SVGPoint createSVGPoint() => _wrap(_ptr.createSVGPoint());
 
-  SVGRect createSVGRect() {
-    return _wrap(_ptr.createSVGRect());
-  }
+  SVGRect createSVGRect() => _wrap(_ptr.createSVGRect());
 
-  SVGTransform createSVGTransform() {
-    return _wrap(_ptr.createSVGTransform());
-  }
+  SVGTransform createSVGTransform() => _wrap(_ptr.createSVGTransform());
 
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) {
-    return _wrap(_ptr.createSVGTransformFromMatrix(_unwrap(matrix)));
-  }
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) => _wrap(_ptr.createSVGTransformFromMatrix(_unwrap(matrix)));
 
-  void deselectAll() {
-    _ptr.deselectAll();
-    return;
-  }
+  void deselectAll() => _ptr.deselectAll();
 
-  void forceRedraw() {
-    _ptr.forceRedraw();
-    return;
-  }
+  void forceRedraw() => _ptr.forceRedraw();
 
-  num getCurrentTime() {
-    return _wrap(_ptr.getCurrentTime());
-  }
+  num getCurrentTime() => _wrap(_ptr.getCurrentTime());
 
-  Element getElementById(String elementId) {
-    return _wrap(_ptr.getElementById(_unwrap(elementId)));
-  }
+  Element getElementById(String elementId) => _wrap(_ptr.getElementById(_unwrap(elementId)));
 
-  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement) {
-    return _wrap(_ptr.getEnclosureList(_unwrap(rect), _unwrap(referenceElement)));
-  }
+  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement) => _wrap(_ptr.getEnclosureList(_unwrap(rect), _unwrap(referenceElement)));
 
-  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement) {
-    return _wrap(_ptr.getIntersectionList(_unwrap(rect), _unwrap(referenceElement)));
-  }
+  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement) => _wrap(_ptr.getIntersectionList(_unwrap(rect), _unwrap(referenceElement)));
 
-  void pauseAnimations() {
-    _ptr.pauseAnimations();
-    return;
-  }
+  void pauseAnimations() => _ptr.pauseAnimations();
 
-  void setCurrentTime(num seconds) {
-    _ptr.setCurrentTime(_unwrap(seconds));
-    return;
-  }
+  void setCurrentTime(num seconds) => _ptr.setCurrentTime(_unwrap(seconds));
 
-  int suspendRedraw(int maxWaitMilliseconds) {
-    return _wrap(_ptr.suspendRedraw(_unwrap(maxWaitMilliseconds)));
-  }
+  int suspendRedraw(int maxWaitMilliseconds) => _wrap(_ptr.suspendRedraw(_unwrap(maxWaitMilliseconds)));
 
-  void unpauseAnimations() {
-    _ptr.unpauseAnimations();
-    return;
-  }
+  void unpauseAnimations() => _ptr.unpauseAnimations();
 
-  void unsuspendRedraw(int suspendHandleId) {
-    _ptr.unsuspendRedraw(_unwrap(suspendHandleId));
-    return;
-  }
+  void unsuspendRedraw(int suspendHandleId) => _ptr.unsuspendRedraw(_unwrap(suspendHandleId));
 
-  void unsuspendRedrawAll() {
-    _ptr.unsuspendRedrawAll();
-    return;
-  }
+  void unsuspendRedrawAll() => _ptr.unsuspendRedrawAll();
 
   // From SVGTests
 
@@ -17574,9 +14347,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17598,9 +14369,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGLocatable
 
@@ -17608,21 +14377,13 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 
   // From SVGFitToViewBox
 
@@ -17668,9 +14429,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGStringListImpl extends _DOMTypeBase implements SVGStringList {
@@ -17678,34 +14437,19 @@ class _SVGStringListImpl extends _DOMTypeBase implements SVGStringList {
 
   int get numberOfItems() => _wrap(_ptr.numberOfItems);
 
-  String appendItem(String item) {
-    return _wrap(_ptr.appendItem(_unwrap(item)));
-  }
+  String appendItem(String item) => _wrap(_ptr.appendItem(_unwrap(item)));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  String getItem(int index) {
-    return _wrap(_ptr.getItem(_unwrap(index)));
-  }
+  String getItem(int index) => _wrap(_ptr.getItem(_unwrap(index)));
 
-  String initialize(String item) {
-    return _wrap(_ptr.initialize(_unwrap(item)));
-  }
+  String initialize(String item) => _wrap(_ptr.initialize(_unwrap(item)));
 
-  String insertItemBefore(String item, int index) {
-    return _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
-  }
+  String insertItemBefore(String item, int index) => _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
 
-  String removeItem(int index) {
-    return _wrap(_ptr.removeItem(_unwrap(index)));
-  }
+  String removeItem(int index) => _wrap(_ptr.removeItem(_unwrap(index)));
 
-  String replaceItem(String item, int index) {
-    return _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
-  }
+  String replaceItem(String item, int index) => _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
 }
 
 class _SVGStylableImpl extends _DOMTypeBase implements SVGStylable {
@@ -17715,9 +14459,7 @@ class _SVGStylableImpl extends _DOMTypeBase implements SVGStylable {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
@@ -17761,9 +14503,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17785,9 +14525,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -17799,21 +14537,13 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement {
@@ -17839,9 +14569,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGFitToViewBox
 
@@ -17871,9 +14599,7 @@ class _SVGTestsImpl extends _DOMTypeBase implements SVGTests {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 }
 
 class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextContentElement {
@@ -17883,42 +14609,23 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   SVGAnimatedLength get textLength() => _wrap(_ptr.textLength);
 
-  int getCharNumAtPosition(SVGPoint point) {
-    return _wrap(_ptr.getCharNumAtPosition(_unwrap(point)));
-  }
+  int getCharNumAtPosition(SVGPoint point) => _wrap(_ptr.getCharNumAtPosition(_unwrap(point)));
 
-  num getComputedTextLength() {
-    return _wrap(_ptr.getComputedTextLength());
-  }
+  num getComputedTextLength() => _wrap(_ptr.getComputedTextLength());
 
-  SVGPoint getEndPositionOfChar(int offset) {
-    return _wrap(_ptr.getEndPositionOfChar(_unwrap(offset)));
-  }
+  SVGPoint getEndPositionOfChar(int offset) => _wrap(_ptr.getEndPositionOfChar(_unwrap(offset)));
 
-  SVGRect getExtentOfChar(int offset) {
-    return _wrap(_ptr.getExtentOfChar(_unwrap(offset)));
-  }
+  SVGRect getExtentOfChar(int offset) => _wrap(_ptr.getExtentOfChar(_unwrap(offset)));
 
-  int getNumberOfChars() {
-    return _wrap(_ptr.getNumberOfChars());
-  }
+  int getNumberOfChars() => _wrap(_ptr.getNumberOfChars());
 
-  num getRotationOfChar(int offset) {
-    return _wrap(_ptr.getRotationOfChar(_unwrap(offset)));
-  }
+  num getRotationOfChar(int offset) => _wrap(_ptr.getRotationOfChar(_unwrap(offset)));
 
-  SVGPoint getStartPositionOfChar(int offset) {
-    return _wrap(_ptr.getStartPositionOfChar(_unwrap(offset)));
-  }
+  SVGPoint getStartPositionOfChar(int offset) => _wrap(_ptr.getStartPositionOfChar(_unwrap(offset)));
 
-  num getSubStringLength(int offset, int length) {
-    return _wrap(_ptr.getSubStringLength(_unwrap(offset), _unwrap(length)));
-  }
+  num getSubStringLength(int offset, int length) => _wrap(_ptr.getSubStringLength(_unwrap(offset), _unwrap(length)));
 
-  void selectSubString(int offset, int length) {
-    _ptr.selectSubString(_unwrap(offset), _unwrap(length));
-    return;
-  }
+  void selectSubString(int offset, int length) => _ptr.selectSubString(_unwrap(offset), _unwrap(length));
 
   // From SVGTests
 
@@ -17928,9 +14635,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -17952,9 +14657,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGTextElement {
@@ -17970,21 +14673,13 @@ class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGT
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGTextPathElement {
@@ -18034,9 +14729,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 }
 
 class _SVGTransformImpl extends _DOMTypeBase implements SVGTransform {
@@ -18048,35 +14741,17 @@ class _SVGTransformImpl extends _DOMTypeBase implements SVGTransform {
 
   int get type() => _wrap(_ptr.type);
 
-  void setMatrix(SVGMatrix matrix) {
-    _ptr.setMatrix(_unwrap(matrix));
-    return;
-  }
+  void setMatrix(SVGMatrix matrix) => _ptr.setMatrix(_unwrap(matrix));
 
-  void setRotate(num angle, num cx, num cy) {
-    _ptr.setRotate(_unwrap(angle), _unwrap(cx), _unwrap(cy));
-    return;
-  }
+  void setRotate(num angle, num cx, num cy) => _ptr.setRotate(_unwrap(angle), _unwrap(cx), _unwrap(cy));
 
-  void setScale(num sx, num sy) {
-    _ptr.setScale(_unwrap(sx), _unwrap(sy));
-    return;
-  }
+  void setScale(num sx, num sy) => _ptr.setScale(_unwrap(sx), _unwrap(sy));
 
-  void setSkewX(num angle) {
-    _ptr.setSkewX(_unwrap(angle));
-    return;
-  }
+  void setSkewX(num angle) => _ptr.setSkewX(_unwrap(angle));
 
-  void setSkewY(num angle) {
-    _ptr.setSkewY(_unwrap(angle));
-    return;
-  }
+  void setSkewY(num angle) => _ptr.setSkewY(_unwrap(angle));
 
-  void setTranslate(num tx, num ty) {
-    _ptr.setTranslate(_unwrap(tx), _unwrap(ty));
-    return;
-  }
+  void setTranslate(num tx, num ty) => _ptr.setTranslate(_unwrap(tx), _unwrap(ty));
 }
 
 class _SVGTransformListImpl extends _DOMTypeBase implements SVGTransformList {
@@ -18084,42 +14759,23 @@ class _SVGTransformListImpl extends _DOMTypeBase implements SVGTransformList {
 
   int get numberOfItems() => _wrap(_ptr.numberOfItems);
 
-  SVGTransform appendItem(SVGTransform item) {
-    return _wrap(_ptr.appendItem(_unwrap(item)));
-  }
+  SVGTransform appendItem(SVGTransform item) => _wrap(_ptr.appendItem(_unwrap(item)));
 
-  void clear() {
-    _ptr.clear();
-    return;
-  }
+  void clear() => _ptr.clear();
 
-  SVGTransform consolidate() {
-    return _wrap(_ptr.consolidate());
-  }
+  SVGTransform consolidate() => _wrap(_ptr.consolidate());
 
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) {
-    return _wrap(_ptr.createSVGTransformFromMatrix(_unwrap(matrix)));
-  }
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) => _wrap(_ptr.createSVGTransformFromMatrix(_unwrap(matrix)));
 
-  SVGTransform getItem(int index) {
-    return _wrap(_ptr.getItem(_unwrap(index)));
-  }
+  SVGTransform getItem(int index) => _wrap(_ptr.getItem(_unwrap(index)));
 
-  SVGTransform initialize(SVGTransform item) {
-    return _wrap(_ptr.initialize(_unwrap(item)));
-  }
+  SVGTransform initialize(SVGTransform item) => _wrap(_ptr.initialize(_unwrap(item)));
 
-  SVGTransform insertItemBefore(SVGTransform item, int index) {
-    return _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
-  }
+  SVGTransform insertItemBefore(SVGTransform item, int index) => _wrap(_ptr.insertItemBefore(_unwrap(item), _unwrap(index)));
 
-  SVGTransform removeItem(int index) {
-    return _wrap(_ptr.removeItem(_unwrap(index)));
-  }
+  SVGTransform removeItem(int index) => _wrap(_ptr.removeItem(_unwrap(index)));
 
-  SVGTransform replaceItem(SVGTransform item, int index) {
-    return _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
-  }
+  SVGTransform replaceItem(SVGTransform item, int index) => _wrap(_ptr.replaceItem(_unwrap(item), _unwrap(index)));
 }
 
 class _SVGTransformableImpl extends _SVGLocatableImpl implements SVGTransformable {
@@ -18165,9 +14821,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   SVGStringList get systemLanguage() => _wrap(_ptr.systemLanguage);
 
-  bool hasExtension(String extension) {
-    return _wrap(_ptr.hasExtension(_unwrap(extension)));
-  }
+  bool hasExtension(String extension) => _wrap(_ptr.hasExtension(_unwrap(extension)));
 
   // From SVGLangSpace
 
@@ -18189,9 +14843,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
-  CSSValue getPresentationAttribute(String name) {
-    return _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
-  }
+  CSSValue getPresentationAttribute(String name) => _wrap(_ptr.getPresentationAttribute(_unwrap(name)));
 
   // From SVGTransformable
 
@@ -18203,21 +14855,13 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   SVGElement get nearestViewportElement() => _wrap(_ptr.nearestViewportElement);
 
-  SVGRect getBBox() {
-    return _wrap(_ptr.getBBox());
-  }
+  SVGRect getBBox() => _wrap(_ptr.getBBox());
 
-  SVGMatrix getCTM() {
-    return _wrap(_ptr.getCTM());
-  }
+  SVGMatrix getCTM() => _wrap(_ptr.getCTM());
 
-  SVGMatrix getScreenCTM() {
-    return _wrap(_ptr.getScreenCTM());
-  }
+  SVGMatrix getScreenCTM() => _wrap(_ptr.getScreenCTM());
 
-  SVGMatrix getTransformToElement(SVGElement element) {
-    return _wrap(_ptr.getTransformToElement(_unwrap(element)));
-  }
+  SVGMatrix getTransformToElement(SVGElement element) => _wrap(_ptr.getTransformToElement(_unwrap(element)));
 }
 
 class _SVGVKernElementImpl extends _SVGElementImpl implements SVGVKernElement {
@@ -18433,40 +15077,23 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement {
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
-  void add(Element element, Element before) {
-    _ptr.add(_unwrap(element), _unwrap(before));
-    return;
-  }
+  void add(Element element, Element before) => _ptr.add(_unwrap(element), _unwrap(before));
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  Node item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Node item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  Node namedItem(String name) {
-    return _wrap(_ptr.namedItem(_unwrap(name)));
-  }
+  Node namedItem(String name) => _wrap(_ptr.namedItem(_unwrap(name)));
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 }
 
 class _SessionDescriptionImpl extends _DOMTypeBase implements SessionDescription {
   _SessionDescriptionImpl._wrap(ptr) : super._wrap(ptr);
 
-  void addCandidate(IceCandidate candidate) {
-    _ptr.addCandidate(_unwrap(candidate));
-    return;
-  }
+  void addCandidate(IceCandidate candidate) => _ptr.addCandidate(_unwrap(candidate));
 
-  String toSdp() {
-    return _wrap(_ptr.toSdp());
-  }
+  String toSdp() => _wrap(_ptr.toSdp());
 }
 
 class _ShadowElementImpl extends _ElementImpl implements ShadowElement {
@@ -18486,21 +15113,13 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   DOMSelection get selection() => _wrap(_ptr.selection);
 
-  Element getElementById(String elementId) {
-    return _wrap(_ptr.getElementById(_unwrap(elementId)));
-  }
+  Element getElementById(String elementId) => _wrap(_ptr.getElementById(_unwrap(elementId)));
 
-  NodeList getElementsByClassName(String className) {
-    return _wrap(_ptr.getElementsByClassName(_unwrap(className)));
-  }
+  NodeList getElementsByClassName(String className) => _wrap(_ptr.getElementsByClassName(_unwrap(className)));
 
-  NodeList getElementsByTagName(String tagName) {
-    return _wrap(_ptr.getElementsByTagName(_unwrap(tagName)));
-  }
+  NodeList getElementsByTagName(String tagName) => _wrap(_ptr.getElementsByTagName(_unwrap(tagName)));
 
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName) {
-    return _wrap(_ptr.getElementsByTagNameNS(_unwrap(namespaceURI), _unwrap(localName)));
-  }
+  NodeList getElementsByTagNameNS(String namespaceURI, String localName) => _wrap(_ptr.getElementsByTagNameNS(_unwrap(namespaceURI), _unwrap(localName)));
 }
 
 class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
@@ -18563,29 +15182,11 @@ class _SpeechGrammarListImpl extends _DOMTypeBase implements SpeechGrammarList {
 
   int get length() => _wrap(_ptr.length);
 
-  void addFromString(String string, [num weight = null]) {
-    if (weight === null) {
-      _ptr.addFromString(_unwrap(string));
-      return;
-    } else {
-      _ptr.addFromString(_unwrap(string), _unwrap(weight));
-      return;
-    }
-  }
+  void addFromString(String string, [num weight = null]) => _ptr.addFromString(_unwrap(string), _unwrap(weight));
 
-  void addFromUri(String src, [num weight = null]) {
-    if (weight === null) {
-      _ptr.addFromUri(_unwrap(src));
-      return;
-    } else {
-      _ptr.addFromUri(_unwrap(src), _unwrap(weight));
-      return;
-    }
-  }
+  void addFromUri(String src, [num weight = null]) => _ptr.addFromUri(_unwrap(src), _unwrap(weight));
 
-  SpeechGrammar item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  SpeechGrammar item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
@@ -18607,9 +15208,7 @@ class _SpeechInputResultListImpl extends _DOMTypeBase implements SpeechInputResu
 
   int get length() => _wrap(_ptr.length);
 
-  SpeechInputResult item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  SpeechInputResult item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecognition {
@@ -18632,44 +15231,17 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   void set lang(String value) { _ptr.lang = _unwrap(value); }
 
-  void abort() {
-    _ptr.abort();
-    return;
-  }
+  void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void start() {
-    _ptr.start();
-    return;
-  }
+  void start() => _ptr.start();
 
-  void stop() {
-    _ptr.stop();
-    return;
-  }
+  void stop() => _ptr.stop();
 }
 
 class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
@@ -18735,9 +15307,7 @@ class _SpeechRecognitionResultImpl extends _DOMTypeBase implements SpeechRecogni
 
   int get length() => _wrap(_ptr.length);
 
-  SpeechRecognitionAlternative item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  SpeechRecognitionAlternative item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _SpeechRecognitionResultListImpl extends _DOMTypeBase implements SpeechRecognitionResultList {
@@ -18745,9 +15315,7 @@ class _SpeechRecognitionResultListImpl extends _DOMTypeBase implements SpeechRec
 
   int get length() => _wrap(_ptr.length);
 
-  SpeechRecognitionResult item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  SpeechRecognitionResult item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18805,28 +15373,15 @@ class _StorageImpl extends _DOMTypeBase implements Storage {
 
   int get $dom_length() => _wrap(_ptr.length);
 
-  void $dom_clear() {
-    _ptr.clear();
-    return;
-  }
+  void $dom_clear() => _ptr.clear();
 
-  String $dom_getItem(String key) {
-    return _wrap(_ptr.getItem(_unwrap(key)));
-  }
+  String $dom_getItem(String key) => _wrap(_ptr.getItem(_unwrap(key)));
 
-  String $dom_key(int index) {
-    return _wrap(_ptr.key(_unwrap(index)));
-  }
+  String $dom_key(int index) => _wrap(_ptr.key(_unwrap(index)));
 
-  void $dom_removeItem(String key) {
-    _ptr.removeItem(_unwrap(key));
-    return;
-  }
+  void $dom_removeItem(String key) => _ptr.removeItem(_unwrap(key));
 
-  void $dom_setItem(String key, String data) {
-    _ptr.setItem(_unwrap(key), _unwrap(data));
-    return;
-  }
+  void $dom_setItem(String key, String data) => _ptr.setItem(_unwrap(key), _unwrap(data));
 
 }
 
@@ -18843,50 +15398,15 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent {
 
   String get url() => _wrap(_ptr.url);
 
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) {
-    _ptr.initStorageEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(keyArg), _unwrap(oldValueArg), _unwrap(newValueArg), _unwrap(urlArg), _unwrap(storageAreaArg));
-    return;
-  }
+  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) => _ptr.initStorageEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(keyArg), _unwrap(oldValueArg), _unwrap(newValueArg), _unwrap(urlArg), _unwrap(storageAreaArg));
 }
 
 class _StorageInfoImpl extends _DOMTypeBase implements StorageInfo {
   _StorageInfoImpl._wrap(ptr) : super._wrap(ptr);
 
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) {
-    if (usageCallback === null) {
-      if (errorCallback === null) {
-        _ptr.queryUsageAndQuota(_unwrap(storageType));
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _ptr.queryUsageAndQuota(_unwrap(storageType), _unwrap(usageCallback));
-        return;
-      } else {
-        _ptr.queryUsageAndQuota(_unwrap(storageType), _unwrap(usageCallback), _unwrap(errorCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) => _ptr.queryUsageAndQuota(_unwrap(storageType), _unwrap(usageCallback), _unwrap(errorCallback));
 
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) {
-    if (quotaCallback === null) {
-      if (errorCallback === null) {
-        _ptr.requestQuota(_unwrap(storageType), _unwrap(newQuotaInBytes));
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _ptr.requestQuota(_unwrap(storageType), _unwrap(newQuotaInBytes), _unwrap(quotaCallback));
-        return;
-      } else {
-        _ptr.requestQuota(_unwrap(storageType), _unwrap(newQuotaInBytes), _unwrap(quotaCallback), _unwrap(errorCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) => _ptr.requestQuota(_unwrap(storageType), _unwrap(newQuotaInBytes), _unwrap(quotaCallback), _unwrap(errorCallback));
 }
 
 class _StyleElementImpl extends _ElementImpl implements StyleElement {
@@ -18916,9 +15436,7 @@ class _StyleMediaImpl extends _DOMTypeBase implements StyleMedia {
 
   String get type() => _wrap(_ptr.type);
 
-  bool matchMedium(String mediaquery) {
-    return _wrap(_ptr.matchMedium(_unwrap(mediaquery)));
-  }
+  bool matchMedium(String mediaquery) => _wrap(_ptr.matchMedium(_unwrap(mediaquery)));
 }
 
 class _StyleSheetImpl extends _DOMTypeBase implements StyleSheet {
@@ -19028,9 +15546,7 @@ class _StyleSheetListImpl extends _DOMTypeBase implements StyleSheetList {
 
   // -- end List<StyleSheet> mixins.
 
-  StyleSheet item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  StyleSheet item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _TableCaptionElementImpl extends _ElementImpl implements TableCaptionElement {
@@ -19186,45 +15702,23 @@ class _TableElementImpl extends _ElementImpl implements TableElement {
 
   void set width(String value) { _ptr.width = _unwrap(value); }
 
-  Element createCaption() {
-    return _wrap(_ptr.createCaption());
-  }
+  Element createCaption() => _wrap(_ptr.createCaption());
 
-  Element createTBody() {
-    return _wrap(_ptr.createTBody());
-  }
+  Element createTBody() => _wrap(_ptr.createTBody());
 
-  Element createTFoot() {
-    return _wrap(_ptr.createTFoot());
-  }
+  Element createTFoot() => _wrap(_ptr.createTFoot());
 
-  Element createTHead() {
-    return _wrap(_ptr.createTHead());
-  }
+  Element createTHead() => _wrap(_ptr.createTHead());
 
-  void deleteCaption() {
-    _ptr.deleteCaption();
-    return;
-  }
+  void deleteCaption() => _ptr.deleteCaption();
 
-  void deleteRow(int index) {
-    _ptr.deleteRow(_unwrap(index));
-    return;
-  }
+  void deleteRow(int index) => _ptr.deleteRow(_unwrap(index));
 
-  void deleteTFoot() {
-    _ptr.deleteTFoot();
-    return;
-  }
+  void deleteTFoot() => _ptr.deleteTFoot();
 
-  void deleteTHead() {
-    _ptr.deleteTHead();
-    return;
-  }
+  void deleteTHead() => _ptr.deleteTHead();
 
-  Element insertRow(int index) {
-    return _wrap(_ptr.insertRow(_unwrap(index)));
-  }
+  Element insertRow(int index) => _wrap(_ptr.insertRow(_unwrap(index)));
 }
 
 class _TableRowElementImpl extends _ElementImpl implements TableRowElement {
@@ -19256,14 +15750,9 @@ class _TableRowElementImpl extends _ElementImpl implements TableRowElement {
 
   void set vAlign(String value) { _ptr.vAlign = _unwrap(value); }
 
-  void deleteCell(int index) {
-    _ptr.deleteCell(_unwrap(index));
-    return;
-  }
+  void deleteCell(int index) => _ptr.deleteCell(_unwrap(index));
 
-  Element insertCell(int index) {
-    return _wrap(_ptr.insertCell(_unwrap(index)));
-  }
+  Element insertCell(int index) => _wrap(_ptr.insertCell(_unwrap(index)));
 }
 
 class _TableSectionElementImpl extends _ElementImpl implements TableSectionElement {
@@ -19287,14 +15776,9 @@ class _TableSectionElementImpl extends _ElementImpl implements TableSectionEleme
 
   void set vAlign(String value) { _ptr.vAlign = _unwrap(value); }
 
-  void deleteRow(int index) {
-    _ptr.deleteRow(_unwrap(index));
-    return;
-  }
+  void deleteRow(int index) => _ptr.deleteRow(_unwrap(index));
 
-  Element insertRow(int index) {
-    return _wrap(_ptr.insertRow(_unwrap(index)));
-  }
+  Element insertRow(int index) => _wrap(_ptr.insertRow(_unwrap(index)));
 }
 
 class _TextImpl extends _CharacterDataImpl implements Text {
@@ -19302,13 +15786,9 @@ class _TextImpl extends _CharacterDataImpl implements Text {
 
   String get wholeText() => _wrap(_ptr.wholeText);
 
-  Text replaceWholeText(String content) {
-    return _wrap(_ptr.replaceWholeText(_unwrap(content)));
-  }
+  Text replaceWholeText(String content) => _wrap(_ptr.replaceWholeText(_unwrap(content)));
 
-  Text splitText(int offset) {
-    return _wrap(_ptr.splitText(_unwrap(offset)));
-  }
+  Text splitText(int offset) => _wrap(_ptr.splitText(_unwrap(offset)));
 }
 
 class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement {
@@ -19388,29 +15868,13 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement {
 
   void set wrap(String value) { _ptr.wrap = _unwrap(value); }
 
-  bool checkValidity() {
-    return _wrap(_ptr.checkValidity());
-  }
+  bool checkValidity() => _wrap(_ptr.checkValidity());
 
-  void select() {
-    _ptr.select();
-    return;
-  }
+  void select() => _ptr.select();
 
-  void setCustomValidity(String error) {
-    _ptr.setCustomValidity(_unwrap(error));
-    return;
-  }
+  void setCustomValidity(String error) => _ptr.setCustomValidity(_unwrap(error));
 
-  void setSelectionRange(int start, int end, [String direction = null]) {
-    if (direction === null) {
-      _ptr.setSelectionRange(_unwrap(start), _unwrap(end));
-      return;
-    } else {
-      _ptr.setSelectionRange(_unwrap(start), _unwrap(end), _unwrap(direction));
-      return;
-    }
-  }
+  void setSelectionRange(int start, int end, [String direction = null]) => _ptr.setSelectionRange(_unwrap(start), _unwrap(end), _unwrap(direction));
 }
 
 class _TextEventImpl extends _UIEventImpl implements TextEvent {
@@ -19418,10 +15882,7 @@ class _TextEventImpl extends _UIEventImpl implements TextEvent {
 
   String get data() => _wrap(_ptr.data);
 
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
-    _ptr.initTextEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(viewArg), _unwrap(dataArg));
-    return;
-  }
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => _ptr.initTextEvent(_unwrap(typeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg), _unwrap(viewArg), _unwrap(dataArg));
 }
 
 class _TextMetricsImpl extends _DOMTypeBase implements TextMetrics {
@@ -19452,39 +15913,15 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 
   void set mode(int value) { _ptr.mode = _unwrap(value); }
 
-  void addCue(TextTrackCue cue) {
-    _ptr.addCue(_unwrap(cue));
-    return;
-  }
+  void addCue(TextTrackCue cue) => _ptr.addCue(_unwrap(cue));
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void removeCue(TextTrackCue cue) {
-    _ptr.removeCue(_unwrap(cue));
-    return;
-  }
+  void removeCue(TextTrackCue cue) => _ptr.removeCue(_unwrap(cue));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
@@ -19547,33 +15984,13 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
   void set vertical(String value) { _ptr.vertical = _unwrap(value); }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  DocumentFragment getCueAsHTML() {
-    return _wrap(_ptr.getCueAsHTML());
-  }
+  DocumentFragment getCueAsHTML() => _wrap(_ptr.getCueAsHTML());
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
@@ -19589,13 +16006,9 @@ class _TextTrackCueListImpl extends _DOMTypeBase implements TextTrackCueList {
 
   int get length() => _wrap(_ptr.length);
 
-  TextTrackCue getCueById(String id) {
-    return _wrap(_ptr.getCueById(_unwrap(id)));
-  }
+  TextTrackCue getCueById(String id) => _wrap(_ptr.getCueById(_unwrap(id)));
 
-  TextTrackCue item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  TextTrackCue item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
@@ -19608,33 +16021,13 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 
   int get length() => _wrap(_ptr.length);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  TextTrack item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  TextTrack item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
@@ -19648,13 +16041,9 @@ class _TimeRangesImpl extends _DOMTypeBase implements TimeRanges {
 
   int get length() => _wrap(_ptr.length);
 
-  num end(int index) {
-    return _wrap(_ptr.end(_unwrap(index)));
-  }
+  num end(int index) => _wrap(_ptr.end(_unwrap(index)));
 
-  num start(int index) {
-    return _wrap(_ptr.start(_unwrap(index)));
-  }
+  num start(int index) => _wrap(_ptr.start(_unwrap(index)));
 }
 
 class _TitleElementImpl extends _ElementImpl implements TitleElement {
@@ -19706,10 +16095,7 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent {
 
   TouchList get touches() => _wrap(_ptr.touches);
 
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _ptr.initTouchEvent(_unwrap(touches), _unwrap(targetTouches), _unwrap(changedTouches), _unwrap(type), _unwrap(view), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey));
-    return;
-  }
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => _ptr.initTouchEvent(_unwrap(touches), _unwrap(targetTouches), _unwrap(changedTouches), _unwrap(type), _unwrap(view), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey));
 }
 
 class _TouchListImpl extends _DOMTypeBase implements TouchList {
@@ -19799,9 +16185,7 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
 
   // -- end List<Touch> mixins.
 
-  Touch item(int index) {
-    return _wrap(_ptr.item(_unwrap(index)));
-  }
+  Touch item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement {
@@ -19861,33 +16245,19 @@ class _TreeWalkerImpl extends _DOMTypeBase implements TreeWalker {
 
   int get whatToShow() => _wrap(_ptr.whatToShow);
 
-  Node firstChild() {
-    return _wrap(_ptr.firstChild());
-  }
+  Node firstChild() => _wrap(_ptr.firstChild());
 
-  Node lastChild() {
-    return _wrap(_ptr.lastChild());
-  }
+  Node lastChild() => _wrap(_ptr.lastChild());
 
-  Node nextNode() {
-    return _wrap(_ptr.nextNode());
-  }
+  Node nextNode() => _wrap(_ptr.nextNode());
 
-  Node nextSibling() {
-    return _wrap(_ptr.nextSibling());
-  }
+  Node nextSibling() => _wrap(_ptr.nextSibling());
 
-  Node parentNode() {
-    return _wrap(_ptr.parentNode());
-  }
+  Node parentNode() => _wrap(_ptr.parentNode());
 
-  Node previousNode() {
-    return _wrap(_ptr.previousNode());
-  }
+  Node previousNode() => _wrap(_ptr.previousNode());
 
-  Node previousSibling() {
-    return _wrap(_ptr.previousSibling());
-  }
+  Node previousSibling() => _wrap(_ptr.previousSibling());
 }
 
 class _UIEventImpl extends _EventImpl implements UIEvent {
@@ -19911,10 +16281,7 @@ class _UIEventImpl extends _EventImpl implements UIEvent {
 
   int get which() => _wrap(_ptr.which);
 
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) {
-    _ptr.initUIEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail));
-    return;
-  }
+  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) => _ptr.initUIEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail));
 }
 
 class _UListElementImpl extends _ElementImpl implements UListElement {
@@ -20016,23 +16383,9 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Uint16Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Uint16Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int> {
@@ -20122,23 +16475,9 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Uint32Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Uint32Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int> {
@@ -20228,23 +16567,9 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Uint8Array subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Uint8Array subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 }
 
 class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray, List<int> {
@@ -20334,23 +16659,9 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) {
-    if (offset === null) {
-      _ptr.setElements(_unwrap(array));
-      return;
-    } else {
-      _ptr.setElements(_unwrap(array), _unwrap(offset));
-      return;
-    }
-  }
+  void setElements(Object array, [int offset = null]) => _ptr.setElements(_unwrap(array), _unwrap(offset));
 
-  Uint8ClampedArray subarray(int start, [int end = null]) {
-    if (end === null) {
-      return _wrap(_ptr.subarray(_unwrap(start)));
-    } else {
-      return _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
-    }
-  }
+  Uint8ClampedArray subarray(int start, [int end = null]) => _wrap(_ptr.subarray(_unwrap(start), _unwrap(end)));
 
   // From ArrayBufferView
 
@@ -20414,25 +16725,13 @@ class _VideoElementImpl extends _MediaElementImpl implements VideoElement {
 
   void set width(int value) { _ptr.width = _unwrap(value); }
 
-  void webkitEnterFullScreen() {
-    _ptr.webkitEnterFullScreen();
-    return;
-  }
+  void webkitEnterFullScreen() => _ptr.webkitEnterFullScreen();
 
-  void webkitEnterFullscreen() {
-    _ptr.webkitEnterFullscreen();
-    return;
-  }
+  void webkitEnterFullscreen() => _ptr.webkitEnterFullscreen();
 
-  void webkitExitFullScreen() {
-    _ptr.webkitExitFullScreen();
-    return;
-  }
+  void webkitExitFullScreen() => _ptr.webkitExitFullScreen();
 
-  void webkitExitFullscreen() {
-    _ptr.webkitExitFullscreen();
-    return;
-  }
+  void webkitExitFullscreen() => _ptr.webkitExitFullscreen();
 }
 
 class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode {
@@ -20506,9 +16805,7 @@ class _WebGLDebugRendererInfoImpl extends _DOMTypeBase implements WebGLDebugRend
 class _WebGLDebugShadersImpl extends _DOMTypeBase implements WebGLDebugShaders {
   _WebGLDebugShadersImpl._wrap(ptr) : super._wrap(ptr);
 
-  String getTranslatedShaderSource(WebGLShader shader) {
-    return _wrap(_ptr.getTranslatedShaderSource(_unwrap(shader)));
-  }
+  String getTranslatedShaderSource(WebGLShader shader) => _wrap(_ptr.getTranslatedShaderSource(_unwrap(shader)));
 }
 
 class _WebGLFramebufferImpl extends _DOMTypeBase implements WebGLFramebuffer {
@@ -20518,15 +16815,9 @@ class _WebGLFramebufferImpl extends _DOMTypeBase implements WebGLFramebuffer {
 class _WebGLLoseContextImpl extends _DOMTypeBase implements WebGLLoseContext {
   _WebGLLoseContextImpl._wrap(ptr) : super._wrap(ptr);
 
-  void loseContext() {
-    _ptr.loseContext();
-    return;
-  }
+  void loseContext() => _ptr.loseContext();
 
-  void restoreContext() {
-    _ptr.restoreContext();
-    return;
-  }
+  void restoreContext() => _ptr.restoreContext();
 }
 
 class _WebGLProgramImpl extends _DOMTypeBase implements WebGLProgram {
@@ -20544,755 +16835,277 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   int get drawingBufferWidth() => _wrap(_ptr.drawingBufferWidth);
 
-  void activeTexture(int texture) {
-    _ptr.activeTexture(_unwrap(texture));
-    return;
-  }
-
-  void attachShader(WebGLProgram program, WebGLShader shader) {
-    _ptr.attachShader(_unwrap(program), _unwrap(shader));
-    return;
-  }
-
-  void bindAttribLocation(WebGLProgram program, int index, String name) {
-    _ptr.bindAttribLocation(_unwrap(program), _unwrap(index), _unwrap(name));
-    return;
-  }
-
-  void bindBuffer(int target, WebGLBuffer buffer) {
-    _ptr.bindBuffer(_unwrap(target), _unwrap(buffer));
-    return;
-  }
-
-  void bindFramebuffer(int target, WebGLFramebuffer framebuffer) {
-    _ptr.bindFramebuffer(_unwrap(target), _unwrap(framebuffer));
-    return;
-  }
-
-  void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) {
-    _ptr.bindRenderbuffer(_unwrap(target), _unwrap(renderbuffer));
-    return;
-  }
-
-  void bindTexture(int target, WebGLTexture texture) {
-    _ptr.bindTexture(_unwrap(target), _unwrap(texture));
-    return;
-  }
-
-  void blendColor(num red, num green, num blue, num alpha) {
-    _ptr.blendColor(_unwrap(red), _unwrap(green), _unwrap(blue), _unwrap(alpha));
-    return;
-  }
-
-  void blendEquation(int mode) {
-    _ptr.blendEquation(_unwrap(mode));
-    return;
-  }
-
-  void blendEquationSeparate(int modeRGB, int modeAlpha) {
-    _ptr.blendEquationSeparate(_unwrap(modeRGB), _unwrap(modeAlpha));
-    return;
-  }
-
-  void blendFunc(int sfactor, int dfactor) {
-    _ptr.blendFunc(_unwrap(sfactor), _unwrap(dfactor));
-    return;
-  }
-
-  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) {
-    _ptr.blendFuncSeparate(_unwrap(srcRGB), _unwrap(dstRGB), _unwrap(srcAlpha), _unwrap(dstAlpha));
-    return;
-  }
-
-  void bufferData(int target, data_OR_size, int usage) {
-    if (data_OR_size is ArrayBuffer) {
-      _ptr.bufferData(_unwrap(target), _unwrap(data_OR_size), _unwrap(usage));
-      return;
-    } else {
-      if (data_OR_size is ArrayBufferView) {
-        _ptr.bufferData(_unwrap(target), _unwrap(data_OR_size), _unwrap(usage));
-        return;
-      } else {
-        if (data_OR_size is int) {
-          _ptr.bufferData(_unwrap(target), _unwrap(data_OR_size), _unwrap(usage));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void bufferSubData(int target, int offset, data) {
-    if (data is ArrayBuffer) {
-      _ptr.bufferSubData(_unwrap(target), _unwrap(offset), _unwrap(data));
-      return;
-    } else {
-      if (data is ArrayBufferView) {
-        _ptr.bufferSubData(_unwrap(target), _unwrap(offset), _unwrap(data));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  int checkFramebufferStatus(int target) {
-    return _wrap(_ptr.checkFramebufferStatus(_unwrap(target)));
-  }
-
-  void clear(int mask) {
-    _ptr.clear(_unwrap(mask));
-    return;
-  }
-
-  void clearColor(num red, num green, num blue, num alpha) {
-    _ptr.clearColor(_unwrap(red), _unwrap(green), _unwrap(blue), _unwrap(alpha));
-    return;
-  }
-
-  void clearDepth(num depth) {
-    _ptr.clearDepth(_unwrap(depth));
-    return;
-  }
-
-  void clearStencil(int s) {
-    _ptr.clearStencil(_unwrap(s));
-    return;
-  }
-
-  void colorMask(bool red, bool green, bool blue, bool alpha) {
-    _ptr.colorMask(_unwrap(red), _unwrap(green), _unwrap(blue), _unwrap(alpha));
-    return;
-  }
-
-  void compileShader(WebGLShader shader) {
-    _ptr.compileShader(_unwrap(shader));
-    return;
-  }
-
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) {
-    _ptr.compressedTexImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(width), _unwrap(height), _unwrap(border), _unwrap(data));
-    return;
-  }
-
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) {
-    _ptr.compressedTexSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(width), _unwrap(height), _unwrap(format), _unwrap(data));
-    return;
-  }
-
-  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) {
-    _ptr.copyTexImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height), _unwrap(border));
-    return;
-  }
-
-  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) {
-    _ptr.copyTexSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-    return;
-  }
-
-  WebGLBuffer createBuffer() {
-    return _wrap(_ptr.createBuffer());
-  }
-
-  WebGLFramebuffer createFramebuffer() {
-    return _wrap(_ptr.createFramebuffer());
-  }
-
-  WebGLProgram createProgram() {
-    return _wrap(_ptr.createProgram());
-  }
-
-  WebGLRenderbuffer createRenderbuffer() {
-    return _wrap(_ptr.createRenderbuffer());
-  }
-
-  WebGLShader createShader(int type) {
-    return _wrap(_ptr.createShader(_unwrap(type)));
-  }
-
-  WebGLTexture createTexture() {
-    return _wrap(_ptr.createTexture());
-  }
-
-  void cullFace(int mode) {
-    _ptr.cullFace(_unwrap(mode));
-    return;
-  }
-
-  void deleteBuffer(WebGLBuffer buffer) {
-    _ptr.deleteBuffer(_unwrap(buffer));
-    return;
-  }
-
-  void deleteFramebuffer(WebGLFramebuffer framebuffer) {
-    _ptr.deleteFramebuffer(_unwrap(framebuffer));
-    return;
-  }
-
-  void deleteProgram(WebGLProgram program) {
-    _ptr.deleteProgram(_unwrap(program));
-    return;
-  }
-
-  void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) {
-    _ptr.deleteRenderbuffer(_unwrap(renderbuffer));
-    return;
-  }
-
-  void deleteShader(WebGLShader shader) {
-    _ptr.deleteShader(_unwrap(shader));
-    return;
-  }
-
-  void deleteTexture(WebGLTexture texture) {
-    _ptr.deleteTexture(_unwrap(texture));
-    return;
-  }
-
-  void depthFunc(int func) {
-    _ptr.depthFunc(_unwrap(func));
-    return;
-  }
-
-  void depthMask(bool flag) {
-    _ptr.depthMask(_unwrap(flag));
-    return;
-  }
-
-  void depthRange(num zNear, num zFar) {
-    _ptr.depthRange(_unwrap(zNear), _unwrap(zFar));
-    return;
-  }
-
-  void detachShader(WebGLProgram program, WebGLShader shader) {
-    _ptr.detachShader(_unwrap(program), _unwrap(shader));
-    return;
-  }
-
-  void disable(int cap) {
-    _ptr.disable(_unwrap(cap));
-    return;
-  }
-
-  void disableVertexAttribArray(int index) {
-    _ptr.disableVertexAttribArray(_unwrap(index));
-    return;
-  }
-
-  void drawArrays(int mode, int first, int count) {
-    _ptr.drawArrays(_unwrap(mode), _unwrap(first), _unwrap(count));
-    return;
-  }
-
-  void drawElements(int mode, int count, int type, int offset) {
-    _ptr.drawElements(_unwrap(mode), _unwrap(count), _unwrap(type), _unwrap(offset));
-    return;
-  }
-
-  void enable(int cap) {
-    _ptr.enable(_unwrap(cap));
-    return;
-  }
-
-  void enableVertexAttribArray(int index) {
-    _ptr.enableVertexAttribArray(_unwrap(index));
-    return;
-  }
-
-  void finish() {
-    _ptr.finish();
-    return;
-  }
-
-  void flush() {
-    _ptr.flush();
-    return;
-  }
-
-  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) {
-    _ptr.framebufferRenderbuffer(_unwrap(target), _unwrap(attachment), _unwrap(renderbuffertarget), _unwrap(renderbuffer));
-    return;
-  }
-
-  void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) {
-    _ptr.framebufferTexture2D(_unwrap(target), _unwrap(attachment), _unwrap(textarget), _unwrap(texture), _unwrap(level));
-    return;
-  }
-
-  void frontFace(int mode) {
-    _ptr.frontFace(_unwrap(mode));
-    return;
-  }
-
-  void generateMipmap(int target) {
-    _ptr.generateMipmap(_unwrap(target));
-    return;
-  }
-
-  WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) {
-    return _wrap(_ptr.getActiveAttrib(_unwrap(program), _unwrap(index)));
-  }
-
-  WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) {
-    return _wrap(_ptr.getActiveUniform(_unwrap(program), _unwrap(index)));
-  }
-
-  List getAttachedShaders(WebGLProgram program) {
-    return _wrap(_ptr.getAttachedShaders(_unwrap(program)));
-  }
-
-  int getAttribLocation(WebGLProgram program, String name) {
-    return _wrap(_ptr.getAttribLocation(_unwrap(program), _unwrap(name)));
-  }
-
-  Object getBufferParameter(int target, int pname) {
-    return _wrap(_ptr.getBufferParameter(_unwrap(target), _unwrap(pname)));
-  }
-
-  WebGLContextAttributes getContextAttributes() {
-    return _wrap(_ptr.getContextAttributes());
-  }
-
-  int getError() {
-    return _wrap(_ptr.getError());
-  }
-
-  Object getExtension(String name) {
-    return _wrap(_ptr.getExtension(_unwrap(name)));
-  }
-
-  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) {
-    return _wrap(_ptr.getFramebufferAttachmentParameter(_unwrap(target), _unwrap(attachment), _unwrap(pname)));
-  }
-
-  Object getParameter(int pname) {
-    return _wrap(_ptr.getParameter(_unwrap(pname)));
-  }
-
-  String getProgramInfoLog(WebGLProgram program) {
-    return _wrap(_ptr.getProgramInfoLog(_unwrap(program)));
-  }
-
-  Object getProgramParameter(WebGLProgram program, int pname) {
-    return _wrap(_ptr.getProgramParameter(_unwrap(program), _unwrap(pname)));
-  }
-
-  Object getRenderbufferParameter(int target, int pname) {
-    return _wrap(_ptr.getRenderbufferParameter(_unwrap(target), _unwrap(pname)));
-  }
-
-  String getShaderInfoLog(WebGLShader shader) {
-    return _wrap(_ptr.getShaderInfoLog(_unwrap(shader)));
-  }
-
-  Object getShaderParameter(WebGLShader shader, int pname) {
-    return _wrap(_ptr.getShaderParameter(_unwrap(shader), _unwrap(pname)));
-  }
-
-  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) {
-    return _wrap(_ptr.getShaderPrecisionFormat(_unwrap(shadertype), _unwrap(precisiontype)));
-  }
-
-  String getShaderSource(WebGLShader shader) {
-    return _wrap(_ptr.getShaderSource(_unwrap(shader)));
-  }
-
-  Object getTexParameter(int target, int pname) {
-    return _wrap(_ptr.getTexParameter(_unwrap(target), _unwrap(pname)));
-  }
-
-  Object getUniform(WebGLProgram program, WebGLUniformLocation location) {
-    return _wrap(_ptr.getUniform(_unwrap(program), _unwrap(location)));
-  }
-
-  WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) {
-    return _wrap(_ptr.getUniformLocation(_unwrap(program), _unwrap(name)));
-  }
-
-  Object getVertexAttrib(int index, int pname) {
-    return _wrap(_ptr.getVertexAttrib(_unwrap(index), _unwrap(pname)));
-  }
-
-  int getVertexAttribOffset(int index, int pname) {
-    return _wrap(_ptr.getVertexAttribOffset(_unwrap(index), _unwrap(pname)));
-  }
-
-  void hint(int target, int mode) {
-    _ptr.hint(_unwrap(target), _unwrap(mode));
-    return;
-  }
-
-  bool isBuffer(WebGLBuffer buffer) {
-    return _wrap(_ptr.isBuffer(_unwrap(buffer)));
-  }
-
-  bool isContextLost() {
-    return _wrap(_ptr.isContextLost());
-  }
-
-  bool isEnabled(int cap) {
-    return _wrap(_ptr.isEnabled(_unwrap(cap)));
-  }
-
-  bool isFramebuffer(WebGLFramebuffer framebuffer) {
-    return _wrap(_ptr.isFramebuffer(_unwrap(framebuffer)));
-  }
-
-  bool isProgram(WebGLProgram program) {
-    return _wrap(_ptr.isProgram(_unwrap(program)));
-  }
-
-  bool isRenderbuffer(WebGLRenderbuffer renderbuffer) {
-    return _wrap(_ptr.isRenderbuffer(_unwrap(renderbuffer)));
-  }
-
-  bool isShader(WebGLShader shader) {
-    return _wrap(_ptr.isShader(_unwrap(shader)));
-  }
-
-  bool isTexture(WebGLTexture texture) {
-    return _wrap(_ptr.isTexture(_unwrap(texture)));
-  }
-
-  void lineWidth(num width) {
-    _ptr.lineWidth(_unwrap(width));
-    return;
-  }
-
-  void linkProgram(WebGLProgram program) {
-    _ptr.linkProgram(_unwrap(program));
-    return;
-  }
-
-  void pixelStorei(int pname, int param) {
-    _ptr.pixelStorei(_unwrap(pname), _unwrap(param));
-    return;
-  }
-
-  void polygonOffset(num factor, num units) {
-    _ptr.polygonOffset(_unwrap(factor), _unwrap(units));
-    return;
-  }
-
-  void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) {
-    _ptr.readPixels(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height), _unwrap(format), _unwrap(type), _unwrap(pixels));
-    return;
-  }
-
-  void releaseShaderCompiler() {
-    _ptr.releaseShaderCompiler();
-    return;
-  }
-
-  void renderbufferStorage(int target, int internalformat, int width, int height) {
-    _ptr.renderbufferStorage(_unwrap(target), _unwrap(internalformat), _unwrap(width), _unwrap(height));
-    return;
-  }
-
-  void sampleCoverage(num value, bool invert) {
-    _ptr.sampleCoverage(_unwrap(value), _unwrap(invert));
-    return;
-  }
-
-  void scissor(int x, int y, int width, int height) {
-    _ptr.scissor(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-    return;
-  }
-
-  void shaderSource(WebGLShader shader, String string) {
-    _ptr.shaderSource(_unwrap(shader), _unwrap(string));
-    return;
-  }
-
-  void stencilFunc(int func, int ref, int mask) {
-    _ptr.stencilFunc(_unwrap(func), _unwrap(ref), _unwrap(mask));
-    return;
-  }
-
-  void stencilFuncSeparate(int face, int func, int ref, int mask) {
-    _ptr.stencilFuncSeparate(_unwrap(face), _unwrap(func), _unwrap(ref), _unwrap(mask));
-    return;
-  }
-
-  void stencilMask(int mask) {
-    _ptr.stencilMask(_unwrap(mask));
-    return;
-  }
-
-  void stencilMaskSeparate(int face, int mask) {
-    _ptr.stencilMaskSeparate(_unwrap(face), _unwrap(mask));
-    return;
-  }
-
-  void stencilOp(int fail, int zfail, int zpass) {
-    _ptr.stencilOp(_unwrap(fail), _unwrap(zfail), _unwrap(zpass));
-    return;
-  }
-
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) {
-    _ptr.stencilOpSeparate(_unwrap(face), _unwrap(fail), _unwrap(zfail), _unwrap(zpass));
-    return;
-  }
-
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, ArrayBufferView pixels = null]) {
-    if (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData) {
-      if (format === null) {
-        if (type === null) {
-          if (pixels === null) {
-            _ptr.texImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video));
-            return;
-          }
-        }
-      }
-    } else {
-      if (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) {
-        if (format === null) {
-          if (type === null) {
-            if (pixels === null) {
-              _ptr.texImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video));
-              return;
-            }
-          }
-        }
-      } else {
-        if (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) {
-          if (format === null) {
-            if (type === null) {
-              if (pixels === null) {
-                _ptr.texImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video));
-                return;
-              }
-            }
-          }
-        } else {
-          if (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) {
-            if (format === null) {
-              if (type === null) {
-                if (pixels === null) {
-                  _ptr.texImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video));
-                  return;
-                }
-              }
-            }
-          } else {
-            if (border_OR_canvas_OR_image_OR_pixels_OR_video is int) {
-              _ptr.texImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video), _unwrap(format), _unwrap(type), _unwrap(pixels));
-              return;
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void texParameterf(int target, int pname, num param) {
-    _ptr.texParameterf(_unwrap(target), _unwrap(pname), _unwrap(param));
-    return;
-  }
-
-  void texParameteri(int target, int pname, int param) {
-    _ptr.texParameteri(_unwrap(target), _unwrap(pname), _unwrap(param));
-    return;
-  }
-
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, ArrayBufferView pixels = null]) {
-    if (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData) {
-      if (type === null) {
-        if (pixels === null) {
-          _ptr.texSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video));
-          return;
-        }
-      }
-    } else {
-      if (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) {
-        if (type === null) {
-          if (pixels === null) {
-            _ptr.texSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video));
-            return;
-          }
-        }
-      } else {
-        if (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) {
-          if (type === null) {
-            if (pixels === null) {
-              _ptr.texSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video));
-              return;
-            }
-          }
-        } else {
-          if (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) {
-            if (type === null) {
-              if (pixels === null) {
-                _ptr.texSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video));
-                return;
-              }
-            }
-          } else {
-            if (canvas_OR_format_OR_image_OR_pixels_OR_video is int) {
-              _ptr.texSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video), _unwrap(type), _unwrap(pixels));
-              return;
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void uniform1f(WebGLUniformLocation location, num x) {
-    _ptr.uniform1f(_unwrap(location), _unwrap(x));
-    return;
-  }
-
-  void uniform1fv(WebGLUniformLocation location, Float32Array v) {
-    _ptr.uniform1fv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform1i(WebGLUniformLocation location, int x) {
-    _ptr.uniform1i(_unwrap(location), _unwrap(x));
-    return;
-  }
-
-  void uniform1iv(WebGLUniformLocation location, Int32Array v) {
-    _ptr.uniform1iv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform2f(WebGLUniformLocation location, num x, num y) {
-    _ptr.uniform2f(_unwrap(location), _unwrap(x), _unwrap(y));
-    return;
-  }
-
-  void uniform2fv(WebGLUniformLocation location, Float32Array v) {
-    _ptr.uniform2fv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform2i(WebGLUniformLocation location, int x, int y) {
-    _ptr.uniform2i(_unwrap(location), _unwrap(x), _unwrap(y));
-    return;
-  }
-
-  void uniform2iv(WebGLUniformLocation location, Int32Array v) {
-    _ptr.uniform2iv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform3f(WebGLUniformLocation location, num x, num y, num z) {
-    _ptr.uniform3f(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
-
-  void uniform3fv(WebGLUniformLocation location, Float32Array v) {
-    _ptr.uniform3fv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform3i(WebGLUniformLocation location, int x, int y, int z) {
-    _ptr.uniform3i(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
-
-  void uniform3iv(WebGLUniformLocation location, Int32Array v) {
-    _ptr.uniform3iv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) {
-    _ptr.uniform4f(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z), _unwrap(w));
-    return;
-  }
-
-  void uniform4fv(WebGLUniformLocation location, Float32Array v) {
-    _ptr.uniform4fv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) {
-    _ptr.uniform4i(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z), _unwrap(w));
-    return;
-  }
-
-  void uniform4iv(WebGLUniformLocation location, Int32Array v) {
-    _ptr.uniform4iv(_unwrap(location), _unwrap(v));
-    return;
-  }
-
-  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) {
-    _ptr.uniformMatrix2fv(_unwrap(location), _unwrap(transpose), _unwrap(array));
-    return;
-  }
-
-  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) {
-    _ptr.uniformMatrix3fv(_unwrap(location), _unwrap(transpose), _unwrap(array));
-    return;
-  }
-
-  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) {
-    _ptr.uniformMatrix4fv(_unwrap(location), _unwrap(transpose), _unwrap(array));
-    return;
-  }
-
-  void useProgram(WebGLProgram program) {
-    _ptr.useProgram(_unwrap(program));
-    return;
-  }
-
-  void validateProgram(WebGLProgram program) {
-    _ptr.validateProgram(_unwrap(program));
-    return;
-  }
-
-  void vertexAttrib1f(int indx, num x) {
-    _ptr.vertexAttrib1f(_unwrap(indx), _unwrap(x));
-    return;
-  }
-
-  void vertexAttrib1fv(int indx, Float32Array values) {
-    _ptr.vertexAttrib1fv(_unwrap(indx), _unwrap(values));
-    return;
-  }
-
-  void vertexAttrib2f(int indx, num x, num y) {
-    _ptr.vertexAttrib2f(_unwrap(indx), _unwrap(x), _unwrap(y));
-    return;
-  }
-
-  void vertexAttrib2fv(int indx, Float32Array values) {
-    _ptr.vertexAttrib2fv(_unwrap(indx), _unwrap(values));
-    return;
-  }
-
-  void vertexAttrib3f(int indx, num x, num y, num z) {
-    _ptr.vertexAttrib3f(_unwrap(indx), _unwrap(x), _unwrap(y), _unwrap(z));
-    return;
-  }
-
-  void vertexAttrib3fv(int indx, Float32Array values) {
-    _ptr.vertexAttrib3fv(_unwrap(indx), _unwrap(values));
-    return;
-  }
-
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) {
-    _ptr.vertexAttrib4f(_unwrap(indx), _unwrap(x), _unwrap(y), _unwrap(z), _unwrap(w));
-    return;
-  }
-
-  void vertexAttrib4fv(int indx, Float32Array values) {
-    _ptr.vertexAttrib4fv(_unwrap(indx), _unwrap(values));
-    return;
-  }
-
-  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) {
-    _ptr.vertexAttribPointer(_unwrap(indx), _unwrap(size), _unwrap(type), _unwrap(normalized), _unwrap(stride), _unwrap(offset));
-    return;
-  }
-
-  void viewport(int x, int y, int width, int height) {
-    _ptr.viewport(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
-    return;
-  }
+  void activeTexture(int texture) => _ptr.activeTexture(_unwrap(texture));
+
+  void attachShader(WebGLProgram program, WebGLShader shader) => _ptr.attachShader(_unwrap(program), _unwrap(shader));
+
+  void bindAttribLocation(WebGLProgram program, int index, String name) => _ptr.bindAttribLocation(_unwrap(program), _unwrap(index), _unwrap(name));
+
+  void bindBuffer(int target, WebGLBuffer buffer) => _ptr.bindBuffer(_unwrap(target), _unwrap(buffer));
+
+  void bindFramebuffer(int target, WebGLFramebuffer framebuffer) => _ptr.bindFramebuffer(_unwrap(target), _unwrap(framebuffer));
+
+  void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) => _ptr.bindRenderbuffer(_unwrap(target), _unwrap(renderbuffer));
+
+  void bindTexture(int target, WebGLTexture texture) => _ptr.bindTexture(_unwrap(target), _unwrap(texture));
+
+  void blendColor(num red, num green, num blue, num alpha) => _ptr.blendColor(_unwrap(red), _unwrap(green), _unwrap(blue), _unwrap(alpha));
+
+  void blendEquation(int mode) => _ptr.blendEquation(_unwrap(mode));
+
+  void blendEquationSeparate(int modeRGB, int modeAlpha) => _ptr.blendEquationSeparate(_unwrap(modeRGB), _unwrap(modeAlpha));
+
+  void blendFunc(int sfactor, int dfactor) => _ptr.blendFunc(_unwrap(sfactor), _unwrap(dfactor));
+
+  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _ptr.blendFuncSeparate(_unwrap(srcRGB), _unwrap(dstRGB), _unwrap(srcAlpha), _unwrap(dstAlpha));
+
+  void bufferData(int target, data_OR_size, int usage) => _ptr.bufferData(_unwrap(target), _unwrap(data_OR_size), _unwrap(usage));
+
+  void bufferSubData(int target, int offset, data) => _ptr.bufferSubData(_unwrap(target), _unwrap(offset), _unwrap(data));
+
+  int checkFramebufferStatus(int target) => _wrap(_ptr.checkFramebufferStatus(_unwrap(target)));
+
+  void clear(int mask) => _ptr.clear(_unwrap(mask));
+
+  void clearColor(num red, num green, num blue, num alpha) => _ptr.clearColor(_unwrap(red), _unwrap(green), _unwrap(blue), _unwrap(alpha));
+
+  void clearDepth(num depth) => _ptr.clearDepth(_unwrap(depth));
+
+  void clearStencil(int s) => _ptr.clearStencil(_unwrap(s));
+
+  void colorMask(bool red, bool green, bool blue, bool alpha) => _ptr.colorMask(_unwrap(red), _unwrap(green), _unwrap(blue), _unwrap(alpha));
+
+  void compileShader(WebGLShader shader) => _ptr.compileShader(_unwrap(shader));
+
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) => _ptr.compressedTexImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(width), _unwrap(height), _unwrap(border), _unwrap(data));
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) => _ptr.compressedTexSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(width), _unwrap(height), _unwrap(format), _unwrap(data));
+
+  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => _ptr.copyTexImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height), _unwrap(border));
+
+  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => _ptr.copyTexSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
+
+  WebGLBuffer createBuffer() => _wrap(_ptr.createBuffer());
+
+  WebGLFramebuffer createFramebuffer() => _wrap(_ptr.createFramebuffer());
+
+  WebGLProgram createProgram() => _wrap(_ptr.createProgram());
+
+  WebGLRenderbuffer createRenderbuffer() => _wrap(_ptr.createRenderbuffer());
+
+  WebGLShader createShader(int type) => _wrap(_ptr.createShader(_unwrap(type)));
+
+  WebGLTexture createTexture() => _wrap(_ptr.createTexture());
+
+  void cullFace(int mode) => _ptr.cullFace(_unwrap(mode));
+
+  void deleteBuffer(WebGLBuffer buffer) => _ptr.deleteBuffer(_unwrap(buffer));
+
+  void deleteFramebuffer(WebGLFramebuffer framebuffer) => _ptr.deleteFramebuffer(_unwrap(framebuffer));
+
+  void deleteProgram(WebGLProgram program) => _ptr.deleteProgram(_unwrap(program));
+
+  void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) => _ptr.deleteRenderbuffer(_unwrap(renderbuffer));
+
+  void deleteShader(WebGLShader shader) => _ptr.deleteShader(_unwrap(shader));
+
+  void deleteTexture(WebGLTexture texture) => _ptr.deleteTexture(_unwrap(texture));
+
+  void depthFunc(int func) => _ptr.depthFunc(_unwrap(func));
+
+  void depthMask(bool flag) => _ptr.depthMask(_unwrap(flag));
+
+  void depthRange(num zNear, num zFar) => _ptr.depthRange(_unwrap(zNear), _unwrap(zFar));
+
+  void detachShader(WebGLProgram program, WebGLShader shader) => _ptr.detachShader(_unwrap(program), _unwrap(shader));
+
+  void disable(int cap) => _ptr.disable(_unwrap(cap));
+
+  void disableVertexAttribArray(int index) => _ptr.disableVertexAttribArray(_unwrap(index));
+
+  void drawArrays(int mode, int first, int count) => _ptr.drawArrays(_unwrap(mode), _unwrap(first), _unwrap(count));
+
+  void drawElements(int mode, int count, int type, int offset) => _ptr.drawElements(_unwrap(mode), _unwrap(count), _unwrap(type), _unwrap(offset));
+
+  void enable(int cap) => _ptr.enable(_unwrap(cap));
+
+  void enableVertexAttribArray(int index) => _ptr.enableVertexAttribArray(_unwrap(index));
+
+  void finish() => _ptr.finish();
+
+  void flush() => _ptr.flush();
+
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) => _ptr.framebufferRenderbuffer(_unwrap(target), _unwrap(attachment), _unwrap(renderbuffertarget), _unwrap(renderbuffer));
+
+  void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) => _ptr.framebufferTexture2D(_unwrap(target), _unwrap(attachment), _unwrap(textarget), _unwrap(texture), _unwrap(level));
+
+  void frontFace(int mode) => _ptr.frontFace(_unwrap(mode));
+
+  void generateMipmap(int target) => _ptr.generateMipmap(_unwrap(target));
+
+  WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) => _wrap(_ptr.getActiveAttrib(_unwrap(program), _unwrap(index)));
+
+  WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) => _wrap(_ptr.getActiveUniform(_unwrap(program), _unwrap(index)));
+
+  List getAttachedShaders(WebGLProgram program) => _wrap(_ptr.getAttachedShaders(_unwrap(program)));
+
+  int getAttribLocation(WebGLProgram program, String name) => _wrap(_ptr.getAttribLocation(_unwrap(program), _unwrap(name)));
+
+  Object getBufferParameter(int target, int pname) => _wrap(_ptr.getBufferParameter(_unwrap(target), _unwrap(pname)));
+
+  WebGLContextAttributes getContextAttributes() => _wrap(_ptr.getContextAttributes());
+
+  int getError() => _wrap(_ptr.getError());
+
+  Object getExtension(String name) => _wrap(_ptr.getExtension(_unwrap(name)));
+
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => _wrap(_ptr.getFramebufferAttachmentParameter(_unwrap(target), _unwrap(attachment), _unwrap(pname)));
+
+  Object getParameter(int pname) => _wrap(_ptr.getParameter(_unwrap(pname)));
+
+  String getProgramInfoLog(WebGLProgram program) => _wrap(_ptr.getProgramInfoLog(_unwrap(program)));
+
+  Object getProgramParameter(WebGLProgram program, int pname) => _wrap(_ptr.getProgramParameter(_unwrap(program), _unwrap(pname)));
+
+  Object getRenderbufferParameter(int target, int pname) => _wrap(_ptr.getRenderbufferParameter(_unwrap(target), _unwrap(pname)));
+
+  String getShaderInfoLog(WebGLShader shader) => _wrap(_ptr.getShaderInfoLog(_unwrap(shader)));
+
+  Object getShaderParameter(WebGLShader shader, int pname) => _wrap(_ptr.getShaderParameter(_unwrap(shader), _unwrap(pname)));
+
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => _wrap(_ptr.getShaderPrecisionFormat(_unwrap(shadertype), _unwrap(precisiontype)));
+
+  String getShaderSource(WebGLShader shader) => _wrap(_ptr.getShaderSource(_unwrap(shader)));
+
+  Object getTexParameter(int target, int pname) => _wrap(_ptr.getTexParameter(_unwrap(target), _unwrap(pname)));
+
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) => _wrap(_ptr.getUniform(_unwrap(program), _unwrap(location)));
+
+  WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) => _wrap(_ptr.getUniformLocation(_unwrap(program), _unwrap(name)));
+
+  Object getVertexAttrib(int index, int pname) => _wrap(_ptr.getVertexAttrib(_unwrap(index), _unwrap(pname)));
+
+  int getVertexAttribOffset(int index, int pname) => _wrap(_ptr.getVertexAttribOffset(_unwrap(index), _unwrap(pname)));
+
+  void hint(int target, int mode) => _ptr.hint(_unwrap(target), _unwrap(mode));
+
+  bool isBuffer(WebGLBuffer buffer) => _wrap(_ptr.isBuffer(_unwrap(buffer)));
+
+  bool isContextLost() => _wrap(_ptr.isContextLost());
+
+  bool isEnabled(int cap) => _wrap(_ptr.isEnabled(_unwrap(cap)));
+
+  bool isFramebuffer(WebGLFramebuffer framebuffer) => _wrap(_ptr.isFramebuffer(_unwrap(framebuffer)));
+
+  bool isProgram(WebGLProgram program) => _wrap(_ptr.isProgram(_unwrap(program)));
+
+  bool isRenderbuffer(WebGLRenderbuffer renderbuffer) => _wrap(_ptr.isRenderbuffer(_unwrap(renderbuffer)));
+
+  bool isShader(WebGLShader shader) => _wrap(_ptr.isShader(_unwrap(shader)));
+
+  bool isTexture(WebGLTexture texture) => _wrap(_ptr.isTexture(_unwrap(texture)));
+
+  void lineWidth(num width) => _ptr.lineWidth(_unwrap(width));
+
+  void linkProgram(WebGLProgram program) => _ptr.linkProgram(_unwrap(program));
+
+  void pixelStorei(int pname, int param) => _ptr.pixelStorei(_unwrap(pname), _unwrap(param));
+
+  void polygonOffset(num factor, num units) => _ptr.polygonOffset(_unwrap(factor), _unwrap(units));
+
+  void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) => _ptr.readPixels(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height), _unwrap(format), _unwrap(type), _unwrap(pixels));
+
+  void releaseShaderCompiler() => _ptr.releaseShaderCompiler();
+
+  void renderbufferStorage(int target, int internalformat, int width, int height) => _ptr.renderbufferStorage(_unwrap(target), _unwrap(internalformat), _unwrap(width), _unwrap(height));
+
+  void sampleCoverage(num value, bool invert) => _ptr.sampleCoverage(_unwrap(value), _unwrap(invert));
+
+  void scissor(int x, int y, int width, int height) => _ptr.scissor(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
+
+  void shaderSource(WebGLShader shader, String string) => _ptr.shaderSource(_unwrap(shader), _unwrap(string));
+
+  void stencilFunc(int func, int ref, int mask) => _ptr.stencilFunc(_unwrap(func), _unwrap(ref), _unwrap(mask));
+
+  void stencilFuncSeparate(int face, int func, int ref, int mask) => _ptr.stencilFuncSeparate(_unwrap(face), _unwrap(func), _unwrap(ref), _unwrap(mask));
+
+  void stencilMask(int mask) => _ptr.stencilMask(_unwrap(mask));
+
+  void stencilMaskSeparate(int face, int mask) => _ptr.stencilMaskSeparate(_unwrap(face), _unwrap(mask));
+
+  void stencilOp(int fail, int zfail, int zpass) => _ptr.stencilOp(_unwrap(fail), _unwrap(zfail), _unwrap(zpass));
+
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _ptr.stencilOpSeparate(_unwrap(face), _unwrap(fail), _unwrap(zfail), _unwrap(zpass));
+
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, ArrayBufferView pixels = null]) => _ptr.texImage2D(_unwrap(target), _unwrap(level), _unwrap(internalformat), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video), _unwrap(format), _unwrap(type), _unwrap(pixels));
+
+  void texParameterf(int target, int pname, num param) => _ptr.texParameterf(_unwrap(target), _unwrap(pname), _unwrap(param));
+
+  void texParameteri(int target, int pname, int param) => _ptr.texParameteri(_unwrap(target), _unwrap(pname), _unwrap(param));
+
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, ArrayBufferView pixels = null]) => _ptr.texSubImage2D(_unwrap(target), _unwrap(level), _unwrap(xoffset), _unwrap(yoffset), _unwrap(format_OR_width), _unwrap(height_OR_type), _unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video), _unwrap(type), _unwrap(pixels));
+
+  void uniform1f(WebGLUniformLocation location, num x) => _ptr.uniform1f(_unwrap(location), _unwrap(x));
+
+  void uniform1fv(WebGLUniformLocation location, Float32Array v) => _ptr.uniform1fv(_unwrap(location), _unwrap(v));
+
+  void uniform1i(WebGLUniformLocation location, int x) => _ptr.uniform1i(_unwrap(location), _unwrap(x));
+
+  void uniform1iv(WebGLUniformLocation location, Int32Array v) => _ptr.uniform1iv(_unwrap(location), _unwrap(v));
+
+  void uniform2f(WebGLUniformLocation location, num x, num y) => _ptr.uniform2f(_unwrap(location), _unwrap(x), _unwrap(y));
+
+  void uniform2fv(WebGLUniformLocation location, Float32Array v) => _ptr.uniform2fv(_unwrap(location), _unwrap(v));
+
+  void uniform2i(WebGLUniformLocation location, int x, int y) => _ptr.uniform2i(_unwrap(location), _unwrap(x), _unwrap(y));
+
+  void uniform2iv(WebGLUniformLocation location, Int32Array v) => _ptr.uniform2iv(_unwrap(location), _unwrap(v));
+
+  void uniform3f(WebGLUniformLocation location, num x, num y, num z) => _ptr.uniform3f(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z));
+
+  void uniform3fv(WebGLUniformLocation location, Float32Array v) => _ptr.uniform3fv(_unwrap(location), _unwrap(v));
+
+  void uniform3i(WebGLUniformLocation location, int x, int y, int z) => _ptr.uniform3i(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z));
+
+  void uniform3iv(WebGLUniformLocation location, Int32Array v) => _ptr.uniform3iv(_unwrap(location), _unwrap(v));
+
+  void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) => _ptr.uniform4f(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z), _unwrap(w));
+
+  void uniform4fv(WebGLUniformLocation location, Float32Array v) => _ptr.uniform4fv(_unwrap(location), _unwrap(v));
+
+  void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) => _ptr.uniform4i(_unwrap(location), _unwrap(x), _unwrap(y), _unwrap(z), _unwrap(w));
+
+  void uniform4iv(WebGLUniformLocation location, Int32Array v) => _ptr.uniform4iv(_unwrap(location), _unwrap(v));
+
+  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) => _ptr.uniformMatrix2fv(_unwrap(location), _unwrap(transpose), _unwrap(array));
+
+  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) => _ptr.uniformMatrix3fv(_unwrap(location), _unwrap(transpose), _unwrap(array));
+
+  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) => _ptr.uniformMatrix4fv(_unwrap(location), _unwrap(transpose), _unwrap(array));
+
+  void useProgram(WebGLProgram program) => _ptr.useProgram(_unwrap(program));
+
+  void validateProgram(WebGLProgram program) => _ptr.validateProgram(_unwrap(program));
+
+  void vertexAttrib1f(int indx, num x) => _ptr.vertexAttrib1f(_unwrap(indx), _unwrap(x));
+
+  void vertexAttrib1fv(int indx, Float32Array values) => _ptr.vertexAttrib1fv(_unwrap(indx), _unwrap(values));
+
+  void vertexAttrib2f(int indx, num x, num y) => _ptr.vertexAttrib2f(_unwrap(indx), _unwrap(x), _unwrap(y));
+
+  void vertexAttrib2fv(int indx, Float32Array values) => _ptr.vertexAttrib2fv(_unwrap(indx), _unwrap(values));
+
+  void vertexAttrib3f(int indx, num x, num y, num z) => _ptr.vertexAttrib3f(_unwrap(indx), _unwrap(x), _unwrap(y), _unwrap(z));
+
+  void vertexAttrib3fv(int indx, Float32Array values) => _ptr.vertexAttrib3fv(_unwrap(indx), _unwrap(values));
+
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) => _ptr.vertexAttrib4f(_unwrap(indx), _unwrap(x), _unwrap(y), _unwrap(z), _unwrap(w));
+
+  void vertexAttrib4fv(int indx, Float32Array values) => _ptr.vertexAttrib4fv(_unwrap(indx), _unwrap(values));
+
+  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _ptr.vertexAttribPointer(_unwrap(indx), _unwrap(size), _unwrap(type), _unwrap(normalized), _unwrap(stride), _unwrap(offset));
+
+  void viewport(int x, int y, int width, int height) => _ptr.viewport(_unwrap(x), _unwrap(y), _unwrap(width), _unwrap(height));
 }
 
 class _WebGLShaderImpl extends _DOMTypeBase implements WebGLShader {
@@ -21336,14 +17149,9 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 class _WebKitMutationObserverImpl extends _DOMTypeBase implements WebKitMutationObserver {
   _WebKitMutationObserverImpl._wrap(ptr) : super._wrap(ptr);
 
-  void disconnect() {
-    _ptr.disconnect();
-    return;
-  }
+  void disconnect() => _ptr.disconnect();
 
-  List<MutationRecord> takeRecords() {
-    return _wrap(_ptr.takeRecords());
-  }
+  List<MutationRecord> takeRecords() => _wrap(_ptr.takeRecords());
 }
 
 class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
@@ -21353,9 +17161,7 @@ class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
 
   bool get overflow() => _wrap(_ptr.overflow);
 
-  NodeList getRegionsByContentNode(Node contentNode) {
-    return _wrap(_ptr.getRegionsByContentNode(_unwrap(contentNode)));
-  }
+  NodeList getRegionsByContentNode(Node contentNode) => _wrap(_ptr.getRegionsByContentNode(_unwrap(contentNode)));
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
@@ -21382,51 +17188,15 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   String get url() => _wrap(_ptr.url);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void close([int code = null, String reason = null]) {
-    if (code === null) {
-      if (reason === null) {
-        _ptr.close();
-        return;
-      }
-    } else {
-      if (reason === null) {
-        _ptr.close(_unwrap(code));
-        return;
-      } else {
-        _ptr.close(_unwrap(code), _unwrap(reason));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void close([int code = null, String reason = null]) => _ptr.close(_unwrap(code), _unwrap(reason));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool send(String data) {
-    return _wrap(_ptr.send(_unwrap(data)));
-  }
+  bool send(String data) => _wrap(_ptr.send(_unwrap(data)));
 }
 
 class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
@@ -21476,10 +17246,7 @@ class _WheelEventImpl extends _UIEventImpl implements WheelEvent {
 
   int get y() => _wrap(_ptr.y);
 
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _ptr.initWebKitWheelEvent(_unwrap(wheelDeltaX), _unwrap(wheelDeltaY), _unwrap(view), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey));
-    return;
-  }
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => _ptr.initWebKitWheelEvent(_unwrap(wheelDeltaX), _unwrap(wheelDeltaY), _unwrap(view), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21609,259 +17376,91 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   Window get window() => _wrap(_ptr.window);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void alert(String message) {
-    _ptr.alert(_unwrap(message));
-    return;
-  }
+  void alert(String message) => _ptr.alert(_unwrap(message));
 
-  String atob(String string) {
-    return _wrap(_ptr.atob(_unwrap(string)));
-  }
+  String atob(String string) => _wrap(_ptr.atob(_unwrap(string)));
 
-  void blur() {
-    _ptr.blur();
-    return;
-  }
+  void blur() => _ptr.blur();
 
-  String btoa(String string) {
-    return _wrap(_ptr.btoa(_unwrap(string)));
-  }
+  String btoa(String string) => _wrap(_ptr.btoa(_unwrap(string)));
 
-  void captureEvents() {
-    _ptr.captureEvents();
-    return;
-  }
+  void captureEvents() => _ptr.captureEvents();
 
-  void clearInterval(int handle) {
-    _ptr.clearInterval(_unwrap(handle));
-    return;
-  }
+  void clearInterval(int handle) => _ptr.clearInterval(_unwrap(handle));
 
-  void clearTimeout(int handle) {
-    _ptr.clearTimeout(_unwrap(handle));
-    return;
-  }
+  void clearTimeout(int handle) => _ptr.clearTimeout(_unwrap(handle));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  bool confirm(String message) {
-    return _wrap(_ptr.confirm(_unwrap(message)));
-  }
+  bool confirm(String message) => _wrap(_ptr.confirm(_unwrap(message)));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) {
-    return _wrap(_ptr.find(_unwrap(string), _unwrap(caseSensitive), _unwrap(backwards), _unwrap(wrap), _unwrap(wholeWord), _unwrap(searchInFrames), _unwrap(showDialog)));
-  }
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) => _wrap(_ptr.find(_unwrap(string), _unwrap(caseSensitive), _unwrap(backwards), _unwrap(wrap), _unwrap(wholeWord), _unwrap(searchInFrames), _unwrap(showDialog)));
 
-  void focus() {
-    _ptr.focus();
-    return;
-  }
+  void focus() => _ptr.focus();
 
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) {
-    return _wrap(_ptr.getComputedStyle(_unwrap(element), _unwrap(pseudoElement)));
-  }
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) => _wrap(_ptr.getComputedStyle(_unwrap(element), _unwrap(pseudoElement)));
 
-  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) {
-    return _wrap(_ptr.getMatchedCSSRules(_unwrap(element), _unwrap(pseudoElement)));
-  }
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) => _wrap(_ptr.getMatchedCSSRules(_unwrap(element), _unwrap(pseudoElement)));
 
-  DOMSelection getSelection() {
-    return _wrap(_ptr.getSelection());
-  }
+  DOMSelection getSelection() => _wrap(_ptr.getSelection());
 
-  MediaQueryList matchMedia(String query) {
-    return _wrap(_ptr.matchMedia(_unwrap(query)));
-  }
+  MediaQueryList matchMedia(String query) => _wrap(_ptr.matchMedia(_unwrap(query)));
 
-  void moveBy(num x, num y) {
-    _ptr.moveBy(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void moveBy(num x, num y) => _ptr.moveBy(_unwrap(x), _unwrap(y));
 
-  void moveTo(num x, num y) {
-    _ptr.moveTo(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void moveTo(num x, num y) => _ptr.moveTo(_unwrap(x), _unwrap(y));
 
-  Window open(String url, String name, [String options = null]) {
-    if (options === null) {
-      return _wrap(_ptr.open(_unwrap(url), _unwrap(name)));
-    } else {
-      return _wrap(_ptr.open(_unwrap(url), _unwrap(name), _unwrap(options)));
-    }
-  }
+  Window open(String url, String name, [String options = null]) => _wrap(_ptr.open(_unwrap(url), _unwrap(name), _unwrap(options)));
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize)));
-    } else {
-      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
-    }
-  }
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) => _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
 
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts = null]) {
-    if (messagePorts === null) {
-      _ptr.postMessage(_unwrap(message), _unwrap(targetOrigin));
-      return;
-    } else {
-      _ptr.postMessage(_unwrap(message), _unwrap(targetOrigin), _unwrap(messagePorts));
-      return;
-    }
-  }
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(targetOrigin), _unwrap(messagePorts));
 
-  void print() {
-    _ptr.print();
-    return;
-  }
+  void print() => _ptr.print();
 
-  String prompt(String message, String defaultValue) {
-    return _wrap(_ptr.prompt(_unwrap(message), _unwrap(defaultValue)));
-  }
+  String prompt(String message, String defaultValue) => _wrap(_ptr.prompt(_unwrap(message), _unwrap(defaultValue)));
 
-  void releaseEvents() {
-    _ptr.releaseEvents();
-    return;
-  }
+  void releaseEvents() => _ptr.releaseEvents();
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void resizeBy(num x, num y) {
-    _ptr.resizeBy(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void resizeBy(num x, num y) => _ptr.resizeBy(_unwrap(x), _unwrap(y));
 
-  void resizeTo(num width, num height) {
-    _ptr.resizeTo(_unwrap(width), _unwrap(height));
-    return;
-  }
+  void resizeTo(num width, num height) => _ptr.resizeTo(_unwrap(width), _unwrap(height));
 
-  void scroll(int x, int y) {
-    _ptr.scroll(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void scroll(int x, int y) => _ptr.scroll(_unwrap(x), _unwrap(y));
 
-  void scrollBy(int x, int y) {
-    _ptr.scrollBy(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void scrollBy(int x, int y) => _ptr.scrollBy(_unwrap(x), _unwrap(y));
 
-  void scrollTo(int x, int y) {
-    _ptr.scrollTo(_unwrap(x), _unwrap(y));
-    return;
-  }
+  void scrollTo(int x, int y) => _ptr.scrollTo(_unwrap(x), _unwrap(y));
 
-  int setInterval(TimeoutHandler handler, int timeout) {
-    return _wrap(_ptr.setInterval(_unwrap(handler), _unwrap(timeout)));
-  }
+  int setInterval(TimeoutHandler handler, int timeout) => _wrap(_ptr.setInterval(_unwrap(handler), _unwrap(timeout)));
 
-  int setTimeout(TimeoutHandler handler, int timeout) {
-    return _wrap(_ptr.setTimeout(_unwrap(handler), _unwrap(timeout)));
-  }
+  int setTimeout(TimeoutHandler handler, int timeout) => _wrap(_ptr.setTimeout(_unwrap(handler), _unwrap(timeout)));
 
-  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) {
-    if (dialogArgs === null) {
-      if (featureArgs === null) {
-        return _wrap(_ptr.showModalDialog(_unwrap(url)));
-      }
-    } else {
-      if (featureArgs === null) {
-        return _wrap(_ptr.showModalDialog(_unwrap(url), _unwrap(dialogArgs)));
-      } else {
-        return _wrap(_ptr.showModalDialog(_unwrap(url), _unwrap(dialogArgs), _unwrap(featureArgs)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) => _wrap(_ptr.showModalDialog(_unwrap(url), _unwrap(dialogArgs), _unwrap(featureArgs)));
 
-  void stop() {
-    _ptr.stop();
-    return;
-  }
+  void stop() => _ptr.stop();
 
-  void webkitCancelAnimationFrame(int id) {
-    _ptr.webkitCancelAnimationFrame(_unwrap(id));
-    return;
-  }
+  void webkitCancelAnimationFrame(int id) => _ptr.webkitCancelAnimationFrame(_unwrap(id));
 
-  void webkitCancelRequestAnimationFrame(int id) {
-    _ptr.webkitCancelRequestAnimationFrame(_unwrap(id));
-    return;
-  }
+  void webkitCancelRequestAnimationFrame(int id) => _ptr.webkitCancelRequestAnimationFrame(_unwrap(id));
 
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) {
-    return _wrap(_ptr.webkitConvertPointFromNodeToPage(_unwrap(node), _unwrap(p)));
-  }
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) => _wrap(_ptr.webkitConvertPointFromNodeToPage(_unwrap(node), _unwrap(p)));
 
-  Point webkitConvertPointFromPageToNode(Node node, Point p) {
-    return _wrap(_ptr.webkitConvertPointFromPageToNode(_unwrap(node), _unwrap(p)));
-  }
+  Point webkitConvertPointFromPageToNode(Node node, Point p) => _wrap(_ptr.webkitConvertPointFromPageToNode(_unwrap(node), _unwrap(p)));
 
-  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList = null]) {
-    if (transferList === null) {
-      _ptr.webkitPostMessage(_unwrap(message), _unwrap(targetOrigin));
-      return;
-    } else {
-      _ptr.webkitPostMessage(_unwrap(message), _unwrap(targetOrigin), _unwrap(transferList));
-      return;
-    }
-  }
+  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(targetOrigin), _unwrap(transferList));
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) {
-    return _wrap(_ptr.webkitRequestAnimationFrame(_unwrap(callback)));
-  }
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) => _wrap(_ptr.webkitRequestAnimationFrame(_unwrap(callback)));
 
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size), _unwrap(successCallback));
-      return;
-    } else {
-      _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size), _unwrap(successCallback), _unwrap(errorCallback));
-      return;
-    }
-  }
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) => _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size), _unwrap(successCallback), _unwrap(errorCallback));
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _ptr.webkitResolveLocalFileSystemURL(_unwrap(url));
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback));
-        return;
-      } else {
-        _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback), _unwrap(errorCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback), _unwrap(errorCallback));
 
 }
 
@@ -22025,30 +17624,11 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
     return _on;
   }
 
-  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts = null]) {
-    if (messagePorts === null) {
-      _ptr.postMessage(_unwrap(message));
-      return;
-    } else {
-      _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
-      return;
-    }
-  }
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
 
-  void terminate() {
-    _ptr.terminate();
-    return;
-  }
+  void terminate() => _ptr.terminate();
 
-  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts = null]) {
-    if (messagePorts === null) {
-      _ptr.webkitPostMessage(_unwrap(message));
-      return;
-    } else {
-      _ptr.webkitPostMessage(_unwrap(message), _unwrap(messagePorts));
-      return;
-    }
-  }
+  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(messagePorts));
 }
 
 class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
@@ -22075,117 +17655,35 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   NotificationCenter get webkitNotifications() => _wrap(_ptr.webkitNotifications);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void clearInterval(int handle) {
-    _ptr.clearInterval(_unwrap(handle));
-    return;
-  }
+  void clearInterval(int handle) => _ptr.clearInterval(_unwrap(handle));
 
-  void clearTimeout(int handle) {
-    _ptr.clearTimeout(_unwrap(handle));
-    return;
-  }
+  void clearTimeout(int handle) => _ptr.clearTimeout(_unwrap(handle));
 
-  void close() {
-    _ptr.close();
-    return;
-  }
+  void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void importScripts() {
-    _ptr.importScripts();
-    return;
-  }
+  void importScripts() => _ptr.importScripts();
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize)));
-    } else {
-      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
-    }
-  }
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) => _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
 
-  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _wrap(_ptr.openDatabaseSync(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize)));
-    } else {
-      return _wrap(_ptr.openDatabaseSync(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
-    }
-  }
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) => _wrap(_ptr.openDatabaseSync(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  int setInterval(TimeoutHandler handler, int timeout) {
-    return _wrap(_ptr.setInterval(_unwrap(handler), _unwrap(timeout)));
-  }
+  int setInterval(TimeoutHandler handler, int timeout) => _wrap(_ptr.setInterval(_unwrap(handler), _unwrap(timeout)));
 
-  int setTimeout(TimeoutHandler handler, int timeout) {
-    return _wrap(_ptr.setTimeout(_unwrap(handler), _unwrap(timeout)));
-  }
+  int setTimeout(TimeoutHandler handler, int timeout) => _wrap(_ptr.setTimeout(_unwrap(handler), _unwrap(timeout)));
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size));
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size), _unwrap(successCallback));
-        return;
-      } else {
-        _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size), _unwrap(successCallback), _unwrap(errorCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.webkitRequestFileSystem(_unwrap(type), _unwrap(size), _unwrap(successCallback), _unwrap(errorCallback));
 
-  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) {
-    return _wrap(_ptr.webkitRequestFileSystemSync(_unwrap(type), _unwrap(size)));
-  }
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) => _wrap(_ptr.webkitRequestFileSystemSync(_unwrap(type), _unwrap(size)));
 
-  EntrySync webkitResolveLocalFileSystemSyncURL(String url) {
-    return _wrap(_ptr.webkitResolveLocalFileSystemSyncURL(_unwrap(url)));
-  }
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url) => _wrap(_ptr.webkitResolveLocalFileSystemSyncURL(_unwrap(url)));
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _ptr.webkitResolveLocalFileSystemURL(_unwrap(url));
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback));
-        return;
-      } else {
-        _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback), _unwrap(errorCallback));
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback), _unwrap(errorCallback));
 }
 
 class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
@@ -22213,9 +17711,7 @@ class _WorkerLocationImpl extends _DOMTypeBase implements WorkerLocation {
 
   String get search() => _wrap(_ptr.search);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _WorkerNavigatorImpl extends _DOMTypeBase implements WorkerNavigator {
@@ -22268,112 +17764,25 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
 
   void set withCredentials(bool value) { _ptr.withCredentials = _unwrap(value); }
 
-  void abort() {
-    _ptr.abort();
-    return;
-  }
+  void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  String getAllResponseHeaders() {
-    return _wrap(_ptr.getAllResponseHeaders());
-  }
+  String getAllResponseHeaders() => _wrap(_ptr.getAllResponseHeaders());
 
-  String getResponseHeader(String header) {
-    return _wrap(_ptr.getResponseHeader(_unwrap(header)));
-  }
+  String getResponseHeader(String header) => _wrap(_ptr.getResponseHeader(_unwrap(header)));
 
-  void open(String method, String url, [bool async = null, String user = null, String password = null]) {
-    if (async === null) {
-      if (user === null) {
-        if (password === null) {
-          _ptr.open(_unwrap(method), _unwrap(url));
-          return;
-        }
-      }
-    } else {
-      if (user === null) {
-        if (password === null) {
-          _ptr.open(_unwrap(method), _unwrap(url), _unwrap(async));
-          return;
-        }
-      } else {
-        if (password === null) {
-          _ptr.open(_unwrap(method), _unwrap(url), _unwrap(async), _unwrap(user));
-          return;
-        } else {
-          _ptr.open(_unwrap(method), _unwrap(url), _unwrap(async), _unwrap(user), _unwrap(password));
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void open(String method, String url, [bool async = null, String user = null, String password = null]) => _ptr.open(_unwrap(method), _unwrap(url), _unwrap(async), _unwrap(user), _unwrap(password));
 
-  void overrideMimeType(String override) {
-    _ptr.overrideMimeType(_unwrap(override));
-    return;
-  }
+  void overrideMimeType(String override) => _ptr.overrideMimeType(_unwrap(override));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void send([data = null]) {
-    if (data === null) {
-      _ptr.send();
-      return;
-    } else {
-      if (data is ArrayBuffer) {
-        _ptr.send(_unwrap(data));
-        return;
-      } else {
-        if (data is Blob) {
-          _ptr.send(_unwrap(data));
-          return;
-        } else {
-          if (data is Document) {
-            _ptr.send(_unwrap(data));
-            return;
-          } else {
-            if (data is String) {
-              _ptr.send(_unwrap(data));
-              return;
-            } else {
-              if (data is DOMFormData) {
-                _ptr.send(_unwrap(data));
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void send([data = null]) => _ptr.send(_unwrap(data));
 
-  void setRequestHeader(String header, String value) {
-    _ptr.setRequestHeader(_unwrap(header), _unwrap(value));
-    return;
-  }
+  void setRequestHeader(String header, String value) => _ptr.setRequestHeader(_unwrap(header), _unwrap(value));
 }
 
 class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEvents {
@@ -22403,9 +17812,7 @@ class _XMLHttpRequestExceptionImpl extends _DOMTypeBase implements XMLHttpReques
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements XMLHttpRequestProgressEvent {
@@ -22424,29 +17831,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
-  }
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {
@@ -22468,25 +17857,17 @@ class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequ
 class _XMLSerializerImpl extends _DOMTypeBase implements XMLSerializer {
   _XMLSerializerImpl._wrap(ptr) : super._wrap(ptr);
 
-  String serializeToString(Node node) {
-    return _wrap(_ptr.serializeToString(_unwrap(node)));
-  }
+  String serializeToString(Node node) => _wrap(_ptr.serializeToString(_unwrap(node)));
 }
 
 class _XPathEvaluatorImpl extends _DOMTypeBase implements XPathEvaluator {
   _XPathEvaluatorImpl._wrap(ptr) : super._wrap(ptr);
 
-  XPathExpression createExpression(String expression, XPathNSResolver resolver) {
-    return _wrap(_ptr.createExpression(_unwrap(expression), _unwrap(resolver)));
-  }
+  XPathExpression createExpression(String expression, XPathNSResolver resolver) => _wrap(_ptr.createExpression(_unwrap(expression), _unwrap(resolver)));
 
-  XPathNSResolver createNSResolver(Node nodeResolver) {
-    return _wrap(_ptr.createNSResolver(_unwrap(nodeResolver)));
-  }
+  XPathNSResolver createNSResolver(Node nodeResolver) => _wrap(_ptr.createNSResolver(_unwrap(nodeResolver)));
 
-  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) {
-    return _wrap(_ptr.evaluate(_unwrap(expression), _unwrap(contextNode), _unwrap(resolver), _unwrap(type), _unwrap(inResult)));
-  }
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) => _wrap(_ptr.evaluate(_unwrap(expression), _unwrap(contextNode), _unwrap(resolver), _unwrap(type), _unwrap(inResult)));
 }
 
 class _XPathExceptionImpl extends _DOMTypeBase implements XPathException {
@@ -22498,25 +17879,19 @@ class _XPathExceptionImpl extends _DOMTypeBase implements XPathException {
 
   String get name() => _wrap(_ptr.name);
 
-  String toString() {
-    return _wrap(_ptr.toString());
-  }
+  String toString() => _wrap(_ptr.toString());
 }
 
 class _XPathExpressionImpl extends _DOMTypeBase implements XPathExpression {
   _XPathExpressionImpl._wrap(ptr) : super._wrap(ptr);
 
-  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) {
-    return _wrap(_ptr.evaluate(_unwrap(contextNode), _unwrap(type), _unwrap(inResult)));
-  }
+  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) => _wrap(_ptr.evaluate(_unwrap(contextNode), _unwrap(type), _unwrap(inResult)));
 }
 
 class _XPathNSResolverImpl extends _DOMTypeBase implements XPathNSResolver {
   _XPathNSResolverImpl._wrap(ptr) : super._wrap(ptr);
 
-  String lookupNamespaceURI(String prefix) {
-    return _wrap(_ptr.lookupNamespaceURI(_unwrap(prefix)));
-  }
+  String lookupNamespaceURI(String prefix) => _wrap(_ptr.lookupNamespaceURI(_unwrap(prefix)));
 }
 
 class _XPathResultImpl extends _DOMTypeBase implements XPathResult {
@@ -22536,54 +17911,29 @@ class _XPathResultImpl extends _DOMTypeBase implements XPathResult {
 
   String get stringValue() => _wrap(_ptr.stringValue);
 
-  Node iterateNext() {
-    return _wrap(_ptr.iterateNext());
-  }
+  Node iterateNext() => _wrap(_ptr.iterateNext());
 
-  Node snapshotItem(int index) {
-    return _wrap(_ptr.snapshotItem(_unwrap(index)));
-  }
+  Node snapshotItem(int index) => _wrap(_ptr.snapshotItem(_unwrap(index)));
 }
 
 class _XSLTProcessorImpl extends _DOMTypeBase implements XSLTProcessor {
   _XSLTProcessorImpl._wrap(ptr) : super._wrap(ptr);
 
-  void clearParameters() {
-    _ptr.clearParameters();
-    return;
-  }
+  void clearParameters() => _ptr.clearParameters();
 
-  String getParameter(String namespaceURI, String localName) {
-    return _wrap(_ptr.getParameter(_unwrap(namespaceURI), _unwrap(localName)));
-  }
+  String getParameter(String namespaceURI, String localName) => _wrap(_ptr.getParameter(_unwrap(namespaceURI), _unwrap(localName)));
 
-  void importStylesheet(Node stylesheet) {
-    _ptr.importStylesheet(_unwrap(stylesheet));
-    return;
-  }
+  void importStylesheet(Node stylesheet) => _ptr.importStylesheet(_unwrap(stylesheet));
 
-  void removeParameter(String namespaceURI, String localName) {
-    _ptr.removeParameter(_unwrap(namespaceURI), _unwrap(localName));
-    return;
-  }
+  void removeParameter(String namespaceURI, String localName) => _ptr.removeParameter(_unwrap(namespaceURI), _unwrap(localName));
 
-  void reset() {
-    _ptr.reset();
-    return;
-  }
+  void reset() => _ptr.reset();
 
-  void setParameter(String namespaceURI, String localName, String value) {
-    _ptr.setParameter(_unwrap(namespaceURI), _unwrap(localName), _unwrap(value));
-    return;
-  }
+  void setParameter(String namespaceURI, String localName, String value) => _ptr.setParameter(_unwrap(namespaceURI), _unwrap(localName), _unwrap(value));
 
-  Document transformToDocument(Node source) {
-    return _wrap(_ptr.transformToDocument(_unwrap(source)));
-  }
+  Document transformToDocument(Node source) => _wrap(_ptr.transformToDocument(_unwrap(source)));
 
-  DocumentFragment transformToFragment(Node source, Document docVal) {
-    return _wrap(_ptr.transformToFragment(_unwrap(source), _unwrap(docVal)));
-  }
+  DocumentFragment transformToFragment(Node source, Document docVal) => _wrap(_ptr.transformToFragment(_unwrap(source), _unwrap(docVal)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29805,7 +25155,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(storeName_OR_storeNames, [int mode]);
+  IDBTransaction transaction(storeName_OR_storeNames, int mode);
 }
 
 interface IDBDatabaseEvents extends Events {
