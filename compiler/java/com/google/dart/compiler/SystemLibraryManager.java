@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Manages the collection of {@link SystemLibrary}s.
@@ -137,6 +138,29 @@ public class SystemLibraryManager {
     } catch (FileNotFoundException e) {
       throw new InternalCompilerException("Failed to open " + file);
     }
+  }
+  
+  /**
+   * Given an absolute file URI (e.g. "file:/some/install/directory/dart-sdk/lib/core/bool.dart"),
+   *  answer the corresponding dart: URI (e.g. "dart://core/bool.dart") for that file URI,
+   *  or <code>null</code> if the file URI does not map to a dart: URI 
+   * @param fileUri the file URI
+   * @return the dart URI or <code>null</code>
+   */
+  public URI getRelativeUri(URI fileUri) {
+    // TODO (danrubel): does not convert dart: libraries outside the dart-sdk/lib directory
+    if (fileUri == null || !fileUri.getScheme().equals("file")) {
+      return null;
+    }
+    URI relativeUri = sdkLibPathUri.relativize(fileUri);
+    if (relativeUri.getScheme() == null) {
+      try {
+        return new URI(null, null, "dart://" + relativeUri.getPath(), null);
+      } catch (URISyntaxException e) {
+        //$FALL-THROUGH$
+      }
+    }
+    return null;
   }
 
   /**
