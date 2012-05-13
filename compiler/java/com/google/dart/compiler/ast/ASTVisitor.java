@@ -82,7 +82,7 @@ public class ASTVisitor<R> {
   }
 
   public R visitArrayLiteral(DartArrayLiteral node) {
-    return visitExpression(node);
+    return visitTypedLiteral(node);
   }
 
   public R visitAssertion(DartAssertion node) {
@@ -213,8 +213,12 @@ public class ASTVisitor<R> {
     return visitDirective(node);
   }
 
-  public R visitMapLiteral(DartMapLiteral node) {
+  public R visitTypedLiteral(DartTypedLiteral node) {
     return visitExpression(node);
+  }
+  
+  public R visitMapLiteral(DartMapLiteral node) {
+    return visitTypedLiteral(node);
   }
 
   public R visitMapLiteralEntry(DartMapLiteralEntry node) {
