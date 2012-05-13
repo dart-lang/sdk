@@ -2,7 +2,7 @@
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
 #import('dart:html', prefix: 'html');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 // Version of Canvas test that implicitly uses dart:html library via unittests.
 

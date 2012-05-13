@@ -1,9 +1,9 @@
 #library('SVG1Test');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
-// Test that SVG is present in dart:dom API
+// Test that SVG is present in dart:dom_deprecated API
 
 main() {
   useDomConfiguration();

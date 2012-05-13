@@ -9,7 +9,7 @@
  * TODO(jimhug): Separate these pieces cleanly.
  */
 
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('../../frog/lang.dart');
 #import('../../frog/file_system_dom.dart');
 
@@ -115,7 +115,7 @@ final int LINE_HEIGHT = 22; // TODO(jimhug): This constant sucks.
 final int CHAR_WIDTH = 8; // TODO(jimhug): See above.
 
 final String CODE = '''
-#import("dart:dom");
+#import("dart:dom_deprecated");
 
 // This is an interesting field;
 final int y = 22;

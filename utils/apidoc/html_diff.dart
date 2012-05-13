@@ -16,37 +16,46 @@
 #import('../../lib/dartdoc/dartdoc.dart');
 
 /**
- * A class for computing a many-to-many mapping between the types and members in
- * `dart:dom` and `dart:html`. This mapping is based on two indicators:
+ * A class for computing a many-to-many mapping between the types and
+ * members in `dart:dom_deprecated` and `dart:html`. This mapping is
+ * based on two indicators:
  *
  *   1. Auto-detected wrappers. Most `dart:html` types correspond
- *      straightforwardly to a single `dart:dom` type, and have the same name.
- *      In addition, most `dart:html` methods just call a single `dart:dom`
- *      method. This class detects these simple correspondences automatically.
+ *      straightforwardly to a single `dart:dom_deprecated` type, and
+ *      have the same name.  In addition, most `dart:html` methods
+ *      just call a single `dart:dom_deprecated` method. This class
+ *      detects these simple correspondences automatically.
  *
- *   2. Manual annotations. When it's not clear which `dart:dom` items a given
- *      `dart:html` item corresponds to, the `dart:html` item can be
- *      annotated in the documentation comments using the `@domName` annotation.
+ *   2. Manual annotations. When it's not clear which
+ *      `dart:dom_deprecated` items a given `dart:html` item
+ *      corresponds to, the `dart:html` item can be annotated in the
+ *      documentation comments using the `@domName` annotation.
  *
- * The `@domName` annotations for types and members are of the form `@domName
- * NAME(, NAME)*`, where the `NAME`s refer to the `dart:dom` types/members that
- * correspond to the annotated `dart:html` type/member. `NAME`s on member
- * annotations can refer to either fully-qualified member names (e.g.
- * `Document.createElement`) or unqualified member names (e.g. `createElement`).
- * Unqualified member names are assumed to refer to members of one of the
- * corresponding `dart:dom` types.
+ * The `@domName` annotations for types and members are of the form
+ * `@domName NAME(, NAME)*`, where the `NAME`s refer to the
+ * `dart:dom_deprecated` types/members that correspond to the
+ * annotated `dart:html` type/member. `NAME`s on member annotations
+ * can refer to either fully-qualified member names (e.g.
+ * `Document.createElement`) or unqualified member names
+ * (e.g. `createElement`).  Unqualified member names are assumed to
+ * refer to members of one of the corresponding `dart:dom_deprecated`
+ * types.
  */
 class HtmlDiff {
-  /** A map from `dart:dom` members to corresponding `dart:html` members. */
+  /** A map from `dart:dom_deprecated` members to corresponding
+   * `dart:html` members. */
   final Map<Member, Set<Member>> domToHtml;
 
-  /** A map from `dart:html` members to corresponding `dart:dom` members. */
+  /** A map from `dart:html` members to corresponding
+   * `dart:dom_deprecated` members. */
   final Map<Member, Set<Member>> htmlToDom;
 
-  /** A map from `dart:dom` types to corresponding `dart:html` types. */
+  /** A map from `dart:dom_deprecated` types to corresponding
+   * `dart:html` types. */
   final Map<Type, Set<Type>> domTypesToHtml;
 
-  /** A map from `dart:html` types to corresponding `dart:dom` types. */
+  /** A map from `dart:html` types to corresponding
+   * `dart:dom_deprecated` types. */
   final Map<Type, Set<Type>> htmlTypesToDom;
 
   final CommentMap comments;
@@ -61,11 +70,11 @@ class HtmlDiff {
    * calling [HtmlDiff.run].
    */
   static void initialize() {
-    world.getOrAddLibrary('dart:dom');
+    world.getOrAddLibrary('dart:dom_deprecated');
     world.getOrAddLibrary('dart:html');
     world.process();
 
-    dom = world.libraries['dart:dom'];
+    dom = world.libraries['dart:dom_deprecated'];
   }
 
   HtmlDiff([bool printWarnings = false]) : 
@@ -83,10 +92,11 @@ class HtmlDiff {
   }
 
   /**
-   * Computes the `dart:dom` to `dart:html` mapping, and places it in
-   * [domToHtml], [htmlToDom], [domTypesToHtml], and [htmlTypesToDom]. Before
-   * this is run, Frog should be initialized (via [parseOptions] and
-   * [initializeWorld]) and [HtmlDiff.initialize] should be called.
+   * Computes the `dart:dom_deprecated` to `dart:html` mapping, and
+   * places it in [domToHtml], [htmlToDom], [domTypesToHtml], and
+   * [htmlTypesToDom]. Before this is run, Frog should be initialized
+   * (via [parseOptions] and [initializeWorld]) and
+   * [HtmlDiff.initialize] should be called.
    */
   void run() {
     final htmlLib = world.libraries['dart:html'];
@@ -107,9 +117,10 @@ class HtmlDiff {
   }
 
   /**
-   * Records the `dart:dom` to `dart:html` mapping for [implMember] (from
-   * `dart:html`). [domTypes] are the `dart:dom` [Type]s that correspond to
-   * [implMember]'s defining [Type].
+   * Records the `dart:dom_deprecated` to `dart:html` mapping for
+   * [implMember] (from `dart:html`). [domTypes] are the
+   * `dart:dom_deprecated` [Type]s that correspond to [implMember]'s
+   * defining [Type].
    */
   void _addMemberDiff(Member htmlMember, List<Type> domTypes) {
     if (htmlMember.isProperty) {
@@ -130,8 +141,9 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `dart:dom` [Type]s that correspond to [htmlType] from
-   * `dart:html`. This can be the empty list if no correspondence is found.
+   * Returns the `dart:dom_deprecated` [Type]s that correspond to
+   * [htmlType] from `dart:html`. This can be the empty list if no
+   * correspondence is found.
    */
   List<Type> htmlToDomTypes(Type htmlType) {
     if (htmlType.name == null) return [];
@@ -142,7 +154,7 @@ class HtmlDiff {
       if (domNames.length == 1 && domNames[0] == 'none') return [];
       return map(domNames, (domName) {
         final domType = dom.types[domName];
-        if (domType == null) warn('no dart:dom type named $domName');
+        if (domType == null) warn('no dart:dom_deprecated type named $domName');
         return domType;
       });
     }
@@ -150,9 +162,10 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `dart:dom` [Member]s that correspond to [htmlMember] from
-   * `dart:html`. This can be the empty set if no correspondence is found.
-   * [domTypes] are the `dart:dom` [Type]s that correspond to [implMember]'s
+   * Returns the `dart:dom_deprecated` [Member]s that correspond to
+   * [htmlMember] from `dart:html`. This can be the empty set if no
+   * correspondence is found.  [domTypes] are the
+   * `dart:dom_deprecated` [Type]s that correspond to [implMember]'s
    * defining [Type].
    */
   Set<Member> htmlToDomMembers(Member htmlMember, List<Type> domTypes) {
@@ -182,11 +195,12 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `dart:dom` [Member]s that are indicated by [name]. [name] can
-   * be either an unqualified member name (e.g. `createElement`), in which case
-   * it's treated as the name of a member of one of [defaultTypes], or a
-   * fully-qualified member name (e.g. `Document.createElement`), in which case
-   * it's looked up in `dart:dom` and [defaultTypes] is ignored.
+   * Returns the `dart:dom_deprecated` [Member]s that are indicated by
+   * [name]. [name] can be either an unqualified member name
+   * (e.g. `createElement`), in which case it's treated as the name of
+   * a member of one of [defaultTypes], or a fully-qualified member
+   * name (e.g. `Document.createElement`), in which case it's looked
+   * up in `dart:dom_deprecated` and [defaultTypes] is ignored.
    */
   Set<Member> _membersFromName(String name, List<Type> defaultTypes) {
     if (!name.contains('.', 0)) {

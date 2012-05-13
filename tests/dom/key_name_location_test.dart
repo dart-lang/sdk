@@ -1,7 +1,7 @@
 #library('KeyNameLocationTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 // Test for existence of some KeyName and KeyLocation constants.
 

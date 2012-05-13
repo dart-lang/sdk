@@ -67,7 +67,7 @@
  * Asynchronous tests: if callbacks expect between 0 and 2 positional arguments.
  *
  *     #import('path-to-dart/lib/unittest/unitest.dart');
- *     #import('dart:dom');
+ *     #import('dart:dom_deprecated');
  *     main() {
  *       test('calllback is executed once', () {
  *         // wrap the callback of an asynchronous call with [expectAsync0] if
@@ -99,7 +99,7 @@
  * but will be coming here soon).
  *
  *     #import('path-to-dart/lib/unittest/unitest.dart');
- *     #import('dart:dom');
+ *     #import('dart:dom_deprecated');
  *     main() {
  *       test('calllback is executed', () {
  *         // indicate ahead of time that an async callback is expected.

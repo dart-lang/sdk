@@ -7,7 +7,7 @@
 // pass it to the web worker APIs.
 #library('spawn_tests');
 
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('dart:isolate');
 
 #import('../../lib/unittest/unittest.dart');

@@ -5,7 +5,7 @@
 #library('WindowNSMETest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom', prefix: 'dom');
+#import('dart:dom_deprecated', prefix: 'dom');
 
 // Not defined in dom.Window.
 foo(x) => x;

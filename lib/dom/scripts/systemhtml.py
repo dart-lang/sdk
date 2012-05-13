@@ -1281,8 +1281,9 @@ class HtmlDartiumInterfaceGenerator(object):
       else:
         base = self._ImplClassName(supertype)
 
-    # TODO(jacobr): this is fragile. There isn't a guarantee that dart:dom
-    # will continue to exactly match the IDL names.
+    # TODO(jacobr): this is fragile. There isn't a guarantee that
+    # dart:dom_deprecated will continue to exactly match the IDL
+    # names.
     dom_name = interface.javascript_binding_name
     self._system._wrap_cases.append(
         "    case '%s': return new %s._wrap(domObject);" %

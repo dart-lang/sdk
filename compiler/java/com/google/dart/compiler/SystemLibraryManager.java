@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -84,8 +84,8 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
-   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart").
+   * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
+   * full URI (e.g. "dart://html/com/google/dart/htmllib/html.dart").
    *
    * @param uri the relative URI
    * @return the expanded URI
@@ -113,7 +113,7 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Answer a collection of all bundled library URL specs (e.g. "dart:dom").
+   * Answer a collection of all bundled library URL specs (e.g. "dart:html").
    *
    * @return a collection of specs (not <code>null</code>, contains no <code>null</code>s)
    */
@@ -148,10 +148,10 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
-   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart") and then translate that URI to
+   * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
+   * full URI (e.g. "dart://html/com/google/dart/htmllib/html.dart") and then translate that URI to
    * a "file:"  URI (e.g.
-   * "file:/some/install/directory/com/google/dart/domlib/dom.dart").
+   * "file:/some/install/directory/com/google/dart/htmllib/html.dart").
    *
    * @param uri the original URI
    * @return the expanded and translated URI, which may be <code>null</code> and may not exist
@@ -163,8 +163,8 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://dom/dom.dart)
-   * to a "file:" URI (e.g. "file:/some/install/directory/dom.dart")
+   * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://html/html.dart)
+   * to a "file:" URI (e.g. "file:/some/install/directory/html.dart")
    *
    * @param uri the original URI
    * @return the translated URI, which may be <code>null</code> and may not exist
@@ -248,8 +248,7 @@ public class SystemLibraryManager {
         explicitShortNames.add(shortName);
         String scheme = shortName.substring(0, index + 1);
         String name = shortName.substring(index + 1);
-        index = name.indexOf('/');
-        String host = index > 0 ? name.substring(0, index) : name;
+        String host = file.getParentFile().getName();
         addLib(scheme, host, name, file.getParentFile(), file.getName());
       }
     }
@@ -300,8 +299,8 @@ public class SystemLibraryManager {
 
   /**
    * Register system libraries for the "dart:" protocol such that dart:[shortLibName] (e.g.
-   * "dart:dom") will automatically be expanded to dart://[host]/[pathToLib] (e.g.
-   * dart://dom/dom.dart)
+   * "dart:html") will automatically be expanded to dart://[host]/[pathToLib] (e.g.
+   * dart://html/html.dart)
    */
   private void setLibraries(SystemLibrary[] newLibraries) {
     libraries = new ArrayList<SystemLibrary>();

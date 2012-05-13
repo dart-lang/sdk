@@ -67,10 +67,11 @@ _frog_dom_custom_native_specs = {
 }
 
 #
-# Custom native bodies for frog implementations of dom operations that appear in
-# dart:dom and dart:html.  This is used to work-around the lack of a 'rename'
-# feature in the 'native' string - the correct name is available on the DartName
-# extended attribute. See Issue 1814
+# Custom native bodies for frog implementations of dom operations that
+# appear in dart:dom_deprecated and dart:html.  This is used to
+# work-around the lack of a 'rename' feature in the 'native' string -
+# the correct name is available on the DartName extended
+# attribute. See Issue 1814
 #
 dom_frog_native_bodies = {
     # Some JavaScript processors, especially tools like yuicompress and
@@ -155,7 +156,7 @@ def MakeNativeSpec(javascript_binding_name):
   else:
     # Make the class 'hidden' so it is dynamically patched at runtime.  This
     # is useful not only for browser compat, but to allow code that links
-    # against dart:dom to load in a worker isolate.
+    # against dart:dom_deprecated to load in a worker isolate.
     return '*' + javascript_binding_name
 
 

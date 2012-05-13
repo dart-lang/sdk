@@ -1079,7 +1079,7 @@ _DocumentImpl _cachedDocument;
 void _init() {
   _cachedDocument = _document;
   _cachedWindow = _window;
-  // Feature detect that dart:dom and dart:html are not both loaded by
+  // Feature detect that dart:dom_deprecated and dart:html are not both loaded by
   // checking for the presence of a bug that manifests itself when both
   // libraries are loaded.
   // TODO(jacobr): remove this code once b/1911 is fixed and the frog compiler
@@ -1089,9 +1089,9 @@ void _init() {
   element.innerHTML = 'f';
   if (element.text == '') {
     _cachedWindow.console.error(
-      'Cannot import dart:html and dart:dom within the same application.');
+      'Cannot import dart:html and dart:dom_deprecated within the same application.');
     throw new UnsupportedOperationException(
-      'Cannot import dart:html and dart:dom within the same application.');
+      'Cannot import dart:html and dart:dom_deprecated within the same application.');
   }
 }
 

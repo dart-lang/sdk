@@ -5,7 +5,7 @@
 #library('WindowManglingTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom', prefix: 'dom');
+#import('dart:dom_deprecated', prefix: 'dom');
 
 // Defined in dom.Window.
 get navigator() => "Dummy";

@@ -7,7 +7,7 @@
 
 #library("html");
 
-#import('dart:dom', prefix:'dom');
+#import('dart:dom_deprecated', prefix:'dom');
 
 #source('generated/html/dartium/AbstractWorker.dart');
 #source('generated/html/dartium/AnchorElement.dart');

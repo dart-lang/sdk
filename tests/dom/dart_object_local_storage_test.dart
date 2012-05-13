@@ -1,7 +1,7 @@
 #library('DartObjectLocalStorageTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 verify(var object) {
   final value = window.document;

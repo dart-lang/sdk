@@ -1,7 +1,7 @@
 #library('IndexedDB4Test');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 // Test for IDBKeyRange and IDBCursor.
 

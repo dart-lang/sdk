@@ -1,7 +1,7 @@
 #library('CanvasTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 // We have aliased the legacy type CanvasPixelArray with the new type
 // Uint8ClampedArray by mapping the CanvasPixelArray type tag to
