@@ -150,6 +150,60 @@ void testUsePOST() {
 }
 
 
+class WebSocketInfo {
+  int messageCount = 0;
+}
+
+
+void testHashCode(int totalConnections) {
+  HttpServer server = new HttpServer();
+  HttpClient client = new HttpClient();
+  Map connections = new Map();
+
+  server.listen("127.0.0.1", 0, totalConnections);
+
+  void handleMessage(conn, message) {
+    var info = connections[conn];
+    Expect.isNotNull(info);
+    info.messageCount++;
+    if (info.messageCount < 10) {
+      conn.send(message);
+    } else {
+      conn.close();
+    }
+  }
+
+  // Create a web socket handler and set is as the HTTP server default
+  // handler.
+  int closeCount = 0;
+  WebSocketHandler wsHandler = new WebSocketHandler();
+  wsHandler.onOpen = (WebSocketConnection conn) {
+    connections[conn] = new WebSocketInfo();
+    String messageText = "Hello, world!";
+    conn.onMessage = (Object message) {
+      handleMessage(conn, message);
+    };
+    conn.onClosed = (status, reason) {
+      closeCount++;
+      var info = connections[conn];
+      Expect.equals(10, info.messageCount);
+      if (closeCount == totalConnections) {
+        client.shutdown();
+        server.close();
+      }
+    };
+    conn.send(messageText);
+  };
+  server.defaultRequestHandler = wsHandler.onRequest;
+
+  for (int i = 0; i < totalConnections; i++) {
+    HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
+    WebSocketClientConnection wsconn = new WebSocketClientConnection(conn);
+    wsconn.onMessage = (message) => wsconn.send(message);
+  }
+}
+
+
 void testW3CInterface(
     int totalConnections, int closeStatus, String closeReason) {
   HttpServer server = new HttpServer();
@@ -232,6 +286,7 @@ main() {
   testRequestResponseServerCloses(2, 3002, "Got tired");
   testNoUpgrade();
   testUsePOST();
+  testHashCode(2);
 
   testW3CInterface(2, 3002, "Got tired");
 }
