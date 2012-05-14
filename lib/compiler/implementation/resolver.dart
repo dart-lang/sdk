@@ -66,7 +66,7 @@ class ResolverTask extends CompilerTask {
 
         default:
           compiler.unimplemented(
-              "resolver", node: element.parseNode(compiler));
+              "resolve($element)", node: element.parseNode(compiler));
       }
     });
   }
@@ -1733,7 +1733,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
     resolveExpression(node.arguments.head);
-    compiler.enqueue(new WorkItem.toCompile(element));
+    // TODO(ahe): Do not call addToWorkList, and make sure that element isn't null.
+    if (element !== null) compiler.addToWorkList(element);
     return element;
   }
 

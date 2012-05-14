@@ -841,7 +841,7 @@ class SsaBuilder implements Visitor {
       bodyElement = new ConstructorBodyElement(constructor);
       TreeElements treeElements =
           compiler.resolver.resolveMethodElement(constructor);
-      compiler.enqueue(new WorkItem.toCodegen(bodyElement, treeElements));
+      compiler.addToWorkList(bodyElement, treeElements);
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
     }
@@ -1471,7 +1471,7 @@ class SsaBuilder implements Visitor {
     ClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
-    compiler.enqueue(new WorkItem.toCodegen(callElement, elements));
+    compiler.addToWorkList(callElement, elements);
     compiler.registerInstantiatedClass(closureClassElement);
     assert(closureClassElement.members.isEmpty());
 
