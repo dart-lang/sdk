@@ -20,9 +20,7 @@
 #source('command_version.dart');
 #source('package.dart');
 #source('source.dart');
-#source('source_registry.dart');
 #source('sdk_source.dart');
-#source('git_source.dart');
 
 main() {
   final args = new Options().arguments;
@@ -72,10 +70,10 @@ main() {
     }
   }
 
+  // TODO(rnystrom): Do we want this to be global?
   final cache = new SystemCache(cacheDir);
-  cache.sources.register(new SdkSource(sdkDir));
-  cache.sources.register(new GitSource());
-  cache.sources.setDefault('sdk');
+
+  Source.defaultSource = new SdkSource(sdkDir);
 
   // Select the command.
   final command = commands[args[0]];
@@ -139,7 +137,7 @@ class PubCommand {
     // TODO(rnystrom): Will eventually need better logic to walk up
     // subdirectories until we hit one that looks package-like. For now, just
     // assume the cwd is it.
-    Package.load(workingDir, cache.sources).then((pkg) {
+    Package.load(workingDir).then((pkg) {
       packagesDir = new PackagesDir(pkg, cache);
       onRun();
     });

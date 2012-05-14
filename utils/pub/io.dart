@@ -258,13 +258,9 @@ String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
  * Spawns and runs the process located at [executable], passing in [args].
  * Returns a [Future] that will complete the results of the process after it
  * has ended.
- *
- * If [pipeStdout] and/or [pipeStderr] are set, all output from the subprocess's
- * output streams are sent to the parent process's output streams. Output from
- * piped streams won't be available in the result object.
  */
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    [String workingDir, bool pipeStdout = false, bool pipeStderr = false]) {
+    [String workingDir]) {
   int exitCode;
 
   final options = new ProcessOptions();
@@ -282,29 +278,21 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 
   checkComplete() {
     // Wait until the process is done and its output streams are closed.
-    if (!pipeStdout && !outStream.closed) return;
-    if (!pipeStderr && !errStream.closed) return;
+    if (!outStream.closed) return;
+    if (!errStream.closed) return;
     if (exitCode == null) return;
 
     completer.complete(new PubProcessResult(
         processStdout, processStderr, exitCode));
   }
 
-  if (pipeStdout) {
-    process.stdout.pipe(stdout, close: false);
-  } else {
-    outStream.onLine   = () => processStdout.add(outStream.readLine());
-    outStream.onClosed = checkComplete;
-    outStream.onError  = (error) => completer.completeException(error);
-  }
+  outStream.onLine   = () => processStdout.add(outStream.readLine());
+  outStream.onClosed = checkComplete;
+  outStream.onError  = (error) => completer.completeException(error);
 
-  if (pipeStderr) {
-    process.stderr.pipe(stderr, close: false);
-  } else {
-    errStream.onLine   = () => processStderr.add(errStream.readLine());
-    errStream.onClosed = checkComplete;
-    errStream.onError  = (error) => completer.completeException(error);
-  }
+  errStream.onLine   = () => processStderr.add(errStream.readLine());
+  errStream.onClosed = checkComplete;
+  errStream.onError  = (error) => completer.completeException(error);
 
   process.onExit = (actualExitCode) {
     exitCode = actualExitCode;
@@ -325,8 +313,6 @@ class PubProcessResult {
   final int exitCode;
 
   const PubProcessResult(this.stdout, this.stderr, this.exitCode);
-
-  bool get success() => exitCode == 0;
 }
 
 /**

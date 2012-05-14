@@ -29,12 +29,6 @@ DirectoryDescriptor dir(String name, [List<Descriptor> contents]) =>
     new DirectoryDescriptor(name, contents);
 
 /**
- * Creates a new [GitRepoDescriptor] with [name] and [contents].
- */
-DirectoryDescriptor git(String name, [List<Descriptor> contents]) =>
-    new GitRepoDescriptor(name, contents);
-
-/**
  * The path of the package cache directory used for tests. Relative to the
  * sandbox directory.
  */
@@ -75,7 +69,7 @@ List<_ScheduledEvent> _scheduledBeforePub;
  */
 List<_ScheduledEvent> _scheduledAfterPub;
 
-void runPub([List<String> args, Pattern output, int exitCode = 0]) {
+void runPub([List<String> args, String output, int exitCode = 0]) {
   var createdSandboxDir;
 
   var asyncDone = expectAsync0(() {});
@@ -163,19 +157,11 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
 }
 
 /**
- * Compares the [actual] output from running pub with [expected]. For [String]
- * patterns, ignores leading and trailing whitespace differences and tries to
- * report the offending difference in a nice way. For other [Pattern]s, just
- * reports whether the output contained the pattern.
+ * Compares the [actual] output from running pub with [expectedText]. Ignores
+ * leading and trailing whitespace differences and tries to report the
+ * offending difference in a nice way.
  */
-void _validateOutput(Pattern expected, List<String> actual) {
-  if (expected is String) return _validateOutputString(expected, actual);
-  var actualText = Strings.join(actual, "\n");
-  if (actualText.contains(expected)) return;
-  Expect.fail('Expected output to match "$expected", was:\n$actualText');
-}
-
-void _validateOutputString(String expectedText, List<String> actual) {
+void _validateOutput(String expectedText, List<String> actual) {
   final expected = expectedText.split('\n');
 
   // Strip off the last line. This lets us have expected multiline strings
@@ -244,8 +230,7 @@ class Descriptor {
    * Schedules the directory to be created before Pub is run with [runPub]. The
    * directory will be created relative to the sandbox directory.
    */
-  // TODO(nweiz): Use implicit closurization once issue 2984 is fixed.
-  void scheduleCreate() => _scheduleBeforePub((dir) => this.create(dir));
+  void scheduleCreate() => _scheduleBeforePub(create);
 
   /**
    * Schedules the directory to be validated after Pub is run with [runPub]. The
@@ -344,35 +329,6 @@ class DirectoryDescriptor extends Descriptor {
 
     // If they are all valid, the directory is valid.
     return Futures.wait(entryFutures).transform((entries) => null);
-  }
-}
-
-/**
- * Describes a Git repository and its contents.
- */
-class GitRepoDescriptor extends DirectoryDescriptor {
-  GitRepoDescriptor(String name, List<Descriptor> contents)
-  : super(name, contents);
-
-  /**
-   * Creates the Git repository and commits the contents.
-   */
-  Future<Directory> create(parentDir) {
-    var workingDir;
-    Future runGit(List<String> args) {
-      return runProcess('git', args, workingDir: workingDir.path).
-        transform((result) {
-          if (!result.success) throw "Error running git: ${result.stderr}";
-          return null;
-        });
-    }
-
-    return super.create(parentDir).chain((rootDir) {
-      workingDir = rootDir;
-      return runGit(['init']);
-    }).chain((_) => runGit(['add', '.']))
-      .chain((_) => runGit(['commit', '-m', 'initial commit']))
-      .transform((_) => workingDir);
   }
 }
 

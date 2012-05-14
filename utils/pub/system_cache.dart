@@ -20,17 +20,11 @@ class SystemCache {
   final Map<PackageId, Future<Package>> _pendingInstalls;
 
   /**
-   * The sources from which to install packages.
-   */
-  final SourceRegistry sources;
-
-  /**
    * Creates a new package cache which is backed by the given directory on the
    * user's file system.
    */
   SystemCache(this.rootDir)
-  : _pendingInstalls = new Map<PackageId, Future<Package>>(),
-    sources = new SourceRegistry();
+  : _pendingInstalls = new Map<PackageId, Future<Package>>();
 
   /**
    * Loads all of the package ids in the cache and returns them.
@@ -38,7 +32,7 @@ class SystemCache {
   Future<List<PackageId>> listAll() {
     return listDir(rootDir).chain((paths) {
       final sources = paths.map((path) {
-        final source = sources[basename(path)];
+        final source = Source.fromName(basename(path));
         return listDir(path).transform((subpaths) {
           return subpaths.map((subpath) =>
             new PackageId(basename(subpath), source));
@@ -74,7 +68,7 @@ class SystemCache {
       if (!found) {
         throw 'Package ${id.fullName} not found in source "${id.source.name}".';
       }
-      return Package.load(path, sources);
+      return Package.load(path);
     });
 
     always(future, () => _pendingInstalls.remove(id));

@@ -80,7 +80,7 @@ class PackagesDir {
             '"${id.source.name}".';
         });
       }
-    }).chain((_) => Package.load(packageDir, cache.sources));
+    }).chain((_) => Package.load(packageDir));
 
     future.then((pkg) => _loadedPackages[id] = pkg);
     always(future, () => _pendingInstalls.remove(id));

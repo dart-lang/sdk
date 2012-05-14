@@ -50,14 +50,3 @@ List flatten(List nested) {
   helper(nested);
   return result;
 }
-
-/**
- * Asserts that [iter] contains only one element, and returns it.
- */
-only(Iterable iter) {
-  var iterator = iter.iterator();
-  assert(iterator.hasNext());
-  var obj = iterator.next();
-  assert(!iterator.hasNext());
-  return obj;
-}
