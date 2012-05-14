@@ -144,6 +144,8 @@
     'heap.cc',
     'heap.h',
     'heap_test.cc',
+    'il_printer.h',
+    'il_printer.cc',
     'instructions.h',
     'instructions_ia32.cc',
     'instructions_ia32.h',
