@@ -3176,9 +3176,6 @@ class SsaBuilder implements Visitor {
     buildBody() {
       // TODO(lrn): Make sure to take continue into account.
       body();
-      if (isAborted()) {
-        compiler.reportWarning(statement, "aborting loop body");
-      }
     }
     handleIf(visitCondition, buildBody, null);
   }

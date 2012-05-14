@@ -181,7 +181,8 @@ class HInstructionStringifier implements HVisitor<String> {
         case HType.UNKNOWN: prefix = 'v'; break;
         case HType.CONFLICTING: prefix = 'c'; break;
         case HType.INDEXABLE_PRIMITIVE: prefix = 'r'; break;
-        default: unreachable();
+        case HType.NULL: prefix = 'u'; break;
+        default: prefix = 'x';
       }
     }
     return "$prefix${instruction.id}";
