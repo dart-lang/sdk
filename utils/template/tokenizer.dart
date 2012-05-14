@@ -72,7 +72,7 @@ class Tokenizer extends TokenizerBase {
           } else if (_maybeEatChar(tmplTokens.tokens[TokenKind.DOUBLE_QUOTE])) {
             return finishQuotedAttrValue(
               tmplTokens.tokens[TokenKind.DOUBLE_QUOTE]);
-          } else if (isAttributeValueStart(_peekChar())) {
+          } else if (TokenizerHelpers.isAttributeValueStart(_peekChar())) {
             return finishAttrValue();
           }
         }
@@ -101,7 +101,7 @@ class Tokenizer extends TokenizerBase {
       default:
         if (TokenizerHelpers.isIdentifierStart(ch)) {
           return this.finishIdentifier();
-        } else if (isDigit(ch)) {
+        } else if (TokenizerHelpers.isDigit(ch)) {
           return this.finishNumber();
         } else {
           return _errorToken();
@@ -179,7 +179,8 @@ class Tokenizer extends TokenizerBase {
     var buf = new List<int>();
     while (true) {
       int ch = _peekChar();
-      if (isWhitespace(ch) || isSlash(ch) || isCloseTag(ch)) {
+      if (TokenizerHelpers.isWhitespace(ch) || TokenizerHelpers.isSlash(ch) ||
+          TokenizerHelpers.isCloseTag(ch)) {
         return _makeAttributeValueToken(buf);
       } else if (ch == 0) {
         return _errorToken();
@@ -195,7 +196,7 @@ class Tokenizer extends TokenizerBase {
     if (_peekChar() == 46/*.*/) {
       // Handle the case of 1.toString().
       _nextChar();
-      if (isDigit(_peekChar())) {
+      if (TokenizerHelpers.isDigit(_peekChar())) {
         eatDigits();
         return _finishToken(TokenKind.DOUBLE);
       } else {
@@ -207,7 +208,8 @@ class Tokenizer extends TokenizerBase {
   }
 
   bool maybeEatDigit() {
-    if (_index < _text.length && isDigit(_text.charCodeAt(_index))) {
+    if (_index < _text.length && TokenizerHelpers.isDigit(
+        _text.charCodeAt(_index))) {
       _index += 1;
       return true;
     }
@@ -216,7 +218,7 @@ class Tokenizer extends TokenizerBase {
 
   void eatHexDigits() {
     while (_index < _text.length) {
-     if (isHexDigit(_text.charCodeAt(_index))) {
+     if (TokenizerHelpers.isHexDigit(_text.charCodeAt(_index))) {
        _index += 1;
      } else {
        return;
@@ -225,7 +227,8 @@ class Tokenizer extends TokenizerBase {
   }
 
   bool maybeEatHexDigit() {
-    if (_index < _text.length && isHexDigit(_text.charCodeAt(_index))) {
+    if (_index < _text.length && TokenizerHelpers.isHexDigit(
+        _text.charCodeAt(_index))) {
       _index += 1;
       return true;
     }

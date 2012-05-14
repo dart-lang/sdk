@@ -413,7 +413,7 @@ class Parser {
 
       return stylesheet;
     } catch (final cssParseException) {
-      // TODO(terry): Need SourceSpan from CSS parser to pass onto _error. 
+      // TODO(terry): Need SourceSpan from CSS parser to pass onto _error.
       _error("Unexcepted CSS error: ${cssParseException.toString()}");
     }
   }
@@ -535,12 +535,12 @@ class Parser {
                   var elem = stack.pop();
                   if (elem is TemplateEachCommand &&
                       commandName.name == "each") {
-                    
+
                   } else if (elem is TemplateWithCommand &&
                     commandName.name == "with") {
-                  
+
                   } /*else if (elem is TemplateIfCommand && commandName == "if") {
-                  
+
                   }
                   */else {
                     String expectedCmd;
@@ -649,7 +649,7 @@ class Parser {
     if (!TokenKind.isIdentifier(tok.kind)) {
       _error('expected identifier, but found $tok', tok.span);
     }
-  
+
     return new Identifier(tok.text, _makeSpan(tok.start));
   }
 

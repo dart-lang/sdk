@@ -158,7 +158,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
 
   void eatDigits() {
     while (_index < _text.length) {
-      if (isDigit(_text.charCodeAt(_index))) {
+      if (TokenizerHelpers.isDigit(_text.charCodeAt(_index))) {
         _index++;
       } else {
         return;
@@ -215,7 +215,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     if (_peekChar() == 46/*.*/) {
       // Handle the case of 1.toString().
       _nextChar();
-      if (isDigit(_peekChar())) {
+      if (TokenizerHelpers.isDigit(_peekChar())) {
         eatDigits();
         return finishNumberExtra(TokenKind.DOUBLE);
       } else {
@@ -233,7 +233,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
       _maybeEatChar(43/*+*/);
       eatDigits();
     }
-    if (_peekChar() != 0 && isIdentifierStart(_peekChar())) {
+    if (_peekChar() != 0 && TokenizerHelpers.isIdentifierStart(_peekChar())) {
       _nextChar();
       return _errorToken("illegal character in number");
     }
@@ -428,7 +428,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
   }
 
   Token finishDot() {
-    if (isDigit(_peekChar())) {
+    if (TokenizerHelpers.isDigit(_peekChar())) {
       eatDigits();
       return finishNumberExtra(TokenKind.DOUBLE);
     } else {
@@ -440,14 +440,15 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     if (_interpStack != null && _interpStack.depth == -1) {
       _interpStack.depth = 0;
       while (_index < _text.length) {
-        if (!isInterpIdentifierPart(_text.charCodeAt(_index++))) {
+        if (!TokenizerHelpers.isInterpIdentifierPart(
+            _text.charCodeAt(_index++))) {
           _index--;
           break;
         }
       }
     } else {
       while (_index < _text.length) {
-        if (!isIdentifierPart(_text.charCodeAt(_index++))) {
+        if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index++))) {
           _index--;
           break;
         }

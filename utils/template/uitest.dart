@@ -21,25 +21,25 @@ String sample(String sampleName) {
   final String with = '\${#with';
   final String endWith = '\${/with}';
 
-  final String simpleTemplate = '''
+  final String simpleTemplate = @'''
 template NameEntry(String name, int age) {
   <div var=topDiv attr="test" attr1=test1 attr2='test2' attr3=test3>
-    <span var=spanElem>\${name}</span>
+    <span var=spanElem>${name}</span>
     <span>-</span>
-    <span>\${age}</span>
+    <span>${age}</span>
   </div>
 }
   ''';
 
-  final String simpleTemplate2 = '''
+  final String simpleTemplate2 = @'''
 template NameEntry(String name, int age) {
   <div var=topDiv attr="test" attr1=test1 attr2='test2' attr3=test3>
     <h1>
       <h2>
         <h3>
-          <span var=spanElem>\${name}</span>
+          <span var=spanElem>${name}</span>
           <span>-</span>
-          <span>\${age}</span>
+          <span>${age}</span>
         </h3>
       </h2>
     </h1>
@@ -47,7 +47,7 @@ template NameEntry(String name, int age) {
 }
   ''';
 
-  final String simpleTemplateCSS = '''
+  final String simpleTemplateCSS = @'''
 template NameEntry(String name, int age) {
   css {
     .foo {
@@ -55,52 +55,52 @@ template NameEntry(String name, int age) {
     }
   }
   <div var=topDiv attr="test" attr1=test1 attr2='test2' attr3=test3>
-    <span var=spanElem>\${name}</span>
+    <span var=spanElem>${name}</span>
     <span>-</span>
-    <span>\${age}</span>
+    <span>${age}</span>
   </div>
 }
   ''';
 
 
-  final String eachTemplate = '''
+  final String eachTemplate = @'''
 template Applications(var products) {
   <div>
-    ${each} products}
+    ${each} products
       <div>
-        <span>\${name}</span>
+        <span>${name}</span>
         <span>-</span>
-        <span>\${users}</span>
+        <span>${users}</span>
       </div>
     ${endEach}
   </div>
 }
   ''';
 
-  final String withTemplate = '''
+  final String withTemplate = @'''
 template Product(Person person) {
   <div>
-    ${with} person}
+    ${with} person
       <div>
-        <span>\${name}</span>
+        <span>${name}</span>
         <span>-</span>
-        <span>\${age}</span>
+        <span>${age}</span>
       </div>
     ${endWith}
   </div>
 }
   ''';
 
-  final String withTemplate2 = '''
+  final String withTemplate2 = @'''
 template Product(Person person) {
   <div>
     <span var=a1>
       <h1>
-        ${with} person}
+        ${with} person
           <div>
-            <span>\${name}</span>
+            <span>${name}</span>
             <span>-</span>
-            <span>\${age}</span>
+            <span>${age}</span>
           </div>
         ${endWith}
       </h1>
@@ -109,18 +109,18 @@ template Product(Person person) {
 }
   ''';
 
-  final String complexTemplate = '''
+  final String complexTemplate = @'''
 template ProductsForPerson(Person person, var products) {
   <div>
-    ${with} person}
+    ${with} person person
       <div>
-        <span>\${name}</span>
+        <span>${person.name}</span>
         <span>-</span>
-        <span>\${age}</span>
+        <span>${person.age}</span>
       </div>
-      ${each} products}
+      ${each} products product
         <div>
-          <span>product=\${name},users=\${users}</span>
+          <span>product=${product.name},users=${product.users}</span>
         </div>
       ${endEach}
     ${endWith}
@@ -128,18 +128,18 @@ template ProductsForPerson(Person person, var products) {
 }
   ''';
 
-  final String complexTemplate2 = '''
+  final String complexTemplate2 = @'''
 template ProductsForPerson(Person person, var products) {
   <div>
-    ${with} person}
+    ${with} person person
       <div>
-        <span>\${name}</span>
+        <span>${person.name}</span>
         <span>-</span>
-        <span>\${age}</span>
+        <span>${person.age}</span>
       </div>
       <div>
-        ${each} products}
-          <span>product=\${name},users=\${users}</span>
+        ${each} products product
+          <span>product=${product.name},users=${product.users}</span>
         ${endEach}
       </div>
     ${endWith}
@@ -147,7 +147,7 @@ template ProductsForPerson(Person person, var products) {
 }
   ''';
 
-  final String complexTemplate3 = '''
+  final String complexTemplate3 = @'''
 template ProductsForPerson(Person person, var products) {
   css {
     .sales-item {
@@ -162,19 +162,19 @@ template ProductsForPerson(Person person, var products) {
     }
   }
   <div>
-    ${with} person}
+    ${with} person person
       <div>
-        <span>\${name}</span>
+        <span>${person.name}</span>
         <span>-</span>
-        <span>\${age}</span>
+        <span>${person.age}</span>
       </div>
       <div>
-        ${each} products}
-          <div>product=\${name},users=\${users}</div>
-          ${each} products.sales}
+        ${each} products product
+          <div>product=${product.name},users=${product.users}</div>
+          ${each} products.sales sale
             <div class="sales-item">
-              <span>\${country}</span>
-              <span class="ytd-sales">\\\$\${yearly}</span>
+              <span>${sale.country}</span>
+              <span class="ytd-sales">\$${sale.yearly}</span>
             </div>
           ${endEach}
         ${endEach}
@@ -192,47 +192,47 @@ template NameEntry(String name, int age) {
     }
   }
   <div var=topDiv class="name-item" attr="test" attr1=test1 attr2='test2' attr3=test3>
-    <span var=spanElem>\${name}</span>
+    <span var=spanElem>${name}</span>
     <span> - </span>
-    <span>\${age}</span>
+    <span>${age}</span>
   </div>
 }
 ''';
 
   // Test #each in a #each where the nested #each is a top-level child of the
   // outer #each.
-  final String complexTemplate4 = '''
+  final String complexTemplate4 = @'''
 template DivisionSales(var divisions) {
   <div>
-    \${#each divisions}
+    ${each} divisions division
       <div>
-        <span>\${name}</span>
+        <span>${division.name}</span>
         <span>-</span>
-        <span>\${id}</span>
+        <span>${division.id}</span>
       </div>
       <div>
-        \${#each divisions.products}
+        ${each} divisions.products divProduct
           <div>
             <span var=productItem>&#9654;</span>
             <span>Product</span>
-            <span>\${name}</span>
-            <span>\${users}&nbsp;users</span>
+            <span>${divProduct.name}</span>
+            <span>${divProduct.users}&nbsp;users</span>
           </div>
-          \${#each products.sales}
+          ${each} products.sales sale
             <div>
-              <span>\${country}</span>
-              <span>\\\$\${yearly}</span>
+              <span>${sale.country}</span>
+              <span>\$${sale.yearly}</span>
             </div>
-          \${/each}
-        \${/each}
+          ${endEach}
+        ${endEach}
       </div>
-    \${/each}
+    ${endEach}
   </div>
 }
 ''';
 
 
-  final String realWorldList = '''
+  final String realWorldList = @'''
 template DivisionSales(var divisions) {
   css {
     .division-item {
@@ -295,31 +295,32 @@ template DivisionSales(var divisions) {
     }
   }
   <div>
-    \${#each divisions}
+    ${each} divisions division
       <div class="division-item">
-        <span>\${name}</span>
+        <span>${division.name}</span>
         <span>-</span>
-        <span>\${id}</span>
+        <span>${division.id}</span>
       </div>
       <div>
-        \${#each divisions.products}
+        ${each} divisions.products divProduct
           <div class="product-item">
             <span var=productZippy class="expand-collapse expand">&#9660;</span>
             <span class='product-title'>Product</span>
-            <span class="product-name">\${name}</span>
-            <span class="product-users" align=right>\${users}&nbsp;users</span>
+            <span class="product-name">${divProduct.name}</span>
+            <span class="product-users" align=right>${divProduct.users
+              }&nbsp;users</span>
             <div class="show-sales">
-              \${#each products.sales}
+              ${each} products.sales sale
                 <div class="sales-item">
-                  <span>\${country}</span>
-                  <span class="ytd-sales">\\\$\${yearly}</span>
+                  <span>${sale.country}</span>
+                  <span class="ytd-sales">\$${sale.yearly}</span>
                 </div>
-              \${/each}
+              ${endEach}
             </div>
           </div>
-        \${/each}
+        ${endEach}
       </div>
-    \${/each}
+    ${endEach}
   </div>
 }
 
@@ -334,8 +335,8 @@ template Header(String company, Date date) {
     }
   }
   <div class='header' align=center>
-    <h2>\${company}</h2>
-    <div align=right>\${date}</div>
+    <h2>${company}</h2>
+    <div align=right>${date}</div>
   </div>
 }
 ''';
@@ -395,7 +396,7 @@ void runTemplate([bool debug = false, bool parseOnly = false]) {
       print("ERROR unhandled EXCEPTION");
     }
   }
-  
+
 /*
   if (!debug) {
     try {

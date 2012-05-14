@@ -26,6 +26,7 @@ class CGBlock {
     assert(_blockType >= CGBlock.CONSTRUCTOR && _blockType <= CGBlock.WITH);
   }
 
+  bool get anyStatements() => !_stmts.isEmpty();
   bool get isConstructor() => _blockType == CGBlock.CONSTRUCTOR;
   bool get isEach() => _blockType == CGBlock.EACH;
   bool get isWith() => _blockType == CGBlock.WITH;
@@ -61,7 +62,7 @@ class CGBlock {
   CGStatement get last() => _stmts.length > 0 ? _stmts.last() : null;
 
   /**
-   * Returns mixed list of elements marked with the var attribute.  If the 
+   * Returns mixed list of elements marked with the var attribute.  If the
    * element is inside of a #each the name exposed is:
    *
    *      List varName;
@@ -273,7 +274,7 @@ class Codegen {
     buff.add("// DO NOT EDIT.\n\n");
 
     String addStylesheetFuncName = "add_${filename}_templatesStyles";
-    
+
     for (final template in templates) {
       // Emit the template class.
       TemplateSignature sig = template.signature;
@@ -518,7 +519,7 @@ class ElemCG {
     withs = [],
     _cgBlocks = [],
     _globalDecls = new StringBuffer(),
-    _globalInits = new StringBuffer();    
+    _globalInits = new StringBuffer();
 
   bool get isLastBlockConstructor() {
     CGBlock block = _cgBlocks.last();
@@ -541,7 +542,7 @@ class ElemCG {
 
   /**
    * Active block with this localName.
-   */ 
+   */
   bool matchBlocksLocalName(String name) {
     for (final CGBlock block in _cgBlocks) {
       if (block.isEach || block.isWith) {
@@ -670,7 +671,7 @@ Nested #each or #with must have a localName;
     closeStatement();
     return _cgBlocks.last().codeBody;
   }
-  
+
   /* scopeName for expression
    * parentVarOrIndex if # it's a local variable if string it's an exposed
    * name (specified by the var attribute) for this element.
@@ -720,7 +721,7 @@ Nested #each or #with must have a localName;
         //      {\t}  → tab
         //      {lb}  → left brace
         //      {rb}  → right brace
-      
+
         add("${outputValue}");            // remove leading/trailing whitespace.
 
         if (emitTextNode) {
@@ -822,7 +823,7 @@ Nested #each or #with must have a localName;
       // In a block #command need the scope passed in.
       add("\$\{inject_${expressions.length}(_item)\}");
       func.add("\n  String inject_${expressions.length}(var _item) {\n");
-      // Escape all single-quotes, this expression is embedded as a string 
+      // Escape all single-quotes, this expression is embedded as a string
       // parameter for the call to safeHTML.
       newExpr = _resolveNames(newExpr.replaceAll("'", "\\'"), "_item");
     } else {
@@ -945,7 +946,7 @@ Nested #each or #with must have a localName;
 
     withs[withIndex] = funcBuff.toString();
 
-    // Compute parent node variable before pushing with statement. 
+    // Compute parent node variable before pushing with statement.
     String parentVarName = lastBlockVarName;
 
     pushExactStatement(elem, parentVarIndex);
