@@ -84,6 +84,44 @@ DART_EXPORT void Dart_SetBreakpointHandler(
 }
 
 
+static Dart_BreakpointResolvedHandler* bp_resolved_handler = NULL;
+
+static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
+  printf("Debugger event %d\n", event->type);
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  if (event->type == Debugger::kBreakpointResolved) {
+    if (bp_resolved_handler == NULL) {
+      return;
+    }
+    SourceBreakpoint* bpt = event->breakpoint;
+    ASSERT(bpt != NULL);
+    Dart_Handle url = Api::NewHandle(isolate, bpt->SourceUrl());
+    (*bp_resolved_handler)(bpt->id(), url, bpt->LineNumber());
+  } else {
+    UNIMPLEMENTED();
+  }
+}
+
+
+DART_EXPORT void Dart_SetBreakpointResolvedHandler(
+                            Dart_BreakpointResolvedHandler handler) {
+  bp_resolved_handler = handler;
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  isolate->debugger()->SetEventHandler(DebuggerEventHandler);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_NOT_NULL(trace);
+  *trace = reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
+  return Api::True(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* function_name,
@@ -114,6 +152,28 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetBreakpoint(
+                            Dart_Handle script_url_in,
+                            intptr_t line_number) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  String& script_url = String::Handle();
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+
+  Debugger* debugger = isolate->debugger();
+  ASSERT(debugger != NULL);
+  SourceBreakpoint* bpt =
+      debugger->SetBreakpointAtLine(script_url, line_number);
+  if (bpt == NULL) {
+    return Api::NewError("%s: could not set breakpoint at line %d in '%s'",
+                         CURRENT_FUNC, line_number, script_url.ToCString());
+  }
+  return Dart_NewInteger(bpt->id());
+}
+
+
+// TODO(hausner): remove this function.
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
                             Dart_Handle script_url_in,
                             Dart_Handle line_number_in,
@@ -150,6 +210,36 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
     *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
   }
   return result;
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Debugger* debugger = isolate->debugger();
+  ASSERT(debugger != NULL);
+
+  SourceBreakpoint* bpt = debugger->GetBreakpointById(bp_id);
+  if (bpt == NULL) {
+    return Api::NewError("%s: breakpoint with id %d does not exist",
+                           CURRENT_FUNC, bp_id);
+  }
+  return Api::NewHandle(isolate, bpt->SourceUrl());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Debugger* debugger = isolate->debugger();
+  ASSERT(debugger != NULL);
+
+  SourceBreakpoint* bpt = debugger->GetBreakpointById(bp_id);
+  if (bpt == NULL) {
+    return Api::NewError("%s: breakpoint with id %d does not exist",
+                         CURRENT_FUNC, bp_id);
+  }
+  return Dart_NewInteger(bpt->LineNumber());
 }
 
 
@@ -202,13 +292,24 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
 }
 
 
+DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Debugger* debugger = isolate->debugger();
+  ASSERT(debugger != NULL);
+
+  isolate->debugger()->RemoveBreakpoint(bp_id);
+  return Api::True(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
                             Dart_Breakpoint breakpoint_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
 
   CHECK_AND_CAST(SourceBreakpoint, breakpoint, breakpoint_in);
-  isolate->debugger()->RemoveBreakpoint(breakpoint);
+  isolate->debugger()->RemoveBreakpoint(breakpoint->id());
   return Api::True(isolate);
 }
 

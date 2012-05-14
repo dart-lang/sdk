@@ -17,6 +17,10 @@ typedef void Dart_BreakpointHandler(
                  Dart_Breakpoint breakpoint,
                  Dart_StackTrace stack_trace);
 
+typedef void Dart_BreakpointResolvedHandler(
+                 intptr_t bp_id,
+                 Dart_Handle url,
+                 intptr_t line_number);
 
 /**
  * Returns a list of urls (strings) of all the libraries loaded in the
@@ -53,7 +57,55 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
                             Dart_Handle library_url_in,
                             Dart_Handle script_url_in);
 
+
 /**
+ * Sets a breakpoint at line \line_number in \script_url, or the closest
+ * following line (within the same function) where a breakpoint can be set.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle containing the breakpoint id, which is an integer
+ * value, or an error object if a breakpoint could not be set.
+ */
+DART_EXPORT Dart_Handle Dart_SetBreakpoint(
+                            Dart_Handle script_url,
+                            intptr_t line_number);
+
+/**
+ * Deletes the breakpoint with the given id \pb_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id);
+
+
+/**
+ * Get the script URL of the breakpoint with the given id \pb_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the URL (string) of the script, or an error
+ * object.
+ */
+DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id);
+
+
+/**
+ * Get the line number of the breakpoint with the given id \pb_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the line number (integer) of the script,
+ * or an error object.
+ */
+DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id);
+
+
+/**
+ * DEPRECATED -- use Dart_SetBreakpoint instead.
+ *
  * Sets a breakpoint at line \line_number in \script_url, or the closest
  * following line (within the same function) where a breakpoint can be set.
  *
@@ -90,6 +142,8 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
 
 
 /**
+ * DEPRECATED -- use Dart_RemoveBreakpoint instead.
+ *
  * Deletes the given \breakpoint.
  *
  * Requires there to be a current isolate.
@@ -135,6 +189,26 @@ DART_EXPORT Dart_Handle Dart_SetStepOut();
  */
 DART_EXPORT void Dart_SetBreakpointHandler(
                             Dart_BreakpointHandler bp_handler);
+
+/**
+ * Installs a callback function that gets called by the VM when
+ * a breakpoint has been resolved to an actual url and line number.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_SetBreakpointResolvedHandler(
+                            Dart_BreakpointResolvedHandler handler);
+
+
+/**
+ * Returns in \trace the the current stack trace, or NULL if the
+ * VM is not paused.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
 
 
 /**

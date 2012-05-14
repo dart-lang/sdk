@@ -24,8 +24,11 @@ namespace dart {
 static const bool verbose = false;
 
 
-SourceBreakpoint::SourceBreakpoint(const Function& func, intptr_t token_index)
-    : function_(func.raw()),
+SourceBreakpoint::SourceBreakpoint(intptr_t id,
+                                   const Function& func,
+                                   intptr_t token_index)
+    : id_(id),
+      function_(func.raw()),
       token_index_(token_index),
       line_number_(-1),
       is_enabled_(false),
@@ -427,6 +430,9 @@ Debugger::Debugger()
     : isolate_(NULL),
       initialized_(false),
       bp_handler_(NULL),
+      event_handler_(NULL),
+      next_id_(1),
+      stack_trace_(NULL),
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
@@ -437,6 +443,7 @@ Debugger::Debugger()
 Debugger::~Debugger() {
   ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
+  ASSERT(stack_trace_ == NULL);
 }
 
 
@@ -548,6 +555,16 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
 }
 
 
+void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
+  if (event_handler_ != NULL) {
+    DebuggerEvent event;
+    event.type = kBreakpointResolved;
+    event.breakpoint = bpt;
+    (*event_handler_)(&event);
+  }
+}
+
+
 CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
                                              intptr_t token_index) {
   ASSERT(func.HasCode());
@@ -611,7 +628,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     // A breakpoint for this location already exists, return it.
     return bpt;
   }
-  bpt = new SourceBreakpoint(target_function, token_index);
+  bpt = new SourceBreakpoint(nextId(), target_function, token_index);
   RegisterSourceBreakpoint(bpt);
   if (verbose && !target_function.HasCode()) {
     OS::Print("Registering breakpoint for uncompiled function '%s'"
@@ -626,6 +643,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     if (cbpt != NULL) {
       ASSERT(cbpt->src_bpt() == NULL);
       cbpt->set_src_bpt(bpt);
+      SignalBpResolved(bpt);
     } else {
       if (verbose) {
         OS::Print("Failed to set breakpoint at '%s' line %d\n",
@@ -860,6 +878,11 @@ void Debugger::SetBreakpointHandler(BreakpointHandler* handler) {
 }
 
 
+void Debugger::SetEventHandler(EventHandler* handler) {
+  event_handler_ = handler;
+}
+
+
 void Debugger::BreakpointCallback() {
   ASSERT(initialized_);
 
@@ -878,6 +901,7 @@ void Debugger::BreakpointCallback() {
               bpt ? bpt->LineNumber() : 0,
               frame->pc());
   }
+
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   while (frame != NULL) {
     ASSERT(frame->IsValid());
@@ -891,7 +915,10 @@ void Debugger::BreakpointCallback() {
   resume_action_ = kContinue;
   if (bp_handler_ != NULL) {
     SourceBreakpoint* src_bpt = bpt->src_bpt();
+    ASSERT(stack_trace_ == NULL);
+    stack_trace_ = stack_trace;
     (*bp_handler_)(src_bpt, stack_trace);
+    stack_trace_ = NULL;
   }
 
   if (resume_action_ == kContinue) {
@@ -998,6 +1025,7 @@ void Debugger::NotifyCompilation(const Function& func) {
         CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
         if (cbpt != NULL) {
           cbpt->set_src_bpt(bpt);
+          SignalBpResolved(bpt);
         }
       }
       bpt->Enable();  // Enables the code breakpoint as well.
@@ -1021,20 +1049,20 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
-void Debugger::RemoveBreakpoint(SourceBreakpoint* bpt) {
+void Debugger::RemoveBreakpoint(intptr_t bp_id) {
   ASSERT(src_breakpoints_ != NULL);
   SourceBreakpoint* prev_bpt = NULL;
   SourceBreakpoint* curr_bpt = src_breakpoints_;
   while (curr_bpt != NULL) {
-    if (bpt == curr_bpt) {
+    if (curr_bpt->id() == bp_id) {
       if (prev_bpt == NULL) {
         src_breakpoints_ = src_breakpoints_->next();
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
       // Remove the code breakpoints associated with the source breakpoint.
-      RemoveCodeBreakpoints(bpt);
-      delete bpt;
+      RemoveCodeBreakpoints(curr_bpt);
+      delete curr_bpt;
       return;
     }
     prev_bpt = curr_bpt;
@@ -1081,6 +1109,18 @@ SourceBreakpoint* Debugger::GetSourceBreakpoint(const Function& func,
   while (bpt != NULL) {
     if ((bpt->function() == func.raw()) &&
         (bpt->token_index() == token_index)) {
+      return bpt;
+    }
+    bpt = bpt->next();
+  }
+  return NULL;
+}
+
+
+SourceBreakpoint* Debugger::GetBreakpointById(intptr_t id) {
+  SourceBreakpoint* bpt = src_breakpoints_;
+  while (bpt != NULL) {
+    if (bpt->id() == id) {
       return bpt;
     }
     bpt = bpt->next();

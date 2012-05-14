@@ -611,10 +611,10 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
   Dart_SetBreakpointHandler(&ExprClosureBreakpointHandler);
 
   Dart_Handle script_url = Dart_NewString(TestCase::url());
-  Dart_Handle line_no = Dart_NewInteger(5);  // In closure 'add'.
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtLine(script_url, line_no, &bpt);
+  intptr_t line_no = 5;  // In closure 'add'.
+  Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
   EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsInteger(res));
 
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
@@ -625,6 +625,8 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
 
+
+static intptr_t bp_id_to_be_deleted;
 
 static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
                                     Dart_StackTrace trace) {
@@ -651,7 +653,7 @@ static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
   // Remove the breakpoint after we've hit it twice
   if (breakpoint_hit_counter == 2) {
     if (verbose) OS::Print("uninstalling breakpoint\n");
-    Dart_Handle res = Dart_DeleteBreakpoint(bpt);
+    Dart_Handle res = Dart_RemoveBreakpoint(bp_id_to_be_deleted);
     EXPECT_NOT_ERROR(res);
   }
 }
@@ -674,17 +676,20 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   LoadScript(kScriptChars);
 
   Dart_Handle script_url = Dart_NewString(TestCase::url());
-  Dart_Handle line_no = Dart_NewInteger(4);  // In function 'foo'.
+  intptr_t line_no = 4;  // In function 'foo'.
 
   Dart_SetBreakpointHandler(&DeleteBreakpointHandler);
 
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtLine(script_url, line_no, &bpt);
+  Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
   EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsInteger(res));
+  int64_t bp_id = 0;
+  Dart_IntegerToInt64(res, &bp_id);
 
   // Function main() calls foo() 3 times. On the second iteration, the
   // breakpoint is removed by the handler, so we expect the breakpoint
   // to fire twice only.
+  bp_id_to_be_deleted = bp_id;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));

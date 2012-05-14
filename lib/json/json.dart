@@ -18,6 +18,15 @@ class JSON {
   }
 
   /**
+   * Checks validity of JSON source in [:str:] and returns its text
+   * length. Returns 0 if [:str:] does not begin with a valid JSON
+   * object.
+   */
+  static int length(String str) {
+    return _JsonParser.objectLength(str);
+  }
+
+  /**
    * Serializes [:object:] into JSON string.
    */
   static String stringify(Object object) {
@@ -94,6 +103,17 @@ class _JsonParser {
 
   static parse(String json) {
     return new _JsonParser._internal(json)._parseToplevel();
+  }
+
+  static objectLength(String str) {
+    var p = new _JsonParser._internal(str);
+    try {
+      p._parseObject();
+      assert(p.position <= p.length);
+      return p.position;
+    } catch (var e) {
+      return 0;
+    }
   }
 
   _JsonParser._internal(String json)

@@ -11,6 +11,7 @@
 #include "include/dart_debugger_api.h"
 
 #include "platform/globals.h"
+#include "platform/json.h"
 #include "platform/thread.h"
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_LINUX)
@@ -36,7 +37,14 @@ class DebuggerConnectionHandler {
   }
 
  private:
+  static void SendMsg(dart::TextBuffer* msg);
+  static void QueueMsg(dart::TextBuffer* msg);
+  static void SendQueuedMsgs();
+
   static void SendBreakpointEvent(Dart_Breakpoint bpt, Dart_StackTrace trace);
+  static void BptResolvedHandler(intptr_t bp_id,
+                                 Dart_Handle url,
+                                 intptr_t line_number);
   static void BreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace);
 
   static void AcceptDbgConnection(int debug_fd);
@@ -49,8 +57,14 @@ class DebuggerConnectionHandler {
   static void HandleStepOutCmd(const char* msg);
   static void HandleGetLibraryURLsCmd(const char* json_msg);
   static void HandleGetScriptURLsCmd(const char* json_msg);
+  static void HandleGetStackTraceCmd(const char* json_msg);
+  static void HandleSetBpCmd(const char* json_msg);
+  static void HandleUnknownMsg(const char* json_msg);
 
   static void SendError(int msg_id, const char* err_msg);
+
+  // Text buffer that accumulates messages to be sent to front end.
+  static dart::TextBuffer queued_messages_;
 
   static bool handler_started_;
 
