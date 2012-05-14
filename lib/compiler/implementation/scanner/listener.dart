@@ -1445,12 +1445,8 @@ class NodeListener extends ElementListener {
 
   void endLabeledStatement(int labelCount) {
     Statement statement = popNode();
-    while (labelCount > 0) {
-      Label label = popNode();
-      statement = new LabeledStatement(label, statement);
-      labelCount--;
-    }
-    pushNode(statement);
+    NodeList labels = makeNodeList(labelCount, null, null, null);
+    pushNode(new LabeledStatement(labels, statement));
   }
 
   void log(message) {

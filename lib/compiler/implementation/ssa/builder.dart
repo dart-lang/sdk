@@ -2815,7 +2815,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    Statement body = node.getBody();
+    Statement body = node.statement;
     if (body is Loop || body is SwitchStatement) {
       // Loops and switches handle their own labels.
       visit(body);

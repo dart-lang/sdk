@@ -1474,31 +1474,27 @@ class Label extends Node {
 }
 
 class LabeledStatement extends Statement {
-  final Label label;
+  final NodeList labels;
   final Statement statement;
 
-  LabeledStatement(this.label, this.statement);
+  LabeledStatement(this.labels, this.statement);
 
   LabeledStatement asLabeledStatement() => this;
 
   accept(Visitor visitor) => visitor.visitLabeledStatement(this);
 
   visitChildren(Visitor visitor) {
-    label.accept(visitor);
+    labels.accept(visitor);
     statement.accept(visitor);
   }
 
-  Token getBeginToken() => label.getBeginToken();
+  Token getBeginToken() => labels.getBeginToken();
 
   Token getEndToken() => statement.getEndToken();
 
   bool isValidContinueTarget() => statement.isValidContinueTarget();
 
-  Node getBody() {
-    if (statement is! LabeledStatement) return statement;
-    LabeledStatement labeled = statement;
-    return labeled.getBody();
-  }
+  Node getBody() => statement;
 }
 
 class ScriptTag extends Node {

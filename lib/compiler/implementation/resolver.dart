@@ -475,10 +475,11 @@ interface LabelScope {
 
 class LabeledStatementLabelScope implements LabelScope {
   final LabelScope outer;
-  final LabelElement label;
-  LabeledStatementLabelScope(this.outer, this.label);
+  final Map<String, LabelElement> labels;
+  LabeledStatementLabelScope(this.outer, this.labels);
   LabelElement lookup(String labelName) {
-    if (this.label.labelName == labelName) return label;
+    LabelElement label = labels[labelName];
+    if (label !== null) return label;
     return outer.lookup(labelName);
   }
 }
@@ -526,8 +527,8 @@ class StatementScope {
   TargetElement currentContinueTarget() =>
     continueTargetStack.isEmpty() ? null : continueTargetStack.head;
 
-  void enterLabelScope(LabelElement element) {
-    labels = new LabeledStatementLabelScope(labels, element);
+  void enterLabelScope(Map<String, LabelElement> elements) {
+    labels = new LabeledStatementLabelScope(labels, elements);
     nestingLevel++;
   }
 
@@ -1246,24 +1247,25 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    String labelName = node.label.slowToString();
-    LabelElement existingElement = statementScope.lookupLabel(labelName);
-    if (existingElement !== null) {
-      warning(node.label, MessageKind.DUPLICATE_LABEL, [labelName]);
-      warning(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
-    }
-    Node body = node.getBody();
+    Statement body = node.statement;
     TargetElement targetElement = getOrCreateTargetElement(body);
-
-    LabelElement element = targetElement.addLabel(node.label, labelName);
-    statementScope.enterLabelScope(element);
+    Map<String, LabelElement> labelElements = <LabelElement>{};
+    for (Label label in node.labels) {
+      String labelName = label.slowToString();
+      if (labelElements.containsKey(labelName)) continue;
+      LabelElement element = targetElement.addLabel(label, labelName);
+      labelElements[labelName] = element;
+    }
+    statementScope.enterLabelScope(labelElements);
     visit(node.statement);
     statementScope.exitLabelScope();
-    if (element.isTarget) {
-      mapping[node.label] = element;
-    } else {
-      warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
-    }
+    labelElements.forEach((String labelName, LabelElement element) {
+      if (element.isTarget) {
+        mapping[element.label] = element;
+      } else {
+        warning(element.label, MessageKind.UNUSED_LABEL, [labelName]);
+      }
+    });
     if (!targetElement.isTarget && mapping[body] === targetElement) {
       // If the body is itself a break or continue for another target, it
       // might have updated its mapping to the target it actually does target.
