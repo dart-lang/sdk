@@ -1432,16 +1432,21 @@ class ClosureCallNode : public AstNode {
 // instantiator is the first parameter of this factory, which is already a
 // type argument vector. This case is identified by a null and unneeded
 // instantiator_class.
+//
+// A temporary local is needed to hold the allocated value while the
+// constructor is being called.
 class ConstructorCallNode : public AstNode {
  public:
   ConstructorCallNode(intptr_t token_index,
                       const AbstractTypeArguments& type_arguments,
                       const Function& constructor,
-                      ArgumentListNode* arguments)
+                      ArgumentListNode* arguments,
+                      const LocalVariable& allocated_object_var)
       : AstNode(token_index),
         type_arguments_(type_arguments),
         constructor_(constructor),
-        arguments_(arguments) {
+        arguments_(arguments),
+        allocated_object_var_(allocated_object_var) {
     ASSERT(type_arguments_.IsZoneHandle());
     ASSERT(constructor_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
@@ -1452,6 +1457,9 @@ class ConstructorCallNode : public AstNode {
   }
   const Function& constructor() const { return constructor_; }
   ArgumentListNode* arguments() const { return arguments_; }
+  const LocalVariable& allocated_object_var() const {
+    return allocated_object_var_;
+  }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     arguments()->Visit(visitor);
@@ -1463,6 +1471,7 @@ class ConstructorCallNode : public AstNode {
   const AbstractTypeArguments& type_arguments_;
   const Function& constructor_;
   ArgumentListNode* arguments_;
+  const LocalVariable& allocated_object_var_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ConstructorCallNode);
 };

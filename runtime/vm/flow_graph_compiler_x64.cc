@@ -1190,28 +1190,6 @@ void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
 }
 
 
-void FlowGraphCompiler::VisitPickTemp(PickTempInstr* instr) {
-  // Semantics is to copy a stack-allocated temporary to the top of stack.
-  // Destination index d is assumed the new top of stack after the
-  // operation, so d-1 is the current top of stack and so d-s-1 is the
-  // offset to source index s.
-  intptr_t offset = instr->temp_index() - instr->source() - 1;
-  ASSERT(offset >= 0);
-  __ pushq(Address(RSP, offset * kWordSize));
-}
-
-
-void FlowGraphCompiler::VisitTuckTemp(TuckTempInstr* instr) {
-  // Semantics is to assign to a stack-allocated temporary a copy of the top
-  // of stack.  Source index s is assumed the top of stack, s-d is the
-  // offset to destination index d.
-  intptr_t offset = instr->source() - instr->destination();
-  ASSERT(offset >= 0);
-  __ movq(RAX, Address(RSP, 0));
-  __ movq(Address(RSP, offset * kWordSize), RAX);
-}
-
-
 void FlowGraphCompiler::VisitDo(DoInstr* instr) {
   instr->computation()->Accept(this);
 }

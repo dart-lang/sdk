@@ -191,6 +191,19 @@ void CodeGenTest::Compile() {
 }
 
 
+LocalVariable* CodeGenTest::CreateTempConstVariable(const char* name_part) {
+  char name[64];
+  OS::SNPrint(name, 64, ":%s", name_part);
+  LocalVariable* temp =
+      new LocalVariable(0,
+                        String::ZoneHandle(String::NewSymbol(name)),
+                        Type::ZoneHandle(Type::DynamicType()));
+  temp->set_is_final();
+  node_sequence_->scope()->AddVariable(temp);
+  return temp;
+}
+
+
 bool CompilerTest::TestCompileScript(const Library& library,
                                      const Script& script) {
   Isolate* isolate = Isolate::Current();

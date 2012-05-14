@@ -485,6 +485,13 @@ class Parser : ValueObject {
   const LocalVariable& GetIncrementTempLocal();
   void EnsureExpressionTemp();
 
+  ConstructorCallNode* CreateConstructorCallNode(
+      intptr_t token_index,
+      const AbstractTypeArguments& type_arguments,
+      const Function& constructor,
+      ArgumentListNode* arguments);
+
+
   const Script& script_;
   const TokenStream& tokens_;
   intptr_t token_index_;

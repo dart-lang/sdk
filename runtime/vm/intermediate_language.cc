@@ -33,18 +33,6 @@ Instruction* TargetEntryInstr::Accept(FlowGraphVisitor* visitor) {
 }
 
 
-Instruction* PickTempInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitPickTemp(this);
-  return successor_;
-}
-
-
-Instruction* TuckTempInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitTuckTemp(this);
-  return successor_;
-}
-
-
 Instruction* DoInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitDo(this);
   return successor_;
@@ -169,16 +157,6 @@ intptr_t BindInstr::InputCount() const {
 
 intptr_t DoInstr::InputCount() const {
   return computation()->InputCount();
-}
-
-
-intptr_t TuckTempInstr::InputCount() const {
-  return 0;
-}
-
-
-intptr_t PickTempInstr::InputCount() const {
-  return 0;
 }
 
 

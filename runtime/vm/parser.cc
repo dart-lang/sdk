@@ -7404,11 +7404,29 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     factory_param->Add(list);
     AbstractTypeArguments& canonical_type_arguments =
         AbstractTypeArguments::ZoneHandle(type_arguments.Canonicalize());
-    return new ConstructorCallNode(literal_pos,
-                                   canonical_type_arguments,
-                                   list_literal_factory,
-                                   factory_param);
+    return CreateConstructorCallNode(literal_pos,
+                                     canonical_type_arguments,
+                                     list_literal_factory,
+                                     factory_param);
   }
+}
+
+
+ConstructorCallNode* Parser::CreateConstructorCallNode(
+    intptr_t token_index,
+    const AbstractTypeArguments& type_arguments,
+    const Function& constructor,
+    ArgumentListNode* arguments) {
+  if (!type_arguments.IsNull() && !type_arguments.IsInstantiated()) {
+    EnsureExpressionTemp();
+  }
+  LocalVariable* allocated =
+      CreateTempConstVariable(token_index, token_index, "alloc");
+  return new ConstructorCallNode(token_index,
+                                 type_arguments,
+                                 constructor,
+                                 arguments,
+                                 *allocated);
 }
 
 
@@ -7608,10 +7626,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(kv_pairs);
-    return new ConstructorCallNode(literal_pos,
-                                   map_type_arguments,
-                                   map_literal_factory,
-                                   factory_param);
+    return CreateConstructorCallNode(literal_pos,
+                                     map_type_arguments,
+                                     map_literal_factory,
+                                     factory_param);
   }
 }
 
@@ -7874,7 +7892,7 @@ AstNode* Parser::ParseNewOperator() {
     }
     // If the type argument vector is not instantiated, we verify in checked
     // mode at runtime that it is within its declared bounds.
-    new_object = new ConstructorCallNode(
+    new_object = CreateConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
   }
   return new_object;

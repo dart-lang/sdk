@@ -1506,34 +1506,61 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     args->Add(new UseVal(no_instantiator));
     return;
   }
-  // The type arguments are uninstantiated.
-  // Place holder to hold uninstantiated constructor type arguments.
-  BindInstr* placeholder =
-      new BindInstr(new ConstantVal(Object::ZoneHandle()));
-  AddInstruction(placeholder);
-  Value* instantiator =
-      BuildInstantiatorTypeArguments(node->token_index());
+  // The type arguments are uninstantiated. The generated pseudo code:
+  //   t1 = InstantiatorTypeArguments();
+  //   t2 = ExtractConstructorTypeArguments(t1);
+  //   t1 = ExtractConstructorInstantiator(t1, t2);
+  //   t_n   <- t2
+  //   t_n+1 <- t1
+  const intptr_t context_level = owner()->context_level();
+  // Use expression_temp_var and node->allocated_object_var() locals to keep
+  // intermediate results around (t1 and t2 above).
+  ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
+  const LocalVariable& t1 = *owner()->parsed_function().expression_temp_var();
+  const LocalVariable& t2 = node->allocated_object_var();
+
+  Value* instantiator = BuildInstantiatorTypeArguments(node->token_index());
   ASSERT(instantiator->IsUse());
-  PickTempInstr* duplicate_instantiator =
-      new PickTempInstr(instantiator->AsUse()->definition()->temp_index());
-  AddInstruction(duplicate_instantiator);
+  Definition* stored_instantiator = new BindInstr(new StoreLocalComp(
+      t1, instantiator, context_level));
+  AddInstruction(stored_instantiator);
+  // t1: instantiator type arguments.
+
   BindInstr* extract_type_arguments = new BindInstr(
       new ExtractConstructorTypeArgumentsComp(
           node->token_index(),
           owner()->try_index(),
           node->type_arguments(),
-          new UseVal(duplicate_instantiator)));
+          new UseVal(stored_instantiator)));
   AddInstruction(extract_type_arguments);
-  AddInstruction(new TuckTempInstr(placeholder->temp_index(),
-                                   extract_type_arguments->temp_index()));
+
+  Instruction* stored_type_arguments = new DoInstr(new StoreLocalComp(
+      t2, new UseVal(extract_type_arguments), context_level));
+  AddInstruction(stored_type_arguments);
+  // t2: extracted constructor type arguments.
+  Definition* load_instantiator = new BindInstr(
+      new LoadLocalComp(t1, context_level));
+  AddInstruction(load_instantiator);
+  Definition* load_type_arguments = new BindInstr(
+      new LoadLocalComp(t2, context_level));
+  AddInstruction(load_type_arguments);
+
   BindInstr* extract_instantiator =
       new BindInstr(new ExtractConstructorInstantiatorComp(
                         node,
-                        instantiator,
-                        new UseVal(extract_type_arguments)));
+                        new UseVal(load_instantiator),
+                        new UseVal(load_type_arguments)));
   AddInstruction(extract_instantiator);
-  args->Add(new UseVal(placeholder));
-  args->Add(new UseVal(extract_instantiator));
+  AddInstruction(new DoInstr(new StoreLocalComp(
+      t1, new UseVal(extract_instantiator), context_level)));
+  // t2: extracted constructor type arguments.
+  // t1: extracted constructor instantiator.
+  Definition* load_0 = new BindInstr(new LoadLocalComp(t2, context_level));
+  AddInstruction(load_0);
+  Definition* load_1 = new BindInstr(new LoadLocalComp(t1, context_level));
+  AddInstruction(load_1);
+  args->Add(new UseVal(load_0));
+  args->Add(new UseVal(load_1));
 }
 
 
@@ -1545,16 +1572,26 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
   // t_n contains the allocated and initialized object.
   //   t_n      <- AllocateObject(class)
-  //   t_n+1    <- Pick(t_n)
-  //   t_n+2    <- ctor-arg
-  //   t_n+3... <- constructor arguments start here
-  //   StaticCall(constructor, t_n+1, t_n+2, ...)
+  //   t_n      <- StoreLocal(temp, t_n);
+  //   t_n+1    <- ctor-arg
+  //   t_n+2... <- constructor arguments start here
+  //   StaticCall(constructor, t_n, t_n+1, ...)
+  //   tn       <- LoadLocal(temp)
 
   Definition* allocate = BuildObjectAllocation(node);
-  PickTempInstr* duplicate = new PickTempInstr(allocate->temp_index());
-  AddInstruction(duplicate);
-  BuildConstructorCall(node, new UseVal(duplicate));
-  ReturnValue(new UseVal(allocate));
+  StoreLocalComp* store_allocated = new StoreLocalComp(
+      node->allocated_object_var(),
+      new UseVal(allocate),
+      owner()->context_level());
+  Definition* allocated_value = new BindInstr(store_allocated);
+  AddInstruction(allocated_value);
+  BuildConstructorCall(node, new UseVal(allocated_value));
+  LoadLocalComp* load_allocated = new LoadLocalComp(
+      node->allocated_object_var(),
+      owner()->context_level());
+  allocated_value = new BindInstr(load_allocated);
+  AddInstruction(allocated_value);
+  ReturnValue(new UseVal(allocated_value));
 }
 
 
@@ -2431,16 +2468,6 @@ void FlowGraphPrinter::VisitDo(DoInstr* instr) {
 void FlowGraphPrinter::VisitBind(BindInstr* instr) {
   OS::Print("    t%d <- ", instr->temp_index());
   instr->computation()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitPickTemp(PickTempInstr* instr) {
-  OS::Print("    t%d <- Pick(t%d)", instr->temp_index(), instr->source());
-}
-
-
-void FlowGraphPrinter::VisitTuckTemp(TuckTempInstr* instr) {
-  OS::Print("    t%d := t%d", instr->destination(), instr->source());
 }
 
 

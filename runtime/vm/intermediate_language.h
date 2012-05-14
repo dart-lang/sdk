@@ -1119,9 +1119,7 @@ class CatchEntryComp : public TemplateComputation<0> {
 //                 | Do <Computation> <Instruction>
 //                 | Return <Value>
 //                 | Branch <Value> <Instruction> <Instruction>
-// <Definition>  ::= PickTemp <int> <int> <Instruction>
-//                 | TuckTemp <int> <int> <Instruction>
-//                 | Bind <int> <Computation> <Instruction>
+// <Definition>  ::= Bind <int> <Computation> <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
@@ -1131,8 +1129,6 @@ class CatchEntryComp : public TemplateComputation<0> {
   M(TargetEntry)                                                               \
   M(Do)                                                                        \
   M(Bind)                                                                      \
-  M(PickTemp)                                                                  \
-  M(TuckTemp)                                                                  \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -1414,74 +1410,6 @@ class BindInstr : public Definition {
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
-};
-
-
-// The non-optimizing compiler assumes that there is exactly one use of
-// every temporary so they can be deallocated at their use.  Some AST nodes,
-// e.g., expr0[expr1]++, violate this assumption (there are two uses of each
-// of the values expr0 and expr1).
-//
-// PickTemp is used to name (with 'destination') a copy of a live temporary
-// (named 'source') without counting as the use of the source.
-class PickTempInstr : public Definition {
- public:
-  explicit PickTempInstr(intptr_t source)
-      : Definition(), source_(source), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(PickTemp)
-
-  intptr_t source() const { return source_; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL && instr != NULL);
-    successor_ = instr;
-  }
-
- private:
-  const intptr_t source_;
-  Instruction* successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(PickTempInstr);
-};
-
-
-// The non-optimizing compiler assumes that temporary definitions and uses
-// obey a stack discipline, so they can be allocated and deallocated with
-// push and pop.  Some Some AST nodes, e.g., expr++, violate this assumption
-// (the value expr+1 is produced after the value of expr, and also consumed
-// after it).
-//
-// We 'preallocate' temporaries (named with 'destination') such as the one
-// for expr+1 and use TuckTemp to mutate them by overwriting them with a
-// copy of a temporary (named with 'source').
-class TuckTempInstr : public Instruction {
- public:
-  TuckTempInstr(intptr_t destination, intptr_t source)
-      : destination_(destination), source_(source), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(TuckTemp)
-
-  intptr_t destination() const { return destination_; }
-  intptr_t source() const { return source_; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL && instr != NULL);
-    successor_ = instr;
-  }
-
- private:
-  const intptr_t destination_;
-  const intptr_t source_;
-  Instruction* successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(TuckTempInstr);
 };
 
 

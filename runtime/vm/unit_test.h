@@ -263,6 +263,8 @@ class CodeGenTest {
   // Compile test and set code in function.
   void Compile();
 
+  LocalVariable* CreateTempConstVariable(const char* name_part);
+
  private:
   Function& function_;
   SequenceNode* node_sequence_;
