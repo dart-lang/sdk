@@ -7,6 +7,7 @@ interface Visitor<R> {
   R visitBreakStatement(BreakStatement node);
   R visitCascade(Cascade node);
   R visitCascadeReceiver(CascadeReceiver node);
+  R visitCaseMatch(CaseMatch node);
   R visitCatchBlock(CatchBlock node);
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
@@ -30,7 +31,6 @@ interface Visitor<R> {
   R visitLiteralMapEntry(LiteralMapEntry node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
-  R visitStringJuxtaposition(StringJuxtaposition node);
   R visitModifiers(Modifiers node);
   R visitNamedArgument(NamedArgument node);
   R visitNewExpression(NewExpression node);
@@ -43,6 +43,7 @@ interface Visitor<R> {
   R visitSendSet(SendSet node);
   R visitStringInterpolation(StringInterpolation node);
   R visitStringInterpolationPart(StringInterpolationPart node);
+  R visitStringJuxtaposition(StringJuxtaposition node);
   R visitSwitchCase(SwitchCase node);
   R visitSwitchStatement(SwitchStatement node);
   R visitThrow(Throw node);
@@ -113,6 +114,7 @@ class Node implements Hashable {
   BreakStatement asBreakStatement() => null;
   Cascade asCascade() => null;
   CascadeReceiver asCascadeReceiver() => null;
+  CaseMatch asCaseMatch() => null;
   CatchBlock asCatchBlock() => null;
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
@@ -1321,32 +1323,50 @@ class SwitchStatement extends Statement {
   Token getEndToken() => cases.getEndToken();
 }
 
+class CaseMatch extends Node {
+  final Token caseKeyword;
+  final Expression expression;
+  final Token colonToken;
+  CaseMatch(this.caseKeyword, this.expression, this.colonToken);
+
+  CaseMatch asCaseMatch() => this;
+  Token getBeginToken() => caseKeyword;
+  Token getEndToken() => colonToken;
+  accept(Visitor visitor) => visitor.visitCaseMatch(this);
+  visitChildren(Visitor visitor) => expression.accept(visitor);
+}
+
 class SwitchCase extends Node {
-  // Represents the grammar:
-  //   label? ('case' expression ':')* ('default' ':')? statement*
-  // Each expression is collected in [expressions].
-  // The 'case' keywords can be obtained using [caseKeywords()].
+  // The labels and case patterns are collected in [labelsAndCases].
+  // The default keyword, if present, is collected in [defaultKeyword].
   // Any actual switch case must have at least one 'case' or 'default'
   // clause.
-  final Label label;
-  final NodeList expressions;
+  // Notice: The labels and cases can occur interleaved in the source.
+  // They are separated here, since the order is irrelevant to the meaning
+  // of the switch.
+
+  /** List of [Label] and [CaseMatch] nodes. */
+  final NodeList labelsAndCases;
+  /** A "default" keyword token, if applicable. */
   final Token defaultKeyword;
+  /** List of statements, the body of the case. */
   final NodeList statements;
 
   final Token startToken;
 
-  SwitchCase(this.label, this.expressions, this.defaultKeyword,
+  SwitchCase(this.labelsAndCases, this.defaultKeyword,
              this.statements, this.startToken);
 
   SwitchCase asSwitchCase() => this;
 
   bool get isDefaultCase() => defaultKeyword !== null;
 
+  bool isValidContinueTarget() => true;
+
   accept(Visitor visitor) => visitor.visitSwitchCase(this);
 
   visitChildren(Visitor visitor) {
-    if (label !== null) label.accept(visitor);
-    expressions.accept(visitor);
+    labelsAndCases.accept(visitor);
     statements.accept(visitor);
   }
 
@@ -1361,29 +1381,11 @@ class SwitchCase extends Node {
         // The colon after 'default'.
         return defaultKeyword.next;
       }
-      // The colon after the expression.
-      return expressions.getEndToken().next;
+      // The colon after the last expression.
+      return labelsAndCases.getEndToken();
     } else {
       return statements.getEndToken();
     }
-  }
-
-  Link<Token> caseKeywords() {
-    Token token = startToken;
-    if (label !== null) {
-      // Skip past the label: <Identifier> ':'.
-      token = token.next.next;
-    }
-    LinkBuilder<Token> builder = new LinkBuilder<Token>();
-    Link<Expression> link = expressions.nodes;
-    while (token.stringValue === 'case') {
-      assert(token.next === link.head.getBeginToken());
-      builder.addLast(token);
-      Token colon = link.head.getEndToken().next;
-      token = colon.next;
-      link = link.tail;
-    }
-    return builder.toLink();
   }
 }
 
@@ -1432,7 +1434,7 @@ class ForIn extends Loop {
   final Token inToken;
 
   ForIn(this.declaredIdentifier, this.expression,
-                 Statement body, this.forToken, this.inToken) : super(body);
+        Statement body, this.forToken, this.inToken) : super(body);
 
   Expression get condition() => null;
 

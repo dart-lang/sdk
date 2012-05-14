@@ -347,15 +347,7 @@ class Unparser implements Visitor {
   }
 
   visitSwitchCase(SwitchCase node) {
-    if (node.label !== null) {
-      visit(node.label);
-      sb.add(': ');
-    }
-    for (Expression expression in node.expressions) {
-      sb.add('case ');
-      visit(expression);
-      sb.add(': ');
-    }
+    visit(node.labelsAndCases);
     if (node.isDefaultCase) {
       sb.add('default:');
     }
@@ -387,6 +379,13 @@ class Unparser implements Visitor {
       sb.add(' ');
       visit(node.finallyBlock);
     }
+  }
+
+  visitCaseMatch(CaseMatch node) {
+    add(node.caseKeyword.value);
+    sb.add(" ");
+    visit(node.expression);
+    add(node.colonToken.value);
   }
 
   visitCatchBlock(CatchBlock node) {

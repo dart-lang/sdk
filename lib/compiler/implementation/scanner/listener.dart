@@ -165,10 +165,10 @@ class Listener {
   void handleLabel(Token token) {
   }
 
-  void beginLabeledStatement(Token token) {
+  void beginLabeledStatement(Token token, int labelCount) {
   }
 
-  void endLabeledStatement() {
+  void endLabeledStatement(int labelCount) {
   }
 
   void beginLiteralMapEntry(Token token) {
@@ -249,6 +249,9 @@ class Listener {
   }
 
   void beginTryStatement(Token token) {
+  }
+
+  void handleCaseMatch(Token caseKeyword, Token colon) {
   }
 
   void handleCatchBlock(Token catchKeyword) {
@@ -404,7 +407,7 @@ class Listener {
   void handleSuperExpression(Token token) {
   }
 
-  void handleSwitchCase(Token labelToken, int expressionCount,
+  void handleSwitchCase(int labelCount, int expressionCount,
                         Token defaultKeyword, int statementCount,
                         Token firstToken, Token endToken) {
   }
@@ -1331,6 +1334,10 @@ class NodeListener extends ElementListener {
                               tryKeyword, finallyKeyword));
   }
 
+  void handleCaseMatch(Token caseKeyword, Token colon) {
+    pushNode(new CaseMatch(caseKeyword, popNode(), colon));
+  }
+
   void handleCatchBlock(Token catchKeyword) {
     Block block = popNode();
     NodeList formals = popNode();
@@ -1353,16 +1360,13 @@ class NodeListener extends ElementListener {
     pushNode(new NodeList(beginToken, caseNodes, endToken, null));
   }
 
-  void handleSwitchCase(Token labelToken, int expressionCount,
+  void handleSwitchCase(int labelCount, int caseCount,
                         Token defaultKeyword, int statementCount,
                         Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
-    NodeList expressions = makeNodeList(expressionCount, null, null, null);
-    Label label = null;
-    if (labelToken !== null) {
-      label = popNode();
-    }
-    pushNode(new SwitchCase(label, expressions, defaultKeyword, statements,
+    NodeList labelsAndCases =
+        makeNodeList(labelCount + caseCount, null, null, null);
+    pushNode(new SwitchCase(labelsAndCases, defaultKeyword, statements,
                             firstToken));
   }
 
@@ -1439,10 +1443,14 @@ class NodeListener extends ElementListener {
     pushNode(new Label(name, colon));
   }
 
-  void endLabeledStatement() {
+  void endLabeledStatement(int labelCount) {
     Statement statement = popNode();
-    Label label = popNode();
-    pushNode(new LabeledStatement(label, statement));
+    while (labelCount > 0) {
+      Label label = popNode();
+      statement = new LabeledStatement(label, statement);
+      labelCount--;
+    }
+    pushNode(statement);
   }
 
   void log(message) {

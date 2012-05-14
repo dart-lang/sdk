@@ -851,10 +851,14 @@ class Parser {
   }
 
   Token parseLabeledStatement(Token token) {
-    listener.beginLabeledStatement(token);
-    token = parseLabel(token);
+    int labelCount = 0;
+    do {
+      token = parseLabel(token);
+      labelCount++;
+    } while (isIdentifier(token) && optional(':', token.next));
+    listener.beginLabeledStatement(token, labelCount);
     token = parseStatement(token);
-    listener.endLabeledStatement();
+    listener.endLabeledStatement(labelCount);
     return token;
   }
 
@@ -1570,51 +1574,75 @@ class Parser {
     return token;
   }
 
+  /**
+   * Peek after the following labels (if any). The following token
+   * is used to determine if the labels belong to a statement or a
+   * switch case.
+   */
+  Token peekPastLabels(Token token) {
+    while (isIdentifier(token) && optional(':', token.next)) {
+      token = token.next.next;
+    }
+    return token;
+  }
+
+  /**
+   * Parse a group of labels, cases and possibly a default keyword and
+   * the statements that they select.
+   */
   Token parseSwitchCase(Token token) {
     Token begin = token;
     Token defaultKeyword = null;
-    Token label = null;
-    // First an optional label.
-    if (isIdentifier(token)) {
-      label = token;
-      token = parseLabel(token);
-    }
-    // Then one or more case expressions, the last of which may be
-    // 'default' instead.
     int expressionCount = 0;
-    {
-      String value = token.stringValue;
-      do {
-        if (value === 'default') {
-          defaultKeyword = token;
-          token = expect(':', token.next);
-          break;
+    int labelCount = 0;
+    Token peek = peekPastLabels(token);
+    while (true) {
+      // Loop until we find something that can't be part of a switch case.
+      String value = peek.stringValue;
+      if (value === 'default') {
+        while (token !== peek) {
+          token = parseLabel(token);
+          labelCount++;
         }
-        token = expect('case', token);
-        token = parseExpression(token);
+        defaultKeyword = token;
+        token = expect(':', token.next);
+        peek = token;
+        break;
+      } else if (value === 'case') {
+        while (token !== peek) {
+          token = parseLabel(token);
+          labelCount++;
+        }
+        Token caseKeyword = token;
+        token = parseExpression(token.next);
+        Token colonToken = token;
         token = expect(':', token);
+        listener.handleCaseMatch(caseKeyword, colonToken);
         expressionCount++;
-        value = token.stringValue;
-      } while (value === 'case' || value === 'default');
+        peek = peekPastLabels(token);
+      } else {
+        if (expressionCount == 0) {
+          listener.expected("case", token);
+        }
+        break;
+      }
     }
     // Finally zero or more statements.
     int statementCount = 0;
     while (token.kind !== EOF_TOKEN) {
-      String value;
-      if (isIdentifier(token) && optional(':', token.next)) {
-        // Skip label.
-        value = token.next.next.stringValue;
-      } else {
-        value = token.stringValue;
-      }
-      if (value === 'case' || value === 'default' || value === '}') {
+      String value = peek.stringValue;
+      if ((value === 'case') ||
+          (value === 'default') ||
+          ((value === '}') && (token === peek))) {
+        // A label just before "}" will be handled as a statement error.
         break;
       } else {
         token = parseStatement(token);
-        ++statementCount;
       }
+      statementCount++;
+      peek = peekPastLabels(token);
     }
-    listener.handleSwitchCase(label, expressionCount, defaultKeyword,
+    listener.handleSwitchCase(labelCount, expressionCount, defaultKeyword,
                               statementCount, begin, token);
     return token;
   }

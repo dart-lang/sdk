@@ -729,6 +729,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     fail(node);
   }
 
+  visitCaseMatch(CaseMatch node) {
+    fail(node);
+  }
+
   visitTryStatement(TryStatement node) {
     fail(node, 'unimplemented');
   }
