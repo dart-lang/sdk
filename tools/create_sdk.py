@@ -42,6 +42,9 @@
 # ......html/
 # ........html_frog.dart
 # ........html_dartium.dart
+# ......crypto/
+# ........crypto.dart
+# ........(implementation files)
 # ......json/
 # ........json_frog.dart
 #.........json.dart
@@ -350,10 +353,10 @@ def Main(argv):
            join(dom_dest_dir, 'dom_frog.dart'))
 
   #
-  # Create and populate lib/{json, uri, utf} .
+  # Create and populate lib/{crypto, json, uri, utf}.
   #
 
-  for library in ['json', 'uri', 'utf']:
+  for library in ['crypto', 'json', 'uri', 'utf']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)

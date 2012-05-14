@@ -4,6 +4,7 @@
 
 {
   'variables': {
+    'crypto_cc_file': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.cc',
     'io_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_gen.cc',
     'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
     'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
@@ -42,6 +43,36 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(builtin_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_crypto_cc_file',
+      'type': 'none',
+      'includes': [
+        'crypto_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_crypto_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(crypto_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(crypto_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::crypto_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(crypto_cc_file)'' file.'
         },
       ]
     },
@@ -189,6 +220,7 @@
       'type': 'static_library',
       'dependencies': [
         'generate_builtin_cc_file',
+        'generate_crypto_cc_file',
         'generate_io_cc_file',
         'generate_json_cc_file',
         'generate_uri_cc_file',
@@ -270,6 +302,7 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
+        '<(crypto_cc_file)',
         '<(io_cc_file)',
         '<(json_cc_file)',
         '<(uri_cc_file)',
@@ -360,6 +393,7 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
+        '<(crypto_cc_file)',
         '<(io_cc_file)',
         '<(json_cc_file)',
         '<(uri_cc_file)',
@@ -397,6 +431,7 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
+        '<(crypto_cc_file)',
         '<(io_cc_file)',
         '<(json_cc_file)',
         '<(uri_cc_file)',

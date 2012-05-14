@@ -14,6 +14,7 @@ const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
+const char* DartUtils::kCryptoLibURL = "dart:crypto";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
@@ -111,6 +112,11 @@ bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
   // extension library URL which is handled differently from other URLs.
   return
       (strncmp(url_name, kDartExtensionScheme, kDartExtensionSchemeLen) == 0);
+}
+
+
+bool DartUtils::IsDartCryptoLibURL(const char* url_name) {
+  return (strcmp(url_name, kCryptoLibURL) == 0);
 }
 
 

@@ -5,8 +5,7 @@
 // Library tag to allow dartium to run the test.
 #library('sha1_test');
 
-// TODO(ager): Replace with "dart:crypto" when ready.
-#import("../../../lib/crypto/crypto.dart");
+#import("dart:crypto");
 
 #source('sha1_long_test_vectors.dart');
 #source('sha1_short_test_vectors.dart');

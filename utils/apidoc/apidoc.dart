@@ -110,10 +110,11 @@ void main() {
   // Add all of the core libraries.
   world.getOrAddLibrary('dart:core');
   world.getOrAddLibrary('dart:coreimpl');
-  world.getOrAddLibrary('dart:json');
+  world.getOrAddLibrary('dart:crypto');
   world.getOrAddLibrary('dart:html');
   world.getOrAddLibrary('dart:io');
   world.getOrAddLibrary('dart:isolate');
+  world.getOrAddLibrary('dart:json');
   world.getOrAddLibrary('dart:uri');
   world.getOrAddLibrary('dart:utf');
   world.process();

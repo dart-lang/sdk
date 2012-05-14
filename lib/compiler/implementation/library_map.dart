@@ -15,6 +15,7 @@ final Map<String,String> DART2JS_LIBRARY_MAP = const <String> {
   "coreimpl": "lib/compiler/implementation/lib/coreimpl.dart",
   "_js_helper": "lib/compiler/implementation/lib/js_helper.dart",
   "_interceptors": "lib/compiler/implementation/lib/interceptors.dart",
+  "crypto": "lib/crypto/crypto.dart",
   "dom_deprecated": "lib/dom/frog/dom_frog.dart",
   "html": "lib/html/frog/html_frog.dart",
   "io": "lib/compiler/implementation/lib/io.dart",
