@@ -653,7 +653,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitWhile(While node) {
     checkCondition(node.condition);
     StatementType bodyType = analyze(node.body);
-    return bodyType.join(StatementType.NOT_RETURNING);
+    Expression cond = node.condition.asParenthesizedExpression().expression;
+    if (cond.asLiteralBool() !== null && cond.asLiteralBool().value == true) {
+      // If the condition is a constant boolean expression denoting true,
+      // control-flow always enters the loop body.
+      return bodyType;
+    } else {
+      return bodyType.join(StatementType.NOT_RETURNING);
+    }
   }
 
   Type visitParenthesizedExpression(ParenthesizedExpression node) {
