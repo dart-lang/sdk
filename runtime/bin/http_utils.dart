@@ -4,46 +4,35 @@
 
 class _HttpUtils {
   static String decodeUrlEncodedString(String urlEncoded) {
-    // First check the string for any encoding.
-    int index = 0;
-    bool encoded = false;
-    while (!encoded && index < urlEncoded.length) {
-      encoded = urlEncoded[index] == "+" || urlEncoded[index] == "%";
-      index++;
+    void invalidEscape() {
+      // TODO(sgjesse): Handle the error.
     }
-    if (!encoded) return urlEncoded;
-    index--;
 
-    // Start decoding from the first encoded character.
-    List<int> bytes = new List<int>();
-    for (int i = 0; i < index; i++) bytes.add(urlEncoded.charCodeAt(i));
-    for (int i = index; i < urlEncoded.length; i++) {
-      if (urlEncoded[i] == "+") {
-        bytes.add(32);
-      } else if (urlEncoded[i] == "%") {
-        if (urlEncoded.length - i < 2) {
-          throw new HttpException("Invalid URL encoding");
-        }
-        int byte = 0;
-        for (int j = 0; j < 2; j++) {
-          var charCode = urlEncoded.charCodeAt(i + j + 1);
-          if (0x30 <= charCode && charCode <= 0x39) {
-            byte = byte * 16 + charCode - 0x30;
-          } else if (0x41 <= charCode && charCode <= 0x46) {
-            byte = byte * 16 + charCode - 0x37;
-          } else if (0x61 <= charCode && charCode <= 0x66) {
-            byte = byte * 16 + charCode - 0x57;
+    StringBuffer result = new StringBuffer();
+    for (int ii = 0; urlEncoded.length > ii; ++ii) {
+      if ('+' == urlEncoded[ii]) {
+        result.add(' ');
+      } else if ('%' == urlEncoded[ii] &&
+                 urlEncoded.length - 2 > ii) {
+        try {
+          int charCode =
+            Math.parseInt('0x' + urlEncoded.substring(ii + 1, ii + 3));
+          if (charCode <= 0x7f) {
+            result.add(new String.fromCharCodes([charCode]));
+            ii += 2;
           } else {
-            throw new HttpException("Invalid URL encoding");
+            invalidEscape();
+            return '';
           }
+        } catch (BadNumberFormatException ignored) {
+          invalidEscape();
+          return '';
         }
-        bytes.add(byte);
-        i += 2;
       } else {
-        bytes.add(urlEncoded.charCodeAt(i));
+        result.add(urlEncoded[ii]);
       }
     }
-    return decodeUtf8(bytes);
+    return result.toString();
   }
 
   static Map<String, String> splitQueryString(String queryString) {

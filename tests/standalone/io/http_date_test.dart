@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#source("../../../runtime/bin/input_stream.dart");
-#source("../../../runtime/bin/output_stream.dart");
-#source("../../../runtime/bin/chunked_stream.dart");
-#source("../../../runtime/bin/string_stream.dart");
-#source("../../../runtime/bin/stream_util.dart");
-#source("../../../runtime/bin/http.dart");
-#source("../../../runtime/bin/http_impl.dart");
-#source("../../../runtime/bin/http_parser.dart");
 #source("../../../runtime/bin/http_utils.dart");
+
+class HttpException implements Exception {
+  const HttpException([String this.message = ""]);
+  String toString() => "HttpException: $message";
+  final String message;
+}
 
 void testParseHttpDate() {
   TimeZone utc = new TimeZone.utc();

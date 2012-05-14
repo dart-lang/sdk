@@ -11,4 +11,3 @@
 #import("dart:isolate");
 #import("dart:nativewrappers");
 #import("dart:uri");
-#import("dart:utf");
