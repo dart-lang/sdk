@@ -42,19 +42,19 @@ const char* CanonicalFunction(const char* func) {
   }
 }
 
-#define RETURN_TYPE_ERROR(isolate, dart_handle, Type)                         \
-  do {                                                                        \
-    const Object& tmp =                                                       \
-        Object::Handle(isolate, Api::UnwrapHandle((dart_handle)));            \
-    if (tmp.IsNull()) {                                                       \
-      return Api::NewError("%s expects argument '%s' to be non-null.",        \
-                           CURRENT_FUNC, #dart_handle);                       \
-    } else if (tmp.IsError()) {                                               \
-      return dart_handle;                                                     \
-    } else {                                                                  \
-      return Api::NewError("%s expects argument '%s' to be of type %s.",      \
-                           CURRENT_FUNC, #dart_handle, #Type);                \
-    }                                                                         \
+#define RETURN_TYPE_ERROR(isolate, dart_handle, Type)                   \
+  do {                                                                  \
+    const Object& tmp =                                                 \
+        Object::Handle(isolate, Api::UnwrapHandle((dart_handle)));      \
+    if (tmp.IsNull()) {                                                 \
+      return Api::NewError("%s expects argument '%s' to be non-null.",  \
+                           CURRENT_FUNC, #dart_handle);                 \
+    } else if (tmp.IsError()) {                                         \
+      return dart_handle;                                               \
+    } else {                                                            \
+      return Api::NewError("%s expects argument '%s' to be of type %s.", \
+                           CURRENT_FUNC, #dart_handle, #Type);          \
+    }                                                                   \
   } while (0)
 
 
@@ -120,15 +120,15 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   return *(reinterpret_cast<RawObject**>(object));
 }
 
-#define DEFINE_UNWRAP(Type)                                                   \
-  const Type& Api::Unwrap##Type##Handle(Isolate* iso,                         \
-                                        Dart_Handle dart_handle) {            \
-    const Object& tmp = Object::Handle(iso, Api::UnwrapHandle(dart_handle));  \
-    Type& typed_handle = Type::Handle(iso);                                   \
-    if (tmp.Is##Type()) {                                                     \
-      typed_handle ^= tmp.raw();                                              \
-    }                                                                         \
-    return typed_handle;                                                      \
+#define DEFINE_UNWRAP(Type)                                             \
+  const Type& Api::Unwrap##Type##Handle(Isolate* iso,                   \
+                                        Dart_Handle dart_handle) {      \
+    const Object& tmp = Object::Handle(iso, Api::UnwrapHandle(dart_handle)); \
+    Type& typed_handle = Type::Handle(iso);                             \
+    if (tmp.Is##Type()) {                                               \
+      typed_handle ^= tmp.raw();                                        \
+    }                                                                   \
+    return typed_handle;                                                \
   }
 CLASS_LIST_NO_OBJECT(DEFINE_UNWRAP)
 #undef DEFINE_UNWRAP
@@ -259,10 +259,7 @@ void Api::InitOnce() {
 
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
-  return obj.IsError();
+  return RawObject::IsErrorClassIndex(Api::ClassIndex(handle));
 }
 
 
@@ -374,9 +371,9 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
 
 
 DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
-                                           int line,
-                                           const char* handle,
-                                           const char* message) {
+                                         int line,
+                                         const char* handle,
+                                         const char* message) {
   fprintf(stderr, "%s:%d: error handle: '%s':\n    '%s'\n",
           file, line, handle, message);
   OS::Abort();
@@ -1010,10 +1007,7 @@ DART_EXPORT Dart_Handle Dart_Null() {
 
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsNull();
+  return Api::ClassIndex(object) == kNullClassIndex;
 }
 
 
@@ -1083,10 +1077,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 
 // TODO(iposva): The argument should be an instance.
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsNumber();
+  return RawObject::IsNumberClassIndex(Api::ClassIndex(object));
 }
 
 
@@ -1094,24 +1085,17 @@ DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
-  // Fast path for Smis.
-  if (Api::IsSmi(object)) {
-    return true;
-  }
-
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsInteger();
+  return RawObject::IsIntegerClassIndex(Api::ClassIndex(object));
 }
 
 
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
                                                   bool* fits) {
-  // Fast path for Smis.
+  // Fast path for Smis and Mints.
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  if (Api::IsSmi(integer)) {
+  intptr_t class_index = Api::ClassIndex(integer);
+  if (class_index == kSmi || class_index == kMint) {
     *fits = true;
     return Api::Success(isolate);
   }
@@ -1121,17 +1105,13 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  if (int_obj.IsSmi() || int_obj.IsMint()) {
-    *fits = true;
-  } else {
-    ASSERT(int_obj.IsBigint());
+  ASSERT(int_obj.IsBigint());
 #if defined(DEBUG)
-    Bigint& bigint = Bigint::Handle(isolate);
-    bigint ^= int_obj.raw();
-    ASSERT(!BigintOperations::FitsIntoMint(bigint));
+  Bigint& bigint = Bigint::Handle(isolate);
+  bigint ^= int_obj.raw();
+  ASSERT(!BigintOperations::FitsIntoMint(bigint));
 #endif
-    *fits = false;
-  }
+  *fits = false;
   return Api::Success(isolate);
 }
 
@@ -1298,10 +1278,7 @@ DART_EXPORT Dart_Handle Dart_False() {
 
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsBool();
+  return Api::ClassIndex(object) == kBool;
 }
 
 
@@ -1329,10 +1306,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsDouble();
+  return Api::ClassIndex(object) == kDouble;
 }
 
 
@@ -1360,27 +1334,17 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
 
 
 DART_EXPORT bool Dart_IsString(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsString();
+  return RawObject::IsStringClassIndex(Api::ClassIndex(object));
 }
 
 
 DART_EXPORT bool Dart_IsString8(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsOneByteString() || obj.IsExternalOneByteString();
+  return RawObject::IsOneByteStringClassIndex(Api::ClassIndex(object));
 }
 
 
 DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return (obj.IsOneByteString() || obj.IsExternalOneByteString() ||
-          obj.IsTwoByteString() || obj.IsExternalTwoByteString());
+  return RawObject::IsTwoByteStringClassIndex(Api::ClassIndex(object));
 }
 
 
@@ -1430,13 +1394,7 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 
 
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str = Api::UnwrapStringHandle(isolate, object);
-  if (str.IsNull()) {
-    return false;
-  }
-  return str.IsExternal();
+  return RawObject::IsExternalStringClassIndex(Api::ClassIndex(object));
 }
 
 
@@ -1663,11 +1621,14 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
+  if (RawObject::IsBuiltinListClassIndex(Api::ClassIndex(object))) {
+    return true;
+  }
+
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return (obj.IsArray() || obj.IsGrowableObjectArray() ||
-          (GetListInstance(isolate, obj) != Instance::null()));
+  return GetListInstance(isolate, obj) != Instance::null();
 }
 
 
@@ -2012,10 +1973,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 
 
 DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsByteArray();
+  return RawObject::IsByteArrayClassIndex(Api::ClassIndex(object));
 }
 
 
@@ -2243,6 +2201,8 @@ DART_EXPORT Dart_Handle Dart_ByteArraySetFloat64At(Dart_Handle array,
 
 
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
+  // We can't use a fast class index check here because there are many
+  // different signature classes for closures.
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
@@ -3133,10 +3093,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsLibrary();
+  return Api::ClassIndex(object) == kLibrary;
 }
 
 

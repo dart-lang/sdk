@@ -344,6 +344,8 @@ class FrogInterfaceGenerator(object):
     template = self._system._templates.Load(template_file)
     self._members_emitter.Emit(template, E=DartType(element_type))
 
+  def AmendIndexer(self, element_type):
+    pass
 
   def AddOperation(self, info):
     """

@@ -329,11 +329,12 @@ class _MainManagerStub implements _ManagerStub {
 }
 
 /**
- * A stub for interacting with a manager built on a web worker. The type
- * Worker is also defined in 'dart:dom', but we define it here to avoid
- * introducing a dependency from corelib to dom. This definition uses a
- * 'hidden' type (* prefix on the native name) to enforce that the type is
- * defined dynamically only when web workers are actually available.
+ * A stub for interacting with a manager built on a web worker. The
+ * type Worker is also defined in 'dart:dom_deprecated', but we define
+ * it here to avoid introducing a dependency from corelib to dom. This
+ * definition uses a 'hidden' type (* prefix on the native name) to
+ * enforce that the type is defined dynamically only when web workers
+ * are actually available.
  */
 class _WorkerStub implements _ManagerStub native "*Worker" {
   get id() native "return this.id;";

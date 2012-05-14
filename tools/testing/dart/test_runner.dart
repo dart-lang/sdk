@@ -240,8 +240,12 @@ class TestOutputImpl implements TestOutput {
     diagnostics = [];
   }
 
-  factory TestOutputImpl.fromCase (TestCase testCase, int exitCode, bool timedOut,
-                                   List<String> stdout, List<String> stderr, Duration time) {
+  factory TestOutputImpl.fromCase (TestCase testCase,
+                                   int exitCode,
+                                   bool timedOut,
+                                   List<String> stdout,
+                                   List<String> stderr,
+                                   Duration time) {
     if (testCase is BrowserTestCase) {
       return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
         stdout, stderr, time);
@@ -427,21 +431,23 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       return true;
     }
     if (numStaticTypeAnnotations > 0 && isStaticClean) {
-      diagnostics.add("Cannot have both @static-clean and /// static type warning annotations.");
+      diagnostics.add("Cannot have both @static-clean and /// static "
+                      "type warning annotations.");
       return true;
     }
 
     if (isStaticClean && staticWarnings.length > 0) {
-      diagnostics.add("@static-clean annotation found but analyzer returned warnings.");
+      diagnostics.add(
+          "@static-clean annotation found but analyzer returned warnings.");
       return true;
     }
 
     if (numCompileTimeAnnotations > 0
         && numCompileTimeAnnotations < errors.length) {
-
-      // Expected compile-time errors were not returned.  The test did not 'fail' in the way
-      // intended so don't return failed.
-      diagnostics.add("Fewer compile time errors than annotated: ${numCompileTimeAnnotations}");
+      // Expected compile-time errors were not returned.
+      // The test did not 'fail' in the way intended so don't return failed.
+      diagnostics.add("Fewer compile time errors than annotated: "
+          "$numCompileTimeAnnotations");
       return false;
     }
 
@@ -449,7 +455,8 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       // TODO(zundel): match up the annotation line numbers
       // with the reported error line numbers
       if (staticWarnings.length < numStaticTypeAnnotations) {
-        diagnostics.add("Fewer static type warnings than annotated: ${numStaticTypeAnnotations}");
+        diagnostics.add("Fewer static type warnings than annotated: "
+            "$numStaticTypeAnnotations");
         return true;
       }
       return false;
@@ -593,6 +600,7 @@ class RunningProcess {
     stdout = new List<String>();
     stderr = new List<String>();
     currentStep = 0;
+    startTime = new Date.now();
     runCommand(testCase.commands[currentStep++], stepExitHandler);
   }
 
@@ -611,7 +619,6 @@ class RunningProcess {
       print("  Command: $command");
       print("  Error: $e");
     };
-    startTime = new Date.now();
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
     StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
@@ -735,8 +742,9 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT",
-                   _testStdout, _testStderr, new Date.now().difference(_startTime));
+    new TestOutput.fromCase(_currentTest, exitCode, (outcome == "TIMEOUT"),
+                            _testStdout, _testStderr,
+                            new Date.now().difference(_startTime));
     // Move on when both stdout and stderr has been drained. If the test
     // crashed, we restarted the process and therefore do not attempt to
     // drain stderr.

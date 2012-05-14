@@ -1,7 +1,7 @@
 #library('HTMLCollectionTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 // Test that HTMLCollection implements List<T>
 main() {

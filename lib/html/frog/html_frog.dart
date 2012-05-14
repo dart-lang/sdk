@@ -6516,6 +6516,8 @@ class _EventImpl implements Event native "*Event" {
 
   static final int MOUSEUP = 2;
 
+  static final int NONE = 0;
+
   static final int SELECT = 16384;
 
   final bool bubbles;
@@ -7476,7 +7478,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  final int direction;
+  final String direction;
 
   final Dynamic key;
 
@@ -7523,7 +7525,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionImpl transaction(storeName_OR_storeNames, [int mode = null]) native;
+  _IDBTransactionImpl transaction(storeName_OR_storeNames, mode) native;
 }
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -7602,9 +7604,9 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestImpl getKey(key) native;
 
-  _IDBRequestImpl openCursor([key_OR_range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range = null, direction = null]) native;
 
-  _IDBRequestImpl openKeyCursor([key_OR_range = null, int direction = null]) native;
+  _IDBRequestImpl openKeyCursor([key_OR_range = null, direction = null]) native;
 }
 
 class _IDBKeyImpl implements IDBKey native "*IDBKey" {
@@ -7647,7 +7649,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBIndexImpl index(String name) native;
 
-  _IDBRequestImpl openCursor([key_OR_range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range = null, direction = null]) native;
 
   _IDBRequestImpl put(value, [key = null]) native;
 }
@@ -7657,13 +7659,9 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
   _IDBRequestEventsImpl get on() =>
     new _IDBRequestEventsImpl(this);
 
-  static final int DONE = 2;
-
-  static final int LOADING = 1;
-
   final int errorCode;
 
-  final int readyState;
+  final String readyState;
 
   final Dynamic result;
 
@@ -7701,7 +7699,7 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction nat
 
   final _IDBDatabaseImpl db;
 
-  final int mode;
+  final String mode;
 
   void abort() native;
 
@@ -7883,6 +7881,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   String formTarget;
 
+  int height;
+
   bool incremental;
 
   bool indeterminate;
@@ -7938,6 +7938,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool webkitSpeech;
 
   bool webkitdirectory;
+
+  int width;
 
   final bool willValidate;
 
@@ -9827,7 +9829,13 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native 
 
   static final int CUSTOM = 4;
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
   static final int SAWTOOTH = 2;
+
+  static final int SCHEDULED_STATE = 1;
 
   static final int SINE = 0;
 
@@ -9835,11 +9843,19 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native 
 
   static final int TRIANGLE = 3;
 
+  static final int UNSCHEDULED_STATE = 0;
+
   final _AudioParamImpl detune;
 
   final _AudioParamImpl frequency;
 
+  final int playbackState;
+
   int type;
+
+  void noteOff(num when) native;
+
+  void noteOn(num when) native;
 
   void setWaveTable(_WaveTableImpl waveTable) native;
 }
@@ -9930,9 +9946,9 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   static final int ICE_WAITING = 0x200;
 
-  static final int NEGOTIATING = 1;
-
   static final int NEW = 0;
+
+  static final int OPENING = 1;
 
   static final int SDP_ANSWER = 0x300;
 
@@ -9954,13 +9970,13 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  void addStream(_MediaStreamImpl stream, [String mediaStreamHints = null]) native;
+  void addStream(_MediaStreamImpl stream, [Map mediaStreamHints = null]) native;
 
   void close() native;
 
-  _SessionDescriptionImpl createAnswer(String offer, [String mediaHints = null]) native;
+  _SessionDescriptionImpl createAnswer(String offer, [Map mediaHints = null]) native;
 
-  _SessionDescriptionImpl createOffer([String mediaHints = null]) native;
+  _SessionDescriptionImpl createOffer([Map mediaHints = null]) native;
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
@@ -9974,7 +9990,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, _SessionDescriptionImpl desc) native;
 
-  void startIce([String iceOptions = null]) native;
+  void startIce([Map iceOptions = null]) native;
 }
 
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
@@ -10144,6 +10160,11 @@ class _RGBColorImpl implements RGBColor native "*RGBColor" {
   final _CSSPrimitiveValueImpl green;
 
   final _CSSPrimitiveValueImpl red;
+}
+
+class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList native "*RadioNodeList" {
+
+  String value;
 }
 
 class _RangeImpl implements Range native "*Range" {
@@ -13903,6 +13924,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   final _ElementImpl activeElement;
 
+  bool applyAuthorStyles;
+
   final _ElementImpl host;
 
   String innerHTML;
@@ -15166,105 +15189,14 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   _Uint8ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
+class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray native "*Uint8ClampedArray" {
 
   // Use implementation from Uint8Array.
   // final int length;
 
-  int operator[](int index) native "return this[index];";
-
-  void operator[]=(int index, int value) native "this[index] = value";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<int>(this);
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
-
-  Collection map(f(int element)) => _Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => _Collections.every(this, f);
-
-  bool some(bool f(int element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<int>:
-
-  void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  int last() => this[length - 1];
-
-  int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  // FIXME: implement these.
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
-
-  // -- end List<int> mixins.
-
   void setElements(Object array, [int offset = null]) native "set";
 
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
-
-  // From ArrayBufferView
-
-  // Use implementation from ArrayBufferView.
-  // final _ArrayBufferImpl buffer;
-
-  // Use implementation from ArrayBufferView.
-  // final int byteLength;
-
-  // Use implementation from ArrayBufferView.
-  // final int byteOffset;
 }
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
@@ -23307,6 +23239,8 @@ interface Event default _EventFactoryProvider {
 
   static final int MOUSEUP = 2;
 
+  static final int NONE = 0;
+
   static final int SELECT = 16384;
 
   /** @domName Event.bubbles */
@@ -24291,7 +24225,7 @@ interface IDBCursor {
   static final int PREV_NO_DUPLICATE = 3;
 
   /** @domName IDBCursor.direction */
-  final int direction;
+  final String direction;
 
   /** @domName IDBCursor.key */
   final Dynamic key;
@@ -24371,7 +24305,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(storeName_OR_storeNames, [int mode]);
+  IDBTransaction transaction(storeName_OR_storeNames, mode);
 }
 
 interface IDBDatabaseEvents extends Events {
@@ -24484,10 +24418,10 @@ interface IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([key_OR_range, int direction]);
+  IDBRequest openCursor([key_OR_range, direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([key_OR_range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24587,7 +24521,7 @@ interface IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([key_OR_range, int direction]);
+  IDBRequest openCursor([key_OR_range, direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
@@ -24606,15 +24540,11 @@ interface IDBRequest extends EventTarget {
    */
   IDBRequestEvents get on();
 
-  static final int DONE = 2;
-
-  static final int LOADING = 1;
-
   /** @domName IDBRequest.errorCode */
   final int errorCode;
 
   /** @domName IDBRequest.readyState */
-  final int readyState;
+  final String readyState;
 
   /** @domName IDBRequest.result */
   final Dynamic result;
@@ -24668,7 +24598,7 @@ interface IDBTransaction extends EventTarget {
   final IDBDatabase db;
 
   /** @domName IDBTransaction.mode */
-  final int mode;
+  final String mode;
 
   /** @domName IDBTransaction.abort */
   void abort();
@@ -24943,6 +24873,9 @@ interface InputElement extends Element {
   /** @domName HTMLInputElement.formTarget */
   String formTarget;
 
+  /** @domName HTMLInputElement.height */
+  int height;
+
   /** @domName HTMLInputElement.incremental */
   bool incremental;
 
@@ -25026,6 +24959,9 @@ interface InputElement extends Element {
 
   /** @domName HTMLInputElement.webkitdirectory */
   bool webkitdirectory;
+
+  /** @domName HTMLInputElement.width */
+  int width;
 
   /** @domName HTMLInputElement.willValidate */
   final bool willValidate;
@@ -26800,6 +26736,13 @@ interface NotificationCenter {
   /** @domName NotificationCenter.requestPermission */
   void requestPermission(VoidCallback callback);
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27035,7 +26978,13 @@ interface Oscillator extends AudioSourceNode {
 
   static final int CUSTOM = 4;
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
   static final int SAWTOOTH = 2;
+
+  static final int SCHEDULED_STATE = 1;
 
   static final int SINE = 0;
 
@@ -27043,14 +26992,25 @@ interface Oscillator extends AudioSourceNode {
 
   static final int TRIANGLE = 3;
 
+  static final int UNSCHEDULED_STATE = 0;
+
   /** @domName Oscillator.detune */
   final AudioParam detune;
 
   /** @domName Oscillator.frequency */
   final AudioParam frequency;
 
+  /** @domName Oscillator.playbackState */
+  final int playbackState;
+
   /** @domName Oscillator.type */
   int type;
+
+  /** @domName Oscillator.noteOff */
+  void noteOff(num when);
+
+  /** @domName Oscillator.noteOn */
+  void noteOn(num when);
 
   /** @domName Oscillator.setWaveTable */
   void setWaveTable(WaveTable waveTable);
@@ -27203,9 +27163,9 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
   static final int ICE_WAITING = 0x200;
 
-  static final int NEGOTIATING = 1;
-
   static final int NEW = 0;
+
+  static final int OPENING = 1;
 
   static final int SDP_ANSWER = 0x300;
 
@@ -27235,16 +27195,16 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [String mediaStreamHints]);
+  void addStream(MediaStream stream, [Map mediaStreamHints]);
 
   /** @domName PeerConnection00.close */
   void close();
 
   /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [String mediaHints]);
+  SessionDescription createAnswer(String offer, [Map mediaHints]);
 
   /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([String mediaHints]);
+  SessionDescription createOffer([Map mediaHints]);
 
   /** @domName PeerConnection00.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
@@ -27265,7 +27225,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   void setRemoteDescription(int action, SessionDescription desc);
 
   /** @domName PeerConnection00.startIce */
-  void startIce([String iceOptions]);
+  void startIce([Map iceOptions]);
 }
 
 interface PeerConnection00Events extends Events {
@@ -27586,6 +27546,18 @@ interface RGBColor {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RadioNodeList
+interface RadioNodeList extends NodeList {
+
+  /** @domName RadioNodeList.value */
+  String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName Range
 interface Range {
 
@@ -27783,7 +27755,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(num highResTime);
+typedef bool RequestAnimationFrameCallback(int time);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -31493,6 +31465,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.activeElement */
   final Element activeElement;
 
+  /** @domName ShadowRoot.applyAuthorStyles */
+  bool applyAuthorStyles;
+
   /** @domName ShadowRoot.host */
   final Element host;
 
@@ -32953,7 +32928,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint8ClampedArray
-interface Uint8ClampedArray extends Uint8Array, List<int>, ArrayBufferView default _TypedArrayFactoryProvider {
+interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
 

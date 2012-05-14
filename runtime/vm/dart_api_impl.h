@@ -123,6 +123,14 @@ class Api : AllStatic {
     return Smi::ValueFromRaw(value);
   }
 
+  static intptr_t ClassIndex(Dart_Handle handle) {
+    RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
+    if (!raw->IsHeapObject()) {
+      return kSmi;
+    }
+    return raw->GetClassIndex();
+  }
+
   // Generates a handle used to designate an error return.
   static Dart_Handle NewError(const char* format, ...);
 

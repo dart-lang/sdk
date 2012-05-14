@@ -24,6 +24,9 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
     case kBuiltinLibrary:
       source = Dart_NewString(Builtin::builtin_source_);
       break;
+    case kCryptoLibrary:
+      source = Dart_NewString(Builtin::crypto_source_);
+      break;
     case kIOLibrary:
       source = Dart_NewString(Builtin::io_source_);
       break;
@@ -44,7 +47,10 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
 
 
 void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
-  if ((id == kJsonLibrary) || (id == kUriLibrary) || (id == kUtfLibrary)) {
+  if ((id == kCryptoLibrary) ||
+      (id == kJsonLibrary) ||
+      (id == kUriLibrary) ||
+      (id == kUtfLibrary)) {
     // No native resolver for these pure Dart libraries.
     return;
   } else if (id == kBuiltinLibrary) {
@@ -63,6 +69,9 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
   switch (id) {
     case kBuiltinLibrary:
       url = Dart_NewString(DartUtils::kBuiltinLibURL);
+      break;
+    case kCryptoLibrary:
+      url = Dart_NewString(DartUtils::kCryptoLibURL);
       break;
     case kIOLibrary:
       url = Dart_NewString(DartUtils::kIOLibURL);

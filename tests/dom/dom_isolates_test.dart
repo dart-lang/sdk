@@ -1,7 +1,7 @@
 #library('DOMIsolatesTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('dart:isolate');
 
 isolateMain(port) {

@@ -6,7 +6,7 @@
 
 #library("DOM Library");
 
-#import("dart:domimpl");
+#import("dart:dom_deprecatedimpl");
 #import("dart:isolate");
 
 #source('$AUXILIARY_DIR/DOMStringMap.dart');

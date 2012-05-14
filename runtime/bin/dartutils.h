@@ -72,6 +72,7 @@ class DartUtils {
                              const char* val);
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
+  static bool IsDartCryptoLibURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartJsonLibURL(const char* url_name);
   static bool IsDartUriLibURL(const char* url_name);
@@ -99,6 +100,7 @@ class DartUtils {
   static const char* kBuiltinLibURL;
   static const char* kCoreLibURL;
   static const char* kCoreImplLibURL;
+  static const char* kCryptoLibURL;
   static const char* kIOLibURL;
   static const char* kJsonLibURL;
   static const char* kUriLibURL;

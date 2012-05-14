@@ -50,6 +50,8 @@ class JSRegExpMatch implements Match {
     return regexp._groupCount;
   }
 
+  String get pattern() => regexp.pattern;
+
   final RegExp regexp;
   final String str;
   final List<int> _match;

@@ -5,25 +5,25 @@
 class WorkItem {
   final Element element;
   TreeElements resolutionTree;
-  Function run;
   bool allowSpeculativeOptimization = true;
   List<HTypeGuard> guards = const <HTypeGuard>[];
 
-  WorkItem.toCompile(this.element) : resolutionTree = null {
-    run = (Compiler compiler) => compiler.compile(this);
-  }
+  WorkItem(this.element, this.resolutionTree);
 
-  WorkItem.toCodegen(this.element, this.resolutionTree) {
-    run = (Compiler compiler) => compiler.codegen(this);
-  }
-
-  bool isAnalyzed() => resolutionTree != null;
+  bool isAnalyzed() => resolutionTree !== null;
 
   int hashCode() => element.hashCode();
+
+  String run(Compiler compiler) {
+    String code = compiler.universe.generatedCode[element];
+    if (code !== null) return code;
+    if (!isAnalyzed()) compiler.analyze(this);
+    return compiler.codegen(this);
+  }
 }
 
 class Compiler implements DiagnosticListener {
-  Queue<WorkItem> worklist;
+  Queue<WorkItem> codegenQueue;
   Universe universe;
   World world;
   String assembledCode;
@@ -87,14 +87,14 @@ class Compiler implements DiagnosticListener {
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
-  bool workListIsClosed = false;
+  bool codegenQueueIsClosed = false;
 
   Stopwatch codegenProgress;
 
   Compiler([this.tracer = const Tracer()])
       : universe = new Universe(),
         world = new World(),
-        worklist = new Queue<WorkItem>(),
+        codegenQueue = new Queue<WorkItem>(),
         codegenProgress = new Stopwatch.start() {
     namer = new Namer(this);
     constantHandler = new ConstantHandler(this);
@@ -156,13 +156,6 @@ class Compiler implements DiagnosticListener {
 
   void log(message) {
     reportDiagnostic(null, message, false);
-  }
-
-  void enqueue(WorkItem work) {
-    if (workListIsClosed) {
-      internalErrorOnElement(work.element, "work list is closed");
-    }
-    worklist.add(work);
   }
 
   bool run(Uri uri) {
@@ -296,18 +289,18 @@ class Compiler implements DiagnosticListener {
     Collection<LibraryElement> libraries = universe.libraries.getValues();
     native.processNativeClasses(this, libraries);
     world.populate(this, libraries);
-    enqueue(new WorkItem.toCompile(main));
+    addToWorkList(main);
     codegenProgress.reset();
-    while (!worklist.isEmpty()) {
-      WorkItem work = worklist.removeLast();
-      withCurrentElement(work.element, () => (work.run)(this));
+    while (!codegenQueue.isEmpty()) {
+      WorkItem work = codegenQueue.removeLast();
+      withCurrentElement(work.element, () => work.run(this));
     }
-    workListIsClosed = true;
+    codegenQueueIsClosed = true;
     assert(enqueuer.checkNoEnqueuedInvokedInstanceMethods());
     enqueuer.registerFieldClosureInvocations();
     emitter.assembleProgram();
-    if (!worklist.isEmpty()) {
-      internalErrorOnElement(worklist.first().element,
+    if (!codegenQueue.isEmpty()) {
+      internalErrorOnElement(codegenQueue.first().element,
                              "work list is not empty");
     }
   }
@@ -356,21 +349,14 @@ class Compiler implements DiagnosticListener {
     }
   }
 
-  String compile(WorkItem work) {
-    String code = universe.generatedCode[work.element];
-    if (code !== null) return code;
-    analyze(work);
-    return codegen(work);
-  }
-
-  void addToWorkList(Element element) {
-    if (workListIsClosed) {
+  void addToWorkList(Element element, [TreeElements elements]) {
+    if (codegenQueueIsClosed) {
       internalErrorOnElement(element, "work list is closed");
     }
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
-    worklist.add(new WorkItem.toCompile(element));
+    codegenQueue.add(new WorkItem(element, elements));
   }
 
   void registerStaticUse(Element element) {

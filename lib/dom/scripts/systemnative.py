@@ -601,8 +601,7 @@ class NativeImplementationGenerator(object):
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
     dart_element_type = DartType(element_type)
-    if ('CustomIndexedGetter' in self._interface.ext_attrs or
-        'NumericIndexedGetter' in self._interface.ext_attrs):
+    if self._HasNativeIndexGetter():
       self._EmitNativeIndexGetter(dart_element_type)
     else:
       self._members_emitter.Emit(
@@ -612,7 +611,7 @@ class NativeImplementationGenerator(object):
           '  }\n',
           TYPE=dart_element_type)
 
-    if 'CustomIndexedSetter' in self._interface.ext_attrs:
+    if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
     else:
       self._members_emitter.Emit(
@@ -711,10 +710,33 @@ class NativeImplementationGenerator(object):
         '  }\n',
         TYPE=dart_element_type)
 
+  def AmendIndexer(self, element_type):
+    # If interface is marked as having native indexed
+    # getter or setter, we must emit overrides as it's not
+    # guaranteed that the corresponding methods in C++ would be
+    # virtual.  For example, as of time of writing, even though
+    # Uint8ClampedArray inherits from Uint8Array, ::set method
+    # is not virtual and accessing it through Uint8Array pointer
+    # would lead to wrong semantics (modulo vs. clamping.)
+    dart_element_type = DartType(element_type)
+
+    if self._HasNativeIndexGetter():
+      self._EmitNativeIndexGetter(dart_element_type)
+    if self._HasNativeIndexSetter():
+      self._EmitNativeIndexSetter(dart_element_type)
+
+  def _HasNativeIndexGetter(self):
+    ext_attrs = self._interface.ext_attrs
+    return ('CustomIndexedGetter' in ext_attrs or
+        'NumericIndexedGetter' in ext_attrs)
+
   def _EmitNativeIndexGetter(self, element_type):
     dart_declaration = '%s operator[](int index)' % element_type
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
         'Callback', True)
+
+  def _HasNativeIndexSetter(self):
+    return 'CustomIndexedSetter' in self._interface.ext_attrs
 
   def _EmitNativeIndexSetter(self, element_type):
     dart_declaration = 'void operator[]=(int index, %s value)' % element_type

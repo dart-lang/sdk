@@ -27,6 +27,9 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
     case kBuiltinLibrary:
       url = Dart_NewString(DartUtils::kBuiltinLibURL);
       break;
+    case kCryptoLibrary:
+      url = Dart_NewString(DartUtils::kCryptoLibURL);
+      break;
     case kIOLibrary:
       url = Dart_NewString(DartUtils::kIOLibURL);
       break;

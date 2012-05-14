@@ -183,7 +183,9 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
     }
     ASSERT(tag == kImportTag);
     // Handle imports of other built-in libraries present in the SDK.
-    if (DartUtils::IsDartIOLibURL(url_string)) {
+    if (DartUtils::IsDartCryptoLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kCryptoLibrary);
+    } else if (DartUtils::IsDartIOLibURL(url_string)) {
       return Builtin::LoadLibrary(Builtin::kIOLibrary);
     } else if (DartUtils::IsDartJsonLibURL(url_string)) {
       return Builtin::LoadLibrary(Builtin::kJsonLibrary);
@@ -299,6 +301,8 @@ int main(int argc, char** argv) {
     // This is a generic dart snapshot which needs builtin library setup.
     Dart_Handle library =
         LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
+    VerifyLoaded(library);
+    library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
     VerifyLoaded(library);
     library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
     VerifyLoaded(library);

@@ -110,10 +110,11 @@ void main() {
   // Add all of the core libraries.
   world.getOrAddLibrary('dart:core');
   world.getOrAddLibrary('dart:coreimpl');
-  world.getOrAddLibrary('dart:json');
+  world.getOrAddLibrary('dart:crypto');
   world.getOrAddLibrary('dart:html');
   world.getOrAddLibrary('dart:io');
   world.getOrAddLibrary('dart:isolate');
+  world.getOrAddLibrary('dart:json');
   world.getOrAddLibrary('dart:uri');
   world.getOrAddLibrary('dart:utf');
   world.process();
@@ -454,8 +455,9 @@ class Apidoc extends doc.Dartdoc {
 
   /**
    * Returns additional documentation for [member], linking it to the
-   * corresponding `dart:html` or `dart:dom` [Member](s). If [member] is not in
-   * `dart:html` or `dart:dom`, returns no additional documentation.
+   * corresponding `dart:html` or `dart:dom_deprecated`
+   * [Member](s). If [member] is not in `dart:html` or
+   * `dart:dom_deprecated`, returns no additional documentation.
    */
   String getMemberDoc(Member member) {
     if (_diff.domToHtml.containsKey(member)) {
@@ -475,7 +477,7 @@ class Apidoc extends doc.Dartdoc {
       return
           '''
           <p class="correspond">This $phrase $domMembers in the
-          ${a("dom.html", "dart:dom")} library.</p>
+          ${a("dom.html", "dart:dom_deprecated")} library.</p>
           ''';
     } else {
       return '';
@@ -483,9 +485,10 @@ class Apidoc extends doc.Dartdoc {
   }
 
   /**
-   * Returns additional Markdown-formatted documentation for [type], linking it
-   * to the corresponding `dart:html` or `dart:dom` [Type](s). If [type] is not
-   * in `dart:html` or `dart:dom`, returns no additional documentation.
+   * Returns additional Markdown-formatted documentation for [type],
+   * linking it to the corresponding `dart:html` or
+   * `dart:dom_deprecated` [Type](s). If [type] is not in `dart:html`
+   * or `dart:dom_deprecated`, returns no additional documentation.
    */
   String getTypeDoc(Type type) {
     final htmlTypes = _diff.domTypesToHtml[type];
@@ -504,7 +507,7 @@ class Apidoc extends doc.Dartdoc {
       return
           '''
           <p class="correspond">This corresponds to $domTypesText in the
-          ${a("dom.html", "dart:dom")} library.</p>
+          ${a("dom.html", "dart:dom_deprecated")} library.</p>
           ''';
     }
 

@@ -455,6 +455,8 @@ class _WebSocketConnectionBase  {
     _closeSent = true;
   }
 
+  int hashCode() => _hash;
+
   _onWebSocketMessageStart(int type) {
     _currentMessageType = type;
     if (_currentMessageType == _WebSocketMessageType.TEXT) {
@@ -546,6 +548,7 @@ class _WebSocketConnectionBase  {
 
   Socket _socket;
   Timer _closeTimer;
+  int _hash;
 
   Function _onMessage;
   Function _onClosed;
@@ -562,6 +565,7 @@ class _WebSocketConnectionBase  {
 class _WebSocketConnection
     extends _WebSocketConnectionBase implements WebSocketConnection {
   _WebSocketConnection(DetachedSocket detached) {
+    _hash = detached.socket.hashCode();
     _socketConnected(detached.socket);
     _startProcessing(detached.unparsedData);
   }
@@ -635,6 +639,9 @@ class _WebSocketClientConnection
     _conn.onRequest = _onHttpClientRequest;
     _conn.onResponse = _onHttpClientResponse;
     _conn.onError = (e) => _reportError(e);
+
+    // Generate the nonce now as it is also used to set the hash code.
+    _generateNonceAndHash();
   }
 
   void set onRequest(void callback(HttpClientRequest request)) {
@@ -654,7 +661,6 @@ class _WebSocketClientConnection
       _onRequest(request);
     }
     // Setup the initial handshake.
-    _generateNonce();
     request.headers.add(HttpHeaders.CONNECTION, "upgrade");
     request.headers.set(HttpHeaders.UPGRADE, "websocket");
     request.headers.set("Sec-WebSocket-Key", _nonce);
@@ -687,7 +693,7 @@ class _WebSocketClientConnection
     _startProcessing(detached.unparsedData);
   }
 
-  void _generateNonce() {
+  void _generateNonceAndHash() {
     assert(_nonce == null);
     void intToBigEndianBytes(int value, List<int> bytes, int offset) {
       bytes[offset] = (value >> 24) & 0xFF;
@@ -696,13 +702,14 @@ class _WebSocketClientConnection
       bytes[offset + 3] = value & 0xFF;
     }
 
-    // Generate 16 random bytes.
+    // Generate 16 random bytes. Use the last four bytes for the hash code.
     List<int> nonce = new List<int>(16);
     for (int i = 0; i < 4; i++) {
       int r = (Math.random() * 0x100000000).toInt();
       intToBigEndianBytes(r, nonce, i * 4);
     }
     _nonce = _Base64._encode(nonce);
+    _hash = (Math.random() * 0x100000000).toInt();
   }
 
   bool _isWebSocketUpgrade(HttpClientResponse response) {

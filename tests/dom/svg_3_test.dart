@@ -1,7 +1,7 @@
 #library('SVG3Test');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 
 // Test that SVG elements have the operations advertised through all the IDL
 // interfaces.  This is a 'duck typing' test, and does not explicitly use 'is'

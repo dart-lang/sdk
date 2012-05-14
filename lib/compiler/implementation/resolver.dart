@@ -66,7 +66,7 @@ class ResolverTask extends CompilerTask {
 
         default:
           compiler.unimplemented(
-              "resolver", node: element.parseNode(compiler));
+              "resolve($element)", node: element.parseNode(compiler));
       }
     });
   }
@@ -475,10 +475,11 @@ interface LabelScope {
 
 class LabeledStatementLabelScope implements LabelScope {
   final LabelScope outer;
-  final LabelElement label;
-  LabeledStatementLabelScope(this.outer, this.label);
+  final Map<String, LabelElement> labels;
+  LabeledStatementLabelScope(this.outer, this.labels);
   LabelElement lookup(String labelName) {
-    if (this.label.labelName == labelName) return label;
+    LabelElement label = labels[labelName];
+    if (label !== null) return label;
     return outer.lookup(labelName);
   }
 }
@@ -526,8 +527,8 @@ class StatementScope {
   TargetElement currentContinueTarget() =>
     continueTargetStack.isEmpty() ? null : continueTargetStack.head;
 
-  void enterLabelScope(LabelElement element) {
-    labels = new LabeledStatementLabelScope(labels, element);
+  void enterLabelScope(Map<String, LabelElement> elements) {
+    labels = new LabeledStatementLabelScope(labels, elements);
     nestingLevel++;
   }
 
@@ -1213,6 +1214,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (!target.statement.isValidContinueTarget()) {
         error(node.target, MessageKind.INVALID_CONTINUE, [labelName]);
       }
+      // TODO(lrn): Handle continues to switch cases.
+      if (target.statement is SwitchCase) {
+        unimplemented(node, "continue to switch case");
+      }
       label.setContinueTarget();
       mapping[node.target] = label;
     }
@@ -1237,25 +1242,30 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
-  visitLabeledStatement(LabeledStatement node) {
-    String labelName = node.label.slowToString();
-    LabelElement existingElement = statementScope.lookupLabel(labelName);
-    if (existingElement !== null) {
-      warning(node.label, MessageKind.DUPLICATE_LABEL, [labelName]);
-      warning(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
-    }
-    Node body = node.getBody();
-    TargetElement targetElement = getOrCreateTargetElement(body);
+  visitLabel(Label node) {
+    // Labels are handled by their containing statements/cases.
+  }
 
-    LabelElement element = targetElement.addLabel(node.label, labelName);
-    statementScope.enterLabelScope(element);
+  visitLabeledStatement(LabeledStatement node) {
+    Statement body = node.statement;
+    TargetElement targetElement = getOrCreateTargetElement(body);
+    Map<String, LabelElement> labelElements = <LabelElement>{};
+    for (Label label in node.labels) {
+      String labelName = label.slowToString();
+      if (labelElements.containsKey(labelName)) continue;
+      LabelElement element = targetElement.addLabel(label, labelName);
+      labelElements[labelName] = element;
+    }
+    statementScope.enterLabelScope(labelElements);
     visit(node.statement);
     statementScope.exitLabelScope();
-    if (element.isTarget) {
-      mapping[node.label] = element;
-    } else {
-      warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
-    }
+    labelElements.forEach((String labelName, LabelElement element) {
+      if (element.isTarget) {
+        mapping[element.label] = element;
+      } else {
+        warning(element.label, MessageKind.UNUSED_LABEL, [labelName]);
+      }
+    });
     if (!targetElement.isTarget && mapping[body] === targetElement) {
       // If the body is itself a break or continue for another target, it
       // might have updated its mapping to the target it actually does target.
@@ -1283,8 +1293,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty()) {
       SwitchCase switchCase = cases.head;
-      if (switchCase.label !== null) {
-        Label label = switchCase.label;
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is! Label) continue;
+        Label label = labelOrCase;
         String labelName = label.slowToString();
 
         LabelElement existingElement = continueLabels[labelName];
@@ -1315,19 +1326,21 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         continueLabels[labelName] = labelElement;
       }
       cases = cases.tail;
+      // Test that only the last case, if any, is a default case.
       if (switchCase.defaultKeyword !== null && !cases.isEmpty()) {
         error(switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
     }
+
     statementScope.enterSwitch(breakElement, continueLabels);
     node.cases.accept(this);
     statementScope.exitSwitch();
 
-    // Clean-up unused labels
+    // Clean-up unused labels.
     continueLabels.forEach((String key, LabelElement label) {
-      TargetElement targetElement = label.target;
-      SwitchCase switchCase = targetElement.statement;
       if (!label.isContinueTarget) {
+        TargetElement targetElement = label.target;
+        SwitchCase switchCase = targetElement.statement;
         mapping.remove(switchCase);
         mapping.remove(label.label);
       }
@@ -1335,9 +1348,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitSwitchCase(SwitchCase node) {
-    // The label was handled in [visitSwitchStatement(SwitchStatement)].
-    node.expressions.accept(this);
+    node.labelsAndCases.accept(this);
     visitIn(node.statements, new BlockScope(context));
+  }
+
+  visitCaseMatch(CaseMatch node) {
+    visit(node.expression);
   }
 
   visitTryStatement(TryStatement node) {
@@ -1717,7 +1733,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
     resolveExpression(node.arguments.head);
-    compiler.enqueue(new WorkItem.toCompile(element));
+    // TODO(ahe): Do not call addToWorkList, and make sure that element isn't null.
+    if (element !== null) compiler.addToWorkList(element);
     return element;
   }
 

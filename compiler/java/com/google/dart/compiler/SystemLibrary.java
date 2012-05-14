@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,11 +23,11 @@ public class SystemLibrary {
    * dart://[host]/[pathToLib]. For example this call
    *
    * <pre>
-   *    new SystemLibrary("dom.lib", "dom", "dart_dom.lib");
+   *    new SystemLibrary("html.lib", "html", "dart_html.lib");
    * </pre>
    *
-   * will define a new system library such that "dart:dom.lib" to automatically be expanded to
-   * "dart://dom/dart_dom.lib". The dirOrZip argument is either the root directory or a zip file
+   * will define a new system library such that "dart:html.lib" to automatically be expanded to
+   * "dart://html/dart_html.lib". The dirOrZip argument is either the root directory or a zip file
    * containing all files for this library.
    */
   public SystemLibrary(String shortName, String host, String pathToLib, File dirOrZip) {

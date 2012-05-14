@@ -67,10 +67,11 @@ _frog_dom_custom_native_specs = {
 }
 
 #
-# Custom native bodies for frog implementations of dom operations that appear in
-# dart:dom and dart:html.  This is used to work-around the lack of a 'rename'
-# feature in the 'native' string - the correct name is available on the DartName
-# extended attribute. See Issue 1814
+# Custom native bodies for frog implementations of dom operations that
+# appear in dart:dom_deprecated and dart:html.  This is used to
+# work-around the lack of a 'rename' feature in the 'native' string -
+# the correct name is available on the DartName extended
+# attribute. See Issue 1814
 #
 dom_frog_native_bodies = {
     # Some JavaScript processors, especially tools like yuicompress and
@@ -84,6 +85,27 @@ dom_frog_native_bodies = {
 
 def IsPrimitiveType(type_name):
   return isinstance(GetIDLTypeInfo(type_name), PrimitiveIDLTypeInfo)
+
+def ListImplementationInfo(interface, database):
+  """Returns a tuple (elment_type, requires_indexer).
+  If interface do not have to implement List, element_type is None.
+  Otherwise element_type is list element type and requires_indexer
+  is true iff this interface implementation must have indexer and
+  false otherwise.  False means that interface implementation
+  inherits indexer and may just reuse it."""
+  element_type = MaybeListElementType(interface)
+  if element_type:
+    return (element_type, True)
+
+  for parent in interface.parents:
+    if database.HasInterface(parent.type.id):
+      parent_interface = database.GetInterface(parent.type.id)
+      (element_type, _) = ListImplementationInfo(parent_interface, database)
+      if element_type:
+        return (element_type, False)
+
+  return (None, None)
+
 
 def MaybeListElementTypeName(type_name):
   """Returns the List element type T from string of form "List<T>", or None."""
@@ -108,8 +130,24 @@ def MaybeTypedArrayElementType(interface):
   """
   # Typed arrays implement ArrayBufferView and List<T>.
   for parent in interface.parents:
-    if  parent.type.id == 'ArrayBufferView':
+    if parent.type.id == 'ArrayBufferView':
       return MaybeListElementType(interface)
+  return None
+
+def MaybeTypedArrayElementTypeInHierarchy(interface, database):
+  """Returns the typed array element type, or None in interface is not a
+  TypedArray.  Checks the whole parent hierarchy.
+  """
+  element_type = MaybeTypedArrayElementType(interface)
+  if element_type:
+    return element_type
+  for parent in interface.parents:
+    if database.HasInterface(parent.type.id):
+      parent_interface = database.GetInterface(parent.type.id)
+      element_type = MaybeTypedArrayElementType(parent_interface)
+      if element_type:
+        return element_type
+
   return None
 
 def MakeNativeSpec(javascript_binding_name):
@@ -118,7 +156,7 @@ def MakeNativeSpec(javascript_binding_name):
   else:
     # Make the class 'hidden' so it is dynamically patched at runtime.  This
     # is useful not only for browser compat, but to allow code that links
-    # against dart:dom to load in a worker isolate.
+    # against dart:dom_deprecated to load in a worker isolate.
     return '*' + javascript_binding_name
 
 

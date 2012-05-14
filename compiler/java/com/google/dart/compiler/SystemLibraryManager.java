@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Manages the collection of {@link SystemLibrary}s.
@@ -84,8 +85,8 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
-   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart").
+   * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
+   * full URI (e.g. "dart://html/com/google/dart/htmllib/html.dart").
    *
    * @param uri the relative URI
    * @return the expanded URI
@@ -113,7 +114,7 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Answer a collection of all bundled library URL specs (e.g. "dart:dom").
+   * Answer a collection of all bundled library URL specs (e.g. "dart:html").
    *
    * @return a collection of specs (not <code>null</code>, contains no <code>null</code>s)
    */
@@ -138,6 +139,29 @@ public class SystemLibraryManager {
       throw new InternalCompilerException("Failed to open " + file);
     }
   }
+  
+  /**
+   * Given an absolute file URI (e.g. "file:/some/install/directory/dart-sdk/lib/core/bool.dart"),
+   *  answer the corresponding dart: URI (e.g. "dart://core/bool.dart") for that file URI,
+   *  or <code>null</code> if the file URI does not map to a dart: URI 
+   * @param fileUri the file URI
+   * @return the dart URI or <code>null</code>
+   */
+  public URI getRelativeUri(URI fileUri) {
+    // TODO (danrubel): does not convert dart: libraries outside the dart-sdk/lib directory
+    if (fileUri == null || !fileUri.getScheme().equals("file")) {
+      return null;
+    }
+    URI relativeUri = sdkLibPathUri.relativize(fileUri);
+    if (relativeUri.getScheme() == null) {
+      try {
+        return new URI(null, null, "dart://" + relativeUri.getPath(), null);
+      } catch (URISyntaxException e) {
+        //$FALL-THROUGH$
+      }
+    }
+    return null;
+  }
 
   /**
    * Answer the original "dart:<libname>" URI for the specified resolved URI or <code>null</code> if
@@ -148,10 +172,10 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
-   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart") and then translate that URI to
+   * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
+   * full URI (e.g. "dart://html/com/google/dart/htmllib/html.dart") and then translate that URI to
    * a "file:"  URI (e.g.
-   * "file:/some/install/directory/com/google/dart/domlib/dom.dart").
+   * "file:/some/install/directory/com/google/dart/htmllib/html.dart").
    *
    * @param uri the original URI
    * @return the expanded and translated URI, which may be <code>null</code> and may not exist
@@ -163,8 +187,8 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://dom/dom.dart)
-   * to a "file:" URI (e.g. "file:/some/install/directory/dom.dart")
+   * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://html/html.dart)
+   * to a "file:" URI (e.g. "file:/some/install/directory/html.dart")
    *
    * @param uri the original URI
    * @return the translated URI, which may be <code>null</code> and may not exist
@@ -248,8 +272,7 @@ public class SystemLibraryManager {
         explicitShortNames.add(shortName);
         String scheme = shortName.substring(0, index + 1);
         String name = shortName.substring(index + 1);
-        index = name.indexOf('/');
-        String host = index > 0 ? name.substring(0, index) : name;
+        String host = file.getParentFile().getName();
         addLib(scheme, host, name, file.getParentFile(), file.getName());
       }
     }
@@ -300,8 +323,8 @@ public class SystemLibraryManager {
 
   /**
    * Register system libraries for the "dart:" protocol such that dart:[shortLibName] (e.g.
-   * "dart:dom") will automatically be expanded to dart://[host]/[pathToLib] (e.g.
-   * dart://dom/dom.dart)
+   * "dart:html") will automatically be expanded to dart://[host]/[pathToLib] (e.g.
+   * dart://html/html.dart)
    */
   private void setLibraries(SystemLibrary[] newLibraries) {
     libraries = new ArrayList<SystemLibrary>();

@@ -36,7 +36,7 @@ interface WebSocketHandler default _WebSocketHandler {
 /**
  * Server web socket connection.
  */
-interface WebSocketConnection {
+interface WebSocketConnection extends Hashable {
   /**
    * Sets the callback to be called when a message have been
    * received. The type on [message] is either [:String:] or
@@ -68,13 +68,19 @@ interface WebSocketConnection {
    * and [reason] are [:null:].
    */
   close([int status, String reason]);
+
+  /**
+   * WebSocketConnection is hashable.
+   */
+  int hashCode();
 }
 
 
 /**
  * Client web socket connection.
  */
-interface WebSocketClientConnection default _WebSocketClientConnection {
+interface WebSocketClientConnection
+    extends Hashable default _WebSocketClientConnection {
   /**
    * Creates a new web socket client connection based on a HTTP client
    * connection. The HTTP client connection must be freshly opened.
@@ -138,6 +144,11 @@ interface WebSocketClientConnection default _WebSocketClientConnection {
    * and [reason] are [:null:].
    */
   close([int status, String reason]);
+
+  /**
+   * WebSocketClientConnection is hashable.
+   */
+  int hashCode();
 }
 
 

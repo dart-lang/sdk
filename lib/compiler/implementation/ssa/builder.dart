@@ -841,7 +841,7 @@ class SsaBuilder implements Visitor {
       bodyElement = new ConstructorBodyElement(constructor);
       TreeElements treeElements =
           compiler.resolver.resolveMethodElement(constructor);
-      compiler.enqueue(new WorkItem.toCodegen(bodyElement, treeElements));
+      compiler.addToWorkList(bodyElement, treeElements);
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
     }
@@ -1471,7 +1471,7 @@ class SsaBuilder implements Visitor {
     ClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
-    compiler.enqueue(new WorkItem.toCodegen(callElement, elements));
+    compiler.addToWorkList(callElement, elements);
     compiler.registerInstantiatedClass(closureClassElement);
     assert(closureClassElement.members.isEmpty());
 
@@ -2815,7 +2815,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    Statement body = node.getBody();
+    Statement body = node.statement;
     if (body is Loop || body is SwitchStatement) {
       // Loops and switches handle their own labels.
       visit(body);
@@ -2950,7 +2950,6 @@ class SsaBuilder implements Visitor {
   // Recursively build an if/else structure to match the cases.
   buildSwitchCases(Link<Node> cases, HInstruction expression) {
     SwitchCase node = cases.head;
-
     // Called for the statements on all but the last case block.
     // Ensures that a user expecting a fallthrough gets an error.
     void visitStatementsAndAbort() {
@@ -2967,8 +2966,15 @@ class SsaBuilder implements Visitor {
       }
     }
 
-    Link<Node> expressions = node.expressions.nodes;
-    if (expressions.isEmpty()) {
+    Link<Node> skipLabels(Link<Node> labelsAndCases) {
+      while (!labelsAndCases.isEmpty() && labelsAndCases.head is Label) {
+        labelsAndCases = labelsAndCases.tail;
+      }
+      return labelsAndCases;
+    }
+
+    Link<Node> labelsAndCases = skipLabels(node.labelsAndCases.nodes);
+    if (labelsAndCases.isEmpty()) {
       // Default case with no expressions.
       if (!node.isDefaultCase) {
         compiler.internalError("Case with no expression and not default",
@@ -2982,40 +2988,46 @@ class SsaBuilder implements Visitor {
 
     // Recursively build the test conditions. Leaves the result on the
     // expression stack.
-    void buildTests(Link<Node> remainingExpressions) {
+    void buildTests(Link<Node> remainingCases) {
       // Build comparison for one case expression.
       void left() {
         Element equalsHelper = interceptors.getEqualsInterceptor();
         HInstruction target = new HStatic(equalsHelper);
         add(target);
-        visit(remainingExpressions.head);
+        CaseMatch match = remainingCases.head;
+        visit(match.expression);
         push(new HEquals(target, pop(), expression));
       }
 
       // If this is the last expression, just return it.
-      if (remainingExpressions.tail.isEmpty()) {
+      Link<Node> tail = skipLabels(remainingCases.tail);
+      if (tail.isEmpty()) {
         left();
         return;
       }
 
       void right() {
-        buildTests(remainingExpressions.tail);
+        buildTests(tail);
       }
       handleLogicalAndOr(left, right, isAnd: false);
     }
 
     if (node.isDefaultCase) {
-      buildTests(expressions);
-      // Throw away the test result. We always execute the default case.
-      pop();
+      // Default case must be last.
+      assert(cases.tail.isEmpty());
+      // Perform the tests until one of them match, but then always execute the
+      // statements.
+      // TODO(lrn): Stop performing tests when all expressions are compile-time
+      // constant strings or integers.
+      handleIf(() { buildTests(labelsAndCases); }, (){}, null);
       visit(node.statements);
     } else {
       if (cases.tail.isEmpty()) {
-        handleIf(() { buildTests(expressions); },
+        handleIf(() { buildTests(labelsAndCases); },
                  () { visit(node.statements); },
                  null);
       } else {
-        handleIf(() { buildTests(expressions); },
+        handleIf(() { buildTests(labelsAndCases); },
                  () { visitStatementsAndAbort(); },
                  () { buildSwitchCases(cases.tail, expression); });
       }
@@ -3023,7 +3035,11 @@ class SsaBuilder implements Visitor {
   }
 
   visitSwitchCase(SwitchCase node) {
-    unreachable();
+    compiler.internalError('SsaBuilder.visitSwitchCase');
+  }
+
+  visitCaseMatch(CaseMatch node) {
+    compiler.internalError('SsaBuilder.visitCaseMatch');
   }
 
   visitTryStatement(TryStatement node) {
@@ -3176,9 +3192,6 @@ class SsaBuilder implements Visitor {
     buildBody() {
       // TODO(lrn): Make sure to take continue into account.
       body();
-      if (isAborted()) {
-        compiler.reportWarning(statement, "aborting loop body");
-      }
     }
     handleIf(visitCondition, buildBody, null);
   }

@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * A script for printing a JSON dump of HTML diff data. In particular, this
- * lists a map of `dart:dom` methods that have been renamed to `dart:html`
- * methods without changing their semantics, and `dart:dom` methods that have
- * been removed in `dart:html`. As a heuristic, a `dart:html` method doesn't
- * change the semantics of the corresponding `dart:dom` method if it's the only
- * corresponding HTML method and it has the corresponding return type.
+ * A script for printing a JSON dump of HTML diff data. In particular,
+ * this lists a map of `dart:dom_deprecated` methods that have been
+ * renamed to `dart:html` methods without changing their semantics,
+ * and `dart:dom_deprecated` methods that have been removed in
+ * `dart:html`. As a heuristic, a `dart:html` method doesn't change
+ * the semantics of the corresponding `dart:dom_deprecated` method if
+ * it's the only corresponding HTML method and it has the
+ * corresponding return type.
  *
  * The format of the output is as follows:
  *
@@ -52,8 +54,8 @@ String memberDesc(Member m, [Type type = null]) {
 }
 
 /**
- * Same as [memberDesc], but if [m] is a `dart:dom` type its `dart:html`
- * typename is used instead.
+ * Same as [memberDesc], but if [m] is a `dart:dom_deprecated` type
+ * its `dart:html` typename is used instead.
  */
 String htmlishMemberDesc(Member m) {
   var type = m.declaringType;
@@ -68,8 +70,9 @@ bool isGetter(Member member) => member.name.startsWith('get:');
 bool isSetter(Member member) => member.name.startsWith('set:');
 
 /**
- * Add an entry to the map of `dart:dom` names to `dart:html` names if
- * [domMember] was renamed to [htmlMembers] with the same semantics.
+ * Add an entry to the map of `dart:dom_deprecated` names to
+ * `dart:html` names if [domMember] was renamed to [htmlMembers] with
+ * the same semantics.
  */
 void maybeAddRename(Map<String, String> renamed, Member domMember,
     Collection<Member> htmlMembers) {
@@ -106,7 +109,7 @@ void main() {
   });
 
   final removed = <Set>[];
-  for (final type in world.libraries['dart:dom'].types.getValues()) {
+  for (final type in world.libraries['dart:dom_deprecated'].types.getValues()) {
     if (type.members.getValues().every((m) =>
           !diff.domToHtml.containsKey(m))) {
       removed.add('${type.name}.*');

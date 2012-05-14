@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Configuration for running tests in a browser using dart:dom. */
+/** Configuration for running tests in a browser using dart:dom_deprecated. */
 #library('dom_config');
 
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('unittest.dart');
 
 #source('html_print.dart');

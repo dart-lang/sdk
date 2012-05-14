@@ -5,8 +5,7 @@
 // Library tag to allow the test to run on Dartium.
 #library('hmac_sha256_test');
 
-// TODO(ager): Replace with "dart:crypto" when ready.
-#import("../../../lib/crypto/crypto.dart");
+#import("dart:crypto");
 
 #source('hmac_sha256_test_vectors.dart');
 

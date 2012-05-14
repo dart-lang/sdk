@@ -23,6 +23,7 @@ class Builtin {
  public:
   enum BuiltinLibraryId {
     kBuiltinLibrary,
+    kCryptoLibrary,
     kIOLibrary,
     kJsonLibrary,
     kUriLibrary,
@@ -41,6 +42,7 @@ class Builtin {
                                           int argument_count);
 
   static const char builtin_source_[];
+  static const char crypto_source_[];
   static const char io_source_[];
   static const char json_source_[];
   static const char uri_source_[];

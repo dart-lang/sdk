@@ -335,7 +335,9 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);
     // Handle imports of other built-in libraries present in the SDK.
-    if (DartUtils::IsDartIOLibURL(url_string)) {
+    if (DartUtils::IsDartCryptoLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kCryptoLibrary);
+    } else if (DartUtils::IsDartIOLibURL(url_string)) {
       return Builtin::LoadLibrary(Builtin::kIOLibrary);
     } else if (DartUtils::IsDartJsonLibURL(url_string)) {
       return Builtin::LoadLibrary(Builtin::kJsonLibrary);

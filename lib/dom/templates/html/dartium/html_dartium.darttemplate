@@ -7,7 +7,7 @@
 
 #library("html");
 
-#import('dart:dom', prefix:'dom');
+#import('dart:dom_deprecated', prefix:'dom');
 
 $!GENERATED_DART_FILES
 

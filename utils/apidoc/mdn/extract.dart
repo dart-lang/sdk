@@ -1,5 +1,5 @@
 #import ("dart:html");
-#import ("dart:dom", prefix:"dom");
+#import ("dart:dom_deprecated", prefix:"dom");
 #import ("dart:json");
 
 // Workaround for HTML lib missing feature.

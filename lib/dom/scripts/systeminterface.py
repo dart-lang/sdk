@@ -37,7 +37,7 @@ class InterfacesSystem(systembase.System):
       template = self._templates.Load('interface.darttemplate')
 
     return DartInterfaceGenerator(
-        interface, dart_interface_code,
+        self, interface, dart_interface_code,
         template,
         common_prefix, super_interface_name,
         source_filter)
@@ -62,7 +62,7 @@ class InterfacesSystem(systembase.System):
 class DartInterfaceGenerator(object):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
-  def __init__(self, interface, emitter, template,
+  def __init__(self, system, interface, emitter, template,
                common_prefix, super_interface, source_filter):
     """Generates Dart code for the given interface.
 
@@ -76,6 +76,7 @@ class DartInterfaceGenerator(object):
       source_filter -- if specified, rewrites the names of any superinterfaces
         that are not from these sources to use the common prefix.
     """
+    self._system = system
     self._interface = interface
     self._emitter = emitter
     self._template = template
@@ -140,7 +141,8 @@ class DartInterfaceGenerator(object):
           CTOR=typename,
           PARAMS=constructor_info.ParametersInterfaceDeclaration());
 
-    element_type = MaybeTypedArrayElementType(self._interface)
+    element_type = MaybeTypedArrayElementTypeInHierarchy(
+        self._interface, self._system._database)
     if element_type:
       self._members_emitter.Emit(
           '\n'
@@ -199,6 +201,9 @@ class DartInterfaceGenerator(object):
 
   def AddIndexer(self, element_type):
     # Interface inherits all operations from List<element_type>.
+    pass
+
+  def AmendIndexer(self, element_type):
     pass
 
   def AddOperation(self, info):

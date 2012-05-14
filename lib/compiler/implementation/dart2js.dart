@@ -30,6 +30,7 @@ String extractParameter(String argument) {
 }
 
 void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
+  // TODO(ahe): Use ../../args/args.dart for parsing options instead.
   var patterns = <String>[];
   for (OptionHandler handler in handlers) {
     patterns.add(handler.pattern);
@@ -57,6 +58,7 @@ void compile(List<String> argv) {
   Uri out = cwd.resolve('out.js');
   List<String> options = new List<String>();
   bool explicitOut = false;
+  bool wantHelp = false;
 
   passThrough(String argument) => options.add(argument);
 
@@ -64,21 +66,21 @@ void compile(List<String> argv) {
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('--throw-on-error', (_) => throwOnError = true),
     new OptionHandler('--suppress-warnings', (_) => showWarnings = false),
-    new OptionHandler('--verbose', (_) => verbose = true),
-    new OptionHandler('--library-root=.*', (String argument) {
+    new OptionHandler('--verbose|-v', (_) => verbose = true),
+    new OptionHandler('--library-root=.+', (String argument) {
       String path = nativeToUriPath(extractParameter(argument));
       if (!path.endsWith("/")) path = "$path/";
       libraryRoot = cwd.resolve(path);
     }),
-    new OptionHandler('--out=.*', (String argument) {
+    new OptionHandler('--out=.+|-o.+', (String argument) {
       explicitOut = true;
       out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
     }),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--no-colors', (_) => colors.enabled = false),
-    new OptionHandler('--enable-checked-mode|--checked|-c',
+    new OptionHandler('--enable[_-]checked[_-]mode|--checked|-c',
                       (_) => passThrough('--enable-checked-mode')),
-    new OptionHandler('--help', (_) => helpAndExit()),
+    new OptionHandler(@'--help|-h|/\?|/h', (_) => wantHelp = true),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -89,6 +91,8 @@ void compile(List<String> argv) {
   ];
 
   parseCommandLine(handlers, argv);
+
+  if (wantHelp) helpAndExit(verbose);
 
   if (arguments.isEmpty()) {
     helpAndFail('Error: No Dart file specified.');
@@ -194,18 +198,60 @@ void help() {
   // terminal size normally 80x24. Two lines are used for the prompts
   // before and after running the compiler.
   print('''
-Usage: dart2js [OPTIONS] DARTFILE
+Usage: dart2js [options] dartfile
 
 Compiles Dart to JavaScript.
 
 Common options:
-  --help      Display this message.
-  --out=FILE  Save the output to FILE (default: out.js).
-  --checked   Turn on checked mode in generated JavaScript code.''');
+  -o<file> Generate the output into <file>.
+  -c       Insert runtime type checks and enable assertions (checked mode).
+  -h       Display this message (add -v for information about all options).''');
 }
 
-void helpAndExit() {
-  help();
+void verboseHelp() {
+  print('''
+Usage: dart2js [options] dartfile
+
+Compiles Dart to JavaScript.
+
+Supported options:
+  -o<file>, --out=<file>
+    Generate the output into <file>.
+
+  -c, --enable-checked-mode, --checked
+    Insert runtime type checks and enable assertions (checked mode).
+
+  -h, /h, /?, --help
+    Display this message (add -v for information about all options).
+
+  -v, --verbose
+    Display verbose information.
+
+  --suppress-warnings
+    Do not display any warnings.
+
+  --no-colors
+    Do not add colors to diagnostic messages.
+
+The following options are only used for compiler development and may
+be removed in a future version:
+  --throw-on-error
+    Throw an exception if a compile-time error is detected.
+
+  --library-root=<directory>
+    Where to find the Dart platform libraries.
+
+  --allow-mock-compilation
+    Do not generate a call to main if either of the following
+    libraries are used: dart:dom, dart:html dart:io.''');
+}
+
+void helpAndExit(bool verbose) {
+  if (verbose) {
+    verboseHelp();
+  } else {
+    help();
+  }
   exit(0);
 }
 
