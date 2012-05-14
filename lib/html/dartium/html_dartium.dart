@@ -322,6 +322,7 @@ _wrap(raw) {
     case 'ProgressEvent': return new _ProgressEventImpl._wrap(domObject);
     case 'HTMLQuoteElement': return new _QuoteElementImpl._wrap(domObject);
     case 'RGBColor': return new _RGBColorImpl._wrap(domObject);
+    case 'RadioNodeList': return new _RadioNodeListImpl._wrap(domObject);
     case 'Range': return new _RangeImpl._wrap(domObject);
     case 'RangeException': return new _RangeExceptionImpl._wrap(domObject);
     case 'RealtimeAnalyserNode': return new _RealtimeAnalyserNodeImpl._wrap(domObject);
@@ -8291,7 +8292,7 @@ class _IDBAnyImpl extends _DOMTypeBase implements IDBAny {
 class _IDBCursorImpl extends _DOMTypeBase implements IDBCursor {
   _IDBCursorImpl._wrap(ptr) : super._wrap(ptr);
 
-  int get direction() => _wrap(_ptr.direction);
+  String get direction() => _wrap(_ptr.direction);
 
   Dynamic get key() => _wrap(_ptr.key);
 
@@ -8342,7 +8343,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version) => _wrap(_ptr.setVersion(_unwrap(version)));
 
-  IDBTransaction transaction(storeName_OR_storeNames, int mode) => _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+  IDBTransaction transaction(storeName_OR_storeNames, mode) => _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
 }
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -8398,9 +8399,9 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
 
   IDBRequest getKey(key) => _wrap(_ptr.getKey(_unwrap(key)));
 
-  IDBRequest openCursor([key_OR_range = null, int direction = null]) => _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
+  IDBRequest openCursor([key_OR_range = null, direction = null]) => _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
 
-  IDBRequest openKeyCursor([key_OR_range = null, int direction = null]) => _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
+  IDBRequest openKeyCursor([key_OR_range = null, direction = null]) => _wrap(_ptr.openKeyCursor(_unwrap(key_OR_range), _unwrap(direction)));
 }
 
 class _IDBKeyImpl extends _DOMTypeBase implements IDBKey {
@@ -8446,7 +8447,7 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
 
   IDBIndex index(String name) => _wrap(_ptr.index(_unwrap(name)));
 
-  IDBRequest openCursor([key_OR_range = null, int direction = null]) => _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
+  IDBRequest openCursor([key_OR_range = null, direction = null]) => _wrap(_ptr.openCursor(_unwrap(key_OR_range), _unwrap(direction)));
 
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key = null]) => _wrap(_ptr.put(_unwrap(value), _unwrap(key)));
 }
@@ -8461,7 +8462,7 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   int get errorCode() => _wrap(_ptr.errorCode);
 
-  int get readyState() => _wrap(_ptr.readyState);
+  String get readyState() => _wrap(_ptr.readyState);
 
   Dynamic get result() => _wrap(_ptr.result);
 
@@ -8496,7 +8497,7 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
   IDBDatabase get db() => _wrap(_ptr.db);
 
-  int get mode() => _wrap(_ptr.mode);
+  String get mode() => _wrap(_ptr.mode);
 
   void abort() => _ptr.abort();
 
@@ -8765,6 +8766,10 @@ class _InputElementImpl extends _ElementImpl implements InputElement {
 
   void set formTarget(String value) { _ptr.formTarget = _unwrap(value); }
 
+  int get height() => _wrap(_ptr.height);
+
+  void set height(int value) { _ptr.height = _unwrap(value); }
+
   bool get incremental() => _wrap(_ptr.incremental);
 
   void set incremental(bool value) { _ptr.incremental = _unwrap(value); }
@@ -8870,6 +8875,10 @@ class _InputElementImpl extends _ElementImpl implements InputElement {
   bool get webkitdirectory() => _wrap(_ptr.webkitdirectory);
 
   void set webkitdirectory(bool value) { _ptr.webkitdirectory = _unwrap(value); }
+
+  int get width() => _wrap(_ptr.width);
+
+  void set width(int value) { _ptr.width = _unwrap(value); }
 
   bool get willValidate() => _wrap(_ptr.willValidate);
 
@@ -10894,9 +10903,15 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 
   AudioParam get frequency() => _wrap(_ptr.frequency);
 
+  int get playbackState() => _wrap(_ptr.playbackState);
+
   int get type() => _wrap(_ptr.type);
 
   void set type(int value) { _ptr.type = _unwrap(value); }
+
+  void noteOff(num when) => _ptr.noteOff(_unwrap(when));
+
+  void noteOn(num when) => _ptr.noteOn(_unwrap(when));
 
   void setWaveTable(WaveTable waveTable) => _ptr.setWaveTable(_unwrap(waveTable));
 }
@@ -11003,13 +11018,13 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  void addStream(MediaStream stream, [String mediaStreamHints = null]) => _ptr.addStream(_unwrap(stream), _unwrap(mediaStreamHints));
+  void addStream(MediaStream stream, [Map mediaStreamHints = null]) => _ptr.addStream(_unwrap(stream), _unwrap(mediaStreamHints));
 
   void close() => _ptr.close();
 
-  SessionDescription createAnswer(String offer, [String mediaHints = null]) => _wrap(_ptr.createAnswer(_unwrap(offer), _unwrap(mediaHints)));
+  SessionDescription createAnswer(String offer, [Map mediaHints = null]) => _wrap(_ptr.createAnswer(_unwrap(offer), _unwrap(mediaHints)));
 
-  SessionDescription createOffer([String mediaHints = null]) => _wrap(_ptr.createOffer(_unwrap(mediaHints)));
+  SessionDescription createOffer([Map mediaHints = null]) => _wrap(_ptr.createOffer(_unwrap(mediaHints)));
 
   bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
@@ -11023,7 +11038,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, SessionDescription desc) => _ptr.setRemoteDescription(_unwrap(action), _unwrap(desc));
 
-  void startIce([String iceOptions = null]) => _ptr.startIce(_unwrap(iceOptions));
+  void startIce([Map iceOptions = null]) => _ptr.startIce(_unwrap(iceOptions));
 }
 
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
@@ -11208,6 +11223,14 @@ class _RGBColorImpl extends _DOMTypeBase implements RGBColor {
   CSSPrimitiveValue get green() => _wrap(_ptr.green);
 
   CSSPrimitiveValue get red() => _wrap(_ptr.red);
+}
+
+class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
+  _RadioNodeListImpl._wrap(ptr) : super._wrap(ptr);
+
+  String get value() => _wrap(_ptr.value);
+
+  void set value(String value) { _ptr.value = _unwrap(value); }
 }
 
 class _RangeImpl extends _DOMTypeBase implements Range {
@@ -15104,6 +15127,10 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
   _ShadowRootImpl._wrap(ptr) : super._wrap(ptr);
 
   Element get activeElement() => _wrap(_ptr.activeElement);
+
+  bool get applyAuthorStyles() => _wrap(_ptr.applyAuthorStyles);
+
+  void set applyAuthorStyles(bool value) { _ptr.applyAuthorStyles = _unwrap(value); }
 
   Element get host() => _wrap(_ptr.host);
 
@@ -24001,6 +24028,8 @@ interface Event default _EventFactoryProvider {
 
   static final int MOUSEUP = 2;
 
+  static final int NONE = 0;
+
   static final int SELECT = 16384;
 
   /** @domName Event.bubbles */
@@ -24985,7 +25014,7 @@ interface IDBCursor {
   static final int PREV_NO_DUPLICATE = 3;
 
   /** @domName IDBCursor.direction */
-  final int direction;
+  final String direction;
 
   /** @domName IDBCursor.key */
   final Dynamic key;
@@ -25065,7 +25094,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(storeName_OR_storeNames, mode);
 }
 
 interface IDBDatabaseEvents extends Events {
@@ -25178,10 +25207,10 @@ interface IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([key_OR_range, int direction]);
+  IDBRequest openCursor([key_OR_range, direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([key_OR_range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25281,7 +25310,7 @@ interface IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([key_OR_range, int direction]);
+  IDBRequest openCursor([key_OR_range, direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
@@ -25300,15 +25329,11 @@ interface IDBRequest extends EventTarget {
    */
   IDBRequestEvents get on();
 
-  static final int DONE = 2;
-
-  static final int LOADING = 1;
-
   /** @domName IDBRequest.errorCode */
   final int errorCode;
 
   /** @domName IDBRequest.readyState */
-  final int readyState;
+  final String readyState;
 
   /** @domName IDBRequest.result */
   final Dynamic result;
@@ -25362,7 +25387,7 @@ interface IDBTransaction extends EventTarget {
   final IDBDatabase db;
 
   /** @domName IDBTransaction.mode */
-  final int mode;
+  final String mode;
 
   /** @domName IDBTransaction.abort */
   void abort();
@@ -25637,6 +25662,9 @@ interface InputElement extends Element {
   /** @domName HTMLInputElement.formTarget */
   String formTarget;
 
+  /** @domName HTMLInputElement.height */
+  int height;
+
   /** @domName HTMLInputElement.incremental */
   bool incremental;
 
@@ -25720,6 +25748,9 @@ interface InputElement extends Element {
 
   /** @domName HTMLInputElement.webkitdirectory */
   bool webkitdirectory;
+
+  /** @domName HTMLInputElement.width */
+  int width;
 
   /** @domName HTMLInputElement.willValidate */
   final bool willValidate;
@@ -27494,6 +27525,13 @@ interface NotificationCenter {
   /** @domName NotificationCenter.requestPermission */
   void requestPermission(VoidCallback callback);
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27729,7 +27767,13 @@ interface Oscillator extends AudioSourceNode {
 
   static final int CUSTOM = 4;
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
   static final int SAWTOOTH = 2;
+
+  static final int SCHEDULED_STATE = 1;
 
   static final int SINE = 0;
 
@@ -27737,14 +27781,25 @@ interface Oscillator extends AudioSourceNode {
 
   static final int TRIANGLE = 3;
 
+  static final int UNSCHEDULED_STATE = 0;
+
   /** @domName Oscillator.detune */
   final AudioParam detune;
 
   /** @domName Oscillator.frequency */
   final AudioParam frequency;
 
+  /** @domName Oscillator.playbackState */
+  final int playbackState;
+
   /** @domName Oscillator.type */
   int type;
+
+  /** @domName Oscillator.noteOff */
+  void noteOff(num when);
+
+  /** @domName Oscillator.noteOn */
+  void noteOn(num when);
 
   /** @domName Oscillator.setWaveTable */
   void setWaveTable(WaveTable waveTable);
@@ -27897,9 +27952,9 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
   static final int ICE_WAITING = 0x200;
 
-  static final int NEGOTIATING = 1;
-
   static final int NEW = 0;
+
+  static final int OPENING = 1;
 
   static final int SDP_ANSWER = 0x300;
 
@@ -27929,16 +27984,16 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [String mediaStreamHints]);
+  void addStream(MediaStream stream, [Map mediaStreamHints]);
 
   /** @domName PeerConnection00.close */
   void close();
 
   /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [String mediaHints]);
+  SessionDescription createAnswer(String offer, [Map mediaHints]);
 
   /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([String mediaHints]);
+  SessionDescription createOffer([Map mediaHints]);
 
   /** @domName PeerConnection00.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
@@ -27959,7 +28014,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   void setRemoteDescription(int action, SessionDescription desc);
 
   /** @domName PeerConnection00.startIce */
-  void startIce([String iceOptions]);
+  void startIce([Map iceOptions]);
 }
 
 interface PeerConnection00Events extends Events {
@@ -28280,6 +28335,18 @@ interface RGBColor {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RadioNodeList
+interface RadioNodeList extends NodeList {
+
+  /** @domName RadioNodeList.value */
+  String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName Range
 interface Range {
 
@@ -28477,7 +28544,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(num highResTime);
+typedef bool RequestAnimationFrameCallback(int time);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32186,6 +32253,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   /** @domName ShadowRoot.activeElement */
   final Element activeElement;
+
+  /** @domName ShadowRoot.applyAuthorStyles */
+  bool applyAuthorStyles;
 
   /** @domName ShadowRoot.host */
   final Element host;

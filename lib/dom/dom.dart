@@ -2725,6 +2725,8 @@ interface Event {
 
   static final int MOUSEUP = 2;
 
+  static final int NONE = 0;
+
   static final int SELECT = 16384;
 
   final bool bubbles;
@@ -3900,6 +3902,8 @@ interface HTMLInputElement extends HTMLElement {
 
   String formTarget;
 
+  int height;
+
   bool incremental;
 
   bool indeterminate;
@@ -3955,6 +3959,8 @@ interface HTMLInputElement extends HTMLElement {
   bool webkitSpeech;
 
   bool webkitdirectory;
+
+  int width;
 
   final bool willValidate;
 
@@ -5040,7 +5046,7 @@ interface IDBCursor {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  final int direction;
+  final String direction;
 
   final /*IDBKey*/ key;
 
@@ -5094,7 +5100,7 @@ interface IDBDatabase extends EventTarget {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(storeName_OR_storeNames, mode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5178,9 +5184,9 @@ interface IDBIndex {
 
   IDBRequest getKey(key);
 
-  IDBRequest openCursor([key_OR_range, int direction]);
+  IDBRequest openCursor([key_OR_range, direction]);
 
-  IDBRequest openKeyCursor([key_OR_range, int direction]);
+  IDBRequest openKeyCursor([key_OR_range, direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5248,7 +5254,7 @@ interface IDBObjectStore {
 
   IDBIndex index(String name);
 
-  IDBRequest openCursor([key_OR_range, int direction]);
+  IDBRequest openCursor([key_OR_range, direction]);
 
   IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
@@ -5260,13 +5266,9 @@ interface IDBObjectStore {
 
 interface IDBRequest extends EventTarget {
 
-  static final int DONE = 2;
-
-  static final int LOADING = 1;
-
   final int errorCode;
 
-  final int readyState;
+  final String readyState;
 
   final /*IDBAny*/ result;
 
@@ -5298,7 +5300,7 @@ interface IDBTransaction extends EventTarget {
 
   final IDBDatabase db;
 
-  final int mode;
+  final String mode;
 
   void abort();
 
@@ -6344,6 +6346,13 @@ interface NotificationCenter {
 
   void requestPermission(VoidCallback callback);
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6418,7 +6427,13 @@ interface Oscillator extends AudioSourceNode {
 
   static final int CUSTOM = 4;
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
   static final int SAWTOOTH = 2;
+
+  static final int SCHEDULED_STATE = 1;
 
   static final int SINE = 0;
 
@@ -6426,11 +6441,19 @@ interface Oscillator extends AudioSourceNode {
 
   static final int TRIANGLE = 3;
 
+  static final int UNSCHEDULED_STATE = 0;
+
   final AudioParam detune;
 
   final AudioParam frequency;
 
+  final int playbackState;
+
   int type;
+
+  void noteOff(num when);
+
+  void noteOn(num when);
 
   void setWaveTable(WaveTable waveTable);
 }
@@ -6492,9 +6515,9 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
   static final int ICE_WAITING = 0x200;
 
-  static final int NEGOTIATING = 1;
-
   static final int NEW = 0;
+
+  static final int OPENING = 1;
 
   static final int SDP_ANSWER = 0x300;
 
@@ -6516,13 +6539,13 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void addStream(MediaStream stream, [String mediaStreamHints]);
+  void addStream(MediaStream stream, [Map mediaStreamHints]);
 
   void close();
 
-  SessionDescription createAnswer(String offer, [String mediaHints]);
+  SessionDescription createAnswer(String offer, [Map mediaHints]);
 
-  SessionDescription createOffer([String mediaHints]);
+  SessionDescription createOffer([Map mediaHints]);
 
   bool dispatchEvent(Event event);
 
@@ -6536,7 +6559,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
   void setRemoteDescription(int action, SessionDescription desc);
 
-  void startIce([String iceOptions]);
+  void startIce([Map iceOptions]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6728,6 +6751,16 @@ interface RGBColor {
 
 // WARNING: Do not edit - generated code.
 
+interface RadioNodeList extends NodeList {
+
+  String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface Range {
 
   static final int END_TO_END = 2;
@@ -6874,7 +6907,7 @@ interface Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(num highResTime);
+typedef bool RequestAnimationFrameCallback(int time);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9653,6 +9686,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   ShadowRoot(Element host);
 
   final Element activeElement;
+
+  bool applyAuthorStyles;
 
   final Element host;
 
