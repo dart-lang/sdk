@@ -10,22 +10,6 @@
  */
 class Source {
   /**
-   * The default [Source] from which to fetch packages if no other [Source] is
-   * specified.
-   */
-  static Source defaultSource;
-
-  /**
-   * Looks up a source based on its name.
-   */
-  static Source fromName(String name) {
-    // TODO(nweiz): add a more principled way of registering sources here once
-    // we have more than one source. Especially important for plugins.
-    if (name == 'sdk') return defaultSource;
-    throw 'Unknown source "$name"';
-  }
-
-  /**
    * The name of the source. Should be lower-case, suitable for use in a
    * filename, and unique accross all sources.
    */

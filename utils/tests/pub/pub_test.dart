@@ -92,7 +92,7 @@ installCommand() {
     ]).scheduleCreate();
 
     dir(appPath, [
-      file('pubspec', 'dependencies:\n- foo')
+      file('pubspec', 'dependencies:\n  foo:')
     ]).scheduleCreate();
 
     dir(packagesPath, [
@@ -112,7 +112,7 @@ installCommand() {
       dir('lib', [
         dir('foo', [
           file('foo.dart', 'main() => "foo";'),
-          file('pubspec', 'dependencies:\n- bar')
+          file('pubspec', 'dependencies:\n  bar:')
         ]),
         dir('bar', [
           file('bar.dart', 'main() => "bar";'),
@@ -121,7 +121,7 @@ installCommand() {
     ]).scheduleCreate();
 
     dir(appPath, [
-      file('pubspec', 'dependencies:\n- foo')
+      file('pubspec', 'dependencies:\n  foo:')
     ]).scheduleCreate();
 
     dir(packagesPath, [
@@ -137,6 +137,66 @@ installCommand() {
         output: '''
         Dependencies installed!
         ''');
+  });
+
+  test('checks out a package from Git', () {
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec', '''
+dependencies:
+  foo:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    runPub(args: ['install'],
+        output: const RegExp(@"^Cloning into[\s\S]*^Dependencies installed!$",
+                             multiLine: true));
+  });
+
+  test('checks out packages transitively from Git', () {
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";'),
+      file('pubspec', '''
+dependencies:
+  bar:
+    git: ../bar.git
+''')
+    ]).scheduleCreate();
+
+    git('bar.git', [
+      file('bar.dart', 'main() => "bar";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec', '''
+dependencies:
+  foo:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";')
+      ])
+    ]).scheduleValidate();
+
+    runPub(args: ['install'],
+        output: const RegExp("^Cloning into[\\s\\S]*^Dependencies installed!\$",
+                             multiLine: true));
   });
 }
 
