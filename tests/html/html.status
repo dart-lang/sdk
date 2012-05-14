@@ -151,6 +151,10 @@ measurement_test: Fail
 dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 
+[ $compiler == dart2js && $runtime == d8 ]
+# Should investigate why this test succeeds on d8.
+svgelement2_test: Pass
+
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
