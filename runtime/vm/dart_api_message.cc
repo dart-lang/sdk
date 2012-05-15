@@ -62,6 +62,11 @@ Dart_CObject* ApiMessageReader::AllocateDartCObject(Dart_CObject::Type type) {
 }
 
 
+Dart_CObject* ApiMessageReader::AllocateDartCObjectUnsupported() {
+  return AllocateDartCObject(Dart_CObject::kUnsupported);
+}
+
+
 Dart_CObject* ApiMessageReader::AllocateDartCObjectNull() {
   return AllocateDartCObject(Dart_CObject::kNull);
 }
@@ -170,14 +175,14 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
 
   // Reading of regular dart instances is not supported.
   if (SerializedHeaderData::decode(class_header) == kInstanceId) {
-    return NULL;
+    return AllocateDartCObjectUnsupported();
   }
 
   ASSERT((class_header & kSmiTagMask) != 0);
   class_id = LookupInternalClass(class_header);
   switch (class_id) {
     case Object::kClassClass: {
-      return NULL;
+      return AllocateDartCObjectUnsupported();
     }
     case Object::kTypeArgumentsClass: {
       // TODO(sjesse): Remove this when message serialization format is
@@ -189,7 +194,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       for (int i = 0; i < length->value.as_int32; i++) {
         Dart_CObject* type = ReadObject();
         if (type != &dynamic_type_marker) {
-          return NULL;
+          return AllocateDartCObjectUnsupported();
         }
       }
       return value;
@@ -221,7 +226,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       Dart_CObject* type_arguments = ReadObject();
       if (type_arguments != &type_arguments_marker &&
           type_arguments->type != Dart_CObject::kNull) {
-        return NULL;
+        return AllocateDartCObjectUnsupported();
       }
       for (int i = 0; i < len; i++) {
         value->value.as_array.values[i] = ReadObject();
@@ -272,10 +277,10 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
     }
     case ObjectStore::kTwoByteStringClass:
       // Two byte strings not supported.
-      return NULL;
+      return AllocateDartCObjectUnsupported();
     case ObjectStore::kFourByteStringClass:
       // Four byte strings not supported.
-      return NULL;
+      return AllocateDartCObjectUnsupported();
     case ObjectStore::kUint8ArrayClass: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* object = AllocateDartCObjectUint8Array(len);
@@ -290,7 +295,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
     }
     default:
       // Everything else not supported.
-      return NULL;
+      return AllocateDartCObjectUnsupported();
   }
 }
 
@@ -298,24 +303,25 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
   if (object_id == Object::kNullObject) {
     return AllocateDartCObjectNull();
-  } else if (object_id == ObjectStore::kTrueValue) {
+  }
+  if (object_id == ObjectStore::kTrueValue) {
     return AllocateDartCObjectBool(true);
-  } else if (object_id == ObjectStore::kFalseValue) {
+  }
+  if (object_id == ObjectStore::kFalseValue) {
     return AllocateDartCObjectBool(false);
-  } else if (object_id == ObjectStore::kDynamicType ||
-             object_id == ObjectStore::kDoubleInterface ||
-             object_id == ObjectStore::kIntInterface ||
-             object_id == ObjectStore::kBoolInterface ||
-             object_id == ObjectStore::kStringInterface) {
+  }
+  if (object_id == ObjectStore::kDynamicType ||
+      object_id == ObjectStore::kDoubleInterface ||
+      object_id == ObjectStore::kIntInterface ||
+      object_id == ObjectStore::kBoolInterface ||
+      object_id == ObjectStore::kStringInterface) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
-  } else {
-    intptr_t index = object_id - kMaxPredefinedObjectIds;
-    ASSERT((0 <= index) && (index < backward_references_.length()));
-    ASSERT(backward_references_[index] != NULL);
-    return backward_references_[index];
   }
-  return NULL;
+  intptr_t index = object_id - kMaxPredefinedObjectIds;
+  ASSERT((0 <= index) && (index < backward_references_.length()));
+  ASSERT(backward_references_[index] != NULL);
+  return backward_references_[index];
 }
 
 

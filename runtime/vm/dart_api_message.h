@@ -37,6 +37,9 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* AllocateDartCObject();
   // Allocates a Dart_CObject object with the specified type.
   Dart_CObject* AllocateDartCObject(Dart_CObject::Type type);
+  // Allocates a Dart_CObject object representing an unsupported
+  // object in the API message.
+  Dart_CObject* AllocateDartCObjectUnsupported();
   // Allocates a Dart_CObject object for the null object.
   Dart_CObject* AllocateDartCObjectNull();
   // Allocates a Dart_CObject object for a boolean object.
