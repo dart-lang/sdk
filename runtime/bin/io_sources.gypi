@@ -28,7 +28,6 @@
     'list_stream.dart',
     'list_stream_impl.dart',
     'output_stream.dart',
-    'sha1.dart',
     'stream_util.dart',
     'string_stream.dart',
     'platform.dart',
