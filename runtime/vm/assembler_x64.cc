@@ -1266,6 +1266,16 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 }
 
 
+void Assembler::Drop(intptr_t stack_elements) {
+  ASSERT(stack_elements >= 0);
+  if (stack_elements > 0) {
+    // TODO(fschneider): When optimizing for code size, we could
+    // consider using pop for stack_elements < 4 instead.
+    addq(RSP, Immediate(stack_elements * kWordSize));
+  }
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object) {
   if (object.IsSmi()) {
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
