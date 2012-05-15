@@ -47,7 +47,7 @@ class DateImplementation implements Date {
 
   DateImplementation.now()
   : timeZone = new TimeZone.local(),
-    value = getCurrentMs_() {
+    value = _getCurrentMs() {
   }
 
   factory DateImplementation.fromString(String formattedString) {
@@ -131,45 +131,45 @@ class DateImplementation implements Date {
   }
 
   int get year() {
-    int secondsSinceEpoch = secondsSinceEpoch_;
+    int secondsSinceEpoch = _secondsSinceEpoch;
     // According to V8 some library calls have troubles with negative values.
     // Therefore clamp to 0 - year 2035 (which is less than the size of 32bit).
-    if (secondsSinceEpoch >= 0 && secondsSinceEpoch < SECONDS_YEAR_2035_) {
-      return getYear_(secondsSinceEpoch, timeZone.isUtc);
+    if (secondsSinceEpoch >= 0 && secondsSinceEpoch < _SECONDS_YEAR_2035) {
+      return _getYear(secondsSinceEpoch, timeZone.isUtc);
     }
 
     // Approximate the result. We don't take timeZone into account.
-    int approximateYear = yearsFromSecondsSinceEpoch_(secondsSinceEpoch);
-    int equivalentYear = equivalentYear_(approximateYear);
-    int y = getYear_(equivalentSeconds_(secondsSinceEpoch_), timeZone.isUtc);
+    int approximateYear = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);
+    int equivalentYear = _equivalentYear(approximateYear);
+    int y = _getYear(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
     return approximateYear + (y - equivalentYear);
   }
 
   int get month() {
-    return getMonth_(equivalentSeconds_(secondsSinceEpoch_), timeZone.isUtc);
+    return _getMonth(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
   }
 
   int get day() {
-    return getDay_(equivalentSeconds_(secondsSinceEpoch_), timeZone.isUtc);
+    return _getDay(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
   }
 
   int get hours() {
-    return getHours_(equivalentSeconds_(secondsSinceEpoch_), timeZone.isUtc);
+    return _getHours(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
   }
 
   int get minutes() {
-    return getMinutes_(equivalentSeconds_(secondsSinceEpoch_), timeZone.isUtc);
+    return _getMinutes(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
   }
 
   int get seconds() {
-    return getSeconds_(equivalentSeconds_(secondsSinceEpoch_), timeZone.isUtc);
+    return _getSeconds(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
   }
 
   int get milliseconds() {
     return value % Duration.MILLISECONDS_PER_SECOND;
   }
 
-  int get secondsSinceEpoch_() {
+  int get _secondsSinceEpoch() {
     // Always round down.
     if (value < 0) {
       return (value + 1) ~/ Duration.MILLISECONDS_PER_SECOND - 1;
@@ -259,12 +259,12 @@ class DateImplementation implements Date {
   final int value;
   final TimeZoneImplementation timeZone;
 
-  static final int SECONDS_YEAR_2035_ = 2051222400;
+  static final int _SECONDS_YEAR_2035 = 2051222400;
 
   // Returns the UTC year for the corresponding [secondsSinceEpoch].
   // It is relatively fast for values in the range 0 to year 2098.
   // Code is adapted from V8.
-  static int yearsFromSecondsSinceEpoch_(int secondsSinceEpoch) {
+  static int _yearsFromSecondsSinceEpoch(int secondsSinceEpoch) {
     final int DAYS_IN_4_YEARS = 4 * 365 + 1;
     final int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
     final int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
@@ -299,23 +299,23 @@ class DateImplementation implements Date {
   }
 
   // Given [secondsSinceEpoch] returns seconds such that they are at the same
-  // time in an equivalent year (see [equivalentYear_]).
+  // time in an equivalent year (see [_equivalentYear]).
   // Leap seconds are ignored.
-  static int equivalentSeconds_(int secondsSinceEpoch) {
-    if (secondsSinceEpoch >= 0 && secondsSinceEpoch < SECONDS_YEAR_2035_) {
+  static int _equivalentSeconds(int secondsSinceEpoch) {
+    if (secondsSinceEpoch >= 0 && secondsSinceEpoch < _SECONDS_YEAR_2035) {
       return secondsSinceEpoch;
     }
-    int year = yearsFromSecondsSinceEpoch_(secondsSinceEpoch);
-    int days = dayFromYear_(year);
-    int equivalentYear = equivalentYear_(year);
-    int equivalentDays = dayFromYear_(equivalentYear);
+    int year = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);
+    int days = _dayFromYear(year);
+    int equivalentYear = _equivalentYear(year);
+    int equivalentDays = _dayFromYear(equivalentYear);
     int diffDays = equivalentDays - days;
     return secondsSinceEpoch + diffDays * Duration.SECONDS_PER_DAY;
   }
 
   // Returns the days since 1970 for the start of the given [year].
   // [year] may be before epoch.
-  static int dayFromYear_(int year) {
+  static int _dayFromYear(int year) {
     int flooredDivision(int a, int b) {
       return (a - (a < 0 ? b - 1 : 0)) ~/ b;
     }
@@ -331,7 +331,7 @@ class DateImplementation implements Date {
   // - week day of first day.
   // Leap seconds are ignored.
   // Adapted from V8's date implementation. See ECMA 262 - 15.9.1.9.
-  static equivalentYear_(int year) {
+  static _equivalentYear(int year) {
     // Returns 1 if in leap year. 0 otherwise.
     bool inLeapYear(year) {
       return (year.remainder(4) == 0) &&
@@ -341,7 +341,7 @@ class DateImplementation implements Date {
     // Returns the week day (in range 0 - 6).
     int weekDay(year) {
       // 1/1/1970 was a Thursday.
-      return (dayFromYear_(year) + 4) % 7;
+      return (_dayFromYear(year) + 4) % 7;
     }
     // 1/1/1956 was a Sunday (i.e. weekday 0). 1956 was a leap-year.
     // 1/1/1967 was a Sunday (i.e. weekday 0).
@@ -380,8 +380,8 @@ class DateImplementation implements Date {
     // We exclude the year 1970 when the time is not UTC, since the epoch
     // value could then be negative.
     if (years < (isUtc ? 1970 : 1971) || years > 2035) {
-      equivalentYear = equivalentYear_(years);
-      int offsetInDays = (dayFromYear_(years) - dayFromYear_(equivalentYear));
+      equivalentYear = _equivalentYear(years);
+      int offsetInDays = (_dayFromYear(years) - _dayFromYear(equivalentYear));
       // Leap seconds are ignored.
       offsetInSeconds = offsetInDays * Duration.SECONDS_PER_DAY;
     } else {
@@ -399,25 +399,25 @@ class DateImplementation implements Date {
       int years, int month, int day, int hours, int minutes, int seconds,
       bool isUtc) native "DateNatives_brokenDownToSecondsSinceEpoch";
 
-  static int getCurrentMs_() native "DateNatives_currentTimeMillis";
+  static int _getCurrentMs() native "DateNatives_currentTimeMillis";
 
   // TODO(floitsch): it would be more efficient if we didn't call the native
   // function for every member, but cached the broken-down date.
-  static int getYear_(int secondsSinceEpoch, bool isUtc)
+  static int _getYear(int secondsSinceEpoch, bool isUtc)
       native "DateNatives_getYear";
 
-  static int getMonth_(int secondsSinceEpoch, bool isUtc)
+  static int _getMonth(int secondsSinceEpoch, bool isUtc)
       native "DateNatives_getMonth";
 
-  static int getDay_(int secondsSinceEpoch, bool isUtc)
+  static int _getDay(int secondsSinceEpoch, bool isUtc)
       native "DateNatives_getDay";
 
-  static int getHours_(int secondsSinceEpoch, bool isUtc)
+  static int _getHours(int secondsSinceEpoch, bool isUtc)
       native "DateNatives_getHours";
 
-  static int getMinutes_(int secondsSinceEpoch, bool isUtc)
+  static int _getMinutes(int secondsSinceEpoch, bool isUtc)
       native "DateNatives_getMinutes";
 
-  static int getSeconds_(int secondsSinceEpoch, bool isUtc)
+  static int _getSeconds(int secondsSinceEpoch, bool isUtc)
       native "DateNatives_getSeconds";
 }
