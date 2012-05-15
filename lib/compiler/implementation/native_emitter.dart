@@ -69,6 +69,22 @@ class NativeEmitter {
     return compiler.namer.isolateAccess(element);
   }
 
+  String get defineNativeClassName()
+      => '${compiler.namer.CURRENT_ISOLATE}.\$defineNativeClass';
+
+  String get defineNativeClassFunction() {
+    return """
+function(cls, fields, methods) {
+  var generateGetterSetter = ${compiler.emitter.generateGetterSetterFunction};
+  for (var i = 0; i < fields.length; i++) {
+    generateGetterSetter(fields[i], methods);
+  }
+  for (var method in methods) {
+    $dynamicName(method)[cls] = methods[method];
+  }
+}""";
+  }
+
   void generateNativeLiteral(ClassElement classElement) {
     String quotedNative = classElement.nativeName.slowToString();
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
@@ -84,9 +100,7 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        bool needGettersAndSetters = true;
-        compiler.emitter.addInstanceMember(
-            member, needGettersAndSetters, defineInstanceMember);
+        compiler.emitter.addInstanceMember(member, defineInstanceMember);
       }
     }
   }
@@ -121,29 +135,22 @@ class NativeEmitter {
       return;
     }
 
+    StringBuffer fieldBuffer = new StringBuffer();
+    compiler.emitter.emitClassFields(classElement, fieldBuffer);
+
+    StringBuffer methodBuffer = new StringBuffer();
+    compiler.emitter.emitInstanceMembers(classElement, methodBuffer);
+
+    if (methodBuffer.isEmpty() && fieldBuffer.isEmpty()) return;
+
     String nativeName = toNativeName(classElement);
-    bool hasUsedSelectors = false;
+    nativeBuffer.add("$defineNativeClassName('$nativeName', [");
+    nativeBuffer.add(fieldBuffer);
+    nativeBuffer.add('], {');
+    nativeBuffer.add(methodBuffer);
+    nativeBuffer.add('\n});\n\n');
 
-    void defineInstanceMember(String name, String value) {
-      hasUsedSelectors = true;
-      nativeBuffer.add("$dynamicName('$name').$nativeName = $value;\n");
-    }
-
-    for (Element member in classElement.members) {
-      if (member.isInstanceMember()) {
-        bool needGettersAndSetters = true;
-        compiler.emitter.addInstanceMember(
-          member, needGettersAndSetters, defineInstanceMember);
-      }
-    }
-
-    compiler.emitter.generateTypeTests(classElement, (Element other) {
-      assert(requiresNativeIsCheck(other));
-      defineInstanceMember(compiler.namer.operatorIs(other),
-                           "function() { return true; }");
-    });
-
-    if (hasUsedSelectors) classesWithDynamicDispatch.add(classElement);
+    classesWithDynamicDispatch.add(classElement);
   }
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
@@ -361,6 +368,7 @@ class NativeEmitter {
 
   void assembleCode(StringBuffer targetBuffer) {
     if (nativeClasses.isEmpty()) return;
+    emitDynamicDispatchMetadata();
 
     // Because of native classes, we have to generate some is checks
     // by calling a method, instead of accessing a property. So we
@@ -378,7 +386,7 @@ class NativeEmitter {
     objectProperties.add(
         'function() { return $toStringHelperName(this); });\n');
 
-    // Finally, emit the code in the main buffer.
-    targetBuffer.add('(function() {\n$objectProperties$nativeBuffer\n})();\n');
+    targetBuffer.add('$defineNativeClassName = $defineNativeClassFunction;\n');
+    targetBuffer.add('$objectProperties$nativeBuffer\n');
   }
 }

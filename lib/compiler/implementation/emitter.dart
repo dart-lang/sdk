@@ -56,6 +56,26 @@ class CodeEmitterTask extends CompilerTask {
   final String SETTER_SUFFIX = "!";
   final String GETTER_SETTER_SUFFIX = "=";
 
+  String get generateGetterSetterFunction() {
+    return """
+function(field, prototype) {
+  var len = field.length;
+  var lastChar = field[len - 1];
+  var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+  var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+  if (needsGetter || needsSetter) field = field.substring(0, len - 1);
+  if (needsGetter) {
+    var getterString = "return this." + field + ";";
+    prototype["get\$" + field] = new Function(getterString);
+  }
+  if (needsSetter) {
+    var setterString = "this." + field + " = v;";
+    prototype["set\$" + field] = new Function("v", setterString);
+  }
+  return field;
+}""";
+  }
+
   String get defineClassFunction() {
     // First the class name, then the super class name, followed by the fields
     // (in an array) and the members (inside an Object literal).
@@ -72,6 +92,7 @@ class CodeEmitterTask extends CompilerTask {
     // });
     return """
 function(cls, superclass, fields, prototype) {
+  var generateGetterSetter = $generateGetterSetterFunction;
   var constructor;
   if (typeof fields == 'function') {
     constructor = fields;
@@ -81,21 +102,9 @@ function(cls, superclass, fields, prototype) {
     for (var i = 0; i < fields.length; i++) {
       if (i != 0) str += ", ";
       var field = fields[i];
-      var len = field.length;
-      var lastChar = field[len - 1];
-      var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-      var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-      if (needsGetter || needsSetter) field = field.substring(0, len - 1);
+      field = generateGetterSetter(field, prototype);
       str += field;
       body += "this." + field + " = " + field + ";\\n";
-      if (needsGetter) {
-        var getterString = "return this." + field + ";";
-        prototype["get\$" + field] = new Function(getterString);
-      }
-      if (needsSetter) {
-        var setterString = "this." + field + " = v;";
-        prototype["set\$" + field] = new Function("v", setterString);
-      }
     }
     str += ") {" + body + "}\\n";
     str += "return " + cls + ";";
@@ -364,7 +373,6 @@ function() {
   }
 
   void addInstanceMember(Element member,
-                         bool needGettersAndSetters,
                          void defineInstanceMember(String invocationName,
                                                    String definition)) {
     // TODO(floitsch): we don't need to deal with members of
@@ -387,21 +395,7 @@ function() {
       if (!parameters.optionalParameters.isEmpty()) {
         addParameterStubs(member, defineInstanceMember);
       }
-    } else if (member.kind === ElementKind.FIELD) {
-      if (needGettersAndSetters) {
-        if (instanceFieldNeedsGetter(member)) {
-          String getter = namer.getterName(member.getLibrary(), member.name);
-          String name = compiledFieldName(member);
-          defineInstanceMember(getter, "function() { return this.$name; }");
-        }
-
-        if (instanceFieldNeedsSetter(member)) {
-          String setter = namer.setterName(member.getLibrary(), member.name);
-          String name = compiledFieldName(member);
-          defineInstanceMember(setter, "function(v) { this.$name = v; }");
-        }
-      }
-    } else {
+    } else if (member.kind !== ElementKind.FIELD) {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
@@ -428,7 +422,9 @@ function() {
         needsDynamicSetter = instanceFieldNeedsSetter(member);
       }
 
-      if (isInstantiated || needsDynamicGetter || needsDynamicSetter) {
+      if ((isInstantiated && !enclosingClass.isNative())
+          || needsDynamicGetter
+          || needsDynamicSetter) {
         if (isFirstField) {
           isFirstField = false;
         } else {
@@ -456,9 +452,10 @@ function() {
     // generate the field getter/setter dynamically. Since this is only
     // allowed on fields that are in [classElement] we don't need to visit
     // superclasses for non-instantiated classes.
-    classElement.forEachInstanceField(addField,
-                                      includeBackendMembers: true,
-                                      includeSuperMembers: isInstantiated);
+    classElement.forEachInstanceField(
+        addField,
+        includeBackendMembers: true,
+        includeSuperMembers: isInstantiated && !classElement.isNative());
   }
 
   void emitInstanceMembers(ClassElement classElement, StringBuffer buffer) {
@@ -473,10 +470,7 @@ function() {
     classElement.forEachMember(includeBackendMembers: true,
                                f: (ClassElement enclosing, Element member) {
       if (member.isInstanceMember()) {
-        // All getters and setters for non-native classes are generated
-        // dynamically.
-        bool needGettersAndSetters = false;
-        addInstanceMember(member, needGettersAndSetters, defineInstanceMember);
+        addInstanceMember(member, defineInstanceMember);
       }
     });
 
@@ -499,8 +493,6 @@ function() {
   }
 
   void generateClass(ClassElement classElement, StringBuffer buffer) {
-    needsDefineClass = true;
-
     if (classElement.isNative()) {
       nativeEmitter.generateNativeClass(classElement);
       return;
@@ -511,6 +503,7 @@ function() {
       buffer = mainBuffer;
     }
 
+    needsDefineClass = true;
     String className = namer.getName(classElement);
     ClassElement superclass = classElement.superclass;
     String superName = "";
@@ -967,7 +960,6 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       // The following code should not use the short-hand for the
       // initialStatics.
       mainBuffer.add('var ${namer.CURRENT_ISOLATE} = null;\n');
-      nativeEmitter.emitDynamicDispatchMetadata();
       mainBuffer.add(boundClosureBuffer);
       emitFinishClassesInvocationIfNecessary(mainBuffer);
 
