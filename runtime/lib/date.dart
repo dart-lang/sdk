@@ -62,13 +62,19 @@ class DateImplementation implements Date {
     //    - "-123450101 00:00:00 Z"  // In the year -12345.
     final RegExp re = const RegExp(
         @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)' +  // The day part.
-        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:.(\d{1,5}))?)?)? ?([zZ])?)?$');
+        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
     if (match !== null) {
       int parseIntOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
         if (matched === null || matched == "") return 0;
         return Math.parseInt(matched);
+      }
+
+      double parseDoubleOrZero(String matched) {
+        // TODO(floitsch): we should not need to test against the empty string.
+        if (matched === null || matched == "") return 0.0;
+        return Math.parseDouble(matched);
       }
 
       int years = Math.parseInt(match[1]);
@@ -78,26 +84,10 @@ class DateImplementation implements Date {
       int minutes = parseIntOrZero(match[5]);
       int seconds = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int milliseconds = parseIntOrZero(match[7]);
-      if (milliseconds != 0) {
-        if (match[7].length == 1) {
-          milliseconds *= 100;
-        } else if (match[7].length == 2) {
-          milliseconds *= 10;
-        } else if (match[7].length == 3) {
-          // Do nothing.
-        } else if (match[7].length == 4) {
-          addOneMillisecond = ((milliseconds % 10) >= 5);
-          milliseconds ~/= 10;
-        } else {
-          assert(match[7].length == 5);
-          addOneMillisecond = ((milliseconds %100) >= 50);
-          milliseconds ~/= 100;
-        }
-        if (addOneMillisecond && milliseconds < 999) {
-          addOneMillisecond = false;
-          milliseconds++;
-        }
+      int milliseconds = (parseDoubleOrZero(match[7]) * 1000).round();
+      if (milliseconds == 1000) {
+        addOneMillisecond = true;
+        milliseconds = 999;
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
