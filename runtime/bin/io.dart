@@ -12,3 +12,4 @@
 #import("dart:nativewrappers");
 #import("dart:uri");
 #import("dart:crypto");
+#import("dart:utf");
