@@ -17,8 +17,15 @@ class WorkItem {
   String run(Compiler compiler) {
     String code = compiler.universe.generatedCode[element];
     if (code !== null) return code;
-    if (!isAnalyzed()) compiler.analyze(this);
-    return compiler.codegen(this);
+    try {
+      if (!isAnalyzed()) compiler.analyze(this);
+      return compiler.codegen(this);
+    } catch (CompilerCancelledException ex) {
+      throw;
+    } catch (var ex) {
+      compiler.unhandledExceptionOnElement(element);
+      throw;
+    }
   }
 }
 
@@ -136,6 +143,12 @@ class Compiler implements DiagnosticListener {
     withCurrentElement(element, () {
       internalError(message, element: element);
     });
+  }
+
+  void unhandledExceptionOnElement(Element element) {
+    internalErrorOnElement(element, '''
+An unhandled exception was thrown.
+Please report this problem at http://dartbug.com/new.''');
   }
 
   void cancel([String reason, Node node, Token token,
