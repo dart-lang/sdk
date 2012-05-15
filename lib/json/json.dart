@@ -107,6 +107,10 @@ class _JsonParser {
 
   static objectLength(String str) {
     var p = new _JsonParser._internal(str);
+    var firstToken = p._token();
+    if (firstToken != LBRACE) {
+      return 0;
+    }
     try {
       p._parseObject();
       assert(p.position <= p.length);

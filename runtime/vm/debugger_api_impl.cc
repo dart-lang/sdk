@@ -87,7 +87,6 @@ DART_EXPORT void Dart_SetBreakpointHandler(
 static Dart_BreakpointResolvedHandler* bp_resolved_handler = NULL;
 
 static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
-  printf("Debugger event %d\n", event->type);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   if (event->type == Debugger::kBreakpointResolved) {
