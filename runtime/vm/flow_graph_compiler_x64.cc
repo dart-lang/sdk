@@ -348,7 +348,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
                       kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addq(RSP, Immediate(8 * kWordSize));
+  __ Drop(8);
   __ popq(RAX);
 
   __ Bind(&is_assignable);
@@ -479,7 +479,7 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
   ExternalLabel target_label("InlineCache", label_address);
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall, cid, token_index, try_index);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ Drop(argument_count);
 }
 
 
@@ -497,7 +497,7 @@ void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
                try_index,
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ Drop(argument_count);
 }
 
 
@@ -527,7 +527,7 @@ void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
                comp->try_index(),
                &StubCode::CallClosureFunctionLabel(),
                PcDescriptors::kOther);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ Drop(argument_count);
   __ popq(CTX);
 }
 
@@ -836,7 +836,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   GenerateCallRuntime(cid, token_index, try_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addq(RSP, Immediate(7 * kWordSize));
+  __ Drop(7);
   Label done;
   if (negate_result) {
     __ popq(RDX);
@@ -878,9 +878,7 @@ void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   GenerateCall(comp->token_index(), comp->try_index(), &label,
                PcDescriptors::kOther);
-  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
-    __ popq(RCX);  // Discard allocation argument
-  }
+  __ Drop(comp->arguments().length());  // Discard allocation argument.
 }
 
 
@@ -900,10 +898,9 @@ void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
                       comp->token_index(),
                       comp->try_index(),
                       kAllocateObjectWithBoundsCheckRuntimeEntry);
-  __ popq(RCX);  // Pop instantiator type arguments.
-  __ popq(RCX);  // Pop type arguments.
-  __ popq(RCX);  // Pop class.
-  __ popq(RCX);  // Pop source location.
+  // Pop instantiator type arguments, type arguments, class, and
+  // source location.
+  __ Drop(4);
   __ popq(RAX);  // Pop new instance.
 }
 
