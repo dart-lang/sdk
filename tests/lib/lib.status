@@ -2,15 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
-[ $compiler == dartc || $compiler == frog ]
-*: Skip
-
-[ $arch == arm ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
+[ $compiler == frog ]
+crypto/*: Skip
 
 [ $compiler == dart2js && $checked ]
 # numbers typed 'int' are too big to fit in a JS int.
