@@ -35,7 +35,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   for (OptionHandler handler in handlers) {
     patterns.add(handler.pattern);
   }
-  var pattern = new RegExp('^(${Strings.join(patterns, ")|(")})\$');
+  var pattern = new RegExp('^(${Strings.join(patterns, ")\$|(")})\$');
   OUTER: for (String argument in argv) {
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount() == handlers.length);
