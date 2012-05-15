@@ -1492,7 +1492,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
         TypeVariableElement variableElement = element;
         return variableElement.type;
       } else if (element.isTypedef()) {
-        compiler.unimplemented('visitIdentifier for typedefs');
+        compiler.unimplemented('visitIdentifier for typedefs', node: node);
       } else {
         // TODO(ngeoffray): Use type variables.
         return element.computeType(compiler);

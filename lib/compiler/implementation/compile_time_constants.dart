@@ -225,8 +225,9 @@ class FalseConstant extends BoolConstant {
 class StringConstant extends PrimitiveConstant {
   final DartString value;
   int _hashCode;
+  final Node node;
 
-  StringConstant(this.value) {
+  StringConstant(this.value, this.node) {
     // TODO(floitsch): cache StringConstants.
     // TODO(floitsch): compute hashcode without calling toString() on the
     // DartString.
@@ -237,7 +238,7 @@ class StringConstant extends PrimitiveConstant {
   void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("'");
     ConstantHandler.writeEscapedString(value, buffer, (reason) {
-      throw new CompilerCancelledException(reason);
+      handler.compiler.reportError(node, reason);
     });
     buffer.add("'");
   }
@@ -798,13 +799,14 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralString(LiteralString node) {
-    return new StringConstant(node.dartString);
+    return new StringConstant(node.dartString, node);
   }
 
   Constant visitStringJuxtaposition(StringJuxtaposition node) {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
-    return new StringConstant(new DartString.concat(left.value, right.value));
+    return new StringConstant(new DartString.concat(left.value, right.value),
+                              node);
   }
 
   Constant visitStringInterpolation(StringInterpolation node) {
@@ -826,7 +828,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       StringConstant partString = evaluate(part.string);
       accumulator = new DartString.concat(accumulator, partString.value);
     };
-    return new StringConstant(accumulator);
+    return new StringConstant(accumulator, node);
   }
 
   // TODO(floitsch): provide better error-messages.

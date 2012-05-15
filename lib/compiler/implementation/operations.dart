@@ -235,11 +235,11 @@ class AddOperation implements BinaryOperation {
       if (rightDartString.isEmpty()) {
         return left;
       } else if (leftString.value.isEmpty()) {
-        return new StringConstant(rightDartString);
+        return new StringConstant(rightDartString, right.node);
       } else {
         DartString concatenated =
             new ConsDartString(leftString.value, rightDartString);
-        return new StringConstant(concatenated);
+        return new StringConstant(concatenated, leftString.node);
       }
     } else {
       return null;

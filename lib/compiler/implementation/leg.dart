@@ -33,7 +33,3 @@
 #source('universe.dart');
 #source('warnings.dart');
 #source('world.dart');
-
-void unreachable() {
-  throw const Exception("Internal Error (Leg): UNREACHABLE");
-}

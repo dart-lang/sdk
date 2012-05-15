@@ -177,8 +177,8 @@ class HGraph {
     return addConstant(new DoubleConstant(d));
   }
 
-  HConstant addConstantString(DartString str) {
-    return addConstant(new StringConstant(str));
+  HConstant addConstantString(DartString str, Node node) {
+    return addConstant(new StringConstant(str, node));
   }
 
   HConstant addConstantBool(bool value) {
@@ -2366,7 +2366,8 @@ class HLabeledBlockInformation implements HStatementInformation {
 class LoopTypeVisitor extends AbstractVisitor {
   const LoopTypeVisitor();
   int visitNode(Node node) {
-    unreachable();
+    // TODO(lrn): Need a compiler object here.
+    compiler.internalError('visitNode should not be called', node: node);
   }
   int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;
   int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
@@ -2447,7 +2448,11 @@ class HAndOrBlockInformation implements HExpressionInformation {
   HBasicBlock get end() => right.end;
 
   // We don't currently use HAndOrBlockInformation.
-  HInstruction get conditionExpression() { unreachable(); }
+  HInstruction get conditionExpression() {
+    // TODO(lrn): Need a compiler object.
+    compiler.internalError('conditionExpression should not be called',
+                           instruction: this);
+  }
   bool accept(HExpressionInformationVisitor visitor) =>
     visitor.visitAndOrInfo(this);
 }

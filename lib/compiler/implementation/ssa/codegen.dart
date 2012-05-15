@@ -1311,9 +1311,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // If the successor is dominated by another block, then the other block
     // is responsible for visiting the successor.
     if (dominated.isEmpty()) return;
-    if (dominated.length > 2) unreachable();
+    if (dominated.length > 2) {
+      compiler.internalError('dominated.length = ${dominated.length}',
+                             instruction: node);
+    }
     if (dominated.length == 2 && currentBlock !== currentGraph.entry) {
-      unreachable();
+      compiler.internalError('currentBlock !== currentGraph.entry',
+                             instruction: node);
     }
     assert(dominated[0] == currentBlock.successors[0]);
     visitBasicBlock(dominated[0]);
@@ -1388,7 +1392,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // We should never get here. Try/catch/finally is always handled using block
     // information in [visitTryInfo], or not at all, in the case of the bailout
     // generator.
-    unreachable();
+    compiler.internalError('visitTry should not be called', instruction: node);
   }
 
   visitIf(HIf node) {
@@ -2316,7 +2320,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       buffer.add(')) ');
       bailout(node, 'Not a string or array');
     } else {
-      unreachable();
+      compiler.internalError('Unexpected type guard', instruction: input);
     }
     buffer.add(';\n');
   }

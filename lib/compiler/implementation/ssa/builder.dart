@@ -677,8 +677,21 @@ interface JumpHandler default JumpHandlerImpl {
 // handler associated with it.
 class NullJumpHandler implements JumpHandler {
   const NullJumpHandler();
-  void generateBreak([LabelElement label]) { unreachable(); }
-  void generateContinue([LabelElement label]) { unreachable(); }
+
+  void generateBreak([LabelElement label]) {
+    // TODO(lrn): Need a compiler object and a location. Since label
+    // is optional, it may be null so we also need a position.
+    compiler.internalError('generateBreak should not be called',
+                           missingPosition);
+  }
+
+  void generateContinue([LabelElement label]) {
+    // TODO(lrn): Need a compiler object and a location. Since label
+    // is optional, it may be null so we also need a position.
+    compiler.internalError('generateContinue should not be called',
+                           missingPosition);
+  }
+
   void forEachBreak(Function ignored) { }
   void forEachContinue(Function ignored) { }
   void close() { }
@@ -1150,7 +1163,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitClassNode(ClassNode node) {
-    unreachable();
+    compiler.internalError('visitClassNode should not be called', node: node);
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -1660,10 +1673,13 @@ class SsaBuilder implements Visitor {
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     HInvokeUnary result;
-    switch (op.source.stringValue) {
+    String value = op.source.stringValue;
+    switch (value) {
       case "-": result = new HNegate(target, operand); break;
       case "~": result = new HBitNot(target, operand); break;
-      default: unreachable();
+      default:
+        compiler.internalError('Unexpected unary operator: $value.', node: op);
+        break;
     }
     // See if we can constant-fold right away. This avoids rewrites later on.
     if (operand is HConstant) {
@@ -2248,7 +2264,7 @@ class SsaBuilder implements Visitor {
       var inputs = <HInstruction>[
           target,
           self,
-          graph.addConstantString(new DartString.literal(name)),
+          graph.addConstantString(new DartString.literal(name), node),
           pop()];
       push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
       return;
@@ -2538,20 +2554,20 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralString(LiteralString node) {
-    stack.add(graph.addConstantString(node.dartString));
+    stack.add(graph.addConstantString(node.dartString, node));
   }
 
   void visitStringJuxtaposition(StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
-      stack.add(graph.addConstantString(node.dartString));
+      stack.add(graph.addConstantString(node.dartString, node));
       return;
     }
     int offset = node.getBeginToken().charOffset;
     StringBuilderVisitor stringBuilder =
         new StringBuilderVisitor(this, offset);
     stringBuilder.visit(node);
-    stack.add(stringBuilder.result());
+    stack.add(stringBuilder.result(node));
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -2574,7 +2590,7 @@ class SsaBuilder implements Visitor {
 
   visitOperator(Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
-    unreachable();
+    compiler.internalError('visitOperator should not be called', node: node);
   }
 
   visitCascade(Cascade node) {
@@ -2705,12 +2721,13 @@ class SsaBuilder implements Visitor {
     StringBuilderVisitor stringBuilder =
         new StringBuilderVisitor(this, offset);
     stringBuilder.visit(node);
-    stack.add(stringBuilder.result());
+    stack.add(stringBuilder.result(node));
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
     // The parts are iterated in visitStringInterpolation.
-    unreachable();
+    compiler.internalError('visitStringInterpolation should not be called',
+                           node: node);
   }
 
   visitEmptyStatement(EmptyStatement node) {
@@ -3211,20 +3228,6 @@ class SsaBuilder implements Visitor {
     compiler.internalError('SsaBuilder.visitTypeVariable');
   }
 
-  generateUnimplemented(String reason, [bool isExpression = false]) {
-    DartString string = new DartString.literal(reason);
-    HInstruction message = graph.addConstantString(string);
-
-    // Normally, we would call [close] here. However, then we hit
-    // another unimplemented feature: aborting loop body. Simply
-    // calling [add] does not work as it asserts that the instruction
-    // isn't a control flow instruction. So we inline parts of [add].
-    current.addAfter(current.last, new HThrow(message));
-    if (isExpression) {
-      stack.add(graph.addConstantNull());
-    }
-  }
-
   /** HACK HACK HACK */
   void hackAroundPossiblyAbortingBody(Node statement, void body()) {
     visitCondition() {
@@ -3284,7 +3287,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   void visitExpression(Node node) {
-    flushLiterals();
+    flushLiterals(node);
     node.accept(builder);
     HInstruction asString = buildToString(node, builder.pop());
     prefix = buildConcat(prefix, asString);
@@ -3339,14 +3342,15 @@ class StringBuilderVisitor extends AbstractVisitor {
    * Combine the strings in [literalAccumulator] into the prefix instruction.
    * After this, the [literalAccumulator] is empty and [prefix] is non-null.
    */
-  void flushLiterals() {
+  void flushLiterals(Node node) {
     if (literalAccumulator.isEmpty()) {
       if (prefix === null) {
-        prefix = builder.graph.addConstantString(literalAccumulator);
+        prefix = builder.graph.addConstantString(literalAccumulator, node);
       }
       return;
     }
-    HInstruction string = builder.graph.addConstantString(literalAccumulator);
+    HInstruction string =
+        builder.graph.addConstantString(literalAccumulator, node);
     literalAccumulator = new DartString.empty();
     if (prefix !== null) {
       prefix = buildConcat(prefix, string);
@@ -3371,8 +3375,8 @@ class StringBuilderVisitor extends AbstractVisitor {
     return builder.pop();
   }
 
-  HInstruction result() {
-    flushLiterals();
+  HInstruction result(Node node) {
+    flushLiterals(node);
     return prefix;
   }
 }

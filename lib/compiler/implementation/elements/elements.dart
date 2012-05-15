@@ -646,7 +646,9 @@ class ConstructorBodyElement extends FunctionElement {
 
   bool isInstanceMember() => true;
 
-  FunctionType computeType(Compiler compiler) { unreachable(); }
+  FunctionType computeType(Compiler compiler) {
+    compiler.reportFatalError('Internal error: $this.computeType', this);
+  }
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;

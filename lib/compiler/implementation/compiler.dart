@@ -149,9 +149,18 @@ class Compiler implements DiagnosticListener {
       span = spanFromElement(currentElement);
     } else if (element !== null) {
       span = spanFromElement(element);
+    } else {
+      throw 'No error location for error: $reason';
     }
     reportDiagnostic(span, red(reason), true);
     throw new CompilerCancelledException(reason);
+  }
+
+  void reportFatalError(String reason, Element element,
+                        [Node node, Token token, HInstruction instruction]) {
+    withCurrentElement(element, () {
+      cancel(reason, node, token, instruction, element);
+    });
   }
 
   void log(message) {
@@ -273,17 +282,13 @@ class Compiler implements DiagnosticListener {
     mainApp = scanner.loadLibrary(uri, null);
     final Element main = mainApp.find(MAIN);
     if (main === null) {
-      withCurrentElement(mainApp, () => cancel('Could not find $MAIN'));
+      reportFatalError('Could not find $MAIN', mainApp);
     } else {
-      withCurrentElement(main, () {
-        if (!main.isFunction()) {
-          cancel('main is not a function', element: main);
-        }
-        FunctionElement mainMethod = main;
-        FunctionSignature parameters = mainMethod.computeSignature(this);
-        if (parameters.parameterCount > 0) {
-          cancel('main cannot have parameters', element: mainMethod);
-        }
+      if (!main.isFunction()) reportFatalError('main is not a function', main);
+      FunctionElement mainMethod = main;
+      FunctionSignature parameters = mainMethod.computeSignature(this);
+      parameters.forEachParameter((Element parameter) {
+        reportFatalError('main cannot have parameters', parameter);
       });
     }
     Collection<LibraryElement> libraries = universe.libraries.getValues();
@@ -475,8 +480,8 @@ class Compiler implements DiagnosticListener {
     }
     Token position = element.position();
     if (position === null) {
-      // TODO(ahe): Find the enclosing library.
-      return const SourceSpan(null, null, null);
+      Uri uri = element.getCompilationUnit().script.uri;
+      return new SourceSpan(uri, 0, 0);
     }
     return spanFromTokens(position, position);
   }
