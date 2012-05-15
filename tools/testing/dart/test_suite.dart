@@ -257,7 +257,8 @@ class StandardTestSuite implements TestSuite {
     final name = directory.substring(directory.lastIndexOf('/') + 1);
 
     return new StandardTestSuite(configuration,
-        name, directory, ['$directory/$name.status'],
+        name, directory,
+        ['$directory/$name.status', '$directory/${name}_dart2js.status'],
         (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
@@ -322,6 +323,15 @@ class StandardTestSuite implements TestSuite {
     // Read test expectations from status files.
     testExpectations = new TestExpectations();
     for (var statusFilePath in statusFilePaths) {
+      // [forDirectory] adds name_dart2js.status for all tests suites, use it if
+      // it exists, but otherwise skip it and don't fail.
+      if (statusFilePath.endsWith('_dart2js.status')) {
+        File file = new File('$dartDir/$statusFilePath');
+        if (!file.existsSync()) {
+          filesRead++;
+          continue;
+        }
+      }
       ReadTestExpectationsInto(testExpectations,
                                '$dartDir/$statusFilePath',
                                configuration,
