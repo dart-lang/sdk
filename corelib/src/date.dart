@@ -83,6 +83,27 @@ interface Date extends Comparable, Hashable default DateImplementation {
   const Date.fromEpoch(int value, TimeZone timeZone);
 
   /**
+   * Returns true if [this] occurs before [other]. The comparison is independent
+   * of the timezone the [Date] is in.
+   */
+  bool operator <(Date other);
+  /**
+   * Returns true if [this] occurs at the same time or before [other]. The
+   * comparison is independent of the timezone the [Date] is in.
+   */
+  bool operator <=(Date other);
+  /**
+   * Returns true if [this] occurs after [other]. The comparison is independent
+   * of the timezone the [Date] is in.
+   */
+  bool operator >(Date other);
+  /**
+   * Returns true if [this] occurs at the same time or after [other]. The
+   * comparison is independent of the timezone the [Date] is in.
+   */
+  bool operator >=(Date other);
+
+  /**
    * Returns a new [Date] in the given [targetTimeZone] time zone. The
    * [value] of the new instance is equal to [:this.value:].
    *
