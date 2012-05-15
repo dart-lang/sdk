@@ -1425,6 +1425,12 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
 
   __ Bind(&wrong_num_arguments);
+  if (StackSize() != 0) {
+    // We need to unwind the space we reserved for locals and copied parmeters.
+    // The NoSuchMethodFunction stub does not expect to see that area on the
+    // stack.
+    __ addq(RSP, Immediate(StackSize() * kWordSize));
+  }
   if (function.IsClosureFunction()) {
     GenerateCallRuntime(AstNode::kNoId,
                         0,
