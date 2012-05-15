@@ -138,21 +138,19 @@ class Interceptors {
 class SsaBuilderTask extends CompilerTask {
   final Interceptors interceptors;
   final Map<Node, ClosureData> closureDataCache;
-  final CodeEmitterTask emitter;
 
   String get name() => 'SSA builder';
 
-  SsaBuilderTask(JavaScriptBackend backend)
-    : interceptors = new Interceptors(backend.compiler),
+  SsaBuilderTask(Compiler compiler)
+    : interceptors = new Interceptors(compiler),
       closureDataCache = new HashMap<Node, ClosureData>(),
-      emitter = backend.emitter,
-      super(backend.compiler);
+      super(compiler);
 
   HGraph build(WorkItem work) {
     return measure(() {
       FunctionElement element = work.element;
       HInstruction.idCounter = 0;
-      SsaBuilder builder = new SsaBuilder(this, work);
+      SsaBuilder builder = new SsaBuilder(compiler, work);
       HGraph graph;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
@@ -301,7 +299,8 @@ class LocalsHandler {
   void startFunction(FunctionElement function,
                      FunctionExpression node) {
 
-    ClosureTranslator translator = new ClosureTranslator(builder);
+    ClosureTranslator translator =
+        new ClosureTranslator(builder.compiler, builder.elements);
     closureData = translator.translate(node);
 
     FunctionSignature params = function.computeSignature(builder.compiler);
@@ -768,7 +767,7 @@ class JumpHandlerImpl implements JumpHandler {
 }
 
 class SsaBuilder implements Visitor {
-  final SsaBuilderTask builder;
+  final Compiler compiler;
   TreeElements elements;
   final Interceptors interceptors;
   final WorkItem work;
@@ -791,13 +790,11 @@ class SsaBuilder implements Visitor {
   HBasicBlock lastOpenedBlock;
 
   LibraryElement get currentLibrary() => work.element.getLibrary();
-  Compiler get compiler() => builder.compiler;
-  Emitter get emitter() => builder.emitter;
 
-  SsaBuilder(SsaBuilderTask builder, WorkItem work)
-    : this.builder = builder,
+  SsaBuilder(Compiler compiler, WorkItem work)
+    : this.compiler = compiler,
       this.work = work,
-      interceptors = builder.interceptors,
+      interceptors = compiler.builder.interceptors,
       methodInterceptionEnabled = true,
       elements = work.resolutionTree,
       graph = new HGraph(),
@@ -1476,7 +1473,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    ClosureData nestedClosureData = builder.closureDataCache[node];
+    ClosureData nestedClosureData = compiler.builder.closureDataCache[node];
     if (nestedClosureData === null) {
       // TODO(floitsch): we can only assume that the reason for not having a
       // closure data here is, because the function is inside an initializer.

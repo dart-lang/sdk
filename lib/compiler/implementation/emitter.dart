@@ -25,7 +25,7 @@ class CodeEmitterTask extends CompilerTask {
   bool needsDefineClass = false;
   bool needsClosureClass = false;
   final Namer namer;
-  NativeEmitter nativeEmitter;
+  final NativeEmitter nativeEmitter;
   StringBuffer boundClosureBuffer;
   StringBuffer mainBuffer;
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
@@ -34,11 +34,10 @@ class CodeEmitterTask extends CompilerTask {
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
+        nativeEmitter = new NativeEmitter(compiler),
         boundClosureBuffer = new StringBuffer(),
         mainBuffer = new StringBuffer(),
-        super(compiler) {
-    nativeEmitter = new NativeEmitter(this);
-  }
+        super(compiler);
 
   String get name() => 'CodeEmitter';
 
@@ -771,11 +770,13 @@ function() {
     if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
       Set<Selector> selectors = compiler.universe.invokedNames[member.name];
       if (selectors !== null && !selectors.isEmpty()) {
-        emitCallStubForGetter(member, selectors, defineInstanceMember);
+        compiler.emitter.emitCallStubForGetter(member, selectors,
+                                               defineInstanceMember);
       }
     } else if (member.kind == ElementKind.FUNCTION) {
       if (compiler.universe.hasGetter(member, compiler)) {
-        emitDynamicFunctionGetter(member, defineInstanceMember);
+        compiler.emitter.emitDynamicFunctionGetter(member,
+                                                   defineInstanceMember);
       }
     }
   }

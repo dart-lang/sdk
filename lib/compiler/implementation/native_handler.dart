@@ -11,10 +11,10 @@
 #import('tree/tree.dart');
 #import('util/util.dart');
 
-void processNativeClasses(CodeEmitterTask emitter,
+void processNativeClasses(Compiler compiler,
                           Collection<LibraryElement> libraries) {
   for (LibraryElement library in libraries) {
-    processNativeClassesInLibrary(emitter, library);
+    processNativeClassesInLibrary(compiler, library);
   }
 }
 
@@ -33,10 +33,9 @@ void addSubtypes(ClassElement cls,
   directSubtypes.add(cls);
 }
 
-void processNativeClassesInLibrary(CodeEmitterTask emitter,
+void processNativeClassesInLibrary(Compiler compiler,
                                    LibraryElement library) {
   bool hasNativeClass = false;
-  final compiler = emitter.compiler;
   for (Link<Element> link = library.topLevelElements;
        !link.isEmpty(); link = link.tail) {
     Element element = link.head;
@@ -54,7 +53,8 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
         // Add the information that this class is a subtype of
         // its supertypes. The code emitter and the ssa builder use that
         // information.
-        addSubtypes(classElement, emitter.nativeEmitter);
+        NativeEmitter emitter = compiler.emitter.nativeEmitter;
+        addSubtypes(classElement, emitter);
       }
     }
   }
@@ -195,7 +195,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   element.setNative();
-  NativeEmitter nativeEmitter = builder.emitter.nativeEmitter;
+  NativeEmitter nativeEmitter = compiler.emitter.nativeEmitter;
   // If what we're compiling is a getter named 'typeName' and the native
   // class is named 'DOMType', we generate a call to the typeNameOf
   // function attached on the isolate.
@@ -247,7 +247,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   }
 
   if (!hasBody) {
-    nativeEmitter.nativeMethods.add(element);
+    compiler.emitter.nativeEmitter.nativeMethods.add(element);
   }
 
   FunctionSignature parameters = element.computeSignature(builder.compiler);
