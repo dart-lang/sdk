@@ -489,8 +489,6 @@ class Assembler : public ValueObject {
    */
   void AddImmediate(Register reg, const Immediate& imm);
 
-  void Drop(intptr_t stack_elements);
-
   void LoadObject(Register dst, const Object& object);
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
