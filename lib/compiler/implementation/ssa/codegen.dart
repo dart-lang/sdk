@@ -580,7 +580,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         visit(argument, expectedPrecedenceForArgument);
       } else if (isGenerateAtUseSite(input)) {
         // Get the real input of that checked instruction.
-        while (input is HCheck) input = input.checkedInput;
+        while (input is HCheck) {
+          HCheck check = input;
+          input = check.checkedInput;
+        }
 
         // If [argument] cannot be generated at use site, but [input]
         // can, use the temporary of [argument]. A code motion

@@ -10,10 +10,10 @@ class World {
   void populate(Compiler compiler, Collection<LibraryElement> libraries) {
     void addSubtypes(ClassElement cls) {
       for (Type type in cls.allSupertypes) {
-        Set<Element> subtypes = subtypes.putIfAbsent(
+        Set<Element> subtypesOfCls = subtypes.putIfAbsent(
           type.element,
           () => new Set<ClassElement>());
-        subtypes.add(cls);
+        subtypesOfCls.add(cls);
       }
     }
 
@@ -40,9 +40,9 @@ class World {
     Element element = cls.lookupMember(member);
     if (element !== null) result.add(element);
 
-    Set<ClassElement> subtypes = subtypes[cls];
-    if (subtypes !== null) {
-      for (ClassElement sub in subtypes) {
+    Set<ClassElement> subtypesOfCls = subtypes[cls];
+    if (subtypesOfCls !== null) {
+      for (ClassElement sub in subtypesOfCls) {
         element = sub.lookupLocalMember(member);
         if (element !== null) result.add(element);
       }
