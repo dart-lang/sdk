@@ -128,6 +128,11 @@ class MessageKind {
       'super not allowed here');
   static final INVALID_CASE_DEFAULT = const MessageKind(
       'default only allowed on last case of a switch');
+  static final INVALID_CASE_EXPRESSION = const MessageKind(
+      'case expression is not a compile-time constant int or string.');
+  static final INVALID_CASE_EXPRESSION_TYPE = const MessageKind(
+      "case expressions don't all have the same type "
+      "(must be all int or String).");
   static final INVALID_ARGUMENT_AFTER_NAMED = const MessageKind(
       'non-named argument after named argument');
 

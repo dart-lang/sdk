@@ -2948,7 +2948,14 @@ class SsaBuilder implements Visitor {
 
 
   // Recursively build an if/else structure to match the cases.
-  buildSwitchCases(Link<Node> cases, HInstruction expression) {
+  buildSwitchCases(Link<Node> cases, HInstruction expression,
+                   [int encounteredCaseTypes = 0]) {
+    final int NO_TYPE = 0;
+    final int INT_TYPE = 1;
+    final int STRING_TYPE = 2;
+    final int CONFLICT_TYPE = 3;
+    int combine(int type1, int type2) => type1 | type2;
+
     SwitchCase node = cases.head;
     // Called for the statements on all but the last case block.
     // Ensures that a user expecting a fallthrough gets an error.
@@ -2995,7 +3002,40 @@ class SsaBuilder implements Visitor {
         HInstruction target = new HStatic(equalsHelper);
         add(target);
         CaseMatch match = remainingCases.head;
-        visit(match.expression);
+        // TODO(lrn): Move the constant resolution to the resolver, so
+        // we can report an error before reaching the backend.
+        Constant constant =
+            compiler.constantHandler.tryCompileNodeWithDefinitions(
+                match.expression, elements);
+        if (constant !== null) {
+          if (constant.isInt()) {
+            // Report the first mixed-string/int type error only.
+            if (encounteredCaseTypes == STRING_TYPE) {
+              compiler.reportWarning(
+                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
+            }
+            encounteredCaseTypes = combine(encounteredCaseTypes, INT_TYPE);
+          } else if (constant.isString()) {
+            if (encounteredCaseTypes == INT_TYPE) {
+              compiler.reportWarning(
+                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
+            }
+            encounteredCaseTypes = combine(encounteredCaseTypes, STRING_TYPE);
+          } else {
+            compiler.reportWarning(match,
+                                   MessageKind.INVALID_CASE_EXPRESSION);
+            encounteredCaseTypes = CONFLICT_TYPE;
+          }
+          stack.add(graph.addConstant(constant));
+        } else {
+          // TODO(lrn): Remove this else branch, and make the constant
+          // evaluation mandatory when we are ready to break existing code using
+          // non constant-int-or-string expressions.
+          compiler.reportWarning(match,
+              'case expressions not compile-time constant int or string.');
+          visit(match.expression);
+          encounteredCaseTypes = CONFLICT_TYPE;
+        }
         push(new HEquals(target, pop(), expression));
       }
 
@@ -3029,7 +3069,8 @@ class SsaBuilder implements Visitor {
       } else {
         handleIf(() { buildTests(labelsAndCases); },
                  () { visitStatementsAndAbort(); },
-                 () { buildSwitchCases(cases.tail, expression); });
+                 () { buildSwitchCases(cases.tail, expression,
+                                       encounteredCaseTypes); });
       }
     }
   }

@@ -526,7 +526,7 @@ class ConstantHandler extends CompilerTask {
         return result;
       }
       TreeElements definitions = compiler.analyzeElement(element);
-      Constant constant =  compileVariableWithDefinitions(element, definitions);
+      Constant constant = compileVariableWithDefinitions(element, definitions);
       return constant;
     });
   }
@@ -563,6 +563,20 @@ class ConstantHandler extends CompilerTask {
       CompileTimeConstantEvaluator evaluator =
           new CompileTimeConstantEvaluator(definitions, compiler);
       return evaluator.evaluate(node);
+    });
+  }
+
+  /** Attempts to compile a constant expression. Returns null if not possible */
+  Constant tryCompileNodeWithDefinitions(Node node, TreeElements definitions) {
+    return measure(() {
+      assert(node !== null);
+      try {
+        TryCompileTimeConstantEvaluator evaluator =
+            new TryCompileTimeConstantEvaluator(definitions, compiler);
+        return evaluator.evaluate(node);
+      } catch (CompileTimeConstantError exn) {
+        return null;
+      }
     });
   }
 
@@ -850,7 +864,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       Constant left = evaluate(send.receiver);
       Constant right = evaluate(send.argumentsNode.nodes.head);
       Operator op = send.selector.asOperator();
-      Constant folded;
+      Constant folded = null;
       switch (op.source.stringValue) {
         case "+":
           if (left.isString() && !right.isString()) {
@@ -939,9 +953,6 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
             }
           }
           break;
-        default:
-          compiler.internalError("Unexpected operator.", node: op);
-          break;
       }
       if (folded === null) error(send);
       return folded;
@@ -1008,6 +1019,17 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     // and present some kind of stack-trace.
     MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
     compiler.reportError(node, new CompileTimeConstantError(kind, const []));
+  }
+}
+
+class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
+  TryCompileTimeConstantEvaluator(TreeElements elements, Compiler compiler):
+      super(elements, compiler);
+
+  error(Node node) {
+    // Just fail without reporting it anywhere.
+    throw new CompileTimeConstantError(
+        MessageKind.NOT_A_COMPILE_TIME_CONSTANT, const []);
   }
 }
 
