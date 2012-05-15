@@ -183,12 +183,12 @@ class DateImplementation implements Date {
   final TimeZoneImplementation timeZone;
 
   factory DateImplementation(int years,
-                             int month,
-                             int day,
-                             int hours,
-                             int minutes,
-                             int seconds,
-                             int milliseconds) {
+                             [int month = 1,
+                              int day = 1,
+                              int hours = 0,
+                              int minutes = 0,
+                              int seconds = 0,
+                              int milliseconds = 0]) {
     return new DateImplementation.withTimeZone(
         years, month, day,
         hours, minutes, seconds, milliseconds,

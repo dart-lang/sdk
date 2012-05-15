@@ -36,13 +36,15 @@ interface Date extends Comparable, Hashable default DateImplementation {
    * Constructs a [Date] instance based on the individual parts, in the
    * local time-zone.
    */
+  // TODO(floitsch): the spec allows default values in interfaces, but our
+  // tools don't yet. Eventually we want to have default values here.
   Date(int year,
-       int month,
-       int day,
-       int hours,
-       int minutes,
-       int seconds,
-       int milliseconds);
+       [int month,
+        int day,
+        int hours,
+        int minutes,
+        int seconds,
+        int milliseconds]);
 
   /**
    * Constructs a [Date] instance based on the individual parts.
