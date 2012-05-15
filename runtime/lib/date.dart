@@ -122,9 +122,8 @@ class DateImplementation implements Date {
     return value == other.value && timeZone == other.timeZone;
   }
 
-  int compareTo(Date other) {
-    return value.compareTo(other.value);
-  }
+  int compareTo(Date other) => value.compareTo(other.value);
+  int hashCode() => value;
 
   Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone === null) {

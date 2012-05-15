@@ -7,7 +7,7 @@
 /**
  * Date is the public interface to a point in time.
  */
-interface Date extends Comparable default DateImplementation {
+interface Date extends Comparable, Hashable default DateImplementation {
   // Weekday constants that are returned by [weekday] method:
   static final int MON = 0;
   static final int TUE = 1;
