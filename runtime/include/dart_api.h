@@ -39,6 +39,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 #else
 #include <inttypes.h>
+#include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
 #define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default")))
@@ -677,7 +678,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  * the Dart heap. Only a subset of the Dart objects have a
  * representation as a Dart_CObject.
  */
-struct Dart_CObject {
+typedef struct _Dart_CObject {
   enum Type {
     kNull = 0,
     kBool,
@@ -690,8 +691,7 @@ struct Dart_CObject {
     kUint8Array,
     kUnsupported,
     kNumberOfTypes
-  };
-  Type type;
+  } type;
   union {
     bool as_bool;
     int32_t as_int32;
@@ -701,14 +701,14 @@ struct Dart_CObject {
     char* as_bigint;
     struct {
       int length;
-      Dart_CObject** values;
+      struct _Dart_CObject** values;
     } as_array;
     struct {
       int length;
       uint8_t* values;
     } as_byte_array;
   } value;
-};
+} Dart_CObject;
 
 /**
  * Posts a message on some port. The message will contain the
