@@ -8,8 +8,12 @@ interface OptimizationPhase {
 }
 
 class SsaOptimizerTask extends CompilerTask {
-  SsaOptimizerTask(Compiler compiler) : super(compiler);
+  final JavaScriptBackend backend;
+  SsaOptimizerTask(JavaScriptBackend backend)
+    : this.backend = backend,
+      super(backend.compiler);
   String get name() => 'SSA optimizer';
+  Compiler get compiler() => backend.compiler;
 
   void runPhases(HGraph graph, List<OptimizationPhase> phases) {
     for (OptimizationPhase phase in phases) {
@@ -23,11 +27,11 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial constant folding first to optimize
           // some patterns useful for type conversion.
-          new SsaConstantFolder(compiler),
+          new SsaConstantFolder(backend),
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler),
-          new SsaCheckInserter(compiler),
-          new SsaConstantFolder(compiler),
+          new SsaCheckInserter(backend),
+          new SsaConstantFolder(backend),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaGlobalValueNumberer(compiler),
@@ -54,7 +58,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
-          new SsaCheckInserter(compiler)];
+          new SsaCheckInserter(backend)];
       runPhases(graph, phases);
       return !work.guards.isEmpty();
     });
@@ -73,7 +77,7 @@ class SsaOptimizerTask extends CompilerTask {
       // Also run the type propagator, to please the codegen in case
       // no other optimization is run.
       runPhases(graph,
-        <OptimizationPhase>[new SsaCheckInserter(compiler),
+        <OptimizationPhase>[new SsaCheckInserter(backend),
                             new SsaTypePropagator(compiler)]);
     });
   }
@@ -85,10 +89,11 @@ class SsaOptimizerTask extends CompilerTask {
  */
 class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaConstantFolder";
-  final Compiler compiler;
+  final JavaScriptBackend backend;
   HGraph graph;
+  Compiler get compiler() => backend.compiler;
 
-  SsaConstantFolder(this.compiler);
+  SsaConstantFolder(this.backend);
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -333,7 +338,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitRelational(HRelational node) {
     if (allUsersAreBoolifies(node)) {
-      Interceptors interceptors = compiler.builder.interceptors;
+      Interceptors interceptors = backend.builder.interceptors;
       HStatic oldTarget = node.target;
       Element boolifiedInterceptor =
           interceptors.getBoolifiedVersionOf(oldTarget.element);
@@ -403,7 +408,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction newInstruction = handleIdentityCheck(node);
     if (newInstruction === null) {
       HStatic target = new HStatic(
-          compiler.builder.interceptors.getTripleEqualsInterceptor());
+          backend.builder.interceptors.getTripleEqualsInterceptor());
       node.block.addBefore(node, target);
       return new HIdentity(target, node.left, node.right);
     } else {
@@ -445,7 +450,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false);
       } else {
         // TODO(floitsch): cache interceptors.
-        Interceptors interceptors = compiler.builder.interceptors;
+        Interceptors interceptors = backend.builder.interceptors;
         Element equalsElement = interceptors.getEqualsInterceptor();
         // If we have a different element than [equalsElement], we
         // don't need to optimize this instruction to use another
@@ -584,10 +589,10 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaCheckInserter";
   Element lengthInterceptor;
 
-  SsaCheckInserter(Compiler compiler) {
+  SsaCheckInserter(JavaScriptBackend backend) {
     SourceString lengthString = const SourceString('length');
     lengthInterceptor =
-        compiler.builder.interceptors.getStaticGetInterceptor(lengthString);
+        backend.builder.interceptors.getStaticGetInterceptor(lengthString);
   }
 
   void visitGraph(HGraph graph) {

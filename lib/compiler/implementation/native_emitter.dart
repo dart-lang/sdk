@@ -4,7 +4,7 @@
 
 class NativeEmitter {
 
-  Compiler compiler;
+  CodeEmitterTask emitter;
   StringBuffer nativeBuffer;
 
   // Classes that participate in dynamic dispatch. These are the
@@ -30,7 +30,7 @@ class NativeEmitter {
   // implementation.
   Set<FunctionElement> nativeMethods;
 
-  NativeEmitter(this.compiler)
+  NativeEmitter(this.emitter)
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
         subtypes = new Map<ClassElement, List<ClassElement>>(),
@@ -38,6 +38,8 @@ class NativeEmitter {
         overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
         nativeBuffer = new StringBuffer();
+
+  Compiler get compiler() => emitter.compiler;
 
   String get dynamicName() {
     Element element = compiler.findHelper(
@@ -75,7 +77,7 @@ class NativeEmitter {
   String get defineNativeClassFunction() {
     return """
 function(cls, fields, methods) {
-  var generateGetterSetter = ${compiler.emitter.generateGetterSetterFunction};
+  var generateGetterSetter = ${emitter.generateGetterSetterFunction};
   for (var i = 0; i < fields.length; i++) {
     generateGetterSetter(fields[i], methods);
   }
@@ -100,7 +102,7 @@ function(cls, fields, methods) {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(member, defineInstanceMember);
+        emitter.addInstanceMember(member, defineInstanceMember);
       }
     }
   }
@@ -136,10 +138,10 @@ function(cls, fields, methods) {
     }
 
     StringBuffer fieldBuffer = new StringBuffer();
-    compiler.emitter.emitClassFields(classElement, fieldBuffer);
+    emitter.emitClassFields(classElement, fieldBuffer);
 
     StringBuffer methodBuffer = new StringBuffer();
-    compiler.emitter.emitInstanceMembers(classElement, methodBuffer);
+    emitter.emitInstanceMembers(classElement, methodBuffer);
 
     if (methodBuffer.isEmpty() && fieldBuffer.isEmpty()) return;
 

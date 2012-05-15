@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class SsaCodeGeneratorTask extends CompilerTask {
-  SsaCodeGeneratorTask(Compiler compiler) : super(compiler);
+  final JavaScriptBackend backend;
+  SsaCodeGeneratorTask(JavaScriptBackend backend)
+      : this.backend = backend,
+        super(backend.compiler);
   String get name() => 'SSA code generator';
+  NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
 
   String buildJavaScriptFunction(FunctionElement element,
@@ -37,7 +41,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       Map<Element, String> parameterNames = getParameterNames(work);
       String parameters = Strings.join(parameterNames.getValues(), ', ');
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
-          compiler, work, parameters, parameterNames);
+          backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
@@ -45,13 +49,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
       if (element.isInstanceMember()
           && element.enclosingElement.isClass()
           && element.enclosingElement.isNative()
-          && native.isOverriddenMethod(element,
-                                       element.enclosingElement,
-                                       compiler.emitter.nativeEmitter)) {
+          && native.isOverriddenMethod(
+              element, element.enclosingElement, nativeEmitter)) {
         // Record that this method is overridden. In case of optional
         // arguments, the emitter will generate stubs to handle them,
         // and needs to know if the method is overridden.
-        compiler.emitter.nativeEmitter.overriddenMethods.add(element);
+        nativeEmitter.overriddenMethods.add(element);
         StringBuffer buffer = new StringBuffer();
         native.generateMethodWithPrototypeCheckForElement(
             compiler, buffer, element, '${codegen.buffer}', parameters);
@@ -71,7 +74,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       Map<Element, String> parameterNames = getParameterNames(work);
       String parameters = Strings.join(parameterNames.getValues(), ', ');
       SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
-          compiler, work, parameters, parameterNames);
+          backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
       StringBuffer newParameters = new StringBuffer();
@@ -137,7 +140,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   static final String TEMPORARY_PREFIX = 't';
 
-  final Compiler compiler;
+  final JavaScriptBackend backend;
   final WorkItem work;
   final StringBuffer buffer;
   final String parameters;
@@ -179,12 +182,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   SubGraph subGraph;
 
   LibraryElement get currentLibrary() => work.element.getLibrary();
+  Compiler get compiler() => backend.compiler;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
   }
 
-  SsaCodeGenerator(this.compiler,
+  SsaCodeGenerator(this.backend,
                    this.work,
                    this.parameters,
                    this.parameterNames)
@@ -207,7 +211,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Create a namespace for temporaries.
     prefixes[TEMPORARY_PREFIX] = 0;
 
-    Interceptors interceptors = compiler.builder.interceptors;
+    Interceptors interceptors = backend.builder.interceptors;
     equalsNullElement = interceptors.getEqualsNullInterceptor();
     boolifiedEqualsNullElement =
         interceptors.getBoolifiedVersionOf(equalsNullElement);
@@ -2050,7 +2054,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void checkType(HInstruction input, Element element) {
     bool requiresNativeIsCheck =
-        compiler.emitter.nativeEmitter.requiresNativeIsCheck(element);
+        backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
     if (!requiresNativeIsCheck) buffer.add('!!');
     use(input, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
@@ -2169,8 +2173,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       compiler.registerIsCheck(element);
       SourceString helper;
       String additionalArgument;
-      bool nativeCheck =
-          compiler.emitter.nativeEmitter.requiresNativeIsCheck(element);
+      bool nativeCheck = nativeEmitter.requiresNativeIsCheck(element);
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
       if (element == compiler.stringClass) {
@@ -2222,8 +2225,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 }
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
-  SsaOptimizedCodeGenerator(compiler, work, parameters, parameterNames)
-    : super(compiler, work, parameters, parameterNames);
+  SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
+    : super(backend, work, parameters, parameterNames);
 
   void beginGraph(HGraph graph) {}
   void endGraph(HGraph graph) {}
@@ -2391,8 +2394,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   int labelId = 0;
   int maxBailoutParameters = 0;
 
-  SsaUnoptimizedCodeGenerator(compiler, work, parameters, parameterNames)
-    : super(compiler, work, parameters, parameterNames),
+  SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
+    : super(backend, work, parameters, parameterNames),
       setup = new StringBuffer(),
       labels = <String>[];
 
