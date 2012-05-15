@@ -12,61 +12,24 @@ namespace dart {
 
 // ==== Support for visiting flow graphs.
 #define DEFINE_ACCEPT(ShortName, ClassName)                                    \
-  void ClassName::Accept(FlowGraphVisitor* visitor) {                          \
-    visitor->Visit##ShortName(this);                                           \
-  }
+void ClassName::Accept(FlowGraphVisitor* visitor) {                            \
+  visitor->Visit##ShortName(this);                                             \
+}
 
 FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
 
 #undef DEFINE_ACCEPT
 
 
-Instruction* JoinEntryInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitJoinEntry(this);
-  return successor_;
+#define DEFINE_ACCEPT(ShortName)                                               \
+Instruction* ShortName##Instr::Accept(FlowGraphVisitor* visitor) {             \
+  visitor->Visit##ShortName(this);                                             \
+  return StraightLineSuccessor();                                              \
 }
 
+FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 
-Instruction* TargetEntryInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitTargetEntry(this);
-  return successor_;
-}
-
-
-Instruction* DoInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitDo(this);
-  return successor_;
-}
-
-
-Instruction* BindInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitBind(this);
-  return successor_;
-}
-
-
-Instruction* ReturnInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitReturn(this);
-  return NULL;
-}
-
-
-Instruction* ThrowInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitThrow(this);
-  return NULL;
-}
-
-
-Instruction* ReThrowInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitReThrow(this);
-  return NULL;
-}
-
-
-Instruction* BranchInstr::Accept(FlowGraphVisitor* visitor) {
-  visitor->VisitBranch(this);
-  return NULL;
-}
+#undef DEFINE_ACCEPT
 
 
 // Default implementation of visiting basic blocks.  Can be overridden.

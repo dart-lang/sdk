@@ -2046,7 +2046,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
                            owner()->try_index(),
                            for_exception.value());
   } else {
-    ValueGraphVisitor for_stack_trace(owner(), temp_index() + 1);
+    ValueGraphVisitor for_stack_trace(owner(), temp_index());
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
     instr = new ReThrowInstr(node->token_index(),

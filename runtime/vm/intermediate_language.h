@@ -1454,13 +1454,11 @@ class ThrowInstr : public Instruction {
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
 
-  // Parser can generate a throw within an expression tree.
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
+  // Parser can generate a throw within an expression tree.  We never
+  // add successor instructions to the graph.
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
-    successor_ = instr;
   }
 
  private:
@@ -1495,13 +1493,13 @@ class ReThrowInstr : public Instruction {
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
 
-  // Parser can generate a rethrow within an expression tree.
+  // Parser can generate a rethrow within an expression tree.  We
+  // never add successor instructions to the graph.
   virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
+    return NULL;
   }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
-    successor_ = instr;
   }
 
  private:
