@@ -98,11 +98,13 @@ class Process {
   abstract void kill();
 
   /**
-   * Terminates the streams of a process. [close] most be called on a
-   * process to free the system resources associated with it. Usually,
-   * close should be called in [onExit]. Once a process has been
-   * closed it can no longer be killed and [onExit] is detached so the
-   * application is not notified of process termination.
+   * Terminates the streams of a process. [close] must be called on a
+   * process to free the system resources associated with it if not all
+   * data on the stdout and stderr streams have been read. Usually,
+   * close should be called in [onExit], but care must be taken to actually
+   * wait on the stderr and stdout streams to close if all data is required.
+   * Once a process has been closed it can no longer be killed and [onExit]
+   * is detached so the application is not notified of process termination.
    */
   abstract void close();
 }
