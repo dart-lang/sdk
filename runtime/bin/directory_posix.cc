@@ -134,21 +134,20 @@ static bool ListRecursively(const char* dir_name,
   while ((read = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
                                               &entry,
                                               &result))) == 0 &&
-         result != NULL &&
-         success) {
+         result != NULL) {
     switch (entry.d_type) {
       case DT_DIR:
-        success = success && HandleDir(entry.d_name,
-                                       path,
-                                       path_length,
-                                       recursive,
-                                       listing);
+        success = HandleDir(entry.d_name,
+                            path,
+                            path_length,
+                            recursive,
+                            listing) && success;
         break;
       case DT_REG:
-        success = success && HandleFile(entry.d_name,
-                                        path,
-                                        path_length,
-                                        listing);
+        success = HandleFile(entry.d_name,
+                             path,
+                             path_length,
+                             listing) && success;
         break;
       case DT_LNK:
       case DT_UNKNOWN: {
@@ -172,16 +171,16 @@ static bool ListRecursively(const char* dir_name,
           break;
         }
         if (S_ISDIR(entry_info.st_mode)) {
-          success = success && HandleDir(entry.d_name,
-                                         path,
-                                         path_length,
-                                         recursive,
-                                         listing);
+          success = HandleDir(entry.d_name,
+                              path,
+                              path_length,
+                              recursive,
+                              listing) && success;
         } else if (S_ISREG(entry_info.st_mode)) {
-          success = success && HandleFile(entry.d_name,
-                                          path,
-                                          path_length,
-                                          listing);
+          success = HandleFile(entry.d_name,
+                               path,
+                               path_length,
+                               listing) && success;
         }
         ASSERT(!S_ISLNK(entry_info.st_mode));
         break;

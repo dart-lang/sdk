@@ -143,6 +143,33 @@ testDirectoryListing() {
 }
 
 
+testDirectoryListingBrokenLink() {
+  var temp = new Directory('').createTempSync();
+  var x = '${temp.path}${Platform.pathSeparator}x';
+  var link = '${temp.path}${Platform.pathSeparator}link';
+  var doesNotExist = 'this_thing_does_not_exist';
+  new File(x).createSync();
+  createLink(doesNotExist, link, true, () {
+    var files = [];
+    var dirs = [];
+    var errors = [];
+    var lister = temp.list(recursive: true);
+    lister.onFile = (f) => files.add(f);
+    lister.onDir = (d) => dirs.add(d);
+    lister.onError = (d) => errors.add(d);
+    lister.onDone = (success) {
+      Expect.isFalse(success);
+      Expect.equals(1, files.length);
+      Expect.isTrue(files[0].endsWith(x));
+      Expect.equals(0, dirs.length);
+      Expect.equals(1, errors.length);
+      Expect.isTrue(errors[0].toString().contains(link));
+      temp.deleteRecursivelySync();
+    };
+  });
+}
+
+
 main() {
   testFileExistsCreate();
   testFileDelete();
@@ -150,4 +177,5 @@ main() {
   testDirectoryExistsCreate();
   testDirectoryDelete();
   testDirectoryListing();
+  testDirectoryListingBrokenLink();
 }
