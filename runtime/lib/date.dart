@@ -219,7 +219,7 @@ class DateImplementation implements Date {
     }
     String threeDigits(int n) {
       if (n >= 100) return "${n}";
-      if (n > 10) return "0${n}";
+      if (n >= 10) return "0${n}";
       return "00${n}";
     }
     String twoDigits(int n) {
