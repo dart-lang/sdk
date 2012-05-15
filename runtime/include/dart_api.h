@@ -198,21 +198,16 @@ DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
 DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
 
 /**
- * Checks if the two objects are the same object
+ * Checks to see if two handles refer to identically equal objects.
  *
- * The result of the comparison is returned through the 'same'
- * parameter. The return value itself is used to indicate success or
- * failure, not identity.
+ * This is equivalent to using the triple-equals (===) operator.
  *
  * \param obj1 An object to be compared.
  * \param obj2 An object to be compared.
- * \param equal Returns whether the two objects are the same.
  *
- * \return A valid handle if no error occurs during the comparison.
+ * \return True if the objects are identically equal.  False otherwise.
  */
-DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1,
-                                    Dart_Handle obj2,
-                                    bool* same);
+DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2);
 
 /**
  * Allocates a persistent handle for an object.
