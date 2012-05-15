@@ -224,6 +224,7 @@ Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
+LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')

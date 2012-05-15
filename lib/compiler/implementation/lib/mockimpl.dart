@@ -251,7 +251,7 @@ class DateImplementation implements Date {
       int minutes = parseIntOrZero(match[5]);
       int seconds = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int milliseconds = (parseDoubleOrZero(match[7]) * 1000).round();
+      int milliseconds = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
       if (milliseconds == 1000) {
         addOneMillisecond = true;
         milliseconds = 999;

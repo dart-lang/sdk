@@ -81,6 +81,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
 [ $runtime == vm ]
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
+LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
 LibTest/core/Expect/throws_A01_t04: Fail # Issue co19 - 119
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
