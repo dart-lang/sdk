@@ -148,10 +148,11 @@ _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
 
 Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   // Find a dart executable we can use to run pub. Uses the one that the
-  // test infrastructure uses.
+  // test infrastructure uses. We are not using new Options.executable here
+  // because that gets confused if you invoked Dart through a shell script.
   final scriptDir = new File(new Options().script).directorySync().path;
   final platform = Platform.operatingSystem;
-  final dartBin = new File(new Options().executable).fullPathSync();
+  final dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
 
   // Find the main pub entrypoint.
   final pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
