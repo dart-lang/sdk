@@ -29,6 +29,50 @@ class WorkItem {
   }
 }
 
+class Backend {
+  final Compiler compiler;
+
+  Backend(this.compiler);
+
+  abstract String codegen(WorkItem work);
+  abstract void processNativeClasses(libraries);
+  abstract void assembleProgram();
+}
+
+class JavaScriptBackend extends Backend {
+  SsaBuilderTask builder;
+  SsaOptimizerTask optimizer;
+  SsaCodeGeneratorTask generator;
+  CodeEmitterTask emitter;
+
+  JavaScriptBackend(Compiler compiler)
+      : emitter = new CodeEmitterTask(compiler),
+        super(compiler) {
+    builder = new SsaBuilderTask(this);
+    optimizer = new SsaOptimizerTask(this);
+    generator = new SsaCodeGeneratorTask(this);
+  }
+
+  String codegen(WorkItem work) {
+    HGraph graph = builder.build(work);
+    optimizer.optimize(work, graph);
+    if (work.allowSpeculativeOptimization
+        && optimizer.trySpeculativeOptimizations(work, graph)) {
+      String code = generator.generateBailoutMethod(work, graph);
+      compiler.universe.addBailoutCode(work, code);
+      optimizer.prepareForSpeculativeOptimizations(work, graph);
+      optimizer.optimize(work, graph);
+    }
+    return generator.generateMethod(work, graph);
+  }
+
+  void processNativeClasses(libraries) {
+    native.processNativeClasses(emitter, libraries);
+  }
+
+  void assembleProgram() => emitter.assembleProgram();
+}
+
 class Compiler implements DiagnosticListener {
   Queue<WorkItem> codegenQueue;
   Universe universe;
@@ -79,10 +123,7 @@ class Compiler implements DiagnosticListener {
   TreeValidatorTask validator;
   ResolverTask resolver;
   TypeCheckerTask checker;
-  SsaBuilderTask builder;
-  SsaOptimizerTask optimizer;
-  SsaCodeGeneratorTask generator;
-  CodeEmitterTask emitter;
+  Backend backend;
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
 
@@ -111,14 +152,10 @@ class Compiler implements DiagnosticListener {
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
-    builder = new SsaBuilderTask(this);
-    optimizer = new SsaOptimizerTask(this);
-    generator = new SsaCodeGeneratorTask(this);
-    emitter = new CodeEmitterTask(this);
+    backend = new JavaScriptBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             builder, optimizer, generator,
-             emitter, constantHandler, enqueuer];
+             constantHandler, enqueuer];
   }
 
   void ensure(bool condition) {
@@ -305,7 +342,7 @@ Please report this problem at http://dartbug.com/new.''');
       });
     }
     Collection<LibraryElement> libraries = universe.libraries.getValues();
-    native.processNativeClasses(this, libraries);
+    backend.processNativeClasses(libraries);
     world.populate(this, libraries);
     addToWorkList(main);
     codegenProgress.reset();
@@ -316,7 +353,7 @@ Please report this problem at http://dartbug.com/new.''');
     codegenQueueIsClosed = true;
     assert(enqueuer.checkNoEnqueuedInvokedInstanceMethods());
     enqueuer.registerFieldClosureInvocations();
-    emitter.assembleProgram();
+    backend.assembleProgram();
     if (!codegenQueue.isEmpty()) {
       internalErrorOnElement(codegenQueue.first().element,
                              "work list is not empty");
@@ -348,22 +385,9 @@ Please report this problem at http://dartbug.com/new.''');
       constantHandler.compileWorkItem(work);
       return null;
     } else {
-      HGraph graph = builder.build(work);
-      optimizer.optimize(work, graph);
-      if (work.allowSpeculativeOptimization
-          && optimizer.trySpeculativeOptimizations(work, graph)) {
-        String code = generator.generateBailoutMethod(work, graph);
-        universe.addBailoutCode(work, code);
-        optimizer.prepareForSpeculativeOptimizations(work, graph);
-        optimizer.optimize(work, graph);
-        code = generator.generateMethod(work, graph);
-        universe.addGeneratedCode(work, code);
-        return code;
-      } else {
-        String code = generator.generateMethod(work, graph);
-        universe.addGeneratedCode(work, code);
-        return code;
-      }
+      String code = backend.codegen(work);
+      universe.addGeneratedCode(work, code);
+      return code;
     }
   }
 
