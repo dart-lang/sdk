@@ -5,6 +5,7 @@
 #include "vm/flow_graph_builder.h"
 
 #include "vm/ast_printer.h"
+#include "vm/bit_vector.h"
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -31,7 +32,7 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    graph_entry_(NULL) {}
+    graph_entry_(NULL) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
@@ -2126,14 +2127,21 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
   GrowableArray<intptr_t> parent;
+  GrowableArray<BitVector*> assigned_vars;
+  intptr_t variable_count = parsed_function_.function().num_fixed_parameters() +
+      parsed_function_.copied_parameter_count() +
+      parsed_function_.stack_local_count();
   // Perform a depth-first traversal of the graph to build preorder and
   // postorder block orders.
   graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
                                &preorder_block_entries_,
                                &postorder_block_entries_,
-                               &parent);
+                               &parent,
+                               &assigned_vars,
+                               variable_count);
   if (for_optimized) {
-    ComputeDominators(&preorder_block_entries_, &parent);
+    GrowableArray<BitVector*> dominance_frontier;
+    ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
   }
   isolate->set_computation_id(prev_cid);
   if (FLAG_print_flow_graph) {
@@ -2148,9 +2156,25 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
 }
 
 
+// Compute immediate dominators and the dominance frontier for each basic
+// block.  As a side effect of the algorithm, sets the immediate dominator
+// of each basic block.
+//
+// preorder: an input list of basic block entries in preorder.  The
+//     algorithm relies on the block ordering.
+//
+// parent: an input parameter encoding a depth-first spanning tree of
+//     the control flow graph.  The array maps the preorder block
+//     number of a block to the preorder block number of its spanning
+//     tree parent.
+//
+// dominance_frontier: an output parameter encoding the dominance frontier.
+//     The array maps the preorder block number of a block to the set of
+//     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraphBuilder::ComputeDominators(
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<intptr_t>* parent) {
+    GrowableArray<intptr_t>* parent,
+    GrowableArray<BitVector*>* dominance_frontier) {
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
   // that eliminates a pass by using nearest-common ancestor (NCA) to
@@ -2175,11 +2199,13 @@ void FlowGraphBuilder::ComputeDominators(
   // compression in place by mutating the parent array.  Each block has a
   // label, which is the minimum block number on the compressed path.
 
-  // Initialize idom, semi, and label.
+  // Initialize idom, semi, and label used by SEMI-NCA.  Initialize the
+  // dominance frontier output array.
   for (intptr_t i = 0; i < size; ++i) {
     idom.Add((*parent)[i]);
     semi.Add(i);
     label.Add(i);
+    dominance_frontier->Add(new BitVector(size));
   }
 
   // Loop over the blocks in reverse preorder (not including the graph
@@ -2187,7 +2213,7 @@ void FlowGraphBuilder::ComputeDominators(
   for (intptr_t block_index = size - 1; block_index >= 1; --block_index) {
     // Loop over the predecessors.
     BlockEntryInstr* block = (*preorder)[block_index];
-    for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
+    for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       ASSERT(pred != NULL);
 
@@ -2209,7 +2235,7 @@ void FlowGraphBuilder::ComputeDominators(
   }
 
   // 2. Compute the immediate dominators as the nearest common ancestor of
-  // spanning tree parent and semidominator, for all nodes except the entry.
+  // spanning tree parent and semidominator, for all blocks except the entry.
   for (intptr_t block_index = 1; block_index < size; ++block_index) {
     intptr_t dom_index = idom[block_index];
     while (dom_index > semi[block_index]) {
@@ -2217,6 +2243,24 @@ void FlowGraphBuilder::ComputeDominators(
     }
     idom[block_index] = dom_index;
     (*preorder)[block_index]->set_dominator((*preorder)[dom_index]);
+  }
+
+  // 3. Now compute the dominance frontier for all blocks.  This is
+  // algorithm in "A Simple, Fast Dominance Algorithm" (Figure 5), which is
+  // attributed to a paper by Ferrante et al.  There is no bookkeeping
+  // required to avoid adding a block twice to the same block's dominance
+  // frontier because we use a set to represent the dominance frontier.
+  for (intptr_t block_index = 0; block_index < size; ++block_index) {
+    BlockEntryInstr* block = (*preorder)[block_index];
+    intptr_t count = block->PredecessorCount();
+    if (count <= 1) continue;
+    for (intptr_t i = 0; i < count; ++i) {
+      BlockEntryInstr* runner = block->PredecessorAt(i);
+      while (runner != block->dominator()) {
+        (*dominance_frontier)[runner->preorder_number()]->Add(block_index);
+        runner = runner->dominator();
+      }
+    }
   }
 }
 

@@ -44,7 +44,9 @@ class FlowGraphBuilder: public ValueObject {
 
  private:
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
-                         GrowableArray<intptr_t>* parent);
+                         GrowableArray<intptr_t>* parent,
+                         GrowableArray<BitVector*>* dominance_frontier);
+
   void CompressPath(intptr_t start_index,
                     intptr_t current_index,
                     GrowableArray<intptr_t>* parent,

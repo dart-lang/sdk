@@ -1,0 +1,84 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef VM_BIT_VECTOR_H_
+#define VM_BIT_VECTOR_H_
+
+#include "vm/allocation.h"
+#include "vm/isolate.h"
+#include "vm/zone.h"
+
+namespace dart {
+
+// Bit vector implementation.
+class BitVector: public ZoneAllocated {
+ public:
+  // Iterator for the elements of this BitVector.
+  class Iterator : public ValueObject {
+   public:
+    explicit Iterator(BitVector* target)
+        : target_(target),
+          bit_index_(-1),
+          word_index_(0),
+          current_word_(target->data_[0]) {
+      ASSERT(target->data_length_ > 0);
+      Advance();
+    }
+    ~Iterator() { }
+
+    bool Done() const { return word_index_ >= target_->data_length_; }
+    void Advance();
+
+    intptr_t Current() const {
+      ASSERT(!Done());
+      return bit_index_;
+    }
+
+   private:
+    BitVector* target_;
+    intptr_t bit_index_;
+    intptr_t word_index_;
+    uword current_word_;
+
+    friend class BitVector;
+  };
+
+  explicit BitVector(intptr_t length)
+      : length_(length),
+        data_length_(SizeFor(length)),
+        data_(reinterpret_cast<uword*>(
+            Isolate::Current()->current_zone()->Allocate(
+                data_length_ * sizeof(uword)))) {
+    ASSERT(length > 0);
+    Clear();
+  }
+
+  static intptr_t SizeFor(intptr_t length) {
+    return 1 + ((length - 1) / kBitsPerWord);
+  }
+
+  void Add(intptr_t i) {
+    ASSERT(i >= 0 && i < length());
+    data_[i / kBitsPerWord] |= (static_cast<uword>(1) << (i % kBitsPerWord));
+  }
+
+  void Clear() {
+    for (intptr_t i = 0; i < data_length_; i++) {
+      data_[i] = 0;
+    }
+  }
+
+  intptr_t length() const { return length_; }
+
+ private:
+  intptr_t length_;
+  intptr_t data_length_;
+  uword* data_;
+
+  DISALLOW_COPY_AND_ASSIGN(BitVector);
+};
+
+}  // namespace dart
+
+#endif  // VM_BIT_VECTOR_H_

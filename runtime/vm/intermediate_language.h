@@ -13,6 +13,7 @@
 
 namespace dart {
 
+class BitVector;
 class FlowGraphVisitor;
 class LocalVariable;
 
@@ -86,6 +87,10 @@ class Computation : public ZoneAllocated {
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
   virtual intptr_t InputCount() const = 0;
+
+  // Mutate assigned_vars to add the local variable index for all
+  // frame-allocated locals assigned to by the computation.
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
  private:
   friend class Instruction;
@@ -518,6 +523,8 @@ class StoreLocalComp : public TemplateComputation<1> {
   const LocalVariable& local() const { return local_; }
   Value* value() { return inputs_[0]; }
   intptr_t context_level() const { return context_level_; }
+
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
  private:
   const LocalVariable& local_;
@@ -1212,18 +1219,26 @@ class Instruction : public ZoneAllocated {
   // preorder block numbers to the block entry instruction with that number
   // and analogously for the array 'postorder'.  The depth first spanning
   // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.  As
-  // a side effect of this function, the set of basic block predecessors
-  // (e.g., block entry instructions of predecessor blocks) and also the
-  // last instruction in the block is recorded in each entry instruction.
+  // numbers to the preorder number of the block's spanning-tree parent.
+  // The array 'assigned_vars' maps preorder block numbers to the set of
+  // assigned frame-allocated local variables in the block.  As a side
+  // effect of this function, the set of basic block predecessors (e.g.,
+  // block entry instructions of predecessor blocks) and also the last
+  // instruction in the block is recorded in each entry instruction.
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent) {
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count) {
     // Never called for instructions except block entries and branches.
     UNREACHABLE();
   }
+
+  // Mutate assigned_vars to add the local variable index for all
+  // frame-allocated locals assigned to by the instruction.
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
@@ -1249,6 +1264,7 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
   void set_preorder_number(intptr_t number) { preorder_number_ = number; }
@@ -1261,6 +1277,14 @@ class BlockEntryInstr : public Instruction {
 
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count);
 
  protected:
   BlockEntryInstr()
@@ -1291,6 +1315,7 @@ class GraphEntryInstr : public BlockEntryInstr {
     UNREACHABLE();
     return NULL;
   }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
@@ -1299,7 +1324,9 @@ class GraphEntryInstr : public BlockEntryInstr {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count);
 
   void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
 
@@ -1324,6 +1351,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     return predecessors_[index];
   }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    predecessors_.Add(predecessor);
+  }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1332,12 +1362,6 @@ class JoinEntryInstr : public BlockEntryInstr {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
@@ -1371,6 +1395,10 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1379,12 +1407,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
 
   bool HasTryIndex() const {
     return try_index_ != CatchClauseNode::kInvalidTryIndex;
@@ -1420,6 +1442,8 @@ class DoInstr : public Instruction {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
+
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
  private:
   Computation* computation_;
@@ -1461,6 +1485,8 @@ class BindInstr : public Definition {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
+
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
  private:
   Computation* computation_;
@@ -1593,7 +1619,9 @@ class BranchInstr : public Instruction {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count);
 
  private:
   Value* value_;

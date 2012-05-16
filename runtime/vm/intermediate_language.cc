@@ -4,6 +4,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/bit_vector.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/scopes.h"
@@ -138,12 +139,42 @@ intptr_t JoinEntryInstr::InputCount() const {
 }
 
 
+// ==== Recording assigned variables.
+void Computation::RecordAssignedVars(BitVector* assigned_vars) {
+  // Nothing to do for the base class.
+}
+
+
+void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
+  if (!local().is_captured()) {
+    assigned_vars->Add(local().BitIndexIn(assigned_vars));
+  }
+}
+
+
+void Instruction::RecordAssignedVars(BitVector* assigned_vars) {
+  // Nothing to do for the base class.
+}
+
+
+void DoInstr::RecordAssignedVars(BitVector* assigned_vars) {
+  computation()->RecordAssignedVars(assigned_vars);
+}
+
+
+void BindInstr::RecordAssignedVars(BitVector* assigned_vars) {
+  computation()->RecordAssignedVars(assigned_vars);
+}
+
+
 // ==== Postorder graph traversal.
 void GraphEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent) {
+    GrowableArray<intptr_t>* parent,
+    GrowableArray<BitVector*>* assigned_vars,
+    intptr_t variable_count) {
   // We only visit this block once, first of all blocks.
   ASSERT(preorder_number() == -1);
   ASSERT(current_block == NULL);
@@ -155,14 +186,19 @@ void GraphEntryInstr::DiscoverBlocks(
   parent->Add(-1);
   set_preorder_number(0);
   preorder->Add(this);
+  BitVector* vars =
+      (variable_count == 0) ? NULL : new BitVector(variable_count);
+  assigned_vars->Add(vars);
 
   // Iteratively traverse all successors.  In the unoptimized code, we will
   // enter the function at the first successor in reverse postorder, so we
   // must visit the normal entry last.
   for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
-    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder, parent);
+    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder, parent,
+                                      assigned_vars, variable_count);
   }
-  normal_entry_->DiscoverBlocks(this, preorder, postorder, parent);
+  normal_entry_->DiscoverBlocks(this, preorder, postorder, parent,
+                                assigned_vars, variable_count);
 
   // Assign postorder number.
   set_postorder_number(postorder->length());
@@ -170,20 +206,26 @@ void GraphEntryInstr::DiscoverBlocks(
 }
 
 
-void JoinEntryInstr::DiscoverBlocks(
+// Base class implementation used for JoinEntry and TargetEntry.
+void BlockEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent) {
+    GrowableArray<intptr_t>* parent,
+    GrowableArray<BitVector*>* assigned_vars,
+    intptr_t variable_count) {
   // We have already visited the graph entry, so we can assume current_block
   // is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
   ASSERT(!preorder->is_empty());
 
   // 1. Record control-flow-graph basic-block predecessors.
-  predecessors_.Add(current_block);
+  AddPredecessor(current_block);
 
-  // 2. If the block has already been reached by the traversal, we are done.
+  // 2. If the block has already been reached by the traversal, we are
+  // done.  Blocks with a single predecessor cannot have been reached
+  // before.
+  ASSERT(!IsTargetEntry() || (preorder_number() == -1));
   if (preorder_number() >= 0) return;
 
   // 3. The last entry in the preorder array is the spanning-tree parent.
@@ -191,64 +233,33 @@ void JoinEntryInstr::DiscoverBlocks(
   parent->Add(parent_number);
 
   // 4. Assign preorder number and add the block entry to the list.
+  // Allocate an empty set of assigned variables for the block.
   set_preorder_number(parent_number + 1);
   preorder->Add(this);
-  // The preorder and parent arrays are both indexed by preorder block
-  // number, so they should stay in lockstep.
+  BitVector* vars =
+      (variable_count == 0) ? NULL : new BitVector(variable_count);
+  assigned_vars->Add(vars);
+  // The preorder, parent, and assigned_vars arrays are all indexed by
+  // preorder block number, so they should stay in lockstep.
   ASSERT(preorder->length() == parent->length());
+  ASSERT(preorder->length() == assigned_vars->length());
 
   // 5. Iterate straight-line successors until a branch instruction or
   // another basic block entry instruction, and visit that instruction.
-  ASSERT(successor_ != NULL);
-  Instruction* next = successor_;
-  while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
-    set_last_instruction(next);
-    next = next->StraightLineSuccessor();
+  ASSERT(StraightLineSuccessor() != NULL);
+  Instruction* next = StraightLineSuccessor();
+  if (next->IsBlockEntry()) {
+    set_last_instruction(this);
+  } else {
+    while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
+      if (vars != NULL) next->RecordAssignedVars(vars);
+      set_last_instruction(next);
+      next = next->StraightLineSuccessor();
+    }
   }
   if (next != NULL) {
-    next->DiscoverBlocks(this, preorder, postorder, parent);
-  }
-
-  // 6. Assign postorder number and add the block entry to the list.
-  set_postorder_number(postorder->length());
-  postorder->Add(this);
-}
-
-
-void TargetEntryInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent) {
-  // 1. Record control-flow-graph basic-block predecessors.
-  ASSERT(predecessor_ == NULL);
-  predecessor_ = current_block;  // Might be NULL (for the graph entry).
-
-  // 2. There is a single predecessor, so we should only reach this block once.
-  ASSERT(preorder_number() == -1);
-
-  // 3. The last entry in the preorder array is the spanning-tree parent.
-  // The global graph entry has no parent, indicated by -1.
-  intptr_t parent_number = preorder->length() - 1;
-  parent->Add(parent_number);
-
-  // 4. Assign preorder number and add the block entry to the list.
-  set_preorder_number(parent_number + 1);
-  preorder->Add(this);
-  // The preorder and parent arrays are indexed by preorder block number, so
-  // they should stay in lockstep.
-  ASSERT(preorder->length() == parent->length());
-
-  // 5. Iterate straight-line successors until a branch instruction or
-  // another basic block entry instruction, and visit that instruction.
-  ASSERT(successor_ != NULL);
-  Instruction* next = successor_;
-  while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
-    set_last_instruction(next);
-    next = next->StraightLineSuccessor();
-  }
-  if (next != NULL) {
-    next->DiscoverBlocks(this, preorder, postorder, parent);
+    next->DiscoverBlocks(this, preorder, postorder, parent, assigned_vars,
+                         variable_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -261,15 +272,19 @@ void BranchInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent) {
+    GrowableArray<intptr_t>* parent,
+    GrowableArray<BitVector*>* assigned_vars,
+    intptr_t variable_count) {
   current_block->set_last_instruction(this);
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder used as the block ordering in the
   // nonoptimizing compiler.
   ASSERT(true_successor_ != NULL);
   ASSERT(false_successor_ != NULL);
-  false_successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
-  true_successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
+  false_successor_->DiscoverBlocks(current_block, preorder, postorder, parent,
+                                   assigned_vars, variable_count);
+  true_successor_->DiscoverBlocks(current_block, preorder, postorder, parent,
+                                  assigned_vars, variable_count);
 }
 
 
