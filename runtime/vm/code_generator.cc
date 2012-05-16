@@ -4,6 +4,7 @@
 
 #include "vm/code_generator.h"
 
+#include "vm/assembler_macros.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -1442,7 +1443,13 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
     OS::Print("  Line: %d Column: %d ", line, column);
     OS::Print(">>  %s\n", String::Handle(script.GetLine(line)).ToCString());
   }
+  // Patch the return PC and saved PC marker in frame to point to the
+  // unoptimized version.
   caller_frame->set_pc(continue_at_pc);
+  caller_frame->SetEntrypointMarker(
+      unoptimized_code.EntryPoint() +
+      AssemblerMacros::kOffsetOfSavedPCfromEntrypoint);
+
   // Clear invocation counter so that the function gets optimized after
   // types/classes have been collected.
   function.set_usage_counter(0);

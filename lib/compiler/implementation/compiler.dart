@@ -17,9 +17,60 @@ class WorkItem {
   String run(Compiler compiler) {
     String code = compiler.universe.generatedCode[element];
     if (code !== null) return code;
-    if (!isAnalyzed()) compiler.analyze(this);
-    return compiler.codegen(this);
+    try {
+      if (!isAnalyzed()) compiler.analyze(this);
+      return compiler.codegen(this);
+    } catch (CompilerCancelledException ex) {
+      throw;
+    } catch (var ex) {
+      compiler.unhandledExceptionOnElement(element);
+      throw;
+    }
   }
+}
+
+class Backend {
+  final Compiler compiler;
+
+  Backend(this.compiler);
+
+  abstract String codegen(WorkItem work);
+  abstract void processNativeClasses(libraries);
+  abstract void assembleProgram();
+}
+
+class JavaScriptBackend extends Backend {
+  SsaBuilderTask builder;
+  SsaOptimizerTask optimizer;
+  SsaCodeGeneratorTask generator;
+  CodeEmitterTask emitter;
+
+  JavaScriptBackend(Compiler compiler)
+      : emitter = new CodeEmitterTask(compiler),
+        super(compiler) {
+    builder = new SsaBuilderTask(this);
+    optimizer = new SsaOptimizerTask(this);
+    generator = new SsaCodeGeneratorTask(this);
+  }
+
+  String codegen(WorkItem work) {
+    HGraph graph = builder.build(work);
+    optimizer.optimize(work, graph);
+    if (work.allowSpeculativeOptimization
+        && optimizer.trySpeculativeOptimizations(work, graph)) {
+      String code = generator.generateBailoutMethod(work, graph);
+      compiler.universe.addBailoutCode(work, code);
+      optimizer.prepareForSpeculativeOptimizations(work, graph);
+      optimizer.optimize(work, graph);
+    }
+    return generator.generateMethod(work, graph);
+  }
+
+  void processNativeClasses(libraries) {
+    native.processNativeClasses(emitter, libraries);
+  }
+
+  void assembleProgram() => emitter.assembleProgram();
 }
 
 class Compiler implements DiagnosticListener {
@@ -72,10 +123,7 @@ class Compiler implements DiagnosticListener {
   TreeValidatorTask validator;
   ResolverTask resolver;
   TypeCheckerTask checker;
-  SsaBuilderTask builder;
-  SsaOptimizerTask optimizer;
-  SsaCodeGeneratorTask generator;
-  CodeEmitterTask emitter;
+  Backend backend;
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
 
@@ -104,14 +152,10 @@ class Compiler implements DiagnosticListener {
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
-    builder = new SsaBuilderTask(this);
-    optimizer = new SsaOptimizerTask(this);
-    generator = new SsaCodeGeneratorTask(this);
-    emitter = new CodeEmitterTask(this);
+    backend = new JavaScriptBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             builder, optimizer, generator,
-             emitter, constantHandler, enqueuer];
+             constantHandler, enqueuer];
   }
 
   void ensure(bool condition) {
@@ -138,6 +182,12 @@ class Compiler implements DiagnosticListener {
     });
   }
 
+  void unhandledExceptionOnElement(Element element) {
+    internalErrorOnElement(element, '''
+An unhandled exception was thrown.
+Please report this problem at http://dartbug.com/new.''');
+  }
+
   void cancel([String reason, Node node, Token token,
                HInstruction instruction, Element element]) {
     SourceSpan span = const SourceSpan(null, null, null);
@@ -149,9 +199,18 @@ class Compiler implements DiagnosticListener {
       span = spanFromElement(currentElement);
     } else if (element !== null) {
       span = spanFromElement(element);
+    } else {
+      throw 'No error location for error: $reason';
     }
     reportDiagnostic(span, red(reason), true);
     throw new CompilerCancelledException(reason);
+  }
+
+  void reportFatalError(String reason, Element element,
+                        [Node node, Token token, HInstruction instruction]) {
+    withCurrentElement(element, () {
+      cancel(reason, node, token, instruction, element);
+    });
   }
 
   void log(message) {
@@ -273,21 +332,17 @@ class Compiler implements DiagnosticListener {
     mainApp = scanner.loadLibrary(uri, null);
     final Element main = mainApp.find(MAIN);
     if (main === null) {
-      withCurrentElement(mainApp, () => cancel('Could not find $MAIN'));
+      reportFatalError('Could not find $MAIN', mainApp);
     } else {
-      withCurrentElement(main, () {
-        if (!main.isFunction()) {
-          cancel('main is not a function', element: main);
-        }
-        FunctionElement mainMethod = main;
-        FunctionSignature parameters = mainMethod.computeSignature(this);
-        if (parameters.parameterCount > 0) {
-          cancel('main cannot have parameters', element: mainMethod);
-        }
+      if (!main.isFunction()) reportFatalError('main is not a function', main);
+      FunctionElement mainMethod = main;
+      FunctionSignature parameters = mainMethod.computeSignature(this);
+      parameters.forEachParameter((Element parameter) {
+        reportFatalError('main cannot have parameters', parameter);
       });
     }
     Collection<LibraryElement> libraries = universe.libraries.getValues();
-    native.processNativeClasses(this, libraries);
+    backend.processNativeClasses(libraries);
     world.populate(this, libraries);
     addToWorkList(main);
     codegenProgress.reset();
@@ -298,7 +353,7 @@ class Compiler implements DiagnosticListener {
     codegenQueueIsClosed = true;
     assert(enqueuer.checkNoEnqueuedInvokedInstanceMethods());
     enqueuer.registerFieldClosureInvocations();
-    emitter.assembleProgram();
+    backend.assembleProgram();
     if (!codegenQueue.isEmpty()) {
       internalErrorOnElement(codegenQueue.first().element,
                              "work list is not empty");
@@ -330,22 +385,9 @@ class Compiler implements DiagnosticListener {
       constantHandler.compileWorkItem(work);
       return null;
     } else {
-      HGraph graph = builder.build(work);
-      optimizer.optimize(work, graph);
-      if (work.allowSpeculativeOptimization
-          && optimizer.trySpeculativeOptimizations(work, graph)) {
-        String code = generator.generateBailoutMethod(work, graph);
-        universe.addBailoutCode(work, code);
-        optimizer.prepareForSpeculativeOptimizations(work, graph);
-        optimizer.optimize(work, graph);
-        code = generator.generateMethod(work, graph);
-        universe.addGeneratedCode(work, code);
-        return code;
-      } else {
-        String code = generator.generateMethod(work, graph);
-        universe.addGeneratedCode(work, code);
-        return code;
-      }
+      String code = backend.codegen(work);
+      universe.addGeneratedCode(work, code);
+      return code;
     }
   }
 
@@ -475,8 +517,8 @@ class Compiler implements DiagnosticListener {
     }
     Token position = element.position();
     if (position === null) {
-      // TODO(ahe): Find the enclosing library.
-      return const SourceSpan(null, null, null);
+      Uri uri = element.getCompilationUnit().script.uri;
+      return new SourceSpan(uri, 0, 0);
     }
     return spanFromTokens(position, position);
   }

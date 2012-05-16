@@ -83,6 +83,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Builtin::LoadLibrary(Builtin::kUriLibrary);
     } else if (DartUtils::IsDartUtfLibURL(url_chars)) {
       return Builtin::LoadLibrary(Builtin::kUtfLibrary);
+    } else if (DartUtils::IsDartCryptoLibURL(url_chars)) {
+      return Builtin::LoadLibrary(Builtin::kCryptoLibrary);
     } else {
       return Dart_Error("Do not know how to load '%s'", url_chars);
     }
@@ -188,6 +190,19 @@ void CodeGenTest::Compile() {
   const Error& error =
       Error::Handle(Compiler::CompileParsedFunction(parsed_function));
   EXPECT(error.IsNull());
+}
+
+
+LocalVariable* CodeGenTest::CreateTempConstVariable(const char* name_part) {
+  char name[64];
+  OS::SNPrint(name, 64, ":%s", name_part);
+  LocalVariable* temp =
+      new LocalVariable(0,
+                        String::ZoneHandle(String::NewSymbol(name)),
+                        Type::ZoneHandle(Type::DynamicType()));
+  temp->set_is_final();
+  node_sequence_->scope()->AddVariable(temp);
+  return temp;
 }
 
 

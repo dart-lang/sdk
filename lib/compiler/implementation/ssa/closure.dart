@@ -97,7 +97,7 @@ class ClosureData {
 }
 
 class ClosureTranslator extends AbstractVisitor {
-  final Compiler compiler;
+  final SsaBuilder builder;
   final TreeElements elements;
   int closureFieldCounter = 0;
   bool inTryCatchOrFinally = false;
@@ -119,11 +119,14 @@ class ClosureTranslator extends AbstractVisitor {
 
   bool insideClosure = false;
 
-  ClosureTranslator(Compiler compiler, this.elements)
-      : capturedVariableMapping = new Map<Element, Element>(),
+  Compiler get compiler() => builder.compiler;
+
+  ClosureTranslator(SsaBuilder builder)
+      : this.builder = builder,
+        this.elements = builder.elements,
+        capturedVariableMapping = new Map<Element, Element>(),
         closures = <FunctionExpression>[],
-        this.compiler = compiler,
-        this.closureDataCache = compiler.builder.closureDataCache;
+        this.closureDataCache = builder.builder.closureDataCache;
 
   ClosureData translate(Node node) {
     // Closures have already been analyzed when visiting the surrounding

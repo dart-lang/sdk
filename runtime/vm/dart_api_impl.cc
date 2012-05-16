@@ -397,14 +397,11 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
-                                    bool* value) {
+DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& expected = Object::Handle(isolate, Api::UnwrapHandle(obj1));
-  const Object& actual = Object::Handle(isolate, Api::UnwrapHandle(obj2));
-  *value = (expected.raw() == actual.raw());
-  return Api::Success(isolate);
+  CHECK_ISOLATE(isolate);
+  NoGCScope ngc;
+  return Api::UnwrapHandle(obj1) == Api::UnwrapHandle(obj2);
 }
 
 

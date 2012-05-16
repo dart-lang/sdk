@@ -5,7 +5,9 @@
 #include "vm/scopes.h"
 
 #include "vm/ast.h"
+#include "vm/bit_vector.h"
 #include "vm/object.h"
+#include "vm/parser.h"
 
 namespace dart {
 
@@ -476,5 +478,24 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
   }
   return false;
 }
+
+
+// Map the frame index into an index in the range 0..(vector->length()-1).
+int LocalVariable::BitIndexIn(BitVector* vector) const {
+  ASSERT(!is_captured());
+  // Parameters have positive indexes with the lowest index being 2.  Locals
+  // and copied parameters have negative indexes with the lowest (closest to
+  // zero) index being ParsedFunction::kFirstLocalSlotIndex.
+  if (index() > 0) {
+    // Shift non-negative indexes so that the lowest one is 0.
+    return index() - 2;
+  } else {
+    // Shift negative indexes so that the lowest one is 0 (they are still
+    // non-positive) and index them backward from the end of the vector.
+    return (vector->length() - 1) +
+        (index() - ParsedFunction::kFirstLocalSlotIndex);
+  }
+}
+
 
 }  // namespace dart

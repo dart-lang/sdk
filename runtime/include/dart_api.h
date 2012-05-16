@@ -39,6 +39,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 #else
 #include <inttypes.h>
+#include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
 #define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default")))
@@ -198,21 +199,16 @@ DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
 DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
 
 /**
- * Checks if the two objects are the same object
+ * Checks to see if two handles refer to identically equal objects.
  *
- * The result of the comparison is returned through the 'same'
- * parameter. The return value itself is used to indicate success or
- * failure, not identity.
+ * This is equivalent to using the triple-equals (===) operator.
  *
  * \param obj1 An object to be compared.
  * \param obj2 An object to be compared.
- * \param equal Returns whether the two objects are the same.
  *
- * \return A valid handle if no error occurs during the comparison.
+ * \return True if the objects are identically equal.  False otherwise.
  */
-DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1,
-                                    Dart_Handle obj2,
-                                    bool* same);
+DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2);
 
 /**
  * Allocates a persistent handle for an object.
@@ -682,7 +678,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  * the Dart heap. Only a subset of the Dart objects have a
  * representation as a Dart_CObject.
  */
-struct Dart_CObject {
+typedef struct _Dart_CObject {
   enum Type {
     kNull = 0,
     kBool,
@@ -693,9 +689,9 @@ struct Dart_CObject {
     kString,
     kArray,
     kUint8Array,
+    kUnsupported,
     kNumberOfTypes
-  };
-  Type type;
+  } type;
   union {
     bool as_bool;
     int32_t as_int32;
@@ -705,14 +701,14 @@ struct Dart_CObject {
     char* as_bigint;
     struct {
       int length;
-      Dart_CObject** values;
+      struct _Dart_CObject** values;
     } as_array;
     struct {
       int length;
       uint8_t* values;
     } as_byte_array;
   } value;
-};
+} Dart_CObject;
 
 /**
  * Posts a message on some port. The message will contain the

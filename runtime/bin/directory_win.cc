@@ -165,12 +165,12 @@ static bool ListRecursively(const char* dir_name,
                              recursive,
                              listing);
 
-  while ((FindNextFile(find_handle, &find_file_data) != 0) && success) {
-    success = success && HandleEntry(&find_file_data,
-                                     path,
-                                     path_length,
-                                     recursive,
-                                     listing);
+  while ((FindNextFile(find_handle, &find_file_data) != 0)) {
+    success = HandleEntry(&find_file_data,
+                          path,
+                          path_length,
+                          recursive,
+                          listing) && success;
   }
 
   if (GetLastError() != ERROR_NO_MORE_FILES) {

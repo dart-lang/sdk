@@ -21,10 +21,11 @@ class ActiveVariables;
 // SourceBreakpoint.
 class SourceBreakpoint {
  public:
-  SourceBreakpoint(const Function& func, intptr_t token_index);
+  SourceBreakpoint(intptr_t id, const Function& func, intptr_t token_index);
 
   RawFunction* function() const { return function_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t id() const { return id_; }
 
   RawScript* SourceCode();
   RawString* SourceUrl();
@@ -41,8 +42,9 @@ class SourceBreakpoint {
   void set_next(SourceBreakpoint* value) { next_ = value; }
   SourceBreakpoint* next() const { return this->next_; }
 
+  const intptr_t id_;
   RawFunction* function_;
-  intptr_t token_index_;
+  const intptr_t token_index_;
   intptr_t line_number_;
   bool is_enabled_;
 
@@ -184,8 +186,22 @@ typedef void BreakpointHandler(SourceBreakpoint* bpt,
                                DebuggerStackTrace* stack);
 
 
+
 class Debugger {
  public:
+  enum EventType {
+    kPaused = 1,
+    kBreakpointResolved = 2,
+  };
+  struct DebuggerEvent {
+    EventType type;
+    union {
+      DebuggerStackTrace* stack_trace;
+      SourceBreakpoint* breakpoint;
+    };
+  };
+  typedef void EventHandler(DebuggerEvent *event);
+
   Debugger();
   ~Debugger();
 
@@ -195,6 +211,7 @@ class Debugger {
 
   void NotifyCompilation(const Function& func);
 
+  void SetEventHandler(EventHandler* handler);
   void SetBreakpointHandler(BreakpointHandler* handler);
 
   RawFunction* ResolveFunction(const Library& library,
@@ -206,7 +223,8 @@ class Debugger {
   SourceBreakpoint* SetBreakpointAtLine(const String& script_url,
                                         intptr_t line_number);
 
-  void RemoveBreakpoint(SourceBreakpoint* bpt);
+  void RemoveBreakpoint(intptr_t bp_id);
+  SourceBreakpoint* GetBreakpointById(intptr_t id);
 
   void SetStepOver() { resume_action_ = kStepOver; }
   void SetStepInto() { resume_action_ = kStepInto; }
@@ -216,6 +234,8 @@ class Debugger {
 
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
+
+  DebuggerStackTrace* StackTrace() const { return stack_trace_; }
 
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
@@ -255,9 +275,21 @@ class Debugger {
 
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
+  void SignalBpResolved(SourceBreakpoint *bpt);
+
+  intptr_t nextId() { return next_id_++; }
+
   Isolate* isolate_;
   bool initialized_;
   BreakpointHandler* bp_handler_;
+  EventHandler* event_handler_;
+
+  // ID number generator.
+  intptr_t next_id_;
+
+  // Current stack trace. Valid while executing breakpoint callback code.
+  DebuggerStackTrace* stack_trace_;
+
   SourceBreakpoint* src_breakpoints_;
   CodeBreakpoint* code_breakpoints_;
 

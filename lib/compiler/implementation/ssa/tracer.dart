@@ -160,7 +160,9 @@ class HInstructionStringifier implements HVisitor<String> {
   visit(HInstruction node) => node.accept(this);
 
   visitBasicBlock(HBasicBlock node) {
-    unreachable();
+    // TODO(floitsch): Need a compiler object.
+    compiler.internalError('conditionExpression should not be called',
+                           instruction: node);
   }
 
   String temporaryId(HInstruction instruction) {
@@ -420,7 +422,11 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.STRING: type = "string"; break;
       case HType.INDEXABLE_PRIMITIVE: type = "string_or_array"; break;
       case HType.UNKNOWN: type = 'unknown'; break;
-      default: unreachable();
+      default:
+        // TODO(floitsch): Need a compiler object.
+        compiler.internalError('Unexpected type guard.',
+                               instruction: node.guardedType);
+        break;
     }
     StringBuffer envBuffer = new StringBuffer();
     List<HInstruction> inputs = node.inputs;

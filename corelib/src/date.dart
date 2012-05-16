@@ -7,7 +7,7 @@
 /**
  * Date is the public interface to a point in time.
  */
-interface Date extends Comparable default DateImplementation {
+interface Date extends Comparable, Hashable default DateImplementation {
   // Weekday constants that are returned by [weekday] method:
   static final int MON = 0;
   static final int TUE = 1;
@@ -36,13 +36,15 @@ interface Date extends Comparable default DateImplementation {
    * Constructs a [Date] instance based on the individual parts, in the
    * local time-zone.
    */
+  // TODO(floitsch): the spec allows default values in interfaces, but our
+  // tools don't yet. Eventually we want to have default values here.
   Date(int year,
-       int month,
-       int day,
-       int hours,
-       int minutes,
-       int seconds,
-       int milliseconds);
+       [int month,
+        int day,
+        int hours,
+        int minutes,
+        int seconds,
+        int milliseconds]);
 
   /**
    * Constructs a [Date] instance based on the individual parts.
@@ -79,6 +81,27 @@ interface Date extends Comparable default DateImplementation {
    * the given [timeZone].
    */
   const Date.fromEpoch(int value, TimeZone timeZone);
+
+  /**
+   * Returns true if [this] occurs before [other]. The comparison is independent
+   * of the timezone the [Date] is in.
+   */
+  bool operator <(Date other);
+  /**
+   * Returns true if [this] occurs at the same time or before [other]. The
+   * comparison is independent of the timezone the [Date] is in.
+   */
+  bool operator <=(Date other);
+  /**
+   * Returns true if [this] occurs after [other]. The comparison is independent
+   * of the timezone the [Date] is in.
+   */
+  bool operator >(Date other);
+  /**
+   * Returns true if [this] occurs at the same time or after [other]. The
+   * comparison is independent of the timezone the [Date] is in.
+   */
+  bool operator >=(Date other);
 
   /**
    * Returns a new [Date] in the given [targetTimeZone] time zone. The

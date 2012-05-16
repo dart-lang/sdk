@@ -5,6 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_IA32)
 
+#include "vm/assembler.h"
+#include "vm/assembler_macros.h"
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/object_store.h"
@@ -101,7 +103,9 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ pushl(ECX);
   __ pushl(EDX);
 
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
 
   // Reserve space for the native argument and align frame before entering
   // the C++ world.
@@ -211,7 +215,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);
@@ -226,7 +230,10 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ Bind(&function_compiled);
   // Patch caller.
-  __ EnterFrame(0);
+
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve function object.
@@ -235,8 +242,8 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
 
+  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
   __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);
@@ -248,7 +255,9 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // ECX: function object.
 // EDX: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve target function.
   __ pushl(ECX);  // Target function.
@@ -395,17 +404,18 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   // Preserve values across call to resolving.
   // Stack at this point:
-  // TOS + 0: Saved EBP of previous frame. <== EBP
-  // TOS + 1: Dart code return address
-  // TOS + 2: Last argument of caller.
+  // TOS + 0: PC marker => RawInstruction object.
+  // TOS + 1: Saved EBP of previous frame. <== EBP
+  // TOS + 2: Dart code return address
+  // TOS + 3: Last argument of caller.
   // ....
   // Total number of args is the first Smi in args descriptor array (EDX).
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, kWordSize));  // Get receiver.
+  __ movl(EAX, Address(EBP, EAX, TIMES_2, kWordSize));  // Get receiver.
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(EAX);  // Preserve receiver.
   __ pushl(ECX);  // Preserve ic-data.
@@ -506,15 +516,16 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ movl(EDI, FieldAddress(EDI, Array::data_offset()));
   __ SmiUntag(EDI);
   __ subl(EDI, Immediate(1));  // Arguments array length, minus the receiver.
-  PushArgumentsArray(assembler, (kWordSize * 5));
-  // Stack layout explaining "(kWordSize * 5)" offset.
+  PushArgumentsArray(assembler, (kWordSize * 6));
+  // Stack layout explaining "(kWordSize * 6)" offset.
   // TOS + 0: Argument array.
   // TOS + 1: Arguments descriptor array.
   // TOS + 2: Closure object.
   // TOS + 3: Place for result from closure function.
-  // TOS + 4: Saved EBP of previous frame. <== EBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
+  // TOS + 4: PC marker => RawInstruction object.
+  // TOS + 5: Saved EBP of previous frame. <== EBP
+  // TOS + 6: Dart code return address
+  // TOS + 7: Last argument of caller.
   // ....
 
   __ CallRuntime(kInvokeImplicitClosureFunctionRuntimeEntry);
@@ -543,18 +554,19 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ movl(EDI, FieldAddress(EDI, Array::data_offset()));
   __ SmiUntag(EDI);
   __ subl(EDI, Immediate(1));  // Arguments array length, minus the receiver.
-  // See stack layout below explaining "wordSize * 6" offset.
-  PushArgumentsArray(assembler, (kWordSize * 6));
+  // See stack layout below explaining "wordSize * 7" offset.
+  PushArgumentsArray(assembler, (kWordSize * 7));
 
   // Stack:
   // TOS + 0: Argument array.
   // TOS + 1: Argument descriptor array.
   // TOS + 2: IC-data.
-  // TOS + 3: Receiver.
+  // TOS + 3: Receiver
   // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: Saved EBP of previous frame. <== EBP
-  // TOS + 6: Dart code return address
-  // TOS + 7: Last argument of caller.
+  // TOS + 5: PC marker => RawInstruction object.
+  // TOS + 6: Saved EBP of previous frame. <== EBP
+  // TOS + 7: Dart code return address
+  // TOS + 8: Last argument of caller.
   // ....
 
   __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
@@ -572,12 +584,15 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   // EAX: deoptimization reason id.
   // Stack at this point:
-  // TOS + 0: Saved EBP of function frame that will be deoptimized. <== EBP
-  // TOS + 1: Deoptimization point (return address), will be patched.
-  // TOS + 2: top-of-stack at deoptimization point (all arguments on stack).
+  // TOS + 0: PC marker => RawInstruction object.
+  // TOS + 1: Saved EBP of function frame that will be deoptimized. <== EBP
+  // TOS + 2: Deoptimization point (return address), will be patched.
+  // TOS + 3: top-of-stack at deoptimization point (all arguments on stack).
   __ pushl(EAX);
   __ CallRuntime(kDeoptimizeRuntimeEntry);
   __ popl(EAX);
@@ -717,7 +732,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
   __ Bind(&slow_case);
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDX);  // Array length as Smi.
   __ pushl(ECX);  // Element type.
@@ -775,7 +792,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);
@@ -806,23 +823,24 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushl(raw_null);  // Setup space on stack for result from error reporting.
   __ pushl(EDI);  // Non-closure object.
     // Total number of args is the first Smi in args descriptor array (EDX).
   __ movl(EDI, FieldAddress(EDX, Array::data_offset()));  // Load num_args.
   __ SmiUntag(EDI);
-  // See stack layout below explaining "wordSize * 4" offset.
-  PushArgumentsArray(assembler, (kWordSize * 4));
+  // See stack layout below explaining "wordSize * 5" offset.
+  PushArgumentsArray(assembler, (kWordSize * 5));
 
   // Stack:
   // TOS + 0: Argument array.
   // TOS + 1: Non-closure object.
   // TOS + 2: Place for result from reporting the error.
-  // TOS + 3: Saved EBP of previous frame. <== EBP
-  // TOS + 4: Dart code return address
-  // TOS + 5: Last argument of caller.
+  // TOS + 3: PC marker => RawInstruction object.
+  // TOS + 4: Saved EBP of previous frame. <== EBP
+  // TOS + 5: Dart code return address
+  // TOS + 6: Last argument of caller.
   // ....
   __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
   __ Stop("runtime call throws an exception");
@@ -1060,8 +1078,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     __ Bind(&slow_case);
   }
-  // Create a stub frame.
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ SmiTag(EDX);
   __ pushl(EDX);
@@ -1251,8 +1270,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movl(EAX, Address(ESP, kObjectTypeArgumentsOffset));
     __ movl(EDX, Address(ESP, kInstantiatorTypeArgumentsOffset));
   }
-  // Create a stub frame.
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
@@ -1408,8 +1428,9 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   if (is_implicit_instance_closure) {
     __ movl(EAX, Address(ESP, kReceiverOffset));
   }
-  // Create a stub frame.
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
@@ -1445,6 +1466,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 // Called for invoking noSuchMethod function from the entry code of a dart
 // function after an error in passed named arguments is detected.
 // Input parameters:
+//   EBP - 4 : PC marker => RawInstruction object.
 //   EBP : points to previous frame pointer.
 //   EBP + 4 : points to return address.
 //   EBP + 8 : address of last argument (arg n-1).
@@ -1469,14 +1491,17 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ SmiUntag(EDI);
   __ movl(EAX, Address(EBP, EDI, TIMES_4, kWordSize));  // Get receiver.
 
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
+
   __ pushl(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
   __ pushl(ECX);  // IC data array.
   __ pushl(EDX);  // Arguments descriptor array.
   __ subl(EDI, Immediate(1));  // Arguments array length, minus the receiver.
-  // See stack layout below explaining "wordSize * 8" offset.
-  PushArgumentsArray(assembler, (kWordSize * 8));
+  // See stack layout below explaining "wordSize * 10" offset.
+  PushArgumentsArray(assembler, (kWordSize * 10));
 
   // Stack:
   // TOS + 0: Argument array.
@@ -1484,11 +1509,13 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // TOS + 2: Ic-data.
   // TOS + 3: Receiver.
   // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: Saved EBP of previous frame. <== EBP
-  // TOS + 6: Dart callee (or stub) code return address
-  // TOS + 7: Saved EBP of dart caller frame.
-  // TOS + 8: Dart caller code return address
-  // TOS + 9: Last argument of caller.
+  // TOS + 5: PC marker => RawInstruction object.
+  // TOS + 6: Saved EBP of previous frame. <== EBP
+  // TOS + 7: Dart callee (or stub) code return address
+  // TOS + 8: PC marker => RawInstruction object of dart caller frame.
+  // TOS + 9: Saved EBP of dart caller frame.
+  // TOS + 10: Dart caller code return address
+  // TOS + 11: Last argument of caller.
   // ....
   __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
   // Remove arguments.
@@ -1518,6 +1545,9 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
   __ movl(EBX, FieldAddress(ECX, ICData::function_offset()));
   __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
   if (CodeGenerator::CanOptimize()) {
@@ -1525,7 +1555,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
         Immediate(FLAG_optimization_counter_threshold));
     Label not_yet_hot;
     __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
-    __ EnterFrame(0);
+    // Create a stub frame as we are pushing some objects on the stack before
+    // calling into the runtime.
+    AssemblerMacros::EnterStubFrame(assembler);
     __ pushl(ECX);  // Preserve inline cache data object.
     __ pushl(EDX);  // Preserve arguments array.
     __ pushl(EBX);  // Argument for runtime: function object.
@@ -1567,8 +1599,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
   // EBX: points directly to the first ic data array element.
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label loop, found;
   if (num_args == 1) {
     __ Bind(&loop);
@@ -1612,7 +1642,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // descriptor array and then compute address on the stack).
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
   __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);  // Preserve arguments array.
   __ pushl(ECX);  // Preserve IC data array
   __ pushl(raw_null);  // Setup space on stack for result (target code object).
@@ -1693,7 +1725,9 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 //  EDX: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);
   __ pushl(ECX);
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
@@ -1712,7 +1746,9 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EAX);
   __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
   __ popl(EAX);
@@ -1731,7 +1767,9 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 //  EDX: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(ECX);
   __ pushl(EDX);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);

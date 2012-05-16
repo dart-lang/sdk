@@ -30,6 +30,8 @@ struct FieldInitExpression;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : ValueObject {
  public:
+  static const int kFirstLocalSlotIndex = -2;
+
   explicit ParsedFunction(const Function& function)
       : function_(function),
         node_sequence_(NULL),
@@ -484,6 +486,13 @@ class Parser : ValueObject {
 
   const LocalVariable& GetIncrementTempLocal();
   void EnsureExpressionTemp();
+
+  ConstructorCallNode* CreateConstructorCallNode(
+      intptr_t token_index,
+      const AbstractTypeArguments& type_arguments,
+      const Function& constructor,
+      ArgumentListNode* arguments);
+
 
   const Script& script_;
   const TokenStream& tokens_;

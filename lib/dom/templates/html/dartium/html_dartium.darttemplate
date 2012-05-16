@@ -66,6 +66,8 @@ _unwrap(raw) {
   return raw is _DOMTypeBase ? raw._ptr : raw;
 }
 
+unwrap_internal(raw) => _unwrap(raw);
+
 // Warning: does not attempt wrap event listeners.
 _wrap(raw) {
   if (raw is! dom.DOMType) return raw;
@@ -82,6 +84,8 @@ $WRAPCASES
       throw 'Unrecognized object $domObject. Name=${domObject.typeName}';
   }
 }
+
+wrap_internal(raw) => _wrap(raw);
 
 spawnDomIsolate(Window targetWindow, String entryPoint) =>
   dom.spawnDomIsolate(_unwrap(targetWindow), entryPoint);

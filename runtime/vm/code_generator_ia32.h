@@ -9,7 +9,6 @@
 #error Do not include code_generator_ia32.h directly; use code_generator.h.
 #endif
 
-#include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/growable_array.h"
 #include "vm/parser.h"
@@ -119,6 +118,8 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   static bool CanOptimize();
 
  private:
+  static const int kLocalsOffsetFromFP = (-1 * kWordSize);
+
   // TODO(srdjan): Remove the friendship once the two compilers are properly
   // structured.
   friend class OptimizingCodeGenerator;

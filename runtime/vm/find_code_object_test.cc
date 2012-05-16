@@ -125,7 +125,7 @@ TEST_CASE(FindCodeObject) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
+  EXPECT(Code::LookupCode(pc) == code.raw());
 
   OS::SNPrint(buffer, 256, "moo%d", 54);
   function_name = String::New(buffer);
@@ -134,7 +134,7 @@ TEST_CASE(FindCodeObject) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
+  EXPECT(Code::LookupCode(pc) == code.raw());
 
   // Lookup the large function
   OS::SNPrint(buffer, 256, "moo%d", 0);
@@ -145,10 +145,10 @@ TEST_CASE(FindCodeObject) {
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
   EXPECT(code.Size() > PageSpace::kPageSize);
-  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
+  EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
-  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
+  EXPECT(Code::LookupCode(pc) == code.raw());
 }
 
 #endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64

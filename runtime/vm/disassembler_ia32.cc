@@ -428,8 +428,7 @@ void X86Decoder::PrintAddress(uword addr) {
       Print("]");
     } else {
       // Print only if jumping to entry point.
-      const Code& code = Code::Handle(
-          StackFrame::LookupCode(Isolate::Current(), addr));
+      const Code& code = Code::Handle(Code::LookupCode(addr));
       if (!code.IsNull() && (code.EntryPoint() == addr)) {
         const Function& function = Function::Handle(code.function());
         const char* name_of_function = function.ToFullyQualifiedCString();

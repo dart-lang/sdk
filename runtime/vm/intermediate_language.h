@@ -13,6 +13,7 @@
 
 namespace dart {
 
+class BitVector;
 class FlowGraphVisitor;
 class LocalVariable;
 
@@ -53,6 +54,7 @@ class LocalVariable;
   M(AllocateObject, AllocateObjectComp)                                        \
   M(AllocateObjectWithBoundsCheck, AllocateObjectWithBoundsCheckComp)          \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
+  M(NativeStoreField, NativeStoreFieldComp)                                    \
   M(InstantiateTypeArguments, InstantiateTypeArgumentsComp)                    \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
@@ -85,6 +87,10 @@ class Computation : public ZoneAllocated {
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
   virtual intptr_t InputCount() const = 0;
+
+  // Mutate assigned_vars to add the local variable index for all
+  // frame-allocated locals assigned to by the computation.
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
  private:
   friend class Instruction;
@@ -518,6 +524,8 @@ class StoreLocalComp : public TemplateComputation<1> {
   Value* value() { return inputs_[0]; }
   intptr_t context_level() const { return context_level_; }
 
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
+
  private:
   const LocalVariable& local_;
   const intptr_t context_level_;
@@ -928,9 +936,31 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
  private:
-  intptr_t offset_in_bytes_;
+  const intptr_t offset_in_bytes_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
+};
+
+
+class NativeStoreFieldComp : public TemplateComputation<2> {
+ public:
+  NativeStoreFieldComp(Value* dest, intptr_t offset_in_bytes, Value* value)
+      : offset_in_bytes_(offset_in_bytes) {
+    ASSERT(value != NULL);
+    inputs_[0] = dest;
+    inputs_[1] = value;
+  }
+
+  DECLARE_COMPUTATION(NativeStoreField)
+
+  Value* dest() { return inputs_[0]; }
+  Value* value() { return inputs_[1]; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+
+ private:
+  const intptr_t offset_in_bytes_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeStoreFieldComp);
 };
 
 
@@ -1119,20 +1149,17 @@ class CatchEntryComp : public TemplateComputation<0> {
 //                 | Do <Computation> <Instruction>
 //                 | Return <Value>
 //                 | Branch <Value> <Instruction> <Instruction>
-// <Definition>  ::= PickTemp <int> <int> <Instruction>
-//                 | TuckTemp <int> <int> <Instruction>
-//                 | Bind <int> <Computation> <Instruction>
+// <Definition>  ::= Bind <int> <Computation> <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
 // concatenated.
 #define FOR_EACH_INSTRUCTION(M)                                                \
+  M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
   M(Do)                                                                        \
   M(Bind)                                                                      \
-  M(PickTemp)                                                                  \
-  M(TuckTemp)                                                                  \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -1192,18 +1219,26 @@ class Instruction : public ZoneAllocated {
   // preorder block numbers to the block entry instruction with that number
   // and analogously for the array 'postorder'.  The depth first spanning
   // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.  As
-  // a side effect of this function, the set of basic block predecessors
-  // (e.g., block entry instructions of predecessor blocks) and also the
-  // last instruction in the block is recorded in each entry instruction.
+  // numbers to the preorder number of the block's spanning-tree parent.
+  // The array 'assigned_vars' maps preorder block numbers to the set of
+  // assigned frame-allocated local variables in the block.  As a side
+  // effect of this function, the set of basic block predecessors (e.g.,
+  // block entry instructions of predecessor blocks) and also the last
+  // instruction in the block is recorded in each entry instruction.
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent) {
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count) {
     // Never called for instructions except block entries and branches.
     UNREACHABLE();
   }
+
+  // Mutate assigned_vars to add the local variable index for all
+  // frame-allocated locals assigned to by the instruction.
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
@@ -1218,16 +1253,18 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 };
 
 
-// Basic block entries are administrative nodes.  Joins are the only nodes
-// with multiple predecessors.  Targets are the other basic block entries.
-// The types enforce edge-split form---joins are forbidden as the successors
-// of branches.
+// Basic block entries are administrative nodes.  There is a distinguished
+// graph entry with no predecessor.  Joins are the only nodes with multiple
+// predecessors.  Targets are all other basic block entries.  The types
+// enforce edge-split form---joins are forbidden as the successors of
+// branches.
 class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
   void set_preorder_number(intptr_t number) { preorder_number_ = number; }
@@ -1240,6 +1277,14 @@ class BlockEntryInstr : public Instruction {
 
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count);
 
  protected:
   BlockEntryInstr()
@@ -1258,6 +1303,41 @@ class BlockEntryInstr : public Instruction {
 };
 
 
+class GraphEntryInstr : public BlockEntryInstr {
+ public:
+  explicit GraphEntryInstr(TargetEntryInstr* normal_entry)
+      : BlockEntryInstr(), normal_entry_(normal_entry), catch_entries_() { }
+
+  DECLARE_INSTRUCTION(GraphEntry)
+
+  virtual intptr_t PredecessorCount() const { return 0; }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
+
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count);
+
+  void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
+
+ private:
+  TargetEntryInstr* normal_entry_;
+  ZoneGrowableArray<TargetEntryInstr*> catch_entries_;
+
+  DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
+};
+
+
 class JoinEntryInstr : public BlockEntryInstr {
  public:
   JoinEntryInstr()
@@ -1271,6 +1351,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     return predecessors_[index];
   }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    predecessors_.Add(predecessor);
+  }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1279,12 +1362,6 @@ class JoinEntryInstr : public BlockEntryInstr {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
@@ -1318,6 +1395,10 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1326,12 +1407,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
 
   bool HasTryIndex() const {
     return try_index_ != CatchClauseNode::kInvalidTryIndex;
@@ -1367,6 +1442,8 @@ class DoInstr : public Instruction {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
+
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
 
  private:
   Computation* computation_;
@@ -1409,79 +1486,13 @@ class BindInstr : public Definition {
     successor_ = instr;
   }
 
+  virtual void RecordAssignedVars(BitVector* assigned_vars);
+
  private:
   Computation* computation_;
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
-};
-
-
-// The non-optimizing compiler assumes that there is exactly one use of
-// every temporary so they can be deallocated at their use.  Some AST nodes,
-// e.g., expr0[expr1]++, violate this assumption (there are two uses of each
-// of the values expr0 and expr1).
-//
-// PickTemp is used to name (with 'destination') a copy of a live temporary
-// (named 'source') without counting as the use of the source.
-class PickTempInstr : public Definition {
- public:
-  explicit PickTempInstr(intptr_t source)
-      : Definition(), source_(source), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(PickTemp)
-
-  intptr_t source() const { return source_; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL && instr != NULL);
-    successor_ = instr;
-  }
-
- private:
-  const intptr_t source_;
-  Instruction* successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(PickTempInstr);
-};
-
-
-// The non-optimizing compiler assumes that temporary definitions and uses
-// obey a stack discipline, so they can be allocated and deallocated with
-// push and pop.  Some Some AST nodes, e.g., expr++, violate this assumption
-// (the value expr+1 is produced after the value of expr, and also consumed
-// after it).
-//
-// We 'preallocate' temporaries (named with 'destination') such as the one
-// for expr+1 and use TuckTemp to mutate them by overwriting them with a
-// copy of a temporary (named with 'source').
-class TuckTempInstr : public Instruction {
- public:
-  TuckTempInstr(intptr_t destination, intptr_t source)
-      : destination_(destination), source_(source), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(TuckTemp)
-
-  intptr_t destination() const { return destination_; }
-  intptr_t source() const { return source_; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL && instr != NULL);
-    successor_ = instr;
-  }
-
- private:
-  const intptr_t destination_;
-  const intptr_t source_;
-  Instruction* successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(TuckTempInstr);
 };
 
 
@@ -1526,13 +1537,11 @@ class ThrowInstr : public Instruction {
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
 
-  // Parser can generate a throw within an expression tree.
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
+  // Parser can generate a throw within an expression tree.  We never
+  // add successor instructions to the graph.
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
-    successor_ = instr;
   }
 
  private:
@@ -1567,13 +1576,13 @@ class ReThrowInstr : public Instruction {
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
 
-  // Parser can generate a rethrow within an expression tree.
+  // Parser can generate a rethrow within an expression tree.  We
+  // never add successor instructions to the graph.
   virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
+    return NULL;
   }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
-    successor_ = instr;
   }
 
  private:
@@ -1610,7 +1619,9 @@ class BranchInstr : public Instruction {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent);
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count);
 
  private:
   Value* value_;

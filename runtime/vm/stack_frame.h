@@ -31,6 +31,11 @@ class StackFrame : public ValueObject {
     *reinterpret_cast<uword*>(sp_ + PcAddressOffsetFromSp()) = value;
   }
 
+  void SetEntrypointMarker(uword value) {
+    ASSERT(!(IsStubFrame() || IsEntryFrame() || IsExitFrame()));
+    *reinterpret_cast<uword*>(fp_ - kWordSize) = value;
+  }
+
   // Visit objects in the frame.
   virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -43,7 +48,7 @@ class StackFrame : public ValueObject {
   // Frame type.
   virtual bool IsDartFrame() const {
     ASSERT(IsValid());
-    return !(IsStubFrame() || IsEntryFrame() || IsExitFrame());
+    return !(IsEntryFrame() || IsExitFrame() || IsStubFrame());
   }
   virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
@@ -53,10 +58,6 @@ class StackFrame : public ValueObject {
   RawCode* LookupDartCode() const;
   bool FindExceptionHandler(uword* handler_pc) const;
 
-  // Find code object corresponding to pc (only frames running dart code or
-  // stub code will have a code object associated with them).
-  static RawCode* LookupCode(Isolate* isolate, uword pc);
-
  protected:
   StackFrame() : fp_(0), sp_(0) { }
 
@@ -64,20 +65,7 @@ class StackFrame : public ValueObject {
   virtual const char* GetName() const { return IsStubFrame()? "stub" : "dart"; }
 
  private:
-  // An object finder visitor interface.
-  class FindRawCodeVisitor : public FindObjectVisitor {
-   public:
-    explicit FindRawCodeVisitor(uword pc) : pc_(pc) { }
-    virtual ~FindRawCodeVisitor() { }
-
-    // Check if object matches find condition.
-    virtual bool FindObject(RawObject* obj);
-
-   private:
-    uword pc_;
-
-    DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
-  };
+  RawCode* GetCodeObject() const;
 
   // Target specific implementations for locating pc and caller fp/sp values.
   static intptr_t PcAddressOffsetFromSp();

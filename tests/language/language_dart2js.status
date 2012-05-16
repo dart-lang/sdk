@@ -1,0 +1,230 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js && $checked ]
+assign_static_type_test/01: Fail
+assign_static_type_test/02: Fail
+assign_static_type_test/03: Fail
+assign_static_type_test/04: Fail
+type_variable_bounds_test/01: Fail
+type_variable_bounds_test/02: Fail
+type_variable_bounds_test/04: Fail
+type_variable_bounds_test/05: Fail
+type_variable_bounds2_test/00: Fail
+type_variable_bounds2_test/03: Fail
+type_variable_bounds2_test/05: Fail
+type_variable_bounds2_test/06: Pass # For the wrong reasons.
+assign_top_method_negative_test: Pass # For the wrong reasons.
+f_bounded_quantification_test/01: Fail
+f_bounded_quantification_test/02: Fail
+
+arithmetic_test: Fail
+
+
+[ $compiler == dart2js]
+compile_time_constant8_test: Fail # We don't take the generic type into account yet.
+static_initializer_type_error_test: Fail # Checked mode not supported.
+exception_test: Fail # "throw null" throws NullPointerException.
+
+# Compilation errors.
+ct_const_test: Fail # We don't take the generic type into account yet.
+call_operator_test: Fail # Unexpected token 'call'
+char_escape_test: Fail # Unhandled non-BMP character: U+10000
+constructor6_test: Fail # Closures inside initializers not implemented.
+default_factory_library_test: Fail # lib is not a type
+dynamic_test: Fail # cannot resolve type F1
+factory3_test: Fail # internal error: visitIs for type variables not implemented
+function_literals2_test: Fail # Closures inside initializers not implemented.
+function_syntax_test: Fail # Closures inside initializers not implemented.
+function_test: Fail # internal error: Closures inside initializers not implemented
+function_type_alias2_test: Fail # cannot resolve type f1
+function_type_alias3_test: Fail # cannot resolve type F
+function_type_alias4_test: Fail # cannot resolve type F
+function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
+function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
+function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
+function_type_alias6_test: Fail # visitIs for typedefs not implemented
+function_type_alias_test: Fail # cannot resolve type Fun
+function_type_parameter2_test: Fail # Internal Error: expected optional parameters
+function_type_parameter_test: Fail # Internal Error: expected optional parameters
+generic_instanceof_test: Fail # cannot resolve type T
+generic_instanceof2_test: Fail # fails an instance of test at run time
+generic_instanceof3_test: Fail # cannot handle generics.
+generic_test: Fail # cannot resolve type T
+get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
+getters_setters_test: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+implicit_scope_test: Fail # duplicate definition of a="bar"
+label_test: Fail # switch cases are not implemented
+library_prefixes_test: Fail # other is not a type
+local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
+many_generic_instanceof_test: Fail # cannot resolve type T
+method_binding_test: Fail # internal error: super property read not implemented.
+method_name_test: Fail # Parsing of pseudo keywords.
+method_override_test: Fail # cannot resolve type GetKeysFunctionType
+named_parameters2_test: Fail # Unimplemented non-matching static call
+named_parameters3_test: Fail # Unimplemented non-matching static call
+named_parameters4_test: Fail # Unimplemented non-matching static call
+naming_test: Fail # Broken because operator negate is not accessible as if it was a method.
+operator6_test: Fail # Constant folding of bit-operations does not agree with runtime behavior. Issue 2887.
+parameter_initializer_test: Fail # internal error: super property read not implemented
+pseudo_kw_test: Fail # Unexpected token '('
+super_field_access_test: Fail # internal error: super property read not implemented
+super_field_test: Fail # internal error: super property read not implemented
+super_implicit_closure_test: Fail # internal error: super property read not implemented
+super_operator_test: Fail # internal error: super property store not implemented
+super_setter_test: Fail # internal error: super property read not implemented
+switch_label_test: Fail # error: target of continue is not a loop or switch case
+
+
+# Implementation errors (library or generated code).
+assertion_test: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
+generic_deep_test: Fail # Expect.isTrue(false) fails.
+generic_inheritance_test: Fail # Expect.isTrue(false) fails.
+generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
+instanceof2_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+instanceof3_test: Fail # cannot resolve type UndeclaredType.
+library_private_in_constructor_test: Fail # Issue 2620.
+list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
+map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
+named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
+type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
+type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
+
+
+#
+# The following tests are all semantic tests that we can rely on dartc
+# catching for now.
+#
+abstract_static_negative_test: Fail, OK # Negative language test.
+abstract_syntax_test/01: Fail, OK # Negative language test.
+abstract_syntax_test/02: Fail, OK # Negative language test.
+assign_top_method_negative_test: Fail, OK # Negative language test.
+class_extends_negative_test: Fail, OK # Negative language test.
+class_override_negative_test: Fail, OK # Negative language test.
+const_constructor_syntax_test/01: Fail, OK # Negative language test.
+const_constructor_syntax_test/02: Fail, OK # Negative language test.
+const_constructor_syntax_test/03: Fail, OK # Negative language test.
+const_constructor_syntax_test/04: Fail, OK # Negative language test.
+const_factory_negative_test: Fail, OK # Negative language test.
+const_field_negative_test: Fail, OK # Negative language test.
+const_init4_negative_test: Fail, OK # Negative language test.
+const_init_negative_test: Fail, OK # Negative language test.
+const_syntax_test/01: Fail, OK # Negative language test.
+const_syntax_test/02: Fail, OK # Negative language test.
+const_syntax_test/03: Fail, OK # Negative language test.
+constructor2_negative_test: Fail, OK # Negative language test.
+constructor_duplicate_initializers_test/02: Fail, OK # Negative language test.
+constructor_negative_test: Pass # For the wrong reason.
+constructor_return_negative_test: Fail, OK # Negative language test.
+constructor_return_with_arrow_negative_test: Fail, OK # Negative language test.
+constructor_return_with_init_and_arrow_negative_test: Fail, OK # Negative language test.
+constructor_return_with_init_negative_test: Fail, OK # Negative language test.
+duplicate_constructor_test/01: Fail, OK # Negative language test.
+duplicate_implements_test/01: Fail, OK # Negative language test.
+duplicate_implements_test/02: Fail, OK # Negative language test.
+duplicate_implements_test/03: Fail, OK # Negative language test.
+duplicate_implements_test/04: Fail, OK # Negative language test.
+empty_body_member_negative_test: Fail, OK # Negative language test.
+factory2_negative_test: Fail, OK # Negative language test.
+factory3_negative_test: Fail, OK # Negative language test.
+factory_negative_test: Fail, OK # Negative language test.
+fauxverride_test/03: Fail, OK # Negative language test.
+fauxverride_test/05: Fail, OK # Negative language test.
+field2_negative_test: Fail, OK # Negative language test.
+field3_negative_test: Fail, OK # Negative language test.
+field4_negative_test: Fail, OK # Negative language test.
+field5_negative_test: Fail, OK # Negative language test.
+field6a_negative_test: Fail, OK # Negative language test.
+field7a_negative_test: Fail, OK # Negative language test.
+final_for_in_variable_test/01: Fail, OK # Negative language test
+final_param_negative_test: Fail, OK # Negative language test.
+final_var_negative_test: Fail, OK # Negative language test.
+getter_declaration_negative_test: Fail, OK # Negative language test.
+instantiate_type_variable_negative_test: Pass  # For the wrong reason.
+interface_factory3_negative_test: Fail, OK # Negative language test.
+interface_factory_constructor_negative_test: Fail, OK # Negative language test.
+interface_static_method_negative_test: Fail, OK # Negative language test.
+list_literal1_negative_test: Fail, OK # Negative language test.
+list_literal2_negative_test: Fail, OK # Negative language test.
+map_literal1_negative_test: Fail, OK # Negative language test.
+map_literal2_negative_test: Fail, OK # Negative language test.
+new_expression_type_args_frog_test/02: Fail, OK # Negative language test.
+non_const_super_negative_test: Fail, OK # Negative language test.
+number_identifier_negative_test: Fail, OK # Negative language test.
+operator1_negative_test: Fail, OK # Negative language test.
+override_field_method1_negative_test: Fail, OK # Negative language test.
+override_field_method2_negative_test: Fail, OK # Negative language test.
+override_field_method3_negative_test: Fail, OK # Negative language test.
+override_field_method4_negative_test: Fail, OK # Negative language test.
+override_field_method5_negative_test: Fail, OK # Negative language test.
+override_field_method6_negative_test: Fail, OK # Negative language test.
+override_field_test/01: Fail, OK # Negative language test.
+override_field_test/04: Fail, OK # Negative language test.
+override_method_with_field_test/01: Fail, OK # Negative language test.
+prefix16_test: Fail
+prefix18_negative_test: Fail, OK # Negative language test.
+prefix20_negative_test: Fail, OK # Negative language test.
+prefix23_negative_test: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/01: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/03: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/05: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/06: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/07: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/08: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/09: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/10: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/11: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/12: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/13: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/14: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/15: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/16: Fail, OK # Negative language test.
+scope_negative_test: Fail, OK # Negative language test.
+setter_declaration2_negative_test: Fail, OK # Negative language test.
+setter_declaration_negative_test: Fail, OK # Negative language test.
+static_field1_run_negative_test: Fail, OK # Negative language test.
+static_field2_run_negative_test: Fail, OK # Negative language test.
+static_final_field2_negative_test: Fail, OK # Negative language test.
+static_final_field_negative_test: Fail, OK # Negative language test.
+static_top_level_test/00: Fail, OK # Negative language test.
+static_top_level_test/01: Fail, OK # Negative language test.
+static_top_level_test/02: Fail, OK # Negative language test.
+static_top_level_test/03: Fail, OK # Negative language test.
+static_top_level_test/04: Fail, OK # Negative language test.
+static_top_level_test/05: Fail, OK # Negative language test.
+string_interpolation7_negative_test: Fail, OK # Negative language test.
+throw7_negative_test: Fail, OK # Negative language test.
+try_catch_syntax_test/08: Fail, OK # Negative language test.
+type_variable_bounds_test/00: Fail, OK # Negative language test.
+type_variable_scope_test/00: Fail, OK # Negative language test.
+type_variable_scope_test/01: Fail, OK # Negative language test.
+type_variable_scope_test/02: Fail, OK # Negative language test.
+type_variable_scope_test/03: Fail, OK # Negative language test.
+type_variable_scope_test/04: Fail, OK # Negative language test.
+type_variable_scope_test/05: Fail, OK # Negative language test.
+
+
+type_vm_test: Fail, OK # VM specific test.
+disable_privacy_test: Fail, OK # VM specific test.
+numbers_test: Fail, OK # (unintended?) VM specific test.
+
+
+div_by_zero_test: Fail, OK # Leg only has doubles.
+bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
+optimization_test: Fail, OK # Expects negative results of bit-operations.
+
+expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
+
+reg_exp3_test: Fail, OK # Expects exception from const constructor.
+
+
+list_test: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
+
+final_syntax_test/none: Fail, OK # Uses deprecated "StrConstant + StrConstant".
+
+[ $compiler == dart2js && $mode == release ]
+assign_top_method_negative_test: Crash
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

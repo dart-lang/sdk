@@ -138,19 +138,21 @@ class Interceptors {
 class SsaBuilderTask extends CompilerTask {
   final Interceptors interceptors;
   final Map<Node, ClosureData> closureDataCache;
+  final CodeEmitterTask emitter;
 
   String get name() => 'SSA builder';
 
-  SsaBuilderTask(Compiler compiler)
-    : interceptors = new Interceptors(compiler),
+  SsaBuilderTask(JavaScriptBackend backend)
+    : interceptors = new Interceptors(backend.compiler),
       closureDataCache = new HashMap<Node, ClosureData>(),
-      super(compiler);
+      emitter = backend.emitter,
+      super(backend.compiler);
 
   HGraph build(WorkItem work) {
     return measure(() {
       FunctionElement element = work.element;
       HInstruction.idCounter = 0;
-      SsaBuilder builder = new SsaBuilder(compiler, work);
+      SsaBuilder builder = new SsaBuilder(this, work);
       HGraph graph;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
@@ -299,8 +301,7 @@ class LocalsHandler {
   void startFunction(FunctionElement function,
                      FunctionExpression node) {
 
-    ClosureTranslator translator =
-        new ClosureTranslator(builder.compiler, builder.elements);
+    ClosureTranslator translator = new ClosureTranslator(builder);
     closureData = translator.translate(node);
 
     FunctionSignature params = function.computeSignature(builder.compiler);
@@ -677,8 +678,21 @@ interface JumpHandler default JumpHandlerImpl {
 // handler associated with it.
 class NullJumpHandler implements JumpHandler {
   const NullJumpHandler();
-  void generateBreak([LabelElement label]) { unreachable(); }
-  void generateContinue([LabelElement label]) { unreachable(); }
+
+  void generateBreak([LabelElement label]) {
+    // TODO(lrn): Need a compiler object and a location. Since label
+    // is optional, it may be null so we also need a position.
+    compiler.internalError('generateBreak should not be called',
+                           missingPosition);
+  }
+
+  void generateContinue([LabelElement label]) {
+    // TODO(lrn): Need a compiler object and a location. Since label
+    // is optional, it may be null so we also need a position.
+    compiler.internalError('generateContinue should not be called',
+                           missingPosition);
+  }
+
   void forEachBreak(Function ignored) { }
   void forEachContinue(Function ignored) { }
   void close() { }
@@ -754,7 +768,7 @@ class JumpHandlerImpl implements JumpHandler {
 }
 
 class SsaBuilder implements Visitor {
-  final Compiler compiler;
+  final SsaBuilderTask builder;
   TreeElements elements;
   final Interceptors interceptors;
   final WorkItem work;
@@ -777,11 +791,13 @@ class SsaBuilder implements Visitor {
   HBasicBlock lastOpenedBlock;
 
   LibraryElement get currentLibrary() => work.element.getLibrary();
+  Compiler get compiler() => builder.compiler;
+  CodeEmitterTask get emitter() => builder.emitter;
 
-  SsaBuilder(Compiler compiler, WorkItem work)
-    : this.compiler = compiler,
+  SsaBuilder(SsaBuilderTask builder, WorkItem work)
+    : this.builder = builder,
       this.work = work,
-      interceptors = compiler.builder.interceptors,
+      interceptors = builder.interceptors,
       methodInterceptionEnabled = true,
       elements = work.resolutionTree,
       graph = new HGraph(),
@@ -1150,7 +1166,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitClassNode(ClassNode node) {
-    unreachable();
+    compiler.internalError('visitClassNode should not be called', node: node);
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -1460,7 +1476,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    ClosureData nestedClosureData = compiler.builder.closureDataCache[node];
+    ClosureData nestedClosureData = builder.closureDataCache[node];
     if (nestedClosureData === null) {
       // TODO(floitsch): we can only assume that the reason for not having a
       // closure data here is, because the function is inside an initializer.
@@ -1660,10 +1676,13 @@ class SsaBuilder implements Visitor {
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     HInvokeUnary result;
-    switch (op.source.stringValue) {
+    String value = op.source.stringValue;
+    switch (value) {
       case "-": result = new HNegate(target, operand); break;
       case "~": result = new HBitNot(target, operand); break;
-      default: unreachable();
+      default:
+        compiler.internalError('Unexpected unary operator: $value.', node: op);
+        break;
     }
     // See if we can constant-fold right away. This avoids rewrites later on.
     if (operand is HConstant) {
@@ -2248,7 +2267,7 @@ class SsaBuilder implements Visitor {
       var inputs = <HInstruction>[
           target,
           self,
-          graph.addConstantString(new DartString.literal(name)),
+          graph.addConstantString(new DartString.literal(name), node),
           pop()];
       push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
       return;
@@ -2538,20 +2557,20 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralString(LiteralString node) {
-    stack.add(graph.addConstantString(node.dartString));
+    stack.add(graph.addConstantString(node.dartString, node));
   }
 
   void visitStringJuxtaposition(StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
-      stack.add(graph.addConstantString(node.dartString));
+      stack.add(graph.addConstantString(node.dartString, node));
       return;
     }
     int offset = node.getBeginToken().charOffset;
     StringBuilderVisitor stringBuilder =
         new StringBuilderVisitor(this, offset);
     stringBuilder.visit(node);
-    stack.add(stringBuilder.result());
+    stack.add(stringBuilder.result(node));
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -2574,7 +2593,7 @@ class SsaBuilder implements Visitor {
 
   visitOperator(Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
-    unreachable();
+    compiler.internalError('visitOperator should not be called', node: node);
   }
 
   visitCascade(Cascade node) {
@@ -2705,12 +2724,13 @@ class SsaBuilder implements Visitor {
     StringBuilderVisitor stringBuilder =
         new StringBuilderVisitor(this, offset);
     stringBuilder.visit(node);
-    stack.add(stringBuilder.result());
+    stack.add(stringBuilder.result(node));
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
     // The parts are iterated in visitStringInterpolation.
-    unreachable();
+    compiler.internalError('visitStringInterpolation should not be called',
+                           node: node);
   }
 
   visitEmptyStatement(EmptyStatement node) {
@@ -2948,7 +2968,14 @@ class SsaBuilder implements Visitor {
 
 
   // Recursively build an if/else structure to match the cases.
-  buildSwitchCases(Link<Node> cases, HInstruction expression) {
+  buildSwitchCases(Link<Node> cases, HInstruction expression,
+                   [int encounteredCaseTypes = 0]) {
+    final int NO_TYPE = 0;
+    final int INT_TYPE = 1;
+    final int STRING_TYPE = 2;
+    final int CONFLICT_TYPE = 3;
+    int combine(int type1, int type2) => type1 | type2;
+
     SwitchCase node = cases.head;
     // Called for the statements on all but the last case block.
     // Ensures that a user expecting a fallthrough gets an error.
@@ -2995,7 +3022,40 @@ class SsaBuilder implements Visitor {
         HInstruction target = new HStatic(equalsHelper);
         add(target);
         CaseMatch match = remainingCases.head;
-        visit(match.expression);
+        // TODO(lrn): Move the constant resolution to the resolver, so
+        // we can report an error before reaching the backend.
+        Constant constant =
+            compiler.constantHandler.tryCompileNodeWithDefinitions(
+                match.expression, elements);
+        if (constant !== null) {
+          if (constant.isInt()) {
+            // Report the first mixed-string/int type error only.
+            if (encounteredCaseTypes == STRING_TYPE) {
+              compiler.reportWarning(
+                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
+            }
+            encounteredCaseTypes = combine(encounteredCaseTypes, INT_TYPE);
+          } else if (constant.isString()) {
+            if (encounteredCaseTypes == INT_TYPE) {
+              compiler.reportWarning(
+                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
+            }
+            encounteredCaseTypes = combine(encounteredCaseTypes, STRING_TYPE);
+          } else {
+            compiler.reportWarning(match,
+                                   MessageKind.INVALID_CASE_EXPRESSION);
+            encounteredCaseTypes = CONFLICT_TYPE;
+          }
+          stack.add(graph.addConstant(constant));
+        } else {
+          // TODO(lrn): Remove this else branch, and make the constant
+          // evaluation mandatory when we are ready to break existing code using
+          // non constant-int-or-string expressions.
+          compiler.reportWarning(match,
+              'case expressions not compile-time constant int or string.');
+          visit(match.expression);
+          encounteredCaseTypes = CONFLICT_TYPE;
+        }
         push(new HEquals(target, pop(), expression));
       }
 
@@ -3029,7 +3089,8 @@ class SsaBuilder implements Visitor {
       } else {
         handleIf(() { buildTests(labelsAndCases); },
                  () { visitStatementsAndAbort(); },
-                 () { buildSwitchCases(cases.tail, expression); });
+                 () { buildSwitchCases(cases.tail, expression,
+                                       encounteredCaseTypes); });
       }
     }
   }
@@ -3170,20 +3231,6 @@ class SsaBuilder implements Visitor {
     compiler.internalError('SsaBuilder.visitTypeVariable');
   }
 
-  generateUnimplemented(String reason, [bool isExpression = false]) {
-    DartString string = new DartString.literal(reason);
-    HInstruction message = graph.addConstantString(string);
-
-    // Normally, we would call [close] here. However, then we hit
-    // another unimplemented feature: aborting loop body. Simply
-    // calling [add] does not work as it asserts that the instruction
-    // isn't a control flow instruction. So we inline parts of [add].
-    current.addAfter(current.last, new HThrow(message));
-    if (isExpression) {
-      stack.add(graph.addConstantNull());
-    }
-  }
-
   /** HACK HACK HACK */
   void hackAroundPossiblyAbortingBody(Node statement, void body()) {
     visitCondition() {
@@ -3243,7 +3290,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   void visitExpression(Node node) {
-    flushLiterals();
+    flushLiterals(node);
     node.accept(builder);
     HInstruction asString = buildToString(node, builder.pop());
     prefix = buildConcat(prefix, asString);
@@ -3298,14 +3345,15 @@ class StringBuilderVisitor extends AbstractVisitor {
    * Combine the strings in [literalAccumulator] into the prefix instruction.
    * After this, the [literalAccumulator] is empty and [prefix] is non-null.
    */
-  void flushLiterals() {
+  void flushLiterals(Node node) {
     if (literalAccumulator.isEmpty()) {
       if (prefix === null) {
-        prefix = builder.graph.addConstantString(literalAccumulator);
+        prefix = builder.graph.addConstantString(literalAccumulator, node);
       }
       return;
     }
-    HInstruction string = builder.graph.addConstantString(literalAccumulator);
+    HInstruction string =
+        builder.graph.addConstantString(literalAccumulator, node);
     literalAccumulator = new DartString.empty();
     if (prefix !== null) {
       prefix = buildConcat(prefix, string);
@@ -3330,8 +3378,8 @@ class StringBuilderVisitor extends AbstractVisitor {
     return builder.pop();
   }
 
-  HInstruction result() {
-    flushLiterals();
+  HInstruction result(Node node) {
+    flushLiterals(node);
     return prefix;
   }
 }

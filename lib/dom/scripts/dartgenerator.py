@@ -93,7 +93,7 @@ class DartGenerator(object):
 
     if conversion_table is None:
       conversion_table = {}
-     
+
     # Rename interfaces:
     for old_name, new_name in conversion_table.items():
       if database.HasInterface(old_name):
@@ -106,7 +106,7 @@ class DartGenerator(object):
         else:
           new_interface = database.GetInterface(new_name)
           MergeNodes(new_interface, interface)
-        
+
         if rename_javascript_binding_names:
           interface.javascript_binding_name = new_name
           interface.doc_js_name = new_name
@@ -114,7 +114,7 @@ class DartGenerator(object):
               + interface.attributes):
             member.doc_js_interface_name = new_name
 
- 
+
     # Fix references:
     for interface in database.GetInterfaces():
       for idl_type in interface.all(idlnode.IDLType):
@@ -208,8 +208,11 @@ class DartGenerator(object):
 
   def Generate(self, database, output_dir,
                module_source_preference=[], source_filter=None,
-               super_database=None, common_prefix=None, super_map={},
-               html_map={}, lib_dir=None, systems=[]):
+               super_database=None, common_prefix=None,
+               webkit_renames={},
+               html_renames={},
+               lib_dir=None,
+               systems=[]):
     """Generates Dart and JS files for the loaded interfaces.
 
     Args:
@@ -227,7 +230,7 @@ class DartGenerator(object):
       lib_file_path -- filename for generated .lib file, None if not required.
       lib_template -- template file in this directory for generated lib file.
     """
-  
+
     self._emitters = multiemitter.MultiEmitter()
     self._database = database
     self._output_dir = output_dir
@@ -252,7 +255,7 @@ class DartGenerator(object):
     if 'native' in systems:
       native_system = NativeImplementationSystem(
           TemplateLoader(self._template_dir, ['dom/native', 'dom', '']),
-          self._database, self._emitters, self._auxiliary_dir,
+          self._database, html_renames, self._emitters, self._auxiliary_dir,
           self._output_dir)
 
       self._systems.append(native_system)
@@ -308,6 +311,8 @@ class DartGenerator(object):
     # TODO(sra): Use this list of exception names to generate information to
     # tell Frog which exceptions can be passed from JS to Dart code.
     exceptions = self._CollectExceptions(interfaces)
+
+    super_map = dict((v, k) for k, v in webkit_renames.iteritems())
 
     # Render all interfaces into Dart and save them in files.
     for interface in self._PreOrderInterfaces(interfaces):

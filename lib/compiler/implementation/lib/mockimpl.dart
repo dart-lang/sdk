@@ -183,12 +183,12 @@ class DateImplementation implements Date {
   final TimeZoneImplementation timeZone;
 
   factory DateImplementation(int years,
-                             int month,
-                             int day,
-                             int hours,
-                             int minutes,
-                             int seconds,
-                             int milliseconds) {
+                             [int month = 1,
+                              int day = 1,
+                              int hours = 0,
+                              int minutes = 0,
+                              int seconds = 0,
+                              int milliseconds = 0]) {
     return new DateImplementation.withTimeZone(
         years, month, day,
         hours, minutes, seconds, milliseconds,
@@ -229,13 +229,19 @@ class DateImplementation implements Date {
     //    - "-123450101 00:00:00 Z"  // In the year -12345.
     final RegExp re = const RegExp(
         @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)' // The day part.
-        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:.(\d{1,5}))?)?)? ?([zZ])?)?$');
+        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
     if (match !== null) {
       int parseIntOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
         if (matched === null || matched == "") return 0;
         return Math.parseInt(matched);
+      }
+
+      double parseDoubleOrZero(String matched) {
+        // TODO(floitsch): we should not need to test against the empty string.
+        if (matched === null || matched == "") return 0.0;
+        return Math.parseDouble(matched);
       }
 
       int years = Math.parseInt(match[1]);
@@ -245,26 +251,10 @@ class DateImplementation implements Date {
       int minutes = parseIntOrZero(match[5]);
       int seconds = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int milliseconds = parseIntOrZero(match[7]);
-      if (milliseconds != 0) {
-        if (match[7].length == 1) {
-          milliseconds *= 100;
-        } else if (match[7].length == 2) {
-          milliseconds *= 10;
-        } else if (match[7].length == 3) {
-          // Do nothing.
-        } else if (match[7].length == 4) {
-          addOneMillisecond = ((milliseconds % 10) >= 5);
-          milliseconds ~/= 10;
-        } else {
-          assert(match[7].length == 5);
-          addOneMillisecond = ((milliseconds %100) >= 50);
-          milliseconds ~/= 100;
-        }
-        if (addOneMillisecond && milliseconds < 999) {
-          addOneMillisecond = false;
-          milliseconds++;
-        }
+      int milliseconds = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
+      if (milliseconds == 1000) {
+        addOneMillisecond = true;
+        milliseconds = 999;
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
@@ -288,10 +278,17 @@ class DateImplementation implements Date {
     return (value == other.value) && (timeZone == other.timeZone);
   }
 
-  int compareTo(Date other) {
-    checkNull(other);
-    return value.compareTo(other.value);
-  }
+  bool operator <(Date other) => value < other.value;
+
+  bool operator <=(Date other) => value <= other.value;
+
+  bool operator >(Date other) => value > other.value;
+
+  bool operator >=(Date other) => value >= other.value;
+
+  int compareTo(Date other) => value.compareTo(other.value);
+
+  int hashCode() => value;
 
   Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone == null) {
@@ -341,7 +338,7 @@ class DateImplementation implements Date {
 
     String threeDigits(int n) {
       if (n >= 100) return "${n}";
-      if (n > 10) return "0${n}";
+      if (n >= 10) return "0${n}";
       return "00${n}";
     }
 

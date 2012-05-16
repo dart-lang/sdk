@@ -9,10 +9,10 @@ class Package implements Hashable {
   /**
    * Loads the package whose root directory is [packageDir].
    */
-  static Future<Package> load(String packageDir) {
+  static Future<Package> load(String packageDir, SourceRegistry sources) {
     final pubspecPath = join(packageDir, 'pubspec');
 
-    return _parsePubspec(pubspecPath).transform((dependencies) {
+    return _parsePubspec(pubspecPath, sources).transform((dependencies) {
       return new Package._(packageDir, dependencies);
     });
   }
@@ -57,7 +57,8 @@ class Package implements Hashable {
    * Parses the pubspec at the given path and returns the list of package
    * dependencies it exposes.
    */
-  static Future<List<PackageId>> _parsePubspec(String path) {
+  static Future<List<PackageId>> _parsePubspec(String path,
+      SourceRegistry sources) {
     final completer = new Completer<List<PackageId>>();
 
     // TODO(rnystrom): Handle the directory not existing.
@@ -88,13 +89,63 @@ class Package implements Hashable {
       }
 
       var dependencies = parsedPubspec['dependencies'];
-      if (dependencies.some((e) => e is! String)) {
+      if (dependencies is! Map ||
+          dependencies.getKeys().some((e) => e is! String)) {
         completer.completeException(
-            'The pubspec dependencies must be a list of package names.');
+            'The pubspec dependencies must be a map of package names.');
       }
 
-      var dependencyIds =
-        dependencies.map((name) => new PackageId(name, Source.defaultSource));
+      var dependencyIds = <PackageId>[];
+      dependencies.forEach((name, spec) {
+        var fullName, source;
+        // TODO(nweiz): parse the version once we have version handling
+        if (spec == null || spec is String) {
+          fullName = name;
+          source = sources.defaultSource;
+        } else if (spec is Map) {
+          spec.remove('version');
+
+          var sourceNames = spec.getKeys();
+          if (sourceNames.length > 1) {
+            completer.completeException(
+                'Dependency $name may not have multiple sources: '
+                '$sourceNames.');
+            return;
+          }
+
+          var sourceName = only(sourceNames);
+          if (sourceName is! String) {
+            completer.completeException(
+                'Source name $sourceName must be a string.');
+            return;
+          }
+          source = sources[sourceName];
+
+          // TODO(nweiz): At some point we want fullName to be able to be an
+          // arbitrary object that's parsed by the source.
+          fullName = spec[sourceName];
+          if (fullName is! String) {
+            completer.completeException(
+                'Source identifier $fullName must be a string.');
+            return;
+          }
+        } else {
+          completer.completeException(
+              'Dependency specification $spec must be a string or a mapping.');
+          return;
+        }
+
+        var id = new PackageId(fullName, source);
+        var nameFromSource = source.packageName(id);
+        if (nameFromSource != name) {
+          completer.completeException(
+              'Dependency name "$name" doesn\'t match name "$nameFromSource" '
+              'from source "${source.name}".');
+          return;
+        }
+
+        dependencyIds.add(id);
+      });
       completer.complete(dependencyIds);
     });
 

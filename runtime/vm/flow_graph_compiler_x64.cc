@@ -348,7 +348,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
                       kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addq(RSP, Immediate(8 * kWordSize));
+  __ Drop(8);
   __ popq(RAX);
 
   __ Bind(&is_assignable);
@@ -479,7 +479,7 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
   ExternalLabel target_label("InlineCache", label_address);
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall, cid, token_index, try_index);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ Drop(argument_count);
 }
 
 
@@ -497,7 +497,7 @@ void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
                try_index,
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ Drop(argument_count);
 }
 
 
@@ -527,7 +527,7 @@ void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
                comp->try_index(),
                &StubCode::CallClosureFunctionLabel(),
                PcDescriptors::kOther);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ Drop(argument_count);
   __ popq(CTX);
 }
 
@@ -613,47 +613,13 @@ void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitLoadLocal(LoadLocalComp* comp) {
-  if (comp->local().is_captured()) {
-    // The variable lives in the context.
-    intptr_t delta = comp->context_level() -
-                     comp->local().owner()->context_level();
-    ASSERT(delta >= 0);
-    Register base = CTX;
-    while (delta-- > 0) {
-      __ movq(RAX, FieldAddress(base, Context::parent_offset()));
-      base = RAX;
-    }
-    __ movq(RAX,
-            FieldAddress(base,
-                         Context::variable_offset(comp->local().index())));
-  } else {
-    // The variable lives in the current stack frame.
-    __ movq(RAX, Address(RBP, comp->local().index() * kWordSize));
-  }
+  __ movq(RAX, Address(RBP, comp->local().index() * kWordSize));
 }
 
 
 void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
   LoadValue(RAX, comp->value());
-  if (comp->local().is_captured()) {
-    // The variable lives in the context.
-    Register scratch = R10;
-    intptr_t delta = comp->context_level() -
-                     comp->local().owner()->context_level();
-    ASSERT(delta >= 0);
-    Register base = CTX;
-    while (delta-- > 0) {
-      __ movq(scratch, FieldAddress(base, Context::parent_offset()));
-      base = scratch;
-    }
-    __ StoreIntoObject(
-        base,
-        FieldAddress(base, Context::variable_offset(comp->local().index())),
-        RAX);
-  } else {
-    // The variable lives in the current stack frame.
-    __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
-  }
+  __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
 }
 
 
@@ -664,7 +630,8 @@ void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
   if (!comp->has_optional_parameters()) {
     __ leaq(RAX, Address(RBP, (1 + comp->argument_count()) * kWordSize));
   } else {
-    __ leaq(RAX, Address(RBP, -1 * kWordSize));
+    __ leaq(RAX,
+            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(comp->native_c_function())));
   __ movq(R10, Immediate(comp->argument_count()));
@@ -836,7 +803,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   GenerateCallRuntime(cid, token_index, try_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addq(RSP, Immediate(7 * kWordSize));
+  __ Drop(7);
   Label done;
   if (negate_result) {
     __ popq(RDX);
@@ -878,9 +845,7 @@ void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   GenerateCall(comp->token_index(), comp->try_index(), &label,
                PcDescriptors::kOther);
-  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
-    __ popq(RCX);  // Discard allocation argument
-  }
+  __ Drop(comp->arguments().length());  // Discard allocation argument.
 }
 
 
@@ -900,10 +865,9 @@ void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
                       comp->token_index(),
                       comp->try_index(),
                       kAllocateObjectWithBoundsCheckRuntimeEntry);
-  __ popq(RCX);  // Pop instantiator type arguments.
-  __ popq(RCX);  // Pop type arguments.
-  __ popq(RCX);  // Pop class.
-  __ popq(RCX);  // Pop source location.
+  // Pop instantiator type arguments, type arguments, class, and
+  // source location.
+  __ Drop(4);
   __ popq(RAX);  // Pop new instance.
 }
 
@@ -949,8 +913,15 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 
 
 void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
-  __ popq(RAX);
+  LoadValue(RAX, comp->value());
   __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));
+}
+
+
+void FlowGraphCompiler::VisitNativeStoreField(NativeStoreFieldComp* comp) {
+  LoadValue(RBX, comp->dest());
+  LoadValue(RAX, comp->value());
+  __ StoreIntoObject(RBX, FieldAddress(RBX, comp->offset_in_bytes()), RAX);
 }
 
 
@@ -1137,11 +1108,8 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
   // popping arguments has not been run.
   const intptr_t locals_space_size = StackSize() * kWordSize;
   ASSERT(locals_space_size >= 0);
-  if (locals_space_size == 0) {
-    __ movq(RSP, RBP);
-  } else {
-    __ leaq(RSP, Address(RBP, -locals_space_size));
-  }
+  intptr_t offset_size = -locals_space_size + kLocalsOffsetFromFP;
+  __ leaq(RSP, Address(RBP, offset_size));
 
   ASSERT(!comp->exception_var().is_captured());
   ASSERT(!comp->stacktrace_var().is_captured());
@@ -1176,6 +1144,11 @@ void FlowGraphCompiler::VisitBlocks() {
 }
 
 
+void FlowGraphCompiler::VisitGraphEntry(GraphEntryInstr* instr) {
+  // Nothing to do.
+}
+
+
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
   __ Bind(&block_info_[instr->postorder_number()]->label);
 }
@@ -1187,28 +1160,6 @@ void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
     exception_handlers_list_->AddHandler(instr->try_index(),
                                          assembler_->CodeSize());
   }
-}
-
-
-void FlowGraphCompiler::VisitPickTemp(PickTempInstr* instr) {
-  // Semantics is to copy a stack-allocated temporary to the top of stack.
-  // Destination index d is assumed the new top of stack after the
-  // operation, so d-1 is the current top of stack and so d-s-1 is the
-  // offset to source index s.
-  intptr_t offset = instr->temp_index() - instr->source() - 1;
-  ASSERT(offset >= 0);
-  __ pushq(Address(RSP, offset * kWordSize));
-}
-
-
-void FlowGraphCompiler::VisitTuckTemp(TuckTempInstr* instr) {
-  // Semantics is to assign to a stack-allocated temporary a copy of the top
-  // of stack.  Source index s is assumed the top of stack, s-d is the
-  // offset to destination index d.
-  intptr_t offset = instr->source() - instr->destination();
-  ASSERT(offset >= 0);
-  __ movq(RAX, Address(RSP, 0));
-  __ movq(Address(RSP, offset * kWordSize), RAX);
 }
 
 
@@ -1332,11 +1283,13 @@ void FlowGraphCompiler::CopyParameters() {
   LocalScope* scope = parsed_function_.node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
-  ASSERT(parsed_function_.first_parameter_index() == -1);
+  ASSERT(parsed_function_.first_parameter_index() ==
+         ParsedFunction::kFirstLocalSlotIndex);
   // Copy positional arguments.
   // Check that no fewer than num_fixed_params positional arguments are passed
   // in and that no more than num_params arguments are passed in.
-  // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+  // Passed argument i at fp[1 + argc - i]
+  // copied to fp[ParsedFunction::kFirstLocalSlotIndex - i].
   const int num_params = num_fixed_params + num_opt_params;
 
   // Total number of args is the first Smi in args descriptor array (R10).
@@ -1356,11 +1309,14 @@ void FlowGraphCompiler::CopyParameters() {
   __ subq(RBX, RCX);
   __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
   // Let RDI point to the last copied positional argument, i.e. to
-  // fp[-1 - (num_pos_args - 1)].
+  // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
   __ SmiUntag(RCX);
   __ movq(RAX, RCX);
   __ negq(RAX);
-  __ leaq(RDI, Address(RBP, RAX, TIMES_8, 0));
+  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
+  // -num_pos_args is in RAX.
+  // (ParsedFunction::kFirstLocalSlotIndex + 1) is in index.
+  __ leaq(RDI, Address(RBP, RAX, TIMES_8, (index * kWordSize)));
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   // We do not use the final allocation index of the variable here, i.e.
@@ -1432,11 +1388,12 @@ void FlowGraphCompiler::CopyParameters() {
             param_pos - num_fixed_params));
     __ LoadObject(RAX, value);
     __ Bind(&assign_optional_parameter);
-    // Assign RAX to fp[-1 - param_pos].
+    // Assign RAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
     // We do not use the final allocation index of the variable here, i.e.
     // scope->VariableAt(i)->index(), because captured variables still need
     // to be copied to the context that is not yet allocated.
-    const Address param_addr(RBP, (-1 - param_pos) * kWordSize);
+    const Address param_addr(
+        RBP, (ParsedFunction::kFirstLocalSlotIndex - param_pos) * kWordSize);
     __ movq(param_addr, RAX);
     __ Bind(&next_parameter);
   }
@@ -1450,6 +1407,12 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
 
   __ Bind(&wrong_num_arguments);
+  if (StackSize() != 0) {
+    // We need to unwind the space we reserved for locals and copied parmeters.
+    // The NoSuchMethodFunction stub does not expect to see that area on the
+    // stack.
+    __ addq(RSP, Immediate(StackSize() * kWordSize));
+  }
   if (function.IsClosureFunction()) {
     GenerateCallRuntime(AstNode::kNoId,
                         0,
@@ -1464,6 +1427,7 @@ void FlowGraphCompiler::CopyParameters() {
                           AstNode::kNoId,
                           kNumArgsChecked);
     __ LoadObject(RBX, ic_data);
+    // RBP - 8 : PC marker, allows easy identification of RawInstruction obj.
     // RBP : points to previous frame pointer.
     // RBP + 8 : points to return address.
     // RBP + 16 : address of last argument (arg n-1).
@@ -1597,7 +1561,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int parameter_count = function.num_fixed_parameters();
   const int num_copied_params = parsed_function_.copied_parameter_count();
   const int local_count = parsed_function_.stack_local_count();
-  __ EnterFrame(StackSize() * kWordSize);
+  AssemblerMacros::EnterDartFrame(assembler_, (StackSize() * kWordSize));
 
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.

@@ -11,6 +11,7 @@
 
 namespace dart {
 
+class BitVector;
 class JoinEntryInstr;
 class LocalScope;
 class LocalVariable;
@@ -58,10 +59,7 @@ class LocalVariable : public ZoneAllocated {
     return index_;
   }
 
-  // Assign an index to a local.  This function can be called more than once
-  // on the same on local (e.g., if we tried to compile in one mode, bailed
-  // out, and fell back to a different compilation mode).  In any case, it
-  // should not change the index once set.
+  // Assign an index to a local.
   void set_index(int index) {
     ASSERT(!HasIndex());
     ASSERT(index != kUnitializedIndex);
@@ -73,6 +71,10 @@ class LocalVariable : public ZoneAllocated {
   }
 
   bool Equals(const LocalVariable& other) const;
+
+  // Map the frame index to a bit-vector index.  Assumes the variable is
+  // allocated to the frame.
+  int BitIndexIn(BitVector* vector) const;
 
  private:
   static const int kUnitializedIndex = INT_MIN;

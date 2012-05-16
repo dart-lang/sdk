@@ -57,7 +57,7 @@ class ScannerTask extends CompilerTask {
         }
       } else if (tag.isSource()) {
         tagState = checkTag(TagState.SOURCE, tag);
-        Script script = compiler.readScript(resolved, tag);
+        Script script = compiler.readScript(resolved, argument);
         CompilationUnitElement unit =
             new CompilationUnitElement(script, library);
         compiler.withCurrentElement(unit, () => scan(unit));
@@ -80,7 +80,7 @@ class ScannerTask extends CompilerTask {
       if (resolved.toString() == "dart:core") {
         implicitlyImportCoreLibrary = false;
       }
-      importLibrary(library, loadLibrary(resolved, tag), tag);
+      importLibrary(library, loadLibrary(resolved, argument), tag);
     }
     if (implicitlyImportCoreLibrary) {
       importLibrary(library, compiler.coreLibrary, null);
@@ -91,22 +91,29 @@ class ScannerTask extends CompilerTask {
     Script script = compilationUnit.script;
     Token tokens;
     try {
-      tokens = new StringScanner(script.text).tokenize();
-    } catch (MalformedInputException ex) {
-      Token token;
-      var message;
-      if (ex.position is num) {
-        // TODO(ahe): Always use tokens in MalformedInputException.
-        token = new Token(EOF_INFO, ex.position);
-      } else {
-        token = ex.position;
+      try {
+        tokens = new StringScanner(script.text).tokenize();
+      } catch (MalformedInputException ex) {
+        Token token;
+        var message;
+        if (ex.position is num) {
+          // TODO(ahe): Always use tokens in MalformedInputException.
+          token = new Token(EOF_INFO, ex.position);
+        } else {
+          token = ex.position;
+        }
+        compiler.cancel(ex.message, token: token);
       }
-      compiler.cancel(ex.message, token: token);
+      compiler.dietParser.dietParse(compilationUnit, tokens);
+    } catch (CompilerCancelledException ex) {
+      throw;
+    } catch (var ex) {
+      compiler.unhandledExceptionOnElement(compilationUnit);
+      throw;
     }
-    compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 
-  LibraryElement loadLibrary(Uri uri, ScriptTag node) {
+  LibraryElement loadLibrary(Uri uri, Node node) {
     bool newLibrary = false;
     LibraryElement library =
       compiler.universe.libraries.putIfAbsent(uri.toString(), () {
@@ -127,7 +134,7 @@ class ScannerTask extends CompilerTask {
                      ScriptTag tag) {
     if (!imported.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
-        compiler.reportError(tag,
+        compiler.reportError(tag === null ? null : tag.argument,
                              'no #library tag found in ${imported.script.uri}');
       });
     }

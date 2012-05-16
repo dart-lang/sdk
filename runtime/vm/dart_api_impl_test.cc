@@ -131,23 +131,19 @@ TEST_CASE(Null) {
 }
 
 
-TEST_CASE(IsSame) {
-  bool same = false;
+TEST_CASE(IdentityEquals) {
   Dart_Handle five = Dart_NewString("5");
   Dart_Handle five_again = Dart_NewString("5");
   Dart_Handle seven = Dart_NewString("7");
 
   // Same objects.
-  EXPECT_VALID(Dart_IsSame(five, five, &same));
-  EXPECT(same);
+  EXPECT(Dart_IdentityEquals(five, five));
 
   // Equal objects.
-  EXPECT_VALID(Dart_IsSame(five, five_again, &same));
-  EXPECT(!same);
+  EXPECT(!Dart_IdentityEquals(five, five_again));
 
   // Different objects.
-  EXPECT_VALID(Dart_IsSame(five, seven, &same));
-  EXPECT(!same);
+  EXPECT(!Dart_IdentityEquals(five, seven));
 
   // Non-instance objects.
   {
@@ -156,11 +152,9 @@ TEST_CASE(IsSame) {
     Dart_Handle class1 = Api::NewHandle(isolate, Object::null_class());
     Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
 
-    EXPECT_VALID(Dart_IsSame(class1, class1, &same));
-    EXPECT(same);
+    EXPECT(Dart_IdentityEquals(class1, class1));
 
-    EXPECT_VALID(Dart_IsSame(class1, class2, &same));
-    EXPECT(!same);
+    EXPECT(!Dart_IdentityEquals(class1, class2));
   }
 }
 
@@ -1201,8 +1195,6 @@ TEST_CASE(WeakPersistentHandle) {
   Dart_Handle weak_old_ref = Dart_Null();
   EXPECT(Dart_IsNull(weak_old_ref));
 
-  bool is_same;
-
   {
     Dart_EnterScope();
 
@@ -1240,15 +1232,11 @@ TEST_CASE(WeakPersistentHandle) {
 
     EXPECT_VALID(weak_new_ref);
     EXPECT(!Dart_IsNull(weak_new_ref));
-    is_same = false;
-    EXPECT_VALID(Dart_IsSame(new_ref, weak_new_ref, &is_same));
-    EXPECT(is_same);
+    EXPECT(Dart_IdentityEquals(new_ref, weak_new_ref));
 
     EXPECT_VALID(weak_old_ref);
     EXPECT(!Dart_IsNull(weak_old_ref));
-    is_same = false;
-    EXPECT_VALID(Dart_IsSame(old_ref, weak_old_ref, &is_same));
-    EXPECT(is_same);
+    EXPECT(Dart_IdentityEquals(old_ref, weak_old_ref));
 
     // garbage collect old space
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
@@ -1261,15 +1249,11 @@ TEST_CASE(WeakPersistentHandle) {
 
     EXPECT_VALID(weak_new_ref);
     EXPECT(!Dart_IsNull(weak_new_ref));
-    is_same = false;
-    EXPECT_VALID(Dart_IsSame(new_ref, weak_new_ref, &is_same));
-    EXPECT(is_same);
+    EXPECT(Dart_IdentityEquals(new_ref, weak_new_ref));
 
     EXPECT_VALID(weak_old_ref);
     EXPECT(!Dart_IsNull(weak_old_ref));
-    is_same = false;
-    EXPECT_VALID(Dart_IsSame(old_ref, weak_old_ref, &is_same));
-    EXPECT(is_same);
+    EXPECT(Dart_IdentityEquals(old_ref, weak_old_ref));
 
     // delete local (strong) references
     Dart_ExitScope();
@@ -4043,17 +4027,13 @@ TEST_CASE(LoadSource) {
   result = Dart_LoadSource(lib, url, source);
   EXPECT_VALID(result);
   EXPECT(Dart_IsLibrary(result));
-  bool same = false;
-  EXPECT_VALID(Dart_IsSame(lib, result, &same));
-  EXPECT(same);
+  EXPECT(Dart_IdentityEquals(lib, result));
 
   // Duplicate calls are okay.
   result = Dart_LoadSource(lib, url, source);
   EXPECT_VALID(result);
   EXPECT(Dart_IsLibrary(result));
-  same = false;
-  EXPECT_VALID(Dart_IsSame(lib, result, &same));
-  EXPECT(same);
+  EXPECT(Dart_IdentityEquals(lib, result));
 
   // Language errors are detected.
   source = Dart_NewString(kBadSourceChars);

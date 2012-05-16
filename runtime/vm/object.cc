@@ -6180,6 +6180,29 @@ RawCode* Code::FinalizeStubCode(const char* name, Assembler* assembler) {
 }
 
 
+// Check if object matches find condition.
+bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) {
+  return RawInstructions::ContainsPC(obj, pc_);
+}
+
+
+RawCode* Code::LookupCode(uword pc) {
+  Isolate* isolate = Isolate::Current();
+  NoGCScope no_gc;
+  FindRawCodeVisitor visitor(pc);
+  RawInstructions* instr;
+  instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
+  if (instr != Instructions::null()) {
+    return instr->ptr()->code_;
+  }
+  instr = isolate->heap()->FindObjectInStubCodeSpace(&visitor);
+  if (instr != Instructions::null()) {
+    return instr->ptr()->code_;
+  }
+  return Code::null();
+}
+
+
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_index = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
@@ -9702,7 +9725,7 @@ void Stacktrace::SetupStacktrace(intptr_t index,
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   for (intptr_t i = 0; i < frame_pcs.length(); i++) {
-    code = StackFrame::LookupCode(isolate, frame_pcs[i]);
+    code = Code::LookupCode(frame_pcs[i]);
     ASSERT(!code.IsNull());
     function = code.function();
     function_array.SetAt((index + i), function);

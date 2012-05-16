@@ -510,7 +510,7 @@ class _WebSocketConnectionBase  {
     int headerSize = (mask) ? 6 : 2;
     if (dataLength > 65535) {
       headerSize += 8;
-    } else if (dataLength > 126) {
+    } else if (dataLength > 125) {
       headerSize += 2;
     }
     List<int> header = new List<int>(headerSize);
@@ -523,7 +523,7 @@ class _WebSocketConnectionBase  {
     if (dataLength > 65535) {
       header[index++] = 127;
       lengthBytes = 8;
-    } else if (dataLength > 126) {
+    } else if (dataLength > 125) {
       header[index++] = 126;
       lengthBytes = 2;
     }
@@ -586,8 +586,9 @@ class _WebSocketHandler implements WebSocketHandler {
     response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
     response.headers.add(HttpHeaders.UPGRADE, "websocket");
     String key = request.headers.value("Sec-WebSocket-Key");
-    String accept =
-        _Base64._encode(_Sha1._hash("$key$_webSocketGUID".charCodes()));
+    SHA1 sha1 = new SHA1();
+    sha1.update("$key$_webSocketGUID".charCodes());
+    String accept = _Base64._encode(sha1.digest());
     response.headers.add("Sec-WebSocket-Accept", accept);
     response.contentLength = 0;
 
@@ -729,8 +730,9 @@ class _WebSocketClientConnection
     if (accept == null) {
       return false;
     }
-    List<int> expectedAccept =
-        _Sha1._hash("$_nonce$_webSocketGUID".charCodes());
+    SHA1 sha1 = new SHA1();
+    sha1.update("$_nonce$_webSocketGUID".charCodes());
+    List<int> expectedAccept = sha1.digest();
     List<int> receivedAccept = _Base64._decode(accept);
     if (expectedAccept.length != receivedAccept.length) return false;
     for (int i = 0; i < expectedAccept.length; i++) {

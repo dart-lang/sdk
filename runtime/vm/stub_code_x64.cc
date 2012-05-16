@@ -5,6 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64)
 
+#include "vm/assembler.h"
+#include "vm/assembler_macros.h"
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/object_store.h"
@@ -22,6 +24,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(int, optimization_counter_threshold);
+
 
 // Input parameters:
 //   RSP : points to return address.
@@ -107,7 +110,7 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ pushq(R9);
   __ pushq(R10);
 
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 0) {
@@ -216,7 +219,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);
@@ -231,7 +234,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ Bind(&function_compiled);
   // Patch caller.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve function object.
@@ -253,7 +256,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // RBX: function object.
 // R10: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve target function.
   __ pushq(RBX);  // Target function.
@@ -398,17 +401,18 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   // Preserve values across call to resolving.
   // Stack at this point:
-  // TOS + 0: Saved RBP of previous frame. <== RBP
-  // TOS + 1: Dart code return address
-  // TOS + 2: Last argument of caller.
+  // TOS + 0: PC marker => RawInstruction object.
+  // TOS + 1: Saved RBP of previous frame. <== RBP
+  // TOS + 2: Dart code return address
+  // TOS + 3: Last argument of caller.
   // ....
   // Total number of args is the first Smi in args descriptor array (R10).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-  __ movq(RAX, Address(RSP, RAX, TIMES_4, kWordSize));  // Get receiver.
+  __ movq(RAX, Address(RBP, RAX, TIMES_4, kWordSize));  // Get receiver.
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RAX);  // Preserve receiver.
   __ pushq(RBX);  // Preserve ic-data.
@@ -509,15 +513,16 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ movq(R13, FieldAddress(R13, Array::data_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
-  PushArgumentsArray(assembler, (kWordSize * 5));
-  // Stack layout explaining "(kWordSize * 5)" offset.
+  PushArgumentsArray(assembler, (kWordSize * 6));
+  // Stack layout explaining "(kWordSize * 6)" offset.
   // TOS + 0: Argument array.
   // TOS + 1: Arguments descriptor array.
   // TOS + 2: Closure object.
   // TOS + 3: Place for result from closure function.
-  // TOS + 4: Saved RBP of previous frame. <== RBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
+  // TOS + 4: PC marker => RawInstruction object.
+  // TOS + 5: Saved RBP of previous frame. <== RBP
+  // TOS + 6: Dart code return address
+  // TOS + 7: Last argument of caller.
   // ....
 
   __ CallRuntime(kInvokeImplicitClosureFunctionRuntimeEntry);
@@ -546,8 +551,8 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ movq(R13, FieldAddress(R13, Array::data_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
-  // See stack layout below explaining "wordSize * 6" offset.
-  PushArgumentsArray(assembler, (kWordSize * 6));
+  // See stack layout below explaining "wordSize * 7" offset.
+  PushArgumentsArray(assembler, (kWordSize * 7));
 
   // Stack:
   // TOS + 0: Argument array.
@@ -555,9 +560,10 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // TOS + 2: IC-data array.
   // TOS + 3: Receiver.
   // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: Saved RBP of previous frame. <== RBP
-  // TOS + 6: Dart code return address
-  // TOS + 7: Last argument of caller.
+  // TOS + 5: PC marker => RawInstruction object.
+  // TOS + 6: Saved RBP of previous frame. <== RBP
+  // TOS + 7: Dart code return address
+  // TOS + 8: Last argument of caller.
   // ....
 
   __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
@@ -576,12 +582,13 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Untested("Deoptimize stub");
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   // RAX: deoptimization reason id.
   // Stack at this point:
-  // TOS + 0: Saved EBP of function frame that will be deoptimized. <== EBP
-  // TOS + 1: Deoptimization point (return address), will be patched.
-  // TOS + 2: top-of-stack at deoptimization point (all arguments on stack).
+  // TOS + 0: PC marker => RawInstruction object.
+  // TOS + 1: Saved EBP of function frame that will be deoptimized. <== EBP
+  // TOS + 2: Deoptimization point (return address), will be patched.
+  // TOS + 3: top-of-stack at deoptimization point (all arguments on stack).
   __ pushq(RAX);
   __ CallRuntime(kDeoptimizeRuntimeEntry);
   __ popq(RAX);
@@ -711,7 +718,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
   __ Bind(&slow_case);
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
@@ -768,7 +775,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve read-only function object argument.
@@ -799,23 +806,24 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushq(raw_null);  // Setup space on stack for result from error reporting.
   __ pushq(R13);  // Non-closure object.
     // Total number of args is the first Smi in args descriptor array (R10).
   __ movq(R13, FieldAddress(R10, Array::data_offset()));  // Load num_args.
   __ SmiUntag(R13);
-  // See stack layout below explaining "wordSize * 4" offset.
-  PushArgumentsArray(assembler, (kWordSize * 4));
+  // See stack layout below explaining "wordSize * 5" offset.
+  PushArgumentsArray(assembler, (kWordSize * 5));
 
   // Stack:
   // TOS + 0: Argument array.
   // TOS + 1: Non-closure object.
   // TOS + 2: Place for result from reporting the error.
-  // TOS + 3: Saved RBP of previous frame. <== RBP
-  // TOS + 4: Dart code return address
-  // TOS + 5: Last argument of caller.
+  // TOS + 3: PC marker => RawInstruction object.
+  // TOS + 4: Saved RBP of previous frame. <== RBP
+  // TOS + 5: Dart code return address
+  // TOS + 6: Last argument of caller.
   // ....
   __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
   __ Stop("runtime call throws an exception");
@@ -1057,7 +1065,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ Bind(&slow_case);
   }
   // Create a stub frame.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(raw_null);  // Setup space on stack for the return value.
   __ SmiTag(R10);
   __ pushq(R10);  // Push number of context variables.
@@ -1250,7 +1258,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movq(RDX, Address(RSP, kInstantiatorTypeArgumentsOffset));
   }
   // Create a stub frame.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
@@ -1409,7 +1417,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ movq(RAX, Address(RSP, kReceiverOffset));
   }
   // Create the stub frame.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(raw_null);  // Setup space on stack for the return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
@@ -1445,6 +1453,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 // Called for invoking noSuchMethod function from the entry code of a dart
 // function after an error in passed named arguments is detected.
 // Input parameters:
+//   RBP - 8 : PC marker => RawInstruction object.
 //   RBP : points to previous frame pointer.
 //   RBP + 8 : points to return address.
 //   RBP + 16 : address of last argument (arg n-1).
@@ -1468,14 +1477,16 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ SmiUntag(R13);
   __ movq(RAX, Address(RBP, R13, TIMES_8, kWordSize));  // Get receiver.
 
-  __ EnterFrame(0);
+  // Create a stub frame.
+  AssemblerMacros::EnterStubFrame(assembler);
+
   __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data array.
   __ pushq(R10);  // Arguments descriptor array.
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
-  // See stack layout below explaining "wordSize * 8" offset.
-  PushArgumentsArray(assembler, (kWordSize * 8));
+  // See stack layout below explaining "wordSize * 10" offset.
+  PushArgumentsArray(assembler, (kWordSize * 10));
 
   // Stack:
   // TOS + 0: Argument array.
@@ -1483,11 +1494,13 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // TOS + 2: Ic-data array.
   // TOS + 3: Receiver.
   // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: Saved RBP of previous frame. <== RBP
-  // TOS + 6: Dart callee (or stub) code return address
-  // TOS + 7: Saved RBP of dart caller frame.
-  // TOS + 8: Dart caller code return address
-  // TOS + 9: Last argument of caller.
+  // TOS + 5: PC marker => RawInstruction object.
+  // TOS + 6: Saved RBP of previous frame. <== RBP
+  // TOS + 7: Dart callee (or stub) code return address
+  // TOS + 8: PC marker => RawInstruction object of dart caller frame.
+  // TOS + 9: Saved RBP of dart caller frame.
+  // TOS + 10: Dart caller code return address
+  // TOS + 11: Last argument of caller.
   // ....
   __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
   // Remove arguments.
@@ -1524,7 +1537,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
         Immediate(FLAG_optimization_counter_threshold));
     Label not_yet_hot;
     __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
-    __ EnterFrame(0);
+    AssemblerMacros::EnterStubFrame(assembler);
     __ pushq(RBX);  // Preserve inline cache data object.
     __ pushq(R10);  // Preserve arguments array.
     __ pushq(RCX);  // Argument for runtime: function object.
@@ -1605,7 +1618,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments array.
   __ pushq(RBX);  // Preserve IC data array
   __ pushq(raw_null);  // Setup space on stack for result (target code object).
@@ -1687,7 +1700,7 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 //  R10: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);
   __ pushq(RBX);
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
@@ -1706,7 +1719,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(RAX);
   __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
   __ popq(RAX);
@@ -1722,7 +1735,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 //  R10: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(RBX);
   __ pushq(R10);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
@@ -1745,9 +1758,11 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype1TestCache Stub");
 }
 
+
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype2TestCache Stub");
 }
+
 
 void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype3TestCache Stub");

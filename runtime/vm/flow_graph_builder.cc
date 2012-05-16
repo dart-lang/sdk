@@ -5,9 +5,11 @@
 #include "vm/flow_graph_builder.h"
 
 #include "vm/ast_printer.h"
+#include "vm/bit_vector.h"
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
+#include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -30,11 +32,11 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    catch_entries_() {}
+    graph_entry_(NULL) { }
 
 
-void FlowGraphBuilder::AddCatchEntry(intptr_t try_index, Instruction* entry) {
-  catch_entries_.Add(entry);
+void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
+  graph_entry_->AddCatchEntry(entry);
 }
 
 
@@ -143,21 +145,65 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 }
 
 
+Computation* EffectGraphVisitor::BuildStoreLocal(
+    const LocalVariable& local, Value* value) {
+  if (local.is_captured()) {
+    intptr_t delta = owner()->context_level() -
+                     local.owner()->context_level();
+    ASSERT(delta >= 0);
+    BindInstr* context = new BindInstr(new CurrentContextComp());
+    AddInstruction(context);
+    Value* context_value = new UseVal(context);
+    while (delta-- > 0) {
+      BindInstr* load = new BindInstr(new NativeLoadFieldComp(
+          context_value, Context::parent_offset()));
+      AddInstruction(load);
+      context_value = new UseVal(load);
+    }
+    Computation* store = new NativeStoreFieldComp(
+        context_value, Context::variable_offset(local.index()), value);
+    return store;
+  } else {
+    return new StoreLocalComp(local, value, owner()->context_level());
+  }
+}
+
+
+Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
+  if (local.is_captured()) {
+    intptr_t delta = owner()->context_level() -
+                     local.owner()->context_level();
+    ASSERT(delta >= 0);
+    BindInstr* context = new BindInstr(new CurrentContextComp());
+    AddInstruction(context);
+    Value* context_value = new UseVal(context);
+    while (delta-- > 0) {
+      BindInstr* load = new BindInstr(new NativeLoadFieldComp(
+          context_value, Context::parent_offset()));
+      AddInstruction(load);
+      context_value = new UseVal(load);
+    }
+    Computation* store = new NativeLoadFieldComp(
+        context_value, Context::variable_offset(local.index()));
+    return store;
+  } else {
+    return new LoadLocalComp(local, owner()->context_level());
+  }
+}
+
+
 // Stores current context into the 'variable'
 void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
   BindInstr* context = new BindInstr(new CurrentContextComp());
   AddInstruction(context);
-  StoreLocalComp* store_context =
-      new StoreLocalComp(variable, new UseVal(context),
-                         owner()->context_level());
+  Computation* store_context = BuildStoreLocal(variable, new UseVal(context));
   AddInstruction(new DoInstr(store_context));
 }
 
 
 // Loads context saved in 'context_variable' into the current context.
 void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
-  BindInstr* load_saved_context =
-      new BindInstr(new LoadLocalComp(variable, owner()->context_level()));
+  BindInstr* load_saved_context = new BindInstr(BuildLoadLocal(variable));
   AddInstruction(load_saved_context);
   DoInstr* store_context =
       new DoInstr(new StoreContextComp(new UseVal(load_saved_context)));
@@ -406,20 +452,18 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                             new UseVal(constant_true)));
     for_right.AddInstruction(comp);
     for_right.AddInstruction(
-        new DoInstr(new StoreLocalComp(
+        new DoInstr(BuildStoreLocal(
             *owner()->parsed_function().expression_temp_var(),
-            new UseVal(comp),
-            owner()->context_level())));
+            new UseVal(comp))));
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index());
       BindInstr* constant_false = new BindInstr(new ConstantVal(bool_false));
       for_false.AddInstruction(constant_false);
       for_false.AddInstruction(
-          new DoInstr(new StoreLocalComp(
+          new DoInstr(BuildStoreLocal(
               *owner()->parsed_function().expression_temp_var(),
-              new UseVal(constant_false),
-              owner()->context_level())));
+              new UseVal(constant_false))));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
@@ -427,15 +471,13 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       BindInstr* constant_true = new BindInstr(new ConstantVal(bool_true));
       for_true.AddInstruction(constant_true);
       for_true.AddInstruction(
-          new DoInstr(new StoreLocalComp(
+          new DoInstr(BuildStoreLocal(
               *owner()->parsed_function().expression_temp_var(),
-              new UseVal(constant_true),
-              owner()->context_level())));
+              new UseVal(constant_true))));
       Join(for_test, for_true, for_right);
     }
     ReturnComputation(
-        new LoadLocalComp(*owner()->parsed_function().expression_temp_var(),
-                          owner()->context_level()));
+        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
     return;
   }
   EffectGraphVisitor::VisitBinaryOpNode(node);
@@ -770,25 +812,18 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   ValueGraphVisitor for_true(owner(), temp_index());
   node->true_expr()->Visit(&for_true);
   ASSERT(for_true.is_open());
-  for_true.AddInstruction(
-      new DoInstr(
-          new StoreLocalComp(*owner()->parsed_function().expression_temp_var(),
-                             for_true.value(),
-                             owner()->context_level())));
+  for_true.AddInstruction(new DoInstr(BuildStoreLocal(
+      *owner()->parsed_function().expression_temp_var(), for_true.value())));
 
   ValueGraphVisitor for_false(owner(), temp_index());
   node->false_expr()->Visit(&for_false);
   ASSERT(for_false.is_open());
-  for_false.AddInstruction(
-      new DoInstr(
-          new StoreLocalComp(*owner()->parsed_function().expression_temp_var(),
-                             for_false.value(),
-                             owner()->context_level())));
+  for_false.AddInstruction(new DoInstr(BuildStoreLocal(
+      *owner()->parsed_function().expression_temp_var(), for_false.value())));
 
   Join(for_test, for_true, for_false);
   ReturnComputation(
-      new LoadLocalComp(*owner()->parsed_function().expression_temp_var(),
-                        owner()->context_level()));
+      BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }
 
 
@@ -1506,34 +1541,57 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     args->Add(new UseVal(no_instantiator));
     return;
   }
-  // The type arguments are uninstantiated.
-  // Place holder to hold uninstantiated constructor type arguments.
-  BindInstr* placeholder =
-      new BindInstr(new ConstantVal(Object::ZoneHandle()));
-  AddInstruction(placeholder);
-  Value* instantiator =
-      BuildInstantiatorTypeArguments(node->token_index());
+  // The type arguments are uninstantiated. The generated pseudo code:
+  //   t1 = InstantiatorTypeArguments();
+  //   t2 = ExtractConstructorTypeArguments(t1);
+  //   t1 = ExtractConstructorInstantiator(t1, t2);
+  //   t_n   <- t2
+  //   t_n+1 <- t1
+  // Use expression_temp_var and node->allocated_object_var() locals to keep
+  // intermediate results around (t1 and t2 above).
+  ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
+  const LocalVariable& t1 = *owner()->parsed_function().expression_temp_var();
+  const LocalVariable& t2 = node->allocated_object_var();
+  Value* instantiator = BuildInstantiatorTypeArguments(node->token_index());
   ASSERT(instantiator->IsUse());
-  PickTempInstr* duplicate_instantiator =
-      new PickTempInstr(instantiator->AsUse()->definition()->temp_index());
-  AddInstruction(duplicate_instantiator);
+  Definition* stored_instantiator = new BindInstr(
+      BuildStoreLocal(t1, instantiator));
+  AddInstruction(stored_instantiator);
+  // t1: instantiator type arguments.
+
   BindInstr* extract_type_arguments = new BindInstr(
       new ExtractConstructorTypeArgumentsComp(
           node->token_index(),
           owner()->try_index(),
           node->type_arguments(),
-          new UseVal(duplicate_instantiator)));
+          new UseVal(stored_instantiator)));
   AddInstruction(extract_type_arguments);
-  AddInstruction(new TuckTempInstr(placeholder->temp_index(),
-                                   extract_type_arguments->temp_index()));
+
+  Instruction* stored_type_arguments = new DoInstr(
+      BuildStoreLocal(t2, new UseVal(extract_type_arguments)));
+  AddInstruction(stored_type_arguments);
+  // t2: extracted constructor type arguments.
+  Definition* load_instantiator = new BindInstr(BuildLoadLocal(t1));
+  AddInstruction(load_instantiator);
+  Definition* load_type_arguments = new BindInstr(BuildLoadLocal(t2));
+  AddInstruction(load_type_arguments);
+
   BindInstr* extract_instantiator =
       new BindInstr(new ExtractConstructorInstantiatorComp(
                         node,
-                        instantiator,
-                        new UseVal(extract_type_arguments)));
+                        new UseVal(load_instantiator),
+                        new UseVal(load_type_arguments)));
   AddInstruction(extract_instantiator);
-  args->Add(new UseVal(placeholder));
-  args->Add(new UseVal(extract_instantiator));
+  AddInstruction(new DoInstr(
+      BuildStoreLocal(t1, new UseVal(extract_instantiator))));
+  // t2: extracted constructor type arguments.
+  // t1: extracted constructor instantiator.
+  Definition* load_0 = new BindInstr(BuildLoadLocal(t2));
+  AddInstruction(load_0);
+  Definition* load_1 = new BindInstr(BuildLoadLocal(t1));
+  AddInstruction(load_1);
+  args->Add(new UseVal(load_0));
+  args->Add(new UseVal(load_1));
 }
 
 
@@ -1545,16 +1603,24 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
   // t_n contains the allocated and initialized object.
   //   t_n      <- AllocateObject(class)
-  //   t_n+1    <- Pick(t_n)
-  //   t_n+2    <- ctor-arg
-  //   t_n+3... <- constructor arguments start here
-  //   StaticCall(constructor, t_n+1, t_n+2, ...)
+  //   t_n      <- StoreLocal(temp, t_n);
+  //   t_n+1    <- ctor-arg
+  //   t_n+2... <- constructor arguments start here
+  //   StaticCall(constructor, t_n, t_n+1, ...)
+  //   tn       <- LoadLocal(temp)
 
   Definition* allocate = BuildObjectAllocation(node);
-  PickTempInstr* duplicate = new PickTempInstr(allocate->temp_index());
-  AddInstruction(duplicate);
-  BuildConstructorCall(node, new UseVal(duplicate));
-  ReturnValue(new UseVal(allocate));
+  Computation* store_allocated = BuildStoreLocal(
+      node->allocated_object_var(),
+      new UseVal(allocate));
+  Definition* allocated_value = new BindInstr(store_allocated);
+  AddInstruction(allocated_value);
+  BuildConstructorCall(node, new UseVal(allocated_value));
+  Computation* load_allocated = BuildLoadLocal(
+      node->allocated_object_var());
+  allocated_value = new BindInstr(load_allocated);
+  AddInstruction(allocated_value);
+  ReturnValue(new UseVal(allocated_value));
 }
 
 
@@ -1648,8 +1714,7 @@ void EffectGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 
 void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
   EffectGraphVisitor::VisitLoadLocalNode(node);
-  LoadLocalComp* load = new LoadLocalComp(node->local(),
-                                          owner()->context_level());
+  Computation* load = BuildLoadLocal(node->local());
   ReturnComputation(load);
 }
 
@@ -1667,8 +1732,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
                                        node->local().type(),
                                        node->local().name());
   }
-  StoreLocalComp* store =
-      new StoreLocalComp(node->local(), store_value, owner()->context_level());
+  Computation* store = BuildStoreLocal(node->local(), store_value);
   ReturnComputation(store);
 }
 
@@ -1812,10 +1876,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (MustSaveRestoreContext(node)) {
       BindInstr* current_context = new BindInstr(new CurrentContextComp());
       AddInstruction(current_context);
-      StoreLocalComp* store_local = new StoreLocalComp(
+      Computation* store_local = BuildStoreLocal(
           *owner()->parsed_function().saved_context_var(),
-          new UseVal(current_context),
-          0);
+          new UseVal(current_context));
       AddInstruction(new DoInstr(store_local));
       BindInstr* null_context =
           new BindInstr(new ConstantVal(Object::ZoneHandle()));
@@ -1836,8 +1899,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function().function();
       const int num_params = function.NumberOfParameters();
-      int param_frame_index =
-          (num_params == function.num_fixed_parameters()) ? 1 + num_params : -1;
+      int param_frame_index = (num_params == function.num_fixed_parameters()) ?
+          (1 + num_params) : ParsedFunction::kFirstLocalSlotIndex;
       for (int pos = 0; pos < num_params; param_frame_index--, pos++) {
         const LocalVariable& parameter = *scope->VariableAt(pos);
         ASSERT(parameter.owner() == scope);
@@ -1852,14 +1915,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           temp_local->set_index(param_frame_index);
 
           // Copy parameter from local frame to current context.
-          BindInstr* load =
-              new BindInstr(new LoadLocalComp(*temp_local,
-                                              owner()->context_level()));
+          BindInstr* load = new BindInstr(BuildLoadLocal(*temp_local));
           AddInstruction(load);
-          StoreLocalComp* store_local = new StoreLocalComp(
-              parameter,
-              new UseVal(load),
-              owner()->context_level());
+          Computation* store_local =
+              BuildStoreLocal(parameter, new UseVal(load));
           AddInstruction(new DoInstr(store_local));
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
@@ -1867,10 +1926,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           BindInstr* null_constant =
               new BindInstr(new ConstantVal(Object::ZoneHandle()));
           AddInstruction(null_constant);
-          StoreLocalComp* clear_local = new StoreLocalComp(
-              *temp_local,
-              new UseVal(null_constant),
-              owner()->context_level());
+          Computation* clear_local =
+              BuildStoreLocal(*temp_local, new UseVal(null_constant));
           AddInstruction(new DoInstr(clear_local));
         }
       }
@@ -1885,9 +1942,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       const LocalVariable& parameter = *scope->VariableAt(pos);
       ASSERT(parameter.owner() == scope);
       if (!CanSkipTypeCheck(NULL, parameter.type())) {
-        BindInstr* load =
-            new BindInstr(new LoadLocalComp(parameter,
-                                            owner()->context_level()));
+        BindInstr* load = new BindInstr(BuildLoadLocal(parameter));
         AddInstruction(load);
         BuildAssertAssignable(parameter.token_index(),
                               new UseVal(load),
@@ -1975,9 +2030,10 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     // code for this catch block.
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
-    for_catch_block.AddInstruction(new TargetEntryInstr(try_index));
+    TargetEntryInstr* catch_entry = new TargetEntryInstr(try_index);
+    for_catch_block.AddInstruction(catch_entry);
     catch_block->Visit(&for_catch_block);
-    owner()->AddCatchEntry(try_index, for_catch_block.entry());
+    owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     if ((node->end_catch_label() != NULL) &&
         (node->end_catch_label()->join_for_continue() != NULL)) {
@@ -2008,7 +2064,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
                            owner()->try_index(),
                            for_exception.value());
   } else {
-    ValueGraphVisitor for_stack_trace(owner(), temp_index() + 1);
+    ValueGraphVisitor for_stack_trace(owner(), temp_index());
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
     instr = new ReThrowInstr(node->token_index(),
@@ -2053,428 +2109,6 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-// Graph printing.
-class FlowGraphPrinter : public FlowGraphVisitor {
- public:
-  FlowGraphPrinter(const Function& function,
-                   const GrowableArray<BlockEntryInstr*>& block_order)
-      : FlowGraphVisitor(block_order), function_(function) { }
-
-  virtual ~FlowGraphPrinter() {}
-
-  // Print the instructions in a block terminated by newlines.  Add "goto N"
-  // to the end of the block if it ends with an unconditional jump to
-  // another block and that block is not next in reverse postorder.
-  void VisitBlocks();
-
-  // Visiting a computation prints it with no indentation or newline.
-#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp);
-
-  // Visiting an instruction prints it with a four space indent and no
-  // trailing newline.  Basic block entries are labeled with their block
-  // number.
-#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
-  virtual void Visit##ShortName(ShortName##Instr* instr);
-
-  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
-
-#undef DECLARE_VISIT_COMPUTATION
-#undef DECLARE_VISIT_INSTRUCTION
-
- private:
-  const Function& function_;
-
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphPrinter);
-};
-
-
-void FlowGraphPrinter::VisitBlocks() {
-  OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
-
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    // Print the block entry.
-    Instruction* current = block_order_[i]->Accept(this);
-    // And all the successors until an exit, branch, or a block entry.
-    while ((current != NULL) && !current->IsBlockEntry()) {
-      OS::Print("\n");
-      current = current->Accept(this);
-    }
-    BlockEntryInstr* successor =
-        (current == NULL) ? NULL : current->AsBlockEntry();
-    if (successor != NULL) {
-      // For readability label blocks with their reverse postorder index,
-      // not their postorder block number, so the first block is 0 (not
-      // n-1).
-      OS::Print(" goto %d", reverse_index(successor->postorder_number()));
-    }
-    OS::Print("\n");
-  }
-}
-
-
-void FlowGraphPrinter::VisitUse(UseVal* val) {
-  OS::Print("t%d", val->definition()->temp_index());
-}
-
-
-void FlowGraphPrinter::VisitConstant(ConstantVal* val) {
-  OS::Print("#%s", val->value().ToCString());
-}
-
-
-void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
-  OS::Print("AssertAssignable(");
-  comp->value()->Accept(this);
-  OS::Print(", %s, '%s'",
-            String::Handle(comp->dst_type().Name()).ToCString(),
-            comp->dst_name().ToCString());
-  if (comp->instantiator_type_arguments() != NULL) {
-    OS::Print(" (instantiator:");
-    comp->instantiator_type_arguments()->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitAssertBoolean(AssertBooleanComp* comp) {
-  OS::Print("AssertBoolean(");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitCurrentContext(CurrentContextComp* comp) {
-  OS::Print("CurrentContext");
-}
-
-
-void FlowGraphPrinter::VisitClosureCall(ClosureCallComp* comp) {
-  OS::Print("ClosureCall(");
-  comp->context()->Accept(this);
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    OS::Print(", ");
-    comp->ArgumentAt(i)->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitInstanceCall(InstanceCallComp* comp) {
-  OS::Print("InstanceCall(%s", comp->function_name().ToCString());
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    OS::Print(", ");
-    comp->ArgumentAt(i)->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStrictCompare(StrictCompareComp* comp) {
-  OS::Print("StrictCompare(%s, ", Token::Str(comp->kind()));
-  comp->left()->Accept(this);
-  OS::Print(", ");
-  comp->right()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitEqualityCompare(EqualityCompareComp* comp) {
-  comp->left()->Accept(this);
-  OS::Print(" == ");
-  comp->right()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitStaticCall(StaticCallComp* comp) {
-  OS::Print("StaticCall(%s",
-            String::Handle(comp->function().name()).ToCString());
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    OS::Print(", ");
-    comp->ArgumentAt(i)->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitLoadLocal(LoadLocalComp* comp) {
-  OS::Print("LoadLocal(%s lvl:%d)",
-      comp->local().name().ToCString(), comp->context_level());
-}
-
-
-void FlowGraphPrinter::VisitStoreLocal(StoreLocalComp* comp) {
-  OS::Print("StoreLocal(%s, ", comp->local().name().ToCString());
-  comp->value()->Accept(this);
-  OS::Print(", lvl: %d)", comp->context_level());
-}
-
-
-void FlowGraphPrinter::VisitNativeCall(NativeCallComp* comp) {
-  OS::Print("NativeCall(%s)", comp->native_name().ToCString());
-}
-
-
-void FlowGraphPrinter::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
-  OS::Print("LoadInstanceField(%s, ",
-      String::Handle(comp->field().name()).ToCString());
-  comp->instance()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
-  OS::Print("StoreInstanceField(%s, ",
-            String::Handle(comp->field().name()).ToCString());
-  comp->instance()->Accept(this);
-  OS::Print(", ");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitLoadStaticField(LoadStaticFieldComp* comp) {
-  OS::Print("LoadStaticField(%s)",
-            String::Handle(comp->field().name()).ToCString());
-}
-
-
-void FlowGraphPrinter::VisitStoreStaticField(StoreStaticFieldComp* comp) {
-  OS::Print("StoreStaticField(%s, ",
-            String::Handle(comp->field().name()).ToCString());
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStoreIndexed(StoreIndexedComp* comp) {
-  OS::Print("StoreIndexed(");
-  comp->array()->Accept(this);
-  OS::Print(", ");
-  comp->index()->Accept(this);
-  OS::Print(", ");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitInstanceSetter(InstanceSetterComp* comp) {
-  OS::Print("InstanceSetter(");
-  comp->receiver()->Accept(this);
-  OS::Print(", ");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStaticSetter(StaticSetterComp* comp) {
-  OS::Print("StaticSetter(");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitBooleanNegate(BooleanNegateComp* comp) {
-  OS::Print("! ");
-  comp->value()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
-  comp->value()->Accept(this);
-  OS::Print(" %s %s",
-            comp->negate_result() ? "ISNOT" : "IS",
-            String::Handle(comp->type().Name()).ToCString());
-  if (comp->type_arguments() != NULL) {
-    OS::Print(" (type-arg:");
-    comp->type_arguments()->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitAllocateObject(AllocateObjectComp* comp) {
-  OS::Print("AllocateObject(%s",
-            Class::Handle(comp->constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
-    OS::Print(", ");
-    comp->arguments()[i]->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitAllocateObjectWithBoundsCheck(
-    AllocateObjectWithBoundsCheckComp* comp) {
-  OS::Print("AllocateObjectWithBoundsCheck(%s",
-            Class::Handle(comp->constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
-    OS::Print(", ");
-    comp->arguments()[i]->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
-  OS::Print("CreateArray(");
-  for (int i = 0; i < comp->ElementCount(); ++i) {
-    if (i != 0) OS::Print(", ");
-    comp->ElementAt(i)->Accept(this);
-  }
-  if (comp->ElementCount() > 0) OS::Print(", ");
-  comp->element_type()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
-  OS::Print("CreateClosure(%s", comp->function().ToCString());
-  if (comp->type_arguments() != NULL) {
-    OS::Print(", ");
-    comp->type_arguments()->Accept(this);
-  }
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitNativeLoadField(NativeLoadFieldComp* comp) {
-  OS::Print("NativeLoadField(");
-  comp->value()->Accept(this);
-  OS::Print(", %d)", comp->offset_in_bytes());
-}
-
-
-void FlowGraphPrinter::VisitInstantiateTypeArguments(
-    InstantiateTypeArgumentsComp* comp) {
-  const String& type_args = String::Handle(comp->type_arguments().Name());
-  OS::Print("InstantiateTypeArguments(%s, ", type_args.ToCString());
-  comp->instantiator()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitExtractConstructorTypeArguments(
-    ExtractConstructorTypeArgumentsComp* comp) {
-  const String& type_args = String::Handle(comp->type_arguments().Name());
-  OS::Print("ExtractConstructorTypeArguments(%s, ", type_args.ToCString());
-  comp->instantiator()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitExtractConstructorInstantiator(
-    ExtractConstructorInstantiatorComp* comp) {
-  OS::Print("ExtractConstructorInstantiator(");
-  comp->instantiator()->Accept(this);
-  OS::Print(", ");
-  comp->discard_value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitAllocateContext(AllocateContextComp* comp) {
-  OS::Print("AllocateContext(%d)", comp->num_context_variables());
-}
-
-
-void FlowGraphPrinter::VisitChainContext(ChainContextComp* comp) {
-  OS::Print("ChainContext(");
-  comp->context_value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitCloneContext(CloneContextComp* comp) {
-  OS::Print("CloneContext(");
-  comp->context_value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitCatchEntry(CatchEntryComp* comp) {
-  OS::Print("CatchEntry(%s, %s)",
-            comp->exception_var().name().ToCString(),
-            comp->stacktrace_var().name().ToCString());
-}
-
-
-void FlowGraphPrinter::VisitStoreContext(StoreContextComp* comp) {
-  OS::Print("StoreContext(");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
-  OS::Print("%2d: [join]", reverse_index(instr->postorder_number()));
-}
-
-
-void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
-  OS::Print("%2d: [target", reverse_index(instr->postorder_number()));
-  if (instr->HasTryIndex()) {
-    OS::Print(" catch %d]", instr->try_index());
-  } else {
-    OS::Print("]");
-  }
-}
-
-
-void FlowGraphPrinter::VisitDo(DoInstr* instr) {
-  OS::Print("    ");
-  instr->computation()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitBind(BindInstr* instr) {
-  OS::Print("    t%d <- ", instr->temp_index());
-  instr->computation()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitPickTemp(PickTempInstr* instr) {
-  OS::Print("    t%d <- Pick(t%d)", instr->temp_index(), instr->source());
-}
-
-
-void FlowGraphPrinter::VisitTuckTemp(TuckTempInstr* instr) {
-  OS::Print("    t%d := t%d", instr->destination(), instr->source());
-}
-
-
-void FlowGraphPrinter::VisitReturn(ReturnInstr* instr) {
-  OS::Print("    return ");
-  instr->value()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitThrow(ThrowInstr* instr) {
-  OS::Print("Throw(");
-  instr->exception()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitReThrow(ReThrowInstr* instr) {
-  OS::Print("ReThrow(");
-  instr->exception()->Accept(this);
-  OS::Print(", ");
-  instr->stack_trace()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
-  OS::Print("    if ");
-  instr->value()->Accept(this);
-  OS::Print(" goto(%d, %d)",
-            reverse_index(instr->true_successor()->postorder_number()),
-            reverse_index(instr->false_successor()->postorder_number()));
-}
-
-
 void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
@@ -2485,32 +2119,29 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   const intptr_t prev_cid = isolate->computation_id();
   isolate->set_computation_id(0);
   const Function& function = parsed_function().function();
+  TargetEntryInstr* normal_entry = new TargetEntryInstr();
+  graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
-  for_effect.AddInstruction(new TargetEntryInstr());
+  for_effect.AddInstruction(normal_entry);
   parsed_function().node_sequence()->Visit(&for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
   GrowableArray<intptr_t> parent;
-  for (intptr_t i = 0; i < catch_entries_.length(); i++) {
-    Instruction* entry = catch_entries_[i];
-    entry->DiscoverBlocks(NULL,  // Entry block predecessor.
-                          &preorder_block_entries_,
-                          &postorder_block_entries_,
-                          &parent);
-    if (for_optimized) {
-      ComputeDominators(&preorder_block_entries_, &parent);
-    }
-  }
-  if (for_effect.entry() != NULL) {
-    // Perform a depth-first traversal of the graph to build preorder and
-    // postorder block orders.
-    for_effect.entry()->DiscoverBlocks(NULL,  // Entry block predecessor.
-                                       &preorder_block_entries_,
-                                       &postorder_block_entries_,
-                                       &parent);
-    if (for_optimized) {
-      ComputeDominators(&preorder_block_entries_, &parent);
-    }
+  GrowableArray<BitVector*> assigned_vars;
+  intptr_t variable_count = parsed_function_.function().num_fixed_parameters() +
+      parsed_function_.copied_parameter_count() +
+      parsed_function_.stack_local_count();
+  // Perform a depth-first traversal of the graph to build preorder and
+  // postorder block orders.
+  graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
+                               &preorder_block_entries_,
+                               &postorder_block_entries_,
+                               &parent,
+                               &assigned_vars,
+                               variable_count);
+  if (for_optimized) {
+    GrowableArray<BitVector*> dominance_frontier;
+    ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
   }
   isolate->set_computation_id(prev_cid);
   if (FLAG_print_flow_graph) {
@@ -2525,9 +2156,25 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
 }
 
 
+// Compute immediate dominators and the dominance frontier for each basic
+// block.  As a side effect of the algorithm, sets the immediate dominator
+// of each basic block.
+//
+// preorder: an input list of basic block entries in preorder.  The
+//     algorithm relies on the block ordering.
+//
+// parent: an input parameter encoding a depth-first spanning tree of
+//     the control flow graph.  The array maps the preorder block
+//     number of a block to the preorder block number of its spanning
+//     tree parent.
+//
+// dominance_frontier: an output parameter encoding the dominance frontier.
+//     The array maps the preorder block number of a block to the set of
+//     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraphBuilder::ComputeDominators(
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<intptr_t>* parent) {
+    GrowableArray<intptr_t>* parent,
+    GrowableArray<BitVector*>* dominance_frontier) {
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
   // that eliminates a pass by using nearest-common ancestor (NCA) to
@@ -2552,11 +2199,13 @@ void FlowGraphBuilder::ComputeDominators(
   // compression in place by mutating the parent array.  Each block has a
   // label, which is the minimum block number on the compressed path.
 
-  // Initialize idom, semi, and label.
+  // Initialize idom, semi, and label used by SEMI-NCA.  Initialize the
+  // dominance frontier output array.
   for (intptr_t i = 0; i < size; ++i) {
     idom.Add((*parent)[i]);
     semi.Add(i);
     label.Add(i);
+    dominance_frontier->Add(new BitVector(size));
   }
 
   // Loop over the blocks in reverse preorder (not including the graph
@@ -2564,7 +2213,7 @@ void FlowGraphBuilder::ComputeDominators(
   for (intptr_t block_index = size - 1; block_index >= 1; --block_index) {
     // Loop over the predecessors.
     BlockEntryInstr* block = (*preorder)[block_index];
-    for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
+    for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       ASSERT(pred != NULL);
 
@@ -2586,7 +2235,7 @@ void FlowGraphBuilder::ComputeDominators(
   }
 
   // 2. Compute the immediate dominators as the nearest common ancestor of
-  // spanning tree parent and semidominator, for all nodes except the entry.
+  // spanning tree parent and semidominator, for all blocks except the entry.
   for (intptr_t block_index = 1; block_index < size; ++block_index) {
     intptr_t dom_index = idom[block_index];
     while (dom_index > semi[block_index]) {
@@ -2594,6 +2243,24 @@ void FlowGraphBuilder::ComputeDominators(
     }
     idom[block_index] = dom_index;
     (*preorder)[block_index]->set_dominator((*preorder)[dom_index]);
+  }
+
+  // 3. Now compute the dominance frontier for all blocks.  This is
+  // algorithm in "A Simple, Fast Dominance Algorithm" (Figure 5), which is
+  // attributed to a paper by Ferrante et al.  There is no bookkeeping
+  // required to avoid adding a block twice to the same block's dominance
+  // frontier because we use a set to represent the dominance frontier.
+  for (intptr_t block_index = 0; block_index < size; ++block_index) {
+    BlockEntryInstr* block = (*preorder)[block_index];
+    intptr_t count = block->PredecessorCount();
+    if (count <= 1) continue;
+    for (intptr_t i = 0; i < count; ++i) {
+      BlockEntryInstr* runner = block->PredecessorAt(i);
+      while (runner != block->dominator()) {
+        (*dominance_frontier)[runner->preorder_number()]->Add(block_index);
+        runner = runner->dominator();
+      }
+    }
   }
 }
 
