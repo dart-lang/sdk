@@ -40,7 +40,7 @@ class FlowGraphBuilder: public ValueObject {
   void set_try_index(intptr_t value) { try_index_ = value; }
   intptr_t try_index() const { return try_index_; }
 
-  void AddCatchEntry(intptr_t try_index, Instruction* entry);
+  void AddCatchEntry(TargetEntryInstr* entry);
 
  private:
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
@@ -56,7 +56,7 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t context_level_;
   intptr_t last_used_try_index_;
   intptr_t try_index_;
-  GrowableArray<Instruction*> catch_entries_;
+  GraphEntryInstr* graph_entry_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };

@@ -336,6 +336,11 @@ void FlowGraphPrinter::VisitStoreContext(StoreContextComp* comp) {
 }
 
 
+void FlowGraphPrinter::VisitGraphEntry(GraphEntryInstr* instr) {
+  OS::Print("%2d: [graph]", reverse_index(instr->postorder_number()));
+}
+
+
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
   OS::Print("%2d: [join]", reverse_index(instr->postorder_number()));
 }
@@ -370,14 +375,13 @@ void FlowGraphPrinter::VisitReturn(ReturnInstr* instr) {
 
 
 void FlowGraphPrinter::VisitThrow(ThrowInstr* instr) {
-  OS::Print("Throw(");
+  OS::Print("    throw ");
   instr->exception()->Accept(this);
-  OS::Print(")");
 }
 
 
 void FlowGraphPrinter::VisitReThrow(ReThrowInstr* instr) {
-  OS::Print("ReThrow(");
+  OS::Print("    rethrow (");
   instr->exception()->Accept(this);
   OS::Print(", ");
   instr->stack_trace()->Accept(this);
@@ -388,7 +392,7 @@ void FlowGraphPrinter::VisitReThrow(ReThrowInstr* instr) {
 void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
   OS::Print("    if ");
   instr->value()->Accept(this);
-  OS::Print(" goto(%d, %d)",
+  OS::Print(" goto (%d, %d)",
             reverse_index(instr->true_successor()->postorder_number()),
             reverse_index(instr->false_successor()->postorder_number()));
 }

@@ -1148,6 +1148,7 @@ class CatchEntryComp : public TemplateComputation<0> {
 // type name.  The concrete instruction classes are the name with Instr
 // concatenated.
 #define FOR_EACH_INSTRUCTION(M)                                                \
+  M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
   M(Do)                                                                        \
@@ -1237,10 +1238,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 };
 
 
-// Basic block entries are administrative nodes.  Joins are the only nodes
-// with multiple predecessors.  Targets are the other basic block entries.
-// The types enforce edge-split form---joins are forbidden as the successors
-// of branches.
+// Basic block entries are administrative nodes.  There is a distinguished
+// graph entry with no predecessor.  Joins are the only nodes with multiple
+// predecessors.  Targets are all other basic block entries.  The types
+// enforce edge-split form---joins are forbidden as the successors of
+// branches.
 class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
@@ -1274,6 +1276,38 @@ class BlockEntryInstr : public Instruction {
   Instruction* last_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
+};
+
+
+class GraphEntryInstr : public BlockEntryInstr {
+ public:
+  explicit GraphEntryInstr(TargetEntryInstr* normal_entry)
+      : BlockEntryInstr(), normal_entry_(normal_entry), catch_entries_() { }
+
+  DECLARE_INSTRUCTION(GraphEntry)
+
+  virtual intptr_t PredecessorCount() const { return 0; }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    UNREACHABLE();
+    return NULL;
+  }
+
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent);
+
+  void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
+
+ private:
+  TargetEntryInstr* normal_entry_;
+  ZoneGrowableArray<TargetEntryInstr*> catch_entries_;
+
+  DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
 
 

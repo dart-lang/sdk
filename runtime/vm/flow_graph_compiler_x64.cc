@@ -1144,6 +1144,11 @@ void FlowGraphCompiler::VisitBlocks() {
 }
 
 
+void FlowGraphCompiler::VisitGraphEntry(GraphEntryInstr* instr) {
+  // Nothing to do.
+}
+
+
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
   __ Bind(&block_info_[instr->postorder_number()]->label);
 }

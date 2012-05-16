@@ -123,6 +123,11 @@ intptr_t DoInstr::InputCount() const {
 }
 
 
+intptr_t GraphEntryInstr::InputCount() const {
+  return 0;
+}
+
+
 intptr_t TargetEntryInstr::InputCount() const {
   return 0;
 }
@@ -134,13 +139,44 @@ intptr_t JoinEntryInstr::InputCount() const {
 
 
 // ==== Postorder graph traversal.
+void GraphEntryInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<intptr_t>* parent) {
+  // We only visit this block once, first of all blocks.
+  ASSERT(preorder_number() == -1);
+  ASSERT(current_block == NULL);
+  ASSERT(preorder->is_empty());
+  ASSERT(postorder->is_empty());
+  ASSERT(parent->is_empty());
+
+  // This node has no parent, indicated by -1.  The preorder number is 0.
+  parent->Add(-1);
+  set_preorder_number(0);
+  preorder->Add(this);
+
+  // Iteratively traverse all successors.  In the unoptimized code, we will
+  // enter the function at the first successor in reverse postorder, so we
+  // must visit the normal entry last.
+  for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
+    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder, parent);
+  }
+  normal_entry_->DiscoverBlocks(this, preorder, postorder, parent);
+
+  // Assign postorder number.
+  set_postorder_number(postorder->length());
+  postorder->Add(this);
+}
+
+
 void JoinEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent) {
-  // The global graph entry is a TargetEntryInstr, so we can assume
-  // current_block is non-null and preorder array is non-empty.
+  // We have already visited the graph entry, so we can assume current_block
+  // is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
   ASSERT(!preorder->is_empty());
 

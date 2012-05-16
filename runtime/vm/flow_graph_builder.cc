@@ -31,11 +31,11 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    catch_entries_() {}
+    graph_entry_(NULL) {}
 
 
-void FlowGraphBuilder::AddCatchEntry(intptr_t try_index, Instruction* entry) {
-  catch_entries_.Add(entry);
+void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
+  graph_entry_->AddCatchEntry(entry);
 }
 
 
@@ -2029,9 +2029,10 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     // code for this catch block.
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
-    for_catch_block.AddInstruction(new TargetEntryInstr(try_index));
+    TargetEntryInstr* catch_entry = new TargetEntryInstr(try_index);
+    for_catch_block.AddInstruction(catch_entry);
     catch_block->Visit(&for_catch_block);
-    owner()->AddCatchEntry(try_index, for_catch_block.entry());
+    owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     if ((node->end_catch_label() != NULL) &&
         (node->end_catch_label()->join_for_continue() != NULL)) {
@@ -2117,32 +2118,22 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   const intptr_t prev_cid = isolate->computation_id();
   isolate->set_computation_id(0);
   const Function& function = parsed_function().function();
+  TargetEntryInstr* normal_entry = new TargetEntryInstr();
+  graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
-  for_effect.AddInstruction(new TargetEntryInstr());
+  for_effect.AddInstruction(normal_entry);
   parsed_function().node_sequence()->Visit(&for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
   GrowableArray<intptr_t> parent;
-  for (intptr_t i = 0; i < catch_entries_.length(); i++) {
-    Instruction* entry = catch_entries_[i];
-    entry->DiscoverBlocks(NULL,  // Entry block predecessor.
-                          &preorder_block_entries_,
-                          &postorder_block_entries_,
-                          &parent);
-    if (for_optimized) {
-      ComputeDominators(&preorder_block_entries_, &parent);
-    }
-  }
-  if (for_effect.entry() != NULL) {
-    // Perform a depth-first traversal of the graph to build preorder and
-    // postorder block orders.
-    for_effect.entry()->DiscoverBlocks(NULL,  // Entry block predecessor.
-                                       &preorder_block_entries_,
-                                       &postorder_block_entries_,
-                                       &parent);
-    if (for_optimized) {
-      ComputeDominators(&preorder_block_entries_, &parent);
-    }
+  // Perform a depth-first traversal of the graph to build preorder and
+  // postorder block orders.
+  graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
+                               &preorder_block_entries_,
+                               &postorder_block_entries_,
+                               &parent);
+  if (for_optimized) {
+    ComputeDominators(&preorder_block_entries_, &parent);
   }
   isolate->set_computation_id(prev_cid);
   if (FLAG_print_flow_graph) {
