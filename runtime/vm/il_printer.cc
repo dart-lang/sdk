@@ -297,8 +297,6 @@ void FlowGraphPrinter::VisitExtractConstructorInstantiator(
     ExtractConstructorInstantiatorComp* comp) {
   OS::Print("ExtractConstructorInstantiator(");
   comp->instantiator()->Accept(this);
-  OS::Print(", ");
-  comp->discard_value()->Accept(this);
   OS::Print(")");
 }
 

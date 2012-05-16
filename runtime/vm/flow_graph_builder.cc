@@ -1544,7 +1544,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   // The type arguments are uninstantiated. The generated pseudo code:
   //   t1 = InstantiatorTypeArguments();
   //   t2 = ExtractConstructorTypeArguments(t1);
-  //   t1 = ExtractConstructorInstantiator(t1, t2);
+  //   t1 = ExtractConstructorInstantiator(t1);
   //   t_n   <- t2
   //   t_n+1 <- t1
   // Use expression_temp_var and node->allocated_object_var() locals to keep
@@ -1573,14 +1573,11 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   // t2: extracted constructor type arguments.
   Definition* load_instantiator = new BindInstr(BuildLoadLocal(t1));
   AddInstruction(load_instantiator);
-  Definition* load_type_arguments = new BindInstr(BuildLoadLocal(t2));
-  AddInstruction(load_type_arguments);
 
   BindInstr* extract_instantiator =
       new BindInstr(new ExtractConstructorInstantiatorComp(
                         node,
-                        new UseVal(load_instantiator),
-                        new UseVal(load_type_arguments)));
+                        new UseVal(load_instantiator)));
   AddInstruction(extract_instantiator);
   AddInstruction(new DoInstr(
       BuildStoreLocal(t1, new UseVal(extract_instantiator))));

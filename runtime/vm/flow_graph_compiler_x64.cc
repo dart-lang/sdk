@@ -1018,8 +1018,8 @@ void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
 
 void FlowGraphCompiler::VisitExtractConstructorInstantiator(
     ExtractConstructorInstantiatorComp* comp) {
-  __ popq(RCX);  // Discard value.
-  __ popq(RAX);  // Instantiator.
+  ASSERT(comp->instantiator()->IsUse());
+  LoadValue(RAX, comp->instantiator());
 
   // RAX is the instantiator AbstractTypeArguments object (or null).
   // If the instantiator is null and if the type argument vector

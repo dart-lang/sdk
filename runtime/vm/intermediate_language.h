@@ -1027,21 +1027,18 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
 };
 
 
-class ExtractConstructorInstantiatorComp : public TemplateComputation<2> {
+class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
  public:
   ExtractConstructorInstantiatorComp(ConstructorCallNode* ast_node,
-                                     Value* instantiator,
-                                     Value* discard_value)
+                                     Value* instantiator)
       : ast_node_(*ast_node) {
     ASSERT(instantiator != NULL);
     inputs_[0] = instantiator;
-    inputs_[1] = discard_value;
   }
 
   DECLARE_COMPUTATION(ExtractConstructorInstantiator)
 
   Value* instantiator() { return inputs_[0]; }
-  Value* discard_value() { return inputs_[1]; }
   const AbstractTypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
