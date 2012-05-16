@@ -53,19 +53,6 @@ int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
 }
 
 
-bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
-  bool valid = Dart_IsInteger(value_obj);
-  if (valid) {
-    Dart_Handle result = Dart_IntegerFitsIntoInt64(value_obj, &valid);
-    ASSERT(!Dart_IsError(result));
-  }
-  if (!valid) return false;
-  Dart_Handle result = Dart_IntegerToInt64(value_obj, value);
-  ASSERT(!Dart_IsError(result));
-  return true;
-}
-
-
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str_obj, &cstring);

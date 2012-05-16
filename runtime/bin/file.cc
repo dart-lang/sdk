@@ -79,7 +79,9 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
                         Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -98,12 +100,15 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
   Dart_EnterScope();
+  intptr_t return_value = -1;
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  delete file;
-  Dart_SetReturnValue(args, Dart_NewInteger(0));
+  if (file != NULL) {
+    delete file;
+    return_value = 0;
+  }
+  Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   Dart_ExitScope();
 }
 
@@ -113,17 +118,20 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  uint8_t buffer;
-  int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
-  if (bytes_read == 1) {
-    Dart_SetReturnValue(args, Dart_NewInteger(buffer));
-  } else if (bytes_read == 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(-1));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+  if (file != NULL) {
+    uint8_t buffer;
+    int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
+    if (bytes_read == 1) {
+      Dart_SetReturnValue(args, Dart_NewInteger(buffer));
+    } else if (bytes_read == 0) {
+      Dart_SetReturnValue(args, Dart_NewInteger(-1));
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
   }
   Dart_ExitScope();
 }
@@ -131,26 +139,22 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t file_ptr =
+  intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(file_ptr);
-  ASSERT(file != NULL);
-  int64_t value = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &value)) {
+  File* file = reinterpret_cast<File*>(value);
+  if (file != NULL) {
+    int64_t value = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
     uint8_t buffer = static_cast<uint8_t>(value & 0xff);
     int bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
     if (bytes_written >= 0) {
       Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
     } else {
       Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
       Dart_SetReturnValue(args, err);
     }
-  } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
 }
@@ -161,17 +165,20 @@ void FUNCTION_NAME(File_WriteString)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  int bytes_written = file->Write(reinterpret_cast<const void*>(str),
-                                  strlen(str));
-  if (bytes_written >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+  if (file != NULL) {
+    const char* str =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+    int bytes_written = file->Write(reinterpret_cast<const void*>(str),
+                                    strlen(str));
+    if (bytes_written >= 0) {
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
   }
   Dart_ExitScope();
 }
@@ -182,32 +189,38 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsList(buffer_obj));
-  int64_t offset =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  int64_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  intptr_t array_len = 0;
-  Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
-  ASSERT((offset + length) <= array_len);
-  uint8_t* buffer = new uint8_t[length];
-  int bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
-  if (bytes_read >= 0) {
-    result = Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
+  if (file != NULL) {
+    Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
+    ASSERT(Dart_IsList(buffer_obj));
+    int64_t offset =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
+    int64_t length =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+    intptr_t array_len = 0;
+    Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
     if (Dart_IsError(result)) {
-      delete[] buffer;
       Dart_PropagateError(result);
     }
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    ASSERT((offset + length) <= array_len);
+    uint8_t* buffer = new uint8_t[length];
+    int bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+    if (bytes_read >= 0) {
+      result =
+          Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
+      if (Dart_IsError(result)) {
+        delete[] buffer;
+        Dart_PropagateError(result);
+      }
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
+    delete[] buffer;
   }
-  delete[] buffer;
   Dart_ExitScope();
 }
 
@@ -217,32 +230,37 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsList(buffer_obj));
-  int64_t offset =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  int64_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  intptr_t buffer_len = 0;
-  Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
-  ASSERT((offset + length) <= buffer_len);
-  uint8_t* buffer = new uint8_t[length];
-  result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
-  if (Dart_IsError(result)) {
+  if (file != NULL) {
+    Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
+    ASSERT(Dart_IsList(buffer_obj));
+    int64_t offset =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
+    int64_t length =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+    intptr_t buffer_len = 0;
+    Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    ASSERT((offset + length) <= buffer_len);
+    uint8_t* buffer = new uint8_t[length];
+    result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
+    if (Dart_IsError(result)) {
+      delete[] buffer;
+      Dart_PropagateError(result);
+    }
+    int bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
+    if (bytes_written >= 0) {
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
     delete[] buffer;
-    Dart_PropagateError(result);
   }
-  int bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
-  if (bytes_written >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
-  }
-  delete[] buffer;
   Dart_ExitScope();
 }
 
@@ -252,14 +270,17 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  intptr_t return_value = file->Position();
-  if (return_value >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(return_value));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+  if (file != NULL) {
+    intptr_t return_value = file->Position();
+    if (return_value >= 0) {
+      Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
   }
   Dart_ExitScope();
 }
@@ -270,21 +291,18 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  int64_t position = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &position)) {
+  if (file != NULL) {
+    int64_t position =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
     if (file->SetPosition(position)) {
       Dart_SetReturnValue(args, Dart_True());
     } else {
       Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
       Dart_SetReturnValue(args, err);
     }
-  } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
 }
@@ -295,15 +313,18 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  int64_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
-  if (file->Truncate(length)) {
-    Dart_SetReturnValue(args, Dart_True());
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+  if (file != NULL) {
+    int64_t length =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+    if (file->Truncate(length)) {
+      Dart_SetReturnValue(args, Dart_True());
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
   }
   Dart_ExitScope();
 }
@@ -314,14 +335,17 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  intptr_t return_value = file->Length();
-  if (return_value >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(return_value));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+  if (file != NULL) {
+    intptr_t return_value = file->Length();
+    if (return_value >= 0) {
+      Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
   }
   Dart_ExitScope();
 }
@@ -336,7 +360,9 @@ void FUNCTION_NAME(File_LengthFromName)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -348,13 +374,16 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  if (file->Flush()) {
-    Dart_SetReturnValue(args, Dart_True());
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+  if (file != NULL) {
+    if (file->Flush()) {
+      Dart_SetReturnValue(args, Dart_True());
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) {
+        Dart_PropagateError(err);
+      }
+      Dart_SetReturnValue(args, err);
+    }
   }
   Dart_ExitScope();
 }
@@ -369,7 +398,9 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -385,7 +416,9 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -404,7 +437,9 @@ void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
     free(path);
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -421,7 +456,9 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
     free(path);
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -563,9 +600,10 @@ static CObject* FileCloseRequest(const CObjectArray& request) {
   intptr_t return_value = -1;
   if (request.Length() == 2 && request[1]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    delete file;
-    return_value = 0;
+    if (file != NULL) {
+      delete file;
+      return_value = 0;
+    }
   }
   return new CObjectIntptr(CObject::NewIntptr(return_value));
 }
@@ -574,8 +612,7 @@ static CObject* FileCloseRequest(const CObjectArray& request) {
 static CObject* FilePositionRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       intptr_t return_value = file->Position();
       if (return_value >= 0) {
         return new CObjectIntptr(CObject::NewIntptr(return_value));
@@ -595,8 +632,7 @@ static CObject* FileSetPositionRequest(const CObjectArray& request) {
       request[1]->IsIntptr() &&
       request[2]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       int64_t position = CObjectInt32OrInt64ToInt64(request[2]);
       if (file->SetPosition(position)) {
         return CObject::True();
@@ -616,8 +652,7 @@ static CObject* FileTruncateRequest(const CObjectArray& request) {
       request[1]->IsIntptr() &&
       request[2]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       if (file->Truncate(length)) {
         return CObject::True();
@@ -635,8 +670,7 @@ static CObject* FileTruncateRequest(const CObjectArray& request) {
 static CObject* FileLengthRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       intptr_t return_value = file->Length();
       if (return_value >= 0) {
         return new CObjectIntptr(CObject::NewIntptr(return_value));
@@ -666,10 +700,10 @@ static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
 
 
 static CObject* FileFlushRequest(const CObjectArray& request) {
+  intptr_t return_value = -1;
   if (request.Length() == 2 && request[1]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       if (file->Flush()) {
         return CObject::True();
       } else {
@@ -680,14 +714,14 @@ static CObject* FileFlushRequest(const CObjectArray& request) {
     }
   }
   return CObject::IllegalArgumentError();
+  return new CObjectIntptr(CObject::NewIntptr(return_value));
 }
 
 
 static CObject* FileReadByteRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       uint8_t buffer;
       int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
       if (bytes_read > 0) {
@@ -710,8 +744,7 @@ static CObject* FileWriteByteRequest(const CObjectArray& request) {
       request[1]->IsIntptr() &&
       request[2]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       int64_t byte = CObjectInt32OrInt64ToInt64(request[2]);
       uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
       int bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
@@ -733,8 +766,7 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
       request[1]->IsIntptr() &&
       request[2]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       CObjectUint8Array* byte_array =
           new CObjectUint8Array(CObject::NewUint8Array(length));
@@ -764,8 +796,7 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
       request[3]->IsInt32OrInt64() &&
       request[4]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       int64_t offset = CObjectInt32OrInt64ToInt64(request[3]);
       int64_t length = CObjectInt32OrInt64ToInt64(request[4]);
       uint8_t* buffer_start;
@@ -810,8 +841,7 @@ static CObject* FileWriteStringRequest(const CObjectArray& request) {
       request[1]->IsIntptr() &&
       request[2]->IsString()) {
     File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
+    if (file != NULL && !file->IsClosed()) {
       CObjectString str(request[2]);
       const void* buffer = reinterpret_cast<const void*>(str.CString());
       int64_t bytes_written = file->Write(buffer, str.Length());

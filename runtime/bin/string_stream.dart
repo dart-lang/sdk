@@ -37,11 +37,7 @@ class _StringDecoders {
     } else if (encoding == Encoding.ASCII) {
       return new _AsciiDecoder();
     } else {
-      if (encoding is Encoding) {
-        throw new StreamException("Unsupported encoding ${encoding.name}");
-      } else {
-        throw new StreamException("Unsupported encoding ${encoding}");
-      }
+      throw new StreamException("Unsupported encoding ${encoding.name}");
     }
   }
 }
