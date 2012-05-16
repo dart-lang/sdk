@@ -1332,7 +1332,7 @@ class GraphEntryInstr : public BlockEntryInstr {
 
  private:
   TargetEntryInstr* normal_entry_;
-  ZoneGrowableArray<TargetEntryInstr*> catch_entries_;
+  GrowableArray<TargetEntryInstr*> catch_entries_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
