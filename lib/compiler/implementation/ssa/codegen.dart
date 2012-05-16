@@ -2173,7 +2173,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       compiler.registerIsCheck(element);
       SourceString helper;
       String additionalArgument;
-      bool nativeCheck = nativeEmitter.requiresNativeIsCheck(element);
+      bool nativeCheck =
+          backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
       if (element == compiler.stringClass) {
