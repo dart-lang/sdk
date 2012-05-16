@@ -109,7 +109,12 @@ void compile(List<String> argv) {
     if (uri.scheme != 'file') {
       throw new IllegalArgumentException(uri);
     }
-    String source = readAll(uriPathToNative(uri.path));
+    String source;
+    try {
+      source = readAll(uriPathToNative(uri.path));
+    } catch (FileIOException ex) {
+      throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
+    }
     dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
       new SourceFile(relativize(cwd, uri), source);
@@ -122,7 +127,10 @@ void compile(List<String> argv) {
     if (verbose) print('${colors.green("info:")} $message');
   }
 
+  bool isAborting = false;
+
   void handler(Uri uri, int begin, int end, String message, bool fatal) {
+    if (isAborting) return;
     if (uri === null && !fatal) {
       info(message);
       return;
@@ -134,7 +142,10 @@ void compile(List<String> argv) {
       SourceFile file = sourceFiles[uri.toString()];
       print(file.getLocationMessage(message, begin, end, true));
     }
-    if (fatal && throwOnError) throw new AbortLeg(message);
+    if (fatal && throwOnError) {
+      isAborting = true;
+      throw new AbortLeg(message);
+    }
   }
 
   Uri uri = cwd.resolve(arguments[0]);
