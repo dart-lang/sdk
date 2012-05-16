@@ -113,6 +113,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
                const EffectGraphVisitor& body_fragment);
 
  protected:
+  Computation* BuildStoreLocal(const LocalVariable& local, Value* value);
+  Computation* BuildLoadLocal(const LocalVariable& local);
+
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
                              ZoneGrowableArray<Value*>* values);

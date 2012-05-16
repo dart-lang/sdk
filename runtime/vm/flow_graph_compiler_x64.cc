@@ -613,47 +613,13 @@ void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitLoadLocal(LoadLocalComp* comp) {
-  if (comp->local().is_captured()) {
-    // The variable lives in the context.
-    intptr_t delta = comp->context_level() -
-                     comp->local().owner()->context_level();
-    ASSERT(delta >= 0);
-    Register base = CTX;
-    while (delta-- > 0) {
-      __ movq(RAX, FieldAddress(base, Context::parent_offset()));
-      base = RAX;
-    }
-    __ movq(RAX,
-            FieldAddress(base,
-                         Context::variable_offset(comp->local().index())));
-  } else {
-    // The variable lives in the current stack frame.
-    __ movq(RAX, Address(RBP, comp->local().index() * kWordSize));
-  }
+  __ movq(RAX, Address(RBP, comp->local().index() * kWordSize));
 }
 
 
 void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
   LoadValue(RAX, comp->value());
-  if (comp->local().is_captured()) {
-    // The variable lives in the context.
-    Register scratch = R10;
-    intptr_t delta = comp->context_level() -
-                     comp->local().owner()->context_level();
-    ASSERT(delta >= 0);
-    Register base = CTX;
-    while (delta-- > 0) {
-      __ movq(scratch, FieldAddress(base, Context::parent_offset()));
-      base = scratch;
-    }
-    __ StoreIntoObject(
-        base,
-        FieldAddress(base, Context::variable_offset(comp->local().index())),
-        RAX);
-  } else {
-    // The variable lives in the current stack frame.
-    __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
-  }
+  __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
 }
 
 
@@ -946,8 +912,15 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 
 
 void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
-  __ popq(RAX);
+  LoadValue(RAX, comp->value());
   __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));
+}
+
+
+void FlowGraphCompiler::VisitNativeStoreField(NativeStoreFieldComp* comp) {
+  LoadValue(RBX, comp->dest());
+  LoadValue(RAX, comp->value());
+  __ StoreIntoObject(RBX, FieldAddress(RBX, comp->offset_in_bytes()), RAX);
 }
 
 

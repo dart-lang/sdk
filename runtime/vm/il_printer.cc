@@ -266,6 +266,15 @@ void FlowGraphPrinter::VisitNativeLoadField(NativeLoadFieldComp* comp) {
 }
 
 
+void FlowGraphPrinter::VisitNativeStoreField(NativeStoreFieldComp* comp) {
+  OS::Print("NativeStoreField(");
+  comp->dest()->Accept(this);
+  OS::Print(", %d, ", comp->offset_in_bytes());
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
 void FlowGraphPrinter::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsComp* comp) {
   const String& type_args = String::Handle(comp->type_arguments().Name());

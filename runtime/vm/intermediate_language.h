@@ -53,6 +53,7 @@ class LocalVariable;
   M(AllocateObject, AllocateObjectComp)                                        \
   M(AllocateObjectWithBoundsCheck, AllocateObjectWithBoundsCheckComp)          \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
+  M(NativeStoreField, NativeStoreFieldComp)                                    \
   M(InstantiateTypeArguments, InstantiateTypeArgumentsComp)                    \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
@@ -928,9 +929,31 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
  private:
-  intptr_t offset_in_bytes_;
+  const intptr_t offset_in_bytes_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
+};
+
+
+class NativeStoreFieldComp : public TemplateComputation<2> {
+ public:
+  NativeStoreFieldComp(Value* dest, intptr_t offset_in_bytes, Value* value)
+      : offset_in_bytes_(offset_in_bytes) {
+    ASSERT(value != NULL);
+    inputs_[0] = dest;
+    inputs_[1] = value;
+  }
+
+  DECLARE_COMPUTATION(NativeStoreField)
+
+  Value* dest() { return inputs_[0]; }
+  Value* value() { return inputs_[1]; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+
+ private:
+  const intptr_t offset_in_bytes_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeStoreFieldComp);
 };
 
 
