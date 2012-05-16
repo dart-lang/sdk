@@ -19,6 +19,9 @@ native_gc_test: Skip  # Issue 2538. Too slow in debug.
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
+[ $compiler == none && $runtime == drt && $system == mac]
+audiocontext_test: Pass, Fail
+
 [ $compiler == frog && $runtime == drt ]
 html_test: Skip   # Issue 2657
 request_animation_frame_test: Skip   # drt hangs
