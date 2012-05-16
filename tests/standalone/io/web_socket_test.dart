@@ -110,12 +110,11 @@ void testMessageLength(int messageLength) {
 
   // Create a web socket handler and set is as the HTTP server default
   // handler.
-  String originalMessage = "";
-  for (int i = 0; i < messageLength; i++) originalMessage += "${i % 10}";
+  Uint8List originalMessage = new Uint8List(messageLength);
   WebSocketHandler wsHandler = new WebSocketHandler();
   wsHandler.onOpen = (WebSocketConnection conn) {
     conn.onMessage = (Object message) {
-      Expect.equals(originalMessage, message);
+      Expect.listEquals(originalMessage, message);
       conn.send(message);
     };
     conn.onClosed = (status, reason) {
@@ -126,7 +125,7 @@ void testMessageLength(int messageLength) {
   HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
   WebSocketClientConnection wsconn = new WebSocketClientConnection(conn);
   wsconn.onMessage = (message) {
-    Expect.equals(originalMessage, message);
+    Expect.listEquals(originalMessage, message);
     wsconn.close();
   };
   wsconn.onClosed = (status, reason) {
