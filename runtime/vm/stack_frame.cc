@@ -4,52 +4,28 @@
 
 #include "vm/stack_frame.h"
 
+#include "vm/assembler_macros.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/parser.h"
 #include "vm/raw_object.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
 
 namespace dart {
 
-bool StackFrame::FindRawCodeVisitor::FindObject(RawObject* obj) {
-  return RawInstructions::ContainsPC(obj, pc_);
-}
-
 
 bool StackFrame::IsStubFrame() const {
-  if (Dart::vm_isolate()->heap()->StubCodeContains(pc())) {
-    return true;  // Common stub code is generated in the VM heap.
-  }
-  if (Isolate::Current()->heap()->StubCodeContains(pc())) {
-    return true;  // Common stub code is generated in the VM heap.
-  }
-  return false;
+  ASSERT(!(IsEntryFrame() || IsExitFrame()));
+  uword saved_pc = *(reinterpret_cast<uword*>(fp() - kWordSize));
+  return (saved_pc == 0);
 }
 
 
 void StackFrame::Print() const {
   OS::Print("[%-8s : sp(%p) ]\n", GetName(), sp());
-}
-
-
-RawCode* StackFrame::LookupCode(Isolate* isolate, uword pc) {
-  // TODO(asiva): Need to add a data structure for storing a (pc, code
-  // object) map in order to do a quick lookup and avoid having to
-  // traverse the code heap.
-  ASSERT(isolate != NULL);
-  // We add a no gc scope to ensure that the code below does not trigger
-  // a GC as we are handling raw object references here. It is possible
-  // that the code is called while a GC is in progress, that is ok.
-  NoGCScope no_gc;
-  FindRawCodeVisitor visitor(pc);
-  RawInstructions* instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-  if (instr != Instructions::null()) {
-    return instr->ptr()->code_;
-  }
-  return Code::null();
 }
 
 
@@ -103,8 +79,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // frame relies on tagged pointers and hence we visit each entry
   // on the frame between SP and FP.
   ASSERT(visitor != NULL);
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(sp()),
-                         reinterpret_cast<RawObject**>(fp() - kWordSize));
+  RawObject** start = reinterpret_cast<RawObject**>(sp());
+  RawObject** end = reinterpret_cast<RawObject**>(
+      fp() + (ParsedFunction::kFirstLocalSlotIndex * kWordSize));
+  visitor->VisitPointers(start, end);
 }
 
 
@@ -122,10 +100,25 @@ RawCode* StackFrame::LookupDartCode() const {
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
   NoGCScope no_gc;
-  Isolate* isolate = Isolate::Current();
-  RawCode* code = StackFrame::LookupCode(isolate, pc());
-  if ((code != Code::null()) && (code->ptr()->function_ != Function::null())) {
-    return code;
+  RawCode* code = GetCodeObject();
+  ASSERT(code == Code::null() || code->ptr()->function_ != Function::null());
+  return code;
+}
+
+
+RawCode* StackFrame::GetCodeObject() const {
+  // We add a no gc scope to ensure that the code below does not trigger
+  // a GC as we are handling raw object references here. It is possible
+  // that the code is called while a GC is in progress, that is ok.
+  NoGCScope no_gc;
+  uword saved_pc = *(reinterpret_cast<uword*>(fp() - kWordSize));
+  if (saved_pc != 0) {
+    uword entry_point =
+        (saved_pc - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint);
+    RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
+    if (instr != Instructions::null()) {
+      return instr->ptr()->code_;
+    }
   }
   return Code::null();
 }
@@ -168,7 +161,7 @@ bool StackFrame::IsValid() const {
   if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
   }
-  return (StackFrame::LookupCode(Isolate::Current(), pc()) != Code::null());
+  return (LookupDartCode() != Code::null());
 }
 
 

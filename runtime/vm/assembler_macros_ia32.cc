@@ -57,6 +57,30 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
   }
 }
 
+
+void AssemblerMacros::EnterDartFrame(Assembler* assembler,
+                                     intptr_t frame_size) {
+  const intptr_t offset = assembler->CodeSize();
+  __ EnterFrame(0);
+  Label dart_entry;
+  __ call(&dart_entry);
+  __ Bind(&dart_entry);
+  // Adjust saved PC for any intrinsic code that could have been generated
+  // before a frame is created.
+  if (offset != 0) {
+    __ addl(Address(ESP, 0), Immediate(-offset));
+  }
+  if (frame_size != 0) {
+    __ subl(ESP, Immediate(frame_size));
+  }
+}
+
+
+void AssemblerMacros::EnterStubFrame(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ pushl(Immediate(0));  // Push 0 in the saved PC area for stub frames.
+}
+
 #undef __
 
 }  // namespace dart

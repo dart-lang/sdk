@@ -10,6 +10,7 @@
 #endif
 
 #include "vm/assembler.h"
+#include "vm/assembler_macros.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
 #include "vm/intermediate_language.h"
@@ -39,6 +40,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeExceptionHandlers(const Code& code);
 
  private:
+  static const int kLocalsOffsetFromFP = (-1 * kWordSize);
+
   // Constructor is lighweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();

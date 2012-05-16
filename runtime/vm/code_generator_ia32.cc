@@ -8,6 +8,7 @@
 #include "vm/code_generator.h"
 
 #include "lib/error.h"
+#include "vm/assembler_macros.h"
 #include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
@@ -185,7 +186,6 @@ void CodeGenerator::GenerateCode() {
   // implemented by the AST based code generation and 'code_generation_finished'
   // is false.
   if (!code_generation_finished) {
-    GeneratePreEntryCode();
     GenerateEntryCode();
     if (FLAG_print_scopes) {
       // Print the function scope (again) after generating the prologue in order
@@ -396,7 +396,7 @@ void CodeGenerator::GenerateEntryCode() {
   const int stack_slot_count =
       num_copied_params + parsed_function_.stack_local_count();
   set_locals_space_size(stack_slot_count * kWordSize);
-  __ EnterFrame(locals_space_size());
+  AssemblerMacros::EnterDartFrame(assembler_, locals_space_size());
 
   // 2. Optionally check if the number of arguments matches.  We check the
   // number of passed arguments when we have to copy them due to the
@@ -430,11 +430,13 @@ void CodeGenerator::GenerateEntryCode() {
       __ Bind(&argc_in_range);
     }
   } else {
-    ASSERT(parsed_function_.first_parameter_index() == -1);
+    ASSERT(parsed_function_.first_parameter_index() ==
+           ParsedFunction::kFirstLocalSlotIndex);
     // Copy positional arguments.
     // Check that no fewer than num_fixed_params positional arguments are passed
     // in and that no more than num_params arguments are passed in.
-    // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+    // Passed argument i at fp[1 + argc - i] copied to
+    // fp[ParsedFunction::kFirstLocalSlotIndex - i].
     const int num_params = num_fixed_params + num_opt_params;
 
     // Total number of args is the first Smi in args descriptor array (EDX).
@@ -454,8 +456,9 @@ void CodeGenerator::GenerateEntryCode() {
     __ subl(EBX, ECX);
     __ leal(EBX, Address(EBP, EBX, TIMES_2, 2 * kWordSize));
     // Let EDI point to the last copied positional argument, i.e. to
-    // fp[-1 - (num_pos_args - 1)].
-    __ movl(EDI, EBP);
+    // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
+    const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
+    __ leal(EDI, Address(EBP, (index * kWordSize)));
     __ subl(EDI, ECX);  // ECX is a Smi, subtract twice for TIMES_4 scaling.
     __ subl(EDI, ECX);
     __ SmiUntag(ECX);
@@ -530,11 +533,12 @@ void CodeGenerator::GenerateEntryCode() {
               param_pos - num_fixed_params));
       __ LoadObject(EAX, value);
       __ Bind(&assign_optional_parameter);
-      // Assign EAX to fp[-1 - param_pos].
+      // Assign EAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const Address param_addr(EBP, (-1 - param_pos) * kWordSize);
+      const Address param_addr(
+          EBP, (ParsedFunction::kFirstLocalSlotIndex - param_pos) * kWordSize);
       __ movl(param_addr, EAX);
       __ Bind(&next_parameter);
     }
@@ -565,6 +569,7 @@ void CodeGenerator::GenerateEntryCode() {
                             AstNode::kNoId,
                             kNumArgsChecked);
       __ LoadObject(ECX, ic_data);
+      // EBP - 4 : PC marker, allows easy identification of RawInstruction obj.
       // EBP : points to previous frame pointer.
       // EBP + 4 : points to return address.
       // EBP + 8 : address of last argument (arg n-1).
@@ -646,7 +651,7 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   }
 #ifdef DEBUG
   // Check that the entry stack size matches the exit stack size.
-  __ movl(EDX, EBP);
+  __ leal(EDX, Address(EBP, kLocalsOffsetFromFP));
   __ subl(EDX, ESP);
   ASSERT(locals_space_size() >= 0);
   __ cmpl(EDX, Immediate(locals_space_size()));
@@ -881,8 +886,8 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
           Immediate(reinterpret_cast<intptr_t>(Object::null()));
       const Function& function = parsed_function_.function();
       const int num_params = function.NumberOfParameters();
-      int param_frame_index =
-          (num_params == function.num_fixed_parameters()) ? 1 + num_params : -1;
+      int param_frame_index = (num_params == function.num_fixed_parameters()) ?
+          (1 + num_params) : ParsedFunction::kFirstLocalSlotIndex;
       for (int pos = 0; pos < num_params; param_frame_index--, pos++) {
         LocalVariable* parameter = scope->VariableAt(pos);
         ASSERT(parameter->owner() == scope);
@@ -2793,7 +2798,8 @@ void CodeGenerator::VisitNativeBodyNode(NativeBodyNode* node) {
   if (!node->has_optional_parameters()) {
     __ leal(EAX, Address(EBP, (1 + node->argument_count()) * kWordSize));
   } else {
-    __ leal(EAX, Address(EBP, -1 * kWordSize));
+    __ leal(EAX,
+            Address(EBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(node->native_c_function())));
   __ movl(EDX, Immediate(node->argument_count()));
@@ -2816,11 +2822,8 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   // Restore ESP from EBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   ASSERT(locals_space_size() >= 0);
-  if (locals_space_size() == 0) {
-    __ movl(ESP, EBP);
-  } else {
-    __ leal(ESP, Address(EBP, -locals_space_size()));
-  }
+  intptr_t offset_size = -locals_space_size() + kLocalsOffsetFromFP;
+  __ leal(ESP, Address(EBP, offset_size));
 
   // The JumpToExceptionHandler trampoline code sets up
   // - the exception object in EAX (kExceptionObjectReg)

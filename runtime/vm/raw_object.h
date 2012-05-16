@@ -741,6 +741,7 @@ class RawInstructions : public RawObject {
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
   friend class RawCode;
+  friend class Code;
   friend class StackFrame;
 };
 

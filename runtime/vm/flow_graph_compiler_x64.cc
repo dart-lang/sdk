@@ -630,7 +630,8 @@ void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
   if (!comp->has_optional_parameters()) {
     __ leaq(RAX, Address(RBP, (1 + comp->argument_count()) * kWordSize));
   } else {
-    __ leaq(RAX, Address(RBP, -1 * kWordSize));
+    __ leaq(RAX,
+            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(comp->native_c_function())));
   __ movq(R10, Immediate(comp->argument_count()));
@@ -1107,11 +1108,8 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
   // popping arguments has not been run.
   const intptr_t locals_space_size = StackSize() * kWordSize;
   ASSERT(locals_space_size >= 0);
-  if (locals_space_size == 0) {
-    __ movq(RSP, RBP);
-  } else {
-    __ leaq(RSP, Address(RBP, -locals_space_size));
-  }
+  intptr_t offset_size = -locals_space_size + kLocalsOffsetFromFP;
+  __ leaq(RSP, Address(RBP, offset_size));
 
   ASSERT(!comp->exception_var().is_captured());
   ASSERT(!comp->stacktrace_var().is_captured());
@@ -1280,11 +1278,13 @@ void FlowGraphCompiler::CopyParameters() {
   LocalScope* scope = parsed_function_.node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
-  ASSERT(parsed_function_.first_parameter_index() == -1);
+  ASSERT(parsed_function_.first_parameter_index() ==
+         ParsedFunction::kFirstLocalSlotIndex);
   // Copy positional arguments.
   // Check that no fewer than num_fixed_params positional arguments are passed
   // in and that no more than num_params arguments are passed in.
-  // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+  // Passed argument i at fp[1 + argc - i]
+  // copied to fp[ParsedFunction::kFirstLocalSlotIndex - i].
   const int num_params = num_fixed_params + num_opt_params;
 
   // Total number of args is the first Smi in args descriptor array (R10).
@@ -1304,11 +1304,14 @@ void FlowGraphCompiler::CopyParameters() {
   __ subq(RBX, RCX);
   __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
   // Let RDI point to the last copied positional argument, i.e. to
-  // fp[-1 - (num_pos_args - 1)].
+  // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
   __ SmiUntag(RCX);
   __ movq(RAX, RCX);
   __ negq(RAX);
-  __ leaq(RDI, Address(RBP, RAX, TIMES_8, 0));
+  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
+  // -num_pos_args is in RAX.
+  // (ParsedFunction::kFirstLocalSlotIndex + 1) is in index.
+  __ leaq(RDI, Address(RBP, RAX, TIMES_8, (index * kWordSize)));
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   // We do not use the final allocation index of the variable here, i.e.
@@ -1380,11 +1383,12 @@ void FlowGraphCompiler::CopyParameters() {
             param_pos - num_fixed_params));
     __ LoadObject(RAX, value);
     __ Bind(&assign_optional_parameter);
-    // Assign RAX to fp[-1 - param_pos].
+    // Assign RAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
     // We do not use the final allocation index of the variable here, i.e.
     // scope->VariableAt(i)->index(), because captured variables still need
     // to be copied to the context that is not yet allocated.
-    const Address param_addr(RBP, (-1 - param_pos) * kWordSize);
+    const Address param_addr(
+        RBP, (ParsedFunction::kFirstLocalSlotIndex - param_pos) * kWordSize);
     __ movq(param_addr, RAX);
     __ Bind(&next_parameter);
   }
@@ -1418,6 +1422,7 @@ void FlowGraphCompiler::CopyParameters() {
                           AstNode::kNoId,
                           kNumArgsChecked);
     __ LoadObject(RBX, ic_data);
+    // RBP - 8 : PC marker, allows easy identification of RawInstruction obj.
     // RBP : points to previous frame pointer.
     // RBP + 8 : points to return address.
     // RBP + 16 : address of last argument (arg n-1).
@@ -1551,7 +1556,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int parameter_count = function.num_fixed_parameters();
   const int num_copied_params = parsed_function_.copied_parameter_count();
   const int local_count = parsed_function_.stack_local_count();
-  __ EnterFrame(StackSize() * kWordSize);
+  AssemblerMacros::EnterDartFrame(assembler_, (StackSize() * kWordSize));
 
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.

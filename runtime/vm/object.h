@@ -2207,6 +2207,7 @@ class Code : public Object {
   }
   static RawCode* FinalizeCode(const Function& function, Assembler* assembler);
   static RawCode* FinalizeStubCode(const char* name, Assembler* assembler);
+  static RawCode* LookupCode(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
     return *PointerOffsetAddrAt(index);
@@ -2230,6 +2231,21 @@ class Code : public Object {
       const GrowableObjectArray& ic_data_objs) const;
 
  private:
+  // An object finder visitor interface.
+  class FindRawCodeVisitor : public FindObjectVisitor {
+   public:
+    explicit FindRawCodeVisitor(uword pc) : pc_(pc) { }
+    virtual ~FindRawCodeVisitor() { }
+
+    // Check if object matches find condition.
+    virtual bool FindObject(RawObject* obj);
+
+   private:
+    const uword pc_;
+
+    DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
+  };
+
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_instructions(RawInstructions* instructions) {

@@ -146,15 +146,15 @@ void ParsedFunction::AllocateVariables() {
   // parameters to copy.
   if (optional_parameter_count == 0) {
     // Parameter i will be at fp[1 + parameter_count - i] and local variable
-    // j will be at fp[-1 - j].
+    // j will be at fp[kFirstLocalSlotIndex - j].
     first_parameter_index_ = 1 + parameter_count;
-    first_stack_local_index_ = -1;
+    first_stack_local_index_ = kFirstLocalSlotIndex;
     copied_parameter_count_ = 0;
   } else {
-    // Parameter i will be at fp[-1 - i] and local variable j will be at
-    // fp[-1 - parameter_count - j].
-    first_parameter_index_ = -1;
-    first_stack_local_index_ = -1 - parameter_count;
+    // Parameter i will be at fp[kFirstLocalSlotIndex - i] and local variable
+    // j will be at fp[kFirstLocalSlotIndex - parameter_count - j].
+    first_parameter_index_ = kFirstLocalSlotIndex;
+    first_stack_local_index_ = first_parameter_index_ - parameter_count;
     copied_parameter_count_ = parameter_count;
   }
 

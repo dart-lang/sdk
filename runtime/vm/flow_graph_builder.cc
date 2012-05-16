@@ -1898,8 +1898,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function().function();
       const int num_params = function.NumberOfParameters();
-      int param_frame_index =
-          (num_params == function.num_fixed_parameters()) ? 1 + num_params : -1;
+      int param_frame_index = (num_params == function.num_fixed_parameters()) ?
+          (1 + num_params) : ParsedFunction::kFirstLocalSlotIndex;
       for (int pos = 0; pos < num_params; param_frame_index--, pos++) {
         const LocalVariable& parameter = *scope->VariableAt(pos);
         ASSERT(parameter.owner() == scope);

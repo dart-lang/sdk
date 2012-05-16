@@ -105,7 +105,7 @@ const Function& ActivationFrame::DartFunction() {
   if (function_.IsNull()) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
-    const Code& code = Code::Handle(StackFrame::LookupCode(isolate, pc_));
+    const Code& code = Code::Handle(Code::LookupCode(pc_));
     function_ = code.function();
   }
   return function_;
