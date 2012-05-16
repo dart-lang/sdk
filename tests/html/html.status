@@ -141,6 +141,7 @@ css_test: Pass, Fail # Test is flaky Issue #2823
 svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 
 [ $compiler == dart2js && $runtime == drt ]
+fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
 element_test: Fail
 measurement_test: Fail
