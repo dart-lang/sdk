@@ -448,13 +448,18 @@ def _OnAttributeToEventName(on_method):
   else:
     return event_name
 
-def _DomToHtmlEvents(interface_id, events):
+def DomToHtmlEvents(interface_id, events):
   event_names = set(map(_OnAttributeToEventName, events))
   if interface_id in _html_manual_events:
     for manual_event_name in _html_manual_events[interface_id]:
       event_names.add(manual_event_name)
 
   return sorted(event_names, key=lambda name: _html_event_names[name])
+
+def DomToHtmlEvent(event_name):
+  assert event_name in _html_event_names, \
+         'No known html event name for event: ' + event_name
+  return _html_event_names[event_name]
 
 # ------------------------------------------------------------------------------
 class HtmlSystemShared(object):
@@ -778,7 +783,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     self._EmitConstant(self._members_emitter, constant)
 
   def AddEventAttributes(self, event_attrs):
-    event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
+    event_attrs = DomToHtmlEvents(self._interface.id, event_attrs)
     self._shared._event_classes.add(self._interface.id)
     events_interface = self._interface.id + 'Events'
     self._EmitEventGetter(events_interface)
@@ -1065,7 +1070,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               lambda type_name: self._NarrowInputType(type_name)))
 
   def AddEventAttributes(self, event_attrs):
-    event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
+    event_attrs = DomToHtmlEvents(self._interface.id, event_attrs)
     events_class = '_' + self._interface.id + 'EventsImpl'
     events_interface = self._interface.id + 'Events'
     self._EmitEventGetter(events_class)
@@ -1319,13 +1324,11 @@ class HtmlDartiumInterfaceGenerator(object):
       self._EmitFactoryProvider(interface_name, constructor_info)
 
     emit_events, events = self._shared.GetEventAttributes(self._interface)
-    if not emit_events:
-      return
-    elif events:
-      self.AddEventAttributes(events)
-    else:
-      parent_events_class = self._shared.GetParentEventsClass(self._interface)
-      self._EmitEventGetter('_' + parent_events_class + 'Impl')
+    if emit_events:
+      self._members_emitter.Emit(
+          '\n'
+          '  Events get on() => $THIS.on;\n',
+          THIS=self.DomObjectName())
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name
@@ -1429,45 +1432,6 @@ class HtmlDartiumInterfaceGenerator(object):
   def AddSecondaryOperation(self, interface, info):
     self._SecondaryContext(interface)
     self.AddOperation(info)
-
-  def AddEventAttributes(self, event_attrs):
-    event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
-    events_class = '_' + self._interface.id + 'EventsImpl'
-    events_interface = self._interface.id + 'Events'
-    self._EmitEventGetter(events_class)
-
-    self._shared._event_classes.add(self._interface.id)
-
-    parent_event_class = self._shared.GetParentEventsClass(self._interface)
-
-    # TODO(jacobr): specify the type of _ptr as EventTarget
-    events_members = self._dart_code.Emit(
-        '\n'
-        'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
-        '  $CLASSNAME(_ptr) : super(_ptr);\n'
-        '$!MEMBERS}\n',
-        CLASSNAME=events_class,
-        INTERFACE=events_interface,
-        SUPER='_' + parent_event_class + 'Impl')
-
-    for event_name in event_attrs:
-      if event_name in _html_event_names:
-        events_members.Emit(
-            "\n"
-            "  EventListenerList get $NAME() => _get('$RAWNAME');\n",
-            RAWNAME=event_name,
-            NAME=_html_event_names[event_name])
-      else:
-        raise Exception('No known html even name for event: ' + event_name)
-
-  def _EmitEventGetter(self, events_class):
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE get on() {\n'
-        '    if (_on == null) _on = new $TYPE(this);\n'
-        '    return _on;\n'
-        '  }\n',
-        TYPE=events_class)
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

@@ -10,13 +10,16 @@ import emitter
 import os
 from generator import *
 from systembase import *
+from systemhtml import DomToHtmlEvent, DomToHtmlEvents
 
 class NativeImplementationSystem(System):
 
-  def __init__(self, templates, database, emitters, auxiliary_dir, output_dir):
+  def __init__(self, templates, database, html_renames, emitters, auxiliary_dir,
+               output_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
 
+    self._html_renames = html_renames
     self._auxiliary_dir = auxiliary_dir
     self._dom_public_files = []
     self._dom_impl_files = []
@@ -245,6 +248,7 @@ class NativeImplementationGenerator(object):
     self._cpp_resolver_emitter = emitter.Emitter()
 
     self._GenerateConstructors()
+    self._GenerateEvents()
 
   def _GenerateConstructors(self):
     if not self._IsConstructable():
@@ -313,6 +317,67 @@ class NativeImplementationGenerator(object):
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, invocation=invocation,
         raises_exceptions=raises_exceptions)
+
+  def _GenerateEvents(self):
+    if self._interface.id == 'DocumentFragment':
+      # Interface DocumentFragment extends Element in dart:html but this fact
+      # is not reflected in idls.
+      self._EmitEventGetter('ElementEventsImplementation')
+      return
+
+    events_attributes = [attr for attr in self._interface.attributes
+                         if attr.type.id == 'EventListener']
+    if not 'EventTarget' in self._interface.ext_attrs and not events_attributes:
+      return
+
+    def IsEventTarget(interface):
+      return ('EventTarget' in interface.ext_attrs and
+              interface.id != 'EventTarget')
+    is_root = not _FindParent(self._interface, self._system._database, IsEventTarget)
+    if is_root:
+      self._members_emitter.Emit('  EventsImplementation _on;\n')
+
+    if not events_attributes:
+      if is_root:
+        self._EmitEventGetter('EventsImplementation')
+      return
+
+    events_class = '%sEventsImplementation' % self._interface.id
+    self._EmitEventGetter(events_class)
+
+    def HasEventAttributes(interface):
+      return any([a.type.id == 'EventListener' for a in interface.attributes])
+    parent = _FindParent(self._interface, self._system._database, HasEventAttributes)
+    if parent:
+      parent_events_class = '%sEventsImplementation' % parent.id
+    else:
+      parent_events_class = 'EventsImplementation'
+    html_inteface = self._system._html_renames.get(self._interface.id, self._interface.id)
+    events_members = self._dart_impl_emitter.Emit(
+        '\n'
+        'class $EVENTS_CLASS extends $PARENT_EVENTS_CLASS implements $EVENTS_INTERFACE {\n'
+        '  $EVENTS_CLASS(_ptr) : super(_ptr);\n'
+        '$!MEMBERS\n'
+        '}\n',
+        EVENTS_CLASS=events_class,
+        PARENT_EVENTS_CLASS=parent_events_class,
+        EVENTS_INTERFACE='html.%sEvents' % html_inteface)
+
+    events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
+    for event_name in events_attributes:
+      events_members.Emit(
+          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
+          HTML_NAME=DomToHtmlEvent(event_name),
+          DOM_NAME=event_name)
+
+  def _EmitEventGetter(self, events_class):
+    self._members_emitter.Emit(
+        '\n'
+        '  $EVENTS_CLASS get on() {\n'
+        '    if (_on === null) _on = new $EVENTS_CLASS(this);\n'
+        '    return _on;\n'
+        '  }\n',
+        EVENTS_CLASS=events_class)
 
   def _ImplClassName(self, interface_name):
     return interface_name + 'Implementation'
@@ -1134,19 +1199,22 @@ def _DOMWrapperType(database, interface):
     return 'MessagePort'
 
   type = 'Object'
-  if _InstanceOfNode(database, interface):
+  def is_node(interface):
+    return interface.id == 'Node'
+  if is_node(interface) or _FindParent(interface, database, is_node):
     type = 'Node'
   if 'ActiveDOMObject' in interface.ext_attrs:
     type = 'Active%s' % type
   return type
 
-def _InstanceOfNode(database, interface):
-  if interface.id == 'Node':
-    return True
+def _FindParent(interface, database, callback):
   for parent in interface.parents:
+    parent_name = parent.type.id
     if not database.HasInterface(parent.type.id):
       continue
     parent_interface = database.GetInterface(parent.type.id)
-    if _InstanceOfNode(database, parent_interface):
-      return True
-  return False
+    if callback(parent_interface):
+      return parent_interface
+    parent_interface = _FindParent(parent_interface, database, callback)
+    if parent_interface:
+      return parent_interface

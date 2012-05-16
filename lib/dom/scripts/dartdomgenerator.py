@@ -96,14 +96,9 @@ def GenerateDOM(systems, generate_html_systems, output_dir,
                              exclude_suppressed = ['WebKit', 'Dart'])
   generator.RenameTypes(webkit_database, _webkit_renames, True)
 
+  html_renames = _MakeHtmlRenames(common_database)
   if generate_html_systems:
-    html_renames = _MakeHtmlRenames(common_database)
     generator.RenameTypes(webkit_database, html_renames, False)
-    html_renames_inverse = dict((v,k) for k, v in html_renames.iteritems())
-  else:
-    html_renames_inverse = {}
-
-  webkit_renames_inverse = dict((v,k) for k, v in _webkit_renames.iteritems())
 
   generator.Generate(database = webkit_database,
                      output_dir = output_dir,
@@ -112,8 +107,8 @@ def GenerateDOM(systems, generate_html_systems, output_dir,
                      source_filter = ['WebKit', 'Dart'],
                      super_database = common_database,
                      common_prefix = 'common',
-                     super_map = webkit_renames_inverse,
-                     html_map = html_renames_inverse,
+                     webkit_renames = _webkit_renames,
+                     html_renames = html_renames,
                      systems = systems)
 
   generator.Flush()
