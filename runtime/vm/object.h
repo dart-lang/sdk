@@ -823,6 +823,11 @@ class AbstractType : public Object {
     return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
   }
 
+  // Check if this type represents the 'Null' type.
+  bool IsNullType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::null_class());
+  }
+
   // Check if this type represents the 'void' type.
   bool IsVoidType() const {
     return HasResolvedTypeClass() && (type_class() == Object::void_class());
@@ -1302,6 +1307,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
         return true;
+      case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kConstImplicitGetter:
       case RawFunction::kAbstract:
@@ -1323,6 +1329,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kConstImplicitGetter:
         return true;
+      case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
         return false;
       default:

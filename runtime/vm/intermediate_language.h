@@ -88,6 +88,9 @@ class Computation : public ZoneAllocated {
 
   virtual intptr_t InputCount() const = 0;
 
+  // Static type of the computation.
+  virtual RawAbstractType* StaticType() const = 0;
+
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
   virtual void RecordAssignedVars(BitVector* assigned_vars);
@@ -126,7 +129,11 @@ class EmbeddedArray {
  public:
   EmbeddedArray() : elements_() { }
 
-  intptr_t length() { return N; }
+  intptr_t length() const { return N; }
+  const T& operator[](intptr_t i) const {
+    ASSERT(i < length());
+    return elements_[i];
+  }
   T& operator[](intptr_t i) {
     ASSERT(i < length());
     return elements_[i];
@@ -140,12 +147,7 @@ class EmbeddedArray {
 template<typename T>
 class EmbeddedArray<T, 0> {
  public:
-  int length() { return 0; }
-  T& operator[](intptr_t i) {
-    UNREACHABLE();
-    static T sentinel = 0;
-    return sentinel;
-  }
+  int length() const { return 0; }
 };
 
 
@@ -180,6 +182,7 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual RawAbstractType* StaticType() const;                                 \
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
@@ -283,7 +286,7 @@ class AssertBooleanComp : public TemplateComputation<1> {
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
 
  private:
   const intptr_t token_index_;
@@ -315,7 +318,7 @@ class StoreContextComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(StoreContext);
 
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
@@ -412,8 +415,8 @@ class StrictCompareComp : public TemplateComputation<2> {
   DECLARE_COMPUTATION(StrictCompare)
 
   Token::Kind kind() const { return kind_; }
-  Value* left() { return inputs_[0]; }
-  Value* right() { return inputs_[1]; }
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
 
  private:
   const Token::Kind kind_;
@@ -440,8 +443,8 @@ class EqualityCompareComp : public TemplateComputation<2> {
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* left() { return inputs_[0]; }
-  Value* right() { return inputs_[1]; }
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
 
  private:
   const intptr_t token_index_;
@@ -521,7 +524,7 @@ class StoreLocalComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(StoreLocal)
 
   const LocalVariable& local() const { return local_; }
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
   intptr_t context_level() const { return context_level_; }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
@@ -578,7 +581,7 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   const Field& field() const { return ast_node_.field(); }
 
-  Value* instance() { return inputs_[0]; }
+  Value* instance() const { return inputs_[0]; }
 
  private:
   const LoadInstanceFieldNode& ast_node_;
@@ -604,8 +607,8 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   intptr_t token_index() const { return ast_node_.token_index(); }
   const Field& field() const { return ast_node_.field(); }
 
-  Value* instance() { return inputs_[0]; }
-  Value* value() { return inputs_[1]; }
+  Value* instance() const { return inputs_[0]; }
+  Value* value() const { return inputs_[1]; }
 
  private:
   const StoreInstanceFieldNode& ast_node_;
@@ -641,7 +644,7 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(StoreStaticField);
 
   const Field& field() const { return field_; }
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
 
  private:
   const Field& field_;
@@ -670,9 +673,9 @@ class StoreIndexedComp : public TemplateComputation<3> {
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* array() { return inputs_[0]; }
-  Value* index() { return inputs_[1]; }
-  Value* value() { return inputs_[2]; }
+  Value* array() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+  Value* value() const { return inputs_[2]; }
 
  private:
   const intptr_t token_index_;
@@ -703,8 +706,8 @@ class InstanceSetterComp : public TemplateComputation<2> {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
-  Value* receiver() { return inputs_[0]; }
-  Value* value() { return inputs_[1]; }
+  Value* receiver() const { return inputs_[0]; }
+  Value* value() const { return inputs_[1]; }
 
  private:
   const intptr_t token_index_;
@@ -734,7 +737,7 @@ class StaticSetterComp : public TemplateComputation<1> {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const Function& setter_function() const { return setter_function_; }
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
 
  private:
   const intptr_t token_index_;
@@ -754,7 +757,7 @@ class BooleanNegateComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(BooleanNegate)
 
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateComp);
@@ -924,19 +927,24 @@ class CreateClosureComp : public Computation {
 
 class NativeLoadFieldComp : public TemplateComputation<1> {
  public:
-  NativeLoadFieldComp(Value* value, intptr_t offset_in_bytes)
-      : offset_in_bytes_(offset_in_bytes) {
+  NativeLoadFieldComp(Value* value,
+                      intptr_t offset_in_bytes,
+                      const AbstractType& type)
+      : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(NativeLoadField)
 
-  Value* value() { return inputs_[0]; }
+  Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+  const AbstractType& type() const { return type_; }
 
  private:
   const intptr_t offset_in_bytes_;
+  const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
 };
@@ -953,8 +961,8 @@ class NativeStoreFieldComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(NativeStoreField)
 
-  Value* dest() { return inputs_[0]; }
-  Value* value() { return inputs_[1]; }
+  Value* dest() const { return inputs_[0]; }
+  Value* value() const { return inputs_[1]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
  private:
@@ -979,7 +987,7 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(InstantiateTypeArguments)
 
-  Value* instantiator() { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
@@ -1011,7 +1019,7 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(ExtractConstructorTypeArguments)
 
-  Value* instantiator() { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
@@ -1038,7 +1046,7 @@ class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(ExtractConstructorInstantiator)
 
-  Value* instantiator() { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
@@ -1085,7 +1093,7 @@ class ChainContextComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(ChainContext)
 
-  Value* context_value() { return inputs_[0]; }
+  Value* context_value() const { return inputs_[0]; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
@@ -1105,7 +1113,7 @@ class CloneContextComp : public TemplateComputation<1> {
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* context_value() { return inputs_[0]; }
+  Value* context_value() const { return inputs_[0]; }
 
   DECLARE_COMPUTATION(CloneContext)
 
@@ -1242,6 +1250,12 @@ class Instruction : public ZoneAllocated {
   virtual type##Instr* As##type() { return NULL; }
 FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
+
+  // Static type of the instruction.
+  virtual RawAbstractType* StaticType() const {
+    UNREACHABLE();
+    return AbstractType::null();
+  }
 
  private:
   intptr_t cid_;
@@ -1481,6 +1495,11 @@ class BindInstr : public Definition {
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
+  }
+
+  // Static type of the underlying computation.
+  virtual RawAbstractType* StaticType() const {
+    return computation()->StaticType();
   }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);

@@ -156,7 +156,7 @@ Computation* EffectGraphVisitor::BuildStoreLocal(
     Value* context_value = new UseVal(context);
     while (delta-- > 0) {
       BindInstr* load = new BindInstr(new NativeLoadFieldComp(
-          context_value, Context::parent_offset()));
+          context_value, Context::parent_offset(), Type::ZoneHandle()));
       AddInstruction(load);
       context_value = new UseVal(load);
     }
@@ -179,12 +179,12 @@ Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     Value* context_value = new UseVal(context);
     while (delta-- > 0) {
       BindInstr* load = new BindInstr(new NativeLoadFieldComp(
-          context_value, Context::parent_offset()));
+          context_value, Context::parent_offset(), Type::ZoneHandle()));
       AddInstruction(load);
       context_value = new UseVal(load);
     }
     Computation* store = new NativeLoadFieldComp(
-        context_value, Context::variable_offset(local.index()));
+        context_value, Context::variable_offset(local.index()), local.type());
     return store;
   } else {
     return new LoadLocalComp(local, owner()->context_level());
@@ -301,9 +301,10 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
-// Returns true if the type check can be skipped, for example, if the type is
-// Dynamic or if the value is a compile time constant and an instance of type.
-static bool CanSkipTypeCheck(AstNode* value, const AbstractType& dst_type) {
+// Returns true if the type check can be skipped, for example, if the
+// destination type is Dynamic or if the static type of the value is a subtype
+// of the destination type.
+static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
   ASSERT(FLAG_enable_type_checks);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
@@ -324,31 +325,42 @@ static bool CanSkipTypeCheck(AstNode* value, const AbstractType& dst_type) {
     return true;
   }
 
+  // If nothing is known about the value, as is the case for passed-in
+  // parameters, the test cannot be eliminated.
+  if (value == NULL) {
+    return false;
+  }
+
+  // If nothing is known about the static type of the value, the test cannot be
+  // eliminated.
+  const AbstractType& static_type = AbstractType::Handle(value->StaticType());
+  ASSERT(!static_type.IsMalformed());
+  if (static_type.IsDynamicType()) {
+    return false;
+  }
+
+  // If the static type of the value is void, the only allowed value is null,
+  // which must be verified by the type test.
+  if (static_type.IsVoidType()) {
+    // TODO(regis): Eliminate the test if the value is constant null.
+    return false;
+  }
+
   // Eliminate the test if it can be performed successfully at compile time.
-  if ((value != NULL) && value->IsLiteralNode()) {
-    const Instance& literal_value = value->AsLiteralNode()->literal();
-    const Class& cls = Class::Handle(literal_value.clazz());
-    if (cls.IsNullClass()) {
-      // There are only three instances that can be of Class Null:
-      // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-      // The inline code and run time code performing the type check will never
-      // encounter the 2 sentinel values. The type check of a sentinel value
-      // will always be eliminated here, because these sentinel values can only
-      // be encountered as constants, never as actual value of an heap object
-      // being type checked.
-      ASSERT(literal_value.IsNull() ||
-             (literal_value.raw() == Object::sentinel()) ||
-             (literal_value.raw() == Object::transition_sentinel()));
-      return true;
-    }
-    Error& malformed_error = Error::Handle();
-    if (!dst_type.IsMalformed() &&
-        dst_type.IsInstantiated() &&
-        literal_value.IsInstanceOf(dst_type,
-                                   TypeArguments::Handle(),
-                                   &malformed_error)) {
-      return true;
-    }
+  if (static_type.IsNullType()) {
+    // There are only three instances that can be of Class Null:
+    // Object::null(), Object::sentinel(), and Object::transition_sentinel().
+    // The inline code and run time code performing the type check will never
+    // encounter the 2 sentinel values. The type check of a sentinel value
+    // will always be eliminated here, because these sentinel values can only
+    // be encountered as constants, never as actual value of a heap object
+    // being type checked.
+    return true;
+  }
+  Error& malformed_error = Error::Handle();
+  if (!dst_type.IsMalformed() &&
+      static_type.IsSubtypeOf(dst_type, &malformed_error)) {
+    return true;
   }
 
   return false;
@@ -586,7 +598,7 @@ Value* EffectGraphVisitor::BuildAssignableValue(AstNode* value_node,
                                                 Value* value,
                                                 const AbstractType& dst_type,
                                                 const String& dst_name) {
-  if (CanSkipTypeCheck(value_node, dst_type)) {
+  if (CanSkipTypeCheck(value, dst_type)) {
     return value;
   }
 
@@ -1494,7 +1506,8 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   BindInstr* load =
       new BindInstr(new NativeLoadFieldComp(
                         for_instantiator.value(),
-                        type_arguments_instance_field_offset));
+                        type_arguments_instance_field_offset,
+                        Type::ZoneHandle()));  // Not an instance, no type.
   AddInstruction(load);
   return new UseVal(load);
 }
@@ -1841,8 +1854,11 @@ void EffectGraphVisitor::UnchainContext() {
   BindInstr* context = new BindInstr(new CurrentContextComp());
   AddInstruction(context);
   BindInstr* parent =
-      new BindInstr(new NativeLoadFieldComp(
-                        new UseVal(context), Context::parent_offset()));
+      new BindInstr(
+          new NativeLoadFieldComp(
+              new UseVal(context),
+              Context::parent_offset(),
+              Type::ZoneHandle()));  // Not an instance, no type.
   AddInstruction(parent);
   AddInstruction(new DoInstr(new StoreContextComp(new UseVal(parent))));
 }
@@ -1933,9 +1949,18 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   if (FLAG_enable_type_checks &&
       (node == owner()->parsed_function().node_sequence())) {
-    const int num_params =
-        owner()->parsed_function().function().NumberOfParameters();
-    for (int pos = 0; pos < num_params; pos++) {
+    const Function& function = owner()->parsed_function().function();
+    const int num_params = function.NumberOfParameters();
+    int pos = 0;
+    if (function.IsConstructor()) {
+      // Skip type checking of receiver and phase for constructor functions.
+      pos = 2;
+    } else if (function.IsFactory() || function.IsDynamicFunction()) {
+      // Skip type checking of type arguments for factory functions.
+      // Skip type checking of receiver for instance functions.
+      pos = 1;
+    }
+    while (pos < num_params) {
       const LocalVariable& parameter = *scope->VariableAt(pos);
       ASSERT(parameter.owner() == scope);
       if (!CanSkipTypeCheck(NULL, parameter.type())) {
@@ -1946,6 +1971,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                               parameter.type(),
                               parameter.name());
       }
+      pos++;
     }
   }
 
