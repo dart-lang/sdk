@@ -102,6 +102,42 @@ void testRequestResponseServerCloses(
 }
 
 
+void testMessageLength(int messageLength) {
+  HttpServer server = new HttpServer();
+  HttpClient client = new HttpClient();
+
+  server.listen("127.0.0.1", 0, 1);
+
+  // Create a web socket handler and set is as the HTTP server default
+  // handler.
+  String originalMessage = "";
+  for (int i = 0; i < messageLength; i++) originalMessage += "${i % 10}";
+  WebSocketHandler wsHandler = new WebSocketHandler();
+  wsHandler.onOpen = (WebSocketConnection conn) {
+    conn.onMessage = (Object message) {
+      Expect.equals(originalMessage, message);
+      conn.send(message);
+    };
+    conn.onClosed = (status, reason) {
+    };
+  };
+  server.defaultRequestHandler = wsHandler.onRequest;
+
+  HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
+  WebSocketClientConnection wsconn = new WebSocketClientConnection(conn);
+  wsconn.onMessage = (message) {
+    Expect.equals(originalMessage, message);
+    wsconn.close();
+  };
+  wsconn.onClosed = (status, reason) {
+    server.close();
+  };
+  wsconn.onOpen = () {
+    wsconn.send(originalMessage);
+  };
+}
+
+
 void testNoUpgrade() {
   HttpServer server = new HttpServer();
   HttpClient client = new HttpClient();
@@ -284,6 +320,11 @@ main() {
   testRequestResponseServerCloses(2, null, null);
   testRequestResponseServerCloses(2, 3001, null);
   testRequestResponseServerCloses(2, 3002, "Got tired");
+  testMessageLength(125);
+  testMessageLength(126);
+  testMessageLength(127);
+  testMessageLength(65535);
+  testMessageLength(65536);
   testNoUpgrade();
   testUsePOST();
   testHashCode(2);

@@ -510,7 +510,7 @@ class _WebSocketConnectionBase  {
     int headerSize = (mask) ? 6 : 2;
     if (dataLength > 65535) {
       headerSize += 8;
-    } else if (dataLength > 126) {
+    } else if (dataLength > 125) {
       headerSize += 2;
     }
     List<int> header = new List<int>(headerSize);
@@ -523,7 +523,7 @@ class _WebSocketConnectionBase  {
     if (dataLength > 65535) {
       header[index++] = 127;
       lengthBytes = 8;
-    } else if (dataLength > 126) {
+    } else if (dataLength > 125) {
       header[index++] = 126;
       lengthBytes = 2;
     }
