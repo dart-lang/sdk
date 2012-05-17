@@ -38,6 +38,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeExceptionHandlers(const Code& code);
+  void FinalizeComments(const Code& code);
 
  private:
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);

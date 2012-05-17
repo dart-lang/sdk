@@ -6072,8 +6072,63 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 
+Code::Comments& Code::Comments::New(intptr_t count) {
+  Comments* comments;
+  if (count == 0) {
+    comments = new Comments(Array::Empty());
+  } else {
+    comments = new Comments(Array::New(count * kNumberOfEntries));
+  }
+  return *comments;
+}
+
+
+intptr_t Code::Comments::Length() const {
+  return comments_.Length() / kNumberOfEntries;
+}
+
+
+intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
+  return Smi::CheckedHandle(
+      comments_.At(idx * kNumberOfEntries + kPCOffsetEntry)).Value();
+}
+
+
+void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
+  comments_.SetAt(idx * kNumberOfEntries + kPCOffsetEntry,
+                  Smi::Handle(Smi::New(pc)));
+}
+
+
+const String& Code::Comments::CommentAt(intptr_t idx) const {
+  return String::CheckedHandle(
+      comments_.At(idx * kNumberOfEntries + kCommentEntry));
+}
+
+
+void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
+  comments_.SetAt(idx * kNumberOfEntries + kCommentEntry, comment);
+}
+
+
+Code::Comments::Comments(RawArray* comments)
+    : comments_(Array::Handle(comments)) {
+}
+
+
 void Code::set_stackmaps(const Array& maps) const {
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
+}
+
+
+const Code::Comments& Code::comments() const  {
+  Comments* comments = new Code::Comments(raw_ptr()->comments_);
+  return *comments;
+}
+
+
+void Code::set_comments(const Code::Comments& comments) const {
+  StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
 }
 
 
@@ -6087,6 +6142,7 @@ RawCode* Code::New(int pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_comments(Comments::New(0));
   }
   return result.raw();
 }

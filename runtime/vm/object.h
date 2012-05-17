@@ -2180,6 +2180,39 @@ class Code : public Object {
   void set_stackmaps(const Array& maps) const;
   RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
 
+  class Comments : public ZoneAllocated {
+   public:
+    static Comments& New(intptr_t count);
+
+    intptr_t Length() const;
+
+    void SetPCOffsetAt(intptr_t idx, intptr_t pc_offset);
+    void SetCommentAt(intptr_t idx, const String& comment);
+
+    intptr_t PCOffsetAt(intptr_t idx) const;
+    const String& CommentAt(intptr_t idx) const;
+
+   private:
+    explicit Comments(RawArray* comments);
+
+    // Layout of entries describing comments.
+    enum {
+      kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
+      kCommentEntry,  // Comment text as a String.
+      kNumberOfEntries
+    };
+
+    const Array& comments_;
+
+    friend class Code;
+
+    DISALLOW_COPY_AND_ASSIGN(Comments);
+  };
+
+
+  const Comments& comments() const;
+  void set_comments(const Comments& comments) const;
+
   RawLocalVarDescriptors* var_descriptors() const {
     return raw_ptr()->var_descriptors_;
   }

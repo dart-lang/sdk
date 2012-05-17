@@ -279,7 +279,7 @@ class Label : public ValueObject {
 
 class Assembler : public ValueObject {
  public:
-  Assembler() : buffer_(), prolog_offset_(-1) { }
+  Assembler() : buffer_(), prolog_offset_(-1), comments_() { }
   ~Assembler() { }
 
   static const bool kNearJump = true;
@@ -561,9 +561,29 @@ class Assembler : public ValueObject {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
 
+  void Comment(const char* comment);
+  const Code::Comments& GetCodeComments() const;
+
  private:
   AssemblerBuffer buffer_;
   int prolog_offset_;
+
+  class CodeComment : public ZoneAllocated {
+   public:
+    CodeComment(intptr_t pc_offset, const String& comment)
+        : pc_offset_(pc_offset), comment_(comment) { }
+
+    intptr_t pc_offset() const { return pc_offset_; }
+    const String& comment() const { return comment_; }
+
+   private:
+    intptr_t pc_offset_;
+    const String& comment_;
+
+    DISALLOW_COPY_AND_ASSIGN(CodeComment);
+  };
+
+  GrowableArray<CodeComment*> comments_;
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);

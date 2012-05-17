@@ -48,6 +48,11 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
 }
 
 
+void FlowGraphCompiler::FinalizeComments(const Code& code) {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

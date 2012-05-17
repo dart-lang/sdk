@@ -1577,7 +1577,9 @@ int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
 
 void Disassembler::Disassemble(uword start,
                                uword end,
-                               DisassemblyFormatter* formatter) {
+                               DisassemblyFormatter* formatter,
+                               const Code::Comments& comments) {
+  // TODO(vegorov): Decode and display comments.
   ASSERT(formatter != NULL);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.

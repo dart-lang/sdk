@@ -41,6 +41,8 @@ class CodeGenerator : public AstNodeVisitor {
   // Add local variable descriptors to code.
   void FinalizeVarDescriptors(const Code& code) { UNIMPLEMENTED(); }
 
+  void FinalizeComments(const Code& code) { UNIMPLEMENTED(); }
+
   // Allocate and return an arguments descriptor.
   // Let 'num_names' be the length of 'optional_arguments_names'.
   // Treat the first 'num_arguments - num_names' arguments as positional and

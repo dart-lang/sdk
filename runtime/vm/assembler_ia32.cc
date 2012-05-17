@@ -14,6 +14,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+DEFINE_FLAG(bool, code_comments, false,
+            "Include comments into code and disassembly");
 
 
 class DirectCallRelocation : public AssemblerFixup {
@@ -1558,6 +1560,27 @@ void Assembler::EmitGenericShift(int rm,
   EmitUint8(0xD3);
   EmitOperand(rm, Operand(operand));
 }
+
+
+void Assembler::Comment(const char* comment) {
+  if (FLAG_code_comments) {
+    comments_.Add(new CodeComment(buffer_.GetPosition(),
+                                  String::Handle(String::New(comment))));
+  }
+}
+
+
+const Code::Comments& Assembler::GetCodeComments() const {
+  Code::Comments& comments = Code::Comments::New(comments_.length());
+
+  for (intptr_t i = 0; i < comments_.length(); i++) {
+    comments.SetPCOffsetAt(i, comments_[i]->pc_offset());
+    comments.SetCommentAt(i, comments_[i]->comment());
+  }
+
+  return comments;
+}
+
 
 }  // namespace dart
 

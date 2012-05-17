@@ -214,6 +214,7 @@ static bool CompileWithNewCompiler(
       graph_compiler.FinalizeStackmaps(code);
       graph_compiler.FinalizeVarDescriptors(code);
       graph_compiler.FinalizeExceptionHandlers(code);
+      graph_compiler.FinalizeComments(code);
       if (optimized) {
         function.SetCode(code);
         CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
@@ -276,6 +277,7 @@ static void CompileWithOldCompiler(
       code_gen.FinalizePcDescriptors(code);
       code_gen.FinalizeStackmaps(code);
       code_gen.FinalizeExceptionHandlers(code);
+      code_gen.FinalizeComments(code);
       function.SetCode(code);
       CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
     }
@@ -302,6 +304,7 @@ static void CompileWithOldCompiler(
       code_gen.FinalizeStackmaps(code);
       code_gen.FinalizeVarDescriptors(code);
       code_gen.FinalizeExceptionHandlers(code);
+      code_gen.FinalizeComments(code);
       function.set_unoptimized_code(code);
       function.SetCode(code);
       ASSERT(CodePatcher::CodeIsPatchable(code));
@@ -372,7 +375,9 @@ static RawError* CompileFunctionHelper(const Function& function,
       const Instructions& instructions =
           Instructions::Handle(code.instructions());
       uword start = instructions.EntryPoint();
-      Disassembler::Disassemble(start, start + instructions.size());
+      Disassembler::Disassemble(start,
+                                start + instructions.size(),
+                                code.comments());
       OS::Print("}\n");
       OS::Print("Pointer offsets for function: {\n");
       for (intptr_t i = 0; i < code.pointer_offsets_length(); i++) {

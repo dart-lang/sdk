@@ -1122,11 +1122,13 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
 
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    __ Comment("B%d", i);
     // Compile the block entry.
     current_block_ = block_order_[i];
     Instruction* instr = current_block()->Accept(this);
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
+      __ Comment("@%d: instruction", instr->cid());
       instr = instr->Accept(this);
     }
 
@@ -1698,6 +1700,11 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
       exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
   code.set_exception_handlers(handlers);
+}
+
+
+void FlowGraphCompiler::FinalizeComments(const Code& code) {
+  code.set_comments(assembler_->GetCodeComments());
 }
 
 

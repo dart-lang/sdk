@@ -711,8 +711,9 @@ class RawCode : public RawObject {
   RawPcDescriptors* pc_descriptors_;
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
+  RawArray* comments_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->var_descriptors_);
+    return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
 
   intptr_t pointer_offsets_length_;

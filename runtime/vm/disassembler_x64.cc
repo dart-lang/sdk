@@ -19,7 +19,8 @@ namespace dart {
 
 void Disassembler::Disassemble(uword start,
                                uword end,
-                               DisassemblyFormatter* formatter) {
+                               DisassemblyFormatter* formatter,
+                               const Code::Comments& comments) {
   // First print the actual addresses so that we know where in memory this is
   // being disassembled from.
   formatter->Print("start: %p  end: %p\n", start, end);
@@ -82,8 +83,24 @@ void Disassembler::Disassemble(uword start,
       formatter->Print("%s", header_pos + strlen(header));
     }
   }
+
+
+  int comment_finger = 0;
   while (fgets(line, sizeof(line), output) != NULL) {
-    formatter->Print("%s", line);
+    char* tab = strchr(line, '\t');
+    if (tab != NULL) {
+      *tab = '\0';
+      intptr_t offset = 0;
+      sscanf(line, "%p", reinterpret_cast<void**>(&offset));  // NOLINT
+      while (comment_finger < comments.Length() &&
+             comments.PCOffsetAt(comment_finger) <= offset) {
+        formatter->Print("        ;; %s\n",
+                         comments.CommentAt(comment_finger).ToCString());
+        comment_finger++;
+      }
+
+      formatter->Print("%016p %08x %s", start + offset, offset, tab + 1);
+    }
   }
   pclose(output);
 

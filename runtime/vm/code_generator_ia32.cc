@@ -267,6 +267,11 @@ void CodeGenerator::FinalizeExceptionHandlers(const Code& code) {
 }
 
 
+void CodeGenerator::FinalizeComments(const Code& code) {
+  code.set_comments(assembler_->GetCodeComments());
+}
+
+
 void CodeGenerator::GenerateLoadVariable(Register dst,
                                          const LocalVariable& variable) {
   if (variable.is_captured()) {
