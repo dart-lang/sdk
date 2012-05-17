@@ -4,7 +4,7 @@
 
 // Bootstrap support for Dart scripts on the page as this script.
 if (navigator.webkitStartDart) {
-  if (navigator.webkitStartDart()) {
+  if (!navigator.webkitStartDart()) {
     document.body.innerHTML = 'This build has expired.  Please download a new Dartium at http://www.dartlang.org/dartium/index.html';
   }
 } else {
