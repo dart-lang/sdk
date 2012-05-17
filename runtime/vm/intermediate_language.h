@@ -952,9 +952,13 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
 
 class NativeStoreFieldComp : public TemplateComputation<2> {
  public:
-  NativeStoreFieldComp(Value* dest, intptr_t offset_in_bytes, Value* value)
-      : offset_in_bytes_(offset_in_bytes) {
+  NativeStoreFieldComp(Value* dest,
+                       intptr_t offset_in_bytes,
+                       Value* value,
+                       const AbstractType& type)
+      : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = dest;
     inputs_[1] = value;
   }
@@ -964,9 +968,11 @@ class NativeStoreFieldComp : public TemplateComputation<2> {
   Value* dest() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+  const AbstractType& type() const { return type_; }
 
  private:
   const intptr_t offset_in_bytes_;
+  const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeStoreFieldComp);
 };

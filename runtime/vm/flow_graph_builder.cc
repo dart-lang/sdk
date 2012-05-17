@@ -161,7 +161,10 @@ Computation* EffectGraphVisitor::BuildStoreLocal(
       context_value = new UseVal(load);
     }
     Computation* store = new NativeStoreFieldComp(
-        context_value, Context::variable_offset(local.index()), value);
+        context_value,
+        Context::variable_offset(local.index()),
+        value,
+        local.type());
     return store;
   } else {
     return new StoreLocalComp(local, value, owner()->context_level());

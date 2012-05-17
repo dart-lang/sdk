@@ -340,7 +340,7 @@ RawAbstractType* ClosureCallComp::StaticType() const {
   ASSERT(signature_class.IsSignatureClass());
   const Function& signature_function =
       Function::Handle(signature_class.signature_function());
-  // TODO(regis): The result type may be generic.
+  // TODO(regis): The result type may be generic. Consider upper bounds.
   return signature_function.result_type();
 }
 
@@ -383,8 +383,8 @@ RawAbstractType* EqualityCompareComp::StaticType() const {
 
 RawAbstractType* NativeCallComp::StaticType() const {
   // The result type of the native function is identical to the result type of
-  // the enclosing native Dart function.
-  // TODO(regis): Can we trust it or should we check anyway? Check for now.
+  // the enclosing native Dart function. However, we prefer to check the type
+  // of the value returned from the native call.
   return Type::DynamicType();
 }
 
@@ -395,14 +395,19 @@ RawAbstractType* StoreIndexedComp::StaticType() const {
 
 
 RawAbstractType* InstanceSetterComp::StaticType() const {
-  // TODO(regis): Would it be correct to return value()->StaticType()?
-  return Type::DynamicType();
+  return value()->StaticType();
 }
 
 
 RawAbstractType* StaticSetterComp::StaticType() const {
-  // TODO(regis): Would it be correct/better to return value()->StaticType()?
-  return setter_function().result_type();
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of setter
+    // value parameter.
+    return setter_function().ParameterTypeAt(0);
+  }
+  return assigned_value_type.raw();
 }
 
 
@@ -457,7 +462,7 @@ RawAbstractType* CreateArrayComp::StaticType() const {
 RawAbstractType* CreateClosureComp::StaticType() const {
   const Function& fun = function();
   const Class& signature_class = Class::Handle(fun.signature_class());
-  // TODO(regis): Can we take (constant) type_arguments() into consideration?
+  // TODO(regis): The signature type may be generic. Consider upper bounds.
   // For now, we return Dynamic (no type test elimination) if the signature
   // class is parameterized, or a non-parameterized finalized type otherwise.
   if (signature_class.HasTypeArguments()) {
@@ -489,7 +494,14 @@ RawAbstractType* NativeLoadFieldComp::StaticType() const {
 
 
 RawAbstractType* NativeStoreFieldComp::StaticType() const {
-  return value()->StaticType();
+  ASSERT(!type().IsNull());
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of field.
+    return type().raw();
+  }
+  return assigned_value_type.raw();
 }
 
 
