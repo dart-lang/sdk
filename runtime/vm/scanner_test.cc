@@ -40,7 +40,7 @@ void CheckKind(const Scanner::GrowableTokenStream &token_stream,
                Token::Kind kind) {
   if (token_stream[index].kind != kind) {
     OS::PrintErr("Token %d: expected kind %s but got %s\n", index,
-        Token::Name(token_stream[index].kind), Token::Name(kind));
+        Token::Name(kind), Token::Name(token_stream[index].kind));
   }
   EXPECT_EQ(kind, token_stream[index].kind);
 }
@@ -167,6 +167,79 @@ void StringEscapes() {
   EXPECT_EQ('\r', litchars[5]);
   EXPECT_EQ('\t', litchars[6]);
   EXPECT_EQ('\'', litchars[8]);
+}
+
+
+void InvalidStringEscapes() {
+  const Scanner::GrowableTokenStream& high_start_4 =
+      Scan("\"\\uD800\"");
+  EXPECT_EQ(2, high_start_4.length());
+  CheckKind(high_start_4, 0, Token::kERROR);
+  EXPECT(high_start_4[0].literal->Equals("invalid code point"));
+  CheckKind(high_start_4, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& high_start_seq =
+      Scan("\"\\u{D800}\"");
+  EXPECT_EQ(2, high_start_seq.length());
+  CheckKind(high_start_seq, 0, Token::kERROR);
+  EXPECT(high_start_seq[0].literal->Equals("invalid code point"));
+  CheckKind(high_start_seq, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& high_end_4 =
+      Scan("\"\\uDBFF\"");
+  EXPECT_EQ(2, high_end_4.length());
+  CheckKind(high_end_4, 0, Token::kERROR);
+  EXPECT(high_end_4[0].literal->Equals("invalid code point"));
+  CheckKind(high_end_4, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& high_end_seq =
+      Scan("\"\\u{DBFF}\"");
+  EXPECT_EQ(2, high_end_seq.length());
+  CheckKind(high_end_seq, 0, Token::kERROR);
+  EXPECT(high_end_seq[0].literal->Equals("invalid code point"));
+  CheckKind(high_end_seq, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& low_start_4 =
+      Scan("\"\\uDC00\"");
+  EXPECT_EQ(2, low_start_4.length());
+  CheckKind(low_start_4, 0, Token::kERROR);
+  EXPECT(low_start_4[0].literal->Equals("invalid code point"));
+  CheckKind(low_start_4, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& low_start_seq =
+      Scan("\"\\u{DC00}\"");
+  EXPECT_EQ(2, low_start_seq.length());
+  CheckKind(low_start_seq, 0, Token::kERROR);
+  EXPECT(low_start_seq[0].literal->Equals("invalid code point"));
+  CheckKind(low_start_seq, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& low_end_4 =
+      Scan("\"\\uDFFF\"");
+  EXPECT_EQ(2, low_end_4.length());
+  CheckKind(low_end_4, 0, Token::kERROR);
+  EXPECT(low_end_4[0].literal->Equals("invalid code point"));
+  CheckKind(low_end_4, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& low_end_seq =
+      Scan("\"\\u{DFFF}\"");
+  EXPECT_EQ(2, low_end_seq.length());
+  CheckKind(low_end_seq, 0, Token::kERROR);
+  EXPECT(low_end_seq[0].literal->Equals("invalid code point"));
+  CheckKind(low_end_seq, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& out_of_range_low =
+      Scan("\"\\u{110000}\"");
+  EXPECT_EQ(2, out_of_range_low.length());
+  CheckKind(out_of_range_low, 0, Token::kERROR);
+  EXPECT(out_of_range_low[0].literal->Equals("invalid code point"));
+  CheckKind(out_of_range_low, 1, Token::kEOS);
+
+  const Scanner::GrowableTokenStream& out_of_range_high =
+      Scan("\"\\u{FFFFFF}\"");
+  EXPECT_EQ(2, out_of_range_high.length());
+  CheckKind(out_of_range_high, 0, Token::kERROR);
+  EXPECT(out_of_range_high[0].literal->Equals("invalid code point"));
+  CheckKind(out_of_range_high, 1, Token::kEOS);
 }
 
 
@@ -358,6 +431,7 @@ TEST_CASE(Scanner_Test) {
   CommentTest();
   GreedIsGood();
   StringEscapes();
+  InvalidStringEscapes();
   RawString();
   MultilineString();
   EmptyString();

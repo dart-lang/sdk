@@ -473,7 +473,7 @@ bool Scanner::ScanHexDigits(int min_digits, int max_digits, uint32_t* value) {
 }
 
 
-bool Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
+void Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
   ASSERT(c0_ == 'u' || c0_ == 'x');
   bool is_valid;
   if (c0_ == 'x') {
@@ -486,15 +486,15 @@ bool Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
     if (is_valid) {
       if (c0_ != '}') {
         ErrorMsg("expected '}' after character code");
-        return false;
-      }
-      if (*code_point > 0x10FFFF) {
-        ErrorMsg("invalid code point");
-        return false;
+        return;
       }
     }
   }
-  return is_valid;
+  if (is_valid &&
+      ((*code_point > 0x10FFFF) ||
+       ((*code_point & 0xFFFFF800) == 0xD800))) {
+    ErrorMsg("invalid code point");
+  }
 }
 
 
@@ -534,12 +534,10 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
           escape_char = '\v';
           break;
         case 'u':
-        case 'x':
-          if (!ScanEscapedCodePoint(&escape_char)) {
-            EndStringLiteral();
-            return;
-          }
+        case 'x': {
+          ScanEscapedCodePoint(&escape_char);
           break;
+        }
         default:
           if ((c0_ == '\0') || ((c0_ == '\n') && !string_is_multiline_)) {
             ErrorMsg("unterminated string literal");
@@ -556,7 +554,10 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
       // Strings are canonicalized: Allocate a symbol.
       current_token_.literal = &String::ZoneHandle(
           String::NewSymbol(string_chars.data(), string_chars.length()));
-      current_token_.kind = Token::kSTRING;
+      // Preserve error tokens.
+      if (current_token_.kind != Token::kERROR) {
+        current_token_.kind = Token::kSTRING;
+      }
       return;
     } else if (c0_ == string_delimiter_) {
       // Check if we are at the end of the string literal.
@@ -567,11 +568,16 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
           ReadChar();  // Skip two string delimiters.
           ReadChar();
         }
-        Recognize(Token::kSTRING);
-        ASSERT(string_chars.data() != NULL);
-        // Strings are canonicalized: Allocate a symbol.
-        current_token_.literal = &String::ZoneHandle(
-            String::NewSymbol(string_chars.data(), string_chars.length()));
+        // Preserve error tokens.
+        if (current_token_.kind == Token::kERROR) {
+          ReadChar();
+        } else {
+          Recognize(Token::kSTRING);
+          ASSERT(string_chars.data() != NULL);
+          // Strings are canonicalized: Allocate a symbol.
+          current_token_.literal = &String::ZoneHandle(
+              String::NewSymbol(string_chars.data(), string_chars.length()));
+        }
         EndStringLiteral();
         return;
       } else {

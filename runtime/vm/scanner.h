@@ -172,7 +172,7 @@ class Scanner : ValueObject {
   bool ScanHexDigits(int min_digits, int max_digits, uint32_t* value);
 
   // Reads an escaped code point from within a string literal.
-  bool ScanEscapedCodePoint(uint32_t* escaped_char);
+  void ScanEscapedCodePoint(uint32_t* escaped_char);
 
   // Reads identifier.
   RawString* ConsumeIdentChars(bool allow_dollar);
