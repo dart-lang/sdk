@@ -53,6 +53,8 @@ _unwrap(raw) {
   return raw is _DOMTypeBase ? raw._ptr : raw;
 }
 
+unwrap_internal(raw) => _unwrap(raw);
+
 // Warning: does not attempt wrap event listeners.
 _wrap(raw) {
   if (raw is! dom.DOMType) return raw;
@@ -591,6 +593,8 @@ _wrap(raw) {
   }
 }
 
+wrap_internal(raw) => _wrap(raw);
+
 spawnDomIsolate(Window targetWindow, String entryPoint) =>
   dom.spawnDomIsolate(_unwrap(targetWindow), entryPoint);
 
@@ -600,22 +604,13 @@ dom.LayoutTestController get layoutTestController() =>
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
   _AbstractWorkerImpl._wrap(ptr) : super._wrap(ptr);
 
-  _AbstractWorkerEventsImpl get on() {
-    if (_on == null) _on = new _AbstractWorkerEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
-  _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error() => _get('error');
 }
 
 class _AnchorElementImpl extends _ElementImpl implements AnchorElement {
@@ -931,10 +926,7 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
   _AudioContextImpl._wrap(ptr) : super._wrap(ptr);
 
-  _AudioContextEventsImpl get on() {
-    if (_on == null) _on = new _AudioContextEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get activeSourceCount() => _wrap(_ptr.activeSourceCount);
 
@@ -981,12 +973,6 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) => _ptr.decodeAudioData(_unwrap(audioData), _unwrap(successCallback), _unwrap(errorCallback));
 
   void startRendering() => _ptr.startRendering();
-}
-
-class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
-  _AudioContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get complete() => _get('complete');
 }
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode {
@@ -1174,10 +1160,7 @@ class _BaseFontElementImpl extends _ElementImpl implements BaseFontElement {
 class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
   _BatteryManagerImpl._wrap(ptr) : super._wrap(ptr);
 
-  _BatteryManagerEventsImpl get on() {
-    if (_on == null) _on = new _BatteryManagerEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   bool get charging() => _wrap(_ptr.charging);
 
@@ -1192,18 +1175,6 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
   bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
-  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get chargingChange() => _get('chargingchange');
-
-  EventListenerList get chargingTimeChange() => _get('chargingtimechange');
-
-  EventListenerList get dischargingTimeChange() => _get('dischargingtimechange');
-
-  EventListenerList get levelChange() => _get('levelchange');
 }
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent {
@@ -1241,10 +1212,7 @@ class _BlobImpl extends _DOMTypeBase implements Blob {
 class _BodyElementImpl extends _ElementImpl implements BodyElement {
   _BodyElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  _BodyElementEventsImpl get on() {
-    if (_on == null) _on = new _BodyElementEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get aLink() => _wrap(_ptr.aLink);
 
@@ -1265,36 +1233,6 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement {
   String get vLink() => _wrap(_ptr.vLink);
 
   void set vLink(String value) { _ptr.vLink = _unwrap(value); }
-}
-
-class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
-  _BodyElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get beforeUnload() => _get('beforeunload');
-
-  EventListenerList get blur() => _get('blur');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get focus() => _get('focus');
-
-  EventListenerList get hashChange() => _get('hashchange');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get message() => _get('message');
-
-  EventListenerList get offline() => _get('offline');
-
-  EventListenerList get online() => _get('online');
-
-  EventListenerList get popState() => _get('popstate');
-
-  EventListenerList get resize() => _get('resize');
-
-  EventListenerList get storage() => _get('storage');
-
-  EventListenerList get unload() => _get('unload');
 }
 
 class _ButtonElementImpl extends _ElementImpl implements ButtonElement {
@@ -4859,10 +4797,7 @@ class _DListElementImpl extends _ElementImpl implements DListElement {
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache {
   _DOMApplicationCacheImpl._wrap(ptr) : super._wrap(ptr);
 
-  _DOMApplicationCacheEventsImpl get on() {
-    if (_on == null) _on = new _DOMApplicationCacheEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get status() => _wrap(_ptr.status);
 
@@ -4877,26 +4812,6 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
   void swapCache() => _ptr.swapCache();
 
   void update() => _ptr.update();
-}
-
-class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
-  _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get cached() => _get('cached');
-
-  EventListenerList get checking() => _get('checking');
-
-  EventListenerList get downloading() => _get('downloading');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get noUpdate() => _get('noupdate');
-
-  EventListenerList get obsolete() => _get('obsolete');
-
-  EventListenerList get progress() => _get('progress');
-
-  EventListenerList get updateReady() => _get('updateready');
 }
 
 class _DOMExceptionImpl extends _DOMTypeBase implements DOMException {
@@ -5272,20 +5187,11 @@ class _DatabaseSyncImpl extends _DOMTypeBase implements DatabaseSync {
 class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements DedicatedWorkerContext {
   _DedicatedWorkerContextImpl._wrap(ptr) : super._wrap(ptr);
 
-  _DedicatedWorkerContextEventsImpl get on() {
-    if (_on == null) _on = new _DedicatedWorkerContextEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   void postMessage(Object message, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
 
   void webkitPostMessage(Object message, [List transferList = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(transferList));
-}
-
-class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
-  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message() => _get('message');
 }
 
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
@@ -5297,10 +5203,7 @@ class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
 class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements DeprecatedPeerConnection {
   _DeprecatedPeerConnectionImpl._wrap(ptr) : super._wrap(ptr);
 
-  _DeprecatedPeerConnectionEventsImpl get on() {
-    if (_on == null) _on = new _DeprecatedPeerConnectionEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   MediaStreamList get localStreams() => _wrap(_ptr.localStreams);
 
@@ -5323,22 +5226,6 @@ class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements Deprecat
   void removeStream(MediaStream stream) => _ptr.removeStream(_unwrap(stream));
 
   void send(String text) => _ptr.send(_unwrap(text));
-}
-
-class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
-  _DeprecatedPeerConnectionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream() => _get('addstream');
-
-  EventListenerList get connecting() => _get('connecting');
-
-  EventListenerList get message() => _get('message');
-
-  EventListenerList get open() => _get('open');
-
-  EventListenerList get removeStream() => _get('removestream');
-
-  EventListenerList get stateChange() => _get('statechange');
 }
 
 class _DetailsElementImpl extends _ElementImpl implements DetailsElement {
@@ -5430,10 +5317,7 @@ class _DocumentImpl extends _NodeImpl
 
   _DocumentImpl._wrap(ptr) : super._wrap(ptr);
 
-  _DocumentEventsImpl get on() {
-    if (_on == null) _on = new _DocumentEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   Element get activeElement() => _wrap(_ptr.activeElement);
 
@@ -5580,104 +5464,6 @@ class _DocumentImpl extends _NodeImpl
       return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
     }
   }
-}
-
-class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
-  _DocumentEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get beforeCopy() => _get('beforecopy');
-
-  EventListenerList get beforeCut() => _get('beforecut');
-
-  EventListenerList get beforePaste() => _get('beforepaste');
-
-  EventListenerList get blur() => _get('blur');
-
-  EventListenerList get change() => _get('change');
-
-  EventListenerList get click() => _get('click');
-
-  EventListenerList get contextMenu() => _get('contextmenu');
-
-  EventListenerList get copy() => _get('copy');
-
-  EventListenerList get cut() => _get('cut');
-
-  EventListenerList get doubleClick() => _get('dblclick');
-
-  EventListenerList get drag() => _get('drag');
-
-  EventListenerList get dragEnd() => _get('dragend');
-
-  EventListenerList get dragEnter() => _get('dragenter');
-
-  EventListenerList get dragLeave() => _get('dragleave');
-
-  EventListenerList get dragOver() => _get('dragover');
-
-  EventListenerList get dragStart() => _get('dragstart');
-
-  EventListenerList get drop() => _get('drop');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get focus() => _get('focus');
-
-  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
-
-  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
-
-  EventListenerList get input() => _get('input');
-
-  EventListenerList get invalid() => _get('invalid');
-
-  EventListenerList get keyDown() => _get('keydown');
-
-  EventListenerList get keyPress() => _get('keypress');
-
-  EventListenerList get keyUp() => _get('keyup');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get mouseDown() => _get('mousedown');
-
-  EventListenerList get mouseMove() => _get('mousemove');
-
-  EventListenerList get mouseOut() => _get('mouseout');
-
-  EventListenerList get mouseOver() => _get('mouseover');
-
-  EventListenerList get mouseUp() => _get('mouseup');
-
-  EventListenerList get mouseWheel() => _get('mousewheel');
-
-  EventListenerList get paste() => _get('paste');
-
-  EventListenerList get readyStateChange() => _get('readystatechange');
-
-  EventListenerList get reset() => _get('reset');
-
-  EventListenerList get scroll() => _get('scroll');
-
-  EventListenerList get search() => _get('search');
-
-  EventListenerList get select() => _get('select');
-
-  EventListenerList get selectStart() => _get('selectstart');
-
-  EventListenerList get selectionChange() => _get('selectionchange');
-
-  EventListenerList get submit() => _get('submit');
-
-  EventListenerList get touchCancel() => _get('touchcancel');
-
-  EventListenerList get touchEnd() => _get('touchend');
-
-  EventListenerList get touchMove() => _get('touchmove');
-
-  EventListenerList get touchStart() => _get('touchstart');
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6023,10 +5809,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 
   _DocumentFragmentImpl._wrap(ptr) : super._wrap(ptr);
 
-  _ElementEventsImpl get on() {
-    if (_on == null) _on = new _ElementEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
 
@@ -6790,10 +6573,7 @@ class _ElementImpl extends _NodeImpl implements Element {
   }
   _ElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  _ElementEventsImpl get on() {
-    if (_on == null) _on = new _ElementEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get $dom_childElementCount() => _wrap(_ptr.childElementCount);
 
@@ -7003,106 +6783,6 @@ class _ElementFactoryProvider {
   factory Element.tag(String tag) => _document.$dom_createElement(tag);
 }
 
-class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
-  _ElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get beforeCopy() => _get('beforecopy');
-
-  EventListenerList get beforeCut() => _get('beforecut');
-
-  EventListenerList get beforePaste() => _get('beforepaste');
-
-  EventListenerList get blur() => _get('blur');
-
-  EventListenerList get change() => _get('change');
-
-  EventListenerList get click() => _get('click');
-
-  EventListenerList get contextMenu() => _get('contextmenu');
-
-  EventListenerList get copy() => _get('copy');
-
-  EventListenerList get cut() => _get('cut');
-
-  EventListenerList get doubleClick() => _get('dblclick');
-
-  EventListenerList get drag() => _get('drag');
-
-  EventListenerList get dragEnd() => _get('dragend');
-
-  EventListenerList get dragEnter() => _get('dragenter');
-
-  EventListenerList get dragLeave() => _get('dragleave');
-
-  EventListenerList get dragOver() => _get('dragover');
-
-  EventListenerList get dragStart() => _get('dragstart');
-
-  EventListenerList get drop() => _get('drop');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get focus() => _get('focus');
-
-  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
-
-  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
-
-  EventListenerList get input() => _get('input');
-
-  EventListenerList get invalid() => _get('invalid');
-
-  EventListenerList get keyDown() => _get('keydown');
-
-  EventListenerList get keyPress() => _get('keypress');
-
-  EventListenerList get keyUp() => _get('keyup');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get mouseDown() => _get('mousedown');
-
-  EventListenerList get mouseMove() => _get('mousemove');
-
-  EventListenerList get mouseOut() => _get('mouseout');
-
-  EventListenerList get mouseOver() => _get('mouseover');
-
-  EventListenerList get mouseUp() => _get('mouseup');
-
-  EventListenerList get mouseWheel() => _get('mousewheel');
-
-  EventListenerList get paste() => _get('paste');
-
-  EventListenerList get reset() => _get('reset');
-
-  EventListenerList get scroll() => _get('scroll');
-
-  EventListenerList get search() => _get('search');
-
-  EventListenerList get select() => _get('select');
-
-  EventListenerList get selectStart() => _get('selectstart');
-
-  EventListenerList get submit() => _get('submit');
-
-  EventListenerList get touchCancel() => _get('touchcancel');
-
-  EventListenerList get touchEnd() => _get('touchend');
-
-  EventListenerList get touchEnter() => _get('touchenter');
-
-  EventListenerList get touchLeave() => _get('touchleave');
-
-  EventListenerList get touchMove() => _get('touchmove');
-
-  EventListenerList get touchStart() => _get('touchstart');
-
-  EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
-}
-
 class _ElementTimeControlImpl extends _DOMTypeBase implements ElementTimeControl {
   _ElementTimeControlImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -7304,10 +6984,7 @@ class _EventExceptionImpl extends _DOMTypeBase implements EventException {
 class _EventSourceImpl extends _EventTargetImpl implements EventSource {
   _EventSourceImpl._wrap(ptr) : super._wrap(ptr);
 
-  _EventSourceEventsImpl get on() {
-    if (_on == null) _on = new _EventSourceEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get URL() => _wrap(_ptr.URL);
 
@@ -7322,16 +6999,6 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
   bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
-  _EventSourceEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get message() => _get('message');
-
-  EventListenerList get open() => _get('open');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7619,10 +7286,7 @@ class _FileListImpl extends _DOMTypeBase implements FileList {
 class _FileReaderImpl extends _EventTargetImpl implements FileReader {
   _FileReaderImpl._wrap(ptr) : super._wrap(ptr);
 
-  _FileReaderEventsImpl get on() {
-    if (_on == null) _on = new _FileReaderEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   FileError get error() => _wrap(_ptr.error);
 
@@ -7647,22 +7311,6 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
-class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
-  _FileReaderEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get loadEnd() => _get('loadend');
-
-  EventListenerList get loadStart() => _get('loadstart');
-
-  EventListenerList get progress() => _get('progress');
-}
-
 class _FileReaderSyncImpl extends _DOMTypeBase implements FileReaderSync {
   _FileReaderSyncImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -7678,10 +7326,7 @@ class _FileReaderSyncImpl extends _DOMTypeBase implements FileReaderSync {
 class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
   _FileWriterImpl._wrap(ptr) : super._wrap(ptr);
 
-  _FileWriterEventsImpl get on() {
-    if (_on == null) _on = new _FileWriterEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   FileError get error() => _wrap(_ptr.error);
 
@@ -7704,22 +7349,6 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
   void truncate(int size) => _ptr.truncate(_unwrap(size));
 
   void write(Blob data) => _ptr.write(_unwrap(data));
-}
-
-class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
-  _FileWriterEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get progress() => _get('progress');
-
-  EventListenerList get write() => _get('write');
-
-  EventListenerList get writeEnd() => _get('writeend');
-
-  EventListenerList get writeStart() => _get('writestart');
 }
 
 class _FileWriterSyncImpl extends _DOMTypeBase implements FileWriterSync {
@@ -8037,10 +7666,7 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement {
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement {
   _FrameSetElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  _FrameSetElementEventsImpl get on() {
-    if (_on == null) _on = new _FrameSetElementEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get cols() => _wrap(_ptr.cols);
 
@@ -8049,36 +7675,6 @@ class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement {
   String get rows() => _wrap(_ptr.rows);
 
   void set rows(String value) { _ptr.rows = _unwrap(value); }
-}
-
-class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
-  _FrameSetElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get beforeUnload() => _get('beforeunload');
-
-  EventListenerList get blur() => _get('blur');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get focus() => _get('focus');
-
-  EventListenerList get hashChange() => _get('hashchange');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get message() => _get('message');
-
-  EventListenerList get offline() => _get('offline');
-
-  EventListenerList get online() => _get('online');
-
-  EventListenerList get popState() => _get('popstate');
-
-  EventListenerList get resize() => _get('resize');
-
-  EventListenerList get storage() => _get('storage');
-
-  EventListenerList get unload() => _get('unload');
 }
 
 class _GeolocationImpl extends _DOMTypeBase implements Geolocation {
@@ -8318,10 +7914,7 @@ class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithVal
 class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
   _IDBDatabaseImpl._wrap(ptr) : super._wrap(ptr);
 
-  _IDBDatabaseEventsImpl get on() {
-    if (_on == null) _on = new _IDBDatabaseEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get name() => _wrap(_ptr.name);
 
@@ -8344,16 +7937,6 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
   IDBVersionChangeRequest setVersion(String version) => _wrap(_ptr.setVersion(_unwrap(version)));
 
   IDBTransaction transaction(storeName_OR_storeNames, mode) => _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
-}
-
-class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
-  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get versionChange() => _get('versionchange');
 }
 
 class _IDBDatabaseExceptionImpl extends _DOMTypeBase implements IDBDatabaseException {
@@ -8455,10 +8038,7 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
   _IDBRequestImpl._wrap(ptr) : super._wrap(ptr);
 
-  _IDBRequestEventsImpl get on() {
-    if (_on == null) _on = new _IDBRequestEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get errorCode() => _wrap(_ptr.errorCode);
 
@@ -8479,21 +8059,10 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
-class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
-  _IDBRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get success() => _get('success');
-}
-
 class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
   _IDBTransactionImpl._wrap(ptr) : super._wrap(ptr);
 
-  _IDBTransactionEventsImpl get on() {
-    if (_on == null) _on = new _IDBTransactionEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   IDBDatabase get db() => _wrap(_ptr.db);
 
@@ -8510,16 +8079,6 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
-class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
-  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get complete() => _get('complete');
-
-  EventListenerList get error() => _get('error');
-}
-
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent {
   _IDBVersionChangeEventImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -8529,10 +8088,7 @@ class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeE
 class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersionChangeRequest {
   _IDBVersionChangeRequestImpl._wrap(ptr) : super._wrap(ptr);
 
-  _IDBVersionChangeRequestEventsImpl get on() {
-    if (_on == null) _on = new _IDBVersionChangeRequestEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   // From EventTarget
 
@@ -8541,12 +8097,6 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
   bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
-  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get blocked() => _get('blocked');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8701,10 +8251,7 @@ class _ImageElementImpl extends _ElementImpl implements ImageElement {
 class _InputElementImpl extends _ElementImpl implements InputElement {
   _InputElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  _InputElementEventsImpl get on() {
-    if (_on == null) _on = new _InputElementEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get accept() => _wrap(_ptr.accept);
 
@@ -8893,12 +8440,6 @@ class _InputElementImpl extends _ElementImpl implements InputElement {
   void stepDown([int n = null]) => _ptr.stepDown(_unwrap(n));
 
   void stepUp([int n = null]) => _ptr.stepUp(_unwrap(n));
-}
-
-class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
-  _InputElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get speechChange() => _get('webkitSpeechChange');
 }
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int> {
@@ -9180,10 +8721,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode {
   _JavaScriptAudioNodeImpl._wrap(ptr) : super._wrap(ptr);
 
-  _JavaScriptAudioNodeEventsImpl get on() {
-    if (_on == null) _on = new _JavaScriptAudioNodeEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get bufferSize() => _wrap(_ptr.bufferSize);
 
@@ -9194,12 +8732,6 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
   bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
-  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioProcess() => _get('audioprocess');
 }
 
 class _JavaScriptCallFrameImpl extends _DOMTypeBase implements JavaScriptCallFrame {
@@ -9529,10 +9061,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 class _MediaElementImpl extends _ElementImpl implements MediaElement {
   _MediaElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  _MediaElementEventsImpl get on() {
-    if (_on == null) _on = new _MediaElementEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   bool get autoplay() => _wrap(_ptr.autoplay);
 
@@ -9651,18 +9180,6 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement {
   void webkitSourceAppend(Uint8Array data) => _ptr.webkitSourceAppend(_unwrap(data));
 
   void webkitSourceEndOfStream(int status) => _ptr.webkitSourceEndOfStream(_unwrap(status));
-}
-
-class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
-  _MediaElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get keyAdded() => _get('webkitkeyadded');
-
-  EventListenerList get keyError() => _get('webkitkeyerror');
-
-  EventListenerList get keyMessage() => _get('webkitkeymessage');
-
-  EventListenerList get needKey() => _get('webkitneedkey');
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode {
@@ -9820,10 +9337,7 @@ class _MediaQueryListListenerImpl extends _DOMTypeBase implements MediaQueryList
 class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
   _MediaStreamImpl._wrap(ptr) : super._wrap(ptr);
 
-  _MediaStreamEventsImpl get on() {
-    if (_on == null) _on = new _MediaStreamEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   MediaStreamTrackList get audioTracks() => _wrap(_ptr.audioTracks);
 
@@ -9838,12 +9352,6 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
   bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
-  _MediaStreamEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get ended() => _get('ended');
 }
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
@@ -9927,10 +9435,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent {
 class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
   _MessagePortImpl._wrap(ptr) : super._wrap(ptr);
 
-  _MessagePortEventsImpl get on() {
-    if (_on == null) _on = new _MessagePortEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
@@ -9945,12 +9450,6 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
   void start() => _ptr.start();
 
   void webkitPostMessage(String message, [List transfer = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(transfer));
-}
-
-class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
-  _MessagePortEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message() => _get('message');
 }
 
 class _MetaElementImpl extends _ElementImpl implements MetaElement {
@@ -10666,10 +10165,7 @@ class _NotationImpl extends _NodeImpl implements Notation {
 class _NotificationImpl extends _EventTargetImpl implements Notification {
   _NotificationImpl._wrap(ptr) : super._wrap(ptr);
 
-  _NotificationEventsImpl get on() {
-    if (_on == null) _on = new _NotificationEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get dir() => _wrap(_ptr.dir);
 
@@ -10688,20 +10184,6 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
   void close() => _ptr.close();
 
   void show() => _ptr.show();
-}
-
-class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
-  _NotificationEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get click() => _get('click');
-
-  EventListenerList get close() => _get('close');
-
-  EventListenerList get display() => _get('display');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get show() => _get('show');
 }
 
 class _NotificationCenterImpl extends _DOMTypeBase implements NotificationCenter {
@@ -10999,10 +10481,7 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement {
 class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00 {
   _PeerConnection00Impl._wrap(ptr) : super._wrap(ptr);
 
-  _PeerConnection00EventsImpl get on() {
-    if (_on == null) _on = new _PeerConnection00EventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get iceState() => _wrap(_ptr.iceState);
 
@@ -11039,20 +10518,6 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
   void setRemoteDescription(int action, SessionDescription desc) => _ptr.setRemoteDescription(_unwrap(action), _unwrap(desc));
 
   void startIce([Map iceOptions = null]) => _ptr.startIce(_unwrap(iceOptions));
-}
-
-class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
-  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream() => _get('addstream');
-
-  EventListenerList get connecting() => _get('connecting');
-
-  EventListenerList get open() => _get('open');
-
-  EventListenerList get removeStream() => _get('removestream');
-
-  EventListenerList get stateChange() => _get('statechange');
 }
 
 class _PerformanceImpl extends _DOMTypeBase implements Performance {
@@ -11985,10 +11450,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 class _SVGElementInstanceImpl extends _DOMTypeBase implements SVGElementInstance {
   _SVGElementInstanceImpl._wrap(ptr) : super._wrap(ptr);
 
-  _SVGElementInstanceEventsImpl get on() {
-    if (_on == null) _on = new _SVGElementInstanceEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   SVGElementInstanceList get childNodes() => _wrap(_ptr.childNodes);
 
@@ -12011,90 +11473,6 @@ class _SVGElementInstanceImpl extends _DOMTypeBase implements SVGElementInstance
   bool dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
-  _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get beforeCopy() => _get('beforecopy');
-
-  EventListenerList get beforeCut() => _get('beforecut');
-
-  EventListenerList get beforePaste() => _get('beforepaste');
-
-  EventListenerList get blur() => _get('blur');
-
-  EventListenerList get change() => _get('change');
-
-  EventListenerList get click() => _get('click');
-
-  EventListenerList get contextMenu() => _get('contextmenu');
-
-  EventListenerList get copy() => _get('copy');
-
-  EventListenerList get cut() => _get('cut');
-
-  EventListenerList get doubleClick() => _get('dblclick');
-
-  EventListenerList get drag() => _get('drag');
-
-  EventListenerList get dragEnd() => _get('dragend');
-
-  EventListenerList get dragEnter() => _get('dragenter');
-
-  EventListenerList get dragLeave() => _get('dragleave');
-
-  EventListenerList get dragOver() => _get('dragover');
-
-  EventListenerList get dragStart() => _get('dragstart');
-
-  EventListenerList get drop() => _get('drop');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get focus() => _get('focus');
-
-  EventListenerList get input() => _get('input');
-
-  EventListenerList get keyDown() => _get('keydown');
-
-  EventListenerList get keyPress() => _get('keypress');
-
-  EventListenerList get keyUp() => _get('keyup');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get mouseDown() => _get('mousedown');
-
-  EventListenerList get mouseMove() => _get('mousemove');
-
-  EventListenerList get mouseOut() => _get('mouseout');
-
-  EventListenerList get mouseOver() => _get('mouseover');
-
-  EventListenerList get mouseUp() => _get('mouseup');
-
-  EventListenerList get mouseWheel() => _get('mousewheel');
-
-  EventListenerList get paste() => _get('paste');
-
-  EventListenerList get reset() => _get('reset');
-
-  EventListenerList get resize() => _get('resize');
-
-  EventListenerList get scroll() => _get('scroll');
-
-  EventListenerList get search() => _get('search');
-
-  EventListenerList get select() => _get('select');
-
-  EventListenerList get selectStart() => _get('selectstart');
-
-  EventListenerList get submit() => _get('submit');
-
-  EventListenerList get unload() => _get('unload');
 }
 
 class _SVGElementInstanceListImpl extends _DOMTypeBase implements SVGElementInstanceList {
@@ -15158,18 +14536,9 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
 class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorkerContext {
   _SharedWorkerContextImpl._wrap(ptr) : super._wrap(ptr);
 
-  _SharedWorkerContextEventsImpl get on() {
-    if (_on == null) _on = new _SharedWorkerContextEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get name() => _wrap(_ptr.name);
-}
-
-class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
-  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get connect() => _get('connect');
 }
 
 class _SourceElementImpl extends _ElementImpl implements SourceElement {
@@ -15241,10 +14610,7 @@ class _SpeechInputResultListImpl extends _DOMTypeBase implements SpeechInputResu
 class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecognition {
   _SpeechRecognitionImpl._wrap(ptr) : super._wrap(ptr);
 
-  _SpeechRecognitionEventsImpl get on() {
-    if (_on == null) _on = new _SpeechRecognitionEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   bool get continuous() => _wrap(_ptr.continuous);
 
@@ -15269,34 +14635,6 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
   void start() => _ptr.start();
 
   void stop() => _ptr.stop();
-}
-
-class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
-  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioEnd() => _get('audioend');
-
-  EventListenerList get audioStart() => _get('audiostart');
-
-  EventListenerList get end() => _get('end');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get noMatch() => _get('nomatch');
-
-  EventListenerList get result() => _get('result');
-
-  EventListenerList get resultDeleted() => _get('resultdeleted');
-
-  EventListenerList get soundEnd() => _get('soundend');
-
-  EventListenerList get soundStart() => _get('soundstart');
-
-  EventListenerList get speechEnd() => _get('speechend');
-
-  EventListenerList get speechStart() => _get('speechstart');
-
-  EventListenerList get start() => _get('start');
 }
 
 class _SpeechRecognitionAlternativeImpl extends _DOMTypeBase implements SpeechRecognitionAlternative {
@@ -15921,10 +15259,7 @@ class _TextMetricsImpl extends _DOMTypeBase implements TextMetrics {
 class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
   _TextTrackImpl._wrap(ptr) : super._wrap(ptr);
 
-  _TextTrackEventsImpl get on() {
-    if (_on == null) _on = new _TextTrackEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   TextTrackCueList get activeCues() => _wrap(_ptr.activeCues);
 
@@ -15951,19 +15286,10 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
-class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
-  _TextTrackEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get cueChange() => _get('cuechange');
-}
-
 class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
   _TextTrackCueImpl._wrap(ptr) : super._wrap(ptr);
 
-  _TextTrackCueEventsImpl get on() {
-    if (_on == null) _on = new _TextTrackCueEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get align() => _wrap(_ptr.align);
 
@@ -16020,14 +15346,6 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
-class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
-  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get enter() => _get('enter');
-
-  EventListenerList get exit() => _get('exit');
-}
-
 class _TextTrackCueListImpl extends _DOMTypeBase implements TextTrackCueList {
   _TextTrackCueListImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -16041,10 +15359,7 @@ class _TextTrackCueListImpl extends _DOMTypeBase implements TextTrackCueList {
 class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   _TextTrackListImpl._wrap(ptr) : super._wrap(ptr);
 
-  _TextTrackListEventsImpl get on() {
-    if (_on == null) _on = new _TextTrackListEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   int get length() => _wrap(_ptr.length);
 
@@ -16055,12 +15370,6 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   TextTrack item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
-  _TextTrackListEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addTrack() => _get('addtrack');
 }
 
 class _TimeRangesImpl extends _DOMTypeBase implements TimeRanges {
@@ -17104,10 +16413,7 @@ class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
   _WebSocketImpl._wrap(ptr) : super._wrap(ptr);
 
-  _WebSocketEventsImpl get on() {
-    if (_on == null) _on = new _WebSocketEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   String get URL() => _wrap(_ptr.URL);
 
@@ -17134,18 +16440,6 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   bool send(String data) => _wrap(_ptr.send(_unwrap(data)));
-}
-
-class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
-  _WebSocketEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get close() => _get('close');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get message() => _get('message');
-
-  EventListenerList get open() => _get('open');
 }
 
 class _WheelEventImpl extends _UIEventImpl implements WheelEvent {
@@ -17204,10 +16498,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   _WindowImpl._wrap(ptr) : super._wrap(ptr);
 
-  _WindowEventsImpl get on() {
-    if (_on == null) _on = new _WindowEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   DOMApplicationCache get applicationCache() => _wrap(_ptr.applicationCache);
 
@@ -17401,165 +16692,10 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
 }
 
-class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
-  _WindowEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get animationEnd() => _get('webkitAnimationEnd');
-
-  EventListenerList get animationIteration() => _get('webkitAnimationIteration');
-
-  EventListenerList get animationStart() => _get('webkitAnimationStart');
-
-  EventListenerList get beforeUnload() => _get('beforeunload');
-
-  EventListenerList get blur() => _get('blur');
-
-  EventListenerList get canPlay() => _get('canplay');
-
-  EventListenerList get canPlayThrough() => _get('canplaythrough');
-
-  EventListenerList get change() => _get('change');
-
-  EventListenerList get click() => _get('click');
-
-  EventListenerList get contentLoaded() => _get('DOMContentLoaded');
-
-  EventListenerList get contextMenu() => _get('contextmenu');
-
-  EventListenerList get deviceMotion() => _get('devicemotion');
-
-  EventListenerList get deviceOrientation() => _get('deviceorientation');
-
-  EventListenerList get doubleClick() => _get('dblclick');
-
-  EventListenerList get drag() => _get('drag');
-
-  EventListenerList get dragEnd() => _get('dragend');
-
-  EventListenerList get dragEnter() => _get('dragenter');
-
-  EventListenerList get dragLeave() => _get('dragleave');
-
-  EventListenerList get dragOver() => _get('dragover');
-
-  EventListenerList get dragStart() => _get('dragstart');
-
-  EventListenerList get drop() => _get('drop');
-
-  EventListenerList get durationChange() => _get('durationchange');
-
-  EventListenerList get emptied() => _get('emptied');
-
-  EventListenerList get ended() => _get('ended');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get focus() => _get('focus');
-
-  EventListenerList get hashChange() => _get('hashchange');
-
-  EventListenerList get input() => _get('input');
-
-  EventListenerList get invalid() => _get('invalid');
-
-  EventListenerList get keyDown() => _get('keydown');
-
-  EventListenerList get keyPress() => _get('keypress');
-
-  EventListenerList get keyUp() => _get('keyup');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get loadStart() => _get('loadstart');
-
-  EventListenerList get loadedData() => _get('loadeddata');
-
-  EventListenerList get loadedMetadata() => _get('loadedmetadata');
-
-  EventListenerList get message() => _get('message');
-
-  EventListenerList get mouseDown() => _get('mousedown');
-
-  EventListenerList get mouseMove() => _get('mousemove');
-
-  EventListenerList get mouseOut() => _get('mouseout');
-
-  EventListenerList get mouseOver() => _get('mouseover');
-
-  EventListenerList get mouseUp() => _get('mouseup');
-
-  EventListenerList get mouseWheel() => _get('mousewheel');
-
-  EventListenerList get offline() => _get('offline');
-
-  EventListenerList get online() => _get('online');
-
-  EventListenerList get pageHide() => _get('pagehide');
-
-  EventListenerList get pageShow() => _get('pageshow');
-
-  EventListenerList get pause() => _get('pause');
-
-  EventListenerList get play() => _get('play');
-
-  EventListenerList get playing() => _get('playing');
-
-  EventListenerList get popState() => _get('popstate');
-
-  EventListenerList get progress() => _get('progress');
-
-  EventListenerList get rateChange() => _get('ratechange');
-
-  EventListenerList get reset() => _get('reset');
-
-  EventListenerList get resize() => _get('resize');
-
-  EventListenerList get scroll() => _get('scroll');
-
-  EventListenerList get search() => _get('search');
-
-  EventListenerList get seeked() => _get('seeked');
-
-  EventListenerList get seeking() => _get('seeking');
-
-  EventListenerList get select() => _get('select');
-
-  EventListenerList get stalled() => _get('stalled');
-
-  EventListenerList get storage() => _get('storage');
-
-  EventListenerList get submit() => _get('submit');
-
-  EventListenerList get suspend() => _get('suspend');
-
-  EventListenerList get timeUpdate() => _get('timeupdate');
-
-  EventListenerList get touchCancel() => _get('touchcancel');
-
-  EventListenerList get touchEnd() => _get('touchend');
-
-  EventListenerList get touchMove() => _get('touchmove');
-
-  EventListenerList get touchStart() => _get('touchstart');
-
-  EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
-
-  EventListenerList get unload() => _get('unload');
-
-  EventListenerList get volumeChange() => _get('volumechange');
-
-  EventListenerList get waiting() => _get('waiting');
-}
-
 class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
   _WorkerImpl._wrap(ptr) : super._wrap(ptr);
 
-  _WorkerEventsImpl get on() {
-    if (_on == null) _on = new _WorkerEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
 
@@ -17568,19 +16704,10 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
   void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts = null]) => _ptr.webkitPostMessage(_unwrap(message), _unwrap(messagePorts));
 }
 
-class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
-  _WorkerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message() => _get('message');
-}
-
 class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
   _WorkerContextImpl._wrap(ptr) : super._wrap(ptr);
 
-  _WorkerContextEventsImpl get on() {
-    if (_on == null) _on = new _WorkerContextEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   WorkerLocation get location() => _wrap(_ptr.location);
 
@@ -17623,12 +16750,6 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) => _ptr.webkitResolveLocalFileSystemURL(_unwrap(url), _unwrap(successCallback), _unwrap(errorCallback));
 }
 
-class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
-  _WorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error() => _get('error');
-}
-
 class _WorkerLocationImpl extends _DOMTypeBase implements WorkerLocation {
   _WorkerLocationImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -17668,10 +16789,7 @@ class _WorkerNavigatorImpl extends _DOMTypeBase implements WorkerNavigator {
 class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
   _XMLHttpRequestImpl._wrap(ptr) : super._wrap(ptr);
 
-  _XMLHttpRequestEventsImpl get on() {
-    if (_on == null) _on = new _XMLHttpRequestEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   bool get asBlob() => _wrap(_ptr.asBlob);
 
@@ -17722,24 +16840,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
   void setRequestHeader(String header, String value) => _ptr.setRequestHeader(_unwrap(header), _unwrap(value));
 }
 
-class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEvents {
-  _XMLHttpRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get loadEnd() => _get('loadend');
-
-  EventListenerList get loadStart() => _get('loadstart');
-
-  EventListenerList get progress() => _get('progress');
-
-  EventListenerList get readyStateChange() => _get('readystatechange');
-}
-
 class _XMLHttpRequestExceptionImpl extends _DOMTypeBase implements XMLHttpRequestException {
   _XMLHttpRequestExceptionImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -17763,32 +16863,13 @@ class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements XML
 class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpRequestUpload {
   _XMLHttpRequestUploadImpl._wrap(ptr) : super._wrap(ptr);
 
-  _XMLHttpRequestUploadEventsImpl get on() {
-    if (_on == null) _on = new _XMLHttpRequestUploadEventsImpl(this);
-    return _on;
-  }
+  Events get on() => _ptr.on;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-}
-
-class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {
-  _XMLHttpRequestUploadEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort() => _get('abort');
-
-  EventListenerList get error() => _get('error');
-
-  EventListenerList get load() => _get('load');
-
-  EventListenerList get loadEnd() => _get('loadend');
-
-  EventListenerList get loadStart() => _get('loadstart');
-
-  EventListenerList get progress() => _get('progress');
 }
 
 class _XMLSerializerImpl extends _DOMTypeBase implements XMLSerializer {
