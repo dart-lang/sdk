@@ -4,6 +4,9 @@
 
 #library('uri');
 
+#import('dart:utf');
+
+#source('encode_decode.dart');
 #source('helpers.dart');
 
 /**

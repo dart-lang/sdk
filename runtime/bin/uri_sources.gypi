@@ -7,5 +7,6 @@
   'sources': [
     '../../lib/uri/uri.dart',
     '../../lib/uri/helpers.dart',
+    '../../lib/uri/encode_decode.dart',
   ],
 }
