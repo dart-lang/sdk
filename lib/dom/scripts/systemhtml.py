@@ -464,11 +464,11 @@ def DomToHtmlEvent(event_name):
 # ------------------------------------------------------------------------------
 class HtmlSystemShared(object):
 
-  def __init__(self, database, generator):
+  def __init__(self, database):
     self._event_classes = set()
     self._seen_event_names = {}
     self._database = database
-    self._generator = generator
+    self._inheritance_closure = _ComputeInheritanceClosure(database)
 
   def _AllowInHtmlLibrary(self, interface, member, member_prefix):
     return not self._Matches(interface, member, member_prefix,
@@ -482,9 +482,7 @@ class HtmlSystemShared(object):
     return False
 
   def _AllAncestorInterfaces(self, interface):
-    interfaces = ([interface.id] +
-        self._generator._AllImplementedInterfaces(interface))
-    return interfaces
+    return [interface.id] + self._inheritance_closure[interface.id]
 
   def RenameInHtmlLibrary(self, interface, member, member_prefix='',
                           implementation_class=False):
@@ -579,16 +577,16 @@ class HtmlSystemShared(object):
 
 class HtmlSystem(System):
 
-  def __init__(self, templates, database, emitters, output_dir, generator):
+  def __init__(self, templates, database, emitters, output_dir):
     super(HtmlSystem, self).__init__(
         templates, database, emitters, output_dir)
-    self._shared = HtmlSystemShared(database, generator)
+    self._shared = HtmlSystemShared(database)
 
 class HtmlInterfacesSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, output_dir, generator):
+  def __init__(self, templates, database, emitters, output_dir):
     super(HtmlInterfacesSystem, self).__init__(
-        templates, database, emitters, output_dir, generator)
+        templates, database, emitters, output_dir)
     self._dart_interface_file_paths = []
 
   def InterfaceGenerator(self,
@@ -621,7 +619,7 @@ class HtmlInterfacesSystem(HtmlSystem):
     file_path = self._FilePathForDartInterface(interface_name)
     self._ProcessCallback(interface, info, file_path)
 
-  def GenerateLibraries(self, lib_dir):
+  def GenerateLibraries(self):
     pass
 
 
@@ -1108,9 +1106,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
 class HtmlFrogSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, output_dir, generator):
+  def __init__(self, templates, database, emitters, output_dir):
     super(HtmlFrogSystem, self).__init__(
-        templates, database, emitters, output_dir, generator)
+        templates, database, emitters, output_dir)
     self._dart_frog_file_paths = []
 
 
@@ -1129,10 +1127,10 @@ class HtmlFrogSystem(HtmlSystem):
     return HtmlFrogClassGenerator(self, interface, template,
                                   super_interface_name, dart_code, self._shared)
 
-  def GenerateLibraries(self, lib_dir):
+  def GenerateLibraries(self):
     self._GenerateLibFile(
         'html_frog.darttemplate',
-        os.path.join(lib_dir, 'html_frog.dart'),
+        os.path.join(self._output_dir, 'html_frog.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
          self._dart_frog_file_paths))
@@ -1151,16 +1149,15 @@ class HtmlFrogSystem(HtmlSystem):
 
 class HtmlDartiumSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, auxiliary_dir, output_dir,
-               generator):
+  def __init__(self, templates, database, emitters, auxiliary_dir, output_dir):
     """Prepared for generating wrapping implementation.
 
     - Creates emitter for Dart code.
     """
     super(HtmlDartiumSystem, self).__init__(
-        templates, database, emitters, output_dir, generator)
+        templates, database, emitters, output_dir)
     self._auxiliary_dir = auxiliary_dir
-    self._shared = HtmlSystemShared(database, generator)
+    self._shared = HtmlSystemShared(database)
     self._dart_dartium_file_paths = []
     self._wrap_cases = []
 
@@ -1190,13 +1187,13 @@ class HtmlDartiumSystem(HtmlSystem):
   def ProcessCallback(self, interface, info):
     pass
 
-  def GenerateLibraries(self, lib_dir):
+  def GenerateLibraries(self):
     # Library generated for implementation.
     auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
 
     self._GenerateLibFile(
         'html_dartium.darttemplate',
-        os.path.join(lib_dir, 'html_dartium.dart'),
+        os.path.join(self._output_dir, 'html_dartium.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
          self._dart_dartium_file_paths
@@ -1550,3 +1547,27 @@ class HtmlDartiumInterfaceGenerator(object):
 
   def AddStaticOperation(self, info):
     pass
+
+def _ComputeInheritanceClosure(database):
+  def Collect(interface, seen, collected):
+    name = interface.id
+    if '<' in name:
+      # TODO(sra): Handle parameterized types.
+      return
+    if not name in seen:
+      seen.add(name)
+      collected.append(name)
+      for parent in interface.parents:
+        # TODO(sra): Handle parameterized types.
+        if not '<' in parent.type.id:
+          if database.HasInterface(parent.type.id):
+            Collect(database.GetInterface(parent.type.id),
+                    seen, collected)
+
+  inheritance_closure = {}
+  for interface in database.GetInterfaces():
+    seen = set()
+    collected = []
+    Collect(interface, seen, collected)
+    inheritance_closure[interface.id] = collected
+  return inheritance_closure

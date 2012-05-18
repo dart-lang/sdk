@@ -44,10 +44,10 @@ class FrogSystem(System):
     return FrogInterfaceGenerator(self, interface, template,
                                   super_interface_name, dart_code)
 
-  def GenerateLibraries(self, lib_dir):
+  def GenerateLibraries(self):
     self._GenerateLibFile(
         'frog_dom.darttemplate',
-        os.path.join(lib_dir, 'dom_frog.dart'),
+        os.path.join(self._output_dir, 'dom_frog.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
          self._impl_file_paths))

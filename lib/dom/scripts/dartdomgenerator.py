@@ -8,11 +8,17 @@
 import dartgenerator
 import database
 import logging.config
+import multiemitter
 import optparse
 import os
 import shutil
 import subprocess
 import sys
+from systemfrog import FrogSystem
+from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem, HtmlDartiumSystem
+from systeminterface import InterfacesSystem
+from systemnative import NativeImplementationSystem
+from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartdomgenerator')
 
@@ -70,15 +76,14 @@ def _MakeHtmlRenames(common_database):
 
   return html_renames
 
-def GenerateDOM(systems, generate_html_systems, output_dir,
-                database_dir, use_database_cache):
+def Generate(systems, database_dir, use_database_cache, dom_output_dir,
+             html_output_dir):
   current_dir = os.path.dirname(__file__)
+  auxiliary_dir = os.path.join(current_dir, '..', 'src')
+  template_dir = os.path.join(current_dir, '..', 'templates')
 
-  generator = dartgenerator.DartGenerator(
-      auxiliary_dir=os.path.join(current_dir, '..', 'src'),
-      template_dir=os.path.join(current_dir, '..', 'templates'),
-      base_package='')
-  generator.LoadAuxiliary()
+  generator = dartgenerator.DartGenerator()
+  generator.LoadAuxiliary(auxiliary_dir)
 
   common_database = database.Database(database_dir)
   if use_database_cache:
@@ -87,33 +92,82 @@ def GenerateDOM(systems, generate_html_systems, output_dir,
     common_database.Load()
 
   generator.FilterMembersWithUnidentifiedTypes(common_database)
-  webkit_database = common_database.Clone()
+  dom_database = common_database.Clone()
 
   # Generate Dart interfaces for the WebKit DOM.
-  generator.FilterInterfaces(database = webkit_database,
+  generator.FilterInterfaces(database = dom_database,
                              or_annotations = ['WebKit', 'Dart'],
                              exclude_displaced = ['WebKit'],
                              exclude_suppressed = ['WebKit', 'Dart'])
-  generator.RenameTypes(webkit_database, _webkit_renames, True)
+  generator.RenameTypes(dom_database, _webkit_renames, True)
+  generator.FixEventTargets(dom_database)
 
+  emitters = multiemitter.MultiEmitter()
   html_renames = _MakeHtmlRenames(common_database)
-  if generate_html_systems:
-    generator.RenameTypes(webkit_database, html_renames, False)
 
-  generator.Generate(database = webkit_database,
-                     output_dir = output_dir,
-                     lib_dir = output_dir,
-                     module_source_preference = ['WebKit', 'Dart'],
-                     source_filter = ['WebKit', 'Dart'],
-                     super_database = common_database,
-                     common_prefix = 'common',
-                     webkit_renames = _webkit_renames,
-                     html_renames = html_renames,
-                     systems = systems)
+  html_database = None
+  if set(systems) & set(['htmlfrog', 'htmldartium']):
+    html_database = dom_database.Clone()
+    generator.RenameTypes(html_database, html_renames, False)
 
-  generator.Flush()
+  for system in systems:
+    if system in ['htmlfrog', 'htmldartium']:
+      target_database = html_database
+      output_dir = html_output_dir
+      interface_system = HtmlInterfacesSystem(
+          TemplateLoader(template_dir, ['html/interface', 'html', '']),
+          target_database, emitters, output_dir)
+    else:
+      target_database = dom_database
+      output_dir = dom_output_dir
+      interface_system = InterfacesSystem(
+          TemplateLoader(template_dir, ['dom/interface', 'dom', '']),
+          target_database, emitters, output_dir)
 
-def GenerateSingleFile(systems):
+    if system == 'dummy':
+      implementation_system = dartgenerator.DummyImplementationSystem(
+          TemplateLoader(template_dir, ['dom/dummy', 'dom', '']),
+          target_database, emitters, output_dir)
+    elif system == 'frog':
+      implementation_system = FrogSystem(
+          TemplateLoader(template_dir, ['dom/frog', 'dom', '']),
+          target_database, emitters, output_dir)
+    elif system == 'htmlfrog':
+      implementation_system = HtmlFrogSystem(
+          TemplateLoader(template_dir,
+                         ['html/frog', 'html/impl', 'html', ''],
+                         {'DARTIUM': False, 'FROG': True}),
+          target_database, emitters, output_dir)
+    elif system == 'htmldartium':
+      implementation_system = HtmlDartiumSystem(
+          TemplateLoader(template_dir,
+                         ['html/dartium', 'html/impl', 'html', ''],
+                         {'DARTIUM': True, 'FROG': False}),
+          target_database, emitters, auxiliary_dir,
+          output_dir)
+    elif system == 'native':
+      implementation_system = NativeImplementationSystem(
+          TemplateLoader(template_dir, ['dom/native', 'dom', '']),
+          target_database, html_renames, emitters, auxiliary_dir,
+          output_dir)
+    else:
+      raise Exception('Unsupported system %s' % system_name)
+
+    # Makes interface files available for listing in the library for the
+    # implementation system.
+    implementation_system._interface_system = interface_system
+
+    for system in [interface_system, implementation_system]:
+      generator.Generate(target_database, system,
+                         source_filter=['WebKit', 'Dart'],
+                         super_database=common_database,
+                         common_prefix='common',
+                         webkit_renames=_webkit_renames,
+                         html_renames=html_renames)
+
+  _logger.info('Flush...')
+  emitters.Flush()
+
   if 'frog' in systems:
     _logger.info('Copy dom_frog to frog/')
     subprocess.call(['cd ../generated ; '
@@ -159,28 +213,16 @@ def main():
   (options, args) = parser.parse_args()
 
   current_dir = os.path.dirname(__file__)
-  systems = options.systems.split(',')
-  html_system_names = ['htmldartium', 'htmlfrog']
-  html_systems = [s for s in systems if s in html_system_names]
-  dom_systems = [s for s in systems if s not in html_system_names]
-
   database_dir = os.path.join(current_dir, '..', 'database')
-  use_database_cache = options.use_database_cache
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
+  systems = options.systems.split(',')
 
-  if dom_systems:
-    output_dir = options.output_dir or os.path.join(current_dir,
-        '../generated')
-    GenerateDOM(dom_systems, False, output_dir,
-                database_dir, use_database_cache)
-    GenerateSingleFile(dom_systems)
-
-  if html_systems:
-    output_dir = options.output_dir or os.path.join(current_dir,
-        '../../html/generated')
-    GenerateDOM(html_systems, True, output_dir,
-                database_dir, use_database_cache or dom_systems)
-    GenerateSingleFile(html_systems)
+  dom_output_dir = options.output_dir or os.path.join(current_dir,
+      '../generated')
+  html_output_dir = options.output_dir or os.path.join(current_dir,
+      '../../html/generated')
+  Generate(systems, database_dir, options.use_database_cache,
+              dom_output_dir, html_output_dir)
 
 if __name__ == '__main__':
   sys.exit(main())

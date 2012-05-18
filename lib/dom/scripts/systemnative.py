@@ -129,7 +129,7 @@ class NativeImplementationSystem(System):
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
-  def GenerateLibraries(self, lib_dir):
+  def GenerateLibraries(self):
     auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
 
     # Generate dom_public.dart.
