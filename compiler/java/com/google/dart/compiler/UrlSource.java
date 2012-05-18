@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.JarURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -125,43 +124,44 @@ public abstract class UrlSource implements Source {
   }
 
   private void initProperties() {
-    if (!propertiesInitialized) {
-      synchronized(this) {
-        if (!propertiesInitialized) {
-          try {
-            URI resolvedUri = BASE_URI.resolve(translatedUri);
-            String scheme = resolvedUri.getScheme();
-            if (scheme == null || FILE_PROTOCOL.equals(scheme)) {
-              // Faster than using URLConnection
-              File file = new File(resolvedUri);
-              lastModified = file.lastModified();
-              exists = file.exists();
-              sourceFile = file;
-            } else {
-              try {
-                URL url = translatedUri.toURL();
-                if (JAR_PROTOCOL.equals(url.getProtocol())) {
-                  getJarEntryProperties(url);
-                } else {
-                  /*
-                   * TODO(jbrosenberg): Flesh out the support for other
-                   * protocols, like http, etc. Note, calling
-                   * URLConnection.getLastModified() can be dangerous, some
-                   * URLConnection sub-classes don't have a way to close a
-                   * connection opened by this call. Return 0 for now.
-                   */
-                  lastModified = 0;
-                  // Default this to true for now.
-                  exists = true;
-                }
-              } catch (MalformedURLException e) {
-                return;
-              }
-            }
-          } finally {
-            propertiesInitialized = true;
-          }
+    synchronized (this) {
+      if (!propertiesInitialized) {
+        try {
+          initPropertiesEx();
+        } catch (Throwable e) {
+        } finally {
+          propertiesInitialized = true;
         }
+      }
+    }
+  }
+
+  /**
+   * Implementation of {@link #initProperties()} which can throw exceptions.
+   */
+  private void initPropertiesEx() throws Exception {
+    URI resolvedUri = BASE_URI.resolve(translatedUri);
+    String scheme = resolvedUri.getScheme();
+    if (scheme == null || FILE_PROTOCOL.equals(scheme)) {
+      File file = new File(resolvedUri);
+      lastModified = file.lastModified();
+      exists = file.exists();
+      sourceFile = file;
+    } else {
+      URL url = translatedUri.toURL();
+      if (JAR_PROTOCOL.equals(url.getProtocol())) {
+        getJarEntryProperties(url);
+      } else {
+        /*
+         * TODO(jbrosenberg): Flesh out the support for other
+         * protocols, like http, etc. Note, calling
+         * URLConnection.getLastModified() can be dangerous, some
+         * URLConnection sub-classes don't have a way to close a
+         * connection opened by this call. Return 0 for now.
+         */
+        lastModified = 0;
+        // Default this to true for now.
+        exists = true;
       }
     }
   }

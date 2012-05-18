@@ -9,6 +9,7 @@ import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
@@ -19,7 +20,10 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
@@ -28,6 +32,7 @@ import junit.framework.AssertionFailedError;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -630,10 +635,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7));
   }
 
-  /**
-   * Test that invalid "#source" is reported as any other error between "unitAboutToCompile" and
-   * "unitCompiled".
-   */
   public void test_reportMissingSource() throws Exception {
     appSource.setContent(
         APP,
@@ -642,31 +643,33 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "#library('app');",
             "#source('noSuchUnit.dart');",
             ""));
-    // Remember errors only between unitAboutToCompile/unitCompiled.
-    errors.clear();
-    DartCompilerListener listener = new DartCompilerListener.Empty() {
-      boolean isCompiling = false;
-
-      @Override
-      public void unitAboutToCompile(DartSource source, boolean diet) {
-        isCompiling = true;
-      }
-
-      @Override
-      public void onError(DartCompilationError event) {
-        if (isCompiling) {
-          errors.add(event);
-        }
-      }
-
-      @Override
-      public void unitCompiled(DartUnit unit) {
-        isCompiling = false;
-      }
-    };
-    DartCompiler.compileLib(appSource, config, provider, listener);
+    compile();
     // Check that errors where reported (and in correct time).
     assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 27));
+  }
+  
+  public void test_reportMissingSource_withSchema_file() throws Exception {
+    URI uri = new URI("file:noSuchSource.dart");
+    Source source = new UrlSource(uri) {
+      @Override
+      public String getName() {
+        return null;
+      }
+    };
+    // should not cause exception
+    assertFalse(source.exists());
+  }
+  
+  public void test_reportMissingSource_withSchema_dart() throws Exception {
+    URI uri = new URI("dart:noSuchSource");
+    Source source = new UrlSource(uri, new SystemLibraryManager()) {
+      @Override
+      public String getName() {
+        return null;
+      }
+    };
+    // should not cause exception
+    assertFalse(source.exists());
   }
 
   /**
@@ -708,9 +711,24 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       provider.resetReadsAndWrites();
       errors.clear();
       DartCompilerListener listener = new DartCompilerListener.Empty() {
+        Set<URI> compilingUris = Sets.newHashSet();
+
+        @Override
+        public void unitAboutToCompile(DartSource source, boolean diet) {
+          compilingUris.add(source.getUri());
+        }
+
         @Override
         public void onError(DartCompilationError event) {
-          errors.add(event);
+          // Remember errors only between unitAboutToCompile/unitCompiled.
+          if (compilingUris.contains(event.getSource().getUri())) {
+            errors.add(event);
+          }
+        }
+
+        @Override
+        public void unitCompiled(DartUnit unit) {
+          compilingUris.remove(unit.getSourceInfo().getSource().getUri());
         }
       };
       DartCompiler.compileLib(lib, config, provider, listener);

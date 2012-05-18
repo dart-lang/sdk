@@ -80,11 +80,16 @@ public class MemoryLibrarySource implements LibrarySource {
     final String content = sourceContentMap.get(relPath);
     final Long sourceLastModified = sourceLastModifiedMap.get(relPath);
     // Return fake UrlDateSource with in-memory content.
-    URI uri = URI.create(relPath);
+    final URI uri = URI.create(relPath);
     return new UrlDartSource(uri, relPath, this) {
       @Override
       public String getName() {
         return relPath;
+      }
+
+      @Override
+      public URI getUri() {
+        return uri;
       }
 
       @Override
