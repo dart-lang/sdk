@@ -80,6 +80,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
+  void EmitComment(Instruction* instr);
+
   // Emit an instance call.
   void EmitInstanceCall(intptr_t cid,
                         intptr_t token_index,

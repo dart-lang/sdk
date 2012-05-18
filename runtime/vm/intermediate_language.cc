@@ -5,6 +5,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/scopes.h"
@@ -194,11 +195,11 @@ void GraphEntryInstr::DiscoverBlocks(
   // enter the function at the first successor in reverse postorder, so we
   // must visit the normal entry last.
   for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
-    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder, parent,
-                                      assigned_vars, variable_count);
+    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder,
+                                      parent, assigned_vars, variable_count);
   }
-  normal_entry_->DiscoverBlocks(this, preorder, postorder, parent,
-                                assigned_vars, variable_count);
+  normal_entry_->DiscoverBlocks(this, preorder, postorder,
+                                parent, assigned_vars, variable_count);
 
   // Assign postorder number.
   set_postorder_number(postorder->length());
@@ -258,8 +259,8 @@ void BlockEntryInstr::DiscoverBlocks(
     }
   }
   if (next != NULL) {
-    next->DiscoverBlocks(this, preorder, postorder, parent, assigned_vars,
-                         variable_count);
+    next->DiscoverBlocks(this, preorder, postorder,
+                         parent, assigned_vars, variable_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -281,10 +282,10 @@ void BranchInstr::DiscoverBlocks(
   // nonoptimizing compiler.
   ASSERT(true_successor_ != NULL);
   ASSERT(false_successor_ != NULL);
-  false_successor_->DiscoverBlocks(current_block, preorder, postorder, parent,
-                                   assigned_vars, variable_count);
-  true_successor_->DiscoverBlocks(current_block, preorder, postorder, parent,
-                                  assigned_vars, variable_count);
+  false_successor_->DiscoverBlocks(current_block, preorder, postorder,
+                                   parent, assigned_vars, variable_count);
+  true_successor_->DiscoverBlocks(current_block, preorder, postorder,
+                                  parent, assigned_vars, variable_count);
 }
 
 

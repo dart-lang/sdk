@@ -68,6 +68,11 @@ class LocalVariable;
 FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
+// Forward declarations.
+class BufferFormatter;
+class Value;
+
+
 class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
@@ -87,6 +92,7 @@ class Computation : public ZoneAllocated {
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
   virtual intptr_t InputCount() const = 0;
+  virtual Value* InputAt(intptr_t i) const = 0;
 
   // Static type of the computation.
   virtual RawAbstractType* StaticType() const = 0;
@@ -94,6 +100,13 @@ class Computation : public ZoneAllocated {
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
   virtual void RecordAssignedVars(BitVector* assigned_vars);
+
+  virtual const char* DebugName() const = 0;
+
+  // Printing support. These functions are sometimes overridden for custom
+  // formatting. Otherwise, it prints in the format "opcode(op1, op2, op3)".
+  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   friend class Instruction;
@@ -147,16 +160,25 @@ class EmbeddedArray {
 template<typename T>
 class EmbeddedArray<T, 0> {
  public:
-  int length() const { return 0; }
+  intptr_t length() const { return 0; }
+  const T& operator[](intptr_t i) const {
+    UNREACHABLE();
+    static T sentinel = 0;
+    return sentinel;
+  }
+  T& operator[](intptr_t i) {
+    UNREACHABLE();
+    static T sentinel = 0;
+    return sentinel;
+  }
 };
 
-
-class Value;
 
 template<intptr_t N>
 class TemplateComputation : public Computation {
  public:
   virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -182,12 +204,14 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
-  virtual RawAbstractType* StaticType() const;                                 \
+  virtual const char* DebugName() const { return #ShortName; }                 \
+  virtual RawAbstractType* StaticType() const;
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
   DECLARE_COMPUTATION(ShortName)                                               \
-  virtual ShortName##Val* As##ShortName() { return this; }
+  virtual ShortName##Val* As##ShortName() { return this; }                     \
+  virtual void PrintTo(BufferFormatter* f) const;
 
 
 // Definitions and uses are mutually recursive.
@@ -258,6 +282,13 @@ class AssertAssignableComp : public Computation {
   const String& dst_name() const { return dst_name_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const {
+    if (i == 0) return value();
+    if (i == 1) return instantiator_type_arguments();
+    return NULL;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -349,6 +380,11 @@ class ClosureCallComp : public Computation {
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const {
+    return i == 0 ? context() : ArgumentAt(i - 1);
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureCallNode& ast_node_;
@@ -390,6 +426,9 @@ class InstanceCallComp : public Computation {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -418,6 +457,8 @@ class StrictCompareComp : public TemplateComputation<2> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
  private:
   const Token::Kind kind_;
 
@@ -445,6 +486,8 @@ class EqualityCompareComp : public TemplateComputation<2> {
   intptr_t try_index() const { return try_index_; }
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -482,6 +525,9 @@ class StaticCallComp : public Computation {
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -503,6 +549,8 @@ class LoadLocalComp : public TemplateComputation<0> {
 
   const LocalVariable& local() const { return local_; }
   intptr_t context_level() const { return context_level_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const LocalVariable& local_;
@@ -528,6 +576,8 @@ class StoreLocalComp : public TemplateComputation<1> {
   intptr_t context_level() const { return context_level_; }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const LocalVariable& local_;
@@ -561,6 +611,8 @@ class NativeCallComp : public TemplateComputation<0> {
     return ast_node_.has_optional_parameters();
   }
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
  private:
   const NativeBodyNode& ast_node_;
   const intptr_t try_index_;
@@ -582,6 +634,8 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
   const Field& field() const { return ast_node_.field(); }
 
   Value* instance() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const LoadInstanceFieldNode& ast_node_;
@@ -610,6 +664,8 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
  private:
   const StoreInstanceFieldNode& ast_node_;
 
@@ -624,6 +680,8 @@ class LoadStaticFieldComp : public TemplateComputation<0> {
   DECLARE_COMPUTATION(LoadStaticField);
 
   const Field& field() const { return field_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const Field& field_;
@@ -645,6 +703,8 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
 
   const Field& field() const { return field_; }
   Value* value() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const Field& field_;
@@ -792,6 +852,13 @@ class InstanceOfComp : public Computation {
   intptr_t try_index() const { return try_index_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const {
+    if (i == 0) return value();
+    if (i == 1) return type_arguments();
+    return NULL;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -823,6 +890,9 @@ class AllocateObjectComp : public Computation {
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -850,6 +920,9 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -886,6 +959,9 @@ class CreateArrayComp : public Computation {
   Value* element_type() const { return element_type_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const { return ElementAt(i); }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -915,6 +991,11 @@ class CreateClosureComp : public Computation {
   Value* type_arguments() const { return type_arguments_; }
 
   virtual intptr_t InputCount() const;
+  virtual Value* InputAt(intptr_t i) const {
+    return i == 0 ? type_arguments() : NULL;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureNode& ast_node_;
@@ -941,6 +1022,8 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t offset_in_bytes_;
@@ -969,6 +1052,8 @@ class NativeStoreFieldComp : public TemplateComputation<2> {
   Value* value() const { return inputs_[1]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t offset_in_bytes_;
@@ -999,6 +1084,8 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
   }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -1031,6 +1118,8 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
   }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -1080,6 +1169,8 @@ class AllocateContextComp : public TemplateComputation<0> {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
@@ -1142,6 +1233,8 @@ class CatchEntryComp : public TemplateComputation<0> {
 
   DECLARE_COMPUTATION(CatchEntry)
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
  private:
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
@@ -1179,6 +1272,8 @@ class CatchEntryComp : public TemplateComputation<0> {
 
 // Forward declarations for Instruction classes.
 class BlockEntryInstr;
+class FlowGraphBuilder;
+
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
@@ -1190,6 +1285,8 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
+  virtual const char* DebugName() const { return #type; }                      \
+  virtual void PrintTo(BufferFormatter* f) const;
 
 
 class Instruction : public ZoneAllocated {
@@ -1251,6 +1348,9 @@ class Instruction : public ZoneAllocated {
   // frame-allocated locals assigned to by the instruction.
   virtual void RecordAssignedVars(BitVector* assigned_vars);
 
+  // Printing support.
+  virtual void PrintTo(BufferFormatter* f) const = 0;
+
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
   virtual type##Instr* As##type() { return NULL; }
@@ -1289,6 +1389,9 @@ class BlockEntryInstr : public Instruction {
   intptr_t postorder_number() const { return postorder_number_; }
   void set_postorder_number(intptr_t number) { postorder_number_ = number; }
 
+  intptr_t block_id() const { return block_id_; }
+  void set_block_id(intptr_t value) { block_id_ = value; }
+
   BlockEntryInstr* dominator() const { return dominator_; }
   void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
@@ -1307,12 +1410,14 @@ class BlockEntryInstr : public Instruction {
   BlockEntryInstr()
       : preorder_number_(-1),
         postorder_number_(-1),
+        block_id_(-1),
         dominator_(NULL),
         last_instruction_(NULL) { }
 
  private:
   intptr_t preorder_number_;
   intptr_t postorder_number_;
+  intptr_t block_id_;
   BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
   Instruction* last_instruction_;
 

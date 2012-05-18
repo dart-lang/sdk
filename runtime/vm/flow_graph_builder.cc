@@ -2165,6 +2165,11 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
                                &parent,
                                &assigned_vars,
                                variable_count);
+  // Number blocks in reverse postorder.
+  intptr_t block_count = postorder_block_entries_.length();
+  for (intptr_t i = 0; i < block_count; ++i) {
+    postorder_block_entries_[i]->set_block_id(block_count - i - 1);
+  }
   if (for_optimized) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
@@ -2177,7 +2182,7 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
       reverse_postorder.Add(postorder_block_entries_[i]);
     }
     FlowGraphPrinter printer(function, reverse_postorder);
-    printer.VisitBlocks();
+    printer.PrintBlocks();
   }
 }
 

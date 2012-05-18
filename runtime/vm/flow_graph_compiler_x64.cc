@@ -13,6 +13,7 @@
 #include "vm/code_generator.h"
 #include "vm/debugger.h"
 #include "vm/disassembler.h"
+#include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -28,6 +29,7 @@ DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, report_usage_count);
+DECLARE_FLAG(bool, code_comments);
 
 
 FlowGraphCompiler::FlowGraphCompiler(
@@ -1128,7 +1130,7 @@ void FlowGraphCompiler::VisitBlocks() {
     Instruction* instr = current_block()->Accept(this);
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
-      __ Comment("@%d: instruction", instr->cid());
+      if (FLAG_code_comments) EmitComment(instr);
       instr = instr->Accept(this);
     }
 
@@ -1143,6 +1145,14 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
   }
+}
+
+
+void FlowGraphCompiler::EmitComment(Instruction* instr) {
+  char buffer[80];
+  BufferFormatter f(buffer, sizeof(buffer));
+  instr->PrintTo(&f);
+  __ Comment("@%d: %s", instr->cid(), buffer);
 }
 
 

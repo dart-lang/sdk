@@ -10,389 +10,322 @@
 namespace dart {
 
 
-void FlowGraphPrinter::VisitBlocks() {
+void BufferFormatter::Print(const char* format, ...) {
+  intptr_t available = size_ - position_;
+  if (available <= 0) return;
+  va_list args;
+  va_start(args, format);
+  intptr_t written =
+      OS::VSNPrint(buffer_ + position_, available, format, args);
+  if (written >= 0) {
+    position_ += (available <= written) ? available : written;
+  }
+  va_end(args);
+}
+
+
+void FlowGraphPrinter::PrintBlocks() {
   OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Print the block entry.
-    Instruction* current = block_order_[i]->Accept(this);
+    Print(block_order_[i]);
+    Instruction* current = block_order_[i]->StraightLineSuccessor();
     // And all the successors until an exit, branch, or a block entry.
     while ((current != NULL) && !current->IsBlockEntry()) {
       OS::Print("\n");
-      current = current->Accept(this);
+      Print(current);
+      current = current->StraightLineSuccessor();
     }
     BlockEntryInstr* successor =
         (current == NULL) ? NULL : current->AsBlockEntry();
     if (successor != NULL) {
-      // For readability label blocks with their reverse postorder index,
-      // not their postorder block number, so the first block is 0 (not
-      // n-1).
-      OS::Print(" goto %d", reverse_index(successor->postorder_number()));
+      OS::Print(" goto %d", successor->block_id());
     }
     OS::Print("\n");
   }
 }
 
 
-void FlowGraphPrinter::VisitUse(UseVal* val) {
-  OS::Print("t%d", val->definition()->temp_index());
+void FlowGraphPrinter::Print(Instruction* instr) {
+  char str[80];
+  BufferFormatter f(str, sizeof(str));
+  instr->PrintTo(&f);
+  OS::Print("%s", str);
 }
 
 
-void FlowGraphPrinter::VisitConstant(ConstantVal* val) {
-  OS::Print("#%s", val->value().ToCString());
+void Computation::PrintTo(BufferFormatter* f) const {
+  f->Print("%s(", DebugName());
+  PrintOperandsTo(f);
+  f->Print(")");
 }
 
 
-void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
-  OS::Print("AssertAssignable(");
-  comp->value()->Accept(this);
-  OS::Print(", %s, '%s'",
-            String::Handle(comp->dst_type().Name()).ToCString(),
-            comp->dst_name().ToCString());
-  if (comp->instantiator_type_arguments() != NULL) {
-    OS::Print(" (instantiator:");
-    comp->instantiator_type_arguments()->Accept(this);
+void Computation::PrintOperandsTo(BufferFormatter* f) const {
+  for (int i = 0; i < InputCount(); ++i) {
+    if (i > 0) f->Print(", ");
+    if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitAssertBoolean(AssertBooleanComp* comp) {
-  OS::Print("AssertBoolean(");
-  comp->value()->Accept(this);
-  OS::Print(")");
+void UseVal::PrintTo(BufferFormatter* f) const {
+  f->Print("t%d", definition()->temp_index());
 }
 
 
-void FlowGraphPrinter::VisitCurrentContext(CurrentContextComp* comp) {
-  OS::Print("CurrentContext");
+void ConstantVal::PrintTo(BufferFormatter* f) const {
+  f->Print("#%s", value().ToCString());
 }
 
 
-void FlowGraphPrinter::VisitClosureCall(ClosureCallComp* comp) {
-  OS::Print("ClosureCall(");
-  comp->context()->Accept(this);
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    OS::Print(", ");
-    comp->ArgumentAt(i)->Accept(this);
+void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(", %s, '%s'",
+            String::Handle(dst_type().Name()).ToCString(),
+            dst_name().ToCString());
+  if (instantiator_type_arguments() != NULL) {
+    f->Print(" (instantiator:");
+    instantiator_type_arguments()->PrintTo(f);
+    f->Print(")");
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitInstanceCall(InstanceCallComp* comp) {
-  OS::Print("InstanceCall(%s", comp->function_name().ToCString());
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    OS::Print(", ");
-    comp->ArgumentAt(i)->Accept(this);
+void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
+  context()->PrintTo(f);
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentAt(i)->PrintTo(f);
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitStrictCompare(StrictCompareComp* comp) {
-  OS::Print("StrictCompare(%s, ", Token::Str(comp->kind()));
-  comp->left()->Accept(this);
-  OS::Print(", ");
-  comp->right()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitEqualityCompare(EqualityCompareComp* comp) {
-  comp->left()->Accept(this);
-  OS::Print(" == ");
-  comp->right()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitStaticCall(StaticCallComp* comp) {
-  OS::Print("StaticCall(%s",
-            String::Handle(comp->function().name()).ToCString());
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    OS::Print(", ");
-    comp->ArgumentAt(i)->Accept(this);
+void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", function_name().ToCString());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentAt(i)->PrintTo(f);
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitLoadLocal(LoadLocalComp* comp) {
-  OS::Print("LoadLocal(%s lvl:%d)",
-      comp->local().name().ToCString(), comp->context_level());
+void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitStoreLocal(StoreLocalComp* comp) {
-  OS::Print("StoreLocal(%s, ", comp->local().name().ToCString());
-  comp->value()->Accept(this);
-  OS::Print(", lvl: %d)", comp->context_level());
+void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
+  left()->PrintTo(f);
+  f->Print(" == ");
+  right()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitNativeCall(NativeCallComp* comp) {
-  OS::Print("NativeCall(%s)", comp->native_name().ToCString());
-}
-
-
-void FlowGraphPrinter::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
-  OS::Print("LoadInstanceField(%s, ",
-      String::Handle(comp->field().name()).ToCString());
-  comp->instance()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
-  OS::Print("StoreInstanceField(%s, ",
-            String::Handle(comp->field().name()).ToCString());
-  comp->instance()->Accept(this);
-  OS::Print(", ");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitLoadStaticField(LoadStaticFieldComp* comp) {
-  OS::Print("LoadStaticField(%s)",
-            String::Handle(comp->field().name()).ToCString());
-}
-
-
-void FlowGraphPrinter::VisitStoreStaticField(StoreStaticFieldComp* comp) {
-  OS::Print("StoreStaticField(%s, ",
-            String::Handle(comp->field().name()).ToCString());
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStoreIndexed(StoreIndexedComp* comp) {
-  OS::Print("StoreIndexed(");
-  comp->array()->Accept(this);
-  OS::Print(", ");
-  comp->index()->Accept(this);
-  OS::Print(", ");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitInstanceSetter(InstanceSetterComp* comp) {
-  OS::Print("InstanceSetter(");
-  comp->receiver()->Accept(this);
-  OS::Print(", ");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitStaticSetter(StaticSetterComp* comp) {
-  OS::Print("StaticSetter(");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitBooleanNegate(BooleanNegateComp* comp) {
-  OS::Print("! ");
-  comp->value()->Accept(this);
-}
-
-
-void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
-  comp->value()->Accept(this);
-  OS::Print(" %s %s",
-            comp->negate_result() ? "ISNOT" : "IS",
-            String::Handle(comp->type().Name()).ToCString());
-  if (comp->type_arguments() != NULL) {
-    OS::Print(" (type-arg:");
-    comp->type_arguments()->Accept(this);
+void StaticCallComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", String::Handle(function().name()).ToCString());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentAt(i)->PrintTo(f);
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitAllocateObject(AllocateObjectComp* comp) {
-  OS::Print("AllocateObject(%s",
-            Class::Handle(comp->constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
-    OS::Print(", ");
-    comp->arguments()[i]->Accept(this);
+void LoadLocalComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s lvl:%d", local().name().ToCString(), context_level());
+}
+
+
+void StoreLocalComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", local().name().ToCString());
+  value()->PrintTo(f);
+  f->Print(", lvl: %d", context_level());
+}
+
+
+void NativeCallComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", native_name().ToCString());
+}
+
+
+void LoadInstanceFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", String::Handle(field().name()).ToCString());
+  instance()->PrintTo(f);
+}
+
+
+void StoreInstanceFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", String::Handle(field().name()).ToCString());
+  instance()->PrintTo(f);
+  f->Print(", ");
+  value()->PrintTo(f);
+}
+
+
+void LoadStaticFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", String::Handle(field().name()).ToCString());
+}
+
+
+void StoreStaticFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", String::Handle(field().name()).ToCString());
+  value()->PrintTo(f);
+}
+
+
+void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(" %s %s",
+            negate_result() ? "ISNOT" : "IS",
+            String::Handle(type().Name()).ToCString());
+  if (type_arguments() != NULL) {
+    f->Print(" (type-arg:");
+    type_arguments()->PrintTo(f);
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitAllocateObjectWithBoundsCheck(
-    AllocateObjectWithBoundsCheckComp* comp) {
-  OS::Print("AllocateObjectWithBoundsCheck(%s",
-            Class::Handle(comp->constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
-    OS::Print(", ");
-    comp->arguments()[i]->Accept(this);
+void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Class::Handle(constructor().owner()).ToCString());
+  for (intptr_t i = 0; i < arguments().length(); i++) {
+    f->Print(", ");
+    arguments()[i]->PrintTo(f);
   }
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
-  OS::Print("CreateArray(");
-  for (int i = 0; i < comp->ElementCount(); ++i) {
-    if (i != 0) OS::Print(", ");
-    comp->ElementAt(i)->Accept(this);
+void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
+    BufferFormatter* f) const {
+  f->Print("%s", Class::Handle(constructor().owner()).ToCString());
+  for (intptr_t i = 0; i < arguments().length(); i++) {
+    f->Print(", ");
+    arguments()[i]->PrintTo(f);
   }
-  if (comp->ElementCount() > 0) OS::Print(", ");
-  comp->element_type()->Accept(this);
-  OS::Print(")");
 }
 
 
-void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
-  OS::Print("CreateClosure(%s", comp->function().ToCString());
-  if (comp->type_arguments() != NULL) {
-    OS::Print(", ");
-    comp->type_arguments()->Accept(this);
+void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
+  for (int i = 0; i < ElementCount(); ++i) {
+    if (i != 0) f->Print(", ");
+    ElementAt(i)->PrintTo(f);
   }
-  OS::Print(")");
+  if (ElementCount() > 0) f->Print(", ");
+  element_type()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitNativeLoadField(NativeLoadFieldComp* comp) {
-  OS::Print("NativeLoadField(");
-  comp->value()->Accept(this);
-  OS::Print(", %d)", comp->offset_in_bytes());
+void CreateClosureComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", function().ToCString());
+  if (type_arguments() != NULL) {
+    f->Print(", ");
+    type_arguments()->PrintTo(f);
+  }
 }
 
 
-void FlowGraphPrinter::VisitNativeStoreField(NativeStoreFieldComp* comp) {
-  OS::Print("NativeStoreField(");
-  comp->dest()->Accept(this);
-  OS::Print(", %d, ", comp->offset_in_bytes());
-  comp->value()->Accept(this);
-  OS::Print(")");
+void NativeLoadFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(", %d", offset_in_bytes());
 }
 
 
-void FlowGraphPrinter::VisitInstantiateTypeArguments(
-    InstantiateTypeArgumentsComp* comp) {
-  const String& type_args = String::Handle(comp->type_arguments().Name());
-  OS::Print("InstantiateTypeArguments(%s, ", type_args.ToCString());
-  comp->instantiator()->Accept(this);
-  OS::Print(")");
+void NativeStoreFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+  dest()->PrintTo(f);
+  f->Print(", %d, ", offset_in_bytes());
+  value()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitExtractConstructorTypeArguments(
-    ExtractConstructorTypeArgumentsComp* comp) {
-  const String& type_args = String::Handle(comp->type_arguments().Name());
-  OS::Print("ExtractConstructorTypeArguments(%s, ", type_args.ToCString());
-  comp->instantiator()->Accept(this);
-  OS::Print(")");
+void InstantiateTypeArgumentsComp::PrintOperandsTo(BufferFormatter* f) const {
+  const String& type_args = String::Handle(type_arguments().Name());
+  f->Print("%s, ", type_args.ToCString());
+  instantiator()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitExtractConstructorInstantiator(
-    ExtractConstructorInstantiatorComp* comp) {
-  OS::Print("ExtractConstructorInstantiator(");
-  comp->instantiator()->Accept(this);
-  OS::Print(")");
+void ExtractConstructorTypeArgumentsComp::PrintOperandsTo(
+    BufferFormatter* f) const {
+  const String& type_args = String::Handle(type_arguments().Name());
+  f->Print("%s, ", type_args.ToCString());
+  instantiator()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitAllocateContext(AllocateContextComp* comp) {
-  OS::Print("AllocateContext(%d)", comp->num_context_variables());
+void AllocateContextComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%d", num_context_variables());
 }
 
 
-void FlowGraphPrinter::VisitChainContext(ChainContextComp* comp) {
-  OS::Print("ChainContext(");
-  comp->context_value()->Accept(this);
-  OS::Print(")");
+void CatchEntryComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, %s",
+           exception_var().name().ToCString(),
+           stacktrace_var().name().ToCString());
 }
 
 
-void FlowGraphPrinter::VisitCloneContext(CloneContextComp* comp) {
-  OS::Print("CloneContext(");
-  comp->context_value()->Accept(this);
-  OS::Print(")");
+void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("%2d: [graph]", block_id());
 }
 
 
-void FlowGraphPrinter::VisitCatchEntry(CatchEntryComp* comp) {
-  OS::Print("CatchEntry(%s, %s)",
-            comp->exception_var().name().ToCString(),
-            comp->stacktrace_var().name().ToCString());
+void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("%2d: [join]", block_id());
 }
 
 
-void FlowGraphPrinter::VisitStoreContext(StoreContextComp* comp) {
-  OS::Print("StoreContext(");
-  comp->value()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitGraphEntry(GraphEntryInstr* instr) {
-  OS::Print("%2d: [graph]", reverse_index(instr->postorder_number()));
-}
-
-
-void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
-  OS::Print("%2d: [join]", reverse_index(instr->postorder_number()));
-}
-
-
-void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
-  OS::Print("%2d: [target", reverse_index(instr->postorder_number()));
-  if (instr->HasTryIndex()) {
-    OS::Print(" catch %d]", instr->try_index());
+void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("%2d: [target", block_id());
+  if (HasTryIndex()) {
+    f->Print(" catch %d]", try_index());
   } else {
-    OS::Print("]");
+    f->Print("]");
   }
 }
 
 
-void FlowGraphPrinter::VisitDo(DoInstr* instr) {
-  OS::Print("    ");
-  instr->computation()->Accept(this);
+void DoInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    ");
+  computation()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitBind(BindInstr* instr) {
-  OS::Print("    t%d <- ", instr->temp_index());
-  instr->computation()->Accept(this);
+void BindInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    t%d <- ", temp_index());
+  computation()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitReturn(ReturnInstr* instr) {
-  OS::Print("    return ");
-  instr->value()->Accept(this);
+void ReturnInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s ", DebugName());
+  value()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitThrow(ThrowInstr* instr) {
-  OS::Print("    throw ");
-  instr->exception()->Accept(this);
+void ThrowInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s ", DebugName());
+  exception()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitReThrow(ReThrowInstr* instr) {
-  OS::Print("    rethrow (");
-  instr->exception()->Accept(this);
-  OS::Print(", ");
-  instr->stack_trace()->Accept(this);
-  OS::Print(")");
+void ReThrowInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s ", DebugName());
+  exception()->PrintTo(f);
+  f->Print(", ");
+  stack_trace()->PrintTo(f);
 }
 
 
-void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
-  OS::Print("    if ");
-  instr->value()->Accept(this);
-  OS::Print(" goto (%d, %d)",
-            reverse_index(instr->true_successor()->postorder_number()),
-            reverse_index(instr->false_successor()->postorder_number()));
+void BranchInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s ", DebugName());
+  f->Print("if ");
+  value()->PrintTo(f);
+  f->Print(" goto (%d, %d)",
+            true_successor()->block_id(),
+            false_successor()->block_id());
 }
 
 
