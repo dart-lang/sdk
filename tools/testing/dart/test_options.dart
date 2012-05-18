@@ -93,7 +93,7 @@ is 'dart file.dart' and you specify special command
 
     dartium: Run Dart or JavaScript in Dartium.
 
-    [ff | chrome | safari | ie | opera]: Run JavaScript in the specified 
+    [ff | chrome | safari | ie | opera]: Run JavaScript in the specified
          browser.
 
     none: No runtime, compile only (for example, used for dartc static analysis
@@ -414,18 +414,18 @@ Note: currently only implemented for dart2js.''',
                             'dartium']).indexOf(config['runtime']) >= 0;
       }
     if (!isValid) {
-      print("Warning: combination of ${config['compiler']} and " +
+      print("Warning: combination of ${config['compiler']} and "
           "${config['runtime']} is invalid. Skipping this combination.");
     }
     if (config['runtime'] == 'ie' &&
         Platform.operatingSystem != 'windows') {
       isValid = false;
-      print("Warning cannot run Internet Explorer on non-Windows operating" +
+      print("Warning cannot run Internet Explorer on non-Windows operating"
           " system.");
     }
     if (config['shard'] < 1 || config['shard'] > config['shards']) {
       isValid = false;
-      print("Error: shard index is ${config['shard']} out of " + 
+      print("Error: shard index is ${config['shard']} out of "
             "${config['shards']} shards");
     }
     if (config['runtime'] == 'dartium' && config['compiler'] == 'none' &&
@@ -500,7 +500,7 @@ Note: currently only implemented for dart2js.''',
           pattern = ".*";
         }
         if (selectorMap.containsKey(suite)) {
-          print("Error: '$suite/$pattern'.  Only one test selection" +
+          print("Error: '$suite/$pattern'.  Only one test selection"
                 " pattern is allowed to start with '$suite/'");
           exit(1);
         }

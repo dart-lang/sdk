@@ -9,7 +9,7 @@ main() {
     RegExp ex = new RegExp(str);
   } catch (Exception e) {
     if (!(e is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException" + " got: ${e}");
+      Expect.fail("Expected: NullPointerException got: ${e}");
     }
   }
   Expect.isFalse(new RegExp(@"^\w+$").hasMatch(str));

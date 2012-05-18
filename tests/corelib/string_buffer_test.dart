@@ -53,7 +53,7 @@ class StringBufferTest {
     bf.add("z");
     bf.add("\n");
     bf.add("thequickbrownfoxjumpsoverthelazydog");
-    Expect.equals("abcdefghijklmnopqrstuvwxyz\n" +
+    Expect.equals("abcdefghijklmnopqrstuvwxyz\n"
                   "thequickbrownfoxjumpsoverthelazydog",
                   bf.toString());
 

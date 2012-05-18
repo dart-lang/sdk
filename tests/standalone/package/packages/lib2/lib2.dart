@@ -8,6 +8,6 @@
 #import('package:lib3/sub/lib3.dart');
 
 void lib2() {
-  output += '|lib2';
+  output = output.concat('|lib2');
   lib3();
 }

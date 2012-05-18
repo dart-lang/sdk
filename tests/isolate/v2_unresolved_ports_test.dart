@@ -35,9 +35,9 @@ main() {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
       expect(msg).equals('main says: Beth, find out if Tim is coming.'
-        + '\nBeth says: Tim are you coming? And Bob?'
-        + '\nTim says: Can you tell "main" that we are all coming?'
-        + '\nBob says: we are all coming!');
+        '\nBeth says: Tim are you coming? And Bob?'
+        '\nTim says: Can you tell "main" that we are all coming?'
+        '\nBob says: we are all coming!');
       port.close();
     }));
 

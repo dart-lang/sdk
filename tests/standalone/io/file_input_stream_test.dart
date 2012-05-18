@@ -9,7 +9,7 @@
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getFilename(String path) =>
-    new File(path).existsSync() ? path : '../' + path;
+    new File(path).existsSync() ? path : '../$path';
 
 void testStringInputStreamSync() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");

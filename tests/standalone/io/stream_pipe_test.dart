@@ -14,7 +14,7 @@
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getDataFilename(String path) =>
-    new File(path).existsSync() ? path : '../' + path;
+    new File(path).existsSync() ? path : '../$path';
 
 
 bool compareFileContent(String fileName1,
@@ -86,7 +86,7 @@ class PipeServerGame {
       fileInput.onClosed = () {
         SocketInputStream socketInput = _socket.inputStream;
         var tempDir = new Directory('').createTempSync();
-        var dstFileName = tempDir.path + "/readline_test1.dat";
+        var dstFileName = tempDir.path.concat("/readline_test1.dat");
         var dstFile = new File(dstFileName);
         dstFile.createSync();
         var fileOutput = dstFile.openOutputStream();
@@ -170,7 +170,7 @@ testFileToFilePipe1() {
   var srcStream = new File(srcFileName).openInputStream();
 
   var tempDir = new Directory('').createTempSync();
-  String dstFileName = tempDir.path + "/readline_test1.dat";
+  String dstFileName = tempDir.path.concat("/readline_test1.dat");
   new File(dstFileName).createSync();
   var dstStream = new File(dstFileName).openOutputStream();
 
@@ -200,7 +200,7 @@ testFileToFilePipe2() {
   var srcStream = srcFile.openInputStream();
 
   var tempDir = new Directory('').createTempSync();
-  var dstFileName = tempDir.path + "/readline_test1.dat";
+  var dstFileName = tempDir.path.concat("/readline_test1.dat");
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var dstStream = dstFile.openOutputStream();
@@ -246,7 +246,7 @@ testFileToFilePipe3() {
   var srcStream = srcFile.openInputStream();
 
   var tempDir = new Directory('').createTempSync();
-  var dstFileName = tempDir.path + "/readline_test1.dat";
+  var dstFileName = tempDir.path.concat("/readline_test1.dat");
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var dstStream = dstFile.openOutputStream();

@@ -42,7 +42,7 @@ class StatusExpressionTest {
     environment["mode"] = "debug";
     Expect.isFalse(ast.evaluate(environment));
     environment["arch"] = "chromium";
-    Expect.isTrue(ast.evaluate(environment));    
+    Expect.isTrue(ast.evaluate(environment));
   }
 
   static void test2() {
@@ -54,7 +54,7 @@ class StatusExpressionTest {
         ["(", "\$", "arch", "==", "dartc", "||", "\$", "arch", "==",
         "chromium", ")", "&&", "\$", "mode", "==", "release"]);
   }
-      
+
   static void test3() {
     var thrown;
     String input = @" $mode == debug && ($arch==chromium || *$arch == dartc)";
@@ -82,14 +82,14 @@ class StatusExpressionTest {
 
   static void test5() {
     Tokenizer tokenizer = new Tokenizer(
-        @"Skip , Pass if $arch == dartc, Fail || Timeout if " +
+        @"Skip , Pass if $arch == dartc, Fail || Timeout if "
         @"$arch == chromium && $mode == release");
     tokenizer.tokenize();
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
     SetExpression ast = parser.parseSetExpression();
     Expect.equals(
-        @"((skip || (pass if ($arch == dartc))) || ((fail || timeout) " +
+        @"((skip || (pass if ($arch == dartc))) || ((fail || timeout) "
         @"if (($arch == chromium) && ($mode == release))))",
         ast.toString());
 
@@ -140,9 +140,9 @@ class StatusExpressionTest {
     environment["arch"] = "arm";
     Expect.isFalse(ast.evaluate(environment));
     environment["checked"] = true;
-    Expect.isFalse(ast.evaluate(environment));    
+    Expect.isFalse(ast.evaluate(environment));
   }
-}  
+}
 
 main() {
   StatusExpressionTest.testMain();

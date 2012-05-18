@@ -208,7 +208,7 @@ void testSocketClose() {
   }
   testContent(
       "GET / HTTP/1.1\r\nKeep-Alive: False\r\n\r\n",
-      "HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\nconnection: close" +
+      "HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\nconnection: close"
       "\r\n\r\n0\r\n\r\n");
 
   server.close();

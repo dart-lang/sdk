@@ -292,8 +292,8 @@ class DirectoryTest {
 
   static void testCreateDeleteTemp() {
     new Directory("").createTemp().then((tempDirectory) {
-      String filename = tempDirectory.path +
-          Platform.pathSeparator + "dart_testfile";
+      String filename =
+          "${tempDirectory.path}${Platform.pathSeparator}dart_testfile";
       File file = new File(filename);
       Expect.isFalse(file.existsSync());
       file.create().then((ignore) {
