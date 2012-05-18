@@ -20,7 +20,7 @@ native_gc_test: Skip  # Issue 2538. Too slow in debug.
 audiocontext_test: Skip
 
 [ $compiler == none && $runtime == drt && $system == mac]
-audiocontext_test: Pass, Fail
+audiocontext_test: Skip
 
 [ $compiler == frog && $runtime == drt ]
 html_test: Skip   # Issue 2657
