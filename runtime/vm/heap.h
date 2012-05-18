@@ -29,8 +29,7 @@ class Heap {
   enum Space {
     kNew,
     kOld,
-    kDartCode,
-    kStubCode,
+    kCode,
   };
 
   enum ApiCallbacks {
@@ -41,7 +40,6 @@ class Heap {
   // Default allocation sizes in MB for the old gen and code heaps.
   static const intptr_t kHeapSizeInMB = 512;
   static const intptr_t kCodeHeapSizeInMB = 8;
-  static const intptr_t kStubCodeHeapSizeInKB = 256;
 
   ~Heap();
 
@@ -55,10 +53,8 @@ class Heap {
         return AllocateNew(size);
       case kOld:
         return AllocateOld(size);
-      case kDartCode:
+      case kCode:
         return AllocateCode(code_space_, size);
-      case kStubCode:
-        return AllocateCode(stub_code_space_, size);
       default:
         UNREACHABLE();
     }
@@ -71,10 +67,8 @@ class Heap {
         return new_space_->TryAllocate(size);
       case kOld:
         return old_space_->TryAllocate(size);
-      case kDartCode:
+      case kCode:
         return code_space_->TryAllocate(size);
-      case kStubCode:
-        return stub_code_space_->TryAllocate(size);
       default:
         UNREACHABLE();
     }

@@ -235,7 +235,6 @@ void GCMarker::IterateRoots(Isolate* isolate,
                                StackFrameIterator::kDontValidateFrames);
   heap_->IterateNewPointers(visitor);
   heap_->IterateCodePointers(visitor);
-  heap_->IterateStubCodePointers(visitor);
 }
 
 

@@ -5696,13 +5696,14 @@ RawError* Library::CompileAll() {
 }
 
 
-RawInstructions* Instructions::New(intptr_t size, Heap::Space space) {
-  ASSERT(space == Heap::kDartCode || space == Heap::kStubCode);
+RawInstructions* Instructions::New(intptr_t size) {
   const Class& instructions_class = Class::Handle(Object::instructions_class());
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
-    RawObject* raw = Object::Allocate(instructions_class, aligned_size, space);
+    RawObject* raw = Object::Allocate(instructions_class,
+                                      aligned_size,
+                                      Heap::kCode);
     NoGCScope no_gc;
     // TODO(iposva): Remove premarking once old and code spaces are merged.
     raw->SetMarkBit();
@@ -6180,14 +6181,12 @@ RawCode* Code::New(int pointer_offsets_length) {
 }
 
 
-RawCode* Code::FinalizeCode(const char* name,
-                            Assembler* assembler,
-                            Heap::Space space) {
+RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   ASSERT(assembler != NULL);
 
   // Allocate the Instructions object.
   Instructions& instrs =
-      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize(), space));
+      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -6254,17 +6253,10 @@ RawCode* Code::FinalizeCode(const char* name,
 RawCode* Code::FinalizeCode(const Function& function, Assembler* assembler) {
   // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
   if (FLAG_generate_gdb_symbols || (Dart::pprof_symbol_generator() != NULL)) {
-    return FinalizeCode(function.ToFullyQualifiedCString(),
-                        assembler,
-                        Heap::kDartCode);
+    return FinalizeCode(function.ToFullyQualifiedCString(), assembler);
   } else {
-    return FinalizeCode("", assembler, Heap::kDartCode);
+    return FinalizeCode("", assembler);
   }
-}
-
-
-RawCode* Code::FinalizeStubCode(const char* name, Assembler* assembler) {
-  return FinalizeCode(name, assembler, Heap::kStubCode);
 }
 
 
@@ -6280,10 +6272,6 @@ RawCode* Code::LookupCode(uword pc) {
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
   instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-  if (instr != Instructions::null()) {
-    return instr->ptr()->code_;
-  }
-  instr = isolate->heap()->FindObjectInStubCodeSpace(&visitor);
   if (instr != Instructions::null()) {
     return instr->ptr()->code_;
   }

@@ -397,7 +397,6 @@ void X86Decoder::PrintAddress(uword addr) {
   Print(addr_buffer);
   // Try to print as heap object or stub name
   if (!Isolate::Current()->heap()->CodeContains(addr) &&
-      !Isolate::Current()->heap()->StubCodeContains(addr) &&
       Isolate::Current()->heap()->Contains(addr - kHeapObjectTag)) {
     Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {

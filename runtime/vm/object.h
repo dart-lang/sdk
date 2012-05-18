@@ -1909,7 +1909,7 @@ class Instructions : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size, Heap::Space space);
+  static RawInstructions* New(intptr_t size);
 
   HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Code;
@@ -2247,7 +2247,7 @@ class Code : public Object {
         sizeof(RawCode) + (pointer_offsets_length * kEntrySize));
   }
   static RawCode* FinalizeCode(const Function& function, Assembler* assembler);
-  static RawCode* FinalizeStubCode(const char* name, Assembler* assembler);
+  static RawCode* FinalizeCode(const char* name, Assembler* assembler);
   static RawCode* LookupCode(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
@@ -2311,10 +2311,6 @@ class Code : public Object {
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
   static RawCode* New(int pointer_offsets_length);
-
-  static RawCode* FinalizeCode(const char* name,
-                               Assembler* assembler,
-                               Heap::Space space);
 
   HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
