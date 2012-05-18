@@ -144,9 +144,79 @@ LibTest/core/int/operator_remainder_A01_t02: Fail
 
 
 [ $runtime == vm ]
+
+# The following tests contain String operator + which is being removed
+# from the language. These tests pass or fail depending on whether support
+# for + is enabled or not.
+Language/05_Variables/05_Variables_A05_t04: Pass,Fail
+Language/11_Statements/10_Return_A02_t01: Pass,Fail
+Language/11_Statements/08_Switch_A02_t02: Pass,Fail
+Language/11_Statements/08_Switch_A01_t03: Pass,Fail
+Language/11_Statements/07_Do_A02_t02: Pass,Fail
+Language/11_Statements/05_For/2_Foreach_A01_t05: Pass,Fail
+Language/11_Statements/05_For/1_For_Loop_A01_t05: Pass,Fail
+Language/11_Statements/05_For/1_For_Loop_A01_t02: Pass,Fail
+Language/11_Statements/01_Blocks_A01_t03: Pass,Fail
+Language/11_Statements/02_Expression_Statements_A01_t01: Pass,Fail
+Language/11_Statements/01_Blocks_A01_t01: Pass,Fail
+Language/10_Expressions/17_Conditional_A03_t01: Pass,Fail
+Language/10_Expressions/17_Conditional_A01_t01: Pass,Fail
+Language/10_Expressions/16_Assignment_A05_t06: Pass,Fail
+Language/10_Expressions/16_Assignment_A05_t03: Pass,Fail
+Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A04_t05: Pass,Fail
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A04_t01: Pass,Fail
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Pass,Fail
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Pass,Fail
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t02: Pass,Fail
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: Pass,Fail
+Language/10_Expressions/12_Property_Extraction_A01_t01: Pass,Fail
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A13_t03: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A13_t01: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A10_t03: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t05: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Pass,Fail
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t03: Pass,Fail
+Language/10_Expressions/08_Function_Expressions_A03_t01: Pass,Fail
+Language/10_Expressions/07_Maps_A09_t01: Pass,Fail
+Language/10_Expressions/08_Function_Expressions_A04_t01: Pass,Fail
+Language/10_Expressions/07_Maps_A07_t01: Pass,Fail
+Language/10_Expressions/06_Lists_A08_t01: Pass,Fail
+Language/10_Expressions/06_Lists_A01_t01: Pass,Fail
+Language/10_Expressions/05_Strings_A19_t01: Pass,Fail
+Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t01: Pass,Fail
+Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t01: Pass,Fail
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t01: Pass,Fail
+Language/10_Expressions/01_Constants_A13_t01: Pass,Fail
+Language/10_Expressions/01_Constants_A03_t01: Pass,Fail
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Pass,Fail
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t02: Pass,Fail
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Pass,Fail
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A06_t02: Pass,Fail
+LibTest/core/String/String_class_A02_t01: Pass,Fail
+LibTest/core/String/String_class_A01_t01: Pass,Fail
+LibTest/core/String/operator_addition_A01_t04: Pass,Fail
+LibTest/core/String/operator_addition_A01_t03: Pass,Fail
+LibTest/core/String/operator_addition_A01_t02: Pass,Fail
+LibTest/core/String/operator_addition_A01_t01: Pass,Fail
+LibTest/core/Stopwatch/start_A01_t02: Pass,Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: Pass,Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: Pass,Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: Pass,Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: Pass,Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t01: Pass,Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Pass,Fail
+LibTest/core/RegExp/hasMatch_A01_t01: Pass,Fail
+LibTest/core/Expect/stringEquals_A01_t01: Pass,Fail
+LibTest/core/Expect/listEquals_A03_t01: Pass,Fail
+LibTest/core/Expect/fail_A02_t01: Pass,Fail
+LibTest/core/Date/Date_A01_t02: Pass,Fail
+LibTest/core/Date/Date.withTimeZone_A01_t02: Pass,Fail
+
+
 LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
-Language/05_Variables/05_Variables_A05_t04: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
 Language/07_Classes/07_Classes_A02_t08: Fail
