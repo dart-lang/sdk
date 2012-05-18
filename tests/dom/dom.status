@@ -19,6 +19,9 @@ native_gc_test: Skip  # Issue 2538.
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
+[ $compiler == none && $runtime == drt && $system == mac]
+audiocontext_test: Skip
+
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 
