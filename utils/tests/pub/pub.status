@@ -3,14 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == frog || $compiler == dart2js || $compiler == dartc ]
-pub_test: Skip # Pub only runs on the VM, so just rule out all compilers.
+*: Skip # Pub only runs on the VM, so just rule out all compilers.
 
-[ $runtime == drt ]
-pub_test: Skip # Pub only runs on the standalone VM, not Dartium.
+[ $runtime == drt || $runtime == dartium ]
+*: Skip # Pub only runs on the standalone VM, not the browser.
 
 [ $system == windows ]
-pub_test: Skip # Right now, Pub update creates symlinks which aren't supported
-               # on Windows.
+*: Skip # Right now, Pub update creates symlinks which aren't supported
+        # on Windows.
 
 [ $compiler == dart2js ]
 yaml_test: Skip # Issue 2717.
