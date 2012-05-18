@@ -1109,6 +1109,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
   }
 
+  /**
+   * When we check getter/setter compatibility, we should compare propagated type variables.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3067
+   */
+  public void test_typeVariables_getterSetter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Base1<T1> {",
+            "  T1 get val() {}",
+            "}",
+            "class Base2<T2> extends Base1<T2> {",
+            "}",
+            "class Sub<T3> extends Base2<T3> {",
+            "  void set val(T3 value) {}",
+            "}",
+            "");
+    assertErrors(result.getErrors());
+  }
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

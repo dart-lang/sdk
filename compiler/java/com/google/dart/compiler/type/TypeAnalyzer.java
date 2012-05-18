@@ -118,6 +118,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1173,7 +1174,24 @@ public class TypeAnalyzer implements DartCompilationPhase {
           MethodElement getterElement = Elements.lookupFieldElementGetter(currentClass.getElement(),
                                                                           methodElement.getName());
           if (getterElement != null) {
-            Type getterType = getterElement.getReturnType();
+            // prepare "getter" type
+            Type getterType;
+            {
+              // prepare super types between "getter" and "setter" enclosing types
+              Type getterDeclarationType = getterElement.getEnclosingElement().getType();
+              List<InterfaceType> superTypes = getIntermediateSuperTypes(currentClass, getterDeclarationType);
+              // convert "getter" function type to use "setter" type parameters
+              FunctionType getterFunctionType = (FunctionType) getterElement.getType();
+              for (InterfaceType superType : superTypes) {
+                List<Type> superArguments = superType.getArguments();
+                List<Type> superParameters = superType.getElement().getTypeParameters();
+                getterFunctionType = (FunctionType) getterFunctionType.subst(
+                    superArguments, superParameters);
+              }
+              // get return type
+              getterType = getterFunctionType.getReturnType();
+            }
+            // compare "getter" and "setter" types
             if (!types.isAssignable(setterType, getterType)) {
               typeError(parameterElement, TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
                         setterType.getElement().getName(),
@@ -1183,6 +1201,23 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
       return typeAsVoid(node);
+    }
+
+    /**
+     * @return "super" {@link InterfaceType}s used in declarations from "subType" to "superType",
+     *         first item is given "superType". May be empty, but not <code>null</code>.
+     */
+    private List<InterfaceType> getIntermediateSuperTypes(InterfaceType subType, Type superType) {
+      LinkedList<InterfaceType> superTypes = Lists.newLinkedList();
+      InterfaceType t = subType.getElement().getSupertype();
+      while (t != null) {
+        superTypes.addFirst(t);
+        if (Objects.equal(t.getElement().getType(), superType)) {
+          break;
+        }
+        t = t.getElement().getSupertype();
+      }
+      return superTypes;
     }
 
     private void analyzeFactory(DartExpression name, final ConstructorElement methodElement) {
