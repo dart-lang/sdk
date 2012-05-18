@@ -437,11 +437,6 @@ class ObjectStore {
     root_library_ = value.raw();
   }
 
-  RawArray* import_map() const { return import_map_; }
-  void set_import_map(const Array& value) {
-    import_map_ = value.raw();
-  }
-
   // Returns head of list of registered libraries.
   RawLibrary* registered_libraries() const { return registered_libraries_; }
   void set_registered_libraries(const Library& value) {
@@ -571,7 +566,6 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* builtin_library_;
   RawLibrary* root_library_;
-  RawArray* import_map_;
   RawLibrary* registered_libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;

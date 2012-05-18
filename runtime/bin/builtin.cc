@@ -90,7 +90,8 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
   }
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {
-    library = Dart_LoadLibrary(url, Source(id));
+    Dart_Handle import_map = Dart_NewList(0);
+    library = Dart_LoadLibrary(url, Source(id), import_map);
     if (!Dart_IsError(library)) {
       SetupLibrary(library, id);
     }

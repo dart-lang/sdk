@@ -143,4 +143,7 @@ ReceivePort get _port() {
 
 _spawnFunction(void topLevelFunction()) native "isolate_spawnFunction";
 
-_spawnUri(String uri) native "isolate_spawnUri";
+// TODO(sigmund,turnidge): implement
+SendPort _spawnUri(String uri) {
+  throw new NotImplementedException();
+}

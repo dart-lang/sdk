@@ -23,6 +23,11 @@ class _Logger {
 }
 
 
+// Code to deal with URI resolution for the standalone binary.
+// For Windows we need to massage the paths a bit according to
+// http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
+var _is_windows;
+
 // The URI that the entrypoint script was loaded from. Remembered so that
 // package imports can be resolved relative to it.
 var _entrypoint;
@@ -43,13 +48,11 @@ String _setPackageRoot(String packageRoot) {
   _packageRoot = packageRoot;
 }
 
-String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
+String _resolveScriptUri(String cwd, String scriptName, bool windows) {
+  _is_windows = windows;
   _logResolution("# Current working directory: $cwd");
   _logResolution("# ScriptName: $scriptName");
-  if (isWindows) {
-    // For Windows we need to massage the paths a bit according to
-    // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
-    //
+  if (windows) {
     // Convert
     // C:\one\two\three
     // to
@@ -89,7 +92,7 @@ String _resolveUri(String base, String userString) {
 }
 
 
-String _filePathFromUri(String userUri, bool isWindows) {
+String _filePathFromUri(String userUri) {
   var uri = new Uri.fromString(userUri);
   _logResolution("# Getting file path from: $uri");
 
@@ -110,10 +113,7 @@ String _filePathFromUri(String userUri, bool isWindows) {
       throw "Not a known scheme: $uri";
   }
 
-  if (isWindows) {
-    // For Windows we need to massage the paths a bit according to
-    // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
-    //
+  if (_is_windows) {
     // Drop the leading / before the drive letter.
     path = path.substring(1);
     _logResolution("# path: $path");

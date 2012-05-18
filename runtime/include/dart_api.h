@@ -389,41 +389,22 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
 /**
  * An isolate creation and initialization callback function.
  *
- * This callback, provided by the embedder, is called when the vm
- * needs to create an isolate. The callback should create an isolate
- * by calling Dart_CreateIsolate and load any scripts required for
- * execution.
+ * This callback, provided by the embedder, is called when an isolate needs
+ * to be created. The callback should create an isolate and load the
+ * required scripts for execution.
  *
- * When the function returns false, it is the responsibility of this
- * function to ensure that Dart_ShutdownIsolate has been called if
- * required (for example, if the isolate was created successfully by
- * Dart_CreateIsolate() but the root library fails to load
- * successfully, then the function should call Dart_ShutdownIsolate
- * before returning).
- *
- * When the function returns false, the function should set *error to
- * a malloc-allocated buffer containing a useful error message.  The
- * caller of this function (the vm) will make sure that the buffer is
- * freed.
- *
- * \param script_uri The uri of the script to load.  This uri has been
- *   canonicalized by the library tag handler from the parent isolate.
- *   The callback is responsible for loading this script by a call to
- *   Dart_LoadScript or Dart_LoadScriptFromSnapshot.
- * \param main The name of the main entry point this isolate will
- *   eventually run.  This is provided for advisory purposes only to
- *   improve debugging messages.  The main function is not invoked by
- *   this function.
- * \param callback_data The callback data which was passed to the
- *   parent isolate when it was created by calling Dart_CreateIsolate().
  * \param error A structure into which the embedder can place a
  *   C string containing an error message in the case of failures.
  *
- * \return The embedder returns false if the creation and
- *   initialization was not successful and true if successful.
+ * \return The embedder returns false if the creation and initialization was not
+ *   successful and true if successful. The embedder is responsible for
+ *   maintaining consistency in the case of errors (e.g: isolate is created,
+ *   but loading of scripts fails then the embedder should ensure that
+ *   Dart_ShutdownIsolate is called on the isolate).
+ *   In the case of errors the caller is responsible for freeing the buffer
+ *   returned in error containing an error string.
  */
-typedef bool (*Dart_IsolateCreateCallback)(const char* script_uri,
-                                           const char* main,
+typedef bool (*Dart_IsolateCreateCallback)(const char* name_prefix,
                                            void* callback_data,
                                            char** error);
 
@@ -497,22 +478,13 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  *
  * Requires there to be no current isolate.
  *
- * \param script_uri The name of the script this isolate will load.
- *   Provided only for advisory purposes to improve debugging messages.
- * \param main The name of the main entry point this isolate will run.
- *   Provided only for advisory purposes to improve debugging messages.
  * \param snapshot A buffer containing a VM snapshot or NULL if no
  *   snapshot is provided.
- * \param callback_data Embedder data.  This data will be passed to
- *   the Dart_IsolateCreateCallback when new isolates are spawned from
- *   this parent isolate.
- * \param error DOCUMENT
  *
  * \return The new isolate is returned. May be NULL if an error
  *   occurs duing isolate initialization.
  */
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
-                                            const char* main,
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error);
@@ -1951,12 +1923,13 @@ typedef enum {
 // TODO(turnidge): Document.
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
-                                              Dart_Handle url);
+                                              Dart_Handle url,
+                                              Dart_Handle import_map);
 
 /**
- * Sets library tag handler for the current isolate. This handler is
- * used to handle the various tags encountered while loading libraries
- * or scripts in the isolate.
+ * Set library tag handler for the current isolate. This handler is used to
+ * handle the various tags encountered while loading libraries or scripts in
+ * the isolate.
  *
  * \param handler Handler code to be used for handling the various tags
  *   encountered while loading libraries or scripts in the isolate.
@@ -1970,38 +1943,13 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
     Dart_LibraryTagHandler handler);
 
 /**
- * Sets the import map for the current isolate.
- *
- * The import map is a List of Strings, representing a set of (name,
- * value) pairs. The import map is used during the resolution of #
- * directives in source files to implement string interpolation.
- *
- * For example, if a source file imports:
- *
- *   #import('${foo}/dart.html');
- *
- * And the import map is:
- *
- *   [ "foo", "/home/user" ]
- *
- * Then the import would resolve to:
- *
- *   #import('/home/user/dart.html');
- *
- * \param import_map A List of Strings interpreted as a String to
- *   String mapping.
- * \return If no error occurs, the import map is set for the isolate.
- *   Otherwise an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_SetImportMap(Dart_Handle import_map);
-
-/**
  * Loads the root script for the current isolate.
  *
  * TODO(turnidge): Document.
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle source);
+                                        Dart_Handle source,
+                                        Dart_Handle import_map);
 
 /**
  * Loads the root script for current isolate from a snapshot.
@@ -2010,17 +1958,8 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
  *
  * \return If no error occurs, the Library object corresponding to the root
  *   script is returned. Otherwise an error handle is returned.
- */
+ **/
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer);
-
-/**
- * Gets the library for the root script for the current isolate.
- *
- * \return Returns the Library object corresponding to the root script
- *   if it has been set by a successful call to Dart_LoadScript or
- *   Dart_LoadScriptFromSnapshot.  Otherwise returns Dart_Null().
- */
-DART_EXPORT Dart_Handle Dart_RootLibrary();
 
 /**
  * Forces all loaded classes and functions to be compiled eagerly in
@@ -2052,7 +1991,8 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 // not found to distinguish that from a true error case.
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source);
+                                         Dart_Handle source,
+                                         Dart_Handle import_map);
 
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,

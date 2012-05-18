@@ -1711,6 +1711,8 @@ class Library : public Object {
 
   RawString* url() const { return raw_ptr()->url_; }
   RawString* private_key() const { return raw_ptr()->private_key_; }
+  RawArray* import_map() const { return raw_ptr()->import_map_; }
+  void set_import_map(const Array& map) const;
   bool LoadNotStarted() const {
     return raw_ptr()->load_state_ == RawLibrary::kAllocated;
   }
@@ -1749,6 +1751,7 @@ class Library : public Object {
   void AddAnonymousClass(const Class& cls) const;
 
   // Library imports.
+  RawString* LookupImportMap(const String& name) const;
   void AddImport(const Library& library) const;
   RawLibrary* LookupImport(const String& url) const;
 

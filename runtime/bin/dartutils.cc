@@ -205,7 +205,8 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
                                   Dart_Handle library,
                                   Dart_Handle url,
                                   Dart_LibraryTag tag,
-                                  const char* url_string) {
+                                  const char* url_string,
+                                  Dart_Handle import_map) {
   if (url_mapping != NULL && IsDartSchemeURL(url_string)) {
     const char* mapped_url_string = MapLibraryUrl(url_mapping, url_string);
     if (mapped_url_string == NULL) {
@@ -223,7 +224,7 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
   }
   if (tag == kImportTag) {
     // Return library object or an error string.
-    return Dart_LoadLibrary(url, source);
+    return Dart_LoadLibrary(url, source, import_map);
   } else if (tag == kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }

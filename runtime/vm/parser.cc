@@ -3526,7 +3526,8 @@ void Parser::ParseLibraryName() {
 
 Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
-                                          const String& url) {
+                                          const String& url,
+                                          const Array& import_map) {
   Isolate* isolate = Isolate::Current();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
@@ -3534,7 +3535,8 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   }
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate, library_.raw()),
-                               Api::NewHandle(isolate, url.raw()));
+                               Api::NewHandle(isolate, url.raw()),
+                               Api::NewHandle(isolate, import_map.raw()));
   if (Dart_IsError(result)) {
     Error& prev_error = Error::Handle();
     prev_error ^= Api::UnwrapHandle(result);
@@ -3574,15 +3576,17 @@ void Parser::ParseLibraryImport() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
+    const Array& import_map = Array::Handle(library_.import_map());
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                import_pos,
-                                               url);
+                                               url,
+                                               import_map);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
     if (library.IsNull()) {
       // Call the library tag handler to load the library.
-      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+      CallLibraryTagHandler(kImportTag, import_pos, canon_url, import_map);
       // If the library tag handler succeded without registering the
       // library we create an empty library to import.
       library = Library::LookupLibrary(canon_url);
@@ -3610,6 +3614,7 @@ void Parser::ParseLibraryImport() {
 
 void Parser::ParseLibraryInclude() {
   TRACE_PARSER("ParseLibraryInclude");
+  const Array& import_map = Array::Handle(library_.import_map());
   while (CurrentToken() == Token::kSOURCE) {
     const intptr_t source_pos = token_index_;
     ConsumeToken();
@@ -3622,9 +3627,10 @@ void Parser::ParseLibraryInclude() {
     ExpectToken(Token::kSEMICOLON);
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                source_pos,
-                                               url);
+                                               url,
+                                               import_map);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
-    CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
+    CallLibraryTagHandler(kSourceTag, source_pos, canon_url, import_map);
   }
 }
 
@@ -7194,20 +7200,9 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
 // when the script is loaded.
 RawString* Parser::ResolveImportVar(intptr_t ident_pos, const String& ident) {
   TRACE_PARSER("ResolveImportVar");
-  const Array& import_map =
-      Array::Handle(Isolate::Current()->object_store()->import_map());
-  if (!import_map.IsNull()) {
-    intptr_t length = import_map.Length();
-    intptr_t index = 0;
-    String& name = String::Handle();
-    while (index < (length - 1)) {
-      name ^= import_map.At(index);
-      if (name.Equals(ident)) {
-        name ^= import_map.At(index + 1);
-        return name.raw();
-      }
-      index += 2;
-    }
+  String& map_name = String::Handle(library_.LookupImportMap(ident));
+  if (!map_name.IsNull()) {
+    return map_name.raw();
   }
   ErrorMsg(ident_pos, "import variable '%s' has not been defined",
            ident.ToCString());

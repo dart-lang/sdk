@@ -181,14 +181,15 @@ class TestCase : TestCaseBase {
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
-                                     Dart_Handle url);
+                                     Dart_Handle url,
+                                     Dart_Handle import_map);
 
   virtual void Run();
 
  private:
   static Dart_Isolate CreateIsolate(uint8_t* buffer) {
     char* err;
-    Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
+    Dart_Isolate isolate = Dart_CreateIsolate(NULL, buffer, NULL, &err);
     if (isolate == NULL) {
       OS::Print("Creation of isolate failed '%s'\n", err);
       free(err);
