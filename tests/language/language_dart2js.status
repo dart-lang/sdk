@@ -185,7 +185,7 @@ setter_declaration2_negative_test: Fail, OK # Negative language test.
 setter_declaration_negative_test: Fail, OK # Negative language test.
 static_field1_run_negative_test: Fail, OK # Negative language test.
 static_field2_run_negative_test: Fail, OK # Negative language test.
-static_final_field2_negative_test: Fail, OK # Negative language test.
+static_final_field2_negative_test: Fail, OK # Negative language test.too
 static_final_field_negative_test: Fail, OK # Negative language test.
 static_top_level_test/00: Fail, OK # Negative language test.
 static_top_level_test/01: Fail, OK # Negative language test.
@@ -209,6 +209,10 @@ type_vm_test: Fail, OK # VM specific test.
 disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
 
+final_syntax_test/01: Fail
+final_syntax_test/02: Fail
+final_syntax_test/03: Fail
+final_syntax_test/04: Fail
 
 div_by_zero_test: Fail, OK # Leg only has doubles.
 bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
@@ -220,8 +224,6 @@ reg_exp3_test: Fail, OK # Expects exception from const constructor.
 
 
 list_test: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
-
-final_syntax_test/none: Fail, OK # Uses deprecated "StrConstant + StrConstant".
 
 [ $compiler == dart2js && $mode == release ]
 assign_top_method_negative_test: Crash
