@@ -5,6 +5,8 @@
 /**
  * A library for writing dart unit tests.
  *
+ * To import this library, specify the relative path to lib/unittest.dart.
+ *
  * ##Concepts##
  *
  *  * Tests: Tests are specified via the top-level function [test], they can be
