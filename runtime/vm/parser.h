@@ -267,8 +267,7 @@ class Parser : ValueObject {
   // Support for parsing libraries.
   Dart_Handle CallLibraryTagHandler(Dart_LibraryTag tag,
                                     intptr_t token_pos,
-                                    const String& url,
-                                    const Array& import_map);
+                                    const String& url);
   void ParseLibraryDefinition();
   void ParseLibraryName();
   void ParseLibraryImport();

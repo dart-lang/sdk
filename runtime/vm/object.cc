@@ -4589,11 +4589,6 @@ void ClassDictionaryIterator::MoveToNextClass() {
 }
 
 
-void Library::set_import_map(const Array& map) const {
-  StorePointer(&raw_ptr()->import_map_, map.raw());
-}
-
-
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
@@ -5195,23 +5190,6 @@ RawLibrary* Library::LookupImport(const String& url) const {
 }
 
 
-RawString* Library::LookupImportMap(const String& ident) const {
-  Array& import_map = Array::Handle(this->import_map());
-  intptr_t length = import_map.Length();
-  intptr_t index = 0;
-  String& name = String::Handle();
-  while (index < (length - 1)) {
-    name ^= import_map.At(index);
-    if (name.Equals(ident)) {
-      name ^= import_map.At(index + 1);
-      return name.raw();
-    }
-    index += 2;
-  }
-  return String::null();
-}
-
-
 void Library::AddImport(const Library& library) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
@@ -5287,7 +5265,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->dictionary_ = Array::Empty();
   result.raw_ptr()->anonymous_classes_ = Array::Empty();
   result.raw_ptr()->num_anonymous_ = 0;
-  result.raw_ptr()->import_map_ = Array::Empty();
   result.raw_ptr()->imports_ = Array::Empty();
   result.raw_ptr()->next_registered_ = Library::null();
   result.raw_ptr()->loaded_scripts_ = Array::null();
