@@ -103,6 +103,10 @@ public class CommandLineOptions {
         usage = "Path to dart sdk.  (system property com.google.dart.sdk)")
     private File dartSdkPath = SystemLibraryManager.DEFAULT_SDK_PATH;
     
+    @Option(name = "--package-root",
+        usage = "Root directory used for the package: scheme")
+    private File packageRoot = SystemLibraryManager.DEFAULT_PACKAGE_ROOT;
+    
     @Option(name = "--show-sdk-warnings", usage = "show warnings from SDK source")
     private boolean showSdkWarnings = false;
     
@@ -133,6 +137,13 @@ public class CommandLineOptions {
 
     public String getPlatformName() {
       return platformName;
+    }
+
+    /**
+     * @return the packageRoot
+     */
+    public File getPackageRoot() {
+      return packageRoot;
     }
 
     public File getDartSdkPath() {

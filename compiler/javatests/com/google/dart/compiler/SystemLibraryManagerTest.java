@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler;
@@ -47,7 +47,7 @@ public class SystemLibraryManagerTest extends TestCase {
   public void testTranslate1() throws Exception {
     URI shortUri = new URI("dart:core");
     URI fullUri = systemLibraryManager.expandRelativeDartUri(shortUri);
-    URI translatedURI = systemLibraryManager.translateDartUri(fullUri);
+    URI translatedURI = systemLibraryManager.resolveDartUri(fullUri);
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file"));
@@ -57,7 +57,7 @@ public class SystemLibraryManagerTest extends TestCase {
   public void testTranslate2() throws Exception {
     URI shortUri = new URI("dart:coreimpl");
     URI fullUri = systemLibraryManager.expandRelativeDartUri(shortUri);
-    URI translatedURI = systemLibraryManager.translateDartUri(fullUri);
+    URI translatedURI = systemLibraryManager.resolveDartUri(fullUri);
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file"));
@@ -67,7 +67,7 @@ public class SystemLibraryManagerTest extends TestCase {
   public void testTranslate3() throws Exception {
     URI fullUri = new URI("dart://doesnotexist/some/file.dart");
     try {
-      URI translatedURI = systemLibraryManager.translateDartUri(fullUri);
+      URI translatedURI = systemLibraryManager.resolveDartUri(fullUri);
       fail("Expected translate " + fullUri + " to fail, but returned " + translatedURI);
     } catch (RuntimeException e) {
       String message = e.getMessage();
