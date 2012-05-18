@@ -746,8 +746,6 @@ TEST_CASE(SerializeScript) {
 
   // Check if the serialized script object matches the original script.
   String& str = String::Handle();
-  str ^= serialized_script.source();
-  EXPECT(source.Equals(str));
   str ^= serialized_script.url();
   EXPECT(url.Equals(str));
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
@@ -760,6 +758,20 @@ TEST_CASE(SerializeScript) {
     EXPECT_EQ(expected_tokens.KindAt(i), serialized_tokens.KindAt(i));
     expected_literal ^= expected_tokens.LiteralAt(i);
     actual_literal ^= serialized_tokens.LiteralAt(i);
+    EXPECT(expected_literal.Equals(actual_literal));
+  }
+  // Check if we are able to generate the source from the token stream.
+  // Rescan this source and compare the token stream to see if they are
+  // the same.
+  str ^= serialized_tokens.GenerateSource();
+  const String& dummy_key = String::Handle(String::New(""));
+  Scanner scanner(str, dummy_key);
+  const TokenStream& reconstructed_tokens =
+      TokenStream::Handle(TokenStream::New(scanner.GetStream()));
+  for (intptr_t i = 0; i < expected_tokens.Length(); i++) {
+    EXPECT_EQ(expected_tokens.KindAt(i), serialized_tokens.KindAt(i));
+    expected_literal ^= expected_tokens.LiteralAt(i);
+    actual_literal ^= reconstructed_tokens.LiteralAt(i);
     EXPECT(expected_literal.Equals(actual_literal));
   }
 

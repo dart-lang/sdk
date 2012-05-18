@@ -4337,6 +4337,27 @@ RawString* TokenStream::LiteralAt(intptr_t index) const {
 }
 
 
+RawString* TokenStream::GenerateSource() const {
+  GrowableObjectArray& literals =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
+  String& literal = String::Handle();
+  String& blank = String::Handle(String::New(" "));
+  String& newline = String::Handle(String::New("\n"));
+  for (intptr_t i = 0; i < Length(); i++) {
+    Token::Kind kind = KindAt(i);
+    literal = LiteralAt(i);
+    literals.Add(literal);
+    if (kind == Token::kLBRACE) {
+      literals.Add(newline);
+    } else {
+      literals.Add(blank);
+    }
+  }
+  const Array& source = Array::Handle(Array::MakeArray(literals));
+  return String::ConcatAll(source);
+}
+
+
 RawTokenStream* TokenStream::New(intptr_t len) {
   const Class& token_stream_class = Class::Handle(Object::token_stream_class());
   TokenStream& result = TokenStream::Handle();
@@ -4372,6 +4393,17 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
 
 const char* TokenStream::ToCString() const {
   return "TokenStream";
+}
+
+
+RawString* Script::source() const {
+  String& source = String::Handle(raw_ptr()->source_);
+  if (source.IsNull()) {
+    const TokenStream& token_stream = TokenStream::Handle(tokens());
+    return token_stream.GenerateSource();
+  } else {
+    return raw_ptr()->source_;
+  }
 }
 
 

@@ -1595,6 +1595,7 @@ class TokenStream : public Object {
 
   RawObject* TokenAt(intptr_t index) const;
   RawString* LiteralAt(intptr_t index) const;
+  RawString* GenerateSource() const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
@@ -1630,7 +1631,7 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
-  RawString* source() const { return raw_ptr()->source_; }
+  RawString* source() const;
   RawScript::Kind kind() const { return raw_ptr()->kind_; }
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
