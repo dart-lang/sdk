@@ -1112,8 +1112,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
                   "typedef '%s' illegally refers to itself",
                   name.ToCString());
     }
-    // TODO(regis): Also check this: "It is a compile-time error if any default
-    // values are specified in the signature of a function type alias".
     cls.Finalize();
     return;
   }

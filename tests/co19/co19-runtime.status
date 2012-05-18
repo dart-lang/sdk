@@ -247,6 +247,11 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail
+Language/08_Interfaces/Interfaces_A02_t01: Fail # co19 issue 123
+Language/08_Interfaces/Interfaces_A02_t02: Fail # co19 issue 123
+Language/08_Interfaces/Interfaces_A02_t03: Fail # co19 issue 123
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail # co19 issue 123
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t02: Fail # co19 issue 123
 Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail

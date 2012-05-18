@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-typedef void funcType(int arg);
+typedef void funcType([int arg]);
 
-class A extends funcType {  // illegal, funcType is not a class
+typedef void badFuncType([int arg = 0]);  /// 00: compile-time error
+
+class A
+  extends funcType  /// 01: compile-time error
+{
 }
 
 main() {

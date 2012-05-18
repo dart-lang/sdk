@@ -2194,8 +2194,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   const bool has_this_param =
       !method->has_static || method->IsConstructor() || method->has_factory;
   const bool are_implicitly_final = method->has_const;
-  const bool allow_explicit_default_values =
-      (!method->has_abstract && !members->is_interface());
+  const bool allow_explicit_default_values = true;
   const intptr_t formal_param_pos = token_index_;
   method->params.Clear();
   if (has_this_param) {
