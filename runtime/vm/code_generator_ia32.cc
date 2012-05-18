@@ -2417,8 +2417,9 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 }
 
 
+// Pushes either the instantiator or null.
 // Pushes the type arguments of the instantiator on the stack.
-// Destroys EBX.
+// Destroys EBX, ECX.
 void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index,
                                                       bool push_instantiator) {
   if (push_instantiator) {

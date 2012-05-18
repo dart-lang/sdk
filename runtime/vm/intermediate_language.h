@@ -256,12 +256,14 @@ class AssertAssignableComp : public Computation {
   AssertAssignableComp(intptr_t token_index,
                        intptr_t try_index,
                        Value* value,
+                       Value* instantiator,  // Can be NULL.
                        Value* instantiator_type_arguments,  // Can be NULL.
                        const AbstractType& dst_type,
                        const String& dst_name)
       : token_index_(token_index),
         try_index_(try_index),
         value_(value),
+        instantiator_(instantiator),
         instantiator_type_arguments_(instantiator_type_arguments),
         dst_type_(dst_type),
         dst_name_(dst_name) {
@@ -275,6 +277,7 @@ class AssertAssignableComp : public Computation {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return value_; }
+  Value* instantiator() const { return instantiator_; }
   Value* instantiator_type_arguments() const {
     return instantiator_type_arguments_;
   }
@@ -294,6 +297,7 @@ class AssertAssignableComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
+  Value* instantiator_;
   Value* instantiator_type_arguments_;
   const AbstractType& dst_type_;
   const String& dst_name_;
@@ -829,12 +833,14 @@ class InstanceOfComp : public Computation {
   InstanceOfComp(intptr_t token_index,
                  intptr_t try_index,
                  Value* value,
+                 Value* instantiator,  // Can be NULL.
                  Value* type_arguments,  // Can be NULL.
                  const AbstractType& type,
                  bool negate_result)
       : token_index_(token_index),
         try_index_(try_index),
         value_(value),
+        instantiator_(instantiator),
         type_arguments_(type_arguments),
         type_(type),
         negate_result_(negate_result) {
@@ -845,6 +851,7 @@ class InstanceOfComp : public Computation {
   DECLARE_COMPUTATION(InstanceOf)
 
   Value* value() const { return value_; }
+  Value* instantiator() const { return instantiator_; }
   Value* type_arguments() const { return type_arguments_; }
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
@@ -864,6 +871,7 @@ class InstanceOfComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
+  Value* instantiator_;
   Value* type_arguments_;
   const AbstractType& type_;
   const bool negate_result_;

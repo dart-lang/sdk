@@ -66,6 +66,7 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
     if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
+    OS::Print(")");
   }
 }
 
@@ -85,6 +86,11 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
             String::Handle(dst_type().Name()).ToCString(),
             dst_name().ToCString());
+  if (instantiator() != NULL) {
+    OS::Print(" (instantiator:");
+    instantiator()->PrintTo(f);
+    OS::Print(")");
+  }
   if (instantiator_type_arguments() != NULL) {
     f->Print(" (instantiator:");
     instantiator_type_arguments()->PrintTo(f);
@@ -182,6 +188,11 @@ void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
+  if (instantiator() != NULL) {
+    OS::Print(" (instantiator:");
+    instantiator()->PrintTo(f);
+    OS::Print(")");
+  }
   if (type_arguments() != NULL) {
     f->Print(" (type-arg:");
     type_arguments()->PrintTo(f);

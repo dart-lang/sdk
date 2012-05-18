@@ -108,9 +108,12 @@ static const Class* CoreClass(const char* c_name) {
 // Note that this inlined code must be followed by the runtime_call code, as it
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
-void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
-                                                 Label* is_instance,
-                                                 Label* is_not_instance) {
+RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
+    intptr_t cid,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance,
+    Label* is_not_instance) {
   Label runtime_call;
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
@@ -271,6 +274,7 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
     }
   }
   __ Bind(&runtime_call);
+  return SubtypeTestCache::null();
 }
 
 
@@ -280,7 +284,8 @@ void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - RAX: object.
-// - RDX: optional instantiator type arguments.
+// - RDX: instantiator type arguments or raw_null.
+// - RCX: instantiator or raw_null.
 // Destroys RCX and RDX.
 // Returns:
 // - object in RAX for successful assignable check (or throws TypeError).
@@ -295,10 +300,11 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   ASSERT(token_index >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
+  // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformed() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   ASSERT(!dst_type.IsVoidType());
-
+  __ pushq(RCX);  // Temporary store instantiator on stack.
   // A null object is always assignable and is returned as result.
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -328,22 +334,21 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   }
 
   // Generate inline type check, linking to runtime call if not assignable.
-  GenerateInlineInstanceof(dst_type, &is_assignable, &runtime_call);
-
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(cid, token_index, dst_type,
+                                        &is_assignable, &runtime_call);
   __ Bind(&runtime_call);
+  __ movq(RCX, Address(RSP, 0));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
   __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushq(raw_null);  // TODO(srdjan): Instantiator.
-  if (dst_type.IsInstantiated()) {
-    __ pushq(raw_null);  // Null instantiator type arguments.
-  } else {
-    __ pushq(RDX);  // Instantiator type arguments.
-  }
+  __ pushq(RCX);  // Instantiator.
+  __ pushq(RDX);  // Instantiator type arguments.
   __ PushObject(dst_name);  // Push the name of the destination.
-  __ pushq(raw_null);  // SubtypeTestCache not yet supported.
+  __ LoadObject(RAX, test_cache);
+  __ pushq(RAX);
   GenerateCallRuntime(cid,
                       token_index,
                       try_index,
@@ -354,6 +359,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   __ popq(RAX);
 
   __ Bind(&is_assignable);
+  __ popq(RCX);  // Remove pushed instantiator.
 }
 
 
@@ -384,8 +390,17 @@ void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
 
 
 void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
-  if (comp->instantiator_type_arguments() != NULL) {
-    __ popq(RDX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  if (comp->instantiator_type_arguments() == NULL) {
+    __ movq(RDX, raw_null);
+  } else {
+    LoadValue(RDX, comp->instantiator_type_arguments());
+  }
+  if (comp->instantiator() == NULL) {
+    __ movq(RCX, raw_null);
+  } else {
+    LoadValue(RCX, comp->instantiator());
   }
   LoadValue(RAX, comp->value());
   GenerateAssertAssignable(comp->cid(),
@@ -756,7 +771,8 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - RAX: object.
-// - RDX: optional instantiator type arguments.
+// - RDX: oinstantiator type arguments or raw_null.
+// - RCX: instantiator or raw_null.
 // Destroys RCX and RDX.
 // Returns:
 // - true or false in RAX.
@@ -772,6 +788,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label is_instance, is_not_instance;
+  __ pushq(RCX);  // Temporary store instantiator on stack.
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -787,7 +804,9 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   }
 
   // Generate inline instanceof test.
-  GenerateInlineInstanceof(type, &is_instance, &is_not_instance);
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(cid, token_index, type,
+                                        &is_instance, &is_not_instance);
 
   // Generate runtime call.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
@@ -825,12 +844,22 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ Bind(&is_instance);
   __ LoadObject(RAX, negate_result ? bool_false : bool_true);
   __ Bind(&done);
+  __ popq(RCX);  // Remove pushed instantiator.
 }
 
 
 void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
-  if (comp->type_arguments() != NULL) {
-    __ popq(RDX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  if (comp->type_arguments() == NULL) {
+    __ movq(RDX, raw_null);
+  } else {
+    LoadValue(RDX, comp->type_arguments());
+  }
+  if (comp->instantiator() == NULL) {
+    __ movq(RCX, raw_null);
+  } else {
+    LoadValue(RCX, comp->instantiator());
   }
   LoadValue(RAX, comp->value());
   GenerateInstanceOf(comp->cid(),

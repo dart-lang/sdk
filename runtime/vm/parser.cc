@@ -236,6 +236,7 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 }
 
 
+// For parsing a compilation unit.
 Parser::Parser(const Script& script,
                const Library& library)
     : script_(script),
@@ -256,6 +257,7 @@ Parser::Parser(const Script& script,
 }
 
 
+// For parsing a function.
 Parser::Parser(const Script& script,
                const Function& function,
                intptr_t token_index)
@@ -274,6 +276,9 @@ Parser::Parser(const Script& script,
   ASSERT(!tokens_.IsNull());
   ASSERT(!function.IsNull());
   SetPosition(token_index);
+  if (FLAG_enable_type_checks) {
+    EnsureExpressionTemp();
+  }
 }
 
 
@@ -5261,8 +5266,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         // Make sure that the instantiator is captured.
         CaptureReceiver();
       }
-      AstNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
+      TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
       AstNode* exception_var = new LoadLocalNode(catch_pos, *catch_excp_var);
+      if (!exception_type->type().IsInstantiated()) {
+        EnsureExpressionTemp();
+      }
       AstNode* type_cond_expr = new ComparisonNode(
           catch_pos, Token::kIS, exception_var, exception_type);
       current_block_->statements->Add(
@@ -5842,6 +5850,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
       if (Token::IsRelationalOperator(op_kind)
           || Token::IsInstanceofOperator(op_kind)
           || Token::IsEqualityOperator(op_kind)) {
+        if (Token::IsInstanceofOperator(op_kind)) {
+          if (!right_operand->AsTypeNode()->type().IsInstantiated()) {
+            EnsureExpressionTemp();
+          }
+        }
         left_operand = new ComparisonNode(
             op_pos, op_kind, left_operand, right_operand);
         break;  // Equality and relational operators cannot be chained.

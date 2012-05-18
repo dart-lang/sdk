@@ -112,9 +112,11 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                             intptr_t token_index,
                             intptr_t try_index);
 
-  void GenerateInlineInstanceof(const AbstractType& type,
-                                Label* is_instance,
-                                Label* is_not_instance);
+  RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
+                                                intptr_t token_index,
+                                                const AbstractType& type,
+                                                Label* is_instance,
+                                                Label* is_not_instance);
 
   void GenerateAssertAssignable(intptr_t cid,
                                 intptr_t token_index,
