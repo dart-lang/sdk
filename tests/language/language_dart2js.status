@@ -62,6 +62,10 @@ many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
 method_name_test: Fail # Parsing of pseudo keywords.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
+method_override2_test/00: Fail # accepts illegal override
+method_override2_test/01: Fail # accepts illegal override
+method_override2_test/02: Fail # accepts illegal override
+method_override2_test/03: Fail # accepts illegal override
 named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
 named_parameters4_test: Fail # Unimplemented non-matching static call

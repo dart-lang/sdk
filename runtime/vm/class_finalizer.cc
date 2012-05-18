@@ -97,7 +97,6 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
 }
 
 
-#if defined (DEBUG)
 // Adds all interfaces of cls into 'collected'. Duplicate entries may occur.
 // No cycles are allowed.
 void ClassFinalizer::CollectInterfaces(const Class& cls,
@@ -114,6 +113,7 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
 }
 
 
+#if defined (DEBUG)
 // Collect all interfaces of the class 'cls' and check that every function
 // defined in each interface can be found in the class.
 // No need to check instance fields since they have been turned into
@@ -951,7 +951,18 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                   super_class_name.ToCString());
     }
   }
-  // Resolve function signatures and check for conflicts in super classes.
+  // Collect interfaces, super interfaces, and super classes of this class.
+  const GrowableObjectArray& interfaces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  CollectInterfaces(cls, interfaces);
+  // Include superclasses in list of interfaces and super interfaces.
+  super_class = cls.SuperClass();
+  while (!super_class.IsNull()) {
+    interfaces.Add(super_class);
+    super_class = super_class.SuperClass();
+  }
+  // Resolve function signatures and check for conflicts in super classes and
+  // interfaces.
   array = cls.functions();
   Function& function = Function::Handle();
   Function& overridden_function = Function::Handle();
@@ -976,24 +987,23 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     super_class_name.ToCString());
       }
     } else {
-      // TODO(regis): This arity check is still being debated. Revisit.
-      super_class = cls.SuperClass();
-      while (!super_class.IsNull()) {
+      for (int i = 0; i < interfaces.Length(); i++) {
+        super_class ^= interfaces.At(i);
         overridden_function = super_class.LookupDynamicFunction(function_name);
         if (!overridden_function.IsNull() &&
-          !function.HasCompatibleParametersWith(overridden_function)) {
+            !function.HasCompatibleParametersWith(overridden_function)) {
           // Function types are purposely not checked for subtyping.
           const String& class_name = String::Handle(cls.Name());
           const String& super_class_name = String::Handle(super_class.Name());
           const Script& script = Script::Handle(cls.script());
           ReportError(script, function.token_index(),
-                      "class '%s' overrides function '%s' of super class '%s' "
+                      "class '%s' overrides function '%s' of %s '%s' "
                       "with incompatible parameters",
                       class_name.ToCString(),
                       function_name.ToCString(),
+                      super_class.is_interface() ? "interface" : "super class",
                       super_class_name.ToCString());
         }
-        super_class = super_class.SuperClass();
       }
     }
     if (function.kind() == RawFunction::kGetterFunction) {

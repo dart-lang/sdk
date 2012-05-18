@@ -177,15 +177,6 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail
-Language/08_Interfaces/1_Methods_A03_t01: Fail
-Language/08_Interfaces/1_Methods_A03_t02: Fail
-Language/08_Interfaces/1_Methods_A03_t03: Fail
-Language/08_Interfaces/1_Methods_A03_t04: Fail
-Language/08_Interfaces/1_Methods_A04_t01: Fail
-Language/08_Interfaces/1_Methods_A04_t02: Fail
-Language/08_Interfaces/1_Methods_A04_t03: Fail
-Language/08_Interfaces/1_Methods_A04_t04: Fail
-Language/08_Interfaces/1_Methods_A04_t05: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail
