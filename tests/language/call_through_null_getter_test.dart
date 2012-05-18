@@ -52,7 +52,7 @@ class CallThroughNullGetterTest {
     var exception = catchException(fn);
     if (!(exception is NullPointerException)) {
       Expect.fail("Wrong exception.  Expected: NullPointerException"
-          + " got: ${exception}");
+          " got: ${exception}");
     }
   }
 
@@ -60,7 +60,7 @@ class CallThroughNullGetterTest {
     var exception = catchException(fn);
     if (!(exception is ObjectNotClosureException)) {
       Expect.fail("Wrong exception.  Expected: ObjectNotClosureException"
-          + " got: ${exception}");
+          " got: ${exception}");
     }
   }
 

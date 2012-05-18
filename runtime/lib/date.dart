@@ -61,7 +61,7 @@ class DateImplementation implements Date {
     //    - "2012-02-27T14Z"
     //    - "-123450101 00:00:00 Z"  // In the year -12345.
     final RegExp re = const RegExp(
-        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)' +  // The day part.
+        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
         @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
     if (match !== null) {

@@ -26,7 +26,7 @@ main() {
   Expect.isTrue(C0.X is C1);
   Expect.isTrue(C0.X.x is C1); /// 09: compile-time error
 
-  Expect.equals("Hello42", B2);
+  Expect.equals("Hello 42", B2);
   Expect.equals("42Hello", B3); /// 10: compile-time error
 }
 
@@ -69,5 +69,5 @@ class C1 {
 // Check that sub-expressions of binary + are numeric.
 final B0 = 42;
 final B1 = "Hello";
-final B2 = B1 + B0;
+final B2 = "$B1 $B0";
 final B3 = B0 + B1; /// 10: continued

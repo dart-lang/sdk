@@ -40,7 +40,7 @@ int Sum(List<int> v) {
   return s;
 }
 
-get Window() { return "win" + "dow"; }
+get Window() { return "win" "dow"; }
 
 String rgb;
 

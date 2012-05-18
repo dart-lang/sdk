@@ -49,7 +49,7 @@ class PseudoKWTest {
   }
 }
 
-typedef(x) => "typedef " + x;
+typedef(x) => "typedef $x";
 
 static(abstract) {
   return abstract == true;

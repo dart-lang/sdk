@@ -146,7 +146,7 @@ String _filePathFromPackageUri(Uri uri) {
     var right = 'package:$path';
     var wrong = 'package://$path';
 
-    throw "URIs using the 'package:' scheme should look like " +
+    throw "URIs using the 'package:' scheme should look like "
           "'$right', not '$wrong'.";
   }
 

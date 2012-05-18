@@ -9,7 +9,7 @@ class Base {
 
   String get value() { return value_; }
   String set value(String newValue) {
-    value_ = 'Base:' + newValue;
+    value_ = 'Base:$newValue';
   }
 }
 
@@ -18,7 +18,7 @@ class Derived extends Base {
   Derived() : super() {}
 
   String set value(String newValue) {
-    super.value = 'Derived:' + newValue;
+    super.value = 'Derived:$newValue';
   }
   String get value() { return super.value; }
 }

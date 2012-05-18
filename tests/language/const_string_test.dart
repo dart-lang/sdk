@@ -12,24 +12,24 @@ main() {
   Expect.isTrue('ab\'cd' === "ab'cd");
 
   // String concatenation works even when quotes are different.
-  Expect.isTrue("abcd" === "ab" + "cd");
-  Expect.isTrue("abcd" === "ab" + 'cd');
-  Expect.isTrue("abcd" === 'ab' + 'cd');
-  Expect.isTrue("abcd" === 'ab' + "cd");
+  Expect.isTrue("abcd" === "ab" "cd");
+  Expect.isTrue("abcd" === "ab" 'cd');
+  Expect.isTrue("abcd" === 'ab' 'cd');
+  Expect.isTrue("abcd" === 'ab' "cd");
 
   // Or when there are more than 2 contatenations.
-  Expect.isTrue("abcd" === "a" + "b" + "cd");
-  Expect.isTrue("abcd" === "a" + "b" + "c" + "d");
-  Expect.isTrue('abcd' === 'a' + 'b' + 'c' + 'd');
-  Expect.isTrue("abcd" === "a" + "b" + 'c' + "d");
-  Expect.isTrue("abcd" === 'a' + 'b' + 'c' + 'd');
-  Expect.isTrue("abcd" === 'a' + "b" + 'c' + "d");
+  Expect.isTrue("abcd" === "a" "b" "cd");
+  Expect.isTrue("abcd" === "a" "b" "c" "d");
+  Expect.isTrue('abcd' === 'a' 'b' 'c' 'd');
+  Expect.isTrue("abcd" === "a" "b" 'c' "d");
+  Expect.isTrue("abcd" === 'a' 'b' 'c' 'd');
+  Expect.isTrue("abcd" === 'a' "b" 'c' "d");
 
-  Expect.isTrue("a'b'cd" === "a" + "'b'" + 'c' + "d");
-  Expect.isTrue("a\"b\"cd" === "a" + '"b"' + 'c' + "d");
-  Expect.isTrue("a\"b\"cd" === "a" + '"b"' + 'c' + "d");
-  Expect.isTrue("a'b'cd" === 'a' + "'b'" + 'c' + "d");
-  Expect.isTrue('a\'b\'cd' === "a" + "'b'" + 'c' + "d");
-  Expect.isTrue('a"b"cd' === 'a' + '"b"' + 'c' + "d");
-  Expect.isTrue("a\"b\"cd" === 'a' + '"b"' + 'c' + "d");
+  Expect.isTrue("a'b'cd" === "a" "'b'" 'c' "d");
+  Expect.isTrue("a\"b\"cd" === "a" '"b"' 'c' "d");
+  Expect.isTrue("a\"b\"cd" === "a" '"b"' 'c' "d");
+  Expect.isTrue("a'b'cd" === 'a' "'b'" 'c' "d");
+  Expect.isTrue('a\'b\'cd' === "a" "'b'" 'c' "d");
+  Expect.isTrue('a"b"cd' === 'a' '"b"' 'c' "d");
+  Expect.isTrue("a\"b\"cd" === 'a' '"b"' 'c' "d");
 }

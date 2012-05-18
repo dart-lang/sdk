@@ -11,9 +11,9 @@ class RegEx2Test {
     if (match != null) {
       print("got match");
       int groupCount = match.groupCount();
-      print("groupCount is " + groupCount);
-      print("group 0 is " + match.group(0));
-      print("group 1 is " + match.group(1));
+      print("groupCount is $groupCount");
+      print("group 0 is ${match.group(0)}");
+      print("group 1 is ${match.group(1)}");
     } else {
       print("match not round");
     }

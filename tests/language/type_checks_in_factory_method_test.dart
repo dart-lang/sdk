@@ -12,12 +12,12 @@ class Bar<T> implements Foo<T> {
   Bar() {}
 
   factory Bar.from() {
-    var func = (T arg) { 
+    var func = (T arg) {
       T foo = arg;
       bool isString = foo is String;
       print(arg);
-      print(" String=" + isString); 
-    }; 
+      print(" String=$isString");
+    };
 
     func("Hello World!"); // If T is not String, dynamic type checks should fail
     return new Bar<T>();
