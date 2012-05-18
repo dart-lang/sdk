@@ -415,15 +415,12 @@ class JsonStringifier {
   static String _numberToString(num x) {
     // TODO: need some more investigation what to do with precision
     // of double values.
-    switch (true) {
-      case x is int:
-        return x.toString();
-
-      case x is double:
-        return x.toString();
-
-      default:
-        return x.toDouble().toString();
+    if (x is int) {
+      return x.toString();
+    } else if (x is double) {
+      return x.toString();
+    } else {
+      return x.toDouble().toString();
     }
   }
 
@@ -486,68 +483,60 @@ class JsonStringifier {
   }
 
   void _stringify(final object) {
-    switch (true) {
-      case object is num:
-        // TODO: use writeOn.
-        _sb.add(_numberToString(object));
-        return;
-
-      case object === true:
-        _sb.add('true');
-        return;
-
-      case object === false:
-        _sb.add('false');
-        return;
-
-      case object === null:
-        _sb.add('null');
-        return;
-
-      case object is String:
-        _sb.add('"');
-        _escape(_sb, object);
-        _sb.add('"');
-        return;
-
-      case object is List:
-        _checkCycle(object);
-        List a = object;
-        _sb.add('[');
-        if (a.length > 0) {
-          _stringify(a[0]);
-          // TODO: switch to Iterables.
-          for (int i = 1; i < a.length; i++) {
-            _sb.add(',');
-            _stringify(a[i]);
-          }
+    if (object is num) {
+      // TODO: use writeOn.
+      _sb.add(_numberToString(object));
+      return;
+    } else if (object === true) {
+      _sb.add('true');
+      return;
+    } else if (object === false) {
+      _sb.add('false');
+       return;
+    } else if (object === null) {
+      _sb.add('null');
+      return;
+    } else if (object is String) {
+      _sb.add('"');
+      _escape(_sb, object);
+      _sb.add('"');
+      return;
+    } else if (object is List) {
+      _checkCycle(object);
+      List a = object;
+      _sb.add('[');
+      if (a.length > 0) {
+        _stringify(a[0]);
+        // TODO: switch to Iterables.
+        for (int i = 1; i < a.length; i++) {
+          _sb.add(',');
+          _stringify(a[i]);
         }
-        _sb.add(']');
-        _seen.removeLast();
-        return;
-
-      case object is Map:
-        _checkCycle(object);
-        Map<String, Object> m = object;
-        _sb.add('{');
-        bool first = true;
-        m.forEach((String key, Object value) {
-          if (!first) {
-            _sb.add(',"');
-          } else {
-            _sb.add('"');
-          }
-          _escape(_sb, key);
-          _sb.add('":');
-          _stringify(value);
-          first = false;
-        });
-        _sb.add('}');
-        _seen.removeLast();
-        return;
-
-      default:
-        throw const JsonUnsupportedObjectType();
+      }
+      _sb.add(']');
+      _seen.removeLast();
+      return;
+    } else if (object is Map) {
+      _checkCycle(object);
+      Map<String, Object> m = object;
+      _sb.add('{');
+      bool first = true;
+      m.forEach((String key, Object value) {
+        if (!first) {
+          _sb.add(',"');
+        } else {
+          _sb.add('"');
+        }
+        _escape(_sb, key);
+        _sb.add('":');
+        _stringify(value);
+        first = false;
+      });
+      _sb.add('}');
+      _seen.removeLast();
+      return;
+    } else {
+      throw const JsonUnsupportedObjectType();
     }
   }
 }
