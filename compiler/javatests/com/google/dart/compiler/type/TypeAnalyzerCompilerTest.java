@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -505,6 +506,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "foo(WorkElement e) {",
                 "  e.run();",
                 "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
+   * There was problem that {@link DartForInStatement} visits "iterable" two times. At first time we
+   * set {@link MethodElement}, because we resolve it to getter. However because of this at second
+   * time we can not resolve. Solution - don't try to resolve second time, we already done at first
+   * time. Note: double getter is important.
+   */
+  public void test_doubleGetterAccess_inForEach() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "class Test {",
+            "  Iterable get iter() {}",
+            "}",
+            "Test get test() {}",
+            "f() {",
+            "  for (var v in test.iter) {}",
+            "}",
+            ""));
     assertErrors(libraryResult.getTypeErrors());
   }
 

@@ -1350,15 +1350,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
       Element element = node.getElement();
-      if (element != null && (element.getModifiers().isStatic()
-                              || Elements.isTopLevel(element))) {
-        return element.getType();
-      }
-      if (element instanceof ConstructorElement) {
+      if (element != null) {
         return element.getType();
       }
       DartNode qualifier = node.getQualifier();
       Type receiver = nonVoidTypeOf(qualifier);
+      // convert into InterfaceType
       InterfaceType cls = types.getInterfaceType(receiver);
       if (cls == null) {
         return diagnoseNonInterfaceType(qualifier, receiver);
