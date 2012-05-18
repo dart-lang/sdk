@@ -8,9 +8,12 @@
 class GitSource extends Source {
   final String name = "git";
 
-  // TODO(nweiz): this should be cached since it uses the network, but until we
-  // support versions there's no good way to distinguish between different
-  // checkouts of the same repository.
+  // TODO(rnystrom): Git packages could in theory be cached, but that adds a
+  // lot of complexity. When you install a git package, you are installing
+  // and pinning to a specific commit. That means different installs of the
+  // same git path but at different commits need to be disambiguated in the
+  // system cache. It may also lead to a lot of garbage in the system cache.
+  // For now, we are punting and simply not caching them.
   final bool shouldCache = false;
 
   GitSource();
@@ -19,7 +22,7 @@ class GitSource extends Source {
    * Clones a Git repo to the local filesystem.
    */
   Future<bool> install(PackageId id, String destPath) {
-    return runProcess("git", ["clone", "--progress", id.fullName, destPath],
+    return runProcess("git", ["clone", "--progress", id.description, destPath],
         pipeStdout: true, pipeStderr: true).
       transform((result) => result.success);
   }
@@ -29,5 +32,14 @@ class GitSource extends Source {
    * it'll be cloned.
    */
   String packageName(PackageId id) =>
-      basename(id.fullName).replaceFirst(const RegExp("\.git\$"), "");
+      basename(id.description).replaceFirst(const RegExp("\.git\$"), "");
+
+  /**
+   * Ensures [description] is a Git URL.
+   */
+  void validateDescription(description) {
+    if (description is! String) {
+      throw new FormatException("The description must be a git URL.");
+    }
+  }
 }

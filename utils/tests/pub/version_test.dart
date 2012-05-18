@@ -5,10 +5,15 @@
 #library('version_test');
 
 #import('../../../lib/unittest/unittest.dart');
+#import('../../pub/utils.dart');
 #import('../../pub/version.dart');
 
 main() {
   group('Version', () {
+    test('none', () {
+      expect(Version.none.toString()).equals('0.0.0');
+    });
+
     group('constructor', () {
       test('throws on negative numbers', () {
         throwsIllegalArg(() => new Version(-1, 1, 1));

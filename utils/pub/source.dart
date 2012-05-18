@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('pub_source');
+
+#import('io.dart');
+#import('pub.dart');
+#import('utils.dart');
+
+#source('git_source.dart');
+#source('sdk_source.dart');
+#source('source_registry.dart');
+
 /**
  * A source from which to install packages.
  *
@@ -41,15 +51,21 @@ class Source {
   abstract Future<bool> install(PackageId id, String path);
 
   /**
-   * Returns the name of the package identified by [id]. By default, this is
-   * just `id.fullName`, but some sources (e.g. Git) may have more complicated
-   * resolution logic.
-   *
-   * This method should be light-weight. It doesn't need to validate that the
-   * given package exists.
+   * When a [Pubspec] is parsed, it reads in the description for each
+   * dependency. It is up to the dependency's [Source] to determine how that
+   * should be interpreted. This will be called during parsing to validate that
+   * the given [description] is well-formed according to this source. It should
+   * return if the description is valid, or throw a [FormatException] if not.
+   */
+  void validateDescription(description) {}
+
+  /**
+   * Returns a human-friendly name for the package identified by [id]. This
+   * method should be light-weight. It doesn't need to validate that the given
+   * package exists.
    *
    * The package name should be lower-case and suitable for use in a filename.
    * It may contain forward slashes.
    */
-  String packageName(PackageId id) => id.fullName;
+  String packageName(PackageId id) => id.description;
 }

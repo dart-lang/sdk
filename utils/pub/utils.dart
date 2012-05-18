@@ -7,6 +7,15 @@
  */
 #library('pub_utils');
 
+/** Thrown by methods that parse text when the text isn't a valid. */
+class FormatException implements Exception {
+  final String message;
+
+  FormatException(this.message);
+
+  String toString() => message;
+}
+
 // TODO(rnystrom): Move into String?
 /** Pads [source] to [length] by adding spaces at the end. */
 String padRight(String source, int length) {

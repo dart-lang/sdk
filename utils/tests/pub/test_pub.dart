@@ -108,14 +108,14 @@ void runPub([List<String> args, Pattern output, int exitCode = 0]) {
 
     return _runPub(args, pathInSandbox(appPath));
   }).chain((result) {
-    _validateOutput(output, result.stdout);
-
     Expect.equals(result.stderr.length, 0,
         'Did not expect any output on stderr, and got:\n' +
         Strings.join(result.stderr, '\n'));
 
     Expect.equals(result.exitCode, exitCode,
         'Pub returned exit code ${result.exitCode}, expected $exitCode.');
+
+    _validateOutput(output, result.stdout);
 
     return _runScheduled(createdSandboxDir, _scheduledAfterPub);
   });

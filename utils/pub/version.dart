@@ -9,8 +9,12 @@
  */
 #library('pub_version');
 
+#import('utils.dart');
+
 /** A parsed semantic version number. */
-class Version implements Comparable, VersionConstraint {
+class Version implements Comparable, Hashable, VersionConstraint {
+  static get none() => new Version(0, 0, 0);
+
   static final _PARSE_REGEX = const RegExp(
       @'^'                                        // Start at beginning.
       @'(\d+).(\d+).(\d+)'                        // Version number.
@@ -103,6 +107,8 @@ class Version implements Comparable, VersionConstraint {
 
     return 0;
   }
+
+  int hashCode() => toString().hashCode();
 
   String toString() {
     var buffer = new StringBuffer();
@@ -200,13 +206,4 @@ class VersionRange implements VersionConstraint {
     if (max != null && other >= max) return false;
     return true;
   }
-}
-
-/** Thrown by [Version.parse()] if the argument isn't a valid version string. */
-class FormatException implements Exception {
-  final String message;
-
-  FormatException(this.message);
-
-  String toString() => message;
 }
