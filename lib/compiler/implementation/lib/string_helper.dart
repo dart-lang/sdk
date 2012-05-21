@@ -68,6 +68,14 @@ stringContainsUnchecked(receiver, other, startIndex) {
   }
 }
 
+stringReplaceJS(receiver, replacer, to) {
+  // The JavaScript String.replace method recognizes replacement
+  // patterns in the replacement string. Dart does not have that
+  // behavior.
+  to = JS('String', @"#.replace('$', '$$$$')", to);
+  return JS('String', @'#.replace(#, #)', receiver, replacer, to);
+}
+
 stringReplaceAllUnchecked(receiver, from, to) {
   if (from is String) {
     if (from == "") {
@@ -89,12 +97,12 @@ stringReplaceAllUnchecked(receiver, from, to) {
       var quoter = regExpMakeNative(quoteRegExp, global: true);
       var quoted = JS('String', @'#.replace(#, "\\$&")', from, quoter);
       RegExp replaceRegExp = new JSSyntaxRegExp(quoted, false, false);
-      var replacer = regExpMakeNative(replaceRegExp, global: true);    
-      return JS('String', @'#.replace(#, #)', receiver, replacer, to);
+      var replacer = regExpMakeNative(replaceRegExp, global: true);
+      return stringReplaceJS(receiver, replacer, to);
     }
   } else if (from is JSSyntaxRegExp) {
     var re = regExpMakeNative(from, global: true);
-    return JS('String', @'#.replace(#, #)', receiver, re, to);
+    return stringReplaceJS(receiver, re, to);
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
@@ -104,10 +112,10 @@ stringReplaceAllUnchecked(receiver, from, to) {
 
 stringReplaceFirstUnchecked(receiver, from, to) {
   if (from is String) {
-    return JS('String', @'#.replace(#, #)', receiver, from, to);
+    return stringReplaceJS(receiver, from, to);
   } else if (from is JSSyntaxRegExp) {
     var re = regExpGetNative(from);
-    return JS('String', @'#.replace(#, #)', receiver, re, to);
+    return stringReplaceJS(receiver, re, to);
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
