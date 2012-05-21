@@ -113,6 +113,23 @@ interface Date extends Comparable, Hashable default DateImplementation {
   Date changeTimeZone(TimeZone targetTimeZone);
 
   /**
+   * Returns the abbreviated time-zone name.
+   *
+   * Examples: [:"CET":] or [:"CEST":].
+   */
+  String get timeZoneName();
+
+  /**
+   * The time-zone offset is the difference between local time and UTC. That is,
+   * the offset is positive for time zones west of UTC.
+   *
+   * Note, that JavaScript, Python and C return the difference between UTC and
+   * local time. Java, C# and Ruby return the difference between local time and
+   * UTC.
+   */
+  Duration get timeZoneOffset();
+
+  /**
    * Returns the year.
    */
   int get year();
