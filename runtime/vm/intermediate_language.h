@@ -140,7 +140,9 @@ class Computation : public ZoneAllocated {
 template<typename T, intptr_t N>
 class EmbeddedArray {
  public:
-  EmbeddedArray() : elements_() { }
+  EmbeddedArray() {
+    for (intptr_t i = 0; i < N; i++) elements_[i] = NULL;
+  }
 
   intptr_t length() const { return N; }
   const T& operator[](intptr_t i) const {
