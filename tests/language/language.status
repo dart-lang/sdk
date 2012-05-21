@@ -86,6 +86,7 @@ constructor_call_wrong_argument_count_negative_test: Fail
 default_factory_library_test: Fail          # Issue 514
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
+factory5_test/00: Fail # issue 3079
 field3a_negative_test: Fail
 field_method4_negative_test: Fail
 final_syntax_test/*: Skip  # can't handle base case
@@ -148,6 +149,7 @@ syntax_test: Skip             # Bug 2107  Static type warnings in none case
 third_test: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 throw7_negative_test: Fail     # Bug 4208459.
 type_dartc_test: Fail          # Issue 2348
+type_variable_bounds_test/00: Fail # issue 3079
 type_variable_scope_test/00: Fail  # Issue 2395
 type_variable_scope_test/01: Fail  # Issue 2395
 type_variable_scope_test/02: Fail  # Issue 2395
@@ -340,7 +342,6 @@ super_implicit_closure_test: Fail
 super_test: Fail  # this is testing precise ordering of super constructor call
 switch_label_test: Fail
 type_checks_in_factory_method_test: Fail # Issue 925
-type_variable_bounds_test/00: Fail # Issue 2134
 type_variable_bounds_test/10: Fail # Issue 2134
 type_variable_identifier_expression_negative_test: Fail # Issue 643
 type_variable_shadows_class: Fail # Issue 643

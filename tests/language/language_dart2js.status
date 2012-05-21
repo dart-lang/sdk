@@ -201,7 +201,6 @@ static_top_level_test/05: Fail, OK # Negative language test.
 string_interpolation7_negative_test: Fail, OK # Negative language test.
 throw7_negative_test: Fail, OK # Negative language test.
 try_catch_syntax_test/08: Fail, OK # Negative language test.
-type_variable_bounds_test/00: Fail, OK # Negative language test.
 type_variable_scope_test/00: Fail, OK # Negative language test.
 type_variable_scope_test/01: Fail, OK # Negative language test.
 type_variable_scope_test/02: Fail, OK # Negative language test.

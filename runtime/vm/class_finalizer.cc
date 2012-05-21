@@ -821,17 +821,12 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
-  FinalizationKind result_finalization = kFinalize;
-  if (function.IsFactory()) {
-    // The name of a factory must always be resolved to a class or interface.
-    // The parser sets the factory result type to a type with an unresolved
-    // class whose name matches the factory name.
-    result_finalization = kFinalizeWellFormed;
-    // TODO(regis): Gilad asks if this compile-time error could be relaxed.
-    // The result type of such a factory method would simply be malformed.
-  }
-  ResolveType(cls, type, result_finalization);
-  type = FinalizeType(cls, type, result_finalization);
+  // In case of a factory, the parser sets the factory result type to a type
+  // with an unresolved class whose name matches the factory name.
+  // It is not a compile time error if this name does not resolve to a class or
+  // interface.
+  ResolveType(cls, type, kFinalize);
+  type = FinalizeType(cls, type, kFinalize);
   // In production mode, a malformed result type is mapped to Dynamic.
   if (!FLAG_enable_type_checks && type.IsMalformed()) {
     type = Type::DynamicType();

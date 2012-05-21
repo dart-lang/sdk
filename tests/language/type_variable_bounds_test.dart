@@ -7,7 +7,7 @@
 class Foo<T extends num> {
   Foo();
 
-  factory XFoo.bad() { return null; } /// 00: compile-time error
+  factory XFoo.bad() { return null; } /// 00: static type warning
 
   factory IFoo.good() { return null; }
 

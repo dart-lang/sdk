@@ -240,6 +240,8 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t03: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t04: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail
+Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # co19 issue 124
+Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # co19 issue 124
 Language/07_Classes/5_Constructors/2_Factories_A05_t02: Fail
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t01: Fail
