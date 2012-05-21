@@ -143,6 +143,7 @@ installCommand() {
         ''');
   });
 
+/*
   test('checks out a package from Git', () {
     git('foo.git', [
       file('foo.dart', 'main() => "foo";')
@@ -200,6 +201,7 @@ dependencies:
     runPub(args: ['install'],
         output: const RegExp("Dependencies installed!\$"));
   });
+*/
 }
 
 versionCommand() {
