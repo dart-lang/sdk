@@ -18,11 +18,9 @@ bool OS::GmTime(int64_t seconds_since_epoch, tm* tm_result) {
 }
 
 
-// As a side-effect sets the globals _timezone, _daylight and _tzname.
 bool OS::LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
-  // localtime_s implicitly sets _timezone, _daylight and _tzname.
   errno_t error_code = localtime_s(tm_result, &seconds);
   return error_code == 0;
 }
@@ -52,53 +50,6 @@ bool OS::MkTime(tm* tm, int64_t* seconds_result) {
     return false;
   }
   *seconds_result = seconds;
-  return true;
-}
-
-
-static int GetDaylightSavingBiasInSeconds() {
-  TIME_ZONE_INFORMATION zone_information;
-  memset(&zone_information, 0, sizeof(zone_information));
-  if (GetTimeZoneInformation(&zone_information) == TIME_ZONE_ID_INVALID) {
-    // By default the daylight saving offset is an hour.
-    return -60 * 60;
-  } else {
-    return static_cast<int>(zone_information.DaylightBias * 60);
-  }
-}
-
-bool OS::GetTimeZoneName(int64_t seconds_since_epoch,
-                         const char** name_result) {
-  tm decomposed;
-  // LocalTime will set _tzname.
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
-  int inDaylightSavingsTime = decomposed.tm_isdst;
-  if (inDaylightSavingsTime != 0 && inDaylightSavingsTime != 1) {
-    return false;
-  }
-  *name_result = _tzname[inDaylightSavingsTime];
-  return true;
-}
-
-
-bool OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch,
-                                    int* offset_result) {
-  tm decomposed;
-  // LocalTime will set _timezone.
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
-  int inDaylightSavingsTime = decomposed.tm_isdst;
-  if (inDaylightSavingsTime != 0 && inDaylightSavingsTime != 1) {
-    return false;
-  }
-  // Dart and Windows disagree on the sign of the bias.
-  *offset_result = static_cast<int>(-_timezone);
-  if (inDaylightSavingsTime == 1) {
-    static int daylight_bias = GetDaylightSavingBiasInSeconds()
-    // Subtract because windows and Dart disagree on the sign.
-    *offset_result = *offset_result - daylight_bias;
-  }
   return true;
 }
 

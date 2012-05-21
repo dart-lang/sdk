@@ -42,17 +42,6 @@ class OS {
   // Returns true if the conversion succeeds, false otherwise.
   static bool MkTime(tm* tm, int64_t* seconds_result);
 
-  // Returns the abbreviated time-zone name for the given instant.
-  // For example "CET" or "CEST".
-  static bool GetTimeZoneName(int64_t seconds_since_epoch,
-                              const char** name_result);
-
-  // Returns the difference in seconds between local time and UTC for the given
-  // instant.
-  // For example 3600 for CET, and 7200 for CEST.
-  static bool GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch,
-                                         int* offset_result);
-
   // Returns the current time in milliseconds measured
   // from midnight January 1, 1970 UTC.
   static int64_t GetCurrentTimeMillis();

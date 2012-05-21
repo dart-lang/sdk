@@ -130,18 +130,6 @@ class DateImplementation implements Date {
     return new Date.fromEpoch(value, targetTimeZone);
   }
 
-  String get timeZoneName() {
-    if (isUtc()) return "UTC";
-    return _timeZoneName(_equivalentSeconds(_secondsSinceEpoch));
-  }
-
-  Duration get timeZoneOffset() {
-    if (isUtc()) return new Duration(0);
-    int offsetInSeconds =
-        _timeZoneOffsetInSeconds(_equivalentSeconds(_secondsSinceEpoch));
-    return new Duration(seconds: offsetInSeconds);
-  }
-
   int get year() {
     int secondsSinceEpoch = _secondsSinceEpoch;
     // According to V8 some library calls have troubles with negative values.
@@ -412,12 +400,6 @@ class DateImplementation implements Date {
       bool isUtc) native "DateNatives_brokenDownToSecondsSinceEpoch";
 
   static int _getCurrentMs() native "DateNatives_currentTimeMillis";
-
-  static String _timeZoneName(int secondsSinceEpoch)
-      native "DateNatives_timeZoneName";
-
-  static int _timeZoneOffsetInSeconds(int secondsSinceEpoch)
-      native "DateNatives_timeZoneOffsetInSeconds";
 
   // TODO(floitsch): it would be more efficient if we didn't call the native
   // function for every member, but cached the broken-down date.
