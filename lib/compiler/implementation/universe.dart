@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Universe {
-  int nextFreeClassId = 0;
   Map<Element, String> generatedCode;
   Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
@@ -12,14 +11,12 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
-  final Map<String, LibraryElement> libraries;
   // TODO(ngeoffray): This should be a Set<Type>.
   final Set<Element> isChecks;
   final RuntimeTypeInformation rti;
 
   Universe() : generatedCode = new Map<Element, String>(),
                generatedBailoutCode = new Map<Element, String>(),
-               libraries = new Map<String, LibraryElement>(),
                instantiatedClasses = new Set<ClassElement>(),
                instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
@@ -28,8 +25,6 @@ class Universe {
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<Element>(),
                rti = new RuntimeTypeInformation();
-
-  int getNextFreeClassId() => nextFreeClassId++;
 
   void addGeneratedCode(WorkItem work, String code) {
     generatedCode[work.element] = code;
@@ -50,18 +45,15 @@ class Universe {
   }
 
   bool hasInvocation(Element member, Compiler compiler) {
-    return hasMatchingSelector(
-        compiler.universe.invokedNames[member.name], member, compiler);
+    return hasMatchingSelector(invokedNames[member.name], member, compiler);
   }
 
   bool hasGetter(Element member, Compiler compiler) {
-    return hasMatchingSelector(
-        compiler.universe.invokedGetters[member.name], member, compiler);
+    return hasMatchingSelector(invokedGetters[member.name], member, compiler);
   }
 
   bool hasSetter(Element member, Compiler compiler) {
-    return hasMatchingSelector(
-        compiler.universe.invokedSetters[member.name], member, compiler);
+    return hasMatchingSelector(invokedSetters[member.name], member, compiler);
   }
 }
 

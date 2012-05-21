@@ -857,7 +857,7 @@ class SsaBuilder implements Visitor {
       bodyElement = new ConstructorBodyElement(constructor);
       TreeElements treeElements =
           compiler.resolver.resolveMethodElement(constructor);
-      compiler.addToWorkList(bodyElement, treeElements);
+      compiler.enqueuer.codegen.addToWorkList(bodyElement, treeElements);
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
     }
@@ -1487,7 +1487,7 @@ class SsaBuilder implements Visitor {
     ClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
-    compiler.addToWorkList(callElement, elements);
+    compiler.enqueuer.codegen.addToWorkList(callElement, elements);
     compiler.registerInstantiatedClass(closureClassElement);
     assert(closureClassElement.members.isEmpty());
 
@@ -1919,7 +1919,7 @@ class SsaBuilder implements Visitor {
 
       Type type = elements.getType(typeAnnotation);
       HInstruction typeInfo = null;
-      if (compiler.universe.rti.hasTypeArguments(type)) {
+      if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
         HInstruction typeInfoGetter =
             new HStatic(interceptors.getGetRuntimeTypeInfo());
         add(typeInfoGetter);
@@ -2339,8 +2339,8 @@ class SsaBuilder implements Visitor {
   }
 
   generateSetRuntimeTypeInformation(HInstruction instance, Type type) {
-    if (compiler.universe.rti.hasTypeArguments(type)) {
-      String typeString = compiler.universe.rti.asJsString(type);
+    if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
+      String typeString = compiler.codegenWorld.rti.asJsString(type);
       HInstruction typeInfo = new HForeign(new LiteralDartString(typeString),
                                            new LiteralDartString('Object'),
                                            <HInstruction>[]);

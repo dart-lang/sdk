@@ -6,9 +6,9 @@
 class RegExp2Test {
   static String findImageTag_(String text, String extensions) {
     final re = new RegExp('src="(http://\\S+\\.(${extensions}))"');
-    print('REGEXP findImageTag_ ' + extensions + ' text: \n' + text);
+    print('REGEXP findImageTag_ $extensions text: \n$text');
     final match = re.firstMatch(text);
-    print('REGEXP findImageTag_ ' + extensions + ' SUCCESS');
+    print('REGEXP findImageTag_ $extensions SUCCESS');
     if (match != null) {
       return match[1];
     } else {

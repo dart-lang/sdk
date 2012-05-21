@@ -7,30 +7,29 @@
  */
 #library('pub');
 
-#import('yaml/yaml.dart');
-
 #import('io.dart');
+#import('pubspec.dart');
+#import('source.dart');
 #import('utils.dart');
+#import('version.dart');
 
-#source('system_cache.dart');
-#source('packages_dir.dart');
 #source('command_list.dart');
 #source('command_install.dart');
 #source('command_update.dart');
 #source('command_version.dart');
+#source('entrypoint.dart');
 #source('package.dart');
-#source('source.dart');
-#source('source_registry.dart');
-#source('sdk_source.dart');
-#source('git_source.dart');
+#source('system_cache.dart');
+
+Version get pubVersion() => new Version(0, 0, 0);
 
 main() {
-  final args = new Options().arguments;
+  var args = new Options().arguments;
 
   // TODO(rnystrom): In addition to explicit "help" and "version" commands,
   // should also add special-case support for --help and --version arguments to
   // be consistent with other Unix apps.
-  final commands = {
+  var commands = {
     'list': new ListCommand(),
     'install': new InstallCommand(),
     'update': new UpdateCommand(),
@@ -72,13 +71,13 @@ main() {
     }
   }
 
-  final cache = new SystemCache(cacheDir);
+  var cache = new SystemCache(cacheDir);
   cache.sources.register(new SdkSource(sdkDir));
   cache.sources.register(new GitSource());
   cache.sources.setDefault('sdk');
 
   // Select the command.
-  final command = commands[args[0]];
+  var command = commands[args[0]];
   if (command == null) {
     print('Unknown command "${args[0]}".');
     print('Run "pub help" to see available commands.');
@@ -104,15 +103,15 @@ void printUsage(Map<String, PubCommand> commands) {
   // Show the commands sorted.
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
-  final names = <String>[];
-  for (final command in commands.getKeys()) {
+  var names = <String>[];
+  for (var command in commands.getKeys()) {
     length = Math.max(length, command.length);
     names.add(command);
   }
 
   names.sort((a, b) => a.compareTo(b));
 
-  for (final name in names) {
+  for (var name in names) {
     print('  ${padRight(name, length)}   ${commands[name].description}');
   }
 
@@ -121,12 +120,13 @@ void printUsage(Map<String, PubCommand> commands) {
 }
 
 void printVersion() {
-  print('Pub 0.0.0');
+  print('Pub $pubVersion');
 }
 
 class PubCommand {
   SystemCache cache;
-  PackagesDir packagesDir;
+
+  Entrypoint entrypoint;
 
   abstract String get description();
 
@@ -139,8 +139,8 @@ class PubCommand {
     // TODO(rnystrom): Will eventually need better logic to walk up
     // subdirectories until we hit one that looks package-like. For now, just
     // assume the cwd is it.
-    Package.load(workingDir, cache.sources).then((pkg) {
-      packagesDir = new PackagesDir(pkg, cache);
+    Package.load(workingDir, cache.sources).then((package) {
+      entrypoint = new Entrypoint(package, cache);
       onRun();
     });
   }

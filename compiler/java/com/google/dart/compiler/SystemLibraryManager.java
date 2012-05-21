@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
+
 
 /**
  * Manages the collection of {@link SystemLibrary}s.
@@ -43,12 +43,17 @@ public class SystemLibraryManager {
    * Other implementations may only contain a subset.
    */
   public static final String DEFAULT_PLATFORM = "any";
-  public static final File DEFAULT_SDK_PATH =
-      new File(System.getProperty("com.google.dart.sdk", "../"));
+  public static final File DEFAULT_SDK_PATH = new File(System.getProperty(
+      "com.google.dart.sdk", "../"));
+  
+  public static final File DEFAULT_PACKAGE_ROOT = new File("packages");
 
   private static final String DART_SCHEME = "dart";
   private static final String DART_SCHEME_SPEC = "dart:";
   private static final String IMPORT_CONFIG = "import_%s.config";
+
+  private static final String PACKAGE_SCHEME = "package";
+  private static final String PACKAGE_SCHEME_SPEC = "package:";
 
   /**
    * Answer <code>true</code> if the string is a dart spec
@@ -56,6 +61,7 @@ public class SystemLibraryManager {
   public static boolean isDartSpec(String spec) {
     return spec != null && spec.startsWith(DART_SCHEME_SPEC);
   }
+
   /**
    * Answer <code>true</code> if the specified URI has a "dart" scheme
    */
@@ -63,11 +69,27 @@ public class SystemLibraryManager {
     return uri != null && DART_SCHEME.equals(uri.getScheme());
   }
 
+  /**
+   * Answer <code>true</code> if the string is a package spec
+   */
+  public static boolean isPackageSpec(String spec) {
+    return spec != null && spec.startsWith(PACKAGE_SCHEME_SPEC);
+  }
+
+  /**
+   * Answer <code>true</code> if the specified URI has a "package" scheme
+   */
+  public static boolean isPackageUri(URI uri) {
+    return uri != null && PACKAGE_SCHEME.equals(uri.getScheme());
+  }
+
   private HashMap<String, String> expansionMap;
   private Map<String, SystemLibrary> hostMap;
   private final File sdkLibPath;
   private final URI sdkLibPathUri;
   private final String platformName;
+  private File packageRoot = DEFAULT_PACKAGE_ROOT;
+  private URI packageRootUri = packageRoot.toURI();
 
   private Map<URI, URI> longToShortUriMap;
 
@@ -82,7 +104,9 @@ public class SystemLibraryManager {
     this.sdkLibPathUri = sdkLibPath.toURI();
     this.platformName = platformName;
     setLibraries(getDefaultLibraries());
+
   }
+
 
   /**
    * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
@@ -109,6 +133,24 @@ public class SystemLibraryManager {
           return null;
         }
       }
+    } 
+    if (isPackageUri(uri)){
+      String host = uri.getHost();
+      if (host == null) {
+        String spec = uri.getSchemeSpecificPart();
+        if (!spec.startsWith("//")){
+          try {
+            if (spec.startsWith("/")){
+              // TODO(keertip): fix to handle spaces
+              uri = new URI(PACKAGE_SCHEME + ":/" + spec);
+            } else {
+              uri = new URI(null,null,PACKAGE_SCHEME + "://" + spec,null);
+            } 
+          } catch (URISyntaxException e) {
+            throw new AssertionError();
+          }
+        }       
+      }
     }
     return uri;
   }
@@ -126,6 +168,13 @@ public class SystemLibraryManager {
     return result;
   }
 
+  /**
+   * @return the packagePath
+   */
+  public File getPackageRoot() {
+    return packageRoot;
+  }
+  
   protected InputStream getImportConfigStream() {
     File file = new File(new File(sdkLibPath, "config"),
                          String.format(IMPORT_CONFIG, platformName));
@@ -160,6 +209,15 @@ public class SystemLibraryManager {
         //$FALL-THROUGH$
       }
     }
+    
+    relativeUri = packageRootUri.relativize(fileUri);
+    if (relativeUri.getScheme() == null) {
+      try {
+        return new URI(null, null, "package://" + relativeUri.getPath(), null);
+      } catch (URISyntaxException e) {
+        //$FALL-THROUGH$
+      }
+    }
     return null;
   }
 
@@ -168,7 +226,18 @@ public class SystemLibraryManager {
    * it does not map to a short URI.
    */
   public URI getShortUri(URI uri) {
-    return longToShortUriMap.get(uri);
+    URI shortUri = longToShortUriMap.get(uri);
+    if (shortUri != null){
+      return shortUri;
+    }
+    shortUri = getRelativeUri(uri);
+    if (shortUri != null){
+      try {
+        return new URI(null, null, shortUri.getScheme() + ":" +  shortUri.getHost() + shortUri.getPath(),null);
+      } catch (URISyntaxException e) {
+      }
+    }
+    return null;
   }
 
   /**
@@ -187,6 +256,15 @@ public class SystemLibraryManager {
   }
 
   /**
+
+   * @param packageRoot the packagePath to set
+   */
+  public void setPackageRoot(File packageRoot) {
+    this.packageRoot = packageRoot;
+    packageRootUri = packageRoot.toURI();
+  }
+  
+  /**
    * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://html/html.dart)
    * to a "file:" URI (e.g. "file:/some/install/directory/html.dart")
    *
@@ -195,7 +273,7 @@ public class SystemLibraryManager {
    * @exception RuntimeException if the URI is a "dart" scheme,
    *     but does not map to a defined system library
    */
-  public URI translateDartUri(URI uri) {
+  private URI translateDartUri(URI uri) {
     if (isDartUri(uri)) {
       String host = uri.getHost();
       SystemLibrary library = hostMap.get(host);
@@ -203,8 +281,12 @@ public class SystemLibraryManager {
         throw new RuntimeException("No system library defined for " + uri);
       }
       return library.translateUri(uri);
+    } 
+    if (isPackageUri(uri)){   
+      URI fileUri =  packageRootUri.resolve(uri.getHost() + uri.getPath());
+      File file  = new File(fileUri);
+        return file.toURI();
     }
-
     return uri;
   }
 

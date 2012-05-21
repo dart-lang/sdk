@@ -823,6 +823,11 @@ class AbstractType : public Object {
     return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
   }
 
+  // Check if this type represents the 'Null' type.
+  bool IsNullType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::null_class());
+  }
+
   // Check if this type represents the 'void' type.
   bool IsVoidType() const {
     return HasResolvedTypeClass() && (type_class() == Object::void_class());
@@ -1302,6 +1307,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
         return true;
+      case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kConstImplicitGetter:
       case RawFunction::kAbstract:
@@ -1323,6 +1329,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kConstImplicitGetter:
         return true;
+      case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
         return false;
       default:
@@ -1588,6 +1595,7 @@ class TokenStream : public Object {
 
   RawObject* TokenAt(intptr_t index) const;
   RawString* LiteralAt(intptr_t index) const;
+  RawString* GenerateSource() const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
@@ -1623,7 +1631,7 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
-  RawString* source() const { return raw_ptr()->source_; }
+  RawString* source() const;
   RawScript::Kind kind() const { return raw_ptr()->kind_; }
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
@@ -1901,7 +1909,7 @@ class Instructions : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size, Heap::Space space);
+  static RawInstructions* New(intptr_t size);
 
   HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Code;
@@ -2173,6 +2181,39 @@ class Code : public Object {
   void set_stackmaps(const Array& maps) const;
   RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
 
+  class Comments : public ZoneAllocated {
+   public:
+    static Comments& New(intptr_t count);
+
+    intptr_t Length() const;
+
+    void SetPCOffsetAt(intptr_t idx, intptr_t pc_offset);
+    void SetCommentAt(intptr_t idx, const String& comment);
+
+    intptr_t PCOffsetAt(intptr_t idx) const;
+    const String& CommentAt(intptr_t idx) const;
+
+   private:
+    explicit Comments(RawArray* comments);
+
+    // Layout of entries describing comments.
+    enum {
+      kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
+      kCommentEntry,  // Comment text as a String.
+      kNumberOfEntries
+    };
+
+    const Array& comments_;
+
+    friend class Code;
+
+    DISALLOW_COPY_AND_ASSIGN(Comments);
+  };
+
+
+  const Comments& comments() const;
+  void set_comments(const Comments& comments) const;
+
   RawLocalVarDescriptors* var_descriptors() const {
     return raw_ptr()->var_descriptors_;
   }
@@ -2206,7 +2247,7 @@ class Code : public Object {
         sizeof(RawCode) + (pointer_offsets_length * kEntrySize));
   }
   static RawCode* FinalizeCode(const Function& function, Assembler* assembler);
-  static RawCode* FinalizeStubCode(const char* name, Assembler* assembler);
+  static RawCode* FinalizeCode(const char* name, Assembler* assembler);
   static RawCode* LookupCode(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
@@ -2270,10 +2311,6 @@ class Code : public Object {
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
   static RawCode* New(int pointer_offsets_length);
-
-  static RawCode* FinalizeCode(const char* name,
-                               Assembler* assembler,
-                               Heap::Space space);
 
   HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;

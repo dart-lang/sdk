@@ -5,6 +5,9 @@
 /**
  * A library for writing dart unit tests.
  *
+ * To import this library, specify the relative path to 
+ * lib/unittest/unittest.dart.
+ *
  * ##Concepts##
  *
  *  * Tests: Tests are specified via the top-level function [test], they can be
@@ -92,7 +95,8 @@
  * depending on the number of positional arguments of the callback. In the
  * future, we plan to expose a single `expectAsync` function that can be used
  * regardless of the number of positional arguments. This requires new langauge
- * features or fixes to the current spec (e.g. see dartbug.com/2706).
+ * features or fixes to the current spec (e.g. see
+ * [Issue 2706](http://dartbug.com/2706)).
  *
  * Meanwhile, we plan to add this alternative API for callbacks of more than 2
  * arguments or that take named parameters. (this is not implemented yet,

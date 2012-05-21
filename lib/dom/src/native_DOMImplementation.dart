@@ -62,7 +62,7 @@ class DOMWindowCrossFrameImplementation extends DOMWrapperBase implements DOMWin
   void focus() native "DOMWindow_focus_Callback";
   void blur() native "DOMWindow_blur_Callback";
   void close() native "DOMWindow_close_Callback";
-  void postMessage([_arg0, _arg1, _arg2]) native "DOMWindow_postMessage_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   // Implementation support.
   static DOMWindowCrossFrameImplementation _createDOMWindowCrossFrameImplementation() => new DOMWindowCrossFrameImplementation._createDOMWindowCrossFrameImplementation();

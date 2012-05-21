@@ -99,8 +99,7 @@ interface File default _File {
    *
    * Files can be opened in three modes:
    *
-   * FileMode.READ: open the file for reading. If the file does not
-   * exist [onError] is called.
+   * FileMode.READ: open the file for reading.
    *
    * FileMode.WRITE: open the file for both reading and writing and
    * truncate the file to length zero. If the file does not exist the

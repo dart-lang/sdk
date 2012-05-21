@@ -264,11 +264,13 @@ String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
  * piped streams won't be available in the result object.
  */
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    [String workingDir, bool pipeStdout = false, bool pipeStderr = false]) {
+    [workingDir, bool pipeStdout = false, bool pipeStderr = false]) {
   int exitCode;
 
   final options = new ProcessOptions();
-  if (workingDir != null) options.workingDirectory = workingDir;
+  if (workingDir != null) {
+    options.workingDirectory = _getDirectory(workingDir).path;
+  }
 
   final process = Process.start(executable, args, options);
 

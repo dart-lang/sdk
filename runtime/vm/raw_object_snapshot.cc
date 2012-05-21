@@ -642,10 +642,13 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
-  intptr_t num_flds = (script.raw()->to() - script.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    *(script.raw()->from() + i) = reader->ReadObject();
-  }
+  *reader->StringHandle() ^= reader->ReadObject();
+  script.set_url(*reader->StringHandle());
+  *reader->StringHandle() ^= String::null();
+  script.set_source(*reader->StringHandle());
+  TokenStream& stream = TokenStream::Handle();
+  stream ^= reader->ReadObject();
+  script.set_tokens(stream);
 
   return script.raw();
 }
@@ -665,8 +668,8 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kScriptClass, ptr()->tags_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  writer->WriteObject(ptr()->url_);
+  writer->WriteObject(ptr()->tokens_);
 }
 
 

@@ -18,7 +18,7 @@ class A {
 class B extends A {
   B() : super() {}
   String greeting() {
-    return "Hola " + super.greeting();
+    return "Hola ".concat(super.greeting());
   }
 }
 
@@ -26,10 +26,10 @@ class B extends A {
 class C extends B {
   C() : super() {}
   String greeting() {
-    return "Servus " + super.greeting();
+    return "Servus ".concat(super.greeting());
   }
   String get city() {
-    return "Basel " + super.city;
+    return "Basel ".concat(super.city);
   }
 }
 

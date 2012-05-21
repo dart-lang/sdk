@@ -2148,7 +2148,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       checkType(input, element);
     }
-    if (compiler.universe.rti.hasTypeArguments(type)) {
+    if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
       Link<Type> arguments = interfaceType.arguments;

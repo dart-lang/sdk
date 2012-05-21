@@ -62,7 +62,22 @@ class Disassembler : public AllStatic {
   // (The assumption is that start is at a valid instruction).
   static void Disassemble(uword start,
                           uword end,
-                          DisassemblyFormatter* formatter);
+                          DisassemblyFormatter* formatter,
+                          const Code::Comments& comments);
+
+  static void Disassemble(uword start,
+                          uword end,
+                          DisassemblyFormatter* formatter) {
+    Disassemble(start, end, formatter, Code::Comments::New(0));
+  }
+
+  static void Disassemble(uword start,
+                          uword end,
+                          const Code::Comments& comments) {
+    DisassembleToStdout stdout_formatter;
+    Disassemble(start, end, &stdout_formatter, comments);
+  }
+
   static void Disassemble(uword start, uword end) {
     DisassembleToStdout stdout_formatter;
     Disassemble(start, end, &stdout_formatter);
@@ -75,6 +90,7 @@ class Disassembler : public AllStatic {
     uword end = instructions.end();
     Disassemble(start, end, formatter);
   }
+
   static void DisassembleMemoryRegion(const MemoryRegion& instructions) {
     uword start = instructions.start();
     uword end = instructions.end();

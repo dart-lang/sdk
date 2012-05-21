@@ -25,7 +25,7 @@ class SdkSource extends Source {
    * involves symlinking the SDK library into the packages directory.
    */
   Future<bool> install(PackageId id, String destPath) {
-    var sourcePath = join(rootDir, "lib", id.fullName);
+    var sourcePath = join(rootDir, "lib", id.description);
     return exists(sourcePath).chain((exists) {
       if (!exists) return new Future<bool>.immediate(false);
       return createSymlink(sourcePath, destPath).transform((_) => true);

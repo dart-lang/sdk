@@ -3,17 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * The "packages" directory for an application or library.
+ * Pub operates over a directed graph of dependencies that starts at a root
+ * "entrypoint" package. This is typically the package where the current
+ * working directory is located. An entrypoint knows the [root] package it is
+ * associated with and is responsible for managing the "packages" directory
+ * for it.
  *
- * This directory contains symlinks to all packages used by an app. These links
+ * That directory contains symlinks to all packages used by an app. These links
  * point either to the [SystemCache] or to some other location on the local
  * filesystem.
+ *
+ * While entrypoints are typically applications, a pure library package may end
+ * up being used as an entrypoint. Also, a single package may be used as an
+ * entrypoint in one context but not in another. For example, a package that
+ * contains a reusable library may not be the entrypoint when used by an app,
+ * but may be the entrypoint when you're running its tests.
  */
-class PackagesDir {
+class Entrypoint {
   /**
-   * The package containing this directory.
+   * The root package this entrypoint is associated with.
    */
-  final Package owner;
+  final Package root;
 
   /**
    * The system-wide cache which caches packages that need to be fetched over
@@ -32,15 +42,15 @@ class PackagesDir {
    */
   final Map<PackageId, Future<Package>> _pendingInstalls;
 
-  PackagesDir(this.owner, this.cache)
+  Entrypoint(this.root, this.cache)
   : _loadedPackages  = new Map<PackageId, Package>(),
     _pendingInstalls = new Map<PackageId, Future<Package>>();
 
   /**
-   * Returns the path to the "packages" directory.
+   * The path to this "packages" directory.
    */
   // TODO(rnystrom): Make this path configurable.
-  String get path() => join(owner.dir, 'packages');
+  String get path() => join(root.dir, 'packages');
 
   /**
    * Ensures that the package identified by [id] is installed to the directory,
@@ -76,8 +86,7 @@ class PackagesDir {
         return id.source.install(id, packageDir).transform((found) {
           if (found) return null;
           // TODO(nweiz): More robust error-handling.
-          throw 'Package ${id.fullName} not found in source '
-            '"${id.source.name}".';
+          throw 'Package ${id.name} not found in source "${id.source.name}".';
         });
       }
     }).chain((_) => Package.load(packageDir, cache.sources));
@@ -90,30 +99,40 @@ class PackagesDir {
   }
 
   /**
-   * Installs the package identified by [id] and all its transitive
-   * dependencies.
+   * Installs all dependencies of the [root] package to its "packages"
+   * directory. Returns a [Future] that completes when all dependencies are
+   * installed.
    */
-  Future<Package> installTransitively(PackageId id) {
+  Future installDependencies() {
     var seen = new Set<PackageId>();
-    Future<Package> helper(id) {
-      if (seen.contains(id)) return new Future.immediate(null);
-      seen.add(id);
 
-      return install(id).chain((package) {
-        return Futures.wait(package.dependencies.map(helper)).
-          transform((_) => package);
-      });
+    Future helper(List<PackageRef> packages) {
+      return Futures.wait(packages.map((ref) {
+        return resolve(ref).chain((id) {
+          if (seen.contains(id)) return new Future.immediate(null);
+          seen.add(id);
+
+          return install(id).chain((package) {
+            return helper(package.dependencies);
+          });
+        });
+      }));
     }
 
-    return helper(id);
+    return helper(root.dependencies);
   }
 
   /**
-   * Installs all dependencies of [owner] to the "packages" directory. Returns a
-   * [Future] that completes when all dependencies are installed.
+   * Given [ref], which ambiguously identifies a dependent package, selects an
+   * appropriate precise package to use when this is the entrypoint. In other
+   * words, given a loose refence like "foo >= 2.0", figures out what concrete
+   * package we should use starting from this entrypoint.
    */
-  Future installDependencies() {
-    return Futures.wait(owner.dependencies.map(installTransitively)).
-      transform((_) => null);
+  Future<PackageId> resolve(PackageRef ref) {
+    // TODO(rnystrom): This should use the lockfile to select the right version
+    // once that's implemented. If the lockfile doesn't exist, it should
+    // generate it. In the meantime, here's a dumb implementation:
+    return new Future.immediate(
+        new PackageId(ref.source, Version.none, ref.description));
   }
 }

@@ -9,40 +9,42 @@
 
 namespace dart {
 
+class BufferFormatter : public ValueObject {
+ public:
+  BufferFormatter(char* buffer, intptr_t size)
+    : position_(0),
+      buffer_(buffer),
+      size_(size) { }
+
+  void Print(const char* format, ...);
+
+ private:
+  intptr_t position_;
+  char* buffer_;
+  const intptr_t size_;
+
+  DISALLOW_COPY_AND_ASSIGN(BufferFormatter);
+};
+
+
 // Graph printing.
-class FlowGraphPrinter : public FlowGraphVisitor {
+class FlowGraphPrinter : public ValueObject {
  public:
   FlowGraphPrinter(const Function& function,
                    const GrowableArray<BlockEntryInstr*>& block_order)
-      : FlowGraphVisitor(block_order), function_(function) { }
+      : function_(function), block_order_(block_order) { }
 
   virtual ~FlowGraphPrinter() {}
 
   // Print the instructions in a block terminated by newlines.  Add "goto N"
   // to the end of the block if it ends with an unconditional jump to
   // another block and that block is not next in reverse postorder.
-  void VisitBlocks();
-
-  // Visiting a computation prints it with no indentation or newline.
-#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp);
-
-  // Visiting an instruction prints it with a four space indent and no
-  // trailing newline.  Basic block entries are labeled with their block
-  // number.
-#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
-  virtual void Visit##ShortName(ShortName##Instr* instr);
-
-  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
-
-#undef DECLARE_VISIT_COMPUTATION
-#undef DECLARE_VISIT_INSTRUCTION
+  void PrintBlocks();
+  void Print(Instruction* instr);
 
  private:
   const Function& function_;
-
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphPrinter);
+  const GrowableArray<BlockEntryInstr*>& block_order_;
 };
 
 }  // namespace dart

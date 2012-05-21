@@ -45,8 +45,8 @@ class SavannahTest  {
     var count = savannah.length;
     print("getCount is $count");
     Expect.equals(2, count);
-    print("giraffe1: " + savannah[giraffe1]);
-    print("giraffe2: " + savannah[giraffe2]);
+    print("giraffe1: ${savannah[giraffe1]}");
+    print("giraffe2: ${savannah[giraffe2]}");
     Expect.equals("Tony", savannah[giraffe1]);
     Expect.equals("Rose", savannah[giraffe2]);
 
@@ -68,8 +68,8 @@ class SavannahTest  {
 
     caught = false;
     try {
-      print("zebra1: " + savannah[zebra1]);
-      print("zebra2: " + savannah[zebra2]);
+      print("zebra1: ${savannah[zebra1]}");
+      print("zebra2: ${savannah[zebra2]}");
     } catch (NoSuchMethodException e) {
       print("Caught: $e");
       caught = true;

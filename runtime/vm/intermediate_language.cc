@@ -5,6 +5,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/scopes.h"
@@ -46,14 +47,20 @@ void FlowGraphVisitor::VisitBlocks() {
 
 // ==== Per-instruction input counts.
 intptr_t AssertAssignableComp::InputCount() const {
-  // Value and optional instantiator type arguments.
-  return (instantiator_type_arguments() == NULL) ? 1 : 2;
+  // Value and optional instantiator and instantiator type arguments.
+  intptr_t count = 1;
+  if (instantiator() != NULL) count++;
+  if (instantiator_type_arguments() != NULL) count++;
+  return count;
 }
 
 
 intptr_t InstanceOfComp::InputCount() const {
-  // Value and optional type_arguments.
-  return (type_arguments() == NULL) ? 1 : 2;
+  // Value and optional instantiator and instantiator type_arguments.
+  intptr_t count = 1;
+  if (instantiator() != NULL) count++;
+  if (type_arguments() != NULL) count++;
+  return count;
 }
 
 
@@ -194,11 +201,11 @@ void GraphEntryInstr::DiscoverBlocks(
   // enter the function at the first successor in reverse postorder, so we
   // must visit the normal entry last.
   for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
-    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder, parent,
-                                      assigned_vars, variable_count);
+    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder,
+                                      parent, assigned_vars, variable_count);
   }
-  normal_entry_->DiscoverBlocks(this, preorder, postorder, parent,
-                                assigned_vars, variable_count);
+  normal_entry_->DiscoverBlocks(this, preorder, postorder,
+                                parent, assigned_vars, variable_count);
 
   // Assign postorder number.
   set_postorder_number(postorder->length());
@@ -258,8 +265,8 @@ void BlockEntryInstr::DiscoverBlocks(
     }
   }
   if (next != NULL) {
-    next->DiscoverBlocks(this, preorder, postorder, parent, assigned_vars,
-                         variable_count);
+    next->DiscoverBlocks(this, preorder, postorder,
+                         parent, assigned_vars, variable_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -281,10 +288,269 @@ void BranchInstr::DiscoverBlocks(
   // nonoptimizing compiler.
   ASSERT(true_successor_ != NULL);
   ASSERT(false_successor_ != NULL);
-  false_successor_->DiscoverBlocks(current_block, preorder, postorder, parent,
-                                   assigned_vars, variable_count);
-  true_successor_->DiscoverBlocks(current_block, preorder, postorder, parent,
-                                  assigned_vars, variable_count);
+  false_successor_->DiscoverBlocks(current_block, preorder, postorder,
+                                   parent, assigned_vars, variable_count);
+  true_successor_->DiscoverBlocks(current_block, preorder, postorder,
+                                  parent, assigned_vars, variable_count);
+}
+
+
+// ==== Support for propagating static type.
+RawAbstractType* ConstantVal::StaticType() const {
+  if (value().IsInstance()) {
+    Instance& instance = Instance::Handle();
+    instance ^= value().raw();
+    return instance.GetType();
+  } else {
+    UNREACHABLE();
+    return AbstractType::null();
+  }
+}
+
+
+RawAbstractType* UseVal::StaticType() const {
+  return definition()->StaticType();
+}
+
+
+RawAbstractType* AssertAssignableComp::StaticType() const {
+  return dst_type().raw();
+}
+
+
+RawAbstractType* AssertBooleanComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
+RawAbstractType* CurrentContextComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* StoreContextComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* ClosureCallComp::StaticType() const {
+  // The closure is the first argument to the call.
+  const AbstractType& function_type =
+      AbstractType::Handle(ArgumentAt(0)->StaticType());
+  if (function_type.IsDynamicType() || function_type.IsFunctionInterface()) {
+    // The function type is not statically known or simply Function.
+    return Type::DynamicType();
+  }
+  const Class& signature_class = Class::Handle(function_type.type_class());
+  ASSERT(signature_class.IsSignatureClass());
+  const Function& signature_function =
+      Function::Handle(signature_class.signature_function());
+  // TODO(regis): The result type may be generic. Consider upper bounds.
+  return signature_function.result_type();
+}
+
+
+RawAbstractType* InstanceCallComp::StaticType() const {
+  return Type::DynamicType();
+}
+
+
+RawAbstractType* StaticCallComp::StaticType() const {
+  return function().result_type();
+}
+
+
+RawAbstractType* LoadLocalComp::StaticType() const {
+  return local().type().raw();
+}
+
+
+RawAbstractType* StoreLocalComp::StaticType() const {
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of local.
+    return local().type().raw();
+  }
+  return assigned_value_type.raw();
+}
+
+
+RawAbstractType* StrictCompareComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
+RawAbstractType* EqualityCompareComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
+RawAbstractType* NativeCallComp::StaticType() const {
+  // The result type of the native function is identical to the result type of
+  // the enclosing native Dart function. However, we prefer to check the type
+  // of the value returned from the native call.
+  return Type::DynamicType();
+}
+
+
+RawAbstractType* StoreIndexedComp::StaticType() const {
+  return value()->StaticType();
+}
+
+
+RawAbstractType* InstanceSetterComp::StaticType() const {
+  return value()->StaticType();
+}
+
+
+RawAbstractType* StaticSetterComp::StaticType() const {
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of setter
+    // value parameter.
+    return setter_function().ParameterTypeAt(0);
+  }
+  return assigned_value_type.raw();
+}
+
+
+RawAbstractType* LoadInstanceFieldComp::StaticType() const {
+  return field().type();
+}
+
+
+RawAbstractType* StoreInstanceFieldComp::StaticType() const {
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of field.
+    return field().type();
+  }
+  return assigned_value_type.raw();
+}
+
+
+RawAbstractType* LoadStaticFieldComp::StaticType() const {
+  return field().type();
+}
+
+
+RawAbstractType* StoreStaticFieldComp::StaticType() const {
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of field.
+    return field().type();
+  }
+  return assigned_value_type.raw();
+}
+
+
+RawAbstractType* BooleanNegateComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
+RawAbstractType* InstanceOfComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
+RawAbstractType* CreateArrayComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CreateClosureComp::StaticType() const {
+  const Function& fun = function();
+  const Class& signature_class = Class::Handle(fun.signature_class());
+  // TODO(regis): The signature type may be generic. Consider upper bounds.
+  // For now, we return Dynamic (no type test elimination) if the signature
+  // class is parameterized, or a non-parameterized finalized type otherwise.
+  if (signature_class.HasTypeArguments()) {
+    return Type::DynamicType();
+  }
+  // Make sure we use the canonical signature class.
+  const Type& type = Type::Handle(signature_class.SignatureType());
+  const Class& canonical_signature_class = Class::Handle(type.type_class());
+  return Type::NewNonParameterizedType(canonical_signature_class);
+}
+
+
+RawAbstractType* AllocateObjectComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* AllocateObjectWithBoundsCheckComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* NativeLoadFieldComp::StaticType() const {
+  ASSERT(!type().IsNull());
+  return type().raw();
+}
+
+
+RawAbstractType* NativeStoreFieldComp::StaticType() const {
+  ASSERT(!type().IsNull());
+  const AbstractType& assigned_value_type =
+      AbstractType::Handle(value()->StaticType());
+  if (assigned_value_type.IsDynamicType()) {
+    // Static type of assigned value is unknown, return static type of field.
+    return type().raw();
+  }
+  return assigned_value_type.raw();
+}
+
+
+RawAbstractType* InstantiateTypeArgumentsComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* ExtractConstructorTypeArgumentsComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* ExtractConstructorInstantiatorComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* AllocateContextComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* ChainContextComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CloneContextComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CatchEntryComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
 }
 
 

@@ -9,7 +9,7 @@ main() {
     Expect.fail("Expected: NullPointerException got: no exception");
   } catch (Exception ex) {
     if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException" + " got: ${ex}");
+      Expect.fail("Expected: NullPointerException got: ${ex}");
     }
   }
   try {
@@ -17,7 +17,7 @@ main() {
     Expect.fail("Expected: NullPointerException got: no exception");
   } catch (Exception ex) {
     if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException" + " got: ${ex}");
+      Expect.fail("Expected: NullPointerException got: ${ex}");
     }
   }
   try {
@@ -25,7 +25,7 @@ main() {
     Expect.fail("Expected: NullPointerException got: no exception");
   } catch (Exception ex) {
     if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException" + " got: ${ex}");
+      Expect.fail("Expected: NullPointerException got: ${ex}");
     }
   }
   try {
@@ -33,7 +33,7 @@ main() {
     Expect.fail("Expected: NullPointerException got: no exception");
   } catch (Exception ex) {
     if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException" + " got: ${ex}");
+      Expect.fail("Expected: NullPointerException got: ${ex}");
     }
   }
   try {
@@ -41,7 +41,7 @@ main() {
     Expect.fail("Expected: NullPointerException got: no exception");
   } catch (Exception ex) {
     if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException" + " got: ${ex}");
+      Expect.fail("Expected: NullPointerException got: ${ex}");
     }
   }
 }

@@ -115,6 +115,7 @@ void main() {
   world.getOrAddLibrary('dart:io');
   world.getOrAddLibrary('dart:isolate');
   world.getOrAddLibrary('dart:json');
+  world.getOrAddLibrary('lib/unittest/unittest.dart');
   world.getOrAddLibrary('dart:uri');
   world.getOrAddLibrary('dart:utf');
   world.process();

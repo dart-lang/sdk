@@ -48,7 +48,7 @@ class InterfacesSystem(systembase.System):
     file_path = self._FilePathForDartInterface(interface_name)
     self._ProcessCallback(interface, info, file_path)
 
-  def GenerateLibraries(self, lib_dir):
+  def GenerateLibraries(self):
     pass
 
 

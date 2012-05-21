@@ -136,17 +136,21 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorTypeArguments(ConstructorCallNode* node,
                                      ZoneGrowableArray<Value*>* args);
 
-  // Returns the value of the type arguments of the instantiator.
-  Value* BuildInstantiatorTypeArguments(intptr_t token_index);
+  void BuildTypecheckArguments(intptr_t token_index,
+                               Value** instantiator,
+                               Value** instantiator_type_arguments);
+  Value* BuildInstantiator();
+  Value* BuildInstantiatorTypeArguments(intptr_t token_index,
+                                        Value* instantiator);
 
   // Perform a type check on the given value.
-  void BuildAssertAssignable(intptr_t token_index,
-                             Value* value,
-                             const AbstractType& dst_type,
-                             const String& dst_name);
+  AssertAssignableComp* BuildAssertAssignable(intptr_t token_index,
+                                              Value* value,
+                                              const AbstractType& dst_type,
+                                              const String& dst_name);
 
   // Perform a type check on the given value and return it.
-  Value* BuildAssignableValue(AstNode* value_node,
+  Value* BuildAssignableValue(intptr_t token_index,
                               Value* value,
                               const AbstractType& dst_type,
                               const String& dst_name);

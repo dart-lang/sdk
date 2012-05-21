@@ -40,8 +40,10 @@ class SystemCache {
       final sources = paths.map((path) {
         final source = sources[basename(path)];
         return listDir(path).transform((subpaths) {
+          // TODO(rnystrom): Once there are cached packages and this path is
+          // being used, figure out how version numbers should be acquired.
           return subpaths.map((subpath) =>
-            new PackageId(basename(subpath), source));
+            new PackageId(basename(subpath), source, Version.none));
         });
       });
       return Futures.wait(sources).transform(flatten);

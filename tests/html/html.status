@@ -19,6 +19,9 @@ native_gc_test: Skip  # Issue 2538. Too slow in debug.
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
+[ $compiler == none && $runtime == drt && $system == macos]
+audiocontext_test: Pass, Fail
+
 [ $compiler == frog && $runtime == drt ]
 html_test: Skip   # Issue 2657
 request_animation_frame_test: Skip   # drt hangs
@@ -127,7 +130,7 @@ xhr_test: Fail
 [ $compiler == frog && $runtime == d8 ]
 *: Skip
 
-[ $compiler == frog && $runtime == chrome && $system == windows]
+[ ($compiler == frog || $compiler == dart2js) && ($runtime == chrome || $runtime == drt)]
 css_test: Pass, Fail # Test is flaky Issue #2823
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
@@ -161,8 +164,7 @@ svgelement2_test: Pass
 request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
-indexeddb_3_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
-indexeddb_4_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
+indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 # DOM errors.
 indexeddb_2_test: Fail # Uncaught error

@@ -397,7 +397,6 @@ void X86Decoder::PrintAddress(uword addr) {
   Print(addr_buffer);
   // Try to print as heap object or stub name
   if (!Isolate::Current()->heap()->CodeContains(addr) &&
-      !Isolate::Current()->heap()->StubCodeContains(addr) &&
       Isolate::Current()->heap()->Contains(addr - kHeapObjectTag)) {
     Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {
@@ -1577,7 +1576,9 @@ int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
 
 void Disassembler::Disassemble(uword start,
                                uword end,
-                               DisassemblyFormatter* formatter) {
+                               DisassemblyFormatter* formatter,
+                               const Code::Comments& comments) {
+  // TODO(vegorov): Decode and display comments.
   ASSERT(formatter != NULL);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.

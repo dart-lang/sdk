@@ -53,7 +53,7 @@ interface List<E> extends Collection<E> default ListFactory<E> {
   void addLast(E value);
 
   /**
-   * Appends all elements of the [collection] to the end of list.
+   * Appends all elements of the [collection] to the end of the list.
    * Extends the length of the list by the length of [collection].
    * Throws an [UnsupportedOperationException] if the list is not
    * extendable.
@@ -75,14 +75,14 @@ interface List<E> extends Collection<E> default ListFactory<E> {
   void sort(int compare(E a, E b));
 
   /**
-   * Returns the first index of [element] in this list. Searches this
+   * Returns the first index of [element] in the list. Searches the
    * list from index [start] to the length of the list. Returns
    * -1 if [element] is not found.
    */
   int indexOf(E element, [int start]);
 
   /**
-   * Returns the last index of [element] in this list. Searches this
+   * Returns the last index of [element] in the list. Searches the
    * list from index [start] (inclusive) to 0. Returns -1 if
    * [element] is not found.
    */
@@ -109,49 +109,48 @@ interface List<E> extends Collection<E> default ListFactory<E> {
   E last();
 
   /**
-   * Returns a sub list copy of this list, from [start] to
-   * [:start + length:].
+   * Returns a new list containing [length] elements from the list,
+   * starting at  [start].
    * Returns an empty list if [length] is 0.
    * Throws an [IllegalArgumentException] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
-   * [:start + length:] are out of range.
+   * [:start + length - 1:] are out of range.
    */
   List<E> getRange(int start, int length);
 
   /**
-   * Copies [length] elements of the [from] array, starting
-   * from [startFrom], into [:this:], starting at [start].
+   * Copies [length] elements of [from], starting
+   * at [startFrom], into the list, starting at [start].
    * If [length] is 0, this method does not do anything.
    * Throws an [IllegalArgumentException] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
-   * [:start + length:] are out of range for [:this:], or if
-   * [startFrom] is out of range for [from].
+   * [:start + length - 1:] are out of range for [:this:], or if
+   * [startFrom] or [:startFrom + length - 1:] are out of range for [from].
    */
   void setRange(int start, int length, List<E> from, [int startFrom]);
 
   /**
-   * Removes the range in the list starting from [start] to
-   * [:start + length:].
+   * Removes [length] elements from the list, beginning at [start].
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
    * If [length] is 0, this method does not do anything.
    * Throws an [IllegalArgumentException] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
-   * [:start + length:] are out of range.
+   * [:start + length: - 1] are out of range.
    */
   void removeRange(int start, int length);
 
   /**
-   * Inserts a new range in the list, starting from [start] to
-   * [:start + length:]. The entries are filled with [initialValue].
+   * Inserts a new range into the list, starting from [start] to
+   * [:start + length - 1:]. The entries are filled with [initialValue].
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
    * If [length] is 0, this method does not do anything.
-   * If [start] is the length of the array, this method inserts the
-   * range at the end of the array.
+   * If [start] is the length of the list, this method inserts the
+   * range at the end of the list.
    * Throws an [IllegalArgumentException] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] or
-   * [:start + length:] are out of range.
+   * Throws an [IndexOutOfRangeException] if [start] is negative or if
+   * [start] is greater than the length of the list.
    */
   void insertRange(int start, int length, [E initialValue]);
 }

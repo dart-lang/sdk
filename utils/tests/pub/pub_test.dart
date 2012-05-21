@@ -60,6 +60,9 @@ main() {
 }
 
 listCommand() {
+  // TODO(rnystrom): We don't currently have any sources that are cached, so
+  // we can't test this right now.
+  /*
   group('cache', () {
     test('treats an empty directory as a package', () {
       dir(cachePath, [
@@ -73,12 +76,13 @@ listCommand() {
       runPub(args: ['list', 'cache'],
           output: '''
           From system cache:
-            apple from sdk
-            banana from sdk
-            cherry from sdk
+            apple 0.0.0 (apple from sdk)
+            banana 0.0.0 (banana from sdk)
+            cherry 0.0.0 (cherry from sdk)
           ''');
     });
   });
+  */
 }
 
 installCommand() {

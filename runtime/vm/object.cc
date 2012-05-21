@@ -4337,6 +4337,27 @@ RawString* TokenStream::LiteralAt(intptr_t index) const {
 }
 
 
+RawString* TokenStream::GenerateSource() const {
+  GrowableObjectArray& literals =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
+  String& literal = String::Handle();
+  String& blank = String::Handle(String::New(" "));
+  String& newline = String::Handle(String::New("\n"));
+  for (intptr_t i = 0; i < Length(); i++) {
+    Token::Kind kind = KindAt(i);
+    literal = LiteralAt(i);
+    literals.Add(literal);
+    if (kind == Token::kLBRACE) {
+      literals.Add(newline);
+    } else {
+      literals.Add(blank);
+    }
+  }
+  const Array& source = Array::Handle(Array::MakeArray(literals));
+  return String::ConcatAll(source);
+}
+
+
 RawTokenStream* TokenStream::New(intptr_t len) {
   const Class& token_stream_class = Class::Handle(Object::token_stream_class());
   TokenStream& result = TokenStream::Handle();
@@ -4372,6 +4393,17 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
 
 const char* TokenStream::ToCString() const {
   return "TokenStream";
+}
+
+
+RawString* Script::source() const {
+  String& source = String::Handle(raw_ptr()->source_);
+  if (source.IsNull()) {
+    const TokenStream& token_stream = TokenStream::Handle(tokens());
+    return token_stream.GenerateSource();
+  } else {
+    return raw_ptr()->source_;
+  }
 }
 
 
@@ -5664,13 +5696,14 @@ RawError* Library::CompileAll() {
 }
 
 
-RawInstructions* Instructions::New(intptr_t size, Heap::Space space) {
-  ASSERT(space == Heap::kDartCode || space == Heap::kStubCode);
+RawInstructions* Instructions::New(intptr_t size) {
   const Class& instructions_class = Class::Handle(Object::instructions_class());
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
-    RawObject* raw = Object::Allocate(instructions_class, aligned_size, space);
+    RawObject* raw = Object::Allocate(instructions_class,
+                                      aligned_size,
+                                      Heap::kCode);
     NoGCScope no_gc;
     // TODO(iposva): Remove premarking once old and code spaces are merged.
     raw->SetMarkBit();
@@ -6072,8 +6105,63 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 
+Code::Comments& Code::Comments::New(intptr_t count) {
+  Comments* comments;
+  if (count == 0) {
+    comments = new Comments(Array::Empty());
+  } else {
+    comments = new Comments(Array::New(count * kNumberOfEntries));
+  }
+  return *comments;
+}
+
+
+intptr_t Code::Comments::Length() const {
+  return comments_.Length() / kNumberOfEntries;
+}
+
+
+intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
+  return Smi::CheckedHandle(
+      comments_.At(idx * kNumberOfEntries + kPCOffsetEntry)).Value();
+}
+
+
+void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
+  comments_.SetAt(idx * kNumberOfEntries + kPCOffsetEntry,
+                  Smi::Handle(Smi::New(pc)));
+}
+
+
+const String& Code::Comments::CommentAt(intptr_t idx) const {
+  return String::CheckedHandle(
+      comments_.At(idx * kNumberOfEntries + kCommentEntry));
+}
+
+
+void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
+  comments_.SetAt(idx * kNumberOfEntries + kCommentEntry, comment);
+}
+
+
+Code::Comments::Comments(RawArray* comments)
+    : comments_(Array::Handle(comments)) {
+}
+
+
 void Code::set_stackmaps(const Array& maps) const {
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
+}
+
+
+const Code::Comments& Code::comments() const  {
+  Comments* comments = new Code::Comments(raw_ptr()->comments_);
+  return *comments;
+}
+
+
+void Code::set_comments(const Code::Comments& comments) const {
+  StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
 }
 
 
@@ -6087,19 +6175,18 @@ RawCode* Code::New(int pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_comments(Comments::New(0));
   }
   return result.raw();
 }
 
 
-RawCode* Code::FinalizeCode(const char* name,
-                            Assembler* assembler,
-                            Heap::Space space) {
+RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   ASSERT(assembler != NULL);
 
   // Allocate the Instructions object.
   Instructions& instrs =
-      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize(), space));
+      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -6166,17 +6253,10 @@ RawCode* Code::FinalizeCode(const char* name,
 RawCode* Code::FinalizeCode(const Function& function, Assembler* assembler) {
   // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
   if (FLAG_generate_gdb_symbols || (Dart::pprof_symbol_generator() != NULL)) {
-    return FinalizeCode(function.ToFullyQualifiedCString(),
-                        assembler,
-                        Heap::kDartCode);
+    return FinalizeCode(function.ToFullyQualifiedCString(), assembler);
   } else {
-    return FinalizeCode("", assembler, Heap::kDartCode);
+    return FinalizeCode("", assembler);
   }
-}
-
-
-RawCode* Code::FinalizeStubCode(const char* name, Assembler* assembler) {
-  return FinalizeCode(name, assembler, Heap::kStubCode);
 }
 
 
@@ -6192,10 +6272,6 @@ RawCode* Code::LookupCode(uword pc) {
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
   instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-  if (instr != Instructions::null()) {
-    return instr->ptr()->code_;
-  }
-  instr = isolate->heap()->FindObjectInStubCodeSpace(&visitor);
   if (instr != Instructions::null()) {
     return instr->ptr()->code_;
   }

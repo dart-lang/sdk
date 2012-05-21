@@ -40,6 +40,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeExceptionHandlers(const Code& code);
+  void FinalizeComments(const Code& code);
 
  private:
   // Bail out of the flow graph compiler.  Does not return to the caller.

@@ -267,6 +267,11 @@ void CodeGenerator::FinalizeExceptionHandlers(const Code& code) {
 }
 
 
+void CodeGenerator::FinalizeComments(const Code& code) {
+  code.set_comments(assembler_->GetCodeComments());
+}
+
+
 void CodeGenerator::GenerateLoadVariable(Register dst,
                                          const LocalVariable& variable) {
   if (variable.is_captured()) {
@@ -2412,8 +2417,9 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 }
 
 
+// Pushes either the instantiator or null.
 // Pushes the type arguments of the instantiator on the stack.
-// Destroys EBX.
+// Destroys EBX, ECX.
 void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index,
                                                       bool push_instantiator) {
   if (push_instantiator) {

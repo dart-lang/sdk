@@ -7,5 +7,5 @@
 #import('package:shared.dart');
 
 void lib3() {
-  output += '|lib3';
+  output = output.concat('|lib3');
 }

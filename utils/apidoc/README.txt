@@ -2,9 +2,9 @@ Apidoc is a specialization of Dartdoc.
 Dartdoc generates static HTML documentation from Dart code.
 Apidoc wraps the dartdoc output with official dartlang.org skin, comments, etc.
 
-To use it, from this directory, run:
+To use it, from the top level dart directory, run:
 
-    $ dart apidoc.dart [--out=<output directory>]
+    $ dart utils/apidoc/apidoc.dart [--out=<output directory>]
 
 This will create a "docs" directory with the docs for your libraries.
 

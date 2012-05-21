@@ -650,8 +650,8 @@ class _File extends _FileBase implements File {
 
   Future<String> readAsText([Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
-    var decoder = _StringDecoders.decoder(encoding);
     return readAsBytes().transform((bytes) {
+      var decoder = _StringDecoders.decoder(encoding);
       decoder.write(bytes);
       return decoder.decoded;
     });
@@ -683,8 +683,8 @@ class _File extends _FileBase implements File {
   Future<List<String>> readAsLines([Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
     Completer<List<String>> completer = new Completer<List<String>>();
-    var decoder = _StringDecoders.decoder(encoding);
     return readAsBytes().transform((bytes) {
+      var decoder = _StringDecoders.decoder(encoding);
       decoder.write(bytes);
       return _getDecodedLines(decoder);
     });
@@ -716,16 +716,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   Future<RandomAccessFile> close() {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (_id == 0) {
-      // Complete asynchronously so the user has a chance to setup
-      // handlers without getting exceptions when registering the
-      // then handler.
-      new Timer(0, (t) {
-        completer.completeException(
-            new FileIOException("Cannot close file '$_name'"));
-      });
-      return completer.future;
-    }
+    if (_isClosed) return _completeWithClosedException(completer);
     _ensureFileService();
     List request = new List(2);
     request[0] = _FileUtils.kCloseRequest;
@@ -756,6 +747,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<int> readByte() {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.kReadByteRequest;
     request[1] = _id;
@@ -793,6 +785,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       });
       return completer.future;
     };
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.kReadListRequest;
     request[1] = _id;
@@ -845,6 +838,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       });
       return completer.future;
     }
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.kWriteByteRequest;
     request[1] = _id;
@@ -888,6 +882,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       });
       return completer.future;
     }
+    if (_isClosed) return _completeWithClosedException(completer);
 
     List result =
         _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
@@ -935,6 +930,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
                                        [Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.kWriteStringRequest;
     request[1] = _id;
@@ -963,6 +959,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<int> position() {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.kPositionRequest;
     request[1] = _id;
@@ -990,6 +987,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> setPosition(int position) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.kSetPositionRequest;
     request[1] = _id;
@@ -1017,6 +1015,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> truncate(int length) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.kTruncateRequest;
     request[1] = _id;
@@ -1044,6 +1043,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<int> length() {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.kLengthRequest;
     request[1] = _id;
@@ -1071,6 +1071,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> flush() {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
+    if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.kFlushRequest;
     request[1] = _id;
@@ -1102,10 +1103,20 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
   }
 
+  bool get _isClosed() => _id == 0;
+
   void _checkNotClosed() {
-    if (_id == 0) {
+    if (_isClosed) {
       throw new FileIOException("File closed '$_name'");
     }
+  }
+
+  Future _completeWithClosedException(Completer completer) {
+    new Timer(0, (t) {
+      completer.completeException(
+          new FileIOException("File closed '$_name'"));
+    });
+    return completer.future;
   }
 
   final String _name;

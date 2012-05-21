@@ -5,15 +5,25 @@
 /**
  * A named, versioned, unit of code and resource reuse.
  */
-class Package implements Hashable {
+class Package {
   /**
    * Loads the package whose root directory is [packageDir].
    */
   static Future<Package> load(String packageDir, SourceRegistry sources) {
-    final pubspecPath = join(packageDir, 'pubspec');
+    var pubspecPath = join(packageDir, 'pubspec');
 
-    return _parsePubspec(pubspecPath, sources).transform((dependencies) {
-      return new Package._(packageDir, dependencies);
+    return fileExists(pubspecPath).chain((exists) {
+      if (exists) {
+        return readTextFile(pubspecPath).transform((contents) {
+          return new Pubspec.parse(contents, sources);
+        });
+      } else {
+        // If there is no pubspec, we implicitly treat that as a package with
+        // no dependencies.
+        return new Future.immediate(new Pubspec.empty());
+      }
+    }).transform((pubspec) {
+      return new Package._(packageDir, pubspec);
     });
   }
 
@@ -28,179 +38,128 @@ class Package implements Hashable {
   final String name;
 
   /**
+   * The package's version.
+   */
+  Version get version() => pubspec.version;
+
+  /**
+   * The parsed pubspec associated with this package.
+   */
+  final Pubspec pubspec;
+
+  /**
    * The ids of the packages that this package depends on. This is what is
    * specified in the pubspec when this package depends on another.
    */
-  final Collection<PackageId> dependencies;
+  Collection<PackageRef> get dependencies() => pubspec.dependencies;
 
   /**
    * Constructs a package. This should not be called directly. Instead, acquire
    * packages from [load()].
    */
-  Package._(String dir, this.dependencies)
-  : dir = dir,
-    name = basename(dir);
-
-  /**
-   * Generates a hashcode for the package.
-   */
-  // TODO(rnystrom): Do something more sophisticated here once we care about
-  // versioning and different package sources.
-  int hashCode() => name.hashCode();
+  Package._(String dir, this.pubspec)
+    : dir = dir,
+      name = basename(dir);
 
   /**
    * Returns a debug string for the package.
    */
   String toString() => '$name ($dir)';
+}
+
+/**
+ * An unambiguous resolved reference to a package. A package ID contains enough
+ * information to correctly install the package.
+ *
+ * Note that it's possible for multiple distinct package IDs to point to
+ * different directories that happen to contain identical packages. For example,
+ * the same package may be available from multiple sources. As far as Pub is
+ * concerned, those packages are different.
+ */
+class PackageId implements Comparable, Hashable {
+  /**
+   * The [Source] used to look up this package given its [description].
+   */
+  final Source source;
 
   /**
-   * Parses the pubspec at the given path and returns the list of package
-   * dependencies it exposes.
+   * The package's version.
    */
-  static Future<List<PackageId>> _parsePubspec(String path,
-      SourceRegistry sources) {
-    final completer = new Completer<List<PackageId>>();
+  final Version version;
 
-    // TODO(rnystrom): Handle the directory not existing.
-    // TODO(rnystrom): Error-handling.
-    final readFuture = readTextFile(path);
-    readFuture.handleException((error) {
-      // If there is no pubspec, we implicitly treat that as a package with no
-      // dependencies.
-      // TODO(rnystrom): Distinguish file not found from other real errors.
-      completer.complete(<PackageId>[]);
-      return true;
-    });
+  /**
+   * The metadata used by the package's [source] to identify and locate it. It
+   * contains whatever [Source]-specific data it needs to be able to install
+   * the package. For example, the description of a git sourced package might
+   * by the URL "git://github.com/dart/uilib.git".
+   */
+  final description;
 
-    readFuture.then((pubspec) {
-      if (pubspec.trim() == '') {
-        completer.complete(<String>[]);
-        return;
-      }
+  PackageId(this.source, this.version, this.description);
 
-      var parsedPubspec = loadYaml(pubspec);
-      if (parsedPubspec is! Map) {
-        completer.completeException('The pubspec must be a YAML mapping.');
-      }
+  /**
+   * The name of the package being identified. This will be the human-friendly
+   * name like "uilib".
+   */
+  String get name() => source.packageName(this);
 
-      if (!parsedPubspec.containsKey('dependencies')) {
-        completer.complete(<String>[]);
-        return;
-      }
+  int hashCode() => name.hashCode() ^
+                    source.name.hashCode() ^
+                    version.hashCode();
 
-      var dependencies = parsedPubspec['dependencies'];
-      if (dependencies is! Map ||
-          dependencies.getKeys().some((e) => e is! String)) {
-        completer.completeException(
-            'The pubspec dependencies must be a map of package names.');
-      }
+  bool operator ==(other) {
+    if (other is! PackageId) return false;
+    // TODO(rnystrom): We're assuming here the name/version/source tuple is
+    // enough to uniquely identify the package and that we don't need to delve
+    // into the description.
+    return other.name == name &&
+           other.source.name == source.name &&
+           other.version == version;
+  }
 
-      var dependencyIds = <PackageId>[];
-      dependencies.forEach((name, spec) {
-        var fullName, source;
-        // TODO(nweiz): parse the version once we have version handling
-        if (spec == null || spec is String) {
-          fullName = name;
-          source = sources.defaultSource;
-        } else if (spec is Map) {
-          spec.remove('version');
+  String toString() => "$name $version from ${source.name}";
 
-          var sourceNames = spec.getKeys();
-          if (sourceNames.length > 1) {
-            completer.completeException(
-                'Dependency $name may not have multiple sources: '
-                '$sourceNames.');
-            return;
-          }
+  int compareTo(Comparable other) {
+    if (other is! PackageId) throw new IllegalArgumentException(other);
 
-          var sourceName = only(sourceNames);
-          if (sourceName is! String) {
-            completer.completeException(
-                'Source name $sourceName must be a string.');
-            return;
-          }
-          source = sources[sourceName];
+    var sourceComp = source.name.compareTo(other.source.name);
+    if (sourceComp != 0) return sourceComp;
 
-          // TODO(nweiz): At some point we want fullName to be able to be an
-          // arbitrary object that's parsed by the source.
-          fullName = spec[sourceName];
-          if (fullName is! String) {
-            completer.completeException(
-                'Source identifier $fullName must be a string.');
-            return;
-          }
-        } else {
-          completer.completeException(
-              'Dependency specification $spec must be a string or a mapping.');
-          return;
-        }
+    var nameComp = name.compareTo(other.name);
+    if (nameComp != 0) return nameComp;
 
-        var id = new PackageId(fullName, source);
-        var nameFromSource = source.packageName(id);
-        if (nameFromSource != name) {
-          completer.completeException(
-              'Dependency name "$name" doesn\'t match name "$nameFromSource" '
-              'from source "${source.name}".');
-          return;
-        }
-
-        dependencyIds.add(id);
-      });
-      completer.complete(dependencyIds);
-    });
-
-    return completer.future;
+    return version.compareTo(other.version);
   }
 }
 
 /**
- * A unique identifier for a package. A given package id specifies a single
- * chunk of code and resources.
- *
- * Note that it's possible for multiple package ids to point to identical
- * packages. For example, the same package may be available from multiple
- * sources. As far as Pub is concerned, those packages are different.
+ * A reference to a package. Unlike a [PackageId], a PackageRef may not
+ * unambiguously refer to a single package. It may describe a range of allowed
+ * packages.
  */
-// TODO(nweiz, rnystrom): this should include version eventually
-class PackageId implements Hashable, Comparable {
+class PackageRef {
   /**
-   * The name used by the [source] to look up the package.
-   *
-   * Note that this may be distinct from [name], which is the name of the
-   * package itself. The [source] uses this name to locate the package and
-   * returns the true package name. For example, for a Git source [fullName]
-   * might be the URL "git://github.com/dart/uilib.git", while [name] would just
-   * be "uilib". It would be up to the source to take the URL and extract the
-   * package name.
+   * The name of the package being referenced.
    */
-  final String fullName;
+  final String name;
 
   /**
-   * The [Source] used to look up the package given the [fullName].
+   * The [Source] used to look up the package.
    */
   final Source source;
 
-  PackageId(String this.fullName, Source this.source);
+  /**
+   * The allowed package versions.
+   */
+  final VersionConstraint version;
 
   /**
-   * The name of the package being imported. Not necessarily the same as
-   * [fullName].
+   * The metadata used to identify the package being referenced. The
+   * interpretation of this will vary based on the [source].
    */
-  String get name() => source.packageName(this);
+  final description;
 
-  int hashCode() => fullName.hashCode() ^ source.name.hashCode();
+  PackageRef(this.name, this.source, this.version, this.description);
 
-  bool operator ==(other) {
-    if (other is! PackageId) return false;
-    return other.fullName == fullName && other.source.name == source.name;
-  }
-
-  String toString() => "$fullName from ${source.name}";
-
-  int compareTo(Comparable other) {
-    if (other is! PackageId) throw new IllegalArgumentException(other);
-    var sourceComp = this.source.name.compareTo(other.source.name);
-    if (sourceComp != 0) return sourceComp;
-    return this.fullName.compareTo(other.fullName);
-  }
+  String toString() => "$name $version from $source ($description)";
 }

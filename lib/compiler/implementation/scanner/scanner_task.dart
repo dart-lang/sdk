@@ -116,7 +116,7 @@ class ScannerTask extends CompilerTask {
   LibraryElement loadLibrary(Uri uri, Node node) {
     bool newLibrary = false;
     LibraryElement library =
-      compiler.universe.libraries.putIfAbsent(uri.toString(), () {
+      compiler.libraries.putIfAbsent(uri.toString(), () {
           newLibrary = true;
           Script script = compiler.readScript(uri, node);
           LibraryElement element = new LibraryElement(script);
@@ -184,7 +184,7 @@ class DietParserTask extends CompilerTask {
 
   dietParse(CompilationUnitElement compilationUnit, Token tokens) {
     measure(() {
-      Function idGenerator = compiler.universe.getNextFreeClassId;
+      Function idGenerator = compiler.getNextFreeClassId;
       ElementListener listener =
           new ElementListener(compiler, compilationUnit, idGenerator);
       PartialParser parser = new PartialParser(listener);

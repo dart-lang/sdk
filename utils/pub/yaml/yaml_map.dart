@@ -18,6 +18,8 @@ class YamlMap implements Map, Hashable {
 
   YamlMap.from(Map map) : _map = new Map.from(map);
 
+  YamlMap._wrap(this._map);
+
   bool containsValue(value) => _map.containsValue(value);
   bool containsKey(key) => _map.containsKey(_wrapKey(key));
   operator [](key) => _map[_wrapKey(key)];
@@ -46,6 +48,8 @@ class YamlMap implements Map, Hashable {
         (obj is! double || !obj.isNan()) &&
         (obj is! Map || obj is YamlMap)) {
       return obj;
+    } else if (obj is Map) {
+      return new YamlMap._wrap(obj);
     }
     return new _WrappedHashKey(obj);
   }

@@ -8,7 +8,7 @@
 #import("dart:io");
 
 String getFilename(String path) =>
-    new File(path).existsSync() ? path : 'runtime/' + path;
+    new File(path).existsSync() ? path : 'runtime/$path';
 
 void main() {
   var a = const [0];
