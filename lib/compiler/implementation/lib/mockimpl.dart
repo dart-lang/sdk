@@ -297,6 +297,16 @@ class DateImplementation implements Date {
     return new Date.fromEpoch(value, targetTimeZone);
   }
 
+  String get timeZoneName() {
+    if (isUtc()) return "UTC";
+    return Primitives.getTimeZoneName(this);
+  }
+
+  Duration get timeZoneOffset() {
+    if (isUtc()) return new Duration(0);
+    return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
+  }
+
   int get year() => Primitives.getYear(this);
 
   int get month() => Primitives.getMonth(this);
