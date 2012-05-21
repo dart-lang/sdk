@@ -1286,8 +1286,7 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
 
 
 void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
-  LoadValue(RAX, instr->exception());
-  __ pushq(RAX);
+  ASSERT(instr->exception()->IsUse());
   GenerateCallRuntime(instr->cid(),
                       instr->token_index(),
                       instr->try_index(),
@@ -1297,10 +1296,8 @@ void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
 
 
 void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
-  LoadValue(RAX, instr->exception());
-  __ pushq(RAX);
-  LoadValue(RAX, instr->stack_trace());
-  __ pushq(RAX);
+  ASSERT(instr->exception()->IsUse());
+  ASSERT(instr->stack_trace()->IsUse());
   GenerateCallRuntime(instr->cid(),
                       instr->token_index(),
                       instr->try_index(),
