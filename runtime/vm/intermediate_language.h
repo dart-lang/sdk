@@ -14,8 +14,10 @@
 namespace dart {
 
 class BitVector;
+class FlowGraphCompiler;
 class FlowGraphVisitor;
 class LocalVariable;
+class LocationSummary;
 
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
@@ -108,6 +110,19 @@ class Computation : public ZoneAllocated {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  // Returns structure describing location constraints required
+  // to emit native code for this computation.
+  virtual LocationSummary* locs() const {
+    // TODO(vegorov): This should be pure virtual method.
+    // However we are temporary using NULL for instructions that
+    // were not converted to the location based code generation yet.
+    return NULL;
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    UNIMPLEMENTED();
+  }
+
  private:
   friend class Instruction;
   static intptr_t GetNextCid(Isolate* isolate) {
@@ -145,13 +160,23 @@ class EmbeddedArray {
   }
 
   intptr_t length() const { return N; }
+
   const T& operator[](intptr_t i) const {
     ASSERT(i < length());
     return elements_[i];
   }
+
   T& operator[](intptr_t i) {
     ASSERT(i < length());
     return elements_[i];
+  }
+
+  const T& At(intptr_t i) const {
+    return (*this)[i];
+  }
+
+  void SetAt(intptr_t i, const T& val) {
+    (*this)[i] = val;
   }
 
  private:
@@ -445,6 +470,7 @@ class StrictCompareComp : public TemplateComputation<2> {
     ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
     inputs_[0] = left;
     inputs_[1] = right;
+    location_summary_ = MakeLocationSummary();
   }
 
   DECLARE_COMPUTATION(StrictCompare)
@@ -455,8 +481,19 @@ class StrictCompareComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const Token::Kind kind_;
+
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
@@ -1363,6 +1400,19 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return AbstractType::null();
   }
 
+  // Returns structure describing location constraints required
+  // to emit native code for this instruction.
+  virtual LocationSummary* locs() const {
+    // TODO(vegorov): This should be pure virtual method.
+    // However we are temporary using NULL for instructions that
+    // were not converted to the location based code generation yet.
+    return NULL;
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    UNIMPLEMENTED();
+  }
+
  private:
   intptr_t cid_;
   ICData* ic_data_;
@@ -1560,12 +1610,21 @@ class DoInstr : public Instruction {
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
   }
+
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
+
+  virtual LocationSummary* locs() const {
+    return computation()->locs();
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    computation()->EmitNativeCode(compiler);
+  }
 
  private:
   Computation* computation_;
@@ -1603,6 +1662,7 @@ class BindInstr : public Definition {
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
   }
+
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
@@ -1614,6 +1674,12 @@ class BindInstr : public Definition {
   }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
+
+  virtual LocationSummary* locs() const {
+    return computation()->locs();
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
   Computation* computation_;

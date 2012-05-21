@@ -40,6 +40,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizeComments(const Code& code);
 
+  Assembler* assembler() const { return assembler_; }
+
  private:
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
@@ -76,6 +78,9 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
 #undef DECLARE_VISIT_COMPUTATION
 #undef DECLARE_VISIT_INSTRUCTION
+
+  void EmitInstructionPrologue(Instruction* instr);
+  void LoadInputs(LocationSummary* summary);
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);

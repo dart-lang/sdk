@@ -15,6 +15,7 @@
 #include "vm/disassembler.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
+#include "vm/locations.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -560,22 +561,10 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  LoadValue(RDX, comp->right());
-  LoadValue(RAX, comp->left());
-  __ cmpq(RAX, RDX);
-  Label load_true, done;
-  if (comp->kind() == Token::kEQ_STRICT) {
-    __ j(EQUAL, &load_true, Assembler::kNearJump);
-  } else {
-    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
-  }
-  __ LoadObject(RAX, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(RAX, bool_true);
-  __ Bind(&done);
+  // Visitor should not be used to compile this instruction.
+  // Native code template for StrictCompareComp was moved to
+  // StrictCompareComp::EmitNativeCode.
+  UNREACHABLE();
 }
 
 
@@ -1149,6 +1138,21 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
 }
 
 
+void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
+  LocationSummary* locs = instr->locs();
+  ASSERT(locs != NULL);
+
+  locs->AllocateRegisters();
+
+  // Load instruction inputs into allocated registers.
+  for (intptr_t i = locs->count() - 1; i >= 0; i--) {
+    Location loc = locs->in(i);
+    ASSERT(loc.kind() == Location::kRegister);
+    __ popq(loc.reg());
+  }
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     __ Comment("B%d", i);
@@ -1158,7 +1162,13 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       if (FLAG_code_comments) EmitComment(instr);
-      instr = instr->Accept(this);
+      if (instr->locs() != NULL) {
+        EmitInstructionPrologue(instr);
+        instr->EmitNativeCode(this);
+        instr = instr->StraightLineSuccessor();
+      } else {
+        instr = instr->Accept(this);
+      }
     }
 
     BlockEntryInstr* successor =
@@ -1208,6 +1218,10 @@ void FlowGraphCompiler::VisitDo(DoInstr* instr) {
 
 
 void FlowGraphCompiler::VisitBind(BindInstr* instr) {
+  ASSERT(instr->locs() == NULL);
+
+  // If instruction does not have special location requirements
+  // then it returns result in register RAX.
   instr->computation()->Accept(this);
   __ pushq(RAX);
 }
