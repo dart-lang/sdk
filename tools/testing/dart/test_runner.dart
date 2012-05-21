@@ -858,11 +858,9 @@ class ProcessQueue {
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
-  bool _keepGeneratedTests;
   Function _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
-  String _temporaryDirectory;
 
   // For dartc/selenium batch processing we keep a list of batch processes.
   Map<String, List<BatchRunnerProcess>> _batchProcesses;
@@ -896,11 +894,9 @@ class ProcessQueue {
                bool printTiming,
                Function this._enqueueMoreWork,
                [bool verbose = false,
-                bool listTests = false,
-                bool keepGeneratedTests = false])
+                bool listTests = false])
       : _verbose = verbose,
         _listTests = listTests,
-        _keepGeneratedTests = keepGeneratedTests,
         _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
@@ -915,25 +911,12 @@ class ProcessQueue {
    */
   void addTestSuite(TestSuite testSuite) {
     _activeTestListers++;
-    testSuite.forEachTest(_runTest, _testCache, globalTemporaryDirectory,
-                          _testListerDone);
+    testSuite.forEachTest(_runTest, _testCache, _testListerDone);
   }
 
   void _testListerDone() {
     _activeTestListers--;
     _checkDone();
-  }
-
-  String globalTemporaryDirectory() {
-    if (_temporaryDirectory != null) return _temporaryDirectory;
-
-    if (Platform.operatingSystem == 'windows') {
-      throw new Exception(
-          'Test suite requires temporary directory. Not supported on Windows.');
-    }
-    var tempDir = new Directory('').createTempSync();
-    _temporaryDirectory = tempDir.path;
-    return _temporaryDirectory;
   }
 
   /**
@@ -955,22 +938,7 @@ class ProcessQueue {
       _progress.allTestsKnown();
       if (_tests.isEmpty() && _numProcesses == 0) {
         _terminateBatchRunners();
-        if (_keepGeneratedTests || _temporaryDirectory == null) {
-          _cleanupAndMarkDone();
-        } else if (!_temporaryDirectory.startsWith('/tmp/') ||
-                   _temporaryDirectory.contains('/../')) {
-          // Let's be extra careful, since rm -rf is so dangerous.
-          print('Temporary directory $_temporaryDirectory unsafe to delete!');
-          _cleanupAndMarkDone();
-        } else {
-          Directory dir = new Directory(_temporaryDirectory);
-          dir.deleteRecursively(() {
-            _cleanupAndMarkDone();
-          });
-          dir.onError = (err) {
-            print('\nDeletion of temp dir $_temporaryDirectory failed: $err');
-          };
-        }
+        _cleanupAndMarkDone();
       }
     }
   }

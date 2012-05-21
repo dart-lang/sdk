@@ -48,7 +48,6 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  var keepGeneratedTests = firstConf['keep-generated-tests'];
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -98,6 +97,5 @@ main() {
                                printTiming,
                                enqueueConfiguration,
                                verbose,
-                               listTests,
-                               keepGeneratedTests);
+                               listTests);
 }

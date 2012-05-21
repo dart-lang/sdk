@@ -46,11 +46,9 @@ interface TestSuite {
    *
    * The [testCache] argument provides a persistent store that can be used to
    * cache information about the test suite, so that directories do not need
-   * to be listed each time.  If the tests require a temporary directory for
-   * their files, they can get one from [globalTempDir].
+   * to be listed each time.
    */
-  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
-                   [Function onDone]);
+  void forEachTest(Function onTest, Map testCache, [Function onDone]);
 }
 
 
@@ -151,8 +149,7 @@ class CCTestSuite implements TestSuite {
     }
   }
 
-  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
-                   [Function onDone]) {
+  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
 
@@ -213,7 +210,6 @@ class StandardTestSuite implements TestSuite {
   TestExpectations testExpectations;
   List<TestInformation> cachedTests;
   final String dartDir;
-  Function globalTemporaryDirectory;
   Predicate<String> isTestFilePredicate;
   bool _listRecursive;
 
@@ -280,22 +276,20 @@ class StandardTestSuite implements TestSuite {
 
   List<String> additionalOptions(String filename) => [];
 
-  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
-                   [Function onDone = null]) {
+  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
     // If DumpRenderTree/Dartium is required, and not yet updated,
     // wait for update.
     var updater = runtimeUpdater(configuration);
     if (updater !== null && !updater.updated) {
       Expect.isTrue(updater.isActive);
       updater.onUpdated.add(() {
-        forEachTest(onTest, testCache, globalTempDir, onDone);
+        forEachTest(onTest, testCache, onDone);
       });
       return;
     }
 
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
-    globalTemporaryDirectory = globalTempDir;
 
     var filesRead = 0;
     void statusFileRead() {
@@ -715,21 +709,12 @@ class StandardTestSuite implements TestSuite {
     return new Command(executable, args);
   }
 
-  bool get requiresCleanTemporaryDirectory() =>
-      configuration['compiler'] == 'dartc';
-
   /**
    * Create a directory for the generated test.  If a Dart language test
    * needs to be run in a browser, the Dart test needs to be embedded in
    * an HTML page, with a testing framework based on scripting and DOM events.
-   * These scripts and pages are written to a generated_test directory,
-   * usually inside the build directory of the checkout.
-   *
-   * Some tests, such as those using the dartc compiler, need to be run
-   * with an empty directory as the compiler's work directory.  These
-   * tests are copied to a subdirectory of a system-provided temporary
-   * directory, which is deleted at the end of the test run unless the
-   * --keep-temporary-files flag is given.
+   * These scripts and pages are written to a generated_test directory
+   * inside the build directory of the checkout.
    *
    * Those tests which are already HTML web applications (web tests), with
    * resources including CSS files and HTML files, need to be compiled into
@@ -753,16 +738,9 @@ class StandardTestSuite implements TestSuite {
                              testUniqueName];
 
     String tempDirPath = TestUtils.buildDir(configuration);
-    if (requiresCleanTemporaryDirectory) {
-      tempDirPath = globalTemporaryDirectory();
-      String debugMode =
-          (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-      var temp = ['${debugMode}_${configuration["arch"]}'];
-      temp.addAll(generatedTestPath);
-      generatedTestPath = temp;
-    }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
+      // TODO(whesse): Replace this with mkdirRecursive.
       // Dartium tests can be run with no build step, with no output directory.
       // This special case builds the build directory that should be there.
       var buildPath = tempDirPath.split('/');
@@ -1094,7 +1072,6 @@ class JUnitTestSuite implements TestSuite {
 
   void forEachTest(Function onTest,
                    Map testCacheIgnored,
-                   String globalTempDir(),
                    [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);

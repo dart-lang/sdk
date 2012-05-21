@@ -192,13 +192,6 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
-              'keep-generated-tests',
-              'Keep the generated files in the temporary directory',
-              ['--keep-generated-tests'],
-              [],
-              false,
-              'bool'),
-          new _TestOptionSpecification(
               'valgrind',
               'Run tests through valgrind',
               ['--valgrind'],
