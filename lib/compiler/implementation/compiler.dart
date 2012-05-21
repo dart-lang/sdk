@@ -73,6 +73,10 @@ class JavaScriptBackend extends Backend {
   void assembleProgram() => emitter.assembleProgram();
 }
 
+class DartBackend extends Backend {
+  DartBackend(Compiler compiler) : super(compiler);
+}
+
 class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   int nextFreeClassId = 0;
@@ -80,7 +84,7 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
-  bool enableTypeAssertions = false;
+  final bool enableTypeAssertions;
 
   final Tracer tracer;
 
@@ -137,7 +141,9 @@ class Compiler implements DiagnosticListener {
 
   Stopwatch codegenProgress;
 
-  Compiler([this.tracer = const Tracer()])
+  Compiler([this.tracer = const Tracer(),
+            this.enableTypeAssertions = false,
+            bool emitJavascript = true])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         codegenProgress = new Stopwatch.start() {
@@ -149,7 +155,8 @@ class Compiler implements DiagnosticListener {
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
-    backend = new JavaScriptBackend(this);
+    backend = emitJavascript ?
+        new JavaScriptBackend(this) : new DartBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              constantHandler, enqueuer];

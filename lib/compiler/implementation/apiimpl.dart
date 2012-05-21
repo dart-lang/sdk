@@ -22,10 +22,12 @@ class Compiler extends leg.Compiler {
   List<String> options;
   bool mockableLibraryUsed = false;
 
-  Compiler(this.provider, this.handler, this.libraryRoot, this.options)
-    : super(tracer: new ssa.HTracer()) {
-    enableTypeAssertions = options.indexOf('--enable-checked-mode') !== -1;
-  }
+  Compiler(this.provider, this.handler, this.libraryRoot, List<String> options)
+    : this.options = options,
+      super(
+          tracer: new ssa.HTracer(),
+          enableTypeAssertions: options.indexOf('--enable-checked-mode') != -1,
+          emitJavascript: options.indexOf('--output-type=dart') == -1);
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);

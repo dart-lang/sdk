@@ -66,6 +66,7 @@ void compile(List<String> argv) {
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('--throw-on-error', (_) => throwOnError = true),
     new OptionHandler('--suppress-warnings', (_) => showWarnings = false),
+    new OptionHandler('--output-type=dart|--output-type=js', passThrough),
     new OptionHandler('--verbose|-v', (_) => verbose = true),
     new OptionHandler('--library-root=.+', (String argument) {
       String path = nativeToUriPath(extractParameter(argument));
@@ -237,6 +238,10 @@ Supported options:
 
   -v, --verbose
     Display verbose information.
+
+  --output-type=<value>
+    Output either JavaScript code (if value is 'js') or Dart code (if value is 'dart').
+    Default value is 'js'.
 
   --suppress-warnings
     Do not display any warnings.
