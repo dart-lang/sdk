@@ -67,7 +67,7 @@ class SourceFile {
       if ((line + 2) < _lineStarts.length) {
         textLine = text.substring(_lineStarts[line], _lineStarts[line+1]);
       } else {
-        textLine = text.substring(_lineStarts[line]) + '\n';
+        textLine = '${text.substring(_lineStarts[line])}\n';
       }
 
       int toColumn = Math.min(column + (end-start), textLine.length);

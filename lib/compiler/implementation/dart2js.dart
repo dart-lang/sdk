@@ -160,7 +160,7 @@ void compile(List<String> argv) {
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
-       + 'in ${relativize(cwd, out)}');
+       'in ${relativize(cwd, out)}');
   if (!explicitOut) {
     String input = uriPathToNative(arguments[0]);
     String output = relativize(cwd, out);
