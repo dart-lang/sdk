@@ -347,7 +347,7 @@ function() {
   void addParameterStubs(FunctionElement member,
                          void defineInstanceMember(String invocationName,
                                                    String definition)) {
-    Set<Selector> selectors = compiler.universe.invokedNames[member.name];
+    Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
     if (selectors == null) return;
     for (Selector selector in selectors) {
       if (!selector.applies(member, compiler)) continue;
@@ -357,13 +357,13 @@ function() {
 
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
-    return compiler.universe.hasGetter(member, compiler);
+    return compiler.codegenWorld.hasGetter(member, compiler);
   }
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
     return (member.modifiers === null || !member.modifiers.isFinal())
-        && compiler.universe.hasSetter(member, compiler);
+        && compiler.codegenWorld.hasSetter(member, compiler);
   }
 
   String compiledFieldName(Element member) {
@@ -384,10 +384,10 @@ function() {
         || member.kind === ElementKind.GETTER
         || member.kind === ElementKind.SETTER) {
       if (member.modifiers !== null && member.modifiers.isAbstract()) return;
-      String codeBlock = compiler.universe.generatedCode[member];
+      String codeBlock = compiler.codegenWorld.generatedCode[member];
       if (codeBlock == null) return;
       defineInstanceMember(namer.getName(member), codeBlock);
-      codeBlock = compiler.universe.generatedBailoutCode[member];
+      codeBlock = compiler.codegenWorld.generatedBailoutCode[member];
       if (codeBlock !== null) {
         defineInstanceMember(compiler.namer.getBailoutName(member), codeBlock);
       }
@@ -407,7 +407,7 @@ function() {
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
     bool isInstantiated =
-        compiler.universe.instantiatedClasses.contains(classElement);
+        compiler.codegenWorld.instantiatedClasses.contains(classElement);
 
     bool isFirstField = true;
     void addField(ClassElement enclosingClass, Element member) {
@@ -522,7 +522,7 @@ function() {
 
   void generateTypeTests(ClassElement cls,
                          void generateTypeTest(ClassElement element)) {
-    if (compiler.universe.isChecks.contains(cls)) {
+    if (compiler.codegenWorld.isChecks.contains(cls)) {
       generateTypeTest(cls);
     }
     generateInterfacesIsTests(cls, generateTypeTest, new Set<Element>());
@@ -534,7 +534,7 @@ function() {
     for (Type interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       if (!alreadyGenerated.contains(element) &&
-          compiler.universe.isChecks.contains(element)) {
+          compiler.codegenWorld.isChecks.contains(element)) {
         alreadyGenerated.add(element);
         generateTypeTest(element);
       }
@@ -544,7 +544,7 @@ function() {
 
   void emitClasses(StringBuffer buffer) {
     Set<ClassElement> instantiatedClasses =
-        compiler.universe.instantiatedClasses;
+        compiler.codegenWorld.instantiatedClasses;
     Set<ClassElement> neededClasses =
         new Set<ClassElement>.from(instantiatedClasses);
     for (ClassElement element in instantiatedClasses) {
@@ -592,16 +592,16 @@ function() {
 
   void emitStaticFunctions(StringBuffer buffer) {
     emitStaticFunctionsWithNamer(buffer,
-                                 compiler.universe.generatedCode,
+                                 compiler.codegenWorld.generatedCode,
                                  namer.getName);
     emitStaticFunctionsWithNamer(buffer,
-                                 compiler.universe.generatedBailoutCode,
+                                 compiler.codegenWorld.generatedBailoutCode,
                                  namer.getBailoutName);
   }
 
   void emitStaticFunctionGetters(StringBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
-        compiler.universe.staticFunctionsNeedingGetter;
+        compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in functionsNeedingGetter) {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
@@ -769,12 +769,12 @@ function() {
                           void defineInstanceMember(String invocationName,
                                                     String definition)) {
     if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
-      Set<Selector> selectors = compiler.universe.invokedNames[member.name];
+      Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors !== null && !selectors.isEmpty()) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.kind == ElementKind.FUNCTION) {
-      if (compiler.universe.hasGetter(member, compiler)) {
+      if (compiler.codegenWorld.hasGetter(member, compiler)) {
         emitDynamicFunctionGetter(member, defineInstanceMember);
       }
     }
@@ -783,7 +783,7 @@ function() {
   void emitNoSuchMethodCalls(void defineInstanceMember(String invocationName,
                                                        String definition)) {
     // Do not generate no such method calls if there is no class.
-    if (compiler.universe.instantiatedClasses.isEmpty()) return;
+    if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
     ClassElement objectClass =
         compiler.coreLibrary.find(const SourceString('Object'));
@@ -791,8 +791,7 @@ function() {
         '${namer.isolateAccess(objectClass)}.prototype';
     String noSuchMethodName =
         namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
-    Collection<LibraryElement> libraries =
-        compiler.universe.libraries.getValues();
+    Collection<LibraryElement> libraries = compiler.libraries.getValues();
 
     String generateMethod(String methodName, Selector selector) {
       StringBuffer buffer = new StringBuffer();
@@ -815,7 +814,7 @@ function() {
       return buffer.toString();
     }
 
-    compiler.universe.invokedNames.forEach((SourceString methodName,
+    compiler.codegenWorld.invokedNames.forEach((SourceString methodName,
                                             Set<Selector> selectors) {
       if (objectClass.lookupLocalMember(methodName) === null
           && methodName != Namer.OPERATOR_EQUALS) {
@@ -838,7 +837,7 @@ function() {
       }
     });
 
-    compiler.universe.invokedGetters.forEach((SourceString getterName,
+    compiler.codegenWorld.invokedGetters.forEach((SourceString getterName,
                                               Set<Selector> selectors) {
       if (getterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
@@ -855,7 +854,7 @@ function() {
       }
     });
 
-    compiler.universe.invokedSetters.forEach((SourceString setterName,
+    compiler.codegenWorld.invokedSetters.forEach((SourceString setterName,
                                               Set<Selector> selectors) {
       if (setterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
@@ -881,7 +880,7 @@ function() {
     String mainEnsureGetter = '';
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    if (!compiler.universe.staticFunctionsNeedingGetter.contains(appMain)) {
+    if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       String invocationName =
           "${namer.closureInvocationName(Selector.INVOCATION_0)}";
       mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";

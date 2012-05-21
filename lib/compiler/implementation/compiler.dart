@@ -15,7 +15,7 @@ class WorkItem {
   int hashCode() => element.hashCode();
 
   String run(Compiler compiler) {
-    String code = compiler.universe.generatedCode[element];
+    String code = compiler.codegenWorld.generatedCode[element];
     if (code !== null) return code;
     try {
       if (!isAnalyzed()) compiler.analyze(this);
@@ -59,7 +59,7 @@ class JavaScriptBackend extends Backend {
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
       String code = generator.generateBailoutMethod(work, graph);
-      compiler.universe.addBailoutCode(work, code);
+      compiler.codegenWorld.addBailoutCode(work, code);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph);
     }
@@ -74,8 +74,8 @@ class JavaScriptBackend extends Backend {
 }
 
 class Compiler implements DiagnosticListener {
-  Queue<WorkItem> codegenQueue;
-  Universe universe;
+  final Map<String, LibraryElement> libraries;
+  int nextFreeClassId = 0;
   World world;
   String assembledCode;
   Namer namer;
@@ -135,14 +135,11 @@ class Compiler implements DiagnosticListener {
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
-  bool codegenQueueIsClosed = false;
-
   Stopwatch codegenProgress;
 
   Compiler([this.tracer = const Tracer()])
-      : universe = new Universe(),
+      : libraries = new Map<String, LibraryElement>(),
         world = new World(),
-        codegenQueue = new Queue<WorkItem>(),
         codegenProgress = new Stopwatch.start() {
     namer = new Namer(this);
     constantHandler = new ConstantHandler(this);
@@ -157,6 +154,10 @@ class Compiler implements DiagnosticListener {
     tasks = [scanner, dietParser, parser, resolver, checker,
              constantHandler, enqueuer];
   }
+
+  Universe get codegenWorld() => enqueuer.codegen.universe;
+
+  int getNextFreeClassId() => nextFreeClassId++;
 
   void ensure(bool condition) {
     if (!condition) cancel('failed assertion in leg');
@@ -234,12 +235,13 @@ class Compiler implements DiagnosticListener {
     if (enabledNoSuchMethod) return;
     if (element.enclosingElement == objectClass) return;
     enabledNoSuchMethod = true;
-    enqueuer.registerInvocation(NO_SUCH_METHOD, new Selector.invocation(2));
+    enqueuer.codegen.registerInvocation(NO_SUCH_METHOD,
+                                        new Selector.invocation(2));
   }
 
   void enableIsolateSupport(LibraryElement element) {
     isolateLibrary = element;
-    addToWorkList(element.find(START_ROOT_ISOLATE));
+    enqueuer.codegen.addToWorkList(element.find(START_ROOT_ISOLATE));
   }
 
   bool hasIsolateSupport() => isolateLibrary !== null;
@@ -305,8 +307,8 @@ class Compiler implements DiagnosticListener {
     addForeignFunctions(jsHelperLibrary);
     addForeignFunctions(interceptorsLibrary);
 
-    universe.libraries['dart:core'] = coreLibrary;
-    universe.libraries['dart:coreimpl'] = coreImplLibrary;
+    libraries['dart:core'] = coreLibrary;
+    libraries['dart:coreimpl'] = coreImplLibrary;
 
     initializeSpecialClasses();
   }
@@ -341,21 +343,21 @@ class Compiler implements DiagnosticListener {
         reportFatalError('main cannot have parameters', parameter);
       });
     }
-    Collection<LibraryElement> libraries = universe.libraries.getValues();
+    Collection<LibraryElement> libraries = libraries.getValues();
     backend.processNativeClasses(libraries);
     world.populate(this, libraries);
-    addToWorkList(main);
+    enqueuer.codegen.addToWorkList(main);
     codegenProgress.reset();
-    while (!codegenQueue.isEmpty()) {
-      WorkItem work = codegenQueue.removeLast();
+    while (!enqueuer.codegen.queue.isEmpty()) {
+      WorkItem work = enqueuer.codegen.queue.removeLast();
       withCurrentElement(work.element, () => work.run(this));
     }
-    codegenQueueIsClosed = true;
-    assert(enqueuer.checkNoEnqueuedInvokedInstanceMethods());
-    enqueuer.registerFieldClosureInvocations();
+    enqueuer.codegen.queueIsClosed = true;
+    assert(enqueuer.codegen.checkNoEnqueuedInvokedInstanceMethods());
+    enqueuer.codegen.registerFieldClosureInvocations();
     backend.assembleProgram();
-    if (!codegenQueue.isEmpty()) {
-      internalErrorOnElement(codegenQueue.first().element,
+    if (!enqueuer.codegen.queue.isEmpty()) {
+      internalErrorOnElement(enqueuer.codegen.queue.first().element,
                              "work list is not empty");
     }
   }
@@ -378,7 +380,7 @@ class Compiler implements DiagnosticListener {
     if (codegenProgress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('compiled ${universe.generatedCode.length} methods');
+      log('compiled ${codegenWorld.generatedCode.length} methods');
       codegenProgress.reset();
     }
     if (work.element.kind.category == ElementCategory.VARIABLE) {
@@ -386,55 +388,44 @@ class Compiler implements DiagnosticListener {
       return null;
     } else {
       String code = backend.codegen(work);
-      universe.addGeneratedCode(work, code);
+      codegenWorld.addGeneratedCode(work, code);
       return code;
     }
   }
 
-  void addToWorkList(Element element, [TreeElements elements]) {
-    if (codegenQueueIsClosed) {
-      internalErrorOnElement(element, "work list is closed");
-    }
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      registerInstantiatedClass(element.enclosingElement);
-    }
-    codegenQueue.add(new WorkItem(element, elements));
-  }
-
   void registerStaticUse(Element element) {
-    addToWorkList(element);
+    enqueuer.codegen.addToWorkList(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
     registerStaticUse(element);
-    universe.staticFunctionsNeedingGetter.add(element);
+    codegenWorld.staticFunctionsNeedingGetter.add(element);
   }
 
   void registerDynamicInvocation(SourceString methodName, Selector selector) {
     assert(selector !== null);
-    enqueuer.registerInvocation(methodName, selector);
+    enqueuer.codegen.registerInvocation(methodName, selector);
   }
 
   void registerDynamicInvocationOf(Element element) {
-    addToWorkList(element);
+    enqueuer.codegen.addToWorkList(element);
   }
 
   void registerDynamicGetter(SourceString methodName, Selector selector) {
-    enqueuer.registerGetter(methodName, selector);
+    enqueuer.codegen.registerGetter(methodName, selector);
   }
 
   void registerDynamicSetter(SourceString methodName, Selector selector) {
-    enqueuer.registerSetter(methodName, selector);
+    enqueuer.codegen.registerSetter(methodName, selector);
   }
 
-  void registerInstantiatedClass(ClassElement element) {
-    universe.instantiatedClasses.add(element);
-    enqueuer.onRegisterInstantiatedClass(element);
+  void registerInstantiatedClass(ClassElement cls) {
+    enqueuer.codegen.registerInstantiatedClass(cls);
   }
 
   // TODO(ngeoffray): This should get a type.
   void registerIsCheck(Element element) {
-    universe.isChecks.add(element);
+    codegenWorld.isChecks.add(element);
   }
 
   void resolveClass(ClassElement element) {

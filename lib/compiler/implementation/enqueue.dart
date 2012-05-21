@@ -3,20 +3,54 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class EnqueueTask extends CompilerTask {
-  final Map<String, Link<Element>> instanceMembersByName;
-  final Set<ClassElement> seenClasses;
+  final Enqueuer codegen;
+  final Enqueuer resolution;
 
   String get name() => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
+    : codegen = new Enqueuer(compiler),
+      resolution = new Enqueuer(compiler),
+      super(compiler) {
+    codegen.task = this;
+    resolution.task = this;
+  }
+}
+
+class Enqueuer {
+  final Compiler compiler; // TODO(ahe): Remove this dependency.
+  final Map<String, Link<Element>> instanceMembersByName;
+  final Set<ClassElement> seenClasses;
+  final Universe universe;
+  final Queue<WorkItem> queue;
+  bool queueIsClosed = false;
+  EnqueueTask task;
+
+  Enqueuer(this.compiler)
     : instanceMembersByName = new Map<String, Link<Element>>(),
       seenClasses = new Set<ClassElement>(),
-      super(compiler);
+      universe = new Universe(),
+      queue = new Queue<WorkItem>();
+
+  void addToWorkList(Element element, [TreeElements elements]) {
+    if (queueIsClosed) {
+      compiler.internalErrorOnElement(element, "Work list is closed.");
+    }
+    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+      compiler.registerInstantiatedClass(element.enclosingElement);
+    }
+    queue.add(new WorkItem(element, elements));
+  }
+
+  void registerInstantiatedClass(ClassElement cls) {
+    universe.instantiatedClasses.add(cls);
+    onRegisterInstantiatedClass(cls);
+  }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
-    measure(() {
+    task.measure(() {
       // Run through the classes and see if we need to compile methods.
-      for (ClassElement classElement in compiler.universe.instantiatedClasses) {
+      for (ClassElement classElement in universe.instantiatedClasses) {
         for (ClassElement currentClass = classElement;
              currentClass !== null;
              currentClass = currentClass.superclass) {
@@ -32,15 +66,15 @@ class EnqueueTask extends CompilerTask {
   }
 
   void registerFieldClosureInvocations() {
-    measure(() {
+    task.measure(() {
       // Make sure that the closure understands a call with the given
       // selector. For a method-invocation of the form o.foo(a: 499), we
       // need to make sure that closures can handle the optional argument if
       // there exists a field or getter 'foo'.
-      var names = compiler.universe.instantiatedClassInstanceFields;
+      var names = universe.instantiatedClassInstanceFields;
       // TODO(ahe): Might be enough to use invokedGetters.
       for (SourceString name in names) {
-        Set<Selector> invokedSelectors = compiler.universe.invokedNames[name];
+        Set<Selector> invokedSelectors = universe.invokedNames[name];
         if (invokedSelectors != null) {
           for (Selector selector in invokedSelectors) {
             compiler.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
@@ -52,7 +86,6 @@ class EnqueueTask extends CompilerTask {
   }
 
   void processInstantiatedClassMember(Element member) {
-    Universe universe = compiler.universe;
     if (universe.generatedCode.containsKey(member)) return;
 
     if (!member.isInstanceMember()) return;
@@ -73,7 +106,7 @@ class EnqueueTask extends CompilerTask {
         compiler.enableNoSuchMethod(member);
       }
       if (universe.hasInvocation(member, compiler)) {
-        return compiler.addToWorkList(member);
+        return addToWorkList(member);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
@@ -82,26 +115,26 @@ class EnqueueTask extends CompilerTask {
         // generated.
         compiler.closureClass.ensureResolved(compiler);
         compiler.registerInstantiatedClass(compiler.closureClass);
-        return compiler.addToWorkList(member);
+        return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
       if (universe.hasGetter(member, compiler)) {
-        return compiler.addToWorkList(member);
+        return addToWorkList(member);
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
       if (universe.hasInvocation(member, compiler)) {
-        return compiler.addToWorkList(member);
+        return addToWorkList(member);
       }
     } else if (member.kind === ElementKind.SETTER) {
       if (universe.hasSetter(member, compiler)) {
-        return compiler.addToWorkList(member);
+        return addToWorkList(member);
       }
     }
   }
 
   void onRegisterInstantiatedClass(ClassElement cls) {
-    measure(() {
+    task.measure(() {
       while (cls !== null) {
         if (seenClasses.contains(cls)) return;
         seenClasses.add(cls);
@@ -126,22 +159,20 @@ class EnqueueTask extends CompilerTask {
   }
 
   void registerInvocation(SourceString methodName, Selector selector) {
-    measure(() {
-      registerNewSelector(methodName, selector, compiler.universe.invokedNames);
+    task.measure(() {
+      registerNewSelector(methodName, selector, universe.invokedNames);
     });
   }
 
   void registerGetter(SourceString getterName, Selector selector) {
-    measure(() {
-      registerNewSelector(
-          getterName, selector, compiler.universe.invokedGetters);
+    task.measure(() {
+      registerNewSelector(getterName, selector, universe.invokedGetters);
     });
   }
 
   void registerSetter(SourceString setterName, Selector selector) {
-    measure(() {
-      registerNewSelector(
-          setterName, selector, compiler.universe.invokedSetters);
+    task.measure(() {
+      registerNewSelector(setterName, selector, universe.invokedSetters);
     });
   }
 
@@ -160,7 +191,7 @@ class EnqueueTask extends CompilerTask {
   void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.applies(member, compiler)) {
-        compiler.addToWorkList(member);
+        addToWorkList(member);
         return true;
       }
       return false;

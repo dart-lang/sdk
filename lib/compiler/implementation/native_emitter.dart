@@ -368,7 +368,7 @@ function(cls, fields, methods) {
   }
 
   void emitIsChecks(StringBuffer checkBuffer) {
-    for (Element type in compiler.universe.isChecks) {
+    for (Element type in compiler.codegenWorld.isChecks) {
       if (!requiresNativeIsCheck(type)) continue;
       String name = compiler.namer.operatorIs(type);
       checkBuffer.add("$defPropName(Object.prototype, '$name', ");
