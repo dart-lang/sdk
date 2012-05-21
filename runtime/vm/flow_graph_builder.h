@@ -180,6 +180,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildThrowNode(ThrowNode* node);
 
+  ClosureCallComp* BuildClosureCall(ClosureCallNode* node);
+
  private:
   // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.
@@ -217,6 +219,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
+  virtual void VisitClosureCallNode(ClosureCallNode* node);
 
   Value* value() const { return value_; }
 

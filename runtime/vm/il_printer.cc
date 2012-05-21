@@ -100,9 +100,8 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
-  context()->PrintTo(f);
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    f->Print(", ");
+    if (i == 0) f->Print(", ");
     ArgumentAt(i)->PrintTo(f);
   }
 }

@@ -366,14 +366,8 @@ class ClosureCallComp : public Computation {
  public:
   ClosureCallComp(ClosureCallNode* node,
                   intptr_t try_index,
-                  Value* context,
                   ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node),
-        try_index_(try_index),
-        context_(context),
-        arguments_(arguments) {
-    ASSERT(context->IsUse());
-  }
+      : ast_node_(*node), try_index_(try_index), arguments_(arguments) { }
 
   DECLARE_COMPUTATION(ClosureCall)
 
@@ -381,21 +375,17 @@ class ClosureCallComp : public Computation {
   intptr_t token_index() const { return ast_node_.token_index(); }
   intptr_t try_index() const { return try_index_; }
 
-  Value* context() const { return context_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
   virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    return i == 0 ? context() : ArgumentAt(i - 1);
-  }
+  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureCallNode& ast_node_;
   const intptr_t try_index_;
-  Value* context_;
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);

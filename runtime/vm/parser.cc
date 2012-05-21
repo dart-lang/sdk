@@ -4985,6 +4985,7 @@ AstNode* Parser::ParseAssertStatement() {
   const intptr_t condition_end = token_index_;
   ExpectToken(Token::kRPAREN);
   if (condition->IsClosureNode()) {
+    EnsureExpressionTemp();
     // Function literal in assert implies a call.
     condition =
         new ClosureCallNode(condition_pos,
@@ -6280,12 +6281,14 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                      Resolver::kIsQualified);
       if (!func.IsNull()) {
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
+        EnsureExpressionTemp();
         closure = new StaticGetterNode(call_pos,
                                        Class::ZoneHandle(cls.raw()),
                                        func_name);
         return new ClosureCallNode(call_pos, closure, arguments);
       }
     } else {
+      EnsureExpressionTemp();
       closure = GenerateStaticFieldLookup(field, call_pos);
       return new ClosureCallNode(call_pos, closure, arguments);
     }
@@ -6325,6 +6328,7 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
   TRACE_PARSER("ParseClosureCall");
   const intptr_t call_pos = token_index_;
   ASSERT(CurrentToken() == Token::kLPAREN);
+  EnsureExpressionTemp();
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   return new ClosureCallNode(call_pos, closure, arguments);
 }
