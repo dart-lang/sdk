@@ -1348,14 +1348,12 @@ DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(str));
-  if (obj.IsString()) {
-    String& string_obj = String::Handle(isolate);
-    string_obj ^= obj.raw();
-    *len = string_obj.Length();
-    return Api::Success(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
   }
-  return Api::NewError("Object is not a String");
+  *len = str_obj.Length();
+  return Api::Success(isolate);
 }
 
 
@@ -1479,23 +1477,17 @@ DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
                                         intptr_t* length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(str));
-  if (obj.IsString()) {
-    String& string_obj = String::Handle(isolate);
-    string_obj ^= obj.raw();
-    if (string_obj.CharSize() == String::kOneByteChar) {
-      intptr_t str_len = string_obj.Length();
-      intptr_t copy_len = (str_len > *length) ? *length : str_len;
-      for (intptr_t i = 0; i < copy_len; i++) {
-        codepoints[i] = static_cast<uint8_t>(string_obj.CharAt(i));
-      }
-      *length= copy_len;
-      return Api::Success(isolate);
-    }
+  const OneByteString& str_obj = Api::UnwrapOneByteStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String8);
   }
-  return Api::NewError(obj.IsString()
-                       ? "Object is not a String8"
-                       : "Object is not a String");
+  intptr_t str_len = str_obj.Length();
+  intptr_t copy_len = (str_len > *length) ? *length : str_len;
+  for (intptr_t i = 0; i < copy_len; i++) {
+    codepoints[i] = static_cast<uint8_t>(str_obj.CharAt(i));
+  }
+  *length= copy_len;
+  return Api::Success(isolate);
 }
 
 
@@ -1504,23 +1496,20 @@ DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
                                          intptr_t* length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(str));
-  if (obj.IsString()) {
-    String& string_obj = String::Handle(isolate);
-    string_obj ^= obj.raw();
-    if (string_obj.CharSize() <= String::kTwoByteChar) {
-      intptr_t str_len = string_obj.Length();
-      intptr_t copy_len = (str_len > *length) ? *length : str_len;
-      for (intptr_t i = 0; i < copy_len; i++) {
-        codepoints[i] = static_cast<uint16_t>(string_obj.CharAt(i));
-      }
-      *length = copy_len;
-      return Api::Success(isolate);
-    }
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
   }
-  return Api::NewError(obj.IsString()
-                       ? "Object is not a String16"
-                       : "Object is not a String");
+  if (str_obj.CharSize() > String::kTwoByteChar) {
+    return Api::NewError("Object is not a String16 or String8");
+  }
+  intptr_t str_len = str_obj.Length();
+  intptr_t copy_len = (str_len > *length) ? *length : str_len;
+  for (intptr_t i = 0; i < copy_len; i++) {
+    codepoints[i] = static_cast<uint16_t>(str_obj.CharAt(i));
+  }
+  *length = copy_len;
+  return Api::Success(isolate);
 }
 
 
@@ -1529,19 +1518,17 @@ DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
                                          intptr_t* length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(str));
-  if (obj.IsString()) {
-    String& string_obj = String::Handle(isolate);
-    string_obj ^= obj.raw();
-    intptr_t str_len = string_obj.Length();
-    intptr_t copy_len = (str_len > *length) ? *length : str_len;
-    for (intptr_t i = 0; i < copy_len; i++) {
-      codepoints[i] = static_cast<uint32_t>(string_obj.CharAt(i));
-    }
-    *length = copy_len;
-    return Api::Success(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
   }
-  return Api::NewError("Object is not a String");
+  intptr_t str_len = str_obj.Length();
+  intptr_t copy_len = (str_len > *length) ? *length : str_len;
+  for (intptr_t i = 0; i < copy_len; i++) {
+    codepoints[i] = static_cast<uint32_t>(str_obj.CharAt(i));
+  }
+  *length = copy_len;
+  return Api::Success(isolate);
 }
 
 
@@ -1549,21 +1536,21 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
                                              const char** result) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  if (obj.IsString()) {
-    const char* string_value = obj.ToCString();
-    intptr_t string_length = strlen(string_value);
-    char* res =
-        reinterpret_cast<char*>(Api::Allocate(isolate, string_length + 1));
-    if (res == NULL) {
-      return Api::NewError("Unable to allocate memory");
-    }
-    strncpy(res, string_value, string_length + 1);
-    ASSERT(res[string_length] == '\0');
-    *result = res;
-    return Api::Success(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, object);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, object, String);
   }
-  return Api::NewError("Object is not a String");
+  intptr_t string_length = Utf8::Length(str_obj);
+  char* res =
+      reinterpret_cast<char*>(Api::Allocate(isolate, string_length + 1));
+  if (res == NULL) {
+    return Api::NewError("Unable to allocate memory");
+  }
+  const char* string_value = str_obj.ToCString();
+  memmove(res, string_value, string_length + 1);
+  ASSERT(res[string_length] == '\0');
+  *result = res;
+  return Api::Success(isolate);
 }
 
 
@@ -2832,13 +2819,10 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t* value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& param = Object::Handle(isolate, Api::UnwrapHandle(obj));
-  if (param.IsNull() || !param.IsInstance()) {
-    return Api::NewError(
-        "Invalid object passed in to access native instance field");
+  const Instance& object = Api::UnwrapInstanceHandle(isolate, obj);
+  if (object.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  Instance& object = Instance::Handle(isolate);
-  object ^= param.raw();
   if (!object.IsValidNativeIndex(index)) {
     return Api::NewError(
         "Invalid index passed in to access native instance field");
@@ -2853,13 +2837,10 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& param = Object::Handle(isolate, Api::UnwrapHandle(obj));
-  if (param.IsNull() || !param.IsInstance()) {
-    return Api::NewError(
-        "Invalid object passed in to set native instance field");
+  const Instance& object = Api::UnwrapInstanceHandle(isolate, obj);
+  if (object.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  Instance& object = Instance::Handle(isolate);
-  object ^= param.raw();
   if (!object.IsValidNativeIndex(index)) {
     return Api::NewError(
         "Invalid index passed in to set native instance field");

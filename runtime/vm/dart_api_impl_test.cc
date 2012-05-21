@@ -569,17 +569,17 @@ TEST_CASE(ExternalStringCallback) {
     Dart_ExitScope();
   }
 
-  EXPECT_EQ(peer8, 40);
-  EXPECT_EQ(peer16, 41);
-  EXPECT_EQ(peer32, 42);
+  EXPECT_EQ(40, peer8);
+  EXPECT_EQ(41, peer16);
+  EXPECT_EQ(42, peer32);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(peer8, 40);
-  EXPECT_EQ(peer16, 41);
-  EXPECT_EQ(peer32, 42);
+  EXPECT_EQ(40, peer8);
+  EXPECT_EQ(41, peer16);
+  EXPECT_EQ(42, peer32);
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-  EXPECT_EQ(peer8, 80);
-  EXPECT_EQ(peer16, 82);
-  EXPECT_EQ(peer32, 84);
+  EXPECT_EQ(80, peer8);
+  EXPECT_EQ(82, peer16);
+  EXPECT_EQ(84, peer32);
 }
 
 
