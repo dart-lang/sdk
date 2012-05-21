@@ -20,9 +20,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, eliminate_type_checks, true,
+            "Eliminate type checks when allowed by static type analysis");
+DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DECLARE_FLAG(bool, enable_type_checks);
-DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
@@ -311,6 +313,9 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
   ASSERT(FLAG_enable_type_checks);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
+  if (!FLAG_eliminate_type_checks) {
+    return false;
+  }
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
