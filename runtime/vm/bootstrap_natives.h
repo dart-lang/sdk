@@ -100,6 +100,8 @@ namespace dart {
   V(DateNatives_getHours, 2)                                                   \
   V(DateNatives_getMinutes, 2)                                                 \
   V(DateNatives_getSeconds, 2)                                                 \
+  V(DateNatives_timeZoneName, 1)                                               \
+  V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
   V(AssertionError_throwNew, 2)                                                \
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
