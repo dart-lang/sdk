@@ -177,15 +177,15 @@ class Compiler implements DiagnosticListener {
   }
 
   void internalErrorOnElement(Element element, String message) {
-    withCurrentElement(element, () {
-      internalError(message, element: element);
-    });
+    internalError(message, element: element);
   }
 
   void unhandledExceptionOnElement(Element element) {
-    internalErrorOnElement(element, '''
-An unhandled exception was thrown.
-Please report this problem at http://dartbug.com/new.''');
+    reportDiagnostic(
+        spanFromElement(element),
+        'Error: The compiler crashed when compiling this method.',
+        false);
+    print(CRASH_MESSAGE);
   }
 
   void cancel([String reason, Node node, Token token,
@@ -594,3 +594,17 @@ class SourceSpan {
 
   const SourceSpan(this.uri, this.begin, this.end);
 }
+
+final String CRASH_MESSAGE = '''
+The compiler is broken.
+
+When compiling the above method, the compiler crashed. It is not
+possible to tell if this is caused by a problem in your program or
+not. Regardless, the compiler should not crash.
+
+The Dart team would greatly appreciate if you would take a moment to
+report this problem at http://dartbug.com/new.
+
+Please copy and paste the error and stack trace that you see here into
+the bug report, include your OS and the Dart SDK build number.
+''';
