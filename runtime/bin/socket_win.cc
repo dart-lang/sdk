@@ -61,14 +61,20 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
     fprintf(stderr, "Error getpeername: %s\n", strerror(errno));
     return false;
   }
-  if (inet_ntop(socket_address.sin_family,
-                reinterpret_cast<void *>(&socket_address.sin_addr),
-                host,
-                INET_ADDRSTRLEN) == NULL) {
-    fprintf(stderr, "Error inet_ntop: %s\n", strerror(errno));
+  *port = ntohs(socket_address.sin_port);
+  // Clear the port before calling WSAAddressToString as WSAAddressToString
+  // includes the port in the formatted string.
+  socket_address.sin_port = 0;
+  DWORD len = INET_ADDRSTRLEN;
+  int err = WSAAddressToString(reinterpret_cast<LPSOCKADDR>(&socket_address),
+                               sizeof(socket_address),
+                               NULL,
+                               host,
+                               &len);
+  if (err != 0) {
+    fprintf(stderr, "Error WSAAddressToString: %d\n", WSAGetLastError());
     return false;
   }
-  *port = ntohs(socket_address.sin_port);
   return true;
 }
 
