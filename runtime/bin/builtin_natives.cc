@@ -129,7 +129,9 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  int64_t status = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  int64_t status = 0;
+  // Ignore result if passing invalid argument and just exit 0.
+  DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Dart_ExitScope();
   exit(status);
 }
