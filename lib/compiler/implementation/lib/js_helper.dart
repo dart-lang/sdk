@@ -328,19 +328,6 @@ class Primitives {
     return JS('String', @'String.fromCharCode.apply(#, #)', null, charCodes);
   }
 
-  static String getTimeZoneName(receiver) {
-    // When calling toString on a Date it will emit the timezone in parenthesis.
-    // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
-    // We extract this name using a regexp.
-    var d = lazyAsJsDate(receiver);
-    return JS('String', @'/\((.*)\)/.exec(#.toString())[1]', d);
-  }
-
-  static int getTimeZoneOffsetInMinutes(receiver) {
-    // Note that JS and Dart disagree on the sign of the offset.
-    return -JS('int', @'#.getTimezoneOffset()', lazyAsJsDate(receiver));
-  }
-
   static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
                                  milliseconds, isUtc) {
     checkInt(years);

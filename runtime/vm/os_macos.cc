@@ -60,27 +60,6 @@ bool OS::MkTime(tm* tm, int64_t* seconds_result) {
 }
 
 
-bool OS::GetTimeZoneName(int64_t seconds_since_epoch,
-                         const char** name_result) {
-  tm decomposed;
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
-  *name_result = decomposed.tm_zone;
-  return true;
-}
-
-
-bool OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch,
-                                    int* offset_result) {
-  tm decomposed;
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  *offset_result = static_cast<int>(decomposed.tm_gmtoff);
-  return true;
-}
-
-
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }
