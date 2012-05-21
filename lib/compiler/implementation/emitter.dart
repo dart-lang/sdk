@@ -675,13 +675,13 @@ function() {
     }
     String joinedArgs = Strings.join(arguments, ", ");
     boundClosureBuffer.add(
-        "$invocationName: function($joinedArgs) {\n");
-    boundClosureBuffer.add("  return this.self.$targetName($joinedArgs);\n");
-    boundClosureBuffer.add("},\n");
+        " $invocationName: function($joinedArgs) {");
+    boundClosureBuffer.add(" return this.self.$targetName($joinedArgs);");
+    boundClosureBuffer.add(" }");
     addParameterStubs(callElement, (String stubName, String memberValue) {
-      boundClosureBuffer.add('$stubName: $memberValue,\n');
+      boundClosureBuffer.add(',\n $stubName: $memberValue');
     });
-    boundClosureBuffer.add("});\n");
+    boundClosureBuffer.add("\n});\n");
 
     // And finally the getter.
     String getterName = namer.getterName(member.getLibrary(), member.name);
