@@ -164,8 +164,7 @@ svgelement2_test: Pass
 request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
-indexeddb_3_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
-indexeddb_4_test: Fail  # TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
+indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 # DOM errors.
 indexeddb_2_test: Fail # Uncaught error

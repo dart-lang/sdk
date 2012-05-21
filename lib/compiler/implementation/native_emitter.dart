@@ -26,9 +26,11 @@ class NativeEmitter {
   // to its subclass if it sees an instance whose class is a subclass.
   Set<FunctionElement> overriddenMethods;
 
-  // Caches the methods that should just call a native JS
-  // implementation.
+  // Caches the methods that have a native body.
   Set<FunctionElement> nativeMethods;
+
+  // Caches the methods that redirect to a JS method.
+  Map<FunctionElement, String> redirectingMethods;
 
   NativeEmitter(this.emitter)
       : classesWithDynamicDispatch = new Set<ClassElement>(),
@@ -37,9 +39,14 @@ class NativeEmitter {
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
+        redirectingMethods = new Map<FunctionElement, String>(),
         nativeBuffer = new StringBuffer();
 
   Compiler get compiler() => emitter.compiler;
+
+  void addRedirectingMethod(FunctionElement element, String name) {
+    redirectingMethods[element] = name;
+  }
 
   String get dynamicName() {
     Element element = compiler.findHelper(
@@ -207,7 +214,8 @@ function(cls, fields, methods) {
       code.add('  return this.${compiler.namer.getName(member)}($arguments)');
     } else {
       // When calling a JS method, we call it with the native name.
-      String name = member.name.slowToString();
+      String name = redirectingMethods[member];
+      if (name === null) name = member.name.slowToString();
       code.add('  return this.$name($nativeArguments);');
     }
 

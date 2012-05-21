@@ -241,6 +241,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     if (nativeRedirectionRegExp.hasMatch(str)) {
       nativeMethodName = str;
       isRedirecting = true;
+      nativeEmitter.addRedirectingMethod(element, nativeMethodName);
     } else {
       hasBody = true;
     }
