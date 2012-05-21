@@ -151,7 +151,7 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
           target_database, html_renames, emitters, auxiliary_dir,
           output_dir)
     else:
-      raise Exception('Unsupported system %s' % system_name)
+      raise Exception('Unsupported system %s' % system)
 
     # Makes interface files available for listing in the library for the
     # implementation system.
