@@ -32,6 +32,7 @@ stopwatch_test: Pass,Fail # Issue 2398
 string_pattern_test: Fail
 string_substring_test: Fail
 string_test: Fail  # Needs index out of range checks.
+string_replace_dollar_test: Fail
 
 # New methods (timeZoneName and timeZoneOffset) were not ported to frog.
 date_time7_test: Skip
