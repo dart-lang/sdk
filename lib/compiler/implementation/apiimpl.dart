@@ -28,7 +28,8 @@ class Compiler extends leg.Compiler {
       super(
           tracer: new ssa.HTracer(),
           enableTypeAssertions: options.indexOf('--enable-checked-mode') != -1,
-          emitJavascript: options.indexOf('--output-type=dart') == -1);
+          emitJavascript: options.indexOf('--output-type=dart') == -1,
+          validateUnparse: options.indexOf('--unparse-validation') !== -1);
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);

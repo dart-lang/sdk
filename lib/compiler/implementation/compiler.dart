@@ -125,6 +125,7 @@ class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   TreeValidatorTask validator;
+  UnparseValidator unparseValidator;
   ResolverTask resolver;
   TypeCheckerTask checker;
   Backend backend;
@@ -143,7 +144,8 @@ class Compiler implements DiagnosticListener {
 
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
-            bool emitJavascript = true])
+            bool emitJavascript = true,
+            validateUnparse = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         codegenProgress = new Stopwatch.start() {
@@ -153,13 +155,14 @@ class Compiler implements DiagnosticListener {
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);
+    unparseValidator = new UnparseValidator(this, validateUnparse);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     backend = emitJavascript ?
         new JavaScriptBackend(this) : new DartBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             constantHandler, enqueuer];
+             unparseValidator, constantHandler, enqueuer];
   }
 
   Universe get codegenWorld() => enqueuer.codegen.universe;
@@ -374,6 +377,7 @@ class Compiler implements DiagnosticListener {
     assert(parser !== null);
     Node tree = parser.parse(element);
     validator.validate(tree);
+    unparseValidator.check(element);
     TreeElements elements = resolver.resolve(element);
     checker.check(tree, elements);
     return elements;

@@ -90,6 +90,7 @@ void compile(List<String> argv) {
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
+    new OptionHandler('--unparse-validation', passThrough),
     new OptionHandler('--no-colors', (_) => colors.enabled = false),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked|-c',
                       (_) => passThrough('--enable-checked-mode')),

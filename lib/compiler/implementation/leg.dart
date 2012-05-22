@@ -31,5 +31,6 @@
 #source('tree_validator.dart');
 #source('typechecker.dart');
 #source('universe.dart');
+#source('unparse_validator.dart');
 #source('warnings.dart');
 #source('world.dart');
