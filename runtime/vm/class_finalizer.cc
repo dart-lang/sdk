@@ -679,9 +679,24 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       AbstractTypeArguments::Handle(parameterized_type.arguments());
   if (!arguments.IsNull()) {
     intptr_t num_arguments = arguments.Length();
+    AbstractType& type_argument = AbstractType::Handle();
     for (intptr_t i = 0; i < num_arguments; i++) {
-      AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
+      type_argument = arguments.TypeAt(i);
       type_argument = FinalizeType(cls, type_argument, finalization);
+      if (type_argument.IsMalformed()) {
+        // In production mode, malformed type arguments are mapped to Dynamic.
+        // In checked mode, a type with malformed type arguments is malformed.
+        if (FLAG_enable_type_checks) {
+          const Error& error = Error::Handle(type_argument.malformed_error());
+          const String& type_name = String::Handle(parameterized_type.Name());
+          FinalizeMalformedType(error, cls, parameterized_type, finalization,
+                                "type '%s' has malformed type argument",
+                                type_name.ToCString());
+          return parameterized_type.raw();
+        } else {
+          type_argument = Type::DynamicType();
+        }
+      }
       arguments.SetTypeAt(i, type_argument);
     }
   }
