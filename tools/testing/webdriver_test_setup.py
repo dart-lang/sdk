@@ -39,10 +39,6 @@ def parse_args():
   parser = optparse.OptionParser()
   parser.add_option('--firefox', '-f', dest='firefox', help='Install Firefox',
       action='store_true', default=False)
-  parser.add_option('--path', '-p', dest='path', help='Specify location ' + \
-      'on your PATH for where we should install chromedriver (default is in' + \
-      'depot_tools).', metavar='CHROMEDRIVER_LOC', type='str', action='store',
-      default=None)
   parser.add_option('--buildbot', '-b', dest='buildbot', action='store_true',
       help='Perform a buildbot selenium setup (buildbots have a different' + \
       'location for their python executable).', default=False)
@@ -245,10 +241,7 @@ class SeleniumBindingsInstaller(object):
 def main():
   args = parse_args()
   SeleniumBindingsInstaller(args.buildbot).run()
-  chromedriver_loc = find_depot_tools_location(args.buildbot)
-  if args.path:
-    chromedriver_loc = args.path
-  GoogleCodeInstaller('chromedriver', chromedriver_loc,
+  GoogleCodeInstaller('chromedriver', ind_depot_tools_location(args.buildbot),
       lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
   if 'win32' not in sys.platform and 'cygwin' not in sys.platform:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),

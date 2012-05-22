@@ -842,6 +842,61 @@ class DromaeoTest(RuntimePerformanceTest):
     return True
 
   class DromaeoPerfTester(DromaeoTester):
+    def move_chrome_driver_if_needed(self, browser):
+      """Move the appropriate version of ChromeDriver onto the path. 
+      TODO(efortuna): This is a total hack because the latest version of Chrome
+      (Dartium builds) requires a different version of ChromeDriver, that is
+      incompatible with the release or beta Chrome and vice versa. Remove these
+      shenanigans once we're back to both versions of Chrome using the same
+      version of ChromeDriver. IMPORTANT NOTE: This assumes your chromedriver is
+      in the default location (inside depot_tools).
+      """
+      current_dir = os.getcwd()
+      os.chdir(DART_INSTALL_LOCATION)
+      path = os.environ['PATH'].split(os.pathsep)
+      orig_chromedriver_path = os.path.join('tools', 'testing',
+                                            'orig-chromedriver')
+      dartium_chromedriver_path = os.path.join('tools', 'testing',
+                                               'dartium-chromedriver')
+      extension = ''
+      if platform.system() == 'Windows':
+        extension = '.exe'
+
+      def move_chromedriver(depot_tools, copy_to_depot_tools_dir=True,
+                            from_path=None):
+        if from_path:
+          from_dir = from_path + extension
+        else:
+          from_dir =  os.path.join(orig_chromedriver_path,
+                                   'chromedriver' + extension)
+        to_dir = os.path.join(depot_tools, 'chromedriver' + extension)
+        if not copy_to_depot_tools_dir:
+          tmp = to_dir
+          to_dir = from_dir
+          from_dir = tmp
+        print >> sys.stderr, from_dir
+        print >> sys.stderr, to_dir
+        if not os.path.exists(os.path.dirname(to_dir)):
+          os.makedirs(os.path.dirname(to_dir))
+        shutil.copyfile(from_dir, to_dir)
+
+      for loc in path:
+        if 'depot_tools' in loc:
+          if browser == 'chrome':
+            if os.path.exists(orig_chromedriver_path):
+              move_chromedriver(loc)
+          elif browser == 'dartium':
+            if not os.path.exists(dartium_chromedriver_path):
+              self.test.test_runner.run_cmd(['python',
+                  os.path.join('tools', 'get_drt.py'), '--chromedriver'])
+            # Move original chromedriver for storage.
+            if not os.path.exists(orig_chromedriver_path):
+              move_chromedriver(loc, copy_to_depot_tools_dir=False)
+            # Copy Dartium chromedriver into depot_tools
+            move_chromedriver(loc, from_path=os.path.join(
+                              dartium_chromedriver_path, 'chromedriver'))
+      os.chdir(current_dir)
+
     def run_tests(self):
       """Run dromaeo in the browser."""
 
@@ -855,6 +910,7 @@ class DromaeoTest(RuntimePerformanceTest):
       versions = DromaeoTester.get_dromaeo_versions()
 
       for browser in BrowserTester.get_browsers():
+        self.move_chrome_driver_if_needed(browser)
         for version_name in versions:
           if not self.test.is_valid_combination(browser, version_name):
             continue
@@ -871,6 +927,8 @@ class DromaeoTest(RuntimePerformanceTest):
                '--out', file_path, '--browser', browser,
                '--timeout', '900', '--mode', 'dromaeo'], self.test.trace_file,
                append=True)
+      # Put default Chromedriver back in.
+      self.move_chrome_driver_if_needed('chrome')
 
     @staticmethod
     def get_dromaeo_url_query(browser, version):
