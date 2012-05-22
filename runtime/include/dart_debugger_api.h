@@ -22,6 +22,27 @@ typedef void Dart_BreakpointResolvedHandler(
                  Dart_Handle url,
                  intptr_t line_number);
 
+
+/**
+ * Caches a given \object and returns an object id. The object id is only
+ * valid while the VM is paused. The cache is invalidated when the VM
+ * resumes.
+ *
+ * Requires there to be a current isolate.
+ *
+ * Returns an id >= 0 on success, or -1 if there is an error.
+ */
+DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in);
+
+
+/**
+ * Returns a cached object given the \obj_id.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
+
+
 /**
  * Returns a list of urls (strings) of all the libraries loaded in the
  * current isolate.
@@ -285,6 +306,18 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object);
 
 
 /**
+ * Returns in \class_id the class id of the given \object. The id is valid
+ * for the lifetime of the isolate.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return True if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object,
+                                           intptr_t* class_id);
+
+
+/**
  * Returns the superclass of the given class \cls.
  *
  * Requires there to be a current isolate.
@@ -292,6 +325,29 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object);
  * \return A handle to the class object.
  */
 DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls);
+
+
+/**
+ * Returns info about the given class \cls_id.
+ *
+ * \param class_name receives handle to class name (string) if non-null.
+ * \param library receives handle to library in which the class
+ *        is defined, if non-null.
+ * \param super_class_id receives the class id to the super class of
+ *        \cls_id if non-null.
+ * \param static_fields If non-null, receives an array containing field
+ *        names and values of static fields of the class. Names are
+ *        at array offsets 2*n, values at offset 2*n+1.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the value true if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t class_id,
+                                          Dart_Handle* class_name,
+                                          Dart_Handle* library,
+                                          intptr_t* super_class_id,
+                                          Dart_Handle* static_fields);
 
 
 /**

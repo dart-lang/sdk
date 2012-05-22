@@ -43,6 +43,27 @@ namespace dart {
   }
 
 
+DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(Api::UnwrapHandle(object_in));
+  if (obj.IsApiError()) {
+    return -1;
+  }
+  return isolate->debugger()->CacheObject(obj);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (!isolate->debugger()->IsValidObjectId(obj_id)) {
+    return Api::NewError("%s: object id %d is invalid", CURRENT_FUNC, obj_id);
+  }
+  return Api::NewHandle(isolate, isolate->debugger()->GetCachedObject(obj_id));
+}
+
+
 DART_EXPORT Dart_Handle Dart_StackTraceLength(
                             Dart_StackTrace trace,
                             intptr_t* length) {
@@ -364,12 +385,58 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
+                                           intptr_t* class_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Instance& obj = Instance::Handle();
+  UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
+  CHECK_NOT_NULL(class_id);
+  *class_id = Class::Handle(obj.clazz()).index();
+  return Api::True(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   Class& cls = Class::Handle();
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
   return Api::NewHandle(isolate, cls.SuperClass());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetClassInfo(
+                            intptr_t cls_id,
+                            Dart_Handle* class_name,
+                            Dart_Handle* library,
+                            intptr_t* super_class_id,
+                            Dart_Handle* static_fields) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (!isolate->class_table()->IsValidIndex(cls_id)) {
+    return Api::NewError("%s: %d is not a valid class id",
+                         CURRENT_FUNC, cls_id);
+  }
+  Class& cls = Class::Handle(isolate->class_table()->At(cls_id));
+  if (class_name != NULL) {
+    *class_name = Api::NewHandle(isolate, cls.Name());
+  }
+  if (library != NULL) {
+    *library = Api::NewHandle(isolate, cls.library());
+  }
+  if (super_class_id != NULL) {
+    *super_class_id = 0;
+    cls = cls.SuperClass();
+    if (!cls.IsNull()) {
+      *super_class_id = cls.index();
+    }
+  }
+  if (static_fields != NULL) {
+    *static_fields =
+        Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
+  }
+  return Api::True(isolate);
 }
 
 

@@ -16,6 +16,13 @@ int seqNum = 0;
 
 bool verbose = false;
 
+// The current stack trace, while the VM is paused. It's a list
+// of activation frames.
+List stackTrace;
+
+// The current activation frame, while the VM is paused.
+Map curFrame;
+
 
 void printHelp() {
   print("""
@@ -25,9 +32,12 @@ void printHelp() {
   s   Single step
   so  Step over
   si  Step into
-  sbp <file> <line> Set breakpoint
+  sbp [<file>] <line> Set breakpoint
+  po <id> Print object info for given id
+  pc <id> Print class info for given id
   ll  List loaded libraries
   ls <libname> List loaded scripts in library
+  h   Print help
 """);
 }
 
@@ -41,8 +51,7 @@ void quitShell() {
 
 Future sendCmd(Map<String, Dynamic> cmd) {
   var completer = new Completer();
-  assert(cmd["id"] != null);
-  var id = cmd["id"];
+  int id = cmd["id"];
   outstandingCommands[id] = completer;
   if (verbose) {
     print("sending: '${JSON.stringify(cmd)}'");
@@ -62,37 +71,51 @@ void processCommand(String cmdLine) {
   if (cmd == "r") {
     var cmd = { "id": seqNum, "command": "resume" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
+    stackTrace = curFrame = null;
   } else if (cmd == "s") {
     var cmd = { "id": seqNum, "command": "stepOver" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
+    stackTrace = curFrame = null;
   } else if (cmd == "si") {
     var cmd = { "id": seqNum, "command": "stepInto" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
+    stackTrace = curFrame = null;
   } else if (cmd == "so") {
     var cmd = { "id": seqNum, "command": "stepOut" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
+    stackTrace = curFrame = null;
   } else if (cmd == "bt") {
     var cmd = { "id": seqNum, "command": "getStackTrace" };
     sendCmd(cmd).then((result) => handleStackTraceResponse(result));
   } else if (cmd == "ll") {
     var cmd = { "id": seqNum, "command": "getLibraryURLs" };
     sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
-  } else if (cmd == "sbp") {
-    if (args.length < 3) {
-      return;
+  } else if (cmd == "sbp" && args.length >= 2) {
+    var url, line;
+    if (args.length == 2) {
+      url = stackTrace[0]["location"]["url"];
+      line = Math.parseInt(args[1]);
+    } else {
+      url = args[1];
+      line = Math.parseInt(args[2]);
     }
     var cmd = { "id": seqNum,
                 "command": "setBreakpoint",
-                "params": { "url": args[1], "line": Math.parseInt(args[2]) }};
+                "params": { "url": url, "line": line }};
     sendCmd(cmd).then((result) => handleSetBpResponse(result));
-  } else if (cmd == "ls") {
-    if (args.length < 2) {
-      return;
-    }
+  } else if (cmd == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                  "command": "getScriptURLs",
                 "params": { "library": args[1] }};
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
+  } else if (cmd == "po" && args.length == 2) {
+    var cmd = { "id": seqNum, "command": "getObjectProperties",
+                "params": {"objectId": Math.parseInt(args[1]) }};
+    sendCmd(cmd).then((result) => handleGetObjPropsResponse(result));
+  } else if (cmd == "pc" && args.length == 2) {
+    var cmd = { "id": seqNum, "command": "getClassProperties",
+                "params": {"classId": Math.parseInt(args[1]) }};
+    sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
   } else if (cmd == "q") {
     quitShell();
   } else if (cmd == "h") {
@@ -103,12 +126,52 @@ void processCommand(String cmdLine) {
 }
 
 
+printNamedObject(obj) {
+  var name = obj["name"];
+  var value = obj["value"];
+  var kind = value["kind"];
+  var text = value["text"];
+  var id = value["objectId"];
+  if (kind == "string") {
+    print("  $name = '$text'");
+  } else if (kind == "object") {
+    print("  $name (id:$id) = $text");
+  } else {
+    print("  $name = $text");
+  }
+}
+
+
+handleGetObjPropsResponse(response) {
+  Map props = response["result"];
+  int class_id = props["classId"];
+  List fields = props["fields"];
+  print("  class id: $class_id");
+  for (int i = 0; i < fields.length; i++) {
+    printNamedObject(fields[i]);
+  }
+}
+
+
+handleGetClassPropsResponse(response) {
+  Map props = response["result"];
+  assert(props["name"] != null);
+  int libId = props["libraryId"];
+  assert(libId != null);
+  print("  class ${props["name"]} (library id: $libId)");
+  List fields = props["fields"];
+  if (fields.length > 0) {
+    print("  static fields:");
+    for (int i = 0; i < fields.length; i++) {
+      printNamedObject(fields[i]);
+    }
+  }
+}
+
+
 void handleGetLibraryResponse(response) {
-  var result = response["result"];
-  assert(result != null);
-  var urls = result["urls"];
-  assert(urls != null);
-  assert(urls is List);
+  Map result = response["result"];
+  List urls = result["urls"];
   print("Loaded libraries:");
   for (int i = 0; i < urls.length; i++) {
     print("  $i ${urls[i]}");
@@ -117,11 +180,8 @@ void handleGetLibraryResponse(response) {
 
 
 void handleGetScriptsResponse(response) {
-  var result = response["result"];
-  assert(result != null);
-  var urls = result["urls"];
-  assert(urls != null);
-  assert(urls is List);
+  Map result = response["result"];
+  List urls = result["urls"];
   print("Loaded scripts:");
   for (int i = 0; i < urls.length; i++) {
     print("  $i ${urls[i]}");
@@ -130,8 +190,7 @@ void handleGetScriptsResponse(response) {
 
 
 void handleSetBpResponse(response) {
-  var result = response["result"];
-  assert(result != null);
+  Map result = response["result"];
   var id = result["breakpointId"];
   assert(id != null);
   print("Set BP $id");
@@ -146,28 +205,40 @@ void handleGenericResponse(response) {
 
 
 void handleStackTraceResponse(response) {
-  var result = response["result"];
-  assert(result != null);
-  var callFrames = result["callFrames"];
+  Map result = response["result"];
+  List callFrames = result["callFrames"];
   assert(callFrames != null);
-  printStackTrace(result);
+  printStackTrace(callFrames);
 }
 
 
-void printStackTrace(trace) {
-  assert(trace != null);
-  var frames = trace["callFrames"];
-  if (frames is !List) {
-    print("unexpected type for frames parameter $frames");
-    return;
+void printStackFrame(frame_num, Map frame) {
+  var fname = frame["functionName"];
+  var url = frame["location"]["url"];
+  var line = frame["location"]["lineNumber"];
+  print("$frame_num  $fname ($url:$line)");
+  List locals = frame["locals"];
+  for (int i = 0; i < locals.length; i++) {
+    printNamedObject(locals[i]);
   }
+}
+
+
+void printStackTrace(List frames) {
   for (int i = 0; i < frames.length; i++) {
-    var frame = frames[i];
-    var fname = frame["functionName"];
-    var url = frame["location"]["url"];
-    var line = frame["location"]["lineNumber"];
-    print("$i  $fname ($url:$line)");
+    printStackFrame(i, frames[i]);
   }
+}
+
+
+void handlePausedEvent(msg) {
+  assert(msg["params"] != null);
+  stackTrace = msg["params"]["callFrames"];
+  assert(stackTrace != null);
+  assert(stackTrace.length >= 1);
+  curFrame = stackTrace[0];
+  print("VM paused, stack trace:");
+  printStackTrace(stackTrace);
 }
 
 
@@ -178,12 +249,11 @@ void processVmMessage(String json) {
   }
   var event = msg["event"];
   if (event == "paused") {
-    print("VM paused, stack trace:");
-    printStackTrace(msg["params"]);
+    handlePausedEvent(msg);
     return;
   }
   if (event == "breakpointResolved") {
-    var params = msg["params"];
+    Map params = msg["params"];
     assert(params != null);
     print("BP ${params["breakpointId"]} resolved and "
           "set at line ${params["line"]}.");

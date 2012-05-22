@@ -28,8 +28,14 @@ dart::TextBuffer DebuggerConnectionHandler::queued_messages_(64);
 
 
 // TODO(hausner): Need better error handling.
-#define ASSERT_NOT_ERROR(handle)                                               \
+#define ASSERT_NOT_ERROR(handle)          \
   ASSERT(!Dart_IsError(handle))
+
+#define RETURN_IF_ERROR(handle)           \
+  if (Dart_IsError(handle)) {             \
+    return Dart_GetError(handle);         \
+  }
+
 
 typedef void (*CommandHandler)(const char* json_cmd);
 
@@ -48,6 +54,7 @@ class MessageBuffer {
   void PopMessage();
   int MessageId() const;
   const char* Params() const;
+  intptr_t GetIntParam(const char* name) const;
   char* buf() const { return buf_; }
   bool Alive() const { return connection_is_alive_; }
 
@@ -114,6 +121,16 @@ const char* MessageBuffer::Params() const {
   } else {
     return NULL;
   }
+}
+
+
+intptr_t MessageBuffer::GetIntParam(const char* name) const {
+  const char* params = Params();
+  ASSERT(params != NULL);
+  dart::JSONReader r(params);
+  r.Seek(name);
+  ASSERT(r.Type() == dart::JSONReader::kInteger);
+  return strtol(r.ValueChars(), NULL, 10);
 }
 
 
@@ -280,6 +297,98 @@ void DebuggerConnectionHandler::HandleGetLibraryURLsCmd(const char* json_msg) {
 }
 
 
+static const char* GetStringChars(Dart_Handle str) {
+  ASSERT(Dart_IsString(str));
+  const char* chars;
+  Dart_Handle res = Dart_StringToCString(str, &chars);
+  ASSERT(!Dart_IsError(res));
+  return chars;
+}
+
+
+static void FormatField(dart::TextBuffer* buf,
+                        Dart_Handle object_name,
+                        Dart_Handle object) {
+  ASSERT(Dart_IsString(object_name));
+  buf->Printf("{\"name\":\"%s\",", GetStringChars(object_name));
+  intptr_t obj_id = Dart_CacheObject(object);
+  ASSERT(obj_id >= 0);
+  buf->Printf("\"value\":{\"objectId\":%d,", obj_id);
+  const char* kind = "object";
+  if (Dart_IsInteger(object)) {
+    kind = "integer";
+  } else if (Dart_IsString(object)) {
+    kind = "string";
+  } else if (Dart_IsBoolean(object)) {
+    kind = "boolean";
+  }
+  buf->Printf("\"kind\":\"%s\",", kind);
+  Dart_Handle text = Dart_ToString(object);
+  buf->Printf("\"text\":\"%s\"}}", GetStringChars(text));
+}
+
+
+static void FormatFieldList(dart::TextBuffer* buf,
+                            Dart_Handle obj_list) {
+  ASSERT(Dart_IsList(obj_list));
+  intptr_t list_length = 0;
+  Dart_Handle res = Dart_ListLength(obj_list, &list_length);
+  ASSERT_NOT_ERROR(res);
+  ASSERT(list_length % 2 == 0);
+  buf->Printf("[");
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle name_handle = Dart_ListGetAt(obj_list, i);
+    ASSERT_NOT_ERROR(name_handle);
+    Dart_Handle value_handle = Dart_ListGetAt(obj_list, i + 1);
+    ASSERT_NOT_ERROR(value_handle);
+    if (i > 0) {
+      buf->Printf(",");
+    }
+    FormatField(buf, name_handle, value_handle);
+  }
+  buf->Printf("]");
+}
+
+
+static const char* FormatClassProps(dart::TextBuffer* buf,
+                                    intptr_t cls_id) {
+  Dart_Handle name, library, static_fields;
+  intptr_t super_id;
+  Dart_Handle res =
+      Dart_GetClassInfo(cls_id, &name, &library, &super_id, &static_fields);
+  RETURN_IF_ERROR(res);
+  RETURN_IF_ERROR(name);
+  buf->Printf("{\"name\":\"%s\",", GetStringChars(name));
+  if (super_id > 0) {
+    buf->Printf("\"superclassId\":%d,", super_id);
+  }
+  RETURN_IF_ERROR(library);
+  ASSERT(!Dart_IsNull(library));
+  // TODO(hausner): get proper library id.
+  intptr_t libId = 0;
+  buf->Printf("\"libraryId\":%d,", libId);
+  RETURN_IF_ERROR(static_fields);
+  buf->Printf("\"fields\":");
+  FormatFieldList(buf, static_fields);
+  buf->Printf("}");
+  return NULL;
+}
+
+
+static const char* FormatObjProps(dart::TextBuffer* buf,
+                                  Dart_Handle object) {
+  intptr_t class_id;
+  Dart_Handle res = Dart_GetObjClassId(object, &class_id);
+  RETURN_IF_ERROR(res);
+  buf->Printf("{\"classId\": %d, \"fields\":", class_id);
+  Dart_Handle fields = Dart_GetInstanceFields(object);
+  RETURN_IF_ERROR(fields);
+  FormatFieldList(buf, fields);
+  buf->Printf("}");
+  return NULL;
+}
+
+
 static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
   intptr_t trace_len = 0;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
@@ -304,8 +413,13 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     ASSERT(Dart_IsString(script_url));
     const char* script_url_chars;
     Dart_StringToCString(script_url, &script_url_chars);
-    msg->Printf("\"location\": { \"url\": \"%s\", \"lineNumber\": %d }}",
+    msg->Printf("\"location\": { \"url\": \"%s\", \"lineNumber\":%d},",
                script_url_chars, line_number);
+    Dart_Handle locals = Dart_GetLocalVariables(frame);
+    ASSERT_NOT_ERROR(locals);
+    msg->Printf("\"locals\":");
+    FormatFieldList(msg, locals);
+    msg->Printf("}");
   }
   msg->Printf("]");
 }
@@ -354,6 +468,41 @@ void DebuggerConnectionHandler::HandleSetBpCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandleGetObjPropsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  intptr_t obj_id = msgbuf_->GetIntParam("objectId");
+  Dart_Handle obj = Dart_GetCachedObject(obj_id);
+  if (Dart_IsError(obj)) {
+    SendError(msg_id, Dart_GetError(obj));
+    return;
+  }
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\":", msg_id);
+  const char* err = FormatObjProps(&msg, obj);
+  if (err != NULL) {
+    SendError(msg_id, err);
+    return;
+  }
+  msg.Printf("}");
+  SendMsg(&msg);
+}
+
+
+void DebuggerConnectionHandler::HandleGetClassPropsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  intptr_t cls_id = msgbuf_->GetIntParam("classId");
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\":", msg_id);
+  const char* err = FormatClassProps(&msg, cls_id);
+  if (err != NULL) {
+    SendError(msg_id, err);
+    return;
+  }
+  msg.Printf("}");
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleUnknownMsg(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   ASSERT(msg_id >= 0);
@@ -364,7 +513,9 @@ void DebuggerConnectionHandler::HandleUnknownMsg(const char* json_msg) {
 void DebuggerConnectionHandler::HandleMessages() {
   static JSONDebuggerCommand debugger_commands[] = {
     { "resume", HandleResumeCmd },
-    { "getLibraryURLs", HandleGetLibraryURLsCmd},
+    { "getLibraryURLs", HandleGetLibraryURLsCmd },
+    { "getClassProperties", HandleGetClassPropsCmd },
+    { "getObjectProperties", HandleGetObjPropsCmd },
     { "getScriptURLs", HandleGetScriptURLsCmd },
     { "getStackTrace", HandleGetStackTraceCmd },
     { "setBreakpoint", HandleSetBpCmd },
