@@ -1697,7 +1697,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
   if (type.IsType()) {
     Label fall_through;
     __ testl(EAX, Immediate(kSmiTagMask));  // Is instance Smi?
-    __ j(ZERO, is_not_instance_lbl, Assembler::kNearJump);
+    __ j(ZERO, is_not_instance_lbl);
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator.
     const SubtypeTestCache& type_test_cache =

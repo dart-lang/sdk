@@ -141,7 +141,49 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     return GenerateSubtype1TestCacheLookup(
         cid, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
   }
-  return SubtypeTestCache::null();
+  // If one type argument only, check if type argument is Object or Dynamic.
+  if (type_arguments.Length() == 1) {
+    const AbstractType& tp_argument = AbstractType::ZoneHandle(
+        type_arguments.TypeAt(0));
+    ASSERT(!tp_argument.IsMalformed());
+    if (tp_argument.IsType()) {
+      ASSERT(tp_argument.HasResolvedTypeClass());
+      // Check if type argument is dynamic or Object.
+      const Type& object_type =
+          Type::Handle(Isolate::Current()->object_store()->object_type());
+      Error& malformed_error = Error::Handle();
+      if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
+        // Instance class test only necessary.
+        return GenerateSubtype1TestCacheLookup(
+            cid, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
+      }
+    }
+  }
+
+  // Regular subtype test cache involving instance's type arguments.
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+  Label runtime_call;
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(R10, type_test_cache);
+  __ pushq(R10);  // Subtype test cache.
+  __ pushq(RAX);  // Instance.
+  __ pushq(raw_null);  // Unused.
+  __ call(&StubCode::Subtype2TestCacheLabel());
+  __ popq(RAX);  // Discard.
+  __ popq(RAX);  // Restore receiver.
+  __ popq(RDX);  // Discard.
+  // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
+
+  __ cmpq(RCX, raw_null);
+  __ j(EQUAL, &runtime_call, Assembler::kNearJump);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  __ CompareObject(RCX, bool_true);
+  __ j(EQUAL, is_instance_lbl);
+  __ jmp(is_not_instance_lbl);
+  __ Bind(&runtime_call);
+  return type_test_cache.raw();
 }
 
 
@@ -306,12 +348,97 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 }
 
 
+// Generates inlined check if 'type' is a type parameter or type itsef
+// RAX: instance (preserved).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const AbstractType& type,
     intptr_t cid,
     intptr_t token_index,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  ASSERT(!type.IsInstantiated());
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  if (type.IsTypeParameter()) {
+     // Load instantiator (or null) and instantiator type arguments on stack.
+    __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
+    // RDX: instantiator type arguments.
+    // Check if type argument is Dynamic.
+    __ cmpq(RDX, raw_null);
+    __ j(EQUAL, is_instance_lbl);
+    // Can handle only type arguments that are instances of TypeArguments.
+    // (runtime checks canonicalize type arguments).
+    Label fall_through;
+    __ movq(R10, FieldAddress(RDX, Object::class_offset()));
+    __ CompareObject(R10, Object::ZoneHandle(Object::type_arguments_class()));
+    __ j(NOT_EQUAL, &fall_through);
+    __ movq(RDI,
+        FieldAddress(RDX, TypeArguments::type_at_offset(type.Index())));
+    // RDI: Concrete type.
+    // Check if it is Dynamic,
+    __ CompareObject(RDI, Type::ZoneHandle(Type::DynamicType()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ cmpq(RDI, raw_null);
+    __ j(EQUAL,  is_instance_lbl);
+    // For Smi check quickly against int and num interface types.
+    Label not_smi;
+    __ testq(RAX, Immediate(kSmiTagMask));  // Value is Smi?
+    __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+    __ CompareObject(RDI, Type::ZoneHandle(Type::IntInterface()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ CompareObject(RDI, Type::ZoneHandle(Type::NumberInterface()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ jmp(&fall_through);
+    __ Bind(&not_smi);
+    // RDX: instantiator type arguments.
+    // RAX: instance.
+    const SubtypeTestCache& type_test_cache =
+        SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+    __ LoadObject(R10, type_test_cache);
+    __ pushq(R10);  // Subtype test cache.
+    __ pushq(RAX);  // Instance
+    __ pushq(RDX);  // Instantiator type arguments.
+    __ call(&StubCode::Subtype3TestCacheLabel());
+    __ popq(RDX);  // Discard type arguments.
+    __ popq(RAX);  // Restore receiver.
+    __ popq(RDX);  // Discard subtype test cache.
+    // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
+    __ cmpq(RCX, raw_null);
+    __ j(EQUAL, &fall_through, Assembler::kNearJump);
+    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+    __ CompareObject(RCX, bool_true);
+    __ j(EQUAL, is_instance_lbl);
+    __ jmp(is_not_instance_lbl);
+    __ Bind(&fall_through);
+    return type_test_cache.raw();
+  }
+  if (type.IsType()) {
+    Label fall_through;
+    __ testq(RAX, Immediate(kSmiTagMask));  // Is instance Smi?
+    __ j(ZERO, is_not_instance_lbl);
+    __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
+    // Uninstantiated type class is known at compile time, but the type
+    // arguments are determined at runtime by the instantiator.
+    const SubtypeTestCache& type_test_cache =
+        SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+    __ LoadObject(R10, type_test_cache);
+    __ pushq(R10);  // Subtype test cache.
+    __ pushq(RAX);  // Instance.
+    __ pushq(RDX);  // Instantiator type arguments.
+    __ call(&StubCode::Subtype3TestCacheLabel());
+    __ popq(RDX);  // Discard type arguments.
+    __ popq(RAX);  // Restore receiver.
+    __ popq(RDX);  // Discard subtype test cache.
+    // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
+    __ cmpq(RCX, raw_null);
+    __ j(EQUAL, &fall_through, Assembler::kNearJump);
+    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+    __ CompareObject(RCX, bool_true);
+    __ j(EQUAL, is_instance_lbl);
+    __ jmp(is_not_instance_lbl);
+    __ Bind(&fall_through);
+    return type_test_cache.raw();
+  }
   return SubtypeTestCache::null();
 }
 
@@ -804,7 +931,7 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - RAX: object.
-// - RDX: oinstantiator type arguments or raw_null.
+// - RDX: instantiator type arguments or raw_null.
 // - RCX: instantiator or raw_null.
 // Destroys RCX and RDX.
 // Returns:
@@ -821,7 +948,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label is_instance, is_not_instance;
-  __ pushq(RCX);  // Temporary store instantiator on stack.
+  __ pushq(RCX);  // Store instantiator on stack.
+  __ pushq(RDX);  // Store instantiator type arguments.
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -842,17 +970,15 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
                                         &is_instance, &is_not_instance);
 
   // Generate runtime call.
+  __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
+  __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushq(Immediate(Smi::RawValue(token_index)));  // Source location.
   __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
-  __ pushq(raw_null);  // TODO(srdjan): Pass instantiator instead of null.
-  if (type.IsInstantiated()) {
-    __ pushq(raw_null);  // Null instantiator type arguments.
-  } else {
-    __ pushq(RDX);  // Instantiator type arguments.
-  }
+  __ pushq(RCX);  // TODO(srdjan): Pass instantiator instead of null.
+  __ pushq(RDX);  // Instantiator type arguments.
   __ LoadObject(RAX, test_cache);
   __ pushq(RAX);
   GenerateCallRuntime(cid, token_index, try_index, kInstanceofRuntimeEntry);
@@ -878,6 +1004,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ Bind(&is_instance);
   __ LoadObject(RAX, negate_result ? bool_false : bool_true);
   __ Bind(&done);
+  __ popq(RDX);  // Remove pushed instantiator type arguments..
   __ popq(RCX);  // Remove pushed instantiator.
 }
 

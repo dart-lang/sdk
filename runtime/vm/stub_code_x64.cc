@@ -1764,16 +1764,24 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT((1 <= n) && (n <= 3));
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  // const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
+  const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
   __ movq(R10, FieldAddress(RAX, Object::class_offset()));
   // RAX: instance, R10: instance class.
   if (n > 1) {
-    __ Unimplemented("GenerateSubtypeNTestCacheStub n > 1");
+    // Compute instance type arguments into R13.
+    Label has_no_type_arguments;
+    __ movq(R13, raw_null);
+    __ movq(RDI, FieldAddress(R10,
+        Class::type_arguments_instance_field_offset_offset()));
+    __ cmpq(RDI, Immediate(Class::kNoTypeArguments));
+    __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+    __ movq(R13, FieldAddress(RAX, RDI, TIMES_1, 0));
+    __ Bind(&has_no_type_arguments);
   }
-  // TODO(srdjan): R13: instance type arguments or null, used only if n > 1.
+  // R13: instance type arguments or null, used only if n > 1.
   __ movq(RDX, Address(RSP, kCacheOffsetInBytes));
   // RDX: SubtypeTestCache.
   __ movq(RDX, FieldAddress(RDX, SubtypeTestCache::cache_offset()));
@@ -1790,7 +1798,20 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
-    __ Unimplemented("GenerateSubtypeNTestCacheStub n > 1");
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ movq(RDI,
+        Address(RDX, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+    __ cmpq(RDI, R13);
+    if (n == 2) {
+      __ j(EQUAL, &found, Assembler::kNearJump);
+    } else {
+      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+      __ movq(RDI,
+          Address(RDX,
+                  kWordSize * SubtypeTestCache::kInstantiatorTypeArguments));
+      __ cmpq(RDI, Address(RSP, kInstantiatorTypeArgumentsInBytes));
+      __ j(EQUAL, &found, Assembler::kNearJump);
+    }
   }
 
   __ Bind(&next_iteration);
