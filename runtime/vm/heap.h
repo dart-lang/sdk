@@ -39,7 +39,7 @@ class Heap {
 
   // Default allocation sizes in MB for the old gen and code heaps.
   static const intptr_t kHeapSizeInMB = 512;
-  static const intptr_t kCodeHeapSizeInMB = 8;
+  static const intptr_t kCodeHeapSizeInMB = 10;
 
   ~Heap();
 
