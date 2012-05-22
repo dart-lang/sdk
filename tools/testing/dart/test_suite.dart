@@ -113,7 +113,7 @@ class CCTestSuite implements TestSuite {
               List<String> this.statusFilePaths,
               [this.testPrefix = ''])
       : dartDir = TestUtils.dartDir() {
-    runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
+    runnerPath = '${TestUtils.buildDir(configuration)}/$runnerName';
   }
 
   void testNameHandler(String testName, ignore) {
@@ -367,8 +367,9 @@ class StandardTestSuite implements TestSuite {
     } else if (optionsFromFile['isMultitest']) {
       start = filename.lastIndexOf('/');
       int middle = filename.lastIndexOf('_');
-      testName = filename.substring(start + 1, middle) + '/' +
-          filename.substring(middle + 1, filename.length - 5);
+      var multitestBase = filename.substring(start + 1, middle);
+      var multitestKey = filename.substring(middle + 1, filename.length - 5);
+      testName = '$multitestBase/$multitestKey';
     } else {
       // This branch is hit in two cases: standard test suites created with
       // forDirectory and dartc code compilation tests.
@@ -455,12 +456,12 @@ class StandardTestSuite implements TestSuite {
       args = new List.from(args);
       String testPath =
           new File(info.filename).fullPathSync().replaceAll('\\', '/');
-      Directory tempDir = createOutputDirectory(testPath, '');
-      args.add('--out=${tempDir.path}/out.js');
+      String tempDir = createOutputDirectory(testPath, '');
+      args.add('--out=$tempDir/out.js');
       List<Command> commands = <Command>[new Command(shellPath(), args)];
       if (configuration['runtime'] == 'd8') {
         var d8 = TestUtils.d8FileName(configuration);
-        commands.add(new Command(d8, ['${tempDir.path}/out.js']));
+        commands.add(new Command(d8, ['$tempDir/out.js']));
       }
       return commands;
     } else {
@@ -531,7 +532,7 @@ class StandardTestSuite implements TestSuite {
     bool isWebTest = optionsFromFile['containsDomImport'];
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
     if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
-      print('Warning for $filename: Browser tests require #library ' +
+      print('Warning for $filename: Browser tests require #library '
             'in any file that uses #import, #source, or #resource');
     }
 
@@ -550,12 +551,12 @@ class StandardTestSuite implements TestSuite {
                                                     .replaceAll('=','')
                                                     .replaceAll('/','');
       }
-      Directory tempDir = createOutputDirectory(testPath, optionsName);
+      final String tempDir = createOutputDirectory(testPath, optionsName);
 
-      String dartWrapperFilename = '${tempDir.path}/test.dart';
-      String compiledDartWrapperFilename = '${tempDir.path}/test.js';
+      String dartWrapperFilename = '$tempDir/test.dart';
+      String compiledDartWrapperFilename = '$tempDir/test.js';
 
-      String htmlPath = '${tempDir.path}/test.html';
+      String htmlPath = '$tempDir/test.html';
       if (!isWebTest) {
         // test.dart will import the dart test directly, if it is a library,
         // or indirectly through test_as_library.dart, if it is not.
@@ -564,7 +565,7 @@ class StandardTestSuite implements TestSuite {
           dartLibraryFilename = testPath;
         } else {
           dartLibraryFilename = 'test_as_library.dart';
-          File file = new File('${tempDir.path}/$dartLibraryFilename');
+          File file = new File('$tempDir/$dartLibraryFilename');
           RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
           dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
           dartLibrary.closeSync();
@@ -586,10 +587,10 @@ class StandardTestSuite implements TestSuite {
         // than 260 characters, and without this hack, we were running past the
         // the limit.
         String htmlFilename = getHtmlName(filename);
-        while ('${tempDir.path}/../$htmlFilename'.length >= 260) {
+        while ('$tempDir/../$htmlFilename'.length >= 260) {
           htmlFilename = htmlFilename.substring(htmlFilename.length~/2);
         }
-        htmlPath = '${tempDir.path}/../$htmlFilename';
+        htmlPath = '$tempDir/../$htmlFilename';
       }
       final String scriptPath = (compiler == 'none') ?
           dartWrapperFilename : compiledDartWrapperFilename;
@@ -605,7 +606,7 @@ class StandardTestSuite implements TestSuite {
           filename,
           '$filePrefix$dartDir/lib/unittest/test_controller.js',
           scriptType,
-          filePrefix + scriptPath));
+          '$filePrefix$scriptPath'));
       htmlTest.closeSync();
 
       // Construct the command(s) that compile all the inputs needed by the
@@ -614,7 +615,7 @@ class StandardTestSuite implements TestSuite {
       if (compiler != 'none') {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
-            compiler, tempDir.path, vmOptions));
+            compiler, tempDir, vmOptions));
 
         // some tests require compiling multiple input scripts.
         List<String> otherScripts = optionsFromFile['otherScripts'];
@@ -634,8 +635,8 @@ class StandardTestSuite implements TestSuite {
           }
           String compiledName = '${name.substring(0, end)}.js';
           commands.add(_compileCommand(
-              '$dir/$name', '${tempDir.path}/$compiledName',
-              compiler, tempDir.path, vmOptions));
+              '$dir/$name', '$tempDir/$compiledName',
+              compiler, tempDir, vmOptions));
         }
       }
 
@@ -722,47 +723,24 @@ class StandardTestSuite implements TestSuite {
    * We use a subdirectory of the build directory that is the same number
    * of levels down in the checkout as the original path of the web test.
    */
-  Directory createOutputDirectory(String testPath, String optionsName) {
+  String createOutputDirectory(String testPath, String optionsName) {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
     if (!optionsName.isEmpty()) {
-      testUniqueName += '-$optionsName';
+      testUniqueName = '$testUniqueName-$optionsName';
     }
 
     // Create '[build dir]/generated_tests/$compiler-$runtime/$testUniqueName',
     // including any intermediate directories that don't exist.
-    var generatedTestPath = ['generated_tests',
-                             configuration['compiler'] + '-' +
-                             configuration['runtime'],
-                             testUniqueName];
+    var generatedTestPath = Strings.join(
+        [TestUtils.buildDir(configuration),
+         'generated_tests',
+         "${configuration['compiler']}-${configuration['runtime']}",
+         testUniqueName], '/');
 
-    String tempDirPath = TestUtils.buildDir(configuration);
-    Directory tempDir = new Directory(tempDirPath);
-    if (!tempDir.existsSync()) {
-      // TODO(whesse): Replace this with mkdirRecursive.
-      // Dartium tests can be run with no build step, with no output directory.
-      // This special case builds the build directory that should be there.
-      var buildPath = tempDirPath.split('/');
-      tempDirPath = buildPath[0];
-      if (tempDirPath == '') {
-        throw new Exception(
-            'Non-relative path to build directory in test_suite.dart');
-      }
-      if (buildPath.length > 1) {
-        buildPath.removeRange(0, 1);
-        if (buildPath.last() == '') buildPath.removeLast();
-        buildPath.addAll(generatedTestPath);
-        generatedTestPath = buildPath;
-      }
-      tempDir = new Directory(tempDirPath);
-      if (!tempDir.existsSync()) {
-        tempDir.createSync();
-      }
-    }
-    tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
-    return TestUtils.mkdirRecursive(tempDirPath,
-                                    Strings.join(generatedTestPath, '/'));
+    TestUtils.mkdirRecursive('.', generatedTestPath);
+    return new File(generatedTestPath).fullPathSync().replaceAll('\\', '/');
   }
 
   String get scriptType() {
@@ -774,8 +752,8 @@ class StandardTestSuite implements TestSuite {
       case 'dartc':
         return 'text/javascript';
       default:
-        Expect.fail('Non-web runtime, so no scriptType for: ' +
-            '${configuration["compiler"]}');
+        Expect.fail('Non-web runtime, so no scriptType for: '
+                    '${configuration["compiler"]}');
         return null;
     }
   }
@@ -792,9 +770,12 @@ class StandardTestSuite implements TestSuite {
   }
 
   String getHtmlName(String filename) {
-    return filename.replaceAll('/', '_').replaceAll(':', '_')
-        .replaceAll('\\', '_') + configuration['compiler'] + '-' +
-        configuration['runtime'] + '.html';
+    var cleanFilename =  filename.replaceAll('/', '_')
+                                 .replaceAll(':', '_')
+                                 .replaceAll('\\', '_');
+
+    return "$cleanFilename"
+        "${configuration['compiler']}-${configuration['runtime']}.html";
   }
 
   String get dumpRenderTreeFilename() {
@@ -1123,8 +1104,7 @@ class JUnitTestSuite implements TestSuite {
         '-ea',
         '-classpath', classPath,
         '-Dcom.google.dart.sdk=$sdkDir',
-        '-Dcom.google.dart.corelib.SharedTests.test_py=' +
-            dartDir + '/tools/test.py',
+        '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
 
@@ -1295,11 +1275,10 @@ class TestUtils {
   }
 
   static String buildDir(Map configuration) {
-    var result = outputDir(configuration);
-    result += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    result += configuration['arch'];
-    return result;
-  }
+    String debugMode =
+        (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+    return "${outputDir(configuration)}$debugMode${configuration['arch']}";
+ }
 
   static String dartDir() {
     String scriptPath = new Options().script.replaceAll('\\', '/');
