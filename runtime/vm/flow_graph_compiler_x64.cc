@@ -716,12 +716,14 @@ void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
 
 
 void FlowGraphCompiler::VisitCurrentContext(CurrentContextComp* comp) {
-  __ movq(RAX, CTX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitStoreContext(StoreContextComp* comp) {
-  LoadValue(CTX, comp->value());
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

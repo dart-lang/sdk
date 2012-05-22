@@ -362,27 +362,46 @@ class AssertBooleanComp : public TemplateComputation<1> {
 // a computation, not a value, because it's mutable.
 class CurrentContextComp : public TemplateComputation<0> {
  public:
-  CurrentContextComp() { }
+  CurrentContextComp() : location_summary_(MakeLocationSummary()) { }
 
   DECLARE_COMPUTATION(CurrentContext)
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  static LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
+  LocationSummary* location_summary_;
   DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
 };
 
 
 class StoreContextComp : public TemplateComputation<1> {
  public:
-  explicit StoreContextComp(Value* value) {
+  explicit StoreContextComp(Value* value)
+      : location_summary_(MakeLocationSummary()) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(StoreContext);
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  static LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
   Value* value() const { return inputs_[0]; }
 
  private:
+  LocationSummary* location_summary_;
   DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
 };
 

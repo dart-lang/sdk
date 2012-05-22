@@ -13,51 +13,24 @@
 namespace dart {
 
 
-LocationSummary* StrictCompareComp::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
+#define DEFINE_UNIMPLEMENTED(name)                            \
+  LocationSummary* name::MakeLocationSummary() {              \
+    UNIMPLEMENTED();                                          \
+    return NULL;                                              \
+  }                                                           \
+                                                              \
+  void name::EmitNativeCode(FlowGraphCompiler* compiler) {    \
+    UNIMPLEMENTED();                                          \
+  }
 
-
-void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
+DEFINE_UNIMPLEMENTED(StrictCompareComp)
+DEFINE_UNIMPLEMENTED(ClosureCallComp)
+DEFINE_UNIMPLEMENTED(InstanceCallComp)
+DEFINE_UNIMPLEMENTED(StaticCallComp)
+DEFINE_UNIMPLEMENTED(CurrentContextComp)
+DEFINE_UNIMPLEMENTED(StoreContextComp)
 
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* ClosureCallComp::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* InstanceCallComp::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* StaticCallComp::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

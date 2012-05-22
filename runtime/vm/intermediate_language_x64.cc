@@ -46,6 +46,29 @@ static LocationSummary* MakeSimpleLocationSummary(
 }
 
 
+LocationSummary* CurrentContextComp::MakeLocationSummary() {
+  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+}
+
+
+void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ movq(locs()->out().reg(), CTX);
+}
+
+
+LocationSummary* StoreContextComp::MakeLocationSummary() {
+  LocationSummary* summary = new LocationSummary(1);
+  summary->set_in(0, Location::RegisterLocation(CTX));
+  return summary;
+}
+
+
+void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Nothing to do.  Context register were loaded by register allocator.
+  ASSERT(locs()->in(0).reg() == CTX);
+}
+
+
 LocationSummary* StrictCompareComp::MakeLocationSummary() {
   return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
 }
