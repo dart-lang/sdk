@@ -598,12 +598,14 @@ void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
 
 
 void FlowGraphCompiler::VisitUse(UseVal* val) {
-  LoadValue(RAX, val);
+  // UseVal is never visited during code generation.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
-  LoadValue(RAX, val);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -792,13 +794,14 @@ void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitLoadLocal(LoadLocalComp* comp) {
-  __ movq(RAX, Address(RBP, comp->local().index() * kWordSize));
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
-  LoadValue(RAX, comp->value());
-  __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

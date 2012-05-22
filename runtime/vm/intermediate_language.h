@@ -261,7 +261,9 @@ class UseVal : public Value {
 
 class ConstantVal: public Value {
  public:
-  explicit ConstantVal(const Object& value) : value_(value) {
+  explicit ConstantVal(const Object& value)
+      : value_(value),
+        location_summary_(MakeLocationSummary()) {
     ASSERT(value.IsZoneHandle());
   }
 
@@ -269,8 +271,18 @@ class ConstantVal: public Value {
 
   const Object& value() const { return value_; }
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const Object& value_;
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantVal);
 };
@@ -630,7 +642,9 @@ class StaticCallComp : public Computation {
 class LoadLocalComp : public TemplateComputation<0> {
  public:
   LoadLocalComp(const LocalVariable& local, intptr_t context_level)
-      : local_(local), context_level_(context_level) { }
+      : local_(local),
+        context_level_(context_level),
+        location_summary_(MakeLocationSummary()) { }
 
   DECLARE_COMPUTATION(LoadLocal)
 
@@ -639,9 +653,19 @@ class LoadLocalComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const LocalVariable& local_;
   const intptr_t context_level_;
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalComp);
 };
@@ -652,7 +676,9 @@ class StoreLocalComp : public TemplateComputation<1> {
   StoreLocalComp(const LocalVariable& local,
                  Value* value,
                  intptr_t context_level)
-      : local_(local), context_level_(context_level) {
+      : local_(local),
+        context_level_(context_level),
+        location_summary_(MakeLocationSummary()) {
     inputs_[0] = value;
   }
 
@@ -666,9 +692,19 @@ class StoreLocalComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const LocalVariable& local_;
   const intptr_t context_level_;
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalComp);
 };

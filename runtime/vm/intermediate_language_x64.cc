@@ -162,9 +162,49 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadLocalComp::MakeLocationSummary() {
+  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+}
+
+
+void LoadLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out().reg();
+  __ movq(result, Address(RBP, local().index() * kWordSize));
+}
+
+
+LocationSummary* StoreLocalComp::MakeLocationSummary() {
+  return MakeSimpleLocationSummary(1, Location::SameAsFirstInput());
+}
+
+
+void StoreLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == value);  // Assert that register assignment is correct.
+  __ movq(Address(RBP, local().index() * kWordSize), value);
+}
+
+
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
   __ pushq(locs()->out().reg());
+}
+
+
+LocationSummary* ConstantVal::MakeLocationSummary() {
+  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+}
+
+
+void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out().reg();
+  if (value().IsSmi()) {
+    int64_t imm = reinterpret_cast<int64_t>(value().raw());
+    __ movq(result, Immediate(imm));
+  } else {
+    __ LoadObject(result, value());
+  }
 }
 
 
