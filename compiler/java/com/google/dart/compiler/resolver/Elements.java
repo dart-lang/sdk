@@ -195,6 +195,10 @@ public class Elements {
   public static void setType(Element element, Type type) {
     ((AbstractNodeElement) element).setType(type);
   }
+  
+  public static void setTypeInferred(VariableElement element) {
+    ((VariableElementImplementation)element).setTypeInferred(true);
+  }
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,
                                                   Modifiers modifiers) {

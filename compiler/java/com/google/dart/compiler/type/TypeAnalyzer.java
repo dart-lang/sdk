@@ -312,8 +312,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       switch (operator) {
         case ASSIGN: {
           Type rhs = nonVoidTypeOf(rhsNode);
-          checkAssignable(rhsNode, lhs, rhs);
           checkPropagatedTypeCompatible(lhsNode, rhs);
+          if (!isVariableInferredType(lhsNode)) {
+            checkAssignable(rhsNode, lhs, rhs);
+          }
           return rhs;
         }
 
@@ -455,6 +457,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
+    /**
+     * @return <code>true</code> if given {@link DartNode} has {@link VariableElement} with inferred
+     *         {@link Type}.
+     */
+    private boolean isVariableInferredType(DartNode node) {
+      return node != null && isVariableInferredType(node.getElement());
+    }
+
+    /**
+     * @return <code>true</code> if given {@link Element} is {@link VariableElement} with inferred
+     *         {@link Type}.
+     */
+    private boolean isVariableInferredType(Element element) {
+      if (element instanceof VariableElement) {
+        VariableElement variableElement = (VariableElement) element;
+        return variableElement.isTypeInferred();
+      }
+      return false;
+    }
+
     private boolean checkAssignable(DartNode node, Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
@@ -466,6 +488,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private boolean checkAssignable(Type targetType, DartExpression node) {
+      if (isVariableInferredType(node)) {
+        return true;
+      }
       return checkAssignable(node, targetType, nonVoidTypeOf(node));
     }
 
@@ -1718,6 +1743,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (value != null) {
             Type valueType = value.getType();
             Elements.setType(element, valueType);
+            Elements.setTypeInferred(element);
             propagetedTypeVariables.add(element);
           }
         }

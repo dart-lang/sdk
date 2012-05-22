@@ -22,6 +22,7 @@ class VariableElementImplementation extends AbstractNodeElement implements Varia
   // this.foo by the resolver.
   private FieldElement fieldElement;
   private Type type;
+  private boolean typeInferred;
 
   VariableElementImplementation(EnclosingElement owner,
       DartNode node,
@@ -63,6 +64,15 @@ class VariableElementImplementation extends AbstractNodeElement implements Varia
   @Override
   public Type getType() {
     return type;
+  }
+  
+  public void setTypeInferred(boolean typeInferred) {
+    this.typeInferred = typeInferred;
+  }
+  
+  @Override
+  public boolean isTypeInferred() {
+    return typeInferred;
   }
 
   @Override
