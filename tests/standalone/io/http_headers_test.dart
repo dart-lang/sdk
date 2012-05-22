@@ -232,7 +232,10 @@ void testContentType() {
   Expect.equals("text/html; charset=utf-8", contentType.toString());
   contentType.parameters["xxx"] = "yyy";
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  Expect.equals("text/html; charset=utf-8; xxx=yyy", contentType.toString());
+  String s = contentType.toString();
+  bool expectedToString = (s == "text/html; charset=utf-8; xxx=yyy" ||
+                           s == "text/html; xxx=yyy; charset=utf-8");
+  Expect.isTrue(expectedToString);
 
   contentType = new _ContentType.fromString("text/html");
   check(contentType, "text", "html");
