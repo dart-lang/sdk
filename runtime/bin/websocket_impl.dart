@@ -8,7 +8,6 @@ class _WebSocketMessageType {
   static final int NONE = 0;
   static final int BINARY = 1;
   static final int TEXT = 2;
-  static final int CLOSE = 3;
 }
 
 
@@ -54,7 +53,7 @@ class _WebSocketProtocolProcessor {
   static final int FAILURE = 6;
 
   _WebSocketProtocolProcessor() {
-    _reset();
+    _prepareForNextFrame();
     _currentMessageType = _WebSocketMessageType.NONE;
   }
 
@@ -105,20 +104,10 @@ class _WebSocketProtocolProcessor {
               break;
 
             case _WebSocketOpcode.CLOSE:
-              if (_currentMessageType != _WebSocketMessageType.NONE) {
-                throw new WebSocketException("Protocol error");
-              }
-              _currentMessageType = _WebSocketMessageType.CLOSE;
-              break;
-
             case _WebSocketOpcode.PING:
-              // TODO(sgjesse): Handle ping.
-              throw new UnsupportedOperationException("Web socket PING");
-              break;
-
             case _WebSocketOpcode.PONG:
-              // TODO(sgjesse): Handle pong.
-              throw new UnsupportedOperationException("Web socket PONG");
+              // Control frames cannot be fragmented.
+              if (!_fin) throw new WebSocketException("Protocol error");
               break;
 
             default:
@@ -131,6 +120,9 @@ class _WebSocketProtocolProcessor {
           case LEN_FIRST:
             _masked = (byte & 0x80) != 0;
             _len = byte & 0x7F;
+            if (_isControlFrame() && _len > 126) {
+              throw new WebSocketException("Protocol error");
+            }
             if (_len < 126) {
               _lengthDone();
             } else if (_len == 126) {
@@ -168,6 +160,8 @@ class _WebSocketProtocolProcessor {
             } else {
               payload = _remainingPayloadBytes;
             }
+            _remainingPayloadBytes -= payload;
+
             // Unmask payload if masked.
             if (_masked) {
               for (int i = 0; i < payload; i++) {
@@ -178,67 +172,46 @@ class _WebSocketProtocolProcessor {
               }
             }
 
-            switch (_currentMessageType) {
-              case _WebSocketMessageType.NONE:
-                throw new WebSocketException("Protocol error");
-                break;
-
-              case _WebSocketMessageType.TEXT:
-              case _WebSocketMessageType.BINARY:
-                if (onMessageData != null) {
-                  onMessageData(buffer, index, payload);
+            if (_isControlFrame()) {
+              if (payload > 0) {
+                // Allocate a buffer for collecting the control frame
+                // payload if any.
+                if (_controlPayload == null) {
+                  _controlPayload = new List<int>();
                 }
-                _remainingPayloadBytes -= payload;
+                _controlPayload.addAll(buffer.getRange(index, payload));
                 index += payload;
-                if (_remainingPayloadBytes == 0) {
-                  _frameEnd();
-                }
-                break;
+              }
 
-              case _WebSocketMessageType.CLOSE:
-                // Allocate a buffer for holding the close payload if any.
-                if (_closePayload == null) {
-                  _closePayload = new List<int>();
-                }
-                _closePayload.addAll(buffer.getRange(index, payload));
-                _remainingPayloadBytes -= payload;
-                index += payload;
-                if (_fin) {
-                  if (_remainingPayloadBytes != 0) {
-                    throw new WebSocketException("Protocol error");
-                  }
-                  int status;
-                  String reason;
-                  if (_closePayload.length > 0) {
-                    if (_closePayload.length == 1) {
-                      throw new WebSocketException("Protocol error");
-                    }
-                    status = _closePayload[0] << 8 | _closePayload[1];
-                    if (_closePayload.length > 2) {
-                      var decoder = _StringDecoders.decoder(Encoding.UTF_8);
-                      decoder.write(_closePayload.getRange(
-                          2, _closePayload.length - 2));
-                      reason = decoder.decoded;
-                    }
-                  }
-                  if (onClosed != null) onClosed(status, reason);
-                  _currentMessageType = _WebSocketMessageType.NONE;
-                  _state = CLOSED;
-                }
-                break;
+              if (_remainingPayloadBytes == 0) {
+                _controlFrameEnd();
+              }
+            } else {
+              switch (_currentMessageType) {
+                case _WebSocketMessageType.NONE:
+                  throw new WebSocketException("Protocol error");
+                  break;
 
-              default:
-                throw new WebSocketException("Protocol error");
-                break;
+                case _WebSocketMessageType.TEXT:
+                case _WebSocketMessageType.BINARY:
+                  if (onMessageData != null) {
+                    onMessageData(buffer, index, payload);
+                  }
+                  index += payload;
+                  if (_remainingPayloadBytes == 0) {
+                    _messageFrameEnd();
+                  }
+                  break;
+
+                default:
+                  throw new WebSocketException("Protocol error");
+                  break;
+
+              }
             }
 
             // Hack - as we always do index++ below.
             index--;
-            break;
-
-          default:
-            throw new WebSocketException("Protocol error");
-            break;
         }
 
         // Move to the next byte.
@@ -274,33 +247,79 @@ class _WebSocketProtocolProcessor {
   }
 
   void _startPayload() {
-    // Check whether there is any payload. If not indicate empty
-    // message or close without state and reason.
+    // If there is no actual payload perform perform callbacks without
+    // going through the PAYLOAD state.
     if (_remainingPayloadBytes == 0) {
-      if (_currentMessageType ==_WebSocketMessageType.CLOSE) {
-        if (onClosed != null) onClosed(null, null);
-        _state = CLOSED;
+      if (_isControlFrame()) {
+        switch (_opcode) {
+          case _WebSocketOpcode.CLOSE:
+            if (onClosed != null) onClosed(null, null);
+            _state = CLOSED;
+            break;
+          case _WebSocketOpcode.PING:
+            if (onPing != null) onPing(null);
+            break;
+          case _WebSocketOpcode.PONG:
+            if (onPong != null) onPong(null);
+            break;
+        }
+        _prepareForNextFrame();
       } else {
-        _frameEnd();
+        _messageFrameEnd();
       }
     } else {
       _state = PAYLOAD;
     }
   }
 
-  void _frameEnd() {
-    if (_remainingPayloadBytes != 0) {
-      throw new WebSocketException("Protocol error");
-    }
+  void _messageFrameEnd() {
     if (_fin) {
       if (onMessageEnd != null) onMessageEnd();
       _currentMessageType = _WebSocketMessageType.NONE;
     }
-    _reset();
+    _prepareForNextFrame();
   }
 
-  void _reset() {
-    _state = START;
+  void _controlFrameEnd() {
+    switch (_opcode) {
+      case _WebSocketOpcode.CLOSE:
+        int status;
+        String reason;
+        if (_controlPayload.length > 0) {
+          if (_controlPayload.length == 1) {
+            throw new WebSocketException("Protocol error");
+          }
+          status = _controlPayload[0] << 8 | _controlPayload[1];
+          if (_controlPayload.length > 2) {
+            var decoder = _StringDecoders.decoder(Encoding.UTF_8);
+            decoder.write(
+                _controlPayload.getRange(2, _controlPayload.length - 2));
+            reason = decoder.decoded;
+          }
+        }
+        if (onClosed != null) onClosed(status, reason);
+        _state = CLOSED;
+        break;
+
+      case _WebSocketOpcode.PING:
+        if (onPing != null) onPing(_controlPayload);
+        break;
+
+      case _WebSocketOpcode.PONG:
+        if (onPong != null) onPong(_controlPayload);
+        break;
+    }
+    _prepareForNextFrame();
+  }
+
+  bool _isControlFrame() {
+    return _opcode == _WebSocketOpcode.CLOSE ||
+           _opcode == _WebSocketOpcode.PING ||
+           _opcode == _WebSocketOpcode.PONG;
+  }
+
+  void _prepareForNextFrame() {
+    if (_state != CLOSED && _state != FAILURE) _state = START;
     _fin = null;
     _opcode = null;
     _len = null;
@@ -310,6 +329,7 @@ class _WebSocketProtocolProcessor {
     _remainingMaskingKeyBytes = null;
     _remainingPayloadBytes = null;
     _unmaskingIndex = 0;
+    _controlPayload = null;
   }
 
   void _reportError(e) {
@@ -335,11 +355,13 @@ class _WebSocketProtocolProcessor {
   int _unmaskingIndex;
 
   int _currentMessageType;
-  List<int> _closePayload;
+  List<int> _controlPayload;
 
   Function onMessageStart;
   Function onMessageData;
   Function onMessageEnd;
+  Function onPing;
+  Function onPong;
   Function onClosed;
   Function onError;
 }
@@ -359,6 +381,8 @@ class _WebSocketConnectionBase  {
     processor.onMessageStart = _onWebSocketMessageStart;
     processor.onMessageData = _onWebSocketMessageData;
     processor.onMessageEnd = _onWebSocketMessageEnd;
+    processor.onPing = _onWebSocketPing;
+    processor.onPong = _onWebSocketPong;
     processor.onClosed = _onWebSocketClosed;
     processor.onError = _onWebSocketError;
     if (unparsedData != null) {
@@ -486,6 +510,14 @@ class _WebSocketConnectionBase  {
     _outputStream = null;
   }
 
+  _onWebSocketPing(List<int> payload) {
+    _sendFrame(_WebSocketOpcode.PONG, payload);
+  }
+
+  _onWebSocketPong(List<int> payload) {
+    // Currently pong messages are ignored.
+  }
+
   _onWebSocketClosed(int status, String reason) {
     _closeReceived = true;
     if (_onClosed != null) _onClosed(status, reason);
@@ -503,7 +535,7 @@ class _WebSocketConnectionBase  {
     _socket.close();
   }
 
-  _sendFrame(int opcode, List<int> data) {
+  _sendFrame(int opcode, [List<int> data]) {
     bool mask = false;  // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
     // Determine the header size.
