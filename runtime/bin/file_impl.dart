@@ -422,19 +422,15 @@ class _File extends _FileBase implements File {
 
   Future<bool> exists() {
     _ensureFileService();
-    Completer<bool> completer = new Completer<bool>();
     List request = new List(2);
     request[0] = _FileUtils.kExistsRequest;
     request[1] = _name;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, "Cannot open file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(response);
+        throw _exceptionFromResponse(response, "Cannot open file '$_name'");
       }
+      return response;
     });
-    return completer.future;
   }
 
   bool existsSync() {
@@ -443,19 +439,15 @@ class _File extends _FileBase implements File {
 
   Future<File> create() {
     _ensureFileService();
-    Completer<File> completer = new Completer<File>();
     List request = new List(2);
     request[0] = _FileUtils.kCreateRequest;
     request[1] = _name;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, "Cannot create file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response, "Cannot create file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   void createSync() {
@@ -467,19 +459,15 @@ class _File extends _FileBase implements File {
 
   Future<File> delete() {
     _ensureFileService();
-    Completer<File> completer = new Completer<File>();
     List request = new List(2);
     request[0] = _FileUtils.kDeleteRequest;
     request[1] = _name;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, "Cannot delete file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response, "Cannot delete file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   void deleteSync() {
@@ -488,21 +476,17 @@ class _File extends _FileBase implements File {
 
   Future<Directory> directory() {
     _ensureFileService();
-    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(2);
     request[0] = _FileUtils.kDirectoryRequest;
     request[1] = _name;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "Cannot retrieve directory for "
-                                       "file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(new Directory(response));
+        throw _exceptionFromResponse(response,
+                                     "Cannot retrieve directory for "
+                                     "file '$_name'");
       }
+      return new Directory(response);
     });
-    return completer.future;
   }
 
   Directory directorySync() {
@@ -525,34 +509,27 @@ class _File extends _FileBase implements File {
     request[0] = _FileUtils.kOpenRequest;
     request[1] = _name;
     request[2] = mode._mode;  // Direct int value for serialization.
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, "Cannot open file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(new _RandomAccessFile(response, _name));
+        throw _exceptionFromResponse(response, "Cannot open file '$_name'");
       }
+      return new _RandomAccessFile(response, _name);
     });
-    return completer.future;
   }
 
   Future<int> length() {
     _ensureFileService();
-    Completer<int> completer = new Completer<int>();
     List request = new List(2);
     request[0] = _FileUtils.kLengthFromNameRequest;
     request[1] = _name;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "Cannot retrieve length of "
-                                       "file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(response);
+        throw _exceptionFromResponse(response,
+                                     "Cannot retrieve length of "
+                                     "file '$_name'");
       }
+      return response;
     });
-    return completer.future;
   }
 
   int lengthSync() {
@@ -586,21 +563,17 @@ class _File extends _FileBase implements File {
 
   Future<String> fullPath() {
     _ensureFileService();
-    Completer<String> completer = new Completer<String>();
     List request = new List(2);
     request[0] = _FileUtils.kFullPathRequest;
     request[1] = _name;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "Cannot retrieve full path"
-                                       " for '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(response);
+        throw _exceptionFromResponse(response,
+                                     "Cannot retrieve full path"
+                                     " for '$_name'");
       }
+      return response;
     });
-    return completer.future;
   }
 
   String fullPathSync() {
@@ -724,16 +697,14 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     // Set the id_ to 0 (NULL) to ensure the no more async requests
     // can be issues for this file.
     _id = 0;
-    _fileService.call(request).then((result) {
+    return _fileService.call(request).transform((result) {
       if (result != -1) {
         _id = result;
-        completer.complete(this);
+        return this;
       } else {
-        completer.completeException(
-            new FileIOException("Cannot close file '$_name'"));
+        throw new FileIOException("Cannot close file '$_name'");
       }
     });
-    return completer.future;
   }
 
   void closeSync() {
@@ -751,16 +722,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kReadByteRequest;
     request[1] = _id;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "readByte failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(response);
+        throw _exceptionFromResponse(response,
+                                     "readByte failed for file '$_name'");
       }
+      return response;
     });
-    return completer.future;
   }
 
   int readByteSync() {
@@ -790,19 +758,16 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[0] = _FileUtils.kReadListRequest;
     request[1] = _id;
     request[2] = bytes;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "readList failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        var read = response[1];
-        var data = response[2];
-        buffer.setRange(offset, read, data);
-        completer.complete(read);
+        throw _exceptionFromResponse(response,
+                                     "readList failed for file '$_name'");
       }
+      var read = response[1];
+      var data = response[2];
+      buffer.setRange(offset, read, data);
+      return read;
     });
-    return completer.future;
   }
 
   int readListSync(List<int> buffer, int offset, int bytes) {
@@ -843,16 +808,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[0] = _FileUtils.kWriteByteRequest;
     request[1] = _id;
     request[2] = value;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "writeByte failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response,
+                                     "writeByte failed for file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   int writeByteSync(int value) {
@@ -884,8 +846,17 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
     if (_isClosed) return _completeWithClosedException(completer);
 
-    List result =
-        _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
+    List result;
+    try {
+      result =
+          _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
+    } catch (var e) {
+      // Complete asynchronously so the user has a chance to setup
+      // handlers without getting exceptions when registering the
+      // then handler.
+      new Timer(0, (t) => completer.completeException(e));
+      return completer.future;
+    }
     List outBuffer = result[0];
     int outOffset = result[1];
 
@@ -895,16 +866,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = outBuffer;
     request[3] = outOffset;
     request[4] = bytes;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "writeList failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response,
+                                     "writeList failed for file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   int writeListSync(List<int> buffer, int offset, int bytes) {
@@ -935,16 +903,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[0] = _FileUtils.kWriteStringRequest;
     request[1] = _id;
     request[2] = string;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "writeString failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response,
+                                     "writeString failed for file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   int writeStringSync(String string, [Encoding encoding = Encoding.UTF_8]) {
@@ -963,16 +928,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kPositionRequest;
     request[1] = _id;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "position failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(response);
+        throw _exceptionFromResponse(response,
+                                     "position failed for file '$_name'");
       }
+      return response;
     });
-    return completer.future;
   }
 
   int positionSync() {
@@ -992,16 +954,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[0] = _FileUtils.kSetPositionRequest;
     request[1] = _id;
     request[2] = position;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "setPosition failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response,
+                                     "setPosition failed for file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   void setPositionSync(int position) {
@@ -1020,16 +979,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[0] = _FileUtils.kTruncateRequest;
     request[1] = _id;
     request[2] = length;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "truncate failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response,
+                                     "truncate failed for file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   void truncateSync(int length) {
@@ -1047,16 +1003,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kLengthRequest;
     request[1] = _id;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "length failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(response);
+        throw _exceptionFromResponse(response,
+                                     "length failed for file '$_name'");
       }
+      return response;
     });
-    return completer.future;
   }
 
   int lengthSync() {
@@ -1075,16 +1028,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kFlushRequest;
     request[1] = _id;
-    _fileService.call(request).then((response) {
+    return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response,
-                                       "flush failed for file '$_name'");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response,
+                                     "flush failed for file '$_name'");
       }
+      return this;
     });
-    return completer.future;
   }
 
   void flushSync() {

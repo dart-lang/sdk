@@ -110,7 +110,6 @@ fuzzAsyncMethods() {
 }
 
 
-// TODO(ager): Finish implementation.
 fuzzSyncRandomAccessMethods() {
   var d = new Directory('');
   var temp = d.createTempSync();
@@ -121,6 +120,7 @@ fuzzSyncRandomAccessMethods() {
     var opened = file.openSync(m);
     typeMapping.forEach((k, v) {
       doItSync(() => opened.setPositionSync(v));
+      doItSync(() => opened.truncateSync(v));
       doItSync(() => opened.writeByteSync(v));
     });
     for (var p in typePermutations(2)) {
@@ -128,15 +128,48 @@ fuzzSyncRandomAccessMethods() {
     }
     for (var p in typePermutations(3)) {
       doItSync(() => opened.readListSync(p[0], p[1], p[2]));
-      doItSync(() => opened.writeList(p[0], p[1], p[2]));
+      doItSync(() => opened.writeListSync(p[0], p[1], p[2]));
     }
     opened.closeSync();
   }
   temp.deleteRecursivelySync();
 }
 
+fuzzAsyncRandomAccessMethods() {
+  var d = new Directory('');
+  var temp = d.createTempSync();
+  var file = new File('${temp.path}/x');
+  file.createSync();
+  var modes = [ FileMode.READ, FileMode.WRITE, FileMode.APPEND ];
+  var futures = [];
+  var openedFiles = [];
+  for (var m in modes) {
+    var opened = file.openSync(m);
+    openedFiles.add(opened);
+    typeMapping.forEach((k, v) {
+        futures.add(doItAsync(() => opened.setPosition(v)));
+        futures.add(doItAsync(() => opened.truncate(v)));
+        futures.add(doItAsync(() => opened.writeByte(v)));
+    });
+    for (var p in typePermutations(2)) {
+      futures.add(doItAsync(() => opened.writeString(p[0], p[1])));
+    }
+    for (var p in typePermutations(3)) {
+      futures.add(doItAsync(() => opened.readList(p[0], p[1], p[2])));
+      futures.add(doItAsync(() => opened.writeList(p[0], p[1], p[2])));
+    }
+  }
+  Futures.wait(futures).then((ignore) {
+    for (var opened in openedFiles) {
+      opened.closeSync();
+    }
+    temp.deleteRecursivelySync();
+  });
+}
+
 main() {
   fuzzSyncMethods();
   fuzzAsyncMethods();
   fuzzSyncRandomAccessMethods();
+  fuzzAsyncRandomAccessMethods();
 }

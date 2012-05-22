@@ -185,6 +185,10 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
+  // Offset and length arguments are checked in Dart code to be
+  // integers and have the property that (offset + length) <=
+  // list.length. Therefore, it is safe to extract their value as
+  // 64-bit integers.
   int64_t offset =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   int64_t length =
@@ -220,6 +224,10 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
+  // Offset and length arguments are checked in Dart code to be
+  // integers and have the property that (offset + length) <=
+  // list.length. Therefore, it is safe to extract their value as
+  // 64-bit integers.
   int64_t offset =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   int64_t length =
@@ -296,12 +304,18 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
   ASSERT(file != NULL);
-  int64_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
-  if (file->Truncate(length)) {
-    Dart_SetReturnValue(args, Dart_True());
+  int64_t length = 0;
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
+    if (file->Truncate(length)) {
+      Dart_SetReturnValue(args, Dart_True());
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    }
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
