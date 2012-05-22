@@ -45,7 +45,9 @@ void handler(Uri uri, int begin, int end, String message, bool fatal) {
 }
 
 main() {
-  String code = compile(new Uri(scheme: 'main'), new Uri(scheme: 'lib'),
+  String code = compile(new Uri(scheme: 'main'),
+                        new Uri(scheme: 'lib'),
+                        new Uri(scheme: 'package'),
                         provider, handler).value;
   if (code === null) {
     throw 'Compilation failed';

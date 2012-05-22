@@ -17,12 +17,13 @@
 class Compiler extends leg.Compiler {
   api.ReadUriFromString provider;
   api.DiagnosticHandler handler;
-  Uri libraryRoot;
-  Uri packageRoot;
+  final Uri libraryRoot;
+  final Uri packageRoot;
   List<String> options;
   bool mockableLibraryUsed = false;
 
-  Compiler(this.provider, this.handler, this.libraryRoot, List<String> options)
+  Compiler(this.provider, this.handler, this.libraryRoot, this.packageRoot,
+           List<String> options)
     : this.options = options,
       super(
           tracer: new ssa.HTracer(),
@@ -81,16 +82,11 @@ class Compiler extends leg.Compiler {
   translatePackageUri(Uri uri, tree.Node node) => packageRoot.resolve(uri.path);
 
   bool run(Uri uri) {
-    try {
-      packageRoot = uri.resolve('packages/');
-      bool success = super.run(uri);
-      for (final task in tasks) {
-        log('${task.name} took ${task.timing}msec');
-      }
-      return success;
-    } finally {
-      packageRoot = null;
+    bool success = super.run(uri);
+    for (final task in tasks) {
+      log('${task.name} took ${task.timing}msec');
     }
+    return success;
   }
 
   void reportDiagnostic(leg.SourceSpan span, String message, bool fatal) {
