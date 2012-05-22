@@ -904,7 +904,7 @@ class DromaeoTest(RuntimePerformanceTest):
       dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
       current_path = os.getcwd()
       os.chdir(dromaeo_path)
-      self.test.test_runner.run_cmd(['python', 'generate_frog_tests.py'])
+      self.test.test_runner.run_cmd(['python', 'generate_dart2js_tests.py'])
       os.chdir(current_path)
 
       versions = DromaeoTester.get_dromaeo_versions()
@@ -1011,7 +1011,7 @@ class DromaeoSizeTest(Test):
       current_path = os.getcwd()
       os.chdir(dromaeo_path)
       self.test.test_runner.run_cmd(
-          ['python', os.path.join('generate_frog_tests.py')])
+          ['python', os.path.join('generate_dart2js_tests.py')])
       os.chdir(current_path)
 
       self.test.trace_file = os.path.join(
