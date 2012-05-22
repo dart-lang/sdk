@@ -183,6 +183,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   LibraryElement get currentLibrary() => work.element.getLibrary();
   Compiler get compiler() => backend.compiler;
+  NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
