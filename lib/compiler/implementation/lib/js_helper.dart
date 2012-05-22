@@ -75,6 +75,8 @@ mod(var a, var b) {
     int result = JS('num', @'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    b = JS('num', '#', b);
     if (b < 0) {
       return result - b;
     } else {
@@ -86,6 +88,9 @@ mod(var a, var b) {
 
 tdiv(var a, var b) {
   if (checkNumbers(a, b)) {
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    a = JS('num', '#', a);
+    b = JS('num', '#', b);
     return (a / b).truncate();
   }
   return UNINTERCEPTED(a ~/ b);
@@ -162,6 +167,9 @@ bool leB(var a, var b) => le(a, b) === true;
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    a = JS('num', '#', a);
+    b = JS('num', '#', b);
     if (b < 0) throw new IllegalArgumentException(b);
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
@@ -174,6 +182,9 @@ shl(var a, var b) {
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    a = JS('num', '#', a);
+    b = JS('num', '#', b);
     if (b < 0) throw new IllegalArgumentException(b);
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
@@ -235,7 +246,7 @@ index(var a, var index) {
 
 void indexSet(var a, var index, var value) {
   if (isJsArray(a)) {
-    if (!(index is int)) {
+    if (index is !int) {
       throw new IllegalArgumentException(index);
     }
     if (index < 0 || index >= a.length) {
