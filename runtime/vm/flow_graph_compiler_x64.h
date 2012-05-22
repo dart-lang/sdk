@@ -122,11 +122,42 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                             intptr_t token_index,
                             intptr_t try_index);
 
+  // Type checking helper methods.
+  void CheckClasses(const GrowableArray<const Class*>& classes,
+                    Label* is_instance_lbl,
+                    Label* is_not_instance_lbl);
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
                                                 intptr_t token_index,
                                                 const AbstractType& type,
                                                 Label* is_instance,
                                                 Label* is_not_instance);
+
+  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
+      intptr_t cid,
+      intptr_t token_index,
+      const AbstractType& dst_type,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
+
+  void GenerateInstantiatedTypeNoArgumentsTest(intptr_t cid,
+                                               intptr_t token_index,
+                                               const AbstractType& dst_type,
+                                               Label* is_instance_lbl,
+                                               Label* is_not_instance_lbl);
+
+  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+      const AbstractType& dst_type,
+      intptr_t cid,
+      intptr_t token_index,
+      Label* is_instance_lbl,
+      Label* is_not_instance_label);
+
+  RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
+      intptr_t cid,
+      intptr_t token_index,
+      const Class& type_class,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
 
   void GenerateAssertAssignable(intptr_t cid,
                                 intptr_t token_index,

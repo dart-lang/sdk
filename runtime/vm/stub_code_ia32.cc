@@ -1801,7 +1801,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label not_found;
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
   __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
   // EAX: instance, ECX: instance-class.
@@ -1817,13 +1816,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movl(EBX, FieldAddress(EAX, EDI, TIMES_1, 0));
     __ Bind(&has_no_type_arguments);
   }
-  // EBX: instance type arguments (null if none).
+  // EBX: instance type arguments (null if none), used only if n > 1.
   __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
   // EDX: SubtypeTestCache.
   __ movl(EDX, FieldAddress(EDX, SubtypeTestCache::cache_offset()));
   __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
 
-  Label loop, found, next_iteration;
+  Label loop, found, not_found, next_iteration;
   // EDX: Entry start.
   // ECX: instance class.
   // EBX: instance type arguments

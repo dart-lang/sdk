@@ -1232,7 +1232,6 @@ RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label loop, found_in_cache, runtime_call;
   // Check immediate equality.
   __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
   // ECX: instance class.
@@ -1255,6 +1254,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
   __ popl(EDX);  // Discard.
   // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
 
+  Label runtime_call;
   __ cmpl(ECX, raw_null);
   __ j(EQUAL, &runtime_call, Assembler::kNearJump);
   __ CompareObject(ECX, bool_true);
@@ -1455,6 +1455,10 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
   if (is_raw_type) {
     // Dynamic type argument, check only classes.
     __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    if (!type_class.is_interface()) {
+      __ CompareObject(ECX, type_class);
+      __ j(EQUAL, is_instance_lbl);
+    }
     if (type.IsListInterface()) {
       // TODO(srdjan) also accept List<Object>.
       __ CompareObject(ECX, *CoreClass("ObjectArray"));
@@ -1553,6 +1557,7 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
         Isolate::Current()->object_store()->bool_class());
     __ CompareObject(ECX, bool_class);
     __ j(EQUAL, is_instance_lbl);
+    __ jmp(is_not_instance_lbl);
     return;
   }
   // If type is an interface, we can skip the class equality check,
@@ -1576,12 +1581,16 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
       __ j(EQUAL, is_instance_lbl);
       __ CompareObject(ECX, bigint_class);
       __ j(EQUAL, is_instance_lbl);
+      if (type.IsIntInterface()) {
+        __ jmp(is_not_instance_lbl);
+      }
     }
     if (type.IsDoubleInterface() || type.IsNumberInterface()) {
       const Class& double_class = Class::ZoneHandle(
           Isolate::Current()->object_store()->double_class());
       __ CompareObject(ECX, double_class);
       __ j(EQUAL, is_instance_lbl);
+      __ jmp(is_not_instance_lbl);
     }
   } else if (type.IsStringInterface()) {
     __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
