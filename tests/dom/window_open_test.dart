@@ -12,11 +12,11 @@ main() {
   evaluateJavaScript('layoutTestController.setCanOpenWindows()');
 
   useDomConfiguration();
-  asyncTest('TwoArgumentVersion', 1, () {
+  test('TwoArgumentVersion', () {
     Window win = window.open('../resources/pong.html', 'testWindow');
     closeWindow(win);
   });
-  asyncTest('ThreeArgumentVersion', 1, () {
+  test('ThreeArgumentVersion', () {
     Window win = window.open("resources/pong.html", "testWindow", "scrollbars=yes,width=75,height=100");
     closeWindow(win);
   });
@@ -25,7 +25,7 @@ main() {
 closeWindow(win) {
   win.close();
   doneHandler() {
-    window.setTimeout(win.closed ? callbackDone : doneHandler, 1);
+    window.setTimeout(expectAsync0(() { if (!win.closed) doneHandler(); }), 1);
   }
-  window.setTimeout(doneHandler, 1);
+  window.setTimeout(expectAsync0(doneHandler), 1);
 }

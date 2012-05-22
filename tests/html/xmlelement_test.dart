@@ -563,14 +563,14 @@ main() {
     });
   });
 
-  asyncTest('default rect values', 1, () {
-    makeElement().rect.then((ElementRect rect) {
-      expectEmptyRect(rect.client);
-      expectEmptyRect(rect.offset);
-      expectEmptyRect(rect.scroll);
-      expectEmptyRect(rect.bounding);
-      Expect.isTrue(rect.clientRects.isEmpty());
-      callbackDone();
-    });
+  test('default rect values', () {
+    makeElement().rect.then(
+      expectAsync1(ElementRect rect) {
+        expectEmptyRect(rect.client);
+        expectEmptyRect(rect.offset);
+        expectEmptyRect(rect.scroll);
+        expectEmptyRect(rect.bounding);
+        Expect.isTrue(rect.clientRects.isEmpty());
+      }));
   });
 }

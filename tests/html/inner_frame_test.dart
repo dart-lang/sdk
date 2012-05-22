@@ -42,8 +42,8 @@ main() {
   final iframe = new Element.tag('iframe');
   iframe.src = window.location.href;
 
-  asyncTest('prepare', 1, () {
-      iframe.on.load.add((e) => callbackDone());
+  test('prepare', () {
+      iframe.on.load.add(expectAsync1((e) {}));
       document.body.nodes.add(iframe);
     });
 

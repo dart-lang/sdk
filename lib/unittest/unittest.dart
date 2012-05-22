@@ -374,7 +374,7 @@ Function expectAsync1(Function callback, [int count = 1]) {
   return new _SpreadArgsHelper(callback, count).invoke1;
 }
 
-/** Like [expectAsync0] but [callback] should take 1 positional argument. */
+/** Like [expectAsync0] but [callback] should take 2 positional arguments. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync2(Function callback, [int count = 1]) {
   return new _SpreadArgsHelper(callback, count).invoke2;
@@ -407,22 +407,30 @@ void group(String description, void body()) {
 
 /** Called by subclasses to indicate that an asynchronous test completed. */
 void callbackDone() {
-  _callbacksCalled++;
-  if (_currentTest < _tests.length) {
-    final testCase = _tests[_currentTest];
-    if (_callbacksCalled > testCase.callbacks) {
-      final expected = testCase.callbacks;
-      testCase.error(
-          'More calls to callbackDone() than expected. '
-          'Actual: ${_callbacksCalled}, expected: ${expected}', '');
-      _state = _UNCAUGHT_ERROR;
-    } else if ((_callbacksCalled == testCase.callbacks) &&
-        (_state != _RUNNING_TEST)) {
-      if (testCase.result == null) testCase.pass();
-      _currentTest++;
-      _testRunner();
+  // TODO (gram): we defer this to give the nextBatch recursive
+  // stack a chance to unwind. This is a temporary hack but 
+  // really a bunch of code here needs to be fixed. We have a 
+  // single array that is being iterated through by nextBatch(),
+  // which is recursively invoked in the case of async tests that
+  // run synchronously. Bad things can then happen.
+  _defer(() {
+    _callbacksCalled++;
+    if (_currentTest < _tests.length) {
+      final testCase = _tests[_currentTest];
+      if (_callbacksCalled > testCase.callbacks) {
+        final expected = testCase.callbacks;
+        testCase.error(
+            'More calls to callbackDone() than expected. '
+            'Actual: ${_callbacksCalled}, expected: ${expected}', '');
+        _state = _UNCAUGHT_ERROR;
+      } else if ((_callbacksCalled == testCase.callbacks) &&
+          (_state != _RUNNING_TEST)) {
+        if (testCase.result == null) testCase.pass();
+        _currentTest++;
+        _testRunner();
+      }
     }
-  }
+  });
 }
 
 /** Menchanism to notify that an error was caught outside of this library. */
@@ -476,6 +484,7 @@ guardAsync(tryBody, [finallyBody]) {
   try {
     return tryBody();
   } catch (ExpectException e, var trace) {
+    Expect.isTrue(_currentTest < _tests.length);
     if (_state != _UNCAUGHT_ERROR) {
       _tests[_currentTest].fail(e.message,
           trace == null ? '' : trace.toString());

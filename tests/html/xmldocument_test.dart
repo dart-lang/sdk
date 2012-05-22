@@ -528,15 +528,14 @@ main() {
   });
 
   group('default values', () {
-    asyncTest('default rect values', 1, () {
-      makeDocument().rect.then((ElementRect rect) {
+    test('default rect values', () {
+      makeDocument().rect.then(expectAsync1((ElementRect rect) {
         expectEmptyRect(rect.client);
         expectEmptyRect(rect.offset);
         expectEmptyRect(rect.scroll);
         expectEmptyRect(rect.bounding);
         Expect.isTrue(rect.clientRects.isEmpty());
-        callbackDone();
-      });
+      }));
     });
 
     test('nextElementSibling', () =>
@@ -567,28 +566,26 @@ main() {
     // test('webkitVisibilityState', () =>
     //     Expect.equals('visible', makeDocument().webkitVisibilityState));
 
-    asyncTest('caretRangeFromPoint', 1, () {
+    test('caretRangeFromPoint', () {
       final doc = makeDocument();
       Futures.wait([
         doc.caretRangeFromPoint(),
         doc.caretRangeFromPoint(0, 0),
         doc.caretRangeFromPoint(5, 5)
-      ]).then((ranges) {
+      ]).then(expectAsync1((ranges) {
         Expect.listEquals([null, null, null], ranges);
-        callbackDone();
-      });
+      }));
     });
 
-    asyncTest('elementFromPoint', 1, () {
+    test('elementFromPoint', () {
       final doc = makeDocument();
       Futures.wait([
         doc.elementFromPoint(),
         doc.elementFromPoint(0, 0),
         doc.elementFromPoint(5, 5)
-      ]).then((ranges) {
+      ]).then(expectAsync1((ranges) {
         Expect.listEquals([null, null, null], ranges);
-        callbackDone();
-      });
+      }));
     });
 
     test('queryCommandEnabled', () {

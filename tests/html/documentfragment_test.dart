@@ -290,16 +290,15 @@ main() {
     fragment.webkitRequestFullScreen(2);
   });
 
-  asyncTest('default values', 1, () {
+  test('default values', () {
     var fragment = new DocumentFragment();
-    fragment.rect.then((ElementRect rect) {
+    fragment.rect.then(expectAsync1((ElementRect rect) {
        expectEmptyRect(rect.client);
        expectEmptyRect(rect.offset);
        expectEmptyRect(rect.scroll);
        expectEmptyRect(rect.bounding);
        Expect.isTrue(rect.clientRects.isEmpty());
-       callbackDone();
-    });
+    }));
     Expect.equals("false", fragment.contentEditable);
     Expect.equals(-1, fragment.tabIndex);
     Expect.equals("", fragment.id);
@@ -323,14 +322,13 @@ main() {
     Expect.isFalse(fragment.matchesSelector("*"));
   });
 
-  asyncTest('style', 1, () {
+  test('style', () {
     var fragment = new DocumentFragment();
     var style = fragment.style;
     expectEmptyStyleDeclaration(style);
-    fragment.computedStyle.then((computedStyle) {
+    fragment.computedStyle.then(expectAsync1((computedStyle) {
       expectEmptyStyleDeclaration(computedStyle);
-      callbackDone();
-    });
+    }));
   });
 
   // TODO(nweiz): re-enable when const is better supported in dartc and/or frog

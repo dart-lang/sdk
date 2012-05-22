@@ -10,20 +10,19 @@
 main() {
   useHtmlConfiguration();
 
-  asyncTest('oneShot', 1, () {
+  test('oneShot', () {
       var frame = window.requestAnimationFrame(
-          (timestamp) { callbackDone(); });
+          expectAsync1((timestamp) { }));
     });
 
-  asyncTest('twoShot', 1, () {
+  test('twoShot', () {
       var frame = window.requestAnimationFrame(
           (timestamp1) {
             window.requestAnimationFrame(
-                (timestamp2) {
+                expectAsync1((timestamp2) {
                   // Not monotonic on Safari and IE.
                   // Expect.isTrue(timestamp2 > timestamp1, 'timestamps ordered');
-                  callbackDone();
-                });
+                }));
           });
     });
 }
