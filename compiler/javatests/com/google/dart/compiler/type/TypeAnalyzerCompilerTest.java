@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -29,8 +32,11 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -39,9 +45,6 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -1130,6 +1133,78 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
+  public void test_typesPropagation_assignAtDeclaration() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f() {",
+        "  var v01 = true;",
+        "  var v02 = true && false;",
+        "  var v03 = 1;",
+        "  var v04 = 1 + 2;",
+        "  var v05 = 1.0;",
+        "  var v06 = 1.0 + 2.0;",
+        "  var v07 = new Map<String, int>();",
+        "  var v08 = new Map().length;",
+        "  var v09 = Math.random();",
+        "}",
+        "");
+    // prepare expected results
+    List<String> expectedList = Lists.newArrayList();
+    expectedList.add("bool");
+    expectedList.add("bool");
+    expectedList.add("int");
+    expectedList.add("num");
+    expectedList.add("double");
+    expectedList.add("double");
+    expectedList.add("Map<String, int>");
+    expectedList.add("int");
+    expectedList.add("double");
+    // check each DartVariable type
+    List<DartVariableStatement> statements = get_typePropagation_variableStatements(libraryResult);
+    for (int i = 0; i < statements.size(); i++) {
+      DartVariable variable = statements.get(i).getVariables().get(0);
+      String actualTypeString = variable.getElement().getType().toString();
+      String expectedTypeString = expectedList.get(i);
+      assertEquals(variable.getName().getName(), expectedTypeString, actualTypeString);
+    }
+  }
+  
+  public void test_typesPropagation_secondAssign_sameType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f() {",
+        "  var v = true;",
+        "  v = false;",
+        "}",
+        "");
+    List<DartVariableStatement> statements = get_typePropagation_variableStatements(libraryResult);
+    DartVariable variable = statements.get(0).getVariables().get(0);
+    assertEquals("bool", variable.getElement().getType().toString());
+  }
+  
+  public void test_typesPropagation_secondAssign_differentType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f() {",
+        "  var v = true;",
+        "  v = 0;",
+        "}",
+        "");
+    List<DartVariableStatement> statements = get_typePropagation_variableStatements(libraryResult);
+    DartVariable variable = statements.get(0).getVariables().get(0);
+    assertEquals("<dynamic>", variable.getElement().getType().toString());
+  }
+
+  private  List<DartVariableStatement> get_typePropagation_variableStatements(AnalyzeLibraryResult libraryResult) {
+      DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+      DartMethodDefinition fFunction = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+      List<DartStatement> statements = fFunction.getFunction().getBody().getStatements();
+      List<DartVariableStatement> variableStatements = Lists.newArrayList();
+      for (DartStatement statement : statements) {
+        if (statement instanceof DartVariableStatement) {
+          variableStatements.add((DartVariableStatement) statement);
+        }
+      }
+      return variableStatements;
+  }
+  
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

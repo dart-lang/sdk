@@ -173,6 +173,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
+    private final Set<VariableElement> propagetedTypeVariables = Sets.newHashSet();
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -312,6 +313,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case ASSIGN: {
           Type rhs = nonVoidTypeOf(rhsNode);
           checkAssignable(rhsNode, lhs, rhs);
+          checkPropagatedTypeCompatible(lhsNode, rhs);
           return rhs;
         }
 
@@ -437,6 +439,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return null;
       }
       return member;
+    }
+
+    /**
+     * Checks that if left-hand-side is {@link VariableElement} with propagated type, then it
+     * assigned value type is compatible with this propagated type.
+     */
+    private void checkPropagatedTypeCompatible(DartExpression lhsNode, Type rhs) {
+      if (lhsNode.getElement() instanceof VariableElement) {
+        VariableElement variableElement = (VariableElement) lhsNode.getElement();
+        if (propagetedTypeVariables.contains(variableElement)
+            && !types.isAssignable(variableElement.getType(), rhs)) {
+          Elements.setType(variableElement, dynamicType);
+        }
+      }
     }
 
     private boolean checkAssignable(DartNode node, Type t, Type s) {
@@ -711,6 +727,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (result == null) {
          return dynamicType;
       }
+      node.setType(result);
       return result;
     }
 
@@ -1692,7 +1709,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitVariable(DartVariable node) {
-      return checkInitializedDeclaration(node, node.getValue());
+      Type result = checkInitializedDeclaration(node, node.getValue());
+      // if no type declared for variables, try to use type of value
+      {
+        VariableElement element = node.getElement();
+        if (element != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
+          DartExpression value = node.getValue();
+          if (value != null) {
+            Type valueType = value.getType();
+            Elements.setType(element, valueType);
+            propagetedTypeVariables.add(element);
+          }
+        }
+      }
+      // done
+      return result;
     }
 
     @Override
