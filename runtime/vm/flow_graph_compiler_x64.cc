@@ -435,6 +435,27 @@ void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
 }
 
 
+// True iff. the arguments to a call will be properly pushed and can
+// be popped after the call.
+template <typename T> static bool VerifyCallComputation(T* comp) {
+  // Argument values should be consecutive temps.
+  //
+  // TODO(kmillikin): implement stack height tracking so we can also assert
+  // they are on top of the stack.
+  intptr_t previous = -1;
+  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+    Value* val = comp->ArgumentAt(i);
+    if (!val->IsUse()) return false;
+    intptr_t current = val->AsUse()->definition()->temp_index();
+    if (i != 0) {
+      if (current != (previous + 1)) return false;
+    }
+    previous = current;
+  }
+  return true;
+}
+
+
 // Truee iff. the v2 is above v1 on stack, or one of them is constant.
 static bool VerifyValues(Value* v1, Value* v2) {
   if (v1->IsUse() && v2->IsUse()) {
@@ -509,14 +530,33 @@ void FlowGraphCompiler::VisitStoreContext(StoreContextComp* comp) {
 
 
 void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
+  ASSERT(VerifyCallComputation(comp));
+  // The arguments to the stub include the closure.  The arguments
+  // descriptor describes the closure's arguments (and so does not include
+  // the closure).
+  int argument_count = comp->ArgumentCount();
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count - 1,
+                                         comp->argument_names());
+  __ LoadObject(R10, arguments_descriptor);
+
+  GenerateCall(comp->token_index(),
+               comp->try_index(),
+               &StubCode::CallClosureFunctionLabel(),
+               PcDescriptors::kOther);
+  __ Drop(argument_count);
 }
 
 
 void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
+  ASSERT(VerifyCallComputation(comp));
+  EmitInstanceCall(comp->cid(),
+                   comp->token_index(),
+                   comp->try_index(),
+                   comp->function_name(),
+                   comp->ArgumentCount(),
+                   comp->argument_names(),
+                   comp->checked_argument_count());
 }
 
 
@@ -567,8 +607,12 @@ void FlowGraphCompiler::VisitEqualityCompare(EqualityCompareComp* comp) {
 
 
 void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
+  ASSERT(VerifyCallComputation(comp));
+  EmitStaticCall(comp->token_index(),
+                 comp->try_index(),
+                 comp->function(),
+                 comp->ArgumentCount(),
+                 comp->argument_names());
 }
 
 
@@ -610,7 +654,7 @@ void FlowGraphCompiler::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
 
 
 void FlowGraphCompiler::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
-  ASSERT(VerifyValues(comp->instance(), comp->value()));
+  VerifyValues(comp->instance(), comp->value());
   LoadValue(RDX, comp->value());
   LoadValue(RAX, comp->instance());
   __ StoreIntoObject(RAX, FieldAddress(RAX, comp->field().Offset()), RDX);

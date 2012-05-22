@@ -43,12 +43,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   Assembler* assembler() const { return assembler_; }
 
  private:
-  // TODO(fschneider): Clean up friend-class declarations once all code
-  // generator templates have been moved to intermediate_language_x64.cc.
-#define DECLARE_FRIEND(ShortName, ClassName) friend class ClassName;
-  FOR_EACH_COMPUTATION(DECLARE_FRIEND)
-#undef DECLARE_FRIEND
-
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
   // Constructor is lighweight, major initialization work should occur here.
@@ -86,6 +80,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 #undef DECLARE_VISIT_INSTRUCTION
 
   void EmitInstructionPrologue(Instruction* instr);
+  void LoadInputs(LocationSummary* summary);
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
