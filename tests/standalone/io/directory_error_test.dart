@@ -179,6 +179,56 @@ void testListNonExistent(Directory temp, Function done) {
 }
 
 
+void testRenameNonExistent(Directory temp, Function done) {
+  Directory nonExistent = new Directory("${temp.path}/nonExistent");
+  var newPath = "${temp.path}/nonExistent2";
+  Expect.throws(() => nonExistent.renameSync(newPath),
+                (e) => e is DirectoryIOException);
+  var renameDone = nonExistent.rename(newPath);
+  renameDone.then((ignore) => Expect.fail('rename non existent'));
+  renameDone.handleException((e) {
+    Expect.isTrue(e is DirectoryIOException);
+    done();
+    return true;
+  });
+}
+
+
+void testRenameFileAsDirectory(Directory temp, Function done) {
+  File f = new File("${temp.path}/file");
+  var newPath = "${temp.path}/file2";
+  f.createSync();
+  var d = new Directory(f.name);
+  Expect.throws(() => d.renameSync(newPath),
+                (e) => e is DirectoryIOException);
+  var renameDone = d.rename(newPath);
+  renameDone.then((ignore) => Expect.fail('rename file as directory'));
+  renameDone.handleException((e) {
+    Expect.isTrue(e is DirectoryIOException);
+    done();
+    return true;
+  });
+}
+
+
+testRenameOverwriteFile(Directory temp, Function done) {
+  var d = new Directory('');
+  var temp1 = d.createTempSync();
+  var fileName = '${temp.path}/x';
+  new File(fileName).createSync();
+  Expect.throws(() => temp1.renameSync(fileName),
+                (e) => e is DirectoryIOException);
+  var renameDone = temp1.rename(fileName);
+  renameDone.then((ignore) => Expect.fail('rename dir overwrite file'));
+  renameDone.handleException((e) {
+    Expect.isTrue(e is DirectoryIOException);
+    temp1.deleteRecursivelySync();
+    done();
+    return true;
+  });
+}
+
+
 void runTest(Function test) {
   // Create a temporary directory for the test.
   var temp = new Directory('').createTempSync();
@@ -201,4 +251,7 @@ main() {
   runTest(testDeleteNonExistent);
   runTest(testDeleteRecursivelyNonExistent);
   runTest(testListNonExistent);
+  runTest(testRenameNonExistent);
+  runTest(testRenameFileAsDirectory);
+  runTest(testRenameOverwriteFile);
 }

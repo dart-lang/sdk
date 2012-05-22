@@ -93,6 +93,26 @@ interface Directory default _Directory {
   void deleteRecursivelySync();
 
   /**
+   * Rename this directory. Returns a [:Future<Directory>:] that completes
+   * with a [Directory] instance for the renamed directory.
+   *
+   * If newPath identifies an existing directory, that directory is
+   * replaced. If newPath identifies an existing file the operation
+   * fails and the future completes with an exception.
+   */
+  Future<Directory> rename(String newPath);
+
+  /**
+   * Synchronously rename this directory. Returns a [Directory]
+   * instance for the renamed directory.
+   *
+   * If newPath identifies an existing directory, that directory is
+   * replaced. If newPath identifies an existing file the operation
+   * fails and an exception is thrown.
+   */
+  Directory renameSync(String newPath);
+
+  /**
    * List the sub-directories and files of this
    * [Directory]. Optionally recurse into sub-directories. Returns a
    * [DirectoryLister] object representing the active listing

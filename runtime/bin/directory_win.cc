@@ -382,3 +382,19 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     return DeleteRecursively(dir_name);
   }
 }
+
+
+bool Directory::Rename(const char* path, const char* new_path) {
+  ExistsResult exists = Exists(path);
+  if (exists != EXISTS) return false;
+  ExistsResult new_exists = Exists(new_path);
+  // MoveFile does not allow replacing exising directories. Therefore,
+  // if the new_path is currently a directory we need to delete it
+  // first.
+  if (new_exists == EXISTS) {
+    bool success = DeleteRecursively(new_path);
+    if (!success) return false;
+  }
+  DWORD flags = MOVEFILE_WRITE_THROUGH;
+  return (MoveFileEx(path, new_path, flags) != 0);
+}

@@ -9,6 +9,7 @@ class _Directory implements Directory {
   static final kExistsRequest = 2;
   static final kCreateTempRequest = 3;
   static final kListRequest = 4;
+  static final kRenameRequest = 5;
 
   static final kSuccessResponse = 0;
   static final kIllegalArgumentResponse = 1;
@@ -22,23 +23,20 @@ class _Directory implements Directory {
   static int _exists(String path) native "Directory_Exists";
   static _create(String path) native "Directory_Create";
   static _delete(String path, bool recursive) native "Directory_Delete";
+  static _rename(String path, String newPath) native "Directory_Rename";
   static SendPort _newServicePort() native "Directory_NewServicePort";
 
   Future<bool> exists() {
     _ensureDirectoryService();
-    Completer<bool> completer = new Completer<bool>();
     List request = new List(2);
     request[0] = kExistsRequest;
     request[1] = _path;
-    _directoryService.call(request).then((response) {
+    return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, "Exists failed");
-        completer.completeException(e);
-      } else {
-        completer.complete(response == 1);
+        throw _exceptionFromResponse(response, "Exists failed");
       }
+      return response == 1;
     });
-    return completer.future;
   }
 
   bool existsSync() {
@@ -54,19 +52,15 @@ class _Directory implements Directory {
 
   Future<Directory> create() {
     _ensureDirectoryService();
-    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(2);
     request[0] = kCreateRequest;
     request[1] = _path;
-    _directoryService.call(request).then((response) {
+    return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, "Creation failed");
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response, "Creation failed");
       }
+      return this;
     });
-    return completer.future;
   }
 
   void createSync() {
@@ -81,21 +75,16 @@ class _Directory implements Directory {
 
   Future<Directory> createTemp() {
     _ensureDirectoryService();
-    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(2);
     request[0] = kCreateTempRequest;
     request[1] = _path;
-    _directoryService.call(request).then((response) {
+    return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e =
-            _exceptionFromResponse(response,
-                                   "Creation of temporary directory failed");
-        completer.completeException(e);
-      } else {
-        completer.complete(new Directory(response));
+        throw _exceptionFromResponse(response,
+                                     "Creation of temporary directory failed");
       }
+      return new Directory(response);
     });
-    return completer.future;
   }
 
   void createTempSync() {
@@ -113,28 +102,21 @@ class _Directory implements Directory {
 
   Future<Directory> _deleteHelper(bool recursive, String errorMsg) {
     _ensureDirectoryService();
-    Completer<Directory> completer = new Completer<Directory>();
     List request = new List(3);
     request[0] = kDeleteRequest;
     request[1] = _path;
     request[2] = recursive;
-    _directoryService.call(request).then((response) {
+    return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        var e = _exceptionFromResponse(response, errorMsg);
-        completer.completeException(e);
-      } else {
-        completer.complete(this);
+        throw _exceptionFromResponse(response, errorMsg);
       }
+      return this;
     });
     return completer.future;
   }
 
   Future<Directory> delete() {
     return _deleteHelper(false, "Deletion failed");
-  }
-
-  Future<Directory> deleteRecursively() {
-    return _deleteHelper(true, "Deletion failed");
   }
 
   void deleteSync() {
@@ -147,6 +129,10 @@ class _Directory implements Directory {
     }
   }
 
+  Future<Directory> deleteRecursively() {
+    return _deleteHelper(true, "Deletion failed");
+  }
+
   void deleteRecursivelySync() {
     if (_path is !String) {
       throw new IllegalArgumentException();
@@ -155,6 +141,31 @@ class _Directory implements Directory {
     if (result is OSError) {
       throw new DirectoryIOException("Deletion failed", _path, result);
     }
+  }
+
+  Future<Directory> rename(String newPath) {
+    _ensureDirectoryService();
+    List request = new List(3);
+    request[0] = kRenameRequest;
+    request[1] = _path;
+    request[2] = newPath;
+    return _directoryService.call(request).transform((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response, "Rename failed");
+      }
+      return new Directory(newPath);
+    });
+  }
+
+  Directory renameSync(String newPath) {
+    if (_path is !String || newPath is !String) {
+      throw new IllegalArgumentException();
+    }
+    var result = _rename(_path, newPath);
+    if (result is OSError) {
+      throw new DirectoryIOException("Rename failed", _path, result);
+    }
+    return new Directory(newPath);
   }
 
   DirectoryLister list([bool recursive = false]) {
