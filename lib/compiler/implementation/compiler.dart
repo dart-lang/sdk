@@ -189,11 +189,12 @@ class Compiler implements DiagnosticListener {
   }
 
   void unhandledExceptionOnElement(Element element) {
-    reportDiagnostic(
-        spanFromElement(element),
-        'Error: The compiler crashed when compiling this method.',
-        false);
-    print(CRASH_MESSAGE);
+    reportDiagnostic(spanFromElement(element),
+                     MessageKind.COMPILER_CRASHED.error(),
+                     false);
+    // TODO(ahe): Obtain the build ID.
+    var buildId = 'build number could not be determined';
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message([buildId]));
   }
 
   void cancel([String reason, Node node, Token token,
@@ -592,17 +593,3 @@ class SourceSpan {
 
   const SourceSpan(this.uri, this.begin, this.end);
 }
-
-final String CRASH_MESSAGE = '''
-The compiler is broken.
-
-When compiling the above method, the compiler crashed. It is not
-possible to tell if this is caused by a problem in your program or
-not. Regardless, the compiler should not crash.
-
-The Dart team would greatly appreciate if you would take a moment to
-report this problem at http://dartbug.com/new.
-
-Please copy and paste the error and stack trace that you see here into
-the bug report, include your OS and the Dart SDK build number.
-''';

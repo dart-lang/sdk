@@ -176,7 +176,37 @@ class MessageKind {
   static final MISSING_TYPE_ARGUMENT = const MessageKind(
       "missing type argument");
 
+  static final COMPILER_CRASHED = const MessageKind(
+      "Error: The compiler crashed when compiling this element.");
+
+  static final PLEASE_REPORT_THE_CRASH = const MessageKind('''
+The compiler is broken.
+
+When compiling the above element, the compiler crashed. It is not
+possible to tell if this is caused by a problem in your program or
+not. Regardless, the compiler should not crash.
+
+The Dart team would greatly appreciate if you would take a moment to
+report this problem at http://dartbug.com/new.
+
+Please the following information:
+
+* the name and version of your operating system,
+
+* the Dart SDK build number (#{1}), and
+
+* the stack trace you see here.
+''');
+
   toString() => template;
+
+  Message message([List<Type> arguments = const <Type>[]]) {
+    return new Message(this, arguments);
+  }
+
+  CompilationError error([List<Type> arguments = const <Type>[]]) {
+    return new CompilationError(this, arguments);
+  }
 }
 
 class Message {
@@ -212,34 +242,34 @@ class Message {
   }
 }
 
-class TypeWarning {
+class Diagnostic {
   final Message message;
-  TypeWarning.message(this.message);
+  Diagnostic(MessageKind kind, List<Type> arguments)
+    : message = new Message(kind, arguments);
+  String toString() => message.toString();
+}
+
+class TypeWarning extends Diagnostic {
   TypeWarning(MessageKind kind, List<Type> arguments)
-    : message = new Message(kind, arguments);
-  String toString() => message.toString();
+    : super(kind, arguments);
 }
 
-class ResolutionError {
-  final Message message;
-  ResolutionError.message(this.message);
+class ResolutionError extends Diagnostic {
   ResolutionError(MessageKind kind, List<Type> arguments)
-    : message = new Message(kind, arguments);
-  String toString() => message.toString();
+    : super(kind, arguments);
 }
 
-class ResolutionWarning {
-  final Message message;
-  ResolutionWarning.message(this.message);
+class ResolutionWarning extends Diagnostic {
   ResolutionWarning(MessageKind kind, List<Type> arguments)
-    : message = new Message(kind, arguments);
-  String toString() => message.toString();
+    : super(kind, arguments);
 }
 
-class CompileTimeConstantError {
-  final Message message;
-  CompileTimeConstantError.message(this.message);
+class CompileTimeConstantError extends Diagnostic {
   CompileTimeConstantError(MessageKind kind, List<Type> arguments)
-    : message = new Message(kind, arguments);
-  String toString() => message.toString();
+    : super(kind, arguments);
+}
+
+class CompilationError extends Diagnostic {
+  CompilationError(MessageKind kind, List<Type> arguments)
+    : super(kind, arguments);
 }
