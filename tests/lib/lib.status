@@ -5,6 +5,9 @@
 [ $compiler == frog ]
 crypto/*: Skip
 
+[ $compiler == dart2js || $compiler == dartc || $compiler == frog ]
+math/*: Skip
+
 [ $compiler == dart2js && $checked ]
 # numbers typed 'int' are too big to fit in a JS int.
 crypto/hmac_md5_test: Fail

@@ -27,6 +27,12 @@ RawScript* Bootstrap::LoadImplScript() {
 }
 
 
+RawScript* Bootstrap::LoadMathScript() {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
 RawScript* Bootstrap::LoadIsolateScript() {
   UNREACHABLE();
   return Script::null();

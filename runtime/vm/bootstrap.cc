@@ -38,6 +38,16 @@ RawScript* Bootstrap::LoadImplScript() {
 }
 
 
+RawScript* Bootstrap::LoadMathScript() {
+  const String& url = String::Handle(String::New("dart:math", Heap::kOld));
+  const String& src = String::Handle(String::New(math_source_, Heap::kOld));
+
+  const Script& result =
+      Script::Handle(Script::New(url, src, RawScript::kSource));
+  return result.raw();
+}
+
+
 RawScript* Bootstrap::LoadIsolateScript()  {
   const String& url = String::Handle(String::New("dart:isolate", Heap::kOld));
   const String& src = String::Handle(String::New(isolate_source_, Heap::kOld));

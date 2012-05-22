@@ -65,6 +65,7 @@ ObjectStore::ObjectStore()
     canonical_type_arguments_(Array::null()),
     core_library_(Library::null()),
     core_impl_library_(Library::null()),
+    math_library_(Library::null()),
     isolate_library_(Library::null()),
     mirrors_library_(Library::null()),
     native_wrappers_library_(Library::null()),

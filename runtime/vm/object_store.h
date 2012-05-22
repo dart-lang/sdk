@@ -405,10 +405,16 @@ class ObjectStore {
     core_impl_library_ = value.raw();
   }
 
+  RawLibrary* math_library() const {
+    return math_library_;
+  }
+  void set_math_library(const Library& value) {
+    math_library_ = value.raw();
+  }
+
   RawLibrary* isolate_library() const {
     return isolate_library_;
   }
-
   void set_isolate_library(const Library& value) {
     isolate_library_ = value.raw();
   }
@@ -561,6 +567,7 @@ class ObjectStore {
   RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
+  RawLibrary* math_library_;
   RawLibrary* isolate_library_;
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;

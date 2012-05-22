@@ -1782,10 +1782,12 @@ class Library : public Object {
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
+  static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
+  static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();
   static void InitNativeWrappersLibrary(Isolate* isolate);

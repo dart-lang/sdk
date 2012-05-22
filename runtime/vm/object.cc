@@ -781,9 +781,17 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript());
+  Library::InitMathLibrary(isolate);
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  ASSERT(!math_lib.IsNull());
+  error = Bootstrap::Compile(math_lib, math_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   const Script& isolate_script = Script::Handle(Bootstrap::LoadIsolateScript());
   Library::InitIsolateLibrary(isolate);
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
   error = Bootstrap::Compile(isolate_lib, isolate_script);
   if (!error.IsNull()) {
@@ -791,7 +799,7 @@ RawError* Object::Init(Isolate* isolate) {
   }
   const Script& mirrors_script = Script::Handle(Bootstrap::LoadMirrorsScript());
   Library::InitMirrorsLibrary(isolate);
-  Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
+  const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
   ASSERT(!mirrors_lib.IsNull());
   error = Bootstrap::Compile(mirrors_lib, mirrors_script);
   if (!error.IsNull()) {
@@ -5361,6 +5369,16 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 
+void Library::InitMathLibrary(Isolate* isolate) {
+  const String& url = String::Handle(String::NewSymbol("dart:math"));
+  const Library& lib = Library::Handle(Library::New(url));
+  lib.Register();
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  lib.AddImport(core_impl_lib);
+  isolate->object_store()->set_math_library(lib);
+}
+
+
 void Library::InitIsolateLibrary(Isolate* isolate) {
   const String& url = String::Handle(String::NewSymbol("dart:isolate"));
   const Library& lib = Library::Handle(Library::New(url));
@@ -5483,6 +5501,11 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CoreImplLibrary() {
   return Isolate::Current()->object_store()->core_impl_library();
+}
+
+
+RawLibrary* Library::MathLibrary() {
+  return Isolate::Current()->object_store()->math_library();
 }
 
 

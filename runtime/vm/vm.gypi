@@ -7,6 +7,7 @@
     'builtin_in_cc_file': '../bin/builtin_in.cc',
     'corelib_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_gen.cc',
     'corelib_impl_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_impl_gen.cc',
+    'math_cc_file': '<(SHARED_INTERMEDIATE_DIR)/math_gen.cc',
     'mirrors_cc_file': '<(SHARED_INTERMEDIATE_DIR)/mirrors_gen.cc',
     'isolate_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.cc',
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
@@ -50,6 +51,7 @@
       'dependencies': [
         'generate_corelib_cc_file',
         'generate_corelib_impl_cc_file',
+        'generate_math_cc_file',
         'generate_isolate_cc_file',
         'generate_mirrors_cc_file',
       ],
@@ -64,6 +66,7 @@
         # Include generated source files.
         '<(corelib_cc_file)',
         '<(corelib_impl_cc_file)',
+        '<(math_cc_file)',
         '<(isolate_cc_file)',
         '<(mirrors_cc_file)',
       ],
@@ -164,6 +167,44 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(corelib_impl_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_math_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the shared math library sources.
+        '../../lib/math/math_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_math_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(math_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(math_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::math_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(math_cc_file)'' file.'
         },
       ]
     },
