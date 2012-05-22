@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-math/pi_test: Fail,Pass  # Result depends too much on seed value.
-
 [ $compiler == frog ]
 crypto/*: Skip
 
