@@ -261,9 +261,6 @@ Supported options:
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
 
-  --output-type=dart
-    Output Dart code instead of JavaScript.
-
   --suppress-warnings
     Do not display any warnings.
 
@@ -272,6 +269,10 @@ Supported options:
 
 The following options are only used for compiler development and may
 be removed in a future version:
+
+  --output-type=dart
+    Output Dart code instead of JavaScript.
+
   --throw-on-error
     Throw an exception if a compile-time error is detected.
 

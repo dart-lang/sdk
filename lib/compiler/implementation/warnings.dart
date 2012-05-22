@@ -189,7 +189,7 @@ not. Regardless, the compiler should not crash.
 The Dart team would greatly appreciate if you would take a moment to
 report this problem at http://dartbug.com/new.
 
-Please the following information:
+Please include the following information:
 
 * the name and version of your operating system,
 
