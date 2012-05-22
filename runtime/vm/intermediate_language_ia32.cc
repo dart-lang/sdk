@@ -29,6 +29,39 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ClosureCallComp::MakeLocationSummary() {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* InstanceCallComp::MakeLocationSummary() {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* StaticCallComp::MakeLocationSummary() {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #undef __

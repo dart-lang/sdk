@@ -392,7 +392,10 @@ class ClosureCallComp : public Computation {
   ClosureCallComp(ClosureCallNode* node,
                   intptr_t try_index,
                   ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node), try_index_(try_index), arguments_(arguments) { }
+      : ast_node_(*node),
+        try_index_(try_index),
+        arguments_(arguments),
+        location_summary_(MakeLocationSummary()) { }
 
   DECLARE_COMPUTATION(ClosureCall)
 
@@ -408,10 +411,20 @@ class ClosureCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const ClosureCallNode& ast_node_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* arguments_;
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
 };
@@ -430,7 +443,8 @@ class InstanceCallComp : public Computation {
         function_name_(function_name),
         arguments_(arguments),
         argument_names_(argument_names),
-        checked_argument_count_(checked_argument_count) {
+        checked_argument_count_(checked_argument_count),
+        location_summary_(MakeLocationSummary()) {
     ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle());
@@ -451,6 +465,15 @@ class InstanceCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -458,6 +481,7 @@ class InstanceCallComp : public Computation {
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallComp);
 };
@@ -541,7 +565,8 @@ class StaticCallComp : public Computation {
         try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
-        arguments_(arguments) {
+        arguments_(arguments),
+        location_summary_(MakeLocationSummary()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -562,12 +587,22 @@ class StaticCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual LocationSummary* locs() const {
+    return location_summary_;
+  }
+
+  // Platform specific summary factory for this instruction.
+  LocationSummary* MakeLocationSummary();
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
+  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
 };
