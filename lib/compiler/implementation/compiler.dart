@@ -356,23 +356,33 @@ class Compiler implements DiagnosticListener {
         reportFatalError('main cannot have parameters', parameter);
       });
     }
-    Collection<LibraryElement> libraries = libraries.getValues();
-    backend.processNativeClasses(enqueuer.codegen, libraries);
-    world.populate(this, libraries);
-    enqueuer.codegen.addToWorkList(main);
-    codegenProgress.reset();
-    while (!enqueuer.codegen.queue.isEmpty()) {
-      WorkItem work = enqueuer.codegen.queue.removeLast();
-      withCurrentElement(work.element, () => work.run(this));
-    }
-    enqueuer.codegen.queueIsClosed = true;
-    assert(enqueuer.codegen.checkNoEnqueuedInvokedInstanceMethods());
-    enqueuer.codegen.registerFieldClosureInvocations();
+
+    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
+    // should know this.
+    world.populate(this, libraries.getValues());
+
+    // Not yet ready to process the enqueuer.resolution queue...
+    // processQueue(enqueuer.resolution);
+    processQueue(enqueuer.codegen, main);
+
     backend.assembleProgram();
     if (!enqueuer.codegen.queue.isEmpty()) {
       internalErrorOnElement(enqueuer.codegen.queue.first().element,
                              "work list is not empty");
     }
+  }
+
+  processQueue(Enqueuer world, Element main) {
+    backend.processNativeClasses(world, libraries.getValues());
+    world.addToWorkList(main);
+    codegenProgress.reset();
+    while (!world.queue.isEmpty()) {
+      WorkItem work = world.queue.removeLast();
+      withCurrentElement(work.element, () => work.run(this));
+    }
+    world.queueIsClosed = true;
+    assert(world.checkNoEnqueuedInvokedInstanceMethods());
+    world.registerFieldClosureInvocations();
   }
 
   TreeElements analyzeElement(Element element) {
