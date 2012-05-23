@@ -91,13 +91,13 @@ void ExtractTestsFromMultitest(String filename,
     if (annotation != null) {
       testsAsLines.putIfAbsent(annotation.key,
           () => new List<String>.from(testTemplate)).add(line);
-      outcomes.putIfAbsent(annotation.key, 
+      outcomes.putIfAbsent(annotation.key,
           () => new Set<String>());
       if (annotation.rest == 'continued') {
         continue;
       } else {
         for (String nextOutcome in annotation.outcomesList) {
-          outcomes[annotation.key].add(nextOutcome);  
+          outcomes[annotation.key].add(nextOutcome);
           if (!validMultitestOutcomes.contains(nextOutcome)) {
             // TODO(zundel): fix long line
             Expect.fail(
@@ -126,7 +126,7 @@ void ExtractTestsFromMultitest(String filename,
   // Copy all the tests into the output map tests, as multiline strings.
   for (String key in testsAsLines.getKeys()) {
     tests[key] =
-        Strings.join(testsAsLines[key], line_separator) + line_separator;
+        Strings.join(testsAsLines[key], line_separator).concat(line_separator);
   }
 }
 

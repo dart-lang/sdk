@@ -545,7 +545,7 @@ class RunningProcess {
       testCase.output.requestRetry = false;
       this.timedOut = false;
       testCase.dynamic.numRetries--;
-      print("Potential flake. Re-running ${testCase.displayName} " +
+      print("Potential flake. Re-running ${testCase.displayName} "
           "(${testCase.dynamic.numRetries} attempt(s) remains)");
       this.start();
     } else {
@@ -726,7 +726,7 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments) {
-    return Strings.join(arguments, ' ') + '\n';
+    return Strings.join(arguments, ' ').concat('\n');
   }
 
   void _testCompleted() {
@@ -1037,7 +1037,7 @@ class ProcessQueue {
     String filePath = new Options().script;
     String pathSep = Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
-    filePath = filePath.substring(0, index) + '${pathSep}testing${pathSep}';
+    filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';
     var lister = new Directory(filePath).list();
     lister.onFile = (String file) {
       if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
@@ -1095,11 +1095,11 @@ class ProcessQueue {
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
       if (_listTests) {
-        final String tab = '\t';
-        String outcomes =
-            Strings.join(new List.from(test.expectedOutcomes), ',');
-        print(test.displayName + tab + outcomes + tab + test.isNegative +
-              tab + Strings.join(test.commands.last().arguments, tab));
+        var fields = [test.displayName,
+                      Strings.join(new List.from(test.expectedOutcomes), ','),
+                      test.isNegative];
+        fields.addAll(test.commands.last().arguments);
+        print(Strings.join(fields, '\t'));
         return;
       }
       if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable) {

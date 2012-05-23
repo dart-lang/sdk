@@ -25,10 +25,10 @@ class Legpad {
   // to compile
   static final String MAIN_ID = "main_id";
 
-  Legpad() : warnings = "" {}
+  Legpad() : warnings = new StringBuffer();
 
   // accumulates diagnostic messages emitted by the leg compiler
-  String warnings;
+  StringBuffer warnings;
 
   // the generated javascript
   String output;
@@ -41,16 +41,14 @@ class Legpad {
 
   void diagnosticHandler(uri_lib.Uri uri, int begin, int end,
                                  String message, bool fatal) {
-    StringBuffer sb = new StringBuffer();
-    sb.add(message);    
+    warnings.add(message);
     if (uri !== null) {
-      sb.add(" (${uri.toString()}: $begin, $end)");
+      warnings.add(" ($uri: $begin, $end)");
     }
     if (fatal) {
-      sb.add(" (fatal)");
+      warnings.add(" (fatal)");
     }
-    sb.add("\n");
-    warnings += sb.toString();
+    warnings.add("\n");
   }
 
   Future<String> readUriFromString(uri_lib.Uri uri) {
@@ -79,14 +77,14 @@ class Legpad {
     }
 
     setText("output", output);
-    setText("warnings", warnings);
+    setText("warnings", warnings.toString());
     int lineCount = lineCount(output);
-    String timing = "generated $lineCount lines " + 
-        "(${output.length} characters) in " +
+    String timing = "generated $lineCount lines "
+        "(${output.length} characters) in "
         "${((elapsedMillis) / 1000).toStringAsPrecision(3)} seconds";
     setText("timing", timing);
   }
-  
+
   static int lineCount(String s) {
     Iterable<Match> matches = "\n".allMatches(s);
     int n = 0;
@@ -94,7 +92,7 @@ class Legpad {
       n++;
     }
     return n;
-  } 
+  }
 
   void runLeg() {
     uri_lib.Uri mainUri = new uri_lib.Uri.fromString(getText(MAIN_ID));

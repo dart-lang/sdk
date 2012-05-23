@@ -4,11 +4,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * This is the entrypoint for a version of the frog compiler that 
+ * This is the entrypoint for a version of the frog compiler that
  * can run in the browser.
  * Because this is running in the browser, frog cannot access
  * the file system.  Instead, we assume the all necessary files
- * have been placed in inert <script> elements somewhere on the page.  
+ * have been placed in inert <script> elements somewhere on the page.
  * (See frogpad.py for more details on how the html page is constructed.)
  */
 
@@ -24,7 +24,7 @@ final String MAIN_ID = "main_id";
 final String FROGDIR_ID = "frogdir_id";
 
 void main() {
-  String warnings = "";
+  StringBuffer warnings = new StringBuffer();
   HtmlFileSystem fs = new HtmlFileSystem();
   String frogDir = getText(FROGDIR_ID);
   String mainFile = getText(MAIN_ID);
@@ -48,7 +48,7 @@ void main() {
     if (span !== null) {
       location = span.locationText;
     }
-    warnings += prefix + message + location + "\n";
+    warnings.add('$prefix$message$location\n');
   };
   bool success = world.compile();
   int time2 = new Date.now().value;
@@ -57,9 +57,9 @@ void main() {
     output = world.getGeneratedCode();
   }
   setText("output", output);
-  setText("warnings", warnings);
+  setText("warnings", warnings.toString());
 
-  String timing = "generated ${output.length} characters in " +
+  String timing = "generated ${output.length} characters in "
       "${((time2 - time1) / 1000).toStringAsPrecision(3)} seconds";
   setText("timing", timing);
 }
@@ -82,8 +82,9 @@ String getText(String id) {
 
 // TODO(rnystrom): should exist in standard lib somewhere
 String htmlEscape(String text) {
-  return text.replaceAll('&', '&amp;').replaceAll(
-      '>', '&gt;').replaceAll('<', '&lt;');
+  return text.replaceAll('&', '&amp;')
+             .replaceAll('>', '&gt;')
+             .replaceAll('<', '&lt;');
 }
 
 class HtmlFileSystem implements FileSystem {
@@ -101,20 +102,20 @@ class HtmlFileSystem implements FileSystem {
    * the contents of this file.
    * The id is constructed by taking the filename and replacing
    * all slashes and dots with underscores.  For example, the file name:
-   *  
-   *   "/usr/local/src/dart/frog/lang.dart" 
-   * 
+   *
+   *   "/usr/local/src/dart/frog/lang.dart"
+   *
    * becomes:
-   * 
+   *
    *   "_usr_local_src_dart_frog_lang_dart"
-   *  
+   *
    * And, so this file's contents will be found in a <script>
    * element that looks like this:
    *
    *   <script type=application/inert id="_usr_local_src_dart_frog_lang_dart">
    *      ... contents of file lang.dart placed here ...
    *   etc.
-   */    
+   */
   String idOfFilename(String filename) {
     return filename.replaceAll("/", "_").replaceAll(".", "_");
   }
@@ -124,8 +125,8 @@ class HtmlFileSystem implements FileSystem {
   }
 
   bool fileExists(String filename) {
-    // frog calls this to check if files exist before reading them.  We return 
-    // true here for all files, and let it fail later if frog attempts to read 
+    // frog calls this to check if files exist before reading them.  We return
+    // true here for all files, and let it fail later if frog attempts to read
     // the contents of a non-existent file.
     return true;
   }
@@ -133,7 +134,7 @@ class HtmlFileSystem implements FileSystem {
   void createDirectory(String path, [bool recursive]) {
     throw new UnsupportedOperationException("");
   }
-  
+
   void removeDirectory(String path, [bool recursive]) {
     throw new UnsupportedOperationException("");
   }

@@ -83,14 +83,15 @@ main() {
   // test.dart. However, don't do it if the silent progress indicator
   // is used. This is only needed because of the junit tests.
   if (progressIndicator != 'silent') {
-    StringBuffer sb = new StringBuffer('Test configuration');
-    sb.add(configurations.length > 1 ? 's:' : ':');
+    List output_words = configurations.length > 1 ?
+        ['Test configurations:'] : ['Test configuration:'];
     for (Map conf in configurations) {
-      sb.add(' ${conf["compiler"]}_${conf["runtime"]}_${conf["mode"]}_' +
-          '${conf["arch"]}');
-      if (conf['checked']) sb.add('_checked');
+      List settings =
+          ['compiler', 'runtime', 'mode', 'arch'].map((name) => conf[name]);
+      if (conf['checked']) settings.add('checked');
+      output_words.add(Strings.join(settings, '_'));
     }
-    print(sb);
+    print(Strings.join(output_words, ' '));
   }
 
   var configurationIterator = configurations.iterator();

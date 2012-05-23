@@ -67,30 +67,30 @@ void processCommand(String cmdLine) {
   if (args.length == 0) {
     return;
   }
-  var cmd = args[0];
-  if (cmd == "r") {
+  var command = args[0];
+  if (command == "r") {
     var cmd = { "id": seqNum, "command": "resume" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
-  } else if (cmd == "s") {
+  } else if (command == "s") {
     var cmd = { "id": seqNum, "command": "stepOver" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
-  } else if (cmd == "si") {
+  } else if (command == "si") {
     var cmd = { "id": seqNum, "command": "stepInto" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
-  } else if (cmd == "so") {
+  } else if (command == "so") {
     var cmd = { "id": seqNum, "command": "stepOut" };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
-  } else if (cmd == "bt") {
+  } else if (command == "bt") {
     var cmd = { "id": seqNum, "command": "getStackTrace" };
     sendCmd(cmd).then((result) => handleStackTraceResponse(result));
-  } else if (cmd == "ll") {
+  } else if (command == "ll") {
     var cmd = { "id": seqNum, "command": "getLibraryURLs" };
     sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
-  } else if (cmd == "sbp" && args.length >= 2) {
+  } else if (command == "sbp" && args.length >= 2) {
     var url, line;
     if (args.length == 2) {
       url = stackTrace[0]["location"]["url"];
@@ -103,25 +103,25 @@ void processCommand(String cmdLine) {
                 "command": "setBreakpoint",
                 "params": { "url": url, "line": line }};
     sendCmd(cmd).then((result) => handleSetBpResponse(result));
-  } else if (cmd == "ls" && args.length == 2) {
+  } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                  "command": "getScriptURLs",
                 "params": { "library": args[1] }};
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
-  } else if (cmd == "po" && args.length == 2) {
+  } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum, "command": "getObjectProperties",
                 "params": {"objectId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetObjPropsResponse(result));
-  } else if (cmd == "pc" && args.length == 2) {
+  } else if (command == "pc" && args.length == 2) {
     var cmd = { "id": seqNum, "command": "getClassProperties",
                 "params": {"classId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
-  } else if (cmd == "q") {
+  } else if (command == "q") {
     quitShell();
-  } else if (cmd == "h") {
+  } else if (command == "h") {
     printHelp();
   } else {
-    print("command '$cmd' not understood, try h for help");
+    print("command '$command' not understood, try h for help");
   }
 }
 
