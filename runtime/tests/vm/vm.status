@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# NOTE(turnidge): These tests (and the code they cover) is going away soon.
+dart/isolate_mirror*: Skip
+
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 cc/RunLoop_ExceptionChild: Fail
 
