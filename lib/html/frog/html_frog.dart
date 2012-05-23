@@ -17337,7 +17337,9 @@ interface AbstractWorkerEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAnchorElement
-interface AnchorElement extends Element {
+interface AnchorElement extends Element default _Elements {
+
+  AnchorElement([String href]);
 
   /** @domName HTMLAnchorElement.charset */
   String charset;
@@ -17535,7 +17537,9 @@ interface AppletElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAreaElement
-interface AreaElement extends Element {
+interface AreaElement extends Element default _Elements {
+
+  AreaElement();
 
   /** @domName HTMLAreaElement.alt */
   String alt;
@@ -18049,7 +18053,9 @@ interface AudioSourceNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBRElement
-interface BRElement extends Element {
+interface BRElement extends Element default _Elements {
+
+  BRElement();
 
   /** @domName HTMLBRElement.clear */
   String clear;
@@ -18073,7 +18079,9 @@ interface BarInfo {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBaseElement
-interface BaseElement extends Element {
+interface BaseElement extends Element default _Elements {
+
+  BaseElement();
 
   /** @domName HTMLBaseElement.href */
   String href;
@@ -18222,7 +18230,9 @@ interface Blob {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBodyElement
-interface BodyElement extends Element {
+interface BodyElement extends Element default _Elements {
+
+  BodyElement();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -18280,7 +18290,9 @@ interface BodyElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLButtonElement
-interface ButtonElement extends Element {
+interface ButtonElement extends Element default _Elements {
+
+  ButtonElement();
 
   /** @domName HTMLButtonElement.autofocus */
   bool autofocus;
@@ -20754,7 +20766,9 @@ interface CSSValueList extends CSSValue {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLCanvasElement
-interface CanvasElement extends Element {
+interface CanvasElement extends Element default _Elements {
+
+  CanvasElement([int height, int width]);
 
   /** @domName HTMLCanvasElement.height */
   int height;
@@ -21333,7 +21347,9 @@ interface CustomEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDListElement
-interface DListElement extends Element {
+interface DListElement extends Element default _Elements {
+
+  DListElement();
 
   /** @domName HTMLDListElement.compact */
   bool compact;
@@ -22070,7 +22086,9 @@ interface DeprecatedPeerConnectionEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDetailsElement
-interface DetailsElement extends Element {
+interface DetailsElement extends Element default _Elements {
+
+  DetailsElement();
 
   /** @domName HTMLDetailsElement.open */
   bool open;
@@ -22196,7 +22214,9 @@ interface DirectoryReaderSync {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDivElement
-interface DivElement extends Element {
+interface DivElement extends Element default _Elements {
+
+  DivElement();
 
   /** @domName HTMLDivElement.align */
   String align;
@@ -22986,7 +23006,9 @@ interface ElementTraversal {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLEmbedElement
-interface EmbedElement extends Element {
+interface EmbedElement extends Element default _Elements {
+
+  EmbedElement();
 
   /** @domName HTMLEmbedElement.align */
   String align;
@@ -23409,7 +23431,9 @@ interface EventTarget {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFieldSetElement
-interface FieldSetElement extends Element {
+interface FieldSetElement extends Element default _Elements {
+
+  FieldSetElement();
 
   /** @domName HTMLFieldSetElement.disabled */
   bool disabled;
@@ -24046,7 +24070,9 @@ interface Geoposition {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHRElement
-interface HRElement extends Element {
+interface HRElement extends Element default _Elements {
+
+  HRElement();
 
   /** @domName HTMLHRElement.align */
   String align;
@@ -24142,7 +24168,9 @@ interface HashChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadElement
-interface HeadElement extends Element {
+interface HeadElement extends Element default _Elements {
+
+  HeadElement();
 
   /** @domName HTMLHeadElement.profile */
   String profile;
@@ -24196,7 +24224,9 @@ interface History {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHtmlElement
-interface HtmlElement extends Element {
+interface HtmlElement extends Element default _Elements {
+
+  HtmlElement();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24662,7 +24692,9 @@ interface IDBVersionChangeRequestEvents extends IDBRequestEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLIFrameElement
-interface IFrameElement extends Element {
+interface IFrameElement extends Element default _Elements {
+
+  IFrameElement();
 
   /** @domName HTMLIFrameElement.align */
   String align;
@@ -24752,7 +24784,9 @@ interface ImageData {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLImageElement
-interface ImageElement extends Element {
+interface ImageElement extends Element default _Elements {
+
+  ImageElement([String src, int height, int width]);
 
   /** @domName HTMLImageElement.align */
   String align;
@@ -24818,7 +24852,9 @@ interface ImageElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLInputElement
-interface InputElement extends Element {
+interface InputElement extends Element default _Elements {
+
+  InputElement([String type]);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -25178,7 +25214,9 @@ interface KeyboardEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLKeygenElement
-interface KeygenElement extends Element {
+interface KeygenElement extends Element default _Elements {
+
+  KeygenElement();
 
   /** @domName HTMLKeygenElement.autofocus */
   bool autofocus;
@@ -25226,7 +25264,9 @@ interface KeygenElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLIElement
-interface LIElement extends Element {
+interface LIElement extends Element default _Elements {
+
+  LIElement();
 
   /** @domName HTMLLIElement.type */
   String type;
@@ -25241,7 +25281,9 @@ interface LIElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLabelElement
-interface LabelElement extends Element {
+interface LabelElement extends Element default _Elements {
+
+  LabelElement();
 
   /** @domName HTMLLabelElement.control */
   final Element control;
@@ -25259,7 +25301,9 @@ interface LabelElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLegendElement
-interface LegendElement extends Element {
+interface LegendElement extends Element default _Elements {
+
+  LegendElement();
 
   /** @domName HTMLLegendElement.align */
   String align;
@@ -25274,7 +25318,9 @@ interface LegendElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLinkElement
-interface LinkElement extends Element {
+interface LinkElement extends Element default _Elements {
+
+  LinkElement();
 
   /** @domName HTMLLinkElement.charset */
   String charset;
@@ -25379,7 +25425,9 @@ interface Location {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMapElement
-interface MapElement extends Element {
+interface MapElement extends Element default _Elements {
+
+  MapElement();
 
   /** @domName HTMLMapElement.areas */
   final HTMLCollection areas;
@@ -25954,7 +26002,9 @@ interface MemoryInfo {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMenuElement
-interface MenuElement extends Element {
+interface MenuElement extends Element default _Elements {
+
+  MenuElement();
 
   /** @domName HTMLMenuElement.compact */
   bool compact;
@@ -26096,7 +26146,9 @@ typedef bool MetadataCallback(Metadata metadata);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMeterElement
-interface MeterElement extends Element {
+interface MeterElement extends Element default _Elements {
+
+  MeterElement();
 
   /** @domName HTMLMeterElement.high */
   num high;
@@ -26793,7 +26845,9 @@ interface OESVertexArrayObject {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOListElement
-interface OListElement extends Element {
+interface OListElement extends Element default _Elements {
+
+  OListElement();
 
   /** @domName HTMLOListElement.compact */
   bool compact;
@@ -26814,7 +26868,9 @@ interface OListElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLObjectElement
-interface ObjectElement extends Element {
+interface ObjectElement extends Element default _Elements {
+
+  ObjectElement();
 
   /** @domName HTMLObjectElement.align */
   String align;
@@ -26927,7 +26983,9 @@ interface OperationNotAllowedException {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOptGroupElement
-interface OptGroupElement extends Element {
+interface OptGroupElement extends Element default _Elements {
+
+  OptGroupElement();
 
   /** @domName HTMLOptGroupElement.disabled */
   bool disabled;
@@ -27022,7 +27080,9 @@ interface Oscillator extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOutputElement
-interface OutputElement extends Element {
+interface OutputElement extends Element default _Elements {
+
+  OutputElement();
 
   /** @domName HTMLOutputElement.defaultValue */
   String defaultValue;
@@ -27103,7 +27163,9 @@ interface PageTransitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLParagraphElement
-interface ParagraphElement extends Element {
+interface ParagraphElement extends Element default _Elements {
+
+  ParagraphElement();
 
   /** @domName HTMLParagraphElement.align */
   String align;
@@ -27115,7 +27177,9 @@ interface ParagraphElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLParamElement
-interface ParamElement extends Element {
+interface ParamElement extends Element default _Elements {
+
+  ParamElement();
 
   /** @domName HTMLParamElement.name */
   String name;
@@ -27445,7 +27509,9 @@ typedef bool PositionErrorCallback(PositionError error);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLPreElement
-interface PreElement extends Element {
+interface PreElement extends Element default _Elements {
+
+  PreElement();
 
   /** @domName HTMLPreElement.width */
   int width;
@@ -27478,7 +27544,9 @@ interface ProcessingInstruction extends Node {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLProgressElement
-interface ProgressElement extends Element {
+interface ProgressElement extends Element default _Elements {
+
+  ProgressElement();
 
   /** @domName HTMLProgressElement.labels */
   final NodeList labels;
@@ -31270,7 +31338,9 @@ interface Screen {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLScriptElement
-interface ScriptElement extends Element {
+interface ScriptElement extends Element default _Elements {
+
+  ScriptElement();
 
   /** @domName HTMLScriptElement.async */
   bool async;
@@ -31539,7 +31609,9 @@ typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSourceElement
-interface SourceElement extends Element {
+interface SourceElement extends Element default _Elements {
+
+  SourceElement();
 
   /** @domName HTMLSourceElement.media */
   String media;
@@ -31557,7 +31629,9 @@ interface SourceElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSpanElement
-interface SpanElement extends Element {
+interface SpanElement extends Element default _Elements {
+
+  SpanElement();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31920,7 +31994,9 @@ typedef bool StringCallback(String data);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLStyleElement
-interface StyleElement extends Element {
+interface StyleElement extends Element default _Elements {
+
+  StyleElement();
 
   /** @domName HTMLStyleElement.disabled */
   bool disabled;
@@ -32004,7 +32080,9 @@ interface StyleSheetList extends List<StyleSheet> {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableCaptionElement
-interface TableCaptionElement extends Element {
+interface TableCaptionElement extends Element default _Elements {
+
+  TableCaptionElement();
 
   /** @domName HTMLTableCaptionElement.align */
   String align;
@@ -32016,7 +32094,9 @@ interface TableCaptionElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableCellElement
-interface TableCellElement extends Element {
+interface TableCellElement extends Element default _Elements {
+
+  TableCellElement();
 
   /** @domName HTMLTableCellElement.abbr */
   String abbr;
@@ -32070,7 +32150,9 @@ interface TableCellElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableColElement
-interface TableColElement extends Element {
+interface TableColElement extends Element default _Elements {
+
+  TableColElement();
 
   /** @domName HTMLTableColElement.align */
   String align;
@@ -32097,7 +32179,9 @@ interface TableColElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableElement
-interface TableElement extends Element {
+interface TableElement extends Element default _Elements {
+
+  TableElement();
 
   /** @domName HTMLTableElement.align */
   String align;
@@ -32175,7 +32259,9 @@ interface TableElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableRowElement
-interface TableRowElement extends Element {
+interface TableRowElement extends Element default _Elements {
+
+  TableRowElement();
 
   /** @domName HTMLTableRowElement.align */
   String align;
@@ -32264,7 +32350,9 @@ interface Text extends CharacterData default _TextFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTextAreaElement
-interface TextAreaElement extends Element {
+interface TextAreaElement extends Element default _Elements {
+
+  TextAreaElement();
 
   /** @domName HTMLTextAreaElement.autofocus */
   bool autofocus;
@@ -32584,7 +32672,9 @@ typedef void TimeoutHandler();
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTitleElement
-interface TitleElement extends Element {
+interface TitleElement extends Element default _Elements {
+
+  TitleElement();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32686,7 +32776,9 @@ interface TouchList extends List<Touch> {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTrackElement
-interface TrackElement extends Element {
+interface TrackElement extends Element default _Elements {
+
+  TrackElement();
 
   static final int ERROR = 3;
 
@@ -32835,7 +32927,9 @@ interface UIEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLUListElement
-interface UListElement extends Element {
+interface UListElement extends Element default _Elements {
+
+  UListElement();
 
   /** @domName HTMLUListElement.compact */
   bool compact;
@@ -32997,7 +33091,9 @@ interface ValidityState {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLVideoElement
-interface VideoElement extends MediaElement {
+interface VideoElement extends MediaElement default _Elements {
+
+  VideoElement();
 
   /** @domName HTMLVideoElement.height */
   int height;
@@ -35480,6 +35576,261 @@ interface XSLTProcessor default _XSLTProcessorFactoryProvider {
 
   /** @domName XSLTProcessor.transformToFragment */
   DocumentFragment transformToFragment(Node source, Document docVal);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _Elements {
+
+  // helper code goes here
+
+  factory AnchorElement([String href]) {
+    _AnchorElementImpl _e = _document.$dom_createElement("a");
+    if (href != null) _e.href = href;
+    return _e;
+  }
+
+  factory AreaElement() {
+    _AreaElementImpl _e = _document.$dom_createElement("area");
+    return _e;
+  }
+
+  factory BRElement() {
+    _BRElementImpl _e = _document.$dom_createElement("br");
+    return _e;
+  }
+
+  factory BaseElement() {
+    _BaseElementImpl _e = _document.$dom_createElement("base");
+    return _e;
+  }
+
+  factory BodyElement() {
+    _BodyElementImpl _e = _document.$dom_createElement("body");
+    return _e;
+  }
+
+  factory ButtonElement() {
+    _ButtonElementImpl _e = _document.$dom_createElement("button");
+    return _e;
+  }
+
+  factory CanvasElement([int height, int width]) {
+    _CanvasElementImpl _e = _document.$dom_createElement("canvas");
+    if (height != null) _e.height = height;
+    if (width != null) _e.width = width;
+    return _e;
+  }
+
+  factory DListElement() {
+    _DListElementImpl _e = _document.$dom_createElement("dl");
+    return _e;
+  }
+
+  factory DetailsElement() {
+    _DetailsElementImpl _e = _document.$dom_createElement("details");
+    return _e;
+  }
+
+  factory DivElement() {
+    _DivElementImpl _e = _document.$dom_createElement("div");
+    return _e;
+  }
+
+  factory EmbedElement() {
+    _EmbedElementImpl _e = _document.$dom_createElement("embed");
+    return _e;
+  }
+
+  factory FieldSetElement() {
+    _FieldSetElementImpl _e = _document.$dom_createElement("fieldset");
+    return _e;
+  }
+
+  factory HRElement() {
+    _HRElementImpl _e = _document.$dom_createElement("hr");
+    return _e;
+  }
+
+  factory HeadElement() {
+    _HeadElementImpl _e = _document.$dom_createElement("head");
+    return _e;
+  }
+
+  factory HtmlElement() {
+    _HtmlElementImpl _e = _document.$dom_createElement("html");
+    return _e;
+  }
+
+  factory IFrameElement() {
+    _IFrameElementImpl _e = _document.$dom_createElement("iframe");
+    return _e;
+  }
+
+  factory ImageElement([String src, int height, int width]) {
+    _ImageElementImpl _e = _document.$dom_createElement("img");
+    if (src != null) _e.src = src;
+    if (height != null) _e.height = height;
+    if (width != null) _e.width = width;
+    return _e;
+  }
+
+  factory InputElement([String type]) {
+    _InputElementImpl _e = _document.$dom_createElement("input");
+    if (type != null) _e.type = type;
+    return _e;
+  }
+
+  factory KeygenElement() {
+    _KeygenElementImpl _e = _document.$dom_createElement("keygen");
+    return _e;
+  }
+
+  factory LIElement() {
+    _LIElementImpl _e = _document.$dom_createElement("li");
+    return _e;
+  }
+
+  factory LabelElement() {
+    _LabelElementImpl _e = _document.$dom_createElement("label");
+    return _e;
+  }
+
+  factory LegendElement() {
+    _LegendElementImpl _e = _document.$dom_createElement("legend");
+    return _e;
+  }
+
+  factory LinkElement() {
+    _LinkElementImpl _e = _document.$dom_createElement("link");
+    return _e;
+  }
+
+  factory MapElement() {
+    _MapElementImpl _e = _document.$dom_createElement("map");
+    return _e;
+  }
+
+  factory MenuElement() {
+    _MenuElementImpl _e = _document.$dom_createElement("menu");
+    return _e;
+  }
+
+  factory MeterElement() {
+    _MeterElementImpl _e = _document.$dom_createElement("meter");
+    return _e;
+  }
+
+  factory OListElement() {
+    _OListElementImpl _e = _document.$dom_createElement("ol");
+    return _e;
+  }
+
+  factory ObjectElement() {
+    _ObjectElementImpl _e = _document.$dom_createElement("object");
+    return _e;
+  }
+
+  factory OptGroupElement() {
+    _OptGroupElementImpl _e = _document.$dom_createElement("optgroup");
+    return _e;
+  }
+
+  factory OutputElement() {
+    _OutputElementImpl _e = _document.$dom_createElement("output");
+    return _e;
+  }
+
+  factory ParagraphElement() {
+    _ParagraphElementImpl _e = _document.$dom_createElement("p");
+    return _e;
+  }
+
+  factory ParamElement() {
+    _ParamElementImpl _e = _document.$dom_createElement("param");
+    return _e;
+  }
+
+  factory PreElement() {
+    _PreElementImpl _e = _document.$dom_createElement("pre");
+    return _e;
+  }
+
+  factory ProgressElement() {
+    _ProgressElementImpl _e = _document.$dom_createElement("progress");
+    return _e;
+  }
+
+  factory ScriptElement() {
+    _ScriptElementImpl _e = _document.$dom_createElement("script");
+    return _e;
+  }
+
+  factory SourceElement() {
+    _SourceElementImpl _e = _document.$dom_createElement("source");
+    return _e;
+  }
+
+  factory SpanElement() {
+    _SpanElementImpl _e = _document.$dom_createElement("span");
+    return _e;
+  }
+
+  factory StyleElement() {
+    _StyleElementImpl _e = _document.$dom_createElement("style");
+    return _e;
+  }
+
+  factory TableCaptionElement() {
+    _TableCaptionElementImpl _e = _document.$dom_createElement("caption");
+    return _e;
+  }
+
+  factory TableCellElement() {
+    _TableCellElementImpl _e = _document.$dom_createElement("td");
+    return _e;
+  }
+
+  factory TableColElement() {
+    _TableColElementImpl _e = _document.$dom_createElement("col");
+    return _e;
+  }
+
+  factory TableElement() {
+    _TableElementImpl _e = _document.$dom_createElement("table");
+    return _e;
+  }
+
+  factory TableRowElement() {
+    _TableRowElementImpl _e = _document.$dom_createElement("tr");
+    return _e;
+  }
+
+  factory TextAreaElement() {
+    _TextAreaElementImpl _e = _document.$dom_createElement("textarea");
+    return _e;
+  }
+
+  factory TitleElement() {
+    _TitleElementImpl _e = _document.$dom_createElement("title");
+    return _e;
+  }
+
+  factory TrackElement() {
+    _TrackElementImpl _e = _document.$dom_createElement("track");
+    return _e;
+  }
+
+  factory UListElement() {
+    _UListElementImpl _e = _document.$dom_createElement("ul");
+    return _e;
+  }
+
+  factory VideoElement() {
+    _VideoElementImpl _e = _document.$dom_createElement("video");
+    return _e;
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

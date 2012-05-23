@@ -439,6 +439,94 @@ _html_event_names = {
   'writestart': 'writeStart'
 }
 
+
+
+# Information for generating element constructors.
+#
+# TODO(sra): maybe remove all the argument complexity and use cascades.
+#
+#   var c = new CanvasElement(width: 100, height: 70);
+#   var c = new CanvasElement()..width = 100..height = 70;
+#
+class ElementCtorInfo(object):
+  def __init__(self, tag=None, params=[], opt_params=[],
+               factory_provider_name='_Elements'):
+    self.tag = tag
+    self.params = params
+    self.opt_params = opt_params
+    self.factory_provider_name = factory_provider_name
+
+  def ConstructorInfo(self, interface):
+    info = OperationInfo()
+    info.overloads = None
+    info.declared_name = interface.id
+    info.name = interface.id
+    info.js_name = None
+    info.type_name = interface.id
+    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], None, tXn[0], 'null'),
+                           self.opt_params)
+    return info
+
+_html_element_constructors = {
+  'AnchorElement' : ElementCtorInfo(tag='a', opt_params=[('String', 'href')]),
+  'AreaElement': 'area',
+  'ButtonElement': 'button',
+  'BRElement': 'br',
+  'BaseElement': 'base',
+  'BodyElement': 'body',
+  'ButtonElement': 'button',
+  'CanvasElement':
+    ElementCtorInfo(tag='canvas',
+                    opt_params=[('int', 'height'), ('int', 'width')]),
+  'DListElement': 'dl',
+  'DetailsElement': 'details',
+  'DivElement': 'div',
+  'EmbedElement': 'embed',
+  'FieldSetElement': 'fieldset',
+  'Form': 'form',
+  'HRElement': 'hr',
+  'HeadElement': 'head',
+  'HtmlElement': 'html',
+  'IFrameElement': 'iframe',
+  'ImageElement':
+    ElementCtorInfo(tag='img',
+                    opt_params=[('String', 'src'),
+                                ('int', 'height'), ('int', 'width')]),
+  'InputElement':
+    ElementCtorInfo(tag='input', opt_params=[('String', 'type')]),
+  'KeygenElement': 'keygen',
+  'LIElement': 'li',
+  'LabelElement': 'label',
+  'LegendElement': 'legend',
+  'LinkElement': 'link',
+  'MapElement': 'map',
+  'MenuElement': 'menu',
+  'MeterElement': 'meter',
+  'OListElement': 'ol',
+  'ObjectElement': 'object',
+  'OptGroupElement': 'optgroup',
+  'OutputElement': 'output',
+  'ParagraphElement': 'p',
+  'ParamElement': 'param',
+  'PreElement': 'pre',
+  'ProgressElement': 'progress',
+  'ScriptElement': 'script',
+  'SourceElement': 'source',
+  'SpanElement': 'span',
+  'StyleElement': 'style',
+  'TableCaptionElement': 'caption',
+  'TableCellElement': 'td',
+  'TableColElement': 'col',
+  'TableElement': 'table',
+  'TableRowElement': 'tr',
+  #'TableSectionElement'  <thead> <tbody> <tfoot>
+  'TextAreaElement': 'textarea',
+  'TitleElement': 'title',
+  'TrackElement': 'track',
+  'UListElement': 'ul',
+  'VideoElement': 'video'
+}
+
 # These classes require an explicit declaration for the "on" method even though
 # they don't declare any unique events, because the concrete class hierarchy
 # doesn't match the interface hierarchy.
@@ -591,6 +679,7 @@ class HtmlInterfacesSystem(HtmlSystem):
     super(HtmlInterfacesSystem, self).__init__(
         templates, database, emitters, output_dir)
     self._dart_interface_file_paths = []
+    self._factory_provider_emitters = {}
 
   def InterfaceGenerator(self,
                          interface,
@@ -631,6 +720,15 @@ class HtmlInterfacesSystem(HtmlSystem):
     # TODO(jmesserly): is this the right path
     return os.path.join(self._output_dir, 'html', 'interface',
                         '%s.dart' % interface_name)
+
+  def _EmitterForFactoryProviderBody(self, name):
+    if name not in self._factory_provider_emitters:
+      path = self._FilePathForDartInterface(name)
+      self._dart_interface_file_paths.append(path)
+      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
+      file_emitter = self._emitters.FileEmitter(path)
+      self._factory_provider_emitters[name] = file_emitter.Emit(template)
+    return self._factory_provider_emitters[name]
 
 # ------------------------------------------------------------------------------
 
@@ -677,6 +775,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     if constructor_info:
       factory_provider = '_' + typename + 'FactoryProvider';
 
+    if not constructor_info:
+      (constructor_info, factory_provider) = self._EmitElementFactory(typename)
+
     if typename in interface_factories:
       factory_provider = interface_factories[typename]
 
@@ -722,6 +823,31 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       self.AddEventAttributes(events)
     else:
       self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
+
+  def _EmitElementFactory(self, typename):
+    """Returns pair (constructor_info, factory_provider_name)."""
+    if typename not in _html_element_constructors:
+      return (None, None)
+    info = _html_element_constructors[typename]
+    if isinstance(info, str): info = ElementCtorInfo(tag=info)
+    constructor_info = info.ConstructorInfo(self._interface)
+    em = self._system._EmitterForFactoryProviderBody(info.factory_provider_name)
+    inits = em.Emit(
+        '\n'
+        '  factory $CONSTRUCTOR($PARAMS) {\n'
+        '    $CLASSNAME _e = _document.$dom_createElement("$TAG");\n'
+        '$!INITS'
+        '    return _e;\n'
+        '  }\n',
+        CONSTRUCTOR=typename,
+        CLASSNAME='_' + typename + 'Impl',  # TODO: fix
+        TAG=info.tag,
+        PARAMS=constructor_info.ParametersInterfaceDeclaration())
+    for param in constructor_info.param_infos:
+      inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
+
+    return (constructor_info, info.factory_provider_name)
+
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter)
