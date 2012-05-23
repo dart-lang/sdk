@@ -244,9 +244,11 @@ class _DirectoryLister implements DirectoryLister {
             var err = new OSError(
                 message[kResponseError][_FileUtils.kOSErrorResponseMessage],
                 message[kResponseError][_FileUtils.kOSErrorResponseErrorCode]);
+            var errorPath = message[kResponsePath];
+            if (errorPath == null) errorPath = path;
             _reportError(new DirectoryIOException("Directory listing failed",
-                                              message[kResponsePath],
-                                              err));
+                                                  errorPath,
+                                                  err));
           } else {
             _reportError(new DirectoryIOException("Internal error"));
           }

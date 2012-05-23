@@ -187,7 +187,7 @@ static CObject* DirectoryListRequest(const CObjectArray& request,
   CObjectArray* response = new CObjectArray(CObject::NewArray(3));
   response->SetAt(0, new CObjectInt32(
       CObject::NewInt32(DirectoryListing::kListError)));
-  response->SetAt(1, request[1]);
+  response->SetAt(1, CObject::Null());
   response->SetAt(2, CObject::IllegalArgumentError());
   Dart_PostCObject(response_port, response->AsApiCObject());
 
