@@ -498,26 +498,21 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
   ASSERT(isolate != NULL);
   DARTSCOPE(isolate);
 
-  // Find out how many libraries are loaded in this isolate.
-  int num_libs = 0;
-  Library &lib = Library::Handle();
-  lib = isolate->object_store()->registered_libraries();
-  while (!lib.IsNull()) {
-    num_libs++;
-    lib = lib.next_registered();
-  }
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  int num_libs = libs.Length();
 
   // Create new list and populate with the url of loaded libraries.
-  const Array& library_list = Array::Handle(Array::New(num_libs));
-  lib = isolate->object_store()->registered_libraries();
+  Library &lib = Library::Handle();
   String& lib_url = String::Handle();
+  const Array& library_url_list = Array::Handle(Array::New(num_libs));
   for (int i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
     lib_url = lib.url();
-    library_list.SetAt(i, lib_url);
-    lib = lib.next_registered();
+    library_url_list.SetAt(i, lib_url);
   }
-  return Api::NewHandle(isolate, library_list.raw());
+  return Api::NewHandle(isolate, library_url_list.raw());
 }
 
 }  // namespace dart

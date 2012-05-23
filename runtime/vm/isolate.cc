@@ -324,10 +324,12 @@ void Isolate::PrintInvokedFunctions() {
   ASSERT(this == Isolate::Current());
   Zone zone(this);
   HandleScope handle_scope(this);
+  const GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(object_store()->libraries());
   Library& library = Library::Handle();
-  library = object_store()->registered_libraries();
   GrowableArray<const Function*> invoked_functions;
-  while (!library.IsNull()) {
+  for (int i = 0; i < libraries.Length(); i++) {
+    library ^= libraries.At(i);
     Class& cls = Class::Handle();
     ClassDictionaryIterator iter(library);
     while (iter.HasNext()) {
@@ -339,7 +341,6 @@ void Isolate::PrintInvokedFunctions() {
       cls ^= anon_classes.At(i);
       AddFunctionsFromClass(cls, &invoked_functions);
     }
-    library = library.next_registered();
   }
   invoked_functions.Sort(MostUsedFunctionFirst);
   for (int i = 0; i < invoked_functions.length(); i++) {

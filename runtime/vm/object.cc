@@ -497,6 +497,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<OneByteString>();
   object_store->set_one_byte_string_class(cls);
 
+  // Set up the libraries array before initializing the core library.
+  const GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
+  object_store->set_libraries(libraries);
+
   // Basic infrastructure has been setup, initialize the class dictionary.
   Library::InitCoreLibrary(isolate);
   Library& core_lib = Library::Handle(Library::CoreLibrary());
@@ -5306,7 +5311,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->anonymous_classes_ = Array::Empty();
   result.raw_ptr()->num_anonymous_ = 0;
   result.raw_ptr()->imports_ = Array::Empty();
-  result.raw_ptr()->next_registered_ = Library::null();
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -5404,32 +5408,34 @@ RawLibrary* Library::LookupLibrary(const String &url) {
   Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle(isolate, Library::null());
   String& lib_url = String::Handle(isolate, String::null());
-  lib = isolate->object_store()->registered_libraries();
-  while (!lib.IsNull()) {
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
     lib_url = lib.url();
     if (lib_url.Equals(url)) {
       return lib.raw();
     }
-    lib = lib.next_registered();
   }
   return Library::null();
 }
 
 
 RawString* Library::CheckForDuplicateDefinition() {
-  Library& lib = Library::Handle();
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
-  lib ^= object_store->registered_libraries();
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(object_store->libraries());
+  Library& lib = Library::Handle();
   String& error_message = String::Handle();
-  while (!lib.IsNull()) {
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
     error_message = lib.FindDuplicateDefinition();
     if (!error_message.IsNull()) {
       return error_message.raw();
     }
-    lib ^= lib.next_registered();
   }
   return String::null();
 }
@@ -5437,16 +5443,17 @@ RawString* Library::CheckForDuplicateDefinition() {
 
 bool Library::IsKeyUsed(intptr_t key) {
   intptr_t lib_key;
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
   Library& lib = Library::Handle();
-  lib = Isolate::Current()->object_store()->registered_libraries();
   String& lib_url = String::Handle();
-  while (!lib.IsNull()) {
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
     lib_url ^= lib.url();
     lib_key = lib_url.Hash();
     if (lib_key == key) {
       return true;
     }
-    lib = lib.next_registered();
   }
   return false;
 }
@@ -5463,11 +5470,27 @@ RawString* Library::PrivateName(const String& name) const {
 }
 
 
+RawLibrary* Library::GetLibrary(intptr_t index) {
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  ASSERT(!libs.IsNull());
+  if ((0 <= index) && (index < libs.Length())) {
+    Library& lib = Library::Handle();
+    lib ^= libs.At(index);
+    return lib.raw();
+  }
+  return Library::null();
+}
+
+
 void Library::Register() const {
   ASSERT(Library::LookupLibrary(String::Handle(url())) == Library::null());
-  raw_ptr()->next_registered_ =
-      Isolate::Current()->object_store()->registered_libraries();
-  Isolate::Current()->object_store()->set_registered_libraries(*this);
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(object_store->libraries());
+  ASSERT(!libs.IsNull());
+  libs.Add(*this);
 }
 
 
@@ -5667,10 +5690,12 @@ void LibraryPrefix::set_num_libs(intptr_t value) const {
 
 RawError* Library::CompileAll() {
   Error& error = Error::Handle();
-  Library& lib = Library::Handle(
-      Isolate::Current()->object_store()->registered_libraries());
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
+  Library& lib = Library::Handle();
   Class& cls = Class::Handle();
-  while (!lib.IsNull()) {
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
       cls ^= it.GetNextClass();
@@ -5690,7 +5715,6 @@ RawError* Library::CompileAll() {
         return error.raw();
       }
     }
-    lib = lib.next_registered();
   }
   return error.raw();
 }

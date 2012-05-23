@@ -725,13 +725,14 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                                           intptr_t line_number) {
   Library& lib = Library::Handle();
   Script& script = Script::Handle();
-  lib = isolate_->object_store()->registered_libraries();
-  while (!lib.IsNull()) {
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
       break;
     }
-    lib = lib.next_registered();
   }
   if (script.IsNull()) {
     if (verbose) {

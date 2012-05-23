@@ -1770,11 +1770,10 @@ class Library : public Object {
 
   void Register() const;
 
-  RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
-
   RawString* DuplicateDefineErrorString(const String& entry_name,
                                         const Library& conflicting_lib) const;
   static RawLibrary* LookupLibrary(const String& url);
+  static RawLibrary* GetLibrary(intptr_t index);
   static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
 

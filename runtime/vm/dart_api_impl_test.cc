@@ -4240,7 +4240,7 @@ TEST_CASE(ImportLibrary3) {
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
-               " 'library1.dart' and 'library2.dart'\n",
+               " 'library2.dart' and 'library1.dart'\n",
                Dart_GetError(result));
 }
 
@@ -4312,7 +4312,7 @@ TEST_CASE(ImportLibrary4) {
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Duplicate definition : 'fooC' is defined in"
-               " 'libraryF.dart' and 'libraryC.dart'\n",
+               " 'libraryC.dart' and 'libraryF.dart'\n",
                Dart_GetError(result));
 }
 

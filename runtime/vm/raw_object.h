@@ -668,10 +668,9 @@ class RawLibrary : public RawObject {
   RawArray* imports_;            // List of libraries imported without prefix.
   RawArray* imported_into_;      // List of libraries where this library
                                  // is imported into without a prefix.
-  RawLibrary* next_registered_;  // Linked list of registered libraries.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->next_registered_);
+    return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
   }
 
   intptr_t num_imports_;         // Number of entries in imports_.
