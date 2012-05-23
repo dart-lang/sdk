@@ -60,7 +60,7 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
   }
   if (hasNativeClass) {
     final worlds = [compiler.enqueuer.resolution, compiler.enqueuer.codegen];
-    for (Universe world in worlds) {
+    for (var world in worlds) {
       world.registerStaticUse(compiler.findHelper(
           const SourceString('dynamicFunction')));
       world.registerStaticUse(compiler.findHelper(
