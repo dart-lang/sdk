@@ -31,16 +31,7 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 constructor5_test: Fail          # (Discussion ongoing)
 constructor6_test: Fail          # (Discussion ongoing)
 
-# Bad tests needing to be fixed.
-type_variable_scope_test/00: Fail # Issue 2395
-type_variable_scope_test/01: Fail # Issue 2395
-type_variable_scope_test/02: Fail # Issue 2395
-type_variable_scope_test/03: Fail # Issue 2395
-type_variable_scope_test/04: Fail # Issue 2395
-type_variable_scope_test/05: Fail # Issue 2395
-
 # Regular bugs which should be fixed.
-
 const_init6_negative_test: Fail       # Issue 811
 super_first_constructor_test: Fail # Issue 1372.
 
@@ -150,13 +141,7 @@ third_test: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 throw7_negative_test: Fail     # Bug 4208459.
 type_dartc_test: Fail          # Issue 2348
 type_variable_bounds_test/00: Fail # issue 3079
-type_variable_scope_test/00: Fail  # Issue 2395
-type_variable_scope_test/01: Fail  # Issue 2395
-type_variable_scope_test/02: Fail  # Issue 2395
-type_variable_scope_test/03: Fail  # Issue 2395
-type_variable_scope_test/04: Fail  # Issue 2395
-type_variable_scope_test/05: Fail  # Issue 2395
-constructor_redirect_test/01: Fail # Issue 2105.
+constructor_redirect_test/01: Fail # For the wrong reason - Issue 2105.
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -343,7 +328,7 @@ super_test: Fail  # this is testing precise ordering of super constructor call
 switch_label_test: Fail
 type_checks_in_factory_method_test: Fail # Issue 925
 type_variable_bounds_test/10: Fail # Issue 2134
-type_variable_scope2_test: Fail # should allow malformed type argument in production mode
+type_variable_scope2_test: Fail # Issue 2395
 type_variable_identifier_expression_negative_test: Fail # Issue 643
 type_variable_shadows_class: Fail # Issue 643
 wrong_number_type_arguments_test/00: Fail # Issue 2134
@@ -417,6 +402,12 @@ private_member_test/01: Fail # test seems bad - see issue #353
 private_member_test/02: Fail # test seems bad - see issue #353
 private_member_test/03: Fail # test seems bad - see issue #353
 private_member_test/04: Fail # test seems bad - see issue #353
+type_variable_scope_test/00: Fail  # Issue 2395
+type_variable_scope_test/01: Fail  # Issue 2395
+type_variable_scope_test/02: Fail  # Issue 2395
+type_variable_scope_test/03: Fail  # Issue 2395
+type_variable_scope_test/04: Fail  # Issue 2395
+type_variable_scope_test/05: Fail  # Issue 2395
 
 [ $compiler == frog && $checked ]
 f_bounded_quantification_test/01: Fail # Issue 439

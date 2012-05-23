@@ -15,6 +15,13 @@ type_variable_bounds2_test/00: Fail
 type_variable_bounds2_test/03: Fail
 type_variable_bounds2_test/05: Fail
 type_variable_bounds2_test/06: Pass # For the wrong reasons.
+type_variable_scope_test/00: Fail
+type_variable_scope_test/01: Fail
+type_variable_scope_test/02: Fail
+type_variable_scope_test/03: Fail
+type_variable_scope_test/04: Fail
+type_variable_scope_test/05: Fail
+type_variable_scope2_test: Fail
 assign_top_method_negative_test: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
@@ -201,12 +208,6 @@ static_top_level_test/05: Fail, OK # Negative language test.
 string_interpolation7_negative_test: Fail, OK # Negative language test.
 throw7_negative_test: Fail, OK # Negative language test.
 try_catch_syntax_test/08: Fail, OK # Negative language test.
-type_variable_scope_test/00: Fail, OK # Negative language test.
-type_variable_scope_test/01: Fail, OK # Negative language test.
-type_variable_scope_test/02: Fail, OK # Negative language test.
-type_variable_scope_test/03: Fail, OK # Negative language test.
-type_variable_scope_test/04: Fail, OK # Negative language test.
-type_variable_scope_test/05: Fail, OK # Negative language test.
 
 
 type_vm_test: Fail, OK # VM specific test.
