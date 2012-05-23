@@ -68,20 +68,10 @@ void processCommand(String cmdLine) {
     return;
   }
   var command = args[0];
-  if (command == "r") {
-    var cmd = { "id": seqNum, "command": "resume" };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
-  } else if (command == "s") {
-    var cmd = { "id": seqNum, "command": "stepOver" };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
-  } else if (command == "si") {
-    var cmd = { "id": seqNum, "command": "stepInto" };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
-  } else if (command == "so") {
-    var cmd = { "id": seqNum, "command": "stepOut" };
+  var simple_commands =
+      { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
+  if (simple_commands[command] != null) {
+    var cmd = { "id": seqNum, "command": simple_commands[command]};
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
   } else if (command == "bt") {
