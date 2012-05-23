@@ -1034,13 +1034,14 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     params->has_field_initializer = true;
   }
 
-  // Check that the formal parameter is not repeated.
+  // Check for duplicate formal parameters.
   const intptr_t num_existing_parameters =
       params->num_fixed_parameters + params->num_optional_parameters;
   for (intptr_t i = 0; i < num_existing_parameters; i++) {
     ParamDesc& existing_parameter = (*params->parameters)[i];
     if (existing_parameter.name->Equals(*parameter.name)) {
-      ErrorMsg(parameter.name_pos, "repeated formal parameter");
+      ErrorMsg(parameter.name_pos, "duplicate formal parameter '%s'",
+               parameter.name->ToCString());
     }
   }
 
@@ -3166,12 +3167,13 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           index,
                                           type_parameter_name,
                                           token_index_);
-      // Check that the type parameter is not repeated.
+      // Check for duplicate type parameters.
       for (intptr_t i = 0; i < index; i++) {
         existing_type_parameter ^= type_parameters_array.At(i);
         existing_type_parameter_name = existing_type_parameter.Name();
         if (existing_type_parameter_name.Equals(type_parameter_name)) {
-          ErrorMsg("repeated type parameter");
+          ErrorMsg("duplicate type parameter '%s'",
+                   type_parameter_name.ToCString());
         }
       }
       ConsumeToken();
