@@ -39,6 +39,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
+      parameterNames.forEach((element, name) {
+        compiler.enqueuer.codegen.addToWorkList(element);
+      });
       String parameters = Strings.join(parameterNames.getValues(), ', ');
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);

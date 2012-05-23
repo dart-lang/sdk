@@ -1733,8 +1733,6 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
     resolveExpression(node.arguments.head);
-    // TODO(ahe): Move this to codegen, and make sure that element isn't null.
-    if (element !== null) compiler.enqueuer.codegen.addToWorkList(element);
     return element;
   }
 
