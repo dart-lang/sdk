@@ -59,14 +59,17 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
     }
   }
   if (hasNativeClass) {
-    compiler.registerStaticUse(compiler.findHelper(
-        const SourceString('dynamicFunction')));
-    compiler.registerStaticUse(compiler.findHelper(
-        const SourceString('dynamicSetMetadata')));
-    compiler.registerStaticUse(compiler.findHelper(
-        const SourceString('defineProperty')));
-    compiler.registerStaticUse(compiler.findHelper(
-        const SourceString('toStringForNativeObject')));
+    final worlds = [compiler.enqueuer.resolution, compiler.enqueuer.codegen];
+    for (Universe world in worlds) {
+      world.registerStaticUse(compiler.findHelper(
+          const SourceString('dynamicFunction')));
+      world.registerStaticUse(compiler.findHelper(
+          const SourceString('dynamicSetMetadata')));
+      world.registerStaticUse(compiler.findHelper(
+          const SourceString('defineProperty')));
+      world.registerStaticUse(compiler.findHelper(
+          const SourceString('toStringForNativeObject')));
+    }
   }
 }
 

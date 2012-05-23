@@ -184,6 +184,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   LibraryElement get currentLibrary() => work.element.getLibrary();
   Compiler get compiler() => backend.compiler;
   NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
+  Enqueuer get world() => backend.compiler.enqueuer.codegen;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -1479,9 +1480,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (node.element !== null) {
         // If we know we're calling a specific method, register that
         // method only.
-        compiler.registerDynamicInvocationOf(node.element);
+        world.registerDynamicInvocationOf(node.element);
       } else {
-        compiler.registerDynamicInvocation(
+        world.registerDynamicInvocation(
             node.name, getOptimizedSelectorFor(node, node.selector));
       }
     }
@@ -1503,7 +1504,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.setterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    compiler.registerDynamicSetter(
+    world.registerDynamicSetter(
         node.name, getOptimizedSelectorFor(node, Selector.SETTER));
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
@@ -1514,7 +1515,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.getterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    compiler.registerDynamicGetter(
+    world.registerDynamicGetter(
         node.name, getOptimizedSelectorFor(node, Selector.GETTER));
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
@@ -1526,8 +1527,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(compiler.namer.closureInvocationName(node.selector));
     visitArguments(node.inputs);
     // TODO(floitsch): we should have a separate list for closure invocations.
-    compiler.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
-                                       node.selector);
+    world.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
+                                    node.selector);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
@@ -1560,7 +1561,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('$className.prototype.$methodName.call()');
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
-    compiler.registerStaticUse(superMethod);
+    world.registerStaticUse(superMethod);
   }
 
   visitFieldGet(HFieldGet node) {
@@ -1814,7 +1815,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void generateThrowWithHelper(String helperName, HInstruction argument) {
     Element helper = compiler.findHelper(new SourceString(helperName));
-    compiler.registerStaticUse(helper);
+    world.registerStaticUse(helper);
     buffer.add('throw ');
     beginExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
     beginExpression(JSPrecedence.CALL_PRECEDENCE);
@@ -1836,12 +1837,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStatic(HStatic node) {
-    compiler.registerStaticUse(node.element);
+    world.registerStaticUse(node.element);
     buffer.add(compiler.namer.isolateAccess(node.element));
   }
 
   void visitStaticStore(HStaticStore node) {
-    compiler.registerStaticUse(node.element);
+    world.registerStaticUse(node.element);
     beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     buffer.add(compiler.namer.isolateAccess(node.element));
     buffer.add(' = ');
@@ -2104,7 +2105,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (element.kind === ElementKind.TYPEDEF) {
       compiler.unimplemented("visitIs for typedefs", instruction: node);
     }
-    compiler.registerIsCheck(type.element);
+    world.registerIsCheck(type.element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
@@ -2171,7 +2172,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeConversion(HTypeConversion node) {
     if (node.checked) {
       Element element = node.type.computeType(compiler).element;
-      compiler.registerIsCheck(element);
+      world.registerIsCheck(element);
       SourceString helper;
       String additionalArgument;
       bool nativeCheck =
@@ -2213,7 +2214,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
       }
       Element helperElement = compiler.findHelper(helper);
-      compiler.registerStaticUse(helperElement);
+      world.registerStaticUse(helperElement);
       buffer.add(compiler.namer.isolateAccess(helperElement));
       buffer.add('(');
       use(node.checkedInput, JSPrecedence.EXPRESSION_PRECEDENCE);

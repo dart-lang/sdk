@@ -1487,8 +1487,10 @@ class SsaBuilder implements Visitor {
     ClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
+    // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.addToWorkList(callElement, elements);
-    compiler.registerInstantiatedClass(closureClassElement);
+    // TODO(ahe): This should be registered in codegen, not here.
+    compiler.enqueuer.codegen.registerInstantiatedClass(closureClassElement);
     assert(closureClassElement.members.isEmpty());
 
     List<HInstruction> capturedVariables = <HInstruction>[];
@@ -1828,7 +1830,8 @@ class SsaBuilder implements Visitor {
       generateInstanceGetterWithCompiledReceiver(send, receiver);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       push(new HStatic(element));
-      compiler.registerGetOfStaticFunction(element);
+      // TODO(ahe): This should be registered in codegen.
+      compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
     } else {
       stack.add(localsHandler.readLocal(element));
     }

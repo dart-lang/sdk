@@ -243,6 +243,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void enableNoSuchMethod(Element element) {
+    // TODO(ahe): Move this method to Enqueuer.
     if (enabledNoSuchMethod) return;
     if (element.enclosingElement == objectClass) return;
     enabledNoSuchMethod = true;
@@ -251,6 +252,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void enableIsolateSupport(LibraryElement element) {
+    // TODO(ahe): Move this method to Enqueuer.
     isolateLibrary = element;
     enqueuer.codegen.addToWorkList(element.find(START_ROOT_ISOLATE));
   }
@@ -405,39 +407,9 @@ class Compiler implements DiagnosticListener {
     }
   }
 
-  void registerStaticUse(Element element) {
-    enqueuer.codegen.addToWorkList(element);
-  }
-
-  void registerGetOfStaticFunction(FunctionElement element) {
-    registerStaticUse(element);
-    codegenWorld.staticFunctionsNeedingGetter.add(element);
-  }
-
-  void registerDynamicInvocation(SourceString methodName, Selector selector) {
-    assert(selector !== null);
-    enqueuer.codegen.registerInvocation(methodName, selector);
-  }
-
-  void registerDynamicInvocationOf(Element element) {
-    enqueuer.codegen.addToWorkList(element);
-  }
-
-  void registerDynamicGetter(SourceString methodName, Selector selector) {
-    enqueuer.codegen.registerGetter(methodName, selector);
-  }
-
-  void registerDynamicSetter(SourceString methodName, Selector selector) {
-    enqueuer.codegen.registerSetter(methodName, selector);
-  }
-
   void registerInstantiatedClass(ClassElement cls) {
+    enqueuer.resolution.registerInstantiatedClass(cls);
     enqueuer.codegen.registerInstantiatedClass(cls);
-  }
-
-  // TODO(ngeoffray): This should get a type.
-  void registerIsCheck(Element element) {
-    codegenWorld.isChecks.add(element);
   }
 
   void resolveClass(ClassElement element) {
