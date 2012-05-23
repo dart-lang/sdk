@@ -13,7 +13,7 @@ serialization_test: Skip  # tests frog-specific serialization code
 v2*: Skip # new api for isolates not implemented in the V_m yet.
 
 [ $compiler == frog ]
-v2_spawn_uri_vm_test: Fail # test uses a ".dart" suffix that only works in vm.
+v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 v2_spawn_uri_vm_negative_test: Skip # ditto above.
 
 [ $compiler == frog && $runtime == d8 ]
@@ -68,7 +68,7 @@ v2*: Skip
 v2_spawn_function_test: Fail, OK # Leg does not support APIv2
 v2_spawn_uri_test: Fail, OK # Leg does not support APIv2
 v2_unresolved_ports_test: Fail, OK # Leg does not support APIv2
-v2_spawn_uri_vm_test: Fail # test uses a ".dart" suffix that only works in vm.
+v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 v2_spawn_uri_vm_negative_test: Skip # ditto above.
 constructor_test: Fail, OK # Leg does not support subclassing Isolate
 
