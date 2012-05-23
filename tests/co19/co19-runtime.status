@@ -249,6 +249,7 @@ LibTest/core/Date/Date.withTimeZone_A01_t02: Pass,Fail
 
 LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
+Language/03_Overview/1_Scoping_A02_t05: Fail # co19 issue 126
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
 Language/07_Classes/07_Classes_A02_t08: Fail
@@ -304,6 +305,9 @@ Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail
 Language/08_Interfaces/4_Superinterfaces_A01_t02: Fail
+Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 issue 127
+Language/13_Types/4_Interface_Types_A10_t09: Fail # co19 issue 127
+Language/13_Types/5_Function_Types_A01_t08: Fail # co19 issue 127
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t01: Fail
 LibTest/core/Match/group_A01_t01: Fail # co19 issue 92
@@ -320,10 +324,6 @@ LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
 
 
-Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/11_Statements/11_Labels_A01_t03: Fail # TODO(vm-team): New failure at r164. Please triage.

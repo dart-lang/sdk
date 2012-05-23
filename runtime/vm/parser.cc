@@ -1034,6 +1034,16 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     params->has_field_initializer = true;
   }
 
+  // Check that the formal parameter is not repeated.
+  const intptr_t num_existing_parameters =
+      params->num_fixed_parameters + params->num_optional_parameters;
+  for (intptr_t i = 0; i < num_existing_parameters; i++) {
+    ParamDesc& existing_parameter = (*params->parameters)[i];
+    if (existing_parameter.name->Equals(*parameter.name)) {
+      ErrorMsg(parameter.name_pos, "repeated formal parameter");
+    }
+  }
+
   if (CurrentToken() == Token::kLPAREN) {
     // This parameter is probably a closure. If we saw the keyword 'var'
     // or 'final', a closure is not legal here and we ignore the
