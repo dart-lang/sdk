@@ -115,6 +115,7 @@ void main() {
   world.getOrAddLibrary('dart:io');
   world.getOrAddLibrary('dart:isolate');
   world.getOrAddLibrary('dart:json');
+  world.getOrAddLibrary('${doc.scriptDir}/../../lib/math/math.dart');
   world.getOrAddLibrary('${doc.scriptDir}/../../lib/unittest/unittest.dart');
   world.getOrAddLibrary('dart:uri');
   world.getOrAddLibrary('dart:utf');
