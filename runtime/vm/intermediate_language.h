@@ -79,7 +79,7 @@ class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL) {
+  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = GetNextCid(isolate);
     ic_data_ = GetICDataForCid(cid_, isolate);
@@ -112,16 +112,20 @@ class Computation : public ZoneAllocated {
 
   // Returns structure describing location constraints required
   // to emit native code for this computation.
-  virtual LocationSummary* locs() const {
-    // TODO(vegorov): This should be pure virtual method.
-    // However we are temporary using NULL for instructions that
-    // were not converted to the location based code generation yet.
-    return NULL;
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
   }
 
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    UNIMPLEMENTED();
-  }
+  // Create a location summary for this computation.
+  // TODO(fschneider): Temporarily returns NULL for instructions
+  // that are not yet converted to the location based code generation.
+  virtual LocationSummary* MakeLocationSummary() const = 0;
+
+  // TODO(fschneider): Make EmitNativeCode and locs const.
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
  private:
   friend class Instruction;
@@ -145,6 +149,7 @@ class Computation : public ZoneAllocated {
 
   intptr_t cid_;
   ICData* ic_data_;
+  LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
 };
@@ -232,7 +237,9 @@ class Value : public TemplateComputation<0> {
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual const char* DebugName() const { return #ShortName; }                 \
-  virtual RawAbstractType* StaticType() const;
+  virtual RawAbstractType* StaticType() const;                                 \
+  virtual LocationSummary* MakeLocationSummary() const;                        \
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
@@ -262,8 +269,7 @@ class UseVal : public Value {
 class ConstantVal: public Value {
  public:
   explicit ConstantVal(const Object& value)
-      : value_(value),
-        location_summary_(MakeLocationSummary()) {
+      : value_(value) {
     ASSERT(value.IsZoneHandle());
   }
 
@@ -271,18 +277,8 @@ class ConstantVal: public Value {
 
   const Object& value() const { return value_; }
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const Object& value_;
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantVal);
 };
@@ -374,46 +370,27 @@ class AssertBooleanComp : public TemplateComputation<1> {
 // a computation, not a value, because it's mutable.
 class CurrentContextComp : public TemplateComputation<0> {
  public:
-  CurrentContextComp() : location_summary_(MakeLocationSummary()) { }
+  CurrentContextComp() { }
 
   DECLARE_COMPUTATION(CurrentContext)
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  static LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
-  LocationSummary* location_summary_;
   DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
 };
 
 
 class StoreContextComp : public TemplateComputation<1> {
  public:
-  explicit StoreContextComp(Value* value)
-      : location_summary_(MakeLocationSummary()) {
+  explicit StoreContextComp(Value* value) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   DECLARE_COMPUTATION(StoreContext);
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  static LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
   Value* value() const { return inputs_[0]; }
 
  private:
-  LocationSummary* location_summary_;
   DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
 };
 
@@ -425,8 +402,7 @@ class ClosureCallComp : public Computation {
                   ZoneGrowableArray<Value*>* arguments)
       : ast_node_(*node),
         try_index_(try_index),
-        arguments_(arguments),
-        location_summary_(MakeLocationSummary()) { }
+        arguments_(arguments) { }
 
   DECLARE_COMPUTATION(ClosureCall)
 
@@ -442,20 +418,10 @@ class ClosureCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const ClosureCallNode& ast_node_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* arguments_;
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
 };
@@ -474,8 +440,7 @@ class InstanceCallComp : public Computation {
         function_name_(function_name),
         arguments_(arguments),
         argument_names_(argument_names),
-        checked_argument_count_(checked_argument_count),
-        location_summary_(MakeLocationSummary()) {
+        checked_argument_count_(checked_argument_count) {
     ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle());
@@ -496,15 +461,6 @@ class InstanceCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -512,7 +468,6 @@ class InstanceCallComp : public Computation {
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallComp);
 };
@@ -525,7 +480,6 @@ class StrictCompareComp : public TemplateComputation<2> {
     ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
     inputs_[0] = left;
     inputs_[1] = right;
-    location_summary_ = MakeLocationSummary();
   }
 
   DECLARE_COMPUTATION(StrictCompare)
@@ -536,19 +490,8 @@ class StrictCompareComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const Token::Kind kind_;
-
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
@@ -596,8 +539,7 @@ class StaticCallComp : public Computation {
         try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
-        arguments_(arguments),
-        location_summary_(MakeLocationSummary()) {
+        arguments_(arguments) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -618,22 +560,12 @@ class StaticCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
 };
@@ -643,8 +575,7 @@ class LoadLocalComp : public TemplateComputation<0> {
  public:
   LoadLocalComp(const LocalVariable& local, intptr_t context_level)
       : local_(local),
-        context_level_(context_level),
-        location_summary_(MakeLocationSummary()) { }
+        context_level_(context_level) { }
 
   DECLARE_COMPUTATION(LoadLocal)
 
@@ -653,19 +584,9 @@ class LoadLocalComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const LocalVariable& local_;
   const intptr_t context_level_;
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalComp);
 };
@@ -677,8 +598,7 @@ class StoreLocalComp : public TemplateComputation<1> {
                  Value* value,
                  intptr_t context_level)
       : local_(local),
-        context_level_(context_level),
-        location_summary_(MakeLocationSummary()) {
+        context_level_(context_level) {
     inputs_[0] = value;
   }
 
@@ -692,19 +612,9 @@ class StoreLocalComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual LocationSummary* locs() const {
-    return location_summary_;
-  }
-
-  // Platform specific summary factory for this instruction.
-  LocationSummary* MakeLocationSummary();
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
  private:
   const LocalVariable& local_;
   const intptr_t context_level_;
-  LocationSummary* location_summary_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalComp);
 };

@@ -13,57 +13,19 @@
 namespace dart {
 
 
-#define DEFINE_UNIMPLEMENTED(name)                            \
-  LocationSummary* name::MakeLocationSummary() {              \
-    UNIMPLEMENTED();                                          \
-    return NULL;                                              \
-  }                                                           \
-                                                              \
-  void name::EmitNativeCode(FlowGraphCompiler* compiler) {    \
-    UNIMPLEMENTED();                                          \
+#define DEFINE_UNIMPLEMENTED(ShortName, ClassName)                    \
+  LocationSummary* ClassName::MakeLocationSummary() const {           \
+    UNIMPLEMENTED();                                                  \
+    return NULL;                                                      \
+  }                                                                   \
+                                                                      \
+  void ClassName::EmitNativeCode(FlowGraphCompiler* compiler) {       \
+    UNIMPLEMENTED();                                                  \
   }
 
-DEFINE_UNIMPLEMENTED(StrictCompareComp)
-DEFINE_UNIMPLEMENTED(ClosureCallComp)
-DEFINE_UNIMPLEMENTED(InstanceCallComp)
-DEFINE_UNIMPLEMENTED(StaticCallComp)
-DEFINE_UNIMPLEMENTED(CurrentContextComp)
-DEFINE_UNIMPLEMENTED(StoreContextComp)
+FOR_EACH_COMPUTATION(DEFINE_UNIMPLEMENTED)
 
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* LoadLocalComp::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void LoadLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* StoreLocalComp::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void StoreLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* ConstantVal::MakeLocationSummary() {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

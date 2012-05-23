@@ -46,7 +46,7 @@ static LocationSummary* MakeSimpleLocationSummary(
 }
 
 
-LocationSummary* CurrentContextComp::MakeLocationSummary() {
+LocationSummary* CurrentContextComp::MakeLocationSummary() const {
   return MakeSimpleLocationSummary(0, Location::RequiresRegister());
 }
 
@@ -56,7 +56,7 @@ void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StoreContextComp::MakeLocationSummary() {
+LocationSummary* StoreContextComp::MakeLocationSummary() const {
   LocationSummary* summary = new LocationSummary(1);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
@@ -69,7 +69,7 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StrictCompareComp::MakeLocationSummary() {
+LocationSummary* StrictCompareComp::MakeLocationSummary() const {
   return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
 }
 
@@ -106,7 +106,7 @@ static LocationSummary* MakeCallSummary() {
 }
 
 
-LocationSummary* ClosureCallComp::MakeLocationSummary() {
+LocationSummary* ClosureCallComp::MakeLocationSummary() const {
   return MakeCallSummary();
 }
 
@@ -130,7 +130,7 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* InstanceCallComp::MakeLocationSummary() {
+LocationSummary* InstanceCallComp::MakeLocationSummary() const {
   return MakeCallSummary();
 }
 
@@ -147,7 +147,7 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StaticCallComp::MakeLocationSummary() {
+LocationSummary* StaticCallComp::MakeLocationSummary() const {
   return MakeCallSummary();
 }
 
@@ -162,7 +162,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* LoadLocalComp::MakeLocationSummary() {
+LocationSummary* LoadLocalComp::MakeLocationSummary() const {
   return MakeSimpleLocationSummary(0, Location::RequiresRegister());
 }
 
@@ -173,7 +173,7 @@ void LoadLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StoreLocalComp::MakeLocationSummary() {
+LocationSummary* StoreLocalComp::MakeLocationSummary() const {
   return MakeSimpleLocationSummary(1, Location::SameAsFirstInput());
 }
 
@@ -192,7 +192,7 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ConstantVal::MakeLocationSummary() {
+LocationSummary* ConstantVal::MakeLocationSummary() const {
   return MakeSimpleLocationSummary(0, Location::RequiresRegister());
 }
 
@@ -205,6 +205,282 @@ void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ LoadObject(result, value());
   }
+}
+
+
+void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UseVal::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* NativeCallComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* StaticSetterComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* LoadStaticFieldComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* InstanceOfComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* CreateArrayComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* CreateClosureComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* AllocateObjectWithBoundsCheckComp::
+    MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void NativeLoadFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* NativeLoadFieldComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void NativeStoreFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* NativeStoreFieldComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ExtractConstructorTypeArgumentsComp::
+    MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void ExtractConstructorInstantiatorComp::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ExtractConstructorInstantiatorComp::
+    MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* AllocateContextComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ChainContextComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* CloneContextComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* CatchEntryComp::MakeLocationSummary() const {
+  return NULL;
 }
 
 
