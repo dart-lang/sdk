@@ -5195,6 +5195,33 @@ RawClass* Library::LookupLocalClass(const String& name) const {
 }
 
 
+RawClass* Library::LookupClassAllowPrivate(const String& name) const {
+  // See if the class is available in this library or in the top level
+  // scope of any imported library.
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle(isolate);
+  cls = LookupClass(name);
+  if (!cls.IsNull()) {
+    return cls.raw();
+  }
+
+  // Now try to lookup the class using its private name, but only in
+  // this library (not in imported libraries).
+  if (ShouldBePrivate(name)) {
+    String& private_name = String::Handle(isolate, PrivateName(name));
+    const Object& obj = Object::Handle(LookupLocalObject(private_name));
+    if (!obj.IsNull()) {
+      if (obj.IsClass()) {
+        cls ^= obj.raw();
+        return cls.raw();
+      }
+    }
+  }
+
+  return Class::null();
+}
+
+
 RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull() && obj.IsLibraryPrefix()) {

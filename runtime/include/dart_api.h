@@ -2036,12 +2036,16 @@ DART_EXPORT Dart_Handle Dart_CompileAll();
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
 
 /**
- * Lookup a class by name from a Library.
+ * Lookup a class or interface by name from a Library.
  *
- * \return If no error occurs, the Library is returned. Otherwise an
- *   error handle is returned.
+ * \param library The library containing the class or interface.
+ * \param class_name The name of the class or interface.
+ *
+ * \return If no error occurs, the class or interface is
+ *   returned. Otherwise an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name);
+DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
+                                      Dart_Handle class_name);
 // TODO(turnidge): Consider returning Dart_Null() when the class is
 // not found to distinguish that from a true error case.
 

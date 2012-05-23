@@ -2611,6 +2611,11 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
         DartEntry::InvokeDynamic(instance, getter, args, kNoArgNames));
 
   } else if (obj.IsClass()) {
+    // Finalize all classes.
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
     // To access a static field we may need to use the Field or the
     // getter Function.
     Class& cls = Class::Handle(isolate);
@@ -2636,6 +2641,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     }
 
   } else if (obj.IsLibrary()) {
+    // TODO(turnidge): Do we need to call CheckIsolateState here?
+
     // To access a top-level we may need to use the Field or the
     // getter Function.  The getter function may either be in the
     // library or in the field's owner class, depending.
@@ -3124,22 +3131,22 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
+DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
+                                      Dart_Handle class_name) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& param = Object::Handle(isolate, Api::UnwrapHandle(name));
-  if (param.IsNull() || !param.IsString()) {
-    return Api::NewError("Invalid class name specified");
-  }
-  const Library& lib =
-      Library::CheckedHandle(isolate, Api::UnwrapHandle(library));
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
-    return Api::NewError("Invalid parameter, Unknown library specified");
+    RETURN_TYPE_ERROR(isolate, library, Library);
   }
-  String& cls_name = String::Handle(isolate);
-  cls_name ^= param.raw();
-  const Class& cls = Class::Handle(isolate, lib.LookupClass(cls_name));
+  const String& cls_name = Api::UnwrapStringHandle(isolate, class_name);
+  if (cls_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, class_name, String);
+  }
+  const Class& cls =
+      Class::Handle(isolate, lib.LookupClassAllowPrivate(cls_name));
   if (cls.IsNull()) {
+    // TODO(turnidge): Return null or error in this case?
     const String& lib_name = String::Handle(isolate, lib.name());
     return Api::NewError("Class '%s' not found in library '%s'.",
                          cls_name.ToCString(), lib_name.ToCString());

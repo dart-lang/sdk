@@ -1733,10 +1733,15 @@ class Library : public Object {
   static RawLibrary* New(const String& url);
 
   // Library scope name dictionary.
+  //
+  // TODO(turnidge): The Lookup functions are not consistent in how
+  // they deal with private names.  Go through and make them a bit
+  // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
+  RawClass* LookupClassAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
   RawField* LookupFieldAllowPrivate(const String& name) const;

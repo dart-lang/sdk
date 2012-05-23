@@ -3470,20 +3470,49 @@ TEST_CASE(GetNativeArgumentCount) {
 
 TEST_CASE(GetClass) {
   const char* kScriptChars =
-      "class DoesExist {"
-      "}";
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n"
+      "\n"
+      "class _Class {\n"
+      "  static var name = '_Class';\n"
+      "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
-  // Lookup a class that does exist.
-  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("DoesExist"));
+  // Lookup a class.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Class"));
   EXPECT_VALID(cls);
+  Dart_Handle name = Dart_GetField(cls, Dart_NewString("name"));
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  // Lookup a private class.
+  cls = Dart_GetClass(lib, Dart_NewString("_Class"));
+  EXPECT_VALID(cls);
+  name = Dart_GetField(cls, Dart_NewString("name"));
+  EXPECT_VALID(name);
+  name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("_Class", name_cstr);
 
   // Lookup a class that does not exist.
   cls = Dart_GetClass(lib, Dart_NewString("DoesNotExist"));
   EXPECT(Dart_IsError(cls));
   EXPECT_STREQ("Class 'DoesNotExist' not found in library 'dart:test-lib'.",
                Dart_GetError(cls));
+
+  // Lookup a class from an error library.  The error propagates.
+  cls = Dart_GetClass(Api::NewError("myerror"), Dart_NewString("Class"));
+  EXPECT(Dart_IsError(cls));
+  EXPECT_STREQ("myerror", Dart_GetError(cls));
+
+  // Lookup a class using an error class name.  The error propagates.
+  cls = Dart_GetClass(lib, Api::NewError("myerror"));
+  EXPECT(Dart_IsError(cls));
+  EXPECT_STREQ("myerror", Dart_GetError(cls));
 }
 
 
