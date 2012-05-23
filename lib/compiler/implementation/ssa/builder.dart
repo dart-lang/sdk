@@ -2388,7 +2388,7 @@ class SsaBuilder implements Visitor {
         compiler.unimplemented('super property read', node: node);
       }
       visitSuperSend(node);
-    } else if (node.selector is Operator && methodInterceptionEnabled) {
+    } else if (node.isOperator && methodInterceptionEnabled) {
       visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
       generateGetter(node, elements[node]);
