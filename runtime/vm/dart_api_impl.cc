@@ -631,11 +631,46 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 // --- Isolates ---
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
+static char* BuildIsolateName(const char* script_uri,
+                              const char* main) {
+  if (script_uri == NULL) {
+    // Just use the main as the name.
+    if (main == NULL) {
+      return strdup("isolate");
+    } else {
+      return strdup(main);
+    }
+  }
+
+  // Skip past any slashes and backslashes in the script uri.
+  const char* last_slash = strrchr(script_uri, '/');
+  if (last_slash != NULL) {
+    script_uri = last_slash + 1;
+  }
+  const char* last_backslash = strrchr(script_uri, '\\');
+  if (last_backslash != NULL) {
+    script_uri = last_backslash + 1;
+  }
+  if (main == NULL) {
+    main = "main";
+  }
+
+  char* chars = NULL;
+  intptr_t len = OS::SNPrint(NULL, 0, "%s/%s", script_uri, main) + 1;
+  chars = reinterpret_cast<char*>(malloc(len));
+  OS::SNPrint(chars, len, "%s/%s", script_uri, main);
+  return chars;
+}
+
+
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
+                                            const char* main,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
-  Isolate* isolate = Dart::CreateIsolate(name_prefix);
+  char* isolate_name = BuildIsolateName(script_uri, main);
+  Isolate* isolate = Dart::CreateIsolate(isolate_name);
+  free(isolate_name);
   {
     DARTSCOPE_NOCHECKS(isolate);
     const Error& error_obj =
@@ -2941,6 +2976,18 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetImportMap(Dart_Handle import_map) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
+  if (mapping_array.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, import_map, Array);
+  }
+  isolate->object_store()->set_import_map(mapping_array);
+  return Api::Success(isolate);
+}
+
+
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
@@ -2974,8 +3021,7 @@ static void CompileSource(Isolate* isolate,
 
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle source,
-                                        Dart_Handle import_map) {
+                                        Dart_Handle source) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2987,7 +3033,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
-  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());
   if (!library.IsNull()) {
@@ -2996,11 +3041,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                          CURRENT_FUNC, library_url.ToCString());
   }
   library = Library::New(url_str);
-  if (mapping_array.IsNull()) {
-    library.set_import_map(Array::Handle(isolate, Array::Empty()));
-  } else {
-    library.set_import_map(mapping_array);
-  }
   library.Register();
   isolate->object_store()->set_root_library(library);
   Dart_Handle result;
@@ -3042,6 +3082,15 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   }
   library ^= tmp.raw();
   isolate->object_store()->set_root_library(library);
+  return Api::NewHandle(isolate, library.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_RootLibrary() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Library& library =
+      Library::Handle(isolate, isolate->object_store()->root_library());
   return Api::NewHandle(isolate, library.raw());
 }
 
@@ -3131,8 +3180,7 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source,
-                                         Dart_Handle import_map) {
+                                         Dart_Handle source) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -3144,15 +3192,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
-  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
   Library& library = Library::Handle(isolate, Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
-    if (mapping_array.IsNull()) {
-      library.set_import_map(Array::Handle(isolate, Array::Empty()));
-    } else {
-      library.set_import_map(mapping_array);
-    }
     library.Register();
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the

@@ -71,6 +71,7 @@ ObjectStore::ObjectStore()
     native_wrappers_library_(Library::null()),
     builtin_library_(Library::null()),
     root_library_(Library::null()),
+    import_map_(Array::null()),
     registered_libraries_(Library::null()),
     pending_classes_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),

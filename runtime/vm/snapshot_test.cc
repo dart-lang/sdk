@@ -975,10 +975,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Load the library.
-    Dart_Handle import_map = Dart_NewList(0);
     Dart_Handle import_lib = Dart_LoadLibrary(Dart_NewString("dart:import-lib"),
-                                              Dart_NewString(kLibScriptChars),
-                                              import_map);
+                                              Dart_NewString(kLibScriptChars));
     EXPECT_VALID(import_lib);
 
     // Create a test library and Load up a test script in it.
