@@ -169,6 +169,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType boolType;
     private final InterfaceType numType;
     private final InterfaceType intType;
+    private final InterfaceType doubleType;
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
@@ -194,6 +195,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.boolType = typeProvider.getBoolType();
       this.numType = typeProvider.getNumType();
       this.intType = typeProvider.getIntType();
+      this.doubleType = typeProvider.getDoubleType();
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
@@ -289,16 +291,39 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return "operator " + operator.getSyntax();
     }
 
-    private Type analyzeBinaryOperator(DartNode node, Type lhs, Token operator,
-                                       DartNode diagnosticNode, DartExpression rhs) {
+    private Type analyzeBinaryOperator(DartNode node, Type lhsType, Token operator,
+        DartNode diagnosticNode, DartExpression rhs) {
       Type rhsType = nonVoidTypeOf(rhs);
       String methodName = methodNameForBinaryOperator(operator);
-      Member member = lookupMember(lhs, methodName, diagnosticNode);
+      Member member = lookupMember(lhsType, methodName, diagnosticNode);
       if (member != null) {
         node.setElement(member.getElement());
-        return analyzeMethodInvocation(lhs, member, methodName, diagnosticNode,
-                                       Collections.<Type>singletonList(rhsType),
-                                       Collections.<DartExpression>singletonList(rhs));
+        Type returnType = analyzeMethodInvocation(lhsType, member, methodName, diagnosticNode,
+            Collections.<Type> singletonList(rhsType),
+            Collections.<DartExpression> singletonList(rhs));
+        // tweak return type for int/int and int/double operators
+        {
+          boolean lhsInt = intType.equals(lhsType);
+          boolean rhsInt = intType.equals(rhsType);
+          boolean lhsDouble = doubleType.equals(lhsType);
+          boolean rhsDouble = doubleType.equals(rhsType);
+          switch (operator) {
+            case ADD:
+            case SUB:
+            case MUL:
+            case TRUNC:
+            case MOD:
+              if (lhsInt && rhsInt) {
+                return intType;
+              }
+            case DIV:
+              if (lhsDouble || rhsDouble) {
+                return doubleType;
+              }
+          }
+        }
+        // done
+        return returnType;
       } else {
         return dynamicType;
       }

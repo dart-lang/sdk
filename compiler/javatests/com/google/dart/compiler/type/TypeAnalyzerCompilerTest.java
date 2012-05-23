@@ -1150,7 +1150,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     expectedList.add("bool");
     expectedList.add("bool");
     expectedList.add("int");
-    expectedList.add("num");
+    expectedList.add("int");
     expectedList.add("double");
     expectedList.add("double");
     expectedList.add("Map<String, int>");
@@ -1300,6 +1300,45 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertVariableTypeString(libraryResult, "v1", "String");
+  }
+
+  public void test_binaryExpressionType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f() {",
+        "  var v1 = 1 + 2;",
+        "  var v2 = 1 - 2;",
+        "  var v3 = 1 * 2;",
+        "  var v4 = 1 ~/ 2;",
+        "  var v5 = 1 % 2;",
+        "  var v6 = 1 / 2;",
+        "  var v7 = 1.0 + 2;",
+        "  var v8 = 1 + 2.0;",
+        "  var v9 = 1 - 2.0;",
+        "  var v10 = 1.0 - 2;",
+        "  var v11 = 1 * 2.0;",
+        "  var v12 = 1.0 * 2;",
+        "  var v13 = 1.0 / 2;",
+        "  var v14 = 1 / 2.0;",
+        "  var v15 = 1.0 ~/ 2.0;",
+        "  var v16 = 1.0 ~/ 2;",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "int");
+    assertVariableTypeString(libraryResult, "v2", "int");
+    assertVariableTypeString(libraryResult, "v3", "int");
+    assertVariableTypeString(libraryResult, "v4", "int");
+    assertVariableTypeString(libraryResult, "v5", "int");
+    assertVariableTypeString(libraryResult, "v6", "double");
+    assertVariableTypeString(libraryResult, "v7", "double");
+    assertVariableTypeString(libraryResult, "v8", "double");
+    assertVariableTypeString(libraryResult, "v9", "double");
+    assertVariableTypeString(libraryResult, "v10", "double");
+    assertVariableTypeString(libraryResult, "v11", "double");
+    assertVariableTypeString(libraryResult, "v12", "double");
+    assertVariableTypeString(libraryResult, "v13", "double");
+    assertVariableTypeString(libraryResult, "v14", "double");
+    assertVariableTypeString(libraryResult, "v15", "double");
+    assertVariableTypeString(libraryResult, "v16", "double");
   }
 
   /**
