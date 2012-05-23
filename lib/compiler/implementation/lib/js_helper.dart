@@ -186,10 +186,21 @@ shr(var a, var b) {
     a = JS('num', '#', a);
     b = JS('num', '#', b);
     if (b < 0) throw new IllegalArgumentException(b);
-    // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
-    // by 33 is hence equivalent to a shift by 1.
-    if (b > 31) return 0;
-    return JS('num', @'# >>> #', a, b);
+    if (a > 0) {
+      // JavaScript only looks at the last 5 bits of the shift-amount. In JS
+      // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
+      // computation when that happens.
+      if (b > 31) return 0;
+      // Given that 'a' is positive we must not use '>>'. Otherwise a number
+      // that has the 31st bit set would be treated as negative and shift in
+      // ones.
+      return JS('num', @'# >>> #', a, b);
+    }
+    // For negative numbers we just clamp the shift-by amount. 'a' could be
+    // negative but not have its 31st bit set. The ">>" would then shift in
+    // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
+    if (b > 31) b = 31;
+    return JS('num', @'(# >> #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a >> b);
 }
