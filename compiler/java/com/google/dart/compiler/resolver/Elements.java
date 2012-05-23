@@ -24,7 +24,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -196,8 +195,8 @@ public class Elements {
     ((AbstractNodeElement) element).setType(type);
   }
   
-  public static void setTypeInferred(VariableElement element) {
-    ((VariableElementImplementation)element).setTypeInferred(true);
+  public static void setTypeInferred(VariableElement element, boolean inferred) {
+    ((VariableElementImplementation)element).setTypeInferred(inferred);
   }
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,

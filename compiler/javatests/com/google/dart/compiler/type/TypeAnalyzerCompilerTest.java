@@ -32,11 +32,8 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.ast.DartVariable;
-import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -45,6 +42,7 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+import com.google.dart.compiler.resolver.VariableElement;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -1136,15 +1134,15 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",
-        "  var v01 = true;",
-        "  var v02 = true && false;",
-        "  var v03 = 1;",
-        "  var v04 = 1 + 2;",
-        "  var v05 = 1.0;",
-        "  var v06 = 1.0 + 2.0;",
-        "  var v07 = new Map<String, int>();",
-        "  var v08 = new Map().length;",
-        "  var v09 = Math.random();",
+        "  var v0 = true;",
+        "  var v1 = true && false;",
+        "  var v2 = 1;",
+        "  var v3 = 1 + 2;",
+        "  var v4 = 1.0;",
+        "  var v5 = 1.0 + 2.0;",
+        "  var v6 = new Map<String, int>();",
+        "  var v7 = new Map().length;",
+        "  var v8 = Math.random();",
         "}",
         "");
     // prepare expected results
@@ -1158,13 +1156,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     expectedList.add("Map<String, int>");
     expectedList.add("int");
     expectedList.add("double");
-    // check each DartVariable type
-    List<DartVariableStatement> statements = get_typePropagation_variableStatements(libraryResult);
-    for (int i = 0; i < statements.size(); i++) {
-      DartVariable variable = statements.get(i).getVariables().get(0);
-      String actualTypeString = variable.getElement().getType().toString();
+    // check each "v" type
+    for (int i = 0; i < expectedList.size(); i++) {
       String expectedTypeString = expectedList.get(i);
-      assertEquals(variable.getName().getName(), expectedTypeString, actualTypeString);
+      assertVariableTypeString(libraryResult, "v" + i, expectedTypeString);
     }
   }
   
@@ -1175,9 +1170,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  v = false;",
         "}",
         "");
-    List<DartVariableStatement> statements = get_typePropagation_variableStatements(libraryResult);
-    DartVariable variable = statements.get(0).getVariables().get(0);
-    assertEquals("bool", variable.getElement().getType().toString());
+    assertVariableTypeString(libraryResult, "v", "bool");
   }
   
   public void test_typesPropagation_secondAssign_differentType() throws Exception {
@@ -1187,22 +1180,159 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  v = 0;",
         "}",
         "");
-    List<DartVariableStatement> statements = get_typePropagation_variableStatements(libraryResult);
-    DartVariable variable = statements.get(0).getVariables().get(0);
-    assertEquals("<dynamic>", variable.getElement().getType().toString());
+    assertVariableTypeString(libraryResult, "v", "<dynamic>");
   }
 
-  private  List<DartVariableStatement> get_typePropagation_variableStatements(AnalyzeLibraryResult libraryResult) {
-      DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
-      DartMethodDefinition fFunction = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
-      List<DartStatement> statements = fFunction.getFunction().getBody().getStatements();
-      List<DartVariableStatement> variableStatements = Lists.newArrayList();
-      for (DartStatement statement : statements) {
-        if (statement instanceof DartVariableStatement) {
-          variableStatements.add((DartVariableStatement) statement);
+  public void test_typesPropagation_ifIsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is List<String>) {",
+        "    var v1 = v;",
+        "  }",
+        "  if (v is Map<int, String>) {",
+        "    var v2 = v;",
+        "  }",
+        "  var v3 = v;",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "List<String>");
+    assertVariableTypeString(libraryResult, "v2", "Map<int, String>");
+    assertVariableTypeString(libraryResult, "v3", "<dynamic>");
+  }
+
+  /**
+   * We should not make variable type less specific, even if there is such (useless) user code.
+   */
+  public void test_typesPropagation_ifIsType_mostSpecific() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(int v) {",
+        "  if (v is num) {",
+        "    var v1 = v;",
+        "  }",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "int");
+  }
+
+  public void test_typesPropagation_ifIsType_negation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is! String) {",
+        "    var v1 = v;",
+        "  }",
+        "  if (!(v is String)) {",
+        "    var v2 = v;",
+        "  }",
+        "  if (!!(v is String)) {",
+        "    var v3 = v;",
+        "  }",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "<dynamic>");
+    assertVariableTypeString(libraryResult, "v2", "<dynamic>");
+    assertVariableTypeString(libraryResult, "v3", "String");
+  }
+
+  public void test_typesPropagation_ifIsType_and() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var a, var b) {",
+        "  if (a is String && b is List<String>) {",
+        "    var a1 = a;",
+        "    var b1 = b;",
+        "  }",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "a1", "String");
+    assertVariableTypeString(libraryResult, "b1", "List<String>");
+  }
+  
+  public void test_typesPropagation_ifIsType_or() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (true || v is String) {",
+        "    var v1 = v;",
+        "  }",
+        "  if (v is String || true) {",
+        "    var v2 = v;",
+        "  }",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "<dynamic>");
+    assertVariableTypeString(libraryResult, "v2", "<dynamic>");
+  }
+  
+  public void test_typesPropagation_whileIsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  var v = null;",
+        "  while (v is String) {",
+        "    var v1 = v;",
+        "  }",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "String");
+    assertVariableTypeString(libraryResult, "v2", "<dynamic>");
+  }
+
+  public void test_typesPropagation_forIsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  var v = null;",
+        "  for (; v is String; () {var v2 = v;} ()) {",
+        "    var v1 = v;",
+        "  }",
+        "  var v3 = v;",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "String");
+    assertVariableTypeString(libraryResult, "v2", "String");
+    assertVariableTypeString(libraryResult, "v3", "<dynamic>");
+  }
+  
+  public void test_typesPropagation_forEach() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  List<String> values = [];",
+        "  for (var v in values) {",
+        "    var v1 = v;",
+        "  }",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "v1", "String");
+  }
+
+  /**
+   * Asserts that {@link VariableElement} with given name has expected type.
+   */
+  private void assertVariableTypeString(
+      AnalyzeLibraryResult libraryResult,
+      String variableName,
+      String expectedType) {
+    VariableElement variable = getVariableElement(libraryResult, variableName);
+    assertNotNull(variable);
+    assertEquals(variable.getName(), expectedType, variable.getType().toString());
+  }
+
+  /**
+   * @return the {@link VariableElement} with given name, may be <code>null</code>.
+   */
+  private VariableElement getVariableElement(AnalyzeLibraryResult libraryResult, final String name) {
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    final VariableElement[] result = {null};
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitIdentifier(DartIdentifier node) {
+        if (node.getElement() instanceof VariableElement) {
+          VariableElement variableElement = (VariableElement) node.getElement();
+          if (variableElement.getName().equals(name)) {
+            result[0] = variableElement;
+          }
         }
+        return super.visitIdentifier(node);
       }
-      return variableStatements;
+    });
+    return result[0];
   }
   
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
