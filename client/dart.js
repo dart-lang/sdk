@@ -19,10 +19,10 @@ if (navigator.webkitStartDart) {
     //   <script type="application/dart" src="<file>.dart"></script>
     //
     // If the script tag has a 'data-compiler' attribute set to
-    // dart2js then we use the dart2js generated file rather than the
-    // one produced by frog:
+    // frog then we use the frog generated file rather than the
+    // one produced by dart2js:
     //
-    //    <script ... data-compiler="dart2js"></script>
+    //    <script ... data-compiler="frog"></script>
     //
     var scripts = document.getElementsByTagName("script");
     var length = scripts.length;
@@ -33,7 +33,7 @@ if (navigator.webkitStartDart) {
         if (scripts[i].src && scripts[i].src != '') {
           var script = document.createElement('script');
           var compiler = scripts[i].getAttribute('data-compiler');
-          if (compiler == "dart2js") {
+          if (compiler == "frog") {
             script.src = scripts[i].src + '.js_';
           } else {
             script.src = scripts[i].src + '.js';
