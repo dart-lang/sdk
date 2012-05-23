@@ -1037,35 +1037,15 @@ void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
 
 
 void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
-  const Class& cls = Class::ZoneHandle(comp->constructor().owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  GenerateCall(comp->token_index(), comp->try_index(), &label,
-               PcDescriptors::kOther);
-  __ Drop(comp->arguments().length());  // Discard allocation argument.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
     AllocateObjectWithBoundsCheckComp* comp) {
-  const Class& cls = Class::ZoneHandle(comp->constructor().owner());
-  __ popq(RCX);  // Pop instantiator type arguments.
-  __ popq(RAX);  // Pop type arguments.
-
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::ZoneHandle());
-  __ pushq(Immediate(Smi::RawValue(comp->token_index())));
-  __ PushObject(cls);
-  __ pushq(RAX);  // Push type arguments.
-  __ pushq(RCX);  // Push instantiator type arguments.
-  GenerateCallRuntime(comp->cid(),
-                      comp->token_index(),
-                      comp->try_index(),
-                      kAllocateObjectWithBoundsCheckRuntimeEntry);
-  // Pop instantiator type arguments, type arguments, class, and
-  // source location.
-  __ Drop(4);
-  __ popq(RAX);  // Pop new instance.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

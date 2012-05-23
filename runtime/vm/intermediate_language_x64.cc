@@ -369,24 +369,49 @@ LocationSummary* CreateClosureComp::MakeLocationSummary() const {
 
 
 void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Class& cls = Class::ZoneHandle(constructor().owner());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
+  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  __ Drop(arguments().length());  // Discard arguments.
 }
 
 
 LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Class& cls = Class::ZoneHandle(constructor().owner());
+  Register type_arguments = locs()->in(0).reg();
+  Register instantiator_type_arguments = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  __ pushq(Immediate(Smi::RawValue(token_index())));
+  __ PushObject(cls);
+  __ pushq(type_arguments);
+  __ pushq(instantiator_type_arguments);
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kAllocateObjectWithBoundsCheckRuntimeEntry);
+  // Pop instantiator type arguments, type arguments, class, and
+  // source location.
+  __ Drop(4);
+  __ popq(result);  // Pop new instance.
 }
 
 
 LocationSummary* AllocateObjectWithBoundsCheckComp::
     MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(2, Location::RequiresRegister());
 }
 
 
