@@ -16,7 +16,7 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
-gc_test: Crash # Issue 1487
+gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
 field_override_test/01: Fail    # Issue 742: field shadowing now allowed
 field_override_test/02: Fail    # Issue 742: field shadowing now allowed
