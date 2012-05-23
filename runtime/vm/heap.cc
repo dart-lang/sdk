@@ -203,10 +203,12 @@ bool Heap::Verify() const {
 
 
 void Heap::PrintSizes() const {
-  OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
-               (new_space_->in_use() / KB),
-               (old_space_->in_use() / KB),
-               (code_space_->in_use() / KB));
+  OS::PrintErr("New space (%dk of %dk) "
+               "Old space (%dk of %dk) "
+               "Code space (%dk of %dk)\n",
+               (new_space_->in_use() / KB), (new_space_->capacity() / KB),
+               (old_space_->in_use() / KB), (old_space_->capacity() / KB),
+               (code_space_->in_use() / KB), (code_space_->capacity() / KB));
 }
 
 
