@@ -1097,7 +1097,7 @@ class ProcessQueue {
       if (_listTests) {
         var fields = [test.displayName,
                       Strings.join(new List.from(test.expectedOutcomes), ','),
-                      test.isNegative];
+                      test.isNegative.toString()];
         fields.addAll(test.commands.last().arguments);
         print(Strings.join(fields, '\t'));
         return;
