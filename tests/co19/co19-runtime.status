@@ -320,9 +320,6 @@ LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
 
 
-Language/03_Overview/1_Scoping_A01_t34: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t35: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t36: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(vm-team): New failure at r164. Please triage.

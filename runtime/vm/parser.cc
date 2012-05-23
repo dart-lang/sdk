@@ -3142,7 +3142,9 @@ void Parser::ParseTypeParameters(const Class& cls) {
     const GrowableObjectArray& bounds_array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
-    AbstractType& type_parameter = TypeParameter::Handle();
+    TypeParameter& type_parameter = TypeParameter::Handle();
+    TypeParameter& existing_type_parameter = TypeParameter::Handle();
+    String& existing_type_parameter_name = String::Handle();
     AbstractType& bound = Type::Handle();
     do {
       ConsumeToken();
@@ -3154,6 +3156,14 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           index,
                                           type_parameter_name,
                                           token_index_);
+      // Check that the type parameter is not repeated.
+      for (intptr_t i = 0; i < index; i++) {
+        existing_type_parameter ^= type_parameters_array.At(i);
+        existing_type_parameter_name = existing_type_parameter.Name();
+        if (existing_type_parameter_name.Equals(type_parameter_name)) {
+          ErrorMsg("repeated type parameter");
+        }
+      }
       ConsumeToken();
       bound = Type::DynamicType();
       if (CurrentToken() == Token::kEXTENDS) {

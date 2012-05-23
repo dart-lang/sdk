@@ -329,6 +329,7 @@ switch_label_test: Fail
 type_checks_in_factory_method_test: Fail # Issue 925
 type_variable_bounds_test/10: Fail # Issue 2134
 type_variable_scope2_test: Fail # Issue 2395
+type_variable_scope3_test/00: Fail # Issue 2239
 type_variable_identifier_expression_negative_test: Fail # Issue 643
 type_variable_shadows_class: Fail # Issue 643
 wrong_number_type_arguments_test/00: Fail # Issue 2134
