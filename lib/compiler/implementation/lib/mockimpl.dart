@@ -180,19 +180,20 @@ class TimeZoneImplementation implements TimeZone {
 
 class DateImplementation implements Date {
   final int value;
-  final TimeZoneImplementation timeZone;
+  final bool _isUtc;
 
-  factory DateImplementation(int years,
-                             [int month = 1,
-                              int day = 1,
-                              int hours = 0,
-                              int minutes = 0,
-                              int seconds = 0,
-                              int milliseconds = 0]) {
-    return new DateImplementation.withTimeZone(
-        years, month, day,
-        hours, minutes, seconds, milliseconds,
-        new TimeZoneImplementation.local());
+  DateImplementation(int years,
+                     [int month = 1,
+                      int day = 1,
+                      int hours = 0,
+                      int minutes = 0,
+                      int seconds = 0,
+                      int milliseconds = 0,
+                      bool isUtc = false])
+      : this._isUtc = checkNull(isUtc),
+        value = Primitives.valueFromDecomposedDate(
+            years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
+    _asJs();
   }
 
   DateImplementation.withTimeZone(int years,
@@ -203,16 +204,11 @@ class DateImplementation implements Date {
                                   int seconds,
                                   int milliseconds,
                                   TimeZoneImplementation timeZone)
-      : this.timeZone = checkNull(timeZone),
-        value = Primitives.valueFromDecomposedDate(years, month, day,
-                                                   hours, minutes, seconds,
-                                                   milliseconds,
-                                                   timeZone.isUtc) {
-    _asJs();
-  }
+      : this(years, month, day, hours, minutes, seconds, milliseconds,
+             timeZone.isUtc);
 
   DateImplementation.now()
-      : timeZone = new TimeZone.local(),
+      : _isUtc = false,
         value = Primitives.dateNow() {
     _asJs();
   }
@@ -258,24 +254,24 @@ class DateImplementation implements Date {
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
-      TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
       int epochValue = Primitives.valueFromDecomposedDate(
           years, month, day, hours, minutes, seconds, milliseconds, isUtc);
       if (epochValue === null) {
         throw new IllegalArgumentException(formattedString);
       }
       if (addOneMillisecond) epochValue++;
-      return new DateImplementation.fromEpoch(epochValue, timezone);
+      return new DateImplementation.fromEpoch(epochValue, isUtc);
     } else {
       throw new IllegalArgumentException(formattedString);
     }
   }
 
-  const DateImplementation.fromEpoch(this.value, this.timeZone);
+  DateImplementation.fromEpoch(this.value, [bool isUtc = false])
+      : _isUtc = checkNull(isUtc);
 
   bool operator ==(other) {
     if (!(other is DateImplementation)) return false;
-    return (value == other.value) && (timeZone == other.timeZone);
+    return (value == other.value);
   }
 
   bool operator <(Date other) => value < other.value;
@@ -290,11 +286,21 @@ class DateImplementation implements Date {
 
   int hashCode() => value;
 
+  Date toLocal() {
+    if (isUtc()) return new DateImplementation.fromEpoch(value, false);
+    return this;
+  }
+
+  Date toUtc() {
+    if (isUtc()) return this;
+    return new DateImplementation.fromEpoch(value, true);
+  }
+
   Date changeTimeZone(TimeZone targetTimeZone) {
-    if (targetTimeZone == null) {
+    if (targetTimeZone === null) {
       targetTimeZone = new TimeZoneImplementation.local();
     }
-    return new Date.fromEpoch(value, targetTimeZone);
+    return new Date.fromEpoch(value, targetTimeZone.isUtc);
   }
 
   String get timeZoneName() {
@@ -327,13 +333,7 @@ class DateImplementation implements Date {
     return (day + 6) % 7;
   }
 
-  bool isLocalTime() {
-    return !timeZone.isUtc;
-  }
-
-  bool isUtc() {
-    return timeZone.isUtc;
-  }
+  bool isUtc() => _isUtc;
 
   String toString() {
     String fourDigits(int n) {
@@ -364,7 +364,7 @@ class DateImplementation implements Date {
     String min = twoDigits(minutes);
     String sec = twoDigits(seconds);
     String ms = threeDigits(milliseconds);
-    if (timeZone.isUtc) {
+    if (isUtc()) {
       return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
       return "$y-$m-$d $h:$min:$sec.$ms";
@@ -375,14 +375,14 @@ class DateImplementation implements Date {
   Date add(Duration duration) {
     checkNull(duration);
     return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
-                                            timeZone);
+                                            isUtc());
   }
 
   // Subtracts the [duration] from this Date instance.
   Date subtract(Duration duration) {
     checkNull(duration);
     return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
-                                            timeZone);
+                                            isUtc());
   }
 
   // Returns a [Duration] with the difference of [this] and [other].

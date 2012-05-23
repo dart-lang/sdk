@@ -5,8 +5,8 @@
 // Test Date comparison operators.
 
 main() {
-  var d = new Date.fromEpoch(0, const TimeZone.utc());
-  var d2 = new Date.fromEpoch(1, const TimeZone.utc());
+  var d = new Date.fromEpoch(0, isUtc: true);
+  var d2 = new Date.fromEpoch(1, isUtc: true);
   Expect.isTrue(d < d2);
   Expect.isTrue(d <= d2);
   Expect.isTrue(d2 > d);
@@ -16,8 +16,8 @@ main() {
   Expect.isFalse(d > d2);
   Expect.isFalse(d >= d2);
 
-  d = new Date.fromEpoch(-1, const TimeZone.utc());
-  d2 = new Date.fromEpoch(0, const TimeZone.utc());
+  d = new Date.fromEpoch(-1, isUtc: true);
+  d2 = new Date.fromEpoch(0, isUtc: true);
   Expect.isTrue(d < d2);
   Expect.isTrue(d <= d2);
   Expect.isTrue(d2 > d);

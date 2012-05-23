@@ -50,11 +50,9 @@ void testMultiValue() {
 }
 
 void testDate() {
-  Date date1 = new Date.withTimeZone(
-      1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+  Date date1 = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.withTimeZone(
-      2000, Date.AUG, 16, 12, 34, 56, 0, new TimeZone.utc());
+  Date date2 = new Date(2000, Date.AUG, 16, 12, 34, 56, 0, isUtc: true);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();
@@ -78,11 +76,9 @@ void testDate() {
 }
 
 void testExpires() {
-  Date date1 = new Date.withTimeZone(
-      1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+  Date date1 = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.withTimeZone(
-      2000, Date.AUG, 16, 12, 34, 56, 0, new TimeZone.utc());
+  Date date2 = new Date(2000, Date.AUG, 16, 12, 34, 56, 0, isUtc: true);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();

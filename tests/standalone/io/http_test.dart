@@ -136,9 +136,7 @@ class TestServer extends Isolate {
 
   // Set the "Expires" header using the expires property.
   void _expires1Handler(HttpRequest request, HttpResponse response) {
-    Date date =
-        new Date.withTimeZone(
-            1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+    Date date = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
     response.headers.expires = date;
     Expect.equals(date, response.headers.expires);
     response.outputStream.close();
@@ -147,9 +145,7 @@ class TestServer extends Isolate {
   // Set the "Expires" header.
   void _expires2Handler(HttpRequest request, HttpResponse response) {
     response.headers.set("Expires", "Fri, 11 Jun 1999 18:46:53 GMT");
-    Date date =
-        new Date.withTimeZone(
-            1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+    Date date = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
     Expect.equals(date, response.headers.expires);
     response.outputStream.close();
   }
@@ -522,10 +518,8 @@ void testExpires() {
       Expect.equals(HttpStatus.OK, response.statusCode);
       Expect.equals("Fri, 11 Jun 1999 18:46:53 GMT",
                     response.headers["expires"][0]);
-      Expect.equals(
-          new Date.withTimeZone(
-              1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc()),
-          response.headers.expires);
+      Expect.equals(new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true),
+                    response.headers.expires);
       responses++;
       if (responses == 2) {
         httpClient.shutdown();

@@ -91,8 +91,7 @@ class _HttpHeaders implements HttpHeaders {
   void set date(Date date) {
     _checkMutable();
     // Format "Date" header with date in Greenwich Mean Time (GMT).
-    String formatted =
-        _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
+    String formatted = _HttpUtils.formatDate(expires.toUtc());
     _set("date", formatted);
   }
 
@@ -111,8 +110,7 @@ class _HttpHeaders implements HttpHeaders {
   void set expires(Date expires) {
     _checkMutable();
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
-    String formatted =
-        _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
+    String formatted = _HttpUtils.formatDate(expires.toUtc());
     _set("expires", formatted);
   }
 

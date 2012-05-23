@@ -4,7 +4,7 @@
 
 class Issue4157508Test {
   Issue4157508Test(var v) {
-    var d = new Date.fromEpoch(v, const TimeZone.utc());
+    var d = new Date.fromEpoch(v, true);
   }
 
   static void testMain() {

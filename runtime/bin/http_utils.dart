@@ -98,7 +98,7 @@ class _HttpUtils {
     List month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    Date d = date.changeTimeZone(new TimeZone.utc());
+    Date d = date.toUtc();
     StringBuffer sb = new StringBuffer();
     sb.add(wkday[d.weekday]);
     sb.add(", ");
@@ -234,8 +234,7 @@ class _HttpUtils {
       expect("GMT");
     }
     expectEnd();
-    TimeZone utc = new TimeZone.utc();
-    return new Date.withTimeZone(
-        year, month + 1, day, hours, minutes, seconds, 0, utc);
+    return new Date(
+        year, month + 1, day, hours, minutes, seconds, 0, isUtc: true);
   }
 }

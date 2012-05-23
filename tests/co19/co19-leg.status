@@ -24,6 +24,40 @@ LibTest/core/Isolate/*: Fail, OK
 LibTest/core/SendPort/*: Fail, OK
 LibTest/core/ReceivePort/*: Fail, OK
 
+[ $compiler == dart2js ]
+
+# The following tests use the deprecated Date interface.
+LibTest/core/Date/Date_A02_t01: Fail
+LibTest/core/Date/Date.now_A02_t01: Fail
+LibTest/core/Date/add_A04_t01: Fail
+LibTest/core/Date/value_A01_t02: Skip
+LibTest/core/Date/value_A02_t01: Skip
+LibTest/core/Date/isLocalTime_A01_t01: Fail
+LibTest/core/Date/toString_A02_t01: Skip
+LibTest/core/Date/Date.fromString_A01_t03: Fail
+LibTest/core/Date/changeTimeZone_A01_t01: Skip
+LibTest/core/Date/changeTimeZone_A02_t01: Fail
+LibTest/core/Date/changeTimeZone_A03_t01: Fail
+LibTest/core/Date/changeTimeZone_A04_t01: Skip
+LibTest/core/Date/changeTimeZone_A05_t01: Fail
+LibTest/core/Date/isUtc_A01_t01: Fail
+LibTest/core/Date/timeZone_A01_t01: Skip
+LibTest/core/Date/timeZone_A01_t02: Fail
+LibTest/core/Date/timeZone_A01_t03: Fail
+LibTest/core/Date/difference_A01_t01: Skip
+LibTest/core/Date/difference_A01_t02: Skip
+LibTest/core/Date/subtract_A04_t01: Fail
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail
+LibTest/core/Date/Date.fromEpoch_A01_t02: Skip
+LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t02: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t03: Skip
+
+LibTest/core/TimeZone/TimeZone.local_A01_t01: Skip
+LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
+
 
 [ $compiler == dart2js && $checked ]
 # Leg does not support checked mode yet.
@@ -223,9 +257,7 @@ Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
-LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
-LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.

@@ -142,6 +142,41 @@ LibTest/core/int/operator_remainder_A01_t02: Fail
 
 [ $runtime == vm ]
 
+# The following tests use the deprecated Date interface.
+LibTest/core/Date/Date_A02_t01: Fail
+LibTest/core/Date/Date.now_A02_t01: Fail
+LibTest/core/Date/add_A04_t01: Fail
+LibTest/core/Date/value_A01_t02: Skip
+LibTest/core/Date/value_A02_t01: Skip
+LibTest/core/Date/isLocalTime_A01_t01: Fail
+LibTest/core/Date/toString_A02_t01: Skip
+LibTest/core/Date/Date.fromString_A01_t03: Fail
+LibTest/core/Date/changeTimeZone_A01_t01: Skip
+LibTest/core/Date/changeTimeZone_A02_t01: Fail
+LibTest/core/Date/changeTimeZone_A03_t01: Fail
+LibTest/core/Date/changeTimeZone_A04_t01: Skip
+LibTest/core/Date/changeTimeZone_A05_t01: Fail
+LibTest/core/Date/isUtc_A01_t01: Fail
+LibTest/core/Date/timeZone_A01_t01: Skip
+LibTest/core/Date/timeZone_A01_t02: Fail
+LibTest/core/Date/timeZone_A01_t03: Fail
+LibTest/core/Date/difference_A01_t01: Skip
+LibTest/core/Date/difference_A01_t02: Skip
+LibTest/core/Date/subtract_A04_t01: Fail
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail
+LibTest/core/Date/Date.fromEpoch_A01_t02: Skip
+LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t02: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t03: Skip
+
+LibTest/core/TimeZone/TimeZone.local_A01_t01: Skip
+LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
+
+
+[ $runtime == vm ]
+
 # The following tests contain String operator + which is being removed
 # from the language. These tests pass or fail depending on whether support
 # for + is enabled or not.

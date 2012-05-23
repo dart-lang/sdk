@@ -15,19 +15,22 @@ class TimeZoneImplementation implements TimeZone {
   final bool isUtc;
 }
 
-// JavaScript implementation of DateImplementation.
+// VM implementation of DateImplementation.
 class DateImplementation implements Date {
-  factory DateImplementation(int years,
-                             [int month = 1,
-                              int day = 1,
-                              int hours = 0,
-                              int minutes = 0,
-                              int seconds = 0,
-                              int milliseconds = 0]) {
-    return new DateImplementation.withTimeZone(
-        years, month, day,
-        hours, minutes, seconds, milliseconds,
-        new TimeZoneImplementation.local());
+  static final int _SECONDS_YEAR_2035 = 2051222400;
+
+  DateImplementation(int years,
+                     [int month = 1,
+                      int day = 1,
+                      int hours = 0,
+                      int minutes = 0,
+                      int seconds = 0,
+                      int milliseconds = 0,
+                      bool isUtc = false])
+      : _isUtc = isUtc,
+        value = _brokenDownDateToMillisecondsSinceEpoch(
+            years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
+    if (value === null) throw new IllegalArgumentException();
   }
 
   DateImplementation.withTimeZone(int years,
@@ -38,16 +41,12 @@ class DateImplementation implements Date {
                                   int seconds,
                                   int milliseconds,
                                   TimeZone timeZone)
-  : timeZone = timeZone,
-    value = _brokenDownDateToMillisecondsSinceEpoch(
-               years, month, day, hours, minutes, seconds, milliseconds,
-               timeZone.isUtc) {
-    if (value === null) throw new IllegalArgumentException();
-  }
+      : this(years, month, day, hours, minutes, seconds, milliseconds,
+             timeZone.isUtc);
 
   DateImplementation.now()
-  : timeZone = new TimeZone.local(),
-    value = _getCurrentMs() {
+      : _isUtc = true,
+        value = _getCurrentMs() {
   }
 
   factory DateImplementation.fromString(String formattedString) {
@@ -91,25 +90,24 @@ class DateImplementation implements Date {
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
-      TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
       int epochValue = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hours, minutes, seconds, milliseconds, isUtc);
       if (epochValue === null) {
         throw new IllegalArgumentException(formattedString);
       }
       if (addOneMillisecond) epochValue++;
-      return new DateImplementation.fromEpoch(epochValue, timezone);
+      return new DateImplementation.fromEpoch(epochValue, isUtc);
     } else {
       throw new IllegalArgumentException(formattedString);
     }
   }
 
-  const DateImplementation.fromEpoch(int this.value,
-                                     TimeZone this.timeZone);
+  DateImplementation.fromEpoch(int this.value, [bool isUtc = false])
+      : _isUtc = isUtc;
 
   bool operator ==(Object other) {
-    if (!(other is DateImplementation)) return false;
-    return value == other.value && timeZone == other.timeZone;
+    if (other is !DateImplementation) return false;
+    return value == other.value;
   }
 
   bool operator <(Date other) => value < other.value;
@@ -123,11 +121,21 @@ class DateImplementation implements Date {
   int compareTo(Date other) => value.compareTo(other.value);
   int hashCode() => value;
 
+  Date toLocal() {
+    if (isUtc()) return new DateImplementation.fromEpoch(value, false);
+    return this;
+  }
+
+  Date toUtc() {
+    if (isUtc()) return this;
+    return new DateImplementation.fromEpoch(value, true);
+  }
+
   Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone === null) {
       targetTimeZone = new TimeZoneImplementation.local();
     }
-    return new Date.fromEpoch(value, targetTimeZone);
+    return new Date.fromEpoch(value, targetTimeZone.isUtc);
   }
 
   String get timeZoneName() {
@@ -147,34 +155,34 @@ class DateImplementation implements Date {
     // According to V8 some library calls have troubles with negative values.
     // Therefore clamp to 0 - year 2035 (which is less than the size of 32bit).
     if (secondsSinceEpoch >= 0 && secondsSinceEpoch < _SECONDS_YEAR_2035) {
-      return _getYear(secondsSinceEpoch, timeZone.isUtc);
+      return _getYear(secondsSinceEpoch, isUtc());
     }
 
     // Approximate the result. We don't take timeZone into account.
     int approximateYear = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);
     int equivalentYear = _equivalentYear(approximateYear);
-    int y = _getYear(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
+    int y = _getYear(_equivalentSeconds(_secondsSinceEpoch), isUtc());
     return approximateYear + (y - equivalentYear);
   }
 
   int get month() {
-    return _getMonth(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
+    return _getMonth(_equivalentSeconds(_secondsSinceEpoch), isUtc());
   }
 
   int get day() {
-    return _getDay(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
+    return _getDay(_equivalentSeconds(_secondsSinceEpoch), isUtc());
   }
 
   int get hours() {
-    return _getHours(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
+    return _getHours(_equivalentSeconds(_secondsSinceEpoch), isUtc());
   }
 
   int get minutes() {
-    return _getMinutes(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
+    return _getMinutes(_equivalentSeconds(_secondsSinceEpoch), isUtc());
   }
 
   int get seconds() {
-    return _getSeconds(_equivalentSeconds(_secondsSinceEpoch), timeZone.isUtc);
+    return _getSeconds(_equivalentSeconds(_secondsSinceEpoch), isUtc());
   }
 
   int get milliseconds() {
@@ -191,8 +199,7 @@ class DateImplementation implements Date {
   }
 
   int get weekday() {
-    final Date unixTimeStart =
-    new Date.withTimeZone(1970, 1, 1, 0, 0, 0, 0, timeZone);
+    final Date unixTimeStart = new Date(1970, 1, 1, 0, 0, 0, 0, isUtc());
     int msSince1970 = this.difference(unixTimeStart).inMilliseconds;
     // Adjust the milliseconds to avoid problems with summer-time.
     if (hours < 2) {
@@ -210,13 +217,7 @@ class DateImplementation implements Date {
     return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
   }
 
-  bool isLocalTime() {
-    return !timeZone.isUtc;
-  }
-
-  bool isUtc() {
-    return timeZone.isUtc;
-  }
+  bool isUtc() => _isUtc;
 
   String toString() {
     String fourDigits(int n) {
@@ -244,7 +245,7 @@ class DateImplementation implements Date {
     String min = twoDigits(minutes);
     String sec = twoDigits(seconds);
     String ms = threeDigits(milliseconds);
-    if (timeZone.isUtc) {
+    if (isUtc()) {
       return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
       return "$y-$m-$d $h:$min:$sec.$ms";
@@ -254,24 +255,19 @@ class DateImplementation implements Date {
   // Adds the [duration] to this Date instance.
   Date add(Duration duration) {
     return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
-                                            timeZone);
+                                            isUtc());
   }
 
   // Subtracts the [duration] from this Date instance.
   Date subtract(Duration duration) {
     return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
-                                            timeZone);
+                                            isUtc());
   }
 
   // Returns a [Duration] with the difference of [this] and [other].
   Duration difference(Date other) {
     return new DurationImplementation(milliseconds: value - other.value);
   }
-
-  final int value;
-  final TimeZoneImplementation timeZone;
-
-  static final int _SECONDS_YEAR_2035 = 2051222400;
 
   // Returns the UTC year for the corresponding [secondsSinceEpoch].
   // It is relatively fast for values in the range 0 to year 2098.
@@ -405,6 +401,10 @@ class DateImplementation implements Date {
     int adjustedSeconds = secondsSinceEpoch + offsetInSeconds;
     return adjustedSeconds * Duration.MILLISECONDS_PER_SECOND + milliseconds;
   }
+
+  final bool _isUtc;
+  final int value;
+
 
   // Natives
   static _brokenDownDateToSecondsSinceEpoch(

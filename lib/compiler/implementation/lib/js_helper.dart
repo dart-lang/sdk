@@ -419,49 +419,49 @@ class Primitives {
   }
 
   static getYear(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCFullYear()', lazyAsJsDate(receiver))
       : JS('int', @'#.getFullYear()', lazyAsJsDate(receiver));
   }
 
   static getMonth(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
       : JS('int', @'#.getMonth()', lazyAsJsDate(receiver)) + 1;
   }
 
   static getDay(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCDate()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDate()', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCHours()', lazyAsJsDate(receiver))
       : JS('int', @'#.getHours()', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCMinutes()', lazyAsJsDate(receiver))
       : JS('int', @'#.getMinutes()', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCSeconds()', lazyAsJsDate(receiver))
       : JS('int', @'#.getSeconds()', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
       : JS('int', @'#.getMilliseconds()', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCDay()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDay()', lazyAsJsDate(receiver));
   }

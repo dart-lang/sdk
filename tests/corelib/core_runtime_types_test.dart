@@ -260,7 +260,7 @@ class CoreRuntimeTypesTest {
 
   static testDateMethods() {
     var msec = 115201000;
-    var d = new Date.fromEpoch(msec, const TimeZone.utc());
+    var d = new Date.fromEpoch(msec, isUtc: true);
     assertEquals(d.seconds, 1);
     assertEquals(d.year, 1970);
 
