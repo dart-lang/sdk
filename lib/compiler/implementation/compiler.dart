@@ -487,18 +487,9 @@ class Compiler implements DiagnosticListener {
       // URI.
       throw 'cannot find tokens to produce error message';
     }
-    final startOffset = begin.charOffset;
-    // TODO(ahe): Compute proper end offset in token. Right now we use
-    // the position of the next token. We want to preserve the
-    // invariant that endOffset > startOffset, but for EOF the
-    // charoffset of the next token may be [startOffset]. This can
-    // also happen for synthetized tokens that are produced during
-    // error handling.
-    final endOffset =
-      Math.max((end.next !== null) ? end.next.charOffset : 0, startOffset + 1);
-    assert(endOffset > startOffset);
     Uri uri = currentElement.getCompilationUnit().script.uri;
-    return new SourceSpan(uri, startOffset, endOffset);
+    return SourceSpan.withOffsets(begin, end, (beginOffset, endOffset) =>
+        new SourceSpan(uri, beginOffset, endOffset));
   }
 
   SourceSpan spanFromNode(Node node) {
@@ -596,4 +587,19 @@ class SourceSpan {
   final int end;
 
   const SourceSpan(this.uri, this.begin, this.end);
+
+  static withOffsets(Token begin, Token end,
+                     f(int beginOffset, int endOffset)) {
+    final beginOffset = begin.charOffset;
+    // TODO(ahe): Compute proper end offset in token. Right now we use
+    // the position of the next token. We want to preserve the
+    // invariant that endOffset > beginOffset, but for EOF the
+    // charoffset of the next token may be [beginOffset]. This can
+    // also happen for synthetized tokens that are produced during
+    // error handling.
+    final endOffset =
+      Math.max((end.next !== null) ? end.next.charOffset : 0, beginOffset + 1);
+    assert(endOffset > beginOffset);
+    return f(beginOffset, endOffset);
+  }
 }
