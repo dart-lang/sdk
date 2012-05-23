@@ -52,7 +52,8 @@ enum XmmRegister {
 
 
 // Register aliases.
-const Register CTX = ESI;  // Caches current context in generated code.
+const Register TMP = kNoRegister;  // No scratch register used by assembler.
+const Register CTX = ESI;          // Caches current context in generated code.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

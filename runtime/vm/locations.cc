@@ -25,7 +25,7 @@ static Register AllocateFreeRegister(
 void LocationSummary::AllocateRegisters() {
   EmbeddedArray<bool, kNumberOfCpuRegisters> blocked_registers;
 
-  // Mark all registers free.
+  // Mark all available registers free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     blocked_registers[i] = false;
   }
@@ -37,6 +37,12 @@ void LocationSummary::AllocateRegisters() {
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
     }
+  }
+
+  // Do not allocate known registers.
+  blocked_registers[CTX] = true;
+  if (TMP != kNoRegister) {
+    blocked_registers[TMP] = true;
   }
 
   // Allocate all unallocated input locations.
