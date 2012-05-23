@@ -57,10 +57,7 @@ uword Heap::AllocateNew(intptr_t size) {
   }
   CollectGarbage(kNew);
   if (FLAG_verbose_gc) {
-    OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
-                 (new_space_->in_use() / KB),
-                 (old_space_->in_use() / KB),
-                 (code_space_->in_use() / KB));
+    PrintSizes();
   }
   addr = new_space_->TryAllocate(size);
   if (addr != 0) {
@@ -76,10 +73,7 @@ uword Heap::AllocateOld(intptr_t size) {
   if (addr == 0) {
     CollectAllGarbage();
     if (FLAG_verbose_gc) {
-      OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
-                   (new_space_->in_use() / KB),
-                   (old_space_->in_use() / KB),
-                   (code_space_->in_use() / KB));
+      PrintSizes();
     }
     addr = old_space_->TryAllocate(size);
     if (addr == 0) {
@@ -205,6 +199,14 @@ bool Heap::Verify() const {
   code_space_->VisitObjectPointers(&visitor);
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
+}
+
+
+void Heap::PrintSizes() const {
+  OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
+               (new_space_->in_use() / KB),
+               (old_space_->in_use() / KB),
+               (code_space_->in_use() / KB));
 }
 
 
