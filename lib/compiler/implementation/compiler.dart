@@ -35,7 +35,7 @@ class Backend {
   Backend(this.compiler);
 
   abstract String codegen(WorkItem work);
-  abstract void processNativeClasses(libraries);
+  abstract void processNativeClasses(world, libraries);
   abstract void assembleProgram();
 }
 
@@ -66,8 +66,8 @@ class JavaScriptBackend extends Backend {
     return generator.generateMethod(work, graph);
   }
 
-  void processNativeClasses(libraries) {
-    native.processNativeClasses(emitter, libraries);
+  void processNativeClasses(world, libraries) {
+    native.processNativeClasses(world, emitter, libraries);
   }
 
   void assembleProgram() => emitter.assembleProgram();
@@ -193,7 +193,7 @@ class Compiler implements DiagnosticListener {
 
   void unhandledExceptionOnElement(Element element) {
     reportDiagnostic(spanFromElement(element),
-                     MessageKind.COMPILER_CRASHED.error(),
+                     MessageKind.COMPILER_CRASHED.error().toString(),
                      false);
     // TODO(ahe): Obtain the build ID.
     var buildId = 'build number could not be determined';
@@ -357,7 +357,7 @@ class Compiler implements DiagnosticListener {
       });
     }
     Collection<LibraryElement> libraries = libraries.getValues();
-    backend.processNativeClasses(libraries);
+    backend.processNativeClasses(enqueuer.codegen, libraries);
     world.populate(this, libraries);
     enqueuer.codegen.addToWorkList(main);
     codegenProgress.reset();

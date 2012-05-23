@@ -11,10 +11,11 @@
 #import('tree/tree.dart');
 #import('util/util.dart');
 
-void processNativeClasses(CodeEmitterTask emitter,
+void processNativeClasses(Enqueuer world,
+                          CodeEmitterTask emitter,
                           Collection<LibraryElement> libraries) {
   for (LibraryElement library in libraries) {
-    processNativeClassesInLibrary(emitter, library);
+    processNativeClassesInLibrary(world, emitter, library);
   }
 }
 
@@ -33,7 +34,8 @@ void addSubtypes(ClassElement cls,
   directSubtypes.add(cls);
 }
 
-void processNativeClassesInLibrary(CodeEmitterTask emitter,
+void processNativeClassesInLibrary(Enqueuer world,
+                                   CodeEmitterTask emitter,
                                    LibraryElement library) {
   bool hasNativeClass = false;
   final compiler = emitter.compiler;
@@ -44,7 +46,7 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
       ClassElement classElement = element;
       if (classElement.isNative()) {
         hasNativeClass = true;
-        compiler.registerInstantiatedClass(classElement);
+        world.registerInstantiatedClass(classElement);
         // Also parse the node to know all its methods because
         // otherwise it will only be parsed if there is a call to
         // one of its constructor.
@@ -59,17 +61,14 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
     }
   }
   if (hasNativeClass) {
-    final worlds = [compiler.enqueuer.resolution, compiler.enqueuer.codegen];
-    for (var world in worlds) {
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('dynamicFunction')));
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('dynamicSetMetadata')));
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('defineProperty')));
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('toStringForNativeObject')));
-    }
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicFunction')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicSetMetadata')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('defineProperty')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('toStringForNativeObject')));
   }
 }
 
