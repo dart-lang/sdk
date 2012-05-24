@@ -1392,6 +1392,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertVariableTypeString(libraryResult, "v2", "bool");
   }
 
+  public void test_getType_getterInNegation_generic() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class A<T> {",
+        "  T field;",
+        "  T get prop() => null;",
+        "}",
+        "f() {",
+        "  var a = new A<bool>();",
+        "  var v1 = a.field;",
+        "  var v2 = a.prop;",
+        "  if (a.field) {",
+        "  }",
+        "  if (!a.field) {",
+        "  }",
+        "  if (a.prop) {",
+        "  }",
+        "  if (!a.prop) {",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertVariableTypeString(libraryResult, "v1", "bool");
+    assertVariableTypeString(libraryResult, "v2", "bool");
+  }
+
   /**
    * Asserts that {@link VariableElement} with given name has expected type.
    */

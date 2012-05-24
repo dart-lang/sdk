@@ -1572,7 +1572,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitParenthesizedExpression(DartParenthesizedExpression node) {
-      Type type = node.getExpression().accept(this);
+      Type type = nonVoidTypeOf(node.getExpression());
       type.getClass(); // quick null check
       return type;
     }
@@ -1580,13 +1580,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
       Element element = node.getElement();
+      if (node.getType() != null) {
+        return node.getType();
+      }
       if (element != null) {
-        // Element of getter is MethodElement, but Type of getter expression is method return type
-        if (element instanceof MethodElement && element.getModifiers().isGetter()
-            && node.getType() != null) {
-          return node.getType();
-        }
-        // normal field
         return element.getType();
       }
       DartNode qualifier = node.getQualifier();
@@ -1927,7 +1924,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       // Intentionally skip the expression's name -- it's stored as an identifier, but doesn't need
       // to be resolved or type-checked.
-      Type type =  node.getExpression().accept(this);
+      Type type = nonVoidTypeOf(node.getExpression());
       type.getClass(); // quick null check
       return type;
     }
