@@ -1581,6 +1581,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitPropertyAccess(DartPropertyAccess node) {
       Element element = node.getElement();
       if (element != null) {
+        // Element of getter is MethodElement, but Type of getter expression is method return type
+        if (element instanceof MethodElement && element.getModifiers().isGetter()
+            && node.getType() != null) {
+          return node.getType();
+        }
+        // normal field
         return element.getType();
       }
       DartNode qualifier = node.getQualifier();

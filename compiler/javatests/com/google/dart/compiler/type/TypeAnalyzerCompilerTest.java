@@ -1327,7 +1327,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertVariableTypeString(libraryResult, "v1", "String");
   }
 
-  public void test_binaryExpressionType() throws Exception {
+  public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",
         "  var v1 = 1 + 2;",
@@ -1364,6 +1364,32 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertVariableTypeString(libraryResult, "v14", "double");
     assertVariableTypeString(libraryResult, "v15", "double");
     assertVariableTypeString(libraryResult, "v16", "double");
+  }
+
+  /**
+   * There was problem that using <code>() -> bool</code> getter in negation ('!') caused assignment
+   * warnings. Actual reason was that with negation getter access is visited twice and on the second
+   * time type of getter method, instead of return type, was returned.
+   */
+  public void test_getType_getterInNegation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class A {",
+        "  int get intProperty() => 42;",
+        "  bool get boolProperty() => true;",
+        "}",
+        "f() {",
+        "  var a = new A();",
+        "  var v1 = a.intProperty;",
+        "  var v2 = a.boolProperty;",
+        "  if (a.boolProperty) {",
+        "  }",
+        "  if (!a.boolProperty) {",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertVariableTypeString(libraryResult, "v1", "int");
+    assertVariableTypeString(libraryResult, "v2", "bool");
   }
 
   /**
