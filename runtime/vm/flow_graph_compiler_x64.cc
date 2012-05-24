@@ -669,16 +669,6 @@ void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
 }
 
 
-// Truee iff. the v2 is above v1 on stack, or one of them is constant.
-static bool VerifyValues(Value* v1, Value* v2) {
-  if (v1->IsUse() && v2->IsUse()) {
-    return (v1->AsUse()->definition()->temp_index() + 1) ==
-        v2->AsUse()->definition()->temp_index();
-  }
-  return true;
-}
-
-
 void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
                                          intptr_t token_index,
                                          intptr_t try_index,
@@ -765,40 +755,8 @@ void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
 
 
 void FlowGraphCompiler::VisitEqualityCompare(EqualityCompareComp* comp) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done, load_true, non_null_compare;
-  LoadValue(RDX, comp->right());
-  LoadValue(RAX, comp->left());
-  __ cmpq(RAX, raw_null);
-  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
-  // Comparison with NULL is "===".
-  __ cmpq(RAX, RDX);
-  __ j(EQUAL, &load_true, Assembler::kNearJump);
-  __ LoadObject(RAX, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(RAX, bool_true);
-  __ jmp(&done);
-
-  __ Bind(&non_null_compare);
-  __ pushq(RAX);
-  __ pushq(RDX);
-  const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
-  const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
-  const int kNumArgumentsChecked = 1;
-
-  EmitInstanceCall(comp->cid(),
-                   comp->token_index(),
-                   comp->try_index(),
-                   operator_name,
-                   kNumberOfArguments,
-                   kNoArgumentNames,
-                   kNumArgumentsChecked);
-  __ Bind(&done);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -821,36 +779,20 @@ void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
 
 
 void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::ZoneHandle());
-  // Pass a pointer to the first argument in RAX.
-  if (!comp->has_optional_parameters()) {
-    __ leaq(RAX, Address(RBP, (1 + comp->argument_count()) * kWordSize));
-  } else {
-    __ leaq(RAX,
-            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
-  }
-  __ movq(RBX, Immediate(reinterpret_cast<uword>(comp->native_c_function())));
-  __ movq(R10, Immediate(comp->argument_count()));
-  GenerateCall(comp->token_index(),
-               comp->try_index(),
-               &StubCode::CallNativeCFunctionLabel(),
-               PcDescriptors::kOther);
-  __ popq(RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
-  LoadValue(RAX, comp->instance());
-  __ movq(RAX, FieldAddress(RAX, comp->field().Offset()));
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
-  ASSERT(VerifyValues(comp->instance(), comp->value()));
-  LoadValue(RDX, comp->value());
-  LoadValue(RAX, comp->instance());
-  __ StoreIntoObject(RAX, FieldAddress(RAX, comp->field().Offset()), RDX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -932,15 +874,8 @@ void FlowGraphCompiler::VisitStaticSetter(StaticSetterComp* comp) {
 
 
 void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  Label done;
-  LoadValue(RDX, comp->value());
-  __ LoadObject(RAX, bool_true);
-  __ cmpq(RAX, RDX);
-  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(RAX, bool_false);
-  __ Bind(&done);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

@@ -9,6 +9,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"
 #include "vm/stub_code.h"
 
 #define __ compiler->assembler()->
@@ -34,6 +35,14 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
     previous = current;
   }
   return true;
+}
+
+
+// Truee iff. the v2 is above v1 on stack, or one of them is constant.
+static bool VerifyValues(Value* v1, Value* v2) {
+  ASSERT(v1->IsUse() && v2->IsUse());
+  return (v1->AsUse()->definition()->temp_index() + 1) ==
+     v2->AsUse()->definition()->temp_index();
 }
 
 
@@ -280,22 +289,88 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* locs = new LocationSummary(2, 0);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_in(1, Location::RequiresRegister());
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  ASSERT(locs()->out().reg() == RAX);
+
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label done, load_true, non_null_compare;
+
+  __ cmpq(left, raw_null);
+  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
+  // Comparison with NULL is "===".
+  __ cmpq(left, right);
+  __ j(EQUAL, &load_true, Assembler::kNearJump);
+  __ LoadObject(result, bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(result, bool_true);
+  __ jmp(&done);
+
+  __ Bind(&non_null_compare);
+  __ pushq(left);
+  __ pushq(right);
+  const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
+  const int kNumberOfArguments = 2;
+  const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
+
+  compiler->EmitInstanceCall(cid(),
+                             token_index(),
+                             try_index(),
+                             operator_name,
+                             kNumberOfArguments,
+                             kNoArgumentNames,
+                             kNumArgumentsChecked);
+  __ Bind(&done);
 }
 
 
 LocationSummary* NativeCallComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* locs = new LocationSummary(0, 3);
+  locs->set_temp(0, Location::RegisterLocation(RAX));
+  locs->set_temp(1, Location::RegisterLocation(RBX));
+  locs->set_temp(2, Location::RegisterLocation(R10));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
 void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == RAX);
+  ASSERT(locs()->temp(1).reg() == RBX);
+  ASSERT(locs()->temp(2).reg() == R10);
+  ASSERT(locs()->out().reg() == RAX);
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  // Pass a pointer to the first argument in RAX.
+  if (!has_optional_parameters()) {
+    __ leaq(RAX, Address(RBP, (1 + argument_count()) * kWordSize));
+  } else {
+    __ leaq(RAX,
+            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
+  }
+  __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
+  __ movq(R10, Immediate(argument_count()));
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &StubCode::CallNativeCFunctionLabel(),
+                         PcDescriptors::kOther);
+  __ popq(RAX);
 }
 
 
@@ -330,22 +405,40 @@ void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
-  return NULL;
+  // TODO(fschneider): For this instruction the input register may be
+  // reused for the result (but is not required to) because the input
+  // is not used after the result is defined.  We should consider adding
+  // this information to the input policy.
+  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
 }
 
 
 void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instance = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ movq(result, FieldAddress(instance, field().Offset()));
 }
 
 
 LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(2, Location::RequiresRegister());
 }
 
 
 void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(VerifyValues(instance(), value()));
+  Register instance = locs()->in(0).reg();
+  Register value = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  __ StoreIntoObject(instance, FieldAddress(instance, field().Offset()),
+                     value);
+  // TODO(fschneider): Consider eliminating this move by specifying a
+  // SameAsSecondInput for the result.
+  if (result != value) {
+    __ movq(result, value);
+  }
 }
 
 
@@ -381,12 +474,22 @@ void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
 }
 
 
 void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label done;
+  __ LoadObject(result, bool_true);
+  __ cmpq(result, value);
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ LoadObject(result, bool_false);
+  __ Bind(&done);
 }
 
 
