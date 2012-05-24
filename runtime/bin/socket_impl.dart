@@ -207,10 +207,10 @@ class _SocketBase {
     } else if (error is List) {
       assert(_isErrorResponse(error));
       switch (error[0]) {
-        case _FileUtils.kIllegalArgumentResponse:
+        case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
           doReportError(new IllegalArgumentException());
           break;
-        case _FileUtils.kOSErrorResponse:
+        case _FileUtils.OSERROR_RESPONSE:
           doReportError(new SocketIOException(
               message, new OSError(error[2], error[1])));
           break;
@@ -313,11 +313,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
 
 
 class _Socket extends _SocketBase implements Socket {
-  static final kSuccessResponse = 0;
-  static final kIllegalArgumentResponse = 1;
-  static final kOSErrorResponse = 2;
-
-  static final kHostNameLookup = 0;
+  static final HOST_NAME_LOOKUP = 0;
 
   // Constructs a new socket. During the construction an asynchronous
   // host name lookup is initiated. The returned socket is not yet
@@ -326,7 +322,7 @@ class _Socket extends _SocketBase implements Socket {
     Socket socket = new _Socket._internal();
     _ensureSocketService();
     List request = new List(2);
-    request[0] = kHostNameLookup;
+    request[0] = HOST_NAME_LOOKUP;
     request[1] = host;
     _socketService.call(request).then((response) {
       if (socket._isErrorResponse(response)) {
@@ -443,7 +439,7 @@ class _Socket extends _SocketBase implements Socket {
       native "Socket_WriteList";
 
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _FileUtils.kSuccessResponse;
+    return response is List && response[0] != _FileUtils.SUCCESS_RESPONSE;
   }
 
   bool _createConnect(String host, int port) native "Socket_CreateConnect";

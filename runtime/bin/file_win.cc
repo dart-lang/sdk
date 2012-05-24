@@ -163,6 +163,15 @@ off_t File::LengthFromName(const char* name) {
 }
 
 
+time_t File::LastModified(const char* name) {
+  struct stat st;
+  if (stat(name, &st) == 0) {
+    return st.st_mtime;
+  }
+  return -1;
+}
+
+
 bool File::IsAbsolutePath(const char* pathname) {
   // Should we consider network paths?
   if (pathname == NULL) return false;

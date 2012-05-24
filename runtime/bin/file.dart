@@ -92,6 +92,19 @@ interface File default _File {
   int lengthSync();
 
   /**
+   * Get the last-modified time of the file. Returns a
+   * [:Future<Date>:] that completes with a [Date] object for the
+   * modification date.
+   */
+  Future<Date> lastModified();
+
+  /**
+   * Get the last-modified time of the file. Throws an exception
+   * if the file does not exist.
+   */
+  Date lastModifiedSync();
+
+  /**
    * Open the file for random access operations. Returns a
    * [:Future<RandomAccessFile>:] that completes with the opened
    * random access file. RandomAccessFiles must be closed using the

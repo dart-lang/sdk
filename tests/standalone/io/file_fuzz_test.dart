@@ -19,6 +19,7 @@ fuzzSyncMethods() {
       doItSync(f.deleteSync);
       doItSync(f.directorySync);
       doItSync(f.lengthSync);
+      doItSync(f.modifiedSync);
       doItSync(f.fullPathSync);
       doItSync(() => f.openInputStream().onError = (e) => null);
       doItSync(f.readAsBytesSync);
@@ -44,6 +45,7 @@ fuzzAsyncMethods() {
       futures.add(doItAsync(f.delete));
       futures.add(doItAsync(f.directory));
       futures.add(doItAsync(f.length));
+      futures.add(doItAsync(f.modified));
       futures.add(doItAsync(f.open));
       futures.add(doItAsync(f.fullPath));
       futures.add(doItAsync(f.readAsBytes));

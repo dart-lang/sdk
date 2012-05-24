@@ -11,6 +11,8 @@
 
 #include "include/dart_api.h"
 
+static const int kMSPerSecond = 1000;
+
 dart::Mutex File::mutex_;
 int File::service_ports_size_ = 0;
 Dart_Port* File::service_ports_ = NULL;
@@ -357,6 +359,22 @@ void FUNCTION_NAME(File_LengthFromName)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* name =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  int64_t return_value = File::LastModified(name);
+  if (return_value >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(return_value * kMSPerSecond));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t value =
@@ -679,6 +697,20 @@ static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
 }
 
 
+static CObject* FileLastModifiedRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[1]->IsString()) {
+    CObjectString filename(request[1]);
+    int64_t return_value = File::LastModified(filename.CString());
+    if (return_value >= 0) {
+      return new CObjectIntptr(CObject::NewInt64(return_value * kMSPerSecond));
+    } else {
+      return CObject::NewOSError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
 static CObject* FileFlushRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[1]);
@@ -882,6 +914,9 @@ void FileService(Dart_Port dest_port_id,
           break;
         case File::kLengthFromNameRequest:
           response = FileLengthFromNameRequest(request);
+          break;
+        case File::kLastModifiedRequest:
+          response = FileLastModifiedRequest(request);
           break;
         case File::kFlushRequest:
           response = FileFlushRequest(request);
