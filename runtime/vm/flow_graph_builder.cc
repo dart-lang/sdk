@@ -59,8 +59,8 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
   DeallocateTempIndex(instruction->InputCount());
-  if (instruction->IsDefinition()) {
-    instruction->AsDefinition()->set_temp_index(AllocateTempIndex());
+  if (instruction->IsBindInstr()) {
+    instruction->AsBindInstr()->set_temp_index(AllocateTempIndex());
   }
   if (is_empty()) {
     entry_ = exit_ = instruction;
@@ -600,11 +600,11 @@ void EffectGraphVisitor::BuildTypecheckArguments(
     // Preserve instantiator.
     const LocalVariable& expr_temp =
         *owner()->parsed_function().expression_temp_var();
-    Definition* saved =
+    BindInstr* saved =
         new BindInstr(BuildStoreLocal(expr_temp, instantiator));
     AddInstruction(saved);
     instantiator = new UseVal(saved);
-    Definition* loaded = new BindInstr(BuildLoadLocal(expr_temp));
+    BindInstr* loaded = new BindInstr(BuildLoadLocal(expr_temp));
     AddInstruction(loaded);
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_index, new UseVal(loaded));
@@ -650,7 +650,7 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_index,
                                                      value,
                                                      dst_type,
                                                      dst_name);
-  Definition* assert_assignable = new BindInstr(comp);
+  BindInstr* assert_assignable = new BindInstr(comp);
   AddInstruction(assert_assignable);
   return new UseVal(assert_assignable);
 }
@@ -771,7 +771,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     if (node->kind() == Token::kEQ) {
       ReturnComputation(comp);
     } else {
-      Definition* eq_result = new BindInstr(comp);
+      BindInstr* eq_result = new BindInstr(comp);
       AddInstruction(eq_result);
       if (FLAG_enable_type_checks) {
         eq_result =
@@ -1426,7 +1426,7 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 }
 
 
-Definition* EffectGraphVisitor::BuildObjectAllocation(
+BindInstr* EffectGraphVisitor::BuildObjectAllocation(
     ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
@@ -1512,7 +1512,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   t_n+2... <- constructor arguments start here
   //   StaticCall(constructor, t_n+1, t_n+2, ...)
   // No need to preserve allocated value (simpler than in ValueGraphVisitor).
-  Definition* allocate = BuildObjectAllocation(node);
+  BindInstr* allocate = BuildObjectAllocation(node);
   BuildConstructorCall(node, new UseVal(allocate));
 }
 
@@ -1594,7 +1594,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
 }
 
 
-Definition* EffectGraphVisitor::BuildInstantiatedTypeArguments(
+BindInstr* EffectGraphVisitor::BuildInstantiatedTypeArguments(
     intptr_t token_index,
     const AbstractTypeArguments& type_arguments) {
   if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
@@ -1650,7 +1650,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
       node->token_index(), NULL);
   ASSERT(instantiator_type_arguments->IsUse());
-  Definition* stored_instantiator = new BindInstr(
+  BindInstr* stored_instantiator = new BindInstr(
       BuildStoreLocal(t1, instantiator_type_arguments));
   AddInstruction(stored_instantiator);
   // t1: instantiator type arguments.
@@ -1667,7 +1667,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
       BuildStoreLocal(t2, new UseVal(extract_type_arguments)));
   AddInstruction(stored_type_arguments);
   // t2: extracted constructor type arguments.
-  Definition* load_instantiator = new BindInstr(BuildLoadLocal(t1));
+  BindInstr* load_instantiator = new BindInstr(BuildLoadLocal(t1));
   AddInstruction(load_instantiator);
 
   BindInstr* extract_instantiator =
@@ -1679,9 +1679,9 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
       BuildStoreLocal(t1, new UseVal(extract_instantiator))));
   // t2: extracted constructor type arguments.
   // t1: extracted constructor instantiator.
-  Definition* load_0 = new BindInstr(BuildLoadLocal(t2));
+  BindInstr* load_0 = new BindInstr(BuildLoadLocal(t2));
   AddInstruction(load_0);
-  Definition* load_1 = new BindInstr(BuildLoadLocal(t1));
+  BindInstr* load_1 = new BindInstr(BuildLoadLocal(t1));
   AddInstruction(load_1);
   args->Add(new UseVal(load_0));
   args->Add(new UseVal(load_1));
@@ -1702,11 +1702,11 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   StaticCall(constructor, t_n, t_n+1, ...)
   //   tn       <- LoadLocal(temp)
 
-  Definition* allocate = BuildObjectAllocation(node);
+  BindInstr* allocate = BuildObjectAllocation(node);
   Computation* store_allocated = BuildStoreLocal(
       node->allocated_object_var(),
       new UseVal(allocate));
-  Definition* allocated_value = new BindInstr(store_allocated);
+  BindInstr* allocated_value = new BindInstr(store_allocated);
   AddInstruction(allocated_value);
   BuildConstructorCall(node, new UseVal(allocated_value));
   Computation* load_allocated = BuildLoadLocal(
@@ -2223,9 +2223,6 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
   // Compilation can be nested, preserve the computation-id.
-  Isolate* isolate = Isolate::Current();
-  const intptr_t prev_cid = isolate->computation_id();
-  isolate->set_computation_id(0);
   const Function& function = parsed_function().function();
   TargetEntryInstr* normal_entry = new TargetEntryInstr();
   graph_entry_ = new GraphEntryInstr(normal_entry);
@@ -2256,7 +2253,6 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
   }
-  isolate->set_computation_id(prev_cid);
   if (FLAG_print_flow_graph) {
     intptr_t length = postorder_block_entries_.length();
     GrowableArray<BlockEntryInstr*> reverse_postorder(length);

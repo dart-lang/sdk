@@ -18,6 +18,7 @@
 namespace dart {
 
 class Code;
+class DeoptimizationStub;
 class ExceptionHandlerList;
 template <typename T> class GrowableArray;
 class ParsedFunction;
@@ -42,7 +43,16 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   Assembler* assembler() const { return assembler_; }
 
+  Label* AddDeoptStub(intptr_t deopt_id,
+                      intptr_t deopt_token_index,
+                      intptr_t try_index_,
+                      DeoptReasonId reason,
+                      Register reg1,
+                      Register reg2);
+
  private:
+  friend class DeoptimizationStub;
+
   // TODO(fschneider): Clean up friend-class declarations once all code
   // generator templates have been moved to intermediate_language_x64.cc.
 #define DECLARE_FRIEND(ShortName, ClassName) friend class ClassName;
@@ -180,6 +190,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void IntrinsifySetter();
   static bool CanOptimize();
 
+  void GenerateDeferredCode();
+
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
 
@@ -190,6 +202,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   BlockEntryInstr* current_block_;
   DescriptorList* pc_descriptors_list_;
   ExceptionHandlerList* exception_handlers_list_;
+  GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);

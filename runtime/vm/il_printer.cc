@@ -25,16 +25,18 @@ void BufferFormatter::Print(const char* format, ...) {
 
 
 void FlowGraphPrinter::PrintBlocks() {
-  OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
+  if (!function_.IsNull()) {
+    OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
+  }
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Print the block entry.
-    Print(block_order_[i]);
+    PrintInstruction(block_order_[i]);
     Instruction* current = block_order_[i]->StraightLineSuccessor();
     // And all the successors until an exit, branch, or a block entry.
     while ((current != NULL) && !current->IsBlockEntry()) {
       OS::Print("\n");
-      Print(current);
+      PrintInstruction(current);
       current = current->StraightLineSuccessor();
     }
     BlockEntryInstr* successor =
@@ -47,12 +49,21 @@ void FlowGraphPrinter::PrintBlocks() {
 }
 
 
-void FlowGraphPrinter::Print(Instruction* instr) {
+void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
   char str[80];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
   OS::Print("%s", str);
 }
+
+
+void FlowGraphPrinter::PrintComputation(Computation* comp) {
+  char str[80];
+  BufferFormatter f(str, sizeof(str));
+  comp->PrintTo(&f);
+  OS::Print("%s", str);
+}
+
 
 
 void Computation::PrintTo(BufferFormatter* f) const {
@@ -66,7 +77,7 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
     if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
-    OS::Print(")");
+    f->Print(")");
   }
 }
 
@@ -87,9 +98,9 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
             String::Handle(dst_type().Name()).ToCString(),
             dst_name().ToCString());
   if (instantiator() != NULL) {
-    OS::Print(" (instantiator:");
+    f->Print(" (instantiator:");
     instantiator()->PrintTo(f);
-    OS::Print(")");
+    f->Print(")");
   }
   if (instantiator_type_arguments() != NULL) {
     f->Print(" (instantiator:");
@@ -188,9 +199,9 @@ void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
   if (instantiator() != NULL) {
-    OS::Print(" (instantiator:");
+    f->Print(" (instantiator:");
     instantiator()->PrintTo(f);
-    OS::Print(")");
+    f->Print(")");
   }
   if (type_arguments() != NULL) {
     f->Print(" (type-arg:");
@@ -274,6 +285,14 @@ void CatchEntryComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, %s",
            exception_var().name().ToCString(),
            stacktrace_var().name().ToCString());
+}
+
+
+void BinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
 }
 
 

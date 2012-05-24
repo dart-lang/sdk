@@ -7,6 +7,7 @@
 
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
+#include "vm/object_store.h"
 #include "vm/stub_code.h"
 
 #define __ compiler->assembler()->
@@ -143,6 +144,10 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 cid(),
+                                 token_index(),
+                                 try_index());
   compiler->EmitInstanceCall(cid(),
                              token_index(),
                              try_index(),
@@ -516,6 +521,77 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
+
+LocationSummary* BinaryOpComp::MakeLocationSummary() const {
+  return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
+}
+
+
+// TODO(srdjan): Implement variations.
+static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
+                               BinaryOpComp* comp) {
+  ASSERT((comp->ic_data() != NULL));
+  const ICData& ic_data = *comp->ic_data();
+  if (ic_data.IsNull()) return false;
+  if (ic_data.num_args_tested() != 2) return false;
+  if (ic_data.NumberOfChecks() != 1) return false;
+  Function& target = Function::Handle();
+  GrowableArray<const Class*> classes;
+  ic_data.GetCheckAt(0, &classes, &target);
+  const Class& smi_class =
+      Class::Handle(Isolate::Current()->object_store()->smi_class());
+  if ((classes[0]->raw() != smi_class.raw()) ||
+      (classes[1]->raw() != smi_class.raw())) {
+    return false;
+  }
+  // TODO(srdjan): need to allocate a temporary register (now using r10)
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register result = comp->locs()->out().reg();
+  Register temp = R10;
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptSmiBinaryOp,
+                                        temp,
+                                        right);
+  __ movq(temp, left);
+  __ orq(left, right);
+  __ testq(left, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+  __ movq(left, temp);
+  switch (comp->op_kind()) {
+    case Token::kADD: {
+      __ addq(left, right);
+      __ j(OVERFLOW, deopt);
+      if (result != left) {
+        __ movq(result, left);
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  return true;
+}
+
+void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (TryEmitSmiBinaryOp(compiler, this)) {
+    // Operation inlined.
+    return;
+  }
+  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
+  // for all intended operations.
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ pushq(left);
+  __ pushq(right);
+  InstanceCallComp* instance_call_comp = instance_call();
+  instance_call_comp->EmitNativeCode(compiler);
+  if (locs()->out().reg() != RAX) {
+    __ movq(locs()->out().reg(), RAX);
+  }
+}
 
 }  // namespace dart
 

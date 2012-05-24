@@ -32,6 +32,53 @@ DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, code_comments);
 
+class DeoptimizationStub : public ZoneAllocated {
+ public:
+  DeoptimizationStub(intptr_t deopt_id,
+                     intptr_t deopt_token_index,
+                     intptr_t try_index,
+                     DeoptReasonId reason)
+      : deopt_id_(deopt_id),
+        deopt_token_index_(deopt_token_index),
+        try_index_(try_index),
+        reason_(reason),
+        registers_(2),
+        entry_label_() {}
+
+  void Push(Register reg) { registers_.Add(reg); }
+  Label* entry_label() { return &entry_label_; }
+
+  void GenerateCode(FlowGraphCompiler* compiler);
+
+ private:
+  const intptr_t deopt_id_;
+  const intptr_t deopt_token_index_;
+  const intptr_t try_index_;
+  const DeoptReasonId reason_;
+  GrowableArray<Register> registers_;
+  Label entry_label_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
+};
+
+
+void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
+  Assembler* assem = compiler->assembler();
+#define __ assem->
+  __ Comment("Deopt stub for id %d", deopt_id_);
+  __ Bind(entry_label());
+  for (intptr_t i = 0; i < registers_.length(); i++) {
+    __ pushq(registers_[i]);
+  }
+  __ movq(RAX, Immediate(Smi::RawValue(reason_)));
+  __ call(&StubCode::DeoptimizeLabel());
+  compiler->AddCurrentDescriptor(PcDescriptors::kOther,
+                                 deopt_id_,
+                                 deopt_token_index_,
+                                 try_index_);
+#undef __
+}
+
 
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
@@ -45,6 +92,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       current_block_(NULL),
       pc_descriptors_list_(NULL),
       exception_handlers_list_(NULL),
+      deopt_stubs_(),
       is_optimizing_(is_optimizing) {
 }
 
@@ -1296,6 +1344,11 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitBinaryOp(BinaryOpComp* comp) {
+  UNIMPLEMENTED();
+}
+
+
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
@@ -1836,6 +1889,7 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 
   __ int3();
+  GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 13 bytes
   // at entry point.
   pc_descriptors_list_->AddDescriptor(PcDescriptors::kPatchCode,
@@ -1844,6 +1898,13 @@ void FlowGraphCompiler::CompileGraph() {
                                       0,
                                       -1);
   __ jmp(&StubCode::FixCallersTargetLabel());
+}
+
+
+void FlowGraphCompiler::GenerateDeferredCode() {
+  for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
+    deopt_stubs_[i]->GenerateCode(this);
+  }
 }
 
 
@@ -1876,6 +1937,21 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                       cid,
                                       token_index,
                                       try_index);
+}
+
+
+Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
+                                       intptr_t deopt_token_index,
+                                       intptr_t try_index,
+                                       DeoptReasonId reason,
+                                       Register reg1,
+                                       Register reg2) {
+  DeoptimizationStub* stub =
+      new DeoptimizationStub(deopt_id, deopt_token_index, try_index, reason);
+  stub->Push(reg1);
+  stub->Push(reg2);
+  deopt_stubs_.Add(stub);
+  return stub->entry_label();
 }
 
 
@@ -1913,6 +1989,7 @@ void FlowGraphCompiler::FinalizeComments(const Code& code) {
   code.set_comments(assembler_->GetCodeComments());
 }
 
+#undef __
 
 }  // namespace dart
 

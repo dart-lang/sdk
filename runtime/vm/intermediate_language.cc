@@ -553,4 +553,10 @@ RawAbstractType* CatchEntryComp::StaticType() const {
 }
 
 
+RawAbstractType* BinaryOpComp::StaticType() const {
+  // TODO(srdjan): Compute based on input types (ICData).
+  return Type::DynamicType();
+}
+
+
 }  // namespace dart

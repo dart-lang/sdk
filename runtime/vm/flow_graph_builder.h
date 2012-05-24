@@ -125,7 +125,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Creates an instantiated type argument vector used in preparation of an
   // allocation call.
   // May be called only if allocating an object of a parameterized class.
-  Definition* BuildInstantiatedTypeArguments(
+  BindInstr* BuildInstantiatedTypeArguments(
       intptr_t token_index,
       const AbstractTypeArguments& type_arguments);
 
@@ -172,7 +172,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
-  Definition* BuildObjectAllocation(ConstructorCallNode* node);
+  BindInstr* BuildObjectAllocation(ConstructorCallNode* node);
   void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
 
   void BuildStoreContext(const LocalVariable& variable);

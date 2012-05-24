@@ -64,6 +64,7 @@ class LocationSummary;
   M(ChainContext, ChainContextComp)                                            \
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
+  M(BinaryOp, BinaryOpComp)                                                    \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -72,6 +73,7 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 
 // Forward declarations.
 class BufferFormatter;
+class Instruction;
 class Value;
 
 
@@ -79,7 +81,7 @@ class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
+  Computation() : cid_(-1), ic_data_(NULL), instr_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = GetNextCid(isolate);
     ic_data_ = GetICDataForCid(cid_, isolate);
@@ -88,7 +90,8 @@ class Computation : public ZoneAllocated {
   // Unique computation/instruction id, used for deoptimization.
   intptr_t cid() const { return cid_; }
 
-  const ICData* ic_data() const { return ic_data_; }
+  ICData* ic_data() const { return ic_data_; }
+  void set_ic_data(ICData* value) { ic_data_ = value; }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -119,6 +122,11 @@ class Computation : public ZoneAllocated {
     return locs_;
   }
 
+  // TODO(srdjan): Eliminate Instructions hierarchy. If 'use' is NULL
+  // it acts as a DoInstr, otherwise a BindInstr.
+  void set_instr(Instruction* value) { instr_ = value; }
+  Instruction* instr() const { return instr_; }
+
   // Create a location summary for this computation.
   // TODO(fschneider): Temporarily returns NULL for instructions
   // that are not yet converted to the location based code generation.
@@ -139,16 +147,19 @@ class Computation : public ZoneAllocated {
       return NULL;
     } else {
       const Array& array_handle = Array::Handle(isolate->ic_data_array());
-      ICData& ic_data_handle = ICData::ZoneHandle();
-      if (cid < array_handle.Length()) {
-        ic_data_handle ^= array_handle.At(cid);
+      if (cid >= array_handle.Length()) {
+        // For computations being added in the optimizing compiler.
+        return NULL;
       }
+      ICData& ic_data_handle = ICData::ZoneHandle();
+      ic_data_handle ^= array_handle.At(cid);
       return &ic_data_handle;
     }
   }
 
   intptr_t cid_;
   ICData* ic_data_;
+  Instruction* instr_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -248,19 +259,18 @@ class Value : public TemplateComputation<0> {
   virtual void PrintTo(BufferFormatter* f) const;
 
 
-// Definitions and uses are mutually recursive.
-class Definition;
+class BindInstr;
 
 class UseVal : public Value {
  public:
-  explicit UseVal(Definition* definition) : definition_(definition) { }
+  explicit UseVal(BindInstr* definition) : definition_(definition) {}
 
   DECLARE_VALUE(Use)
 
-  Definition* definition() const { return definition_; }
+  BindInstr* definition() const { return definition_; }
 
  private:
-  Definition* const definition_;
+  BindInstr* definition_;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -1280,6 +1290,35 @@ class CatchEntryComp : public TemplateComputation<0> {
 };
 
 
+class BinaryOpComp : public TemplateComputation<2> {
+ public:
+  BinaryOpComp(Token::Kind op_kind,
+               InstanceCallComp* instance_call,
+               Value* left,
+               Value* right)
+      : op_kind_(op_kind), instance_call_(instance_call) {
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(BinaryOp)
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+};
+
 #undef DECLARE_COMPUTATION
 
 
@@ -1344,9 +1383,9 @@ class Instruction : public ZoneAllocated {
   BlockEntryInstr* AsBlockEntry() {
     return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
   }
-  virtual bool IsDefinition() const { return false; }
-  Definition* AsDefinition() {
-    return IsDefinition() ? reinterpret_cast<Definition*>(this) : NULL;
+  virtual bool IsBindInstr() const { return false; }
+  virtual BindInstr* AsBindInstr() {
+    return NULL;
   }
 
   virtual intptr_t InputCount() const = 0;
@@ -1357,6 +1396,9 @@ class Instruction : public ZoneAllocated {
   virtual Instruction* StraightLineSuccessor() const = 0;
   virtual void SetSuccessor(Instruction* instr) = 0;
 
+  virtual void replace_computation(Computation* value) {
+    UNREACHABLE();
+  }
   // Discover basic-block structure by performing a recursive depth first
   // traversal of the instruction graph reachable from this instruction.  As
   // a side effect, the block entry instructions in the graph are assigned
@@ -1600,12 +1642,16 @@ class TargetEntryInstr : public BlockEntryInstr {
 
 class DoInstr : public Instruction {
  public:
-  explicit DoInstr(Computation* comp)
-      : computation_(comp), successor_(NULL) { }
+  explicit DoInstr(Computation* computation)
+      : computation_(computation), successor_(NULL) {
+    ASSERT(computation != NULL);
+    computation->set_instr(this);
+  }
 
   DECLARE_INSTRUCTION(Do)
 
   Computation* computation() const { return computation_; }
+  virtual void replace_computation(Computation* value) { computation_ = value; }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1634,30 +1680,24 @@ class DoInstr : public Instruction {
 };
 
 
-class Definition : public Instruction {
+class BindInstr : public Instruction {
  public:
-  Definition() : temp_index_(-1) { }
+  explicit BindInstr(Computation* computation)
+      : temp_index_(-1), computation_(computation), successor_(NULL) {
+    ASSERT(computation != NULL);
+    computation->set_instr(this);
+  }
 
-  virtual bool IsDefinition() const { return true; }
+  DECLARE_INSTRUCTION(Bind)
+
+  virtual bool IsBindInstr() const { return true; }
+  virtual BindInstr* AsBindInstr() { return this; }
 
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
 
- private:
-  intptr_t temp_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(Definition);
-};
-
-
-class BindInstr : public Definition {
- public:
-  explicit BindInstr(Computation* computation)
-      : Definition(), computation_(computation), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(Bind)
-
   Computation* computation() const { return computation_; }
+  virtual void replace_computation(Computation* value) { computation_ = value; }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1682,6 +1722,7 @@ class BindInstr : public Definition {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
+  intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
 
