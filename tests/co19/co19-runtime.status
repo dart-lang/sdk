@@ -122,9 +122,9 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $checked ]
 Language/09_Generics/09_Generics_A04_t06: Fail # co19 issue 118
-Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/11_Statements/15_Assert_A03_t08: Fail # TODO(vm-team): New failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # Issue 1380
+Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # Issue 1380
+Language/11_Statements/15_Assert_A03_t08: Fail # Issue 1584
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
 LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
 Language/12_Libraries_and_Scripts/3_Scripts_A02_t01: Fail # Issue co19 - 110
@@ -324,20 +324,20 @@ LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
 
 
-Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/11_Statements/11_Labels_A01_t03: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/2_Privacy_A01_t11: Fail # Related to issue 978
+Language/03_Overview/2_Privacy_A01_t16: Fail # Issue 2242
+Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
+Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 3206
 
 
 [ $runtime == vm && $arch == ia32 ]
-LibTest/core/int/operator_left_shift_A01_t02: Fail
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 
 [ $runtime == vm && $unchecked ]
 Language/09_Generics/09_Generics_A04_t04: Fail # co19 issue 117
-Language/13_Types/1_Static_Types_A02_t08: Fail
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # # co19 issue 97
+Language/13_Types/1_Static_Types_A02_t08: Fail # co19 issue 128
+Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 
 
 [ $arch == simarm ]
