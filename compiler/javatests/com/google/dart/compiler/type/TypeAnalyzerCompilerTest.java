@@ -1205,13 +1205,38 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    */
   public void test_typesPropagation_ifIsType_mostSpecific() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f() {",
+        "  int a;",
+        "  num b;",
+        "  if (a is num) {",
+        "    var a1 = a;",
+        "  }",
+        "  if (a is Dynamic) {",
+        "    var a2 = a;",
+        "  }",
+        "  if (b is int) {",
+        "    var b1 = b;",
+        "  }",
+        "}",
+        "");
+    assertVariableTypeString(libraryResult, "a1", "int");
+    assertVariableTypeString(libraryResult, "a2", "int");
+    assertVariableTypeString(libraryResult, "b1", "int");
+  }
+  
+  /**
+   * When single variable has conflicting type constraints, right now we don't try to unify them,
+   * instead we fall back to "Dynamic".
+   */
+  public void test_typesPropagation_ifIsType_conflictingTypes() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(int v) {",
-        "  if (v is num) {",
+        "  if (v is String) {",
         "    var v1 = v;",
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "int");
+    assertVariableTypeString(libraryResult, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsType_negation() throws Exception {

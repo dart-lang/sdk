@@ -528,7 +528,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
             @Override
             public Void visitBinaryExpression(DartBinaryExpression node) {
-              // don't infer type is condition negated
+              // don't infer type if condition negated
               if (!negation && node.getOperator() == Token.IS) {
                 DartExpression arg1 = node.getArg1();
                 DartExpression arg2 = node.getArg2();
@@ -566,12 +566,39 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typesMap.put(element, currentType);
           flagsMap.put(element, element.isTypeInferred());
         }
-        // set new inferred type
-        if (inferredType != null && types.isSubtype(inferredType, currentType)) {
-          Elements.setType(element, inferredType);
-          Elements.setTypeInferred(element, true);
+        // apply inferred type
+        if (inferredType != null) {
+          if (TypeKind.of(currentType) == TypeKind.DYNAMIC && element.isTypeInferred()) {
+            // if we fell back to Dynamic, keep it
+          } else {
+            Type unionType = getUnionType(currentType, inferredType);
+            Elements.setType(element, unionType);
+            Elements.setTypeInferred(element, true);
+          }
         }
       }
+
+      /**
+       * @return the {@link Type} which is both "a" and "b" types. May be "Dynamic" if "a" and "b"
+       *         don't form hierarchy.
+       */
+      Type getUnionType(Type a, Type b) {
+        if (TypeKind.of(a) == TypeKind.DYNAMIC) {
+          return b;
+        }
+        if (TypeKind.of(b) == TypeKind.DYNAMIC) {
+          return a;
+        }
+        if (types.isSubtype(a, b)) {
+          return a;
+        }
+        if (types.isSubtype(b, a)) {
+          return b;
+        }
+        // TODO(scheglov) return union of types, but this is not easy
+        return dynamicType;
+      }
+
       void restore() {
         // restore types
         for (Entry<VariableElement, Type> entry : typesMap.entrySet()) {
@@ -1868,9 +1895,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression value = node.getValue();
           if (value != null) {
             Type valueType = value.getType();
-            Elements.setType(element, valueType);
-            Elements.setTypeInferred(element, true);
-            propagetedTypeVariables.add(element);
+            if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
+              Elements.setType(element, valueType);
+              Elements.setTypeInferred(element, true);
+              propagetedTypeVariables.add(element);
+            }
           }
         }
       }
