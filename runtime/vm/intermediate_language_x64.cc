@@ -35,6 +35,12 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
 }
 
 
+void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  computation()->EmitNativeCode(compiler);
+  __ pushq(locs()->out().reg());
+}
+
+
 static LocationSummary* MakeSimpleLocationSummary(
     intptr_t input_count, Location out) {
   LocationSummary* summary = new LocationSummary(input_count);
@@ -186,12 +192,6 @@ void StoreLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  computation()->EmitNativeCode(compiler);
-  __ pushq(locs()->out().reg());
-}
-
-
 LocationSummary* ConstantVal::MakeLocationSummary() const {
   return MakeSimpleLocationSummary(0, Location::RequiresRegister());
 }
@@ -208,17 +208,12 @@ void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 LocationSummary* UseVal::MakeLocationSummary() const {
   return NULL;
 }
 
 
-void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -228,7 +223,7 @@ LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
 }
 
 
-void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -238,7 +233,7 @@ LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
 }
 
 
-void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -248,7 +243,7 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
 }
 
 
-void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -258,7 +253,7 @@ LocationSummary* NativeCallComp::MakeLocationSummary() const {
 }
 
 
-void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -268,7 +263,7 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
 }
 
 
-void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -278,7 +273,7 @@ LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
 }
 
 
-void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -288,7 +283,7 @@ LocationSummary* StaticSetterComp::MakeLocationSummary() const {
 }
 
 
-void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -298,7 +293,7 @@ LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
 }
 
 
-void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -308,7 +303,7 @@ LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
 }
 
 
-void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -318,7 +313,7 @@ LocationSummary* LoadStaticFieldComp::MakeLocationSummary() const {
 }
 
 
-void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -328,7 +323,7 @@ LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
 }
 
 
-void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -338,7 +333,7 @@ LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
 }
 
 
-void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -348,7 +343,7 @@ LocationSummary* InstanceOfComp::MakeLocationSummary() const {
 }
 
 
-void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -358,13 +353,23 @@ LocationSummary* CreateArrayComp::MakeLocationSummary() const {
 }
 
 
-void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
 LocationSummary* CreateClosureComp::MakeLocationSummary() const {
   return NULL;
+}
+
+
+void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
+  return MakeCallSummary();
 }
 
 
@@ -380,8 +385,9 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
-  return MakeCallSummary();
+LocationSummary* AllocateObjectWithBoundsCheckComp::
+    MakeLocationSummary() const {
+  return MakeSimpleLocationSummary(2, Location::RequiresRegister());
 }
 
 
@@ -409,23 +415,12 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
 }
 
 
-LocationSummary* AllocateObjectWithBoundsCheckComp::
-    MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(2, Location::RequiresRegister());
-}
-
-
-void NativeLoadFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 LocationSummary* NativeLoadFieldComp::MakeLocationSummary() const {
   return NULL;
 }
 
 
-void NativeStoreFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void NativeLoadFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -435,7 +430,7 @@ LocationSummary* NativeStoreFieldComp::MakeLocationSummary() const {
 }
 
 
-void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void NativeStoreFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -445,8 +440,7 @@ LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
 }
 
 
-void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
+void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -457,7 +451,7 @@ LocationSummary* ExtractConstructorTypeArgumentsComp::
 }
 
 
-void ExtractConstructorInstantiatorComp::EmitNativeCode(
+void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
@@ -469,7 +463,8 @@ LocationSummary* ExtractConstructorInstantiatorComp::
 }
 
 
-void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ExtractConstructorInstantiatorComp::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -479,7 +474,7 @@ LocationSummary* AllocateContextComp::MakeLocationSummary() const {
 }
 
 
-void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -489,7 +484,7 @@ LocationSummary* ChainContextComp::MakeLocationSummary() const {
 }
 
 
-void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -499,13 +494,18 @@ LocationSummary* CloneContextComp::MakeLocationSummary() const {
 }
 
 
-void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
 LocationSummary* CatchEntryComp::MakeLocationSummary() const {
   return NULL;
+}
+
+
+void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
 }
 
 
