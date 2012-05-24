@@ -79,8 +79,8 @@ main() {
   // Select the command.
   var command = commands[args[0]];
   if (command == null) {
-    print('Unknown command "${args[0]}".');
-    print('Run "pub help" to see available commands.');
+    printError('Unknown command "${args[0]}".');
+    printError('Run "pub help" to see available commands.');
     exit(64); // See http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     return;
   }
@@ -136,14 +136,44 @@ class PubCommand {
     // TODO(rnystrom): Each command should define the arguments it expects and
     // we can handle them generically here.
 
+    handleError(error) {
+      // This is basically the top-level exception handler so that we don't
+      // spew a stack trace on our users.
+      // TODO(rnystrom): Add --trace flag so stack traces can be enabled for
+      // debugging.
+      var message = error.toString();
+
+      // TODO(rnystrom): The default exception implementation class puts
+      // "Exception:" in the output, so strip that off.
+      if (message.startsWith("Exception: ")) {
+        message = message.substring("Exception: ".length);
+      }
+
+      printError(message);
+      return true;
+    }
+
     // TODO(rnystrom): Will eventually need better logic to walk up
     // subdirectories until we hit one that looks package-like. For now, just
     // assume the cwd is it.
-    Package.load(workingDir, cache.sources).then((package) {
+    Package.load(workingDir, cache.sources).chain((package) {
       entrypoint = new Entrypoint(package, cache);
-      onRun();
-    });
+
+      try {
+        var commandFuture = onRun();
+        if (commandFuture == null) return new Future.immediate(true);
+
+        return commandFuture;
+      } catch (var error) {
+        handleError(error);
+      }
+    }).handleException(handleError);
   }
 
-  abstract void onRun();
+  /**
+   * Override this to perform the specific command. Return a future that
+   * completes when the command is done or fails if the command fails. If the
+   * command is synchronous, it may return `null`.
+   */
+  abstract Future onRun();
 }

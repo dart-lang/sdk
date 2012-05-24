@@ -75,7 +75,8 @@ List<_ScheduledEvent> _scheduledBeforePub;
  */
 List<_ScheduledEvent> _scheduledAfterPub;
 
-void runPub([List<String> args, Pattern output, int exitCode = 0]) {
+void runPub([List<String> args, Pattern output, Pattern error,
+    int exitCode = 0]) {
   var createdSandboxDir;
 
   var asyncDone = expectAsync0(() {});
@@ -108,14 +109,11 @@ void runPub([List<String> args, Pattern output, int exitCode = 0]) {
 
     return _runPub(args, pathInSandbox(appPath));
   }).chain((result) {
-    Expect.equals(result.stderr.length, 0,
-        'Did not expect any output on stderr, and got:\n' +
-        Strings.join(result.stderr, '\n'));
+    _validateOutput(output, result.stdout);
+    _validateOutput(error, result.stderr);
 
     Expect.equals(result.exitCode, exitCode,
         'Pub returned exit code ${result.exitCode}, expected $exitCode.');
-
-    _validateOutput(output, result.stdout);
 
     return _runScheduled(createdSandboxDir, _scheduledAfterPub);
   });
@@ -133,6 +131,22 @@ void runPub([List<String> args, Pattern output, int exitCode = 0]) {
     });
     return true;
   });
+}
+
+
+/**
+ * Wraps a test that needs git in order to run. This validates that the test is
+ * running on a builbot in which case we expect git to be installed. If we are
+ * not running on the buildbot, we will instead see if git is installed and
+ * skip the test if not. This way, users don't need to have git installed to
+ * run the tests locally (unless they actually care about the pub git tests).
+ */
+void withGit(void callback()) {
+  isGitInstalled.then(expectAsync1((installed) {
+    if (installed || Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
+      callback();
+    }
+  }));
 }
 
 Future<Directory> _setUpSandbox() {
@@ -170,6 +184,8 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
  * reports whether the output contained the pattern.
  */
 void _validateOutput(Pattern expected, List<String> actual) {
+  if (expected == null) return;
+
   if (expected is String) return _validateOutputString(expected, actual);
   var actualText = Strings.join(actual, "\n");
   if (actualText.contains(expected)) return;

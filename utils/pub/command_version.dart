@@ -6,5 +6,5 @@
 class VersionCommand extends PubCommand {
   String get description() => 'print Pub version';
 
-  void onRun() => printVersion();
+  Future onRun() => printVersion();
 }

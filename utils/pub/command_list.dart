@@ -11,11 +11,13 @@
 class ListCommand extends PubCommand {
   String get description() => 'print the contents of repositories';
 
-  void onRun() {
+  Future onRun() {
     // TODO(nweiz): also list the contents of the packages directory when it's
     // able to determine the source of its packages (that is, when we have a
     // lockfile).
-    cache.listAll().then((ids) => _printIds('system cache', ids));
+    return cache.listAll().transform((ids) {
+      _printIds('system cache', ids);
+    });
   }
 
   _printIds(String title, List<PackageId> ids) {

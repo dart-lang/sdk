@@ -13,6 +13,14 @@
 String get workingDir() => new File('.').fullPathSync();
 
 /**
+ * Prints the given string to `stderr` on its own line.
+ */
+void printError(value) {
+  stderr.writeString(value.toString());
+  stderr.writeString('\n');
+}
+
+/**
  * Joins a number of path string parts into a single path. Handles
  * platform-specific path separators. Parts can be [String], [Directory], or
  * [File] objects.
@@ -314,6 +322,36 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
   };
 
   process.onError = (error) => completer.completeException(error);
+
+  return completer.future;
+}
+
+/**
+ * Tests whether or not the git command-line app is available for use.
+ */
+Future<bool> get isGitInstalled() {
+  // TODO(rnystrom): We could cache this after the first check. We aren't right
+  // now because Future.immediate() will invoke its callback synchronously.
+  // That does bad things in cases where the caller expects futures to always
+  // be async. In particular, withGit() in the pub tests which calls
+  // expectAsync() will fail horribly if the test isn't actually async.
+
+  var completer = new Completer<bool>();
+
+  // If "git --version" prints something familiar, git is working.
+  var future = runProcess("git", ["--version"]);
+
+  future.then((results) {
+    var regex = new RegExp("^git version");
+    completer.complete(results.stdout.length == 1 &&
+                       regex.hasMatch(results.stdout[0]));
+  });
+
+  future.handleException((err) {
+    // If the process failed, they probably don't have it.
+    completer.complete(false);
+    return true;
+  });
 
   return completer.future;
 }

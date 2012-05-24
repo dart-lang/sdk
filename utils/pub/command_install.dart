@@ -6,8 +6,8 @@
 class InstallCommand extends PubCommand {
   String get description() => "install the current package's dependencies";
 
-  void onRun() {
-    entrypoint.installDependencies().then((_) {
+  Future onRun() {
+    return entrypoint.installDependencies().transform((_) {
       print('Dependencies installed!');
     });
   }
