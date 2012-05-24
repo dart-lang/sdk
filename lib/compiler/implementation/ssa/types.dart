@@ -605,8 +605,7 @@ class HBoundedType extends HType {
 
   Type computeType(Compiler compiler) => type;
 
-  HType intersection(HType other) {
-    if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
+  HType combine(HType other) {
     if (other is HBoundedType) {
       HBoundedType temp = other;
       // Return [other] in case it is an exact type.
@@ -616,17 +615,23 @@ class HBoundedType extends HType {
     return HType.CONFLICTING;
   }
 
+  // As long as we don't keep track of super/sub types for non-primitive types
+  // the intersection and union is the same, except when [other] is
+  // null.
+  HType intersection(HType other) {
+    if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
+    return combine(other);
+  }
+
   HType union(HType other) {
     if (other.isNull()) {
-      return canBeNull() ? this : new HBoundedType(type, true);
+      if (canBeNull()) {
+        return this;
+      } else {
+        return new HBoundedType(type, true);
+      }
     }
-    if (other is HBoundedType) {
-      HBoundedType temp = other;
-      // Return [this] in case [other] is an exact type.
-      if (this.type === temp.type) return this;
-    }
-    if (other.isUnknown()) return this;
-    return HType.CONFLICTING;
+    return combine(other);
   }
 }
 
@@ -639,20 +644,18 @@ class HExactType extends HBoundedType {
     return classElement.lookupMember(name);
   }
 
-  HType intersection(HType other) {
-    if (other is HBoundedType) {
-      HBoundedType bounded = other;
-      if (this.type === bounded.type) return this;
+  HType combine(HType other) {
+    if (other.isExact()) {
+      HExactType concrete = other;
+      if (this.type === concrete.type) return this;
     }
-    return super.intersection(other);
+    if (other.isUnknown()) return this;
+    return HType.CONFLICTING;
   }
 
   HType union(HType other) {
-    if (other is HBoundedType) {
-      HBoundedType bounded = other;
-      if (this.type === bounded.type) return other;
-    }
-    return super.union(other);
+    if (other.isNull()) return HType.CONFLICTING;
+    return combine(other);
   }
 }
 
