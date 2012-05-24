@@ -12,20 +12,11 @@ class WorkItem {
 
   bool isAnalyzed() => resolutionTree !== null;
 
-  int hashCode() => element.hashCode();
-
-  String run(Compiler compiler) {
-    String code = compiler.codegenWorld.generatedCode[element];
+  String run(Compiler compiler, Enqueuer world) {
+    String code = world.universe.generatedCode[element];
     if (code !== null) return code;
-    try {
-      if (!isAnalyzed()) compiler.analyze(this);
-      return compiler.codegen(this);
-    } catch (CompilerCancelledException ex) {
-      throw;
-    } catch (var ex) {
-      compiler.unhandledExceptionOnElement(element);
-      throw;
-    }
+    if (!isAnalyzed()) compiler.analyze(this);
+    return compiler.codegen(this);
   }
 }
 
@@ -115,6 +106,11 @@ class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
+    } catch (CompilerCancelledException ex) {
+      throw;
+    } catch (var ex) {
+      unhandledExceptionOnElement(element);
+      throw;
     } finally {
       _currentElement = old;
     }
@@ -378,7 +374,7 @@ class Compiler implements DiagnosticListener {
     codegenProgress.reset();
     while (!world.queue.isEmpty()) {
       WorkItem work = world.queue.removeLast();
-      withCurrentElement(work.element, () => work.run(this));
+      withCurrentElement(work.element, () => work.run(this, world));
     }
     world.queueIsClosed = true;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
