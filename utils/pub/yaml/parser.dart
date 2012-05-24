@@ -248,6 +248,7 @@ class _Parser {
       if (!truth(el)) return out;
       out.add(el);
     }
+    return null; // Unreachable.
   }
 
   /**
@@ -266,6 +267,7 @@ class _Parser {
       oldPos = pos;
       out.add(el);
     }
+    return null; // Unreachable.
   }
 
   /**
@@ -1838,6 +1840,7 @@ class _Parser {
     var doc = l_explicitDocument();
     if (doc != null) return doc;
     parseFailed();
+    return null; // Unreachable.
   }
 
   // 210
