@@ -9,7 +9,7 @@ class Foo {
   static final C2 = const Foo('C2');
   static final C3 = const Foo('C3');
 
-  var name;
+  final name;
   const Foo(this.name);
 
   foo() {
