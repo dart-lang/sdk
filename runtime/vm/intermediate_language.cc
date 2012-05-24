@@ -493,13 +493,13 @@ RawAbstractType* AllocateObjectWithBoundsCheckComp::StaticType() const {
 }
 
 
-RawAbstractType* NativeLoadFieldComp::StaticType() const {
+RawAbstractType* LoadVMFieldComp::StaticType() const {
   ASSERT(!type().IsNull());
   return type().raw();
 }
 
 
-RawAbstractType* NativeStoreFieldComp::StaticType() const {
+RawAbstractType* StoreVMFieldComp::StaticType() const {
   ASSERT(!type().IsNull());
   const AbstractType& assigned_value_type =
       AbstractType::Handle(value()->StaticType());

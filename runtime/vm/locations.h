@@ -42,7 +42,7 @@ class Location : public ValueObject {
   // Unallocated locations.
   enum Policy {
     kRequiresRegister,
-    kSameAsFirstInput
+    kSameAsFirstInput,
   };
 
   static Location UnallocatedLocation(Policy policy) {

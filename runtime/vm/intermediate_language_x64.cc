@@ -415,23 +415,31 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
 }
 
 
-LocationSummary* NativeLoadFieldComp::MakeLocationSummary() const {
-  return NULL;
+LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
+  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
 }
 
 
-void NativeLoadFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ movq(result, FieldAddress(obj, offset_in_bytes()));
 }
 
 
-LocationSummary* NativeStoreFieldComp::MakeLocationSummary() const {
-  return NULL;
+LocationSummary* StoreVMFieldComp::MakeLocationSummary() const {
+  return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
 }
 
 
-void NativeStoreFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value_reg = locs()->in(0).reg();
+  Register dest_reg = locs()->in(1).reg();
+  ASSERT(value_reg == locs()->out().reg());
+
+  __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                     value_reg);
 }
 
 

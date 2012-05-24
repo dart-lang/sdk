@@ -55,8 +55,8 @@ class LocationSummary;
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
   M(AllocateObjectWithBoundsCheck, AllocateObjectWithBoundsCheckComp)          \
-  M(NativeLoadField, NativeLoadFieldComp)                                      \
-  M(NativeStoreField, NativeStoreFieldComp)                                    \
+  M(LoadVMField, LoadVMFieldComp)                                              \
+  M(StoreVMField, StoreVMFieldComp)                                            \
   M(InstantiateTypeArguments, InstantiateTypeArgumentsComp)                    \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
@@ -1043,18 +1043,18 @@ class CreateClosureComp : public Computation {
 };
 
 
-class NativeLoadFieldComp : public TemplateComputation<1> {
+class LoadVMFieldComp : public TemplateComputation<1> {
  public:
-  NativeLoadFieldComp(Value* value,
-                      intptr_t offset_in_bytes,
-                      const AbstractType& type)
+  LoadVMFieldComp(Value* value,
+                  intptr_t offset_in_bytes,
+                  const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
   }
 
-  DECLARE_COMPUTATION(NativeLoadField)
+  DECLARE_COMPUTATION(LoadVMField)
 
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -1066,27 +1066,27 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
 
-  DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
+  DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };
 
 
-class NativeStoreFieldComp : public TemplateComputation<2> {
+class StoreVMFieldComp : public TemplateComputation<2> {
  public:
-  NativeStoreFieldComp(Value* dest,
-                       intptr_t offset_in_bytes,
-                       Value* value,
-                       const AbstractType& type)
+  StoreVMFieldComp(Value* dest,
+                   intptr_t offset_in_bytes,
+                   Value* value,
+                   const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    inputs_[0] = dest;
-    inputs_[1] = value;
+    inputs_[0] = value;
+    inputs_[1] = dest;
   }
 
-  DECLARE_COMPUTATION(NativeStoreField)
+  DECLARE_COMPUTATION(StoreVMField)
 
-  Value* dest() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
+  Value* value() const { return inputs_[0]; }
+  Value* dest() const { return inputs_[1]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
 
@@ -1096,7 +1096,7 @@ class NativeStoreFieldComp : public TemplateComputation<2> {
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
 
-  DISALLOW_COPY_AND_ASSIGN(NativeStoreFieldComp);
+  DISALLOW_COPY_AND_ASSIGN(StoreVMFieldComp);
 };
 
 

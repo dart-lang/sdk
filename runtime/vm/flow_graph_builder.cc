@@ -157,12 +157,12 @@ Computation* EffectGraphVisitor::BuildStoreLocal(
     AddInstruction(context);
     Value* context_value = new UseVal(context);
     while (delta-- > 0) {
-      BindInstr* load = new BindInstr(new NativeLoadFieldComp(
+      BindInstr* load = new BindInstr(new LoadVMFieldComp(
           context_value, Context::parent_offset(), Type::ZoneHandle()));
       AddInstruction(load);
       context_value = new UseVal(load);
     }
-    Computation* store = new NativeStoreFieldComp(
+    Computation* store = new StoreVMFieldComp(
         context_value,
         Context::variable_offset(local.index()),
         value,
@@ -183,12 +183,12 @@ Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     AddInstruction(context);
     Value* context_value = new UseVal(context);
     while (delta-- > 0) {
-      BindInstr* load = new BindInstr(new NativeLoadFieldComp(
+      BindInstr* load = new BindInstr(new LoadVMFieldComp(
           context_value, Context::parent_offset(), Type::ZoneHandle()));
       AddInstruction(load);
       context_value = new UseVal(load);
     }
-    Computation* store = new NativeLoadFieldComp(
+    Computation* store = new LoadVMFieldComp(
         context_value, Context::variable_offset(local.index()), local.type());
     return store;
   } else {
@@ -1585,7 +1585,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
 
   BindInstr* load =
-      new BindInstr(new NativeLoadFieldComp(
+      new BindInstr(new LoadVMFieldComp(
                         instantiator,
                         type_arguments_instance_field_offset,
                         Type::ZoneHandle()));  // Not an instance, no type.
@@ -1938,7 +1938,7 @@ void EffectGraphVisitor::UnchainContext() {
   AddInstruction(context);
   BindInstr* parent =
       new BindInstr(
-          new NativeLoadFieldComp(
+          new LoadVMFieldComp(
               new UseVal(context),
               Context::parent_offset(),
               Type::ZoneHandle()));  // Not an instance, no type.

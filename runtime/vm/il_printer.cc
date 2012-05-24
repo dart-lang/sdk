@@ -237,13 +237,13 @@ void CreateClosureComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void NativeLoadFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+void LoadVMFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %d", offset_in_bytes());
 }
 
 
-void NativeStoreFieldComp::PrintOperandsTo(BufferFormatter* f) const {
+void StoreVMFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   dest()->PrintTo(f);
   f->Print(", %d, ", offset_in_bytes());
   value()->PrintTo(f);

@@ -1089,16 +1089,15 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 }
 
 
-void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
-  LoadValue(RAX, comp->value());
-  __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));
+void FlowGraphCompiler::VisitLoadVMField(LoadVMFieldComp* comp) {
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
-void FlowGraphCompiler::VisitNativeStoreField(NativeStoreFieldComp* comp) {
-  LoadValue(RBX, comp->dest());
-  LoadValue(RAX, comp->value());
-  __ StoreIntoObject(RBX, FieldAddress(RBX, comp->offset_in_bytes()), RAX);
+void FlowGraphCompiler::VisitStoreVMField(StoreVMFieldComp* comp) {
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
