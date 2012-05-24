@@ -2,15 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('pub_source');
+#library('source');
 
-#import('io.dart');
-#import('pub.dart');
-#import('utils.dart');
-
-#source('git_source.dart');
-#source('sdk_source.dart');
-#source('source_registry.dart');
+#import('package.dart');
 
 /**
  * A source from which to install packages.

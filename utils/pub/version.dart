@@ -7,7 +7,7 @@
  *
  * [semver]: http://semver.org/
  */
-#library('pub_version');
+#library('version');
 
 #import('utils.dart');
 

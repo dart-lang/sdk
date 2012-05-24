@@ -8,18 +8,20 @@
 #library('pub');
 
 #import('io.dart');
+#import('command_install.dart');
+#import('command_list.dart');
+#import('command_update.dart');
+#import('command_version.dart');
+#import('entrypoint.dart');
+#import('git_source.dart');
+#import('package.dart');
 #import('pubspec.dart');
+#import('sdk_source.dart');
 #import('source.dart');
+#import('source_registry.dart');
+#import('system_cache.dart');
 #import('utils.dart');
 #import('version.dart');
-
-#source('command_list.dart');
-#source('command_install.dart');
-#source('command_update.dart');
-#source('command_version.dart');
-#source('entrypoint.dart');
-#source('package.dart');
-#source('system_cache.dart');
 
 Version get pubVersion() => new Version(0, 0, 0);
 

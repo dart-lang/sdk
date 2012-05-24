@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('system_cache');
+
+#import('package.dart');
+#import('source_registry.dart');
+
 /**
  * The system-wide cache of installed packages.
  *

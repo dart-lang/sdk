@@ -5,7 +5,7 @@
 /**
  * Generic utility functions. Stuff that should possibly be in core.
  */
-#library('pub_utils');
+#library('utils');
 
 /** Thrown by methods that parse text when the text isn't a valid. */
 class FormatException implements Exception {

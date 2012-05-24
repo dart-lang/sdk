@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('command_list');
+
+#import('package.dart');
+#import('pub.dart');
+
 /**
  * Handles the `list` pub command. This is mostly just used so we can pull
  * some basic data out of pub in the integration tests. Once pub is more

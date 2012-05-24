@@ -5,7 +5,7 @@
 /**
  * Helper functionality to make working with IO easier.
  */
-#library('pub_io');
+#library('io');
 
 #import('dart:io');
 
