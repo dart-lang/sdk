@@ -28,6 +28,38 @@ mul(var a, var b) => (a is num && b is num)
     ? JS('num', @'# * #', a, b)
     : mul$slow(a, b);
 
+gt(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# > #', a, b)
+    : gt$slow(a, b);
+
+ge(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# >= #', a, b)
+    : ge$slow(a, b);
+
+lt(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# < #', a, b)
+    : lt$slow(a, b);
+
+le(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# <= #', a, b)
+    : le$slow(a, b);
+
+gtB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# > #', a, b)
+    : gt$slow(a, b) === true;
+
+geB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# >= #', a, b)
+    : ge$slow(a, b) === true;
+
+ltB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# < #', a, b)
+    : lt$slow(a, b) === true;
+
+leB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# <= #', a, b)
+    : le$slow(a, b) === true;
+
 index(var a, var index) {
   // The type test may cause a NullPointerException to be thrown but
   // that matches the specification of what the indexing operator is
@@ -158,7 +190,17 @@ eq(var a, var b) {
   return JS('bool', @'# === #', a, b);
 }
 
-bool eqB(var a, var b) => eq(a, b) === true;
+bool eqB(var a, var b) {
+  if (JS('bool', @'typeof # === "object"', a)) {
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == b) === true;
+    } else {
+      return JS('bool', @'# === #', a, b);
+    }
+  }
+  // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
+  return JS('bool', @'# === #', a, b);
+}
 
 eqq(var a, var b) {
   return JS('bool', @'# === #', a, b);
@@ -176,43 +218,45 @@ eqNull(var a) {
   }
 }
 
-bool eqNullB(var a) => eqNull(a) === true;
+bool eqNullB(var a) {
+  if (JS('bool', @'typeof # === "object"', a)) {
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == null) === true;
+    } else {
+      return false;
+    }
+  } else {
+    return JS('bool', @'typeof # === "undefined"', a);
+  }
+}
 
-gt(var a, var b) {
+gt$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# > #', a, b);
   }
   return UNINTERCEPTED(a > b);
 }
 
-bool gtB(var a, var b) => gt(a, b) === true;
-
-ge(var a, var b) {
+ge$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# >= #', a, b);
   }
   return UNINTERCEPTED(a >= b);
 }
 
-bool geB(var a, var b) => ge(a, b) === true;
-
-lt(var a, var b) {
+lt$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# < #', a, b);
   }
   return UNINTERCEPTED(a < b);
 }
 
-bool ltB(var a, var b) => lt(a, b) === true;
-
-le(var a, var b) {
+le$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# <= #', a, b);
   }
   return UNINTERCEPTED(a <= b);
 }
-
-bool leB(var a, var b) => le(a, b) === true;
 
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
