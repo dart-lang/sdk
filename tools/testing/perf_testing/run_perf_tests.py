@@ -845,6 +845,9 @@ class DromaeoTest(RuntimePerformanceTest):
     # running JS dromaeo.
     if browser == 'dartium' and version == 'js':
       return False
+    # dart:dom has been removed from Dartium.
+    if browser == 'dartium' and 'dom' in version:
+      return False
     # Only run dart2js on Chrome until we validate it elsewhere.
     if browser != 'chrome' and 'dart2js' in version:
       return False
