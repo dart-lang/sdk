@@ -97,14 +97,19 @@ class Location : public ValueObject {
 // Specification of locations for inputs and output.
 class LocationSummary : public ZoneAllocated {
  public:
-  explicit LocationSummary(intptr_t count)
-      : input_locations_(count), output_location_() {
-    for (intptr_t i = 0; i < count; i++) {
+  LocationSummary(intptr_t input_count, intptr_t temp_count)
+      : input_locations_(input_count),
+        temp_locations_(temp_count),
+        output_location_() {
+    for (intptr_t i = 0; i < input_count; i++) {
       input_locations_.Add(Location());
+    }
+    for (intptr_t i = 0; i < temp_count; i++) {
+      temp_locations_.Add(Location());
     }
   }
 
-  intptr_t count() const {
+  intptr_t input_count() const {
     return input_locations_.length();
   }
 
@@ -114,6 +119,18 @@ class LocationSummary : public ZoneAllocated {
 
   void set_in(intptr_t index, Location loc) {
     input_locations_[index] = loc;
+  }
+
+  intptr_t temp_count() const {
+    return temp_locations_.length();
+  }
+
+  Location temp(intptr_t index) const {
+    return temp_locations_[index];
+  }
+
+  void set_temp(intptr_t index, Location loc) {
+    temp_locations_[index] = loc;
   }
 
   Location out() const {
@@ -130,6 +147,7 @@ class LocationSummary : public ZoneAllocated {
  private:
   // TODO(vegorov): replace with ZoneArray.
   GrowableArray<Location> input_locations_;
+  GrowableArray<Location> temp_locations_;
   Location output_location_;
 };
 

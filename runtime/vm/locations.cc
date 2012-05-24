@@ -30,13 +30,27 @@ void LocationSummary::AllocateRegisters() {
     blocked_registers[i] = false;
   }
 
-  // Mark all fixed registers as used.
-  for (intptr_t i = 0; i < count(); i++) {
+  // Mark all fixed input, temp and output registers as used.
+  for (intptr_t i = 0; i < input_count(); i++) {
     Location loc = in(i);
     if (loc.kind() == Location::kRegister) {
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
     }
+  }
+
+  for (intptr_t i = 0; i < temp_count(); i++) {
+    Location loc = temp(i);
+    if (loc.kind() == Location::kRegister) {
+      ASSERT(!blocked_registers[loc.reg()]);
+      blocked_registers[loc.reg()] = true;
+    }
+  }
+
+  if (out().kind() == Location::kRegister) {
+    // Fixed output registers are allowed to overlap with
+    // temps and inputs.
+    blocked_registers[out().reg()] = true;
   }
 
   // Do not allocate known registers.
@@ -46,11 +60,21 @@ void LocationSummary::AllocateRegisters() {
   }
 
   // Allocate all unallocated input locations.
-  for (intptr_t i = 0; i < count(); i++) {
+  for (intptr_t i = 0; i < input_count(); i++) {
     Location loc = in(i);
     if (loc.kind() == Location::kUnallocated) {
       ASSERT(loc.policy() == Location::kRequiresRegister);
       set_in(i, Location::RegisterLocation(
+          AllocateFreeRegister(&blocked_registers)));
+    }
+  }
+
+  // Allocate all unallocated temp locations.
+  for (intptr_t i = 0; i < temp_count(); i++) {
+    Location loc = temp(i);
+    if (loc.kind() == Location::kUnallocated) {
+      ASSERT(loc.policy() == Location::kRequiresRegister);
+      set_temp(i, Location::RegisterLocation(
           AllocateFreeRegister(&blocked_registers)));
     }
   }

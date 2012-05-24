@@ -44,7 +44,7 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static LocationSummary* MakeSimpleLocationSummary(
     intptr_t input_count, Location out) {
-  LocationSummary* summary = new LocationSummary(input_count);
+  LocationSummary* summary = new LocationSummary(input_count, 0);
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }
@@ -64,7 +64,7 @@ void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreContextComp::MakeLocationSummary() const {
-  LocationSummary* summary = new LocationSummary(1);
+  LocationSummary* summary = new LocationSummary(1, 0);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
 }
@@ -107,7 +107,7 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register RAX.
 static LocationSummary* MakeCallSummary() {
-  LocationSummary* result = new LocationSummary(0);
+  LocationSummary* result = new LocationSummary(0, 0);
   result->set_out(Location::RegisterLocation(RAX));
   return result;
 }
@@ -314,22 +314,33 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadStaticFieldComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
 }
 
 
 void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  __ LoadObject(result, field());
+  __ movq(result, FieldAddress(result, Field::value_offset()));
 }
 
 
 LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* locs = new LocationSummary(1, 1);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
 }
 
 
 void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->out().reg() == value);
+
+  __ LoadObject(temp, field());
+  __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
 }
 
 

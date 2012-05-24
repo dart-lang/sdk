@@ -889,15 +889,14 @@ void FlowGraphCompiler::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
 
 
 void FlowGraphCompiler::VisitLoadStaticField(LoadStaticFieldComp* comp) {
-  __ LoadObject(RDX, comp->field());
-  __ movq(RAX, FieldAddress(RDX, Field::value_offset()));
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitStoreStaticField(StoreStaticFieldComp* comp) {
-  LoadValue(RAX, comp->value());
-  __ LoadObject(RDX, comp->field());
-  __ StoreIntoObject(RDX, FieldAddress(RDX, Field::value_offset()), RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -1356,7 +1355,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   locs->AllocateRegisters();
 
   // Load instruction inputs into allocated registers.
-  for (intptr_t i = locs->count() - 1; i >= 0; i--) {
+  for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     ASSERT(loc.kind() == Location::kRegister);
     __ popq(loc.reg());
