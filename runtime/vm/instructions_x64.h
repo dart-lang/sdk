@@ -86,6 +86,9 @@ class CallPattern : public CallOrJumpPattern {
 class JumpPattern : public CallOrJumpPattern {
  public:
   explicit JumpPattern(uword pc) : CallOrJumpPattern(pc) {}
+  static int InstructionLength() {
+    return kLengthInBytes;
+  }
 
  private:
   virtual const int* pattern() const;

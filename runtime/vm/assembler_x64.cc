@@ -524,6 +524,17 @@ void Assembler::divsd(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::comisd(XmmRegister a, XmmRegister b) {
+  ASSERT(a <= XMM7);
+  ASSERT(b <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x2F);
+  EmitXmmRegisterOperand(a, b);
+}
+
+
 void Assembler::xchgl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);

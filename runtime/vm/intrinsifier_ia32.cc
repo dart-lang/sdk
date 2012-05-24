@@ -414,7 +414,7 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()), EBX);
   __ ret();
   __ Bind(&fall_through);
-  return true;
+  return false;
 }
 
 
