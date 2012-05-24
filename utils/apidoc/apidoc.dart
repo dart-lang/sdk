@@ -256,62 +256,38 @@ class Apidoc extends doc.Dartdoc {
 
   String getTypeComment(Type type) {
     return _mergeDocs(
-        includeMdnTypeComment(type),
-        super.getTypeComment(type),
-        /* getTypeDoc(type) */ null);
+        includeMdnTypeComment(type), super.getTypeComment(type));
   }
 
   String getMethodComment(MethodMember method) {
-    // TODO(rnystrom): Disabling cross-linking between individual members.
-    // Now that we include MDN content for most members, it doesn't add much
-    // value and adds a lot of clutter. Once we're sure we want to do this,
-    // we can delete this code entirely.
     return _mergeDocs(
-        includeMdnMemberComment(method),
-        super.getMethodComment(method),
-        /* getMemberDoc(method) */ null);
+        includeMdnMemberComment(method), super.getMethodComment(method));
   }
 
   String getFieldComment(FieldMember field) {
-    // TODO(rnystrom): Disabling cross-linking between individual members.
-    // Now that we include MDN content for most members, it doesn't add much
-    // value and adds a lot of clutter. Once we're sure we want to do this,
-    // we can delete this code entirely.
     return _mergeDocs(
-        includeMdnMemberComment(field),
-        super.getFieldComment(field),
-        /* getMemberDoc(field) */ null);
+        includeMdnMemberComment(field), super.getFieldComment(field));
   }
 
   bool isNonEmpty(String string) => (string != null) && (string.trim() != '');
 
-  String _mergeDocs(String mdnComment, String dartComment, String diffComment) {
+  String _mergeDocs(String mdnComment, String dartComment) {
     // Prefer hand-written Dart comments over stuff from MDN.
-    if (isNonEmpty(dartComment)) {
-      // Also include the diff comment if provided.
-      if (isNonEmpty(diffComment)) return dartComment + diffComment;
-      return dartComment;
-    } else if (isNonEmpty(mdnComment)) {
+    if (isNonEmpty(dartComment)) return dartComment;
+
+    if (isNonEmpty(mdnComment)) {
       // Wrap it so we can highlight it and so we handle MDN scraped content
       // that lacks a top-level block tag.
-      mdnComment =
-          '''
+      return '''
           <div class="mdn">
           $mdnComment
           <div class="mdn-note"><a href="$mdnUrl">from MDN</a></div>
           </div>
           ''';
-
-      // Also include the diff comment if provided.
-      if (isNonEmpty(diffComment)) return mdnComment + diffComment;
-      return mdnComment;
-    } else if (isNonEmpty(diffComment)) {
-      // All we have is the diff comment.
-      return diffComment;
-    } else {
-      // We got nothing!
-      return '';
     }
+
+    // We got nothing!
+    return '';
   }
 
   void docType(Type type) {
@@ -439,81 +415,4 @@ class Apidoc extends doc.Dartdoc {
 
     return a(memberUrl(member), memberName);
   }
-
-  /**
-   * Unify getters and setters of the same property. We only want to print
-   * explicit setters if no getter exists.
-   *
-   * If [members] contains no setters, returns it unmodified.
-   */
-  Set<Member> _unifyProperties(Set<Member> members) {
-    // Only print setters if the getter doesn't exist.
-    return members.filter((m) {
-      if (!m.name.startsWith('set:')) return true;
-      var getName = m.name.replaceFirst('set:', 'get:');
-      return !members.some((maybeGet) => maybeGet.name == getName);
-    });
-  }
-
-  /**
-   * Returns additional documentation for [member], linking it to the
-   * corresponding `dart:html` or `dart:dom_deprecated`
-   * [Member](s). If [member] is not in `dart:html` or
-   * `dart:dom_deprecated`, returns no additional documentation.
-   */
-  String getMemberDoc(Member member) {
-    if (_diff.domToHtml.containsKey(member)) {
-      final htmlMemberSet = _unifyProperties(_diff.domToHtml[member]);
-      final allSameName = htmlMemberSet.every((m) => _diff.sameName(member, m));
-      final phrase = allSameName ? 'available as' : 'renamed to';
-      final htmlMembers = doc.joinWithCommas(map(htmlMemberSet, _linkMember));
-      return
-          '''<p class="correspond">This is $phrase $htmlMembers in the
-          ${a("html.html", "dart:html")} library.</p>
-          ''';
-    } else if (_diff.htmlToDom.containsKey(member)) {
-      final domMemberSet = _unifyProperties(_diff.htmlToDom[member]);
-      final allSameName = domMemberSet.every((m) => _diff.sameName(m, member));
-      final phrase = allSameName ? 'is the same as' : 'renames';
-      final domMembers = doc.joinWithCommas(map(domMemberSet, _linkMember));
-      return
-          '''
-          <p class="correspond">This $phrase $domMembers in the
-          ${a("dom.html", "dart:dom_deprecated")} library.</p>
-          ''';
-    } else {
-      return '';
-    }
-  }
-
-  /**
-   * Returns additional Markdown-formatted documentation for [type],
-   * linking it to the corresponding `dart:html` or
-   * `dart:dom_deprecated` [Type](s). If [type] is not in `dart:html`
-   * or `dart:dom_deprecated`, returns no additional documentation.
-   */
-  String getTypeDoc(Type type) {
-    final htmlTypes = _diff.domTypesToHtml[type];
-    if ((htmlTypes != null) && (htmlTypes.length > 0)) {
-      var htmlTypesText = doc.joinWithCommas(map(htmlTypes, typeReference));
-      return
-          '''
-          <p class="correspond">This corresponds to $htmlTypesText in the
-          ${a("html.html", "dart:html")} library.</p>
-          ''';
-    }
-
-    final domTypes = _diff.htmlTypesToDom[type];
-    if ((domTypes != null) && (domTypes.length > 0)) {
-      var domTypesText = doc.joinWithCommas(map(domTypes, typeReference));
-      return
-          '''
-          <p class="correspond">This corresponds to $domTypesText in the
-          ${a("dom.html", "dart:dom_deprecated")} library.</p>
-          ''';
-    }
-
-    return '';
-  }
-
 }
