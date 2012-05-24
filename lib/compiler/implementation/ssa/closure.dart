@@ -255,6 +255,8 @@ class ClosureTranslator extends AbstractVisitor {
     } else if (node.receiver === null &&
                Elements.isInstanceSend(node, elements)) {
       useLocal(closureData.thisElement);
+    } else if (node.isSuperCall) {
+      useLocal(closureData.thisElement);
     }
     node.visitChildren(this);
   }
