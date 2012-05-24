@@ -11,6 +11,56 @@
 #source('regexp_helper.dart');
 #source('string_helper.dart');
 
+// Performance critical helper methods.
+add(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# + #', a, b)
+    : add$slow(a, b);
+
+sub(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# - #', a, b)
+    : sub$slow(a, b);
+
+div(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# / #', a, b)
+    : div$slow(a, b);
+
+mul(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# * #', a, b)
+    : mul$slow(a, b);
+
+index(var a, var index) {
+  // The type test may cause a NullPointerException to be thrown but
+  // that matches the specification of what the indexing operator is
+  // supposed to do.
+  bool isJsArrayOrString = JS('bool',
+      @'typeof # == "string" || #.constructor === Array',
+      a, a);
+  if (isJsArrayOrString) {
+    var key = JS('int', '# >>> 0', index);
+    if (key === index && key < JS('int', @'#.length', a)) {
+      return JS('var', @'#[#]', a, key);
+    }
+  }
+  return index$slow(a, index);
+}
+
+indexSet(var a, var index, var value) {
+  // The type test may cause a NullPointerException to be thrown but
+  // that matches the specification of what the indexing operator is
+  // supposed to do.
+  bool isMutableJsArray = JS('bool',
+      @'#.constructor === Array && !#.immutable$list',
+      a, a);
+  if (isMutableJsArray) {
+    var key = JS('int', '# >>> 0', index);
+    if (key === index && key < JS('int', @'#.length', a)) {
+      JS('void', @'#[#] = #', a, key, value);
+      return;
+    }
+  }
+  indexSet$slow(a, index, value);
+}
+
 /**
  * Returns true if both arguments are numbers.
  *
@@ -33,7 +83,7 @@ bool isJsArray(var value) {
   return value !== null && JS('bool', @'#.constructor === Array', value);
 }
 
-add(var a, var b) {
+add$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# + #', a, b);
   } else if (a is String) {
@@ -48,21 +98,21 @@ add(var a, var b) {
   return UNINTERCEPTED(a + b);
 }
 
-div(var a, var b) {
+div$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# / #', a, b);
   }
   return UNINTERCEPTED(a / b);
 }
 
-mul(var a, var b) {
+mul$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# * #', a, b);
   }
   return UNINTERCEPTED(a * b);
 }
 
-sub(var a, var b) {
+sub$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# - #', a, b);
   }
@@ -241,7 +291,7 @@ neg(var a) {
   return UNINTERCEPTED(-a);
 }
 
-index(var a, var index) {
+index$slow(var a, var index) {
   if (a is String || isJsArray(a)) {
     if (index is !int) {
       if (index is !num) throw new IllegalArgumentException(index);
@@ -255,7 +305,7 @@ index(var a, var index) {
   return UNINTERCEPTED(a[index]);
 }
 
-void indexSet(var a, var index, var value) {
+void indexSet$slow(var a, var index, var value) {
   if (isJsArray(a)) {
     if (index is !int) {
       throw new IllegalArgumentException(index);
