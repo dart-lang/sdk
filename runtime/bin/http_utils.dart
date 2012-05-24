@@ -117,13 +117,18 @@ class _HttpUtils {
     return sb.toString();
   }
 
-  static Date parseDate(String date) {
+  static Date parseDate(String date, [bool strict = true]) {
     final int SP = 32;
     List wkdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     List weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday",
                      "Friday", "Saturday", "Sunday"];
     List months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    List wkdaysLowerCase = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+    List weekdaysLowerCase = ["monday", "tuesday", "wednesday", "thursday",
+                              "friday", "saturday", "sunday"];
+    List monthsLowerCase = ["jan", "feb", "mar", "apr", "may", "jun",
+                            "jul", "aug", "sep", "oct", "nov", "dec"];
 
     final int formatRfc1123 = 0;
     final int formatRfc850 = 1;
@@ -138,8 +143,14 @@ class _HttpUtils {
         throw new HttpException("Invalid HTTP date $date");
       }
       String tmp = date.substring(index, index + s.length);
-      if (tmp != s) {
-        throw new HttpException("Invalid HTTP date $date");
+      if (strict) {
+        if (tmp != s) {
+          throw new HttpException("Invalid HTTP date $date");
+        }
+      } else {
+        if (tmp.toLowerCase() != s.toLowerCase()) {
+          throw new HttpException("Invalid HTTP date $date");
+        }
       }
       index += s.length;
     }
@@ -153,7 +164,8 @@ class _HttpUtils {
         if (pos == -1) throw new HttpException("Invalid HTTP date $date");
         tmp = date.substring(index, pos);
         index = pos + 1;
-        weekday = wkdays.indexOf(tmp);
+        weekday = strict ? wkdays.indexOf(tmp)
+                         : wkdaysLowerCase.indexOf(tmp.toLowerCase());
         if (weekday != -1) {
           format = formatAsctime;
           return weekday;
@@ -161,12 +173,14 @@ class _HttpUtils {
       } else {
         tmp = date.substring(index, pos);
         index = pos + 1;
-        weekday = wkdays.indexOf(tmp);
+        weekday = strict ? wkdays.indexOf(tmp)
+                         : wkdaysLowerCase.indexOf(tmp.toLowerCase());
         if (weekday != -1) {
           format = formatRfc1123;
           return weekday;
         }
-        weekday = weekdays.indexOf(tmp);
+        weekday = strict ? weekdays.indexOf(tmp)
+                         : weekdaysLowerCase.indexOf(tmp.toLowerCase());
         if (weekday != -1) {
           format = formatRfc850;
           return weekday;
@@ -180,7 +194,8 @@ class _HttpUtils {
       if (pos - index != 3) throw new HttpException("Invalid HTTP date $date");
       tmp = date.substring(index, pos);
       index = pos + 1;
-      int month = months.indexOf(tmp);
+      int month = strict ? months.indexOf(tmp)
+                         : monthsLowerCase.indexOf(tmp.toLowerCase());
       if (month != -1) return month;
       throw new HttpException("Invalid HTTP date $date");
     }

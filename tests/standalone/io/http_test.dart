@@ -173,6 +173,31 @@ class TestServer extends Isolate {
     response.outputStream.close();
   }
 
+  void _cookie1Handler(HttpRequest request, HttpResponse response) {
+    // No cookies passed with this request.
+    Expect.equals(0, request.cookies.length);
+
+    Cookie cookie1 = new Cookie("name1", "value1");
+    TimeZone utc = new TimeZone.utc();
+    Date date = new Date.withTimeZone(2014, Date.JAN, 5, 23, 59, 59, 0, utc);
+    cookie1.expires = date;
+    cookie1.domain = "www.example.com";
+    cookie1.httpOnly = true;
+    response.cookies.add(cookie1);
+    Cookie cookie2 = new Cookie("name2", "value2");
+    cookie2.maxAge = 100;
+    cookie2.domain = ".example.com";
+    cookie2.path = "/shop";
+    response.cookies.add(cookie2);
+    response.outputStream.close();
+  }
+
+  void _cookie2Handler(HttpRequest request, HttpResponse response) {
+    // Two cookies passed with this request.
+    Expect.equals(2, request.cookies.length);
+    response.outputStream.close();
+  }
+
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
@@ -206,6 +231,14 @@ class TestServer extends Isolate {
     _requestHandlers["/contenttype2"] =
         (HttpRequest request, HttpResponse response) {
           _contentType2Handler(request, response);
+        };
+    _requestHandlers["/cookie1"] =
+        (HttpRequest request, HttpResponse response) {
+          _cookie1Handler(request, response);
+        };
+    _requestHandlers["/cookie2"] =
+        (HttpRequest request, HttpResponse response) {
+          _cookie2Handler(request, response);
         };
 
     this.port.receive((var message, SendPort replyTo) {
@@ -587,6 +620,49 @@ void testContentType() {
   testServerMain.start();
 }
 
+void testCookies() {
+  TestServerMain testServerMain = new TestServerMain();
+  testServerMain.setServerStartedHandler((int port) {
+    int responses = 0;
+    HttpClient httpClient = new HttpClient();
+
+    HttpClientConnection conn1 =
+        httpClient.get("127.0.0.1", port, "/cookie1");
+    conn1.onResponse = (HttpClientResponse response) {
+      Expect.equals(2, response.cookies.length);
+      response.cookies.forEach((cookie) {
+        if (cookie.name == "name1") {
+          Expect.equals("value1", cookie.value);
+          TimeZone utc = new TimeZone.utc();
+          Date date =
+              new Date.withTimeZone(2014, Date.JAN, 5, 23, 59, 59, 0, utc);
+          Expect.equals(date, cookie.expires);
+          Expect.equals("www.example.com", cookie.domain);
+          Expect.isTrue(cookie.httpOnly);
+        } else if (cookie.name == "name2") {
+          Expect.equals("value2", cookie.value);
+          Expect.equals(100, cookie.maxAge);
+          Expect.equals(".example.com", cookie.domain);
+          Expect.equals("/shop", cookie.path);
+        } else {
+          Expect.fail("Unexpected cookie");
+        }
+      });
+      HttpClientConnection conn2 =
+          httpClient.get("127.0.0.1", port, "/cookie2");
+      conn2.onRequest = (HttpClientRequest request) {
+        request.cookies.add(response.cookies[0]);
+        request.cookies.add(response.cookies[1]);
+        request.outputStream.close();
+      };
+      conn2.onResponse = (HttpClientRequest request) {
+        httpClient.shutdown();
+        testServerMain.shutdown();
+      };
+    };
+  });
+  testServerMain.start();
+}
 
 void main() {
   testStartStop();
@@ -602,4 +678,5 @@ void main() {
   testHost();
   testExpires();
   testContentType();
+  testCookies();
 }

@@ -60,6 +60,11 @@ class _HttpHeaders implements HttpHeaders {
     _headers.forEach(f);
   }
 
+  void noFolding(String name) {
+    if (_noFoldingHeaders == null) _noFoldingHeaders = new List<String>();
+    _noFoldingHeaders.add(name);
+  }
+
   String get host() => _host;
 
   void set host(String host) {
@@ -198,6 +203,15 @@ class _HttpHeaders implements HttpHeaders {
     _set("host", "$host$portPart");
   }
 
+  _foldHeader(String name) {
+    if (name == "set-cookie" ||
+        (_noFoldingHeaders != null &&
+         _noFoldingHeaders.indexOf(name) != -1)) {
+      return false;
+    }
+    return true;
+  }
+
   _write(_HttpConnectionBase connection) {
     final COLONSP = const [_CharCode.COLON, _CharCode.SP];
     final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
@@ -205,13 +219,21 @@ class _HttpHeaders implements HttpHeaders {
 
     // Format headers.
     _headers.forEach((String name, List<String> values) {
+      bool fold = _foldHeader(name);
       List<int> data;
       data = name.charCodes();
       connection._write(data);
       connection._write(COLONSP);
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
-          connection._write(COMMASP);
+          if (fold) {
+            connection._write(COMMASP);
+          } else {
+            connection._write(CRLF);
+            data = name.charCodes();
+            connection._write(data);
+            connection._write(COLONSP);
+          }
         }
         data = values[i].charCodes();
         connection._write(data);
@@ -225,9 +247,16 @@ class _HttpHeaders implements HttpHeaders {
     _headers.forEach((String name, List<String> values) {
       sb.add(name);
       sb.add(": ");
+      bool fold = _foldHeader(name);
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
-          sb.add(", ");
+          if (fold) {
+            sb.add(", ");
+          } else {
+            sb.add("\n");
+            sb.add(name);
+            sb.add(": ");
+          }
         }
         sb.add(values[i]);
       }
@@ -238,6 +267,7 @@ class _HttpHeaders implements HttpHeaders {
 
   bool _mutable = true;  // Are the headers currently mutable?
   Map<String, List<String>> _headers;
+  List<String> _noFoldingHeaders;
 
   String _host;
   int _port;
@@ -406,6 +436,137 @@ class _ContentType extends _HeaderValue implements ContentType {
 }
 
 
+class _Cookie implements Cookie {
+  _Cookie([String this.name, String this.value]);
+
+  _Cookie.fromSetCookieValue(String value) {
+    // Parse the Set-Cookie header value.
+    _parseSetCookieValue(value);
+  }
+
+  // Parse a Set-Cookie header value according to the rules in RFC 6265.
+  void _parseSetCookieValue(String s) {
+    int index = 0;
+
+    bool done() => index == s.length;
+
+    String parseName() {
+      int start = index;
+      while (!done()) {
+        if (s[index] == "=") break;
+        index++;
+      }
+      return s.substring(start, index).trim().toLowerCase();
+    }
+
+    String parseValue() {
+      int start = index;
+      while (!done()) {
+        if (s[index] == ";") break;
+        index++;
+      }
+      return s.substring(start, index).trim().toLowerCase();
+    }
+
+    void expect(String expected) {
+      if (done()) throw new HttpException("Failed to parse header value [$s]");
+      if (s[index] != expected) {
+        throw new HttpException("Failed to parse header value [$s]");
+      }
+      index++;
+    }
+
+    void parseAttributes() {
+      String parseAttributeName() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == "=" || s[index] == ";") break;
+          index++;
+        }
+        return s.substring(start, index).trim().toLowerCase();
+      }
+
+      String parseAttributeValue() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == ";") break;
+          index++;
+        }
+        return s.substring(start, index).trim().toLowerCase();
+      }
+
+      while (!done()) {
+        String name = parseAttributeName();
+        String value = "";
+        if (!done() && s[index] == "=") {
+          index++;  // Skip the = character.
+          value = parseAttributeValue();
+        }
+        if (name == "expires") {
+          expires = _HttpUtils.parseDate(value, strict: false);
+        } else if (name == "max-age") {
+          maxAge = Math.parseInt(value);
+        } else if (name == "domain") {
+          domain = value;
+        } else if (name == "path") {
+          path = value;
+        } else if (name == "httponly") {
+          httpOnly = true;
+        } else if (name == "secure") {
+          secure = true;
+        }
+        if (!done()) index++;  // Skip the ; character
+      }
+    }
+
+    name = parseName();
+    if (done() || name.length == 0) {
+      throw new HttpException("Failed to parse header value [$s]");
+    }
+    index++;  // Skip the = character.
+    value = parseValue();
+    if (done()) return;
+    index++;  // Skip the ; character.
+    parseAttributes();
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add(name);
+    sb.add("=");
+    sb.add(value);
+    if (expires != null) {
+      sb.add("; Expires=");
+      sb.add(_HttpUtils.formatDate(expires));
+    }
+    if (maxAge != null) {
+      sb.add("; Max-Age=");
+      sb.add(maxAge);
+    }
+    if (domain != null) {
+      sb.add("; Domain=");
+      sb.add(domain);
+    }
+    if (path != null) {
+      sb.add("; Path=");
+      sb.add(path);
+    }
+    if (secure) sb.add("; Secure");
+    if (httpOnly) sb.add("; HttpOnly");
+    return sb.toString();
+  }
+
+  String name;
+  String value;
+  Date expires;
+  int maxAge;
+  String domain;
+  String path;
+  bool httpOnly = false;
+  bool secure = false;
+}
+
+
 class _HttpRequestResponseBase {
   final int START = 0;
   final int HEADER_SENT = 1;
@@ -547,6 +708,7 @@ class _HttpRequestResponseBase {
 
   _HttpConnectionBase _httpConnection;
   _HttpHeaders _headers;
+  List<Cookie> _cookies;
   String _protocolVersion = "1.1";
 
   // Length of the content body. If this is set to -1 (default value)
@@ -569,6 +731,73 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   String get path() => _path;
   String get queryString() => _queryString;
   Map get queryParameters() => _queryParameters;
+
+  List<Cookie> get cookies() {
+    if (_cookies != null) return _cookies;
+
+    // Parse a Cookie header value according to the rules in RFC 6265.
+   void _parseCookieString(String s) {
+      int index = 0;
+
+      bool done() => index == s.length;
+
+      void skipWS() {
+        while (!done()) {
+         if (s[index] != " " && s[index] != "\t") return;
+         index++;
+        }
+      }
+
+      String parseName() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == " " || s[index] == "\t" || s[index] == "=") break;
+          index++;
+        }
+        return s.substring(start, index).toLowerCase();
+      }
+
+      String parseValue() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == " " || s[index] == "\t" || s[index] == ";") break;
+          index++;
+        }
+        return s.substring(start, index).toLowerCase();
+      }
+
+      void expect(String expected) {
+        if (done()) {
+          throw new HttpException("Failed to parse header value [$s]");
+        }
+        if (s[index] != expected) {
+          throw new HttpException("Failed to parse header value [$s]");
+        }
+        index++;
+      }
+
+      while (!done()) {
+        skipWS();
+        if (done()) return;
+        String name = parseName();
+        skipWS();
+        expect("=");
+        skipWS();
+        String value = parseValue();
+        _cookies.add(new _Cookie(name, value));
+        skipWS();
+        if (done()) return;
+        expect(";");
+      }
+    }
+
+    _cookies = new List<Cookie>();
+    List<String> headerValues = headers["cookie"];
+    if (headerValues != null) {
+      headerValues.forEach((headerValue) => _parseCookieString(headerValue));
+    }
+    return _cookies;
+  }
 
   InputStream get inputStream() {
     if (_inputStream == null) {
@@ -669,6 +898,11 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   void set reasonPhrase(String reasonPhrase) {
     if (_outputStream != null) throw new HttpException("Header already sent");
     _reasonPhrase = reasonPhrase;
+  }
+
+  List<Cookie> get cookies() {
+    if (_cookies == null) _cookies = new List<Cookie>();
+    return _cookies;
   }
 
   OutputStream get outputStream() {
@@ -815,6 +1049,13 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+    }
+
+    // Add all the cookies set to the headers.
+    if (_cookies != null) {
+      _cookies.forEach((cookie) {
+        _headers.add("set-cookie", cookie);
+      });
     }
 
     // Write headers.
@@ -1253,6 +1494,11 @@ class _HttpClientRequest
     _contentLength = contentLength;
   }
 
+  List<Cookie> get cookies() {
+    if (_cookies == null) _cookies = new List<Cookie>();
+    return _cookies;
+  }
+
   OutputStream get outputStream() {
     if (_state == DONE) throw new HttpException("Request closed");
     if (_outputStream == null) {
@@ -1317,6 +1563,18 @@ class _HttpClientRequest
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
+    // Add the cookies to the headers.
+    if (_cookies != null) {
+      StringBuffer sb = new StringBuffer();
+      for (int i = 0; i < _cookies.length; i++) {
+        if (i > 0) sb.add("; ");
+        sb.add(_cookies[i].name);
+        sb.add("=");
+        sb.add(_cookies[i].value);
+      }
+      _headers.add("cookie", sb.toString());
+    }
+
     // Write headers.
     _writeHeaders();
     _state = HEADER_SENT;
@@ -1345,6 +1603,18 @@ class _HttpClientResponse
            statusCode == HttpStatus.FOUND ||
            statusCode == HttpStatus.SEE_OTHER ||
            statusCode == HttpStatus.TEMPORARY_REDIRECT;
+  }
+
+  List<Cookie> get cookies() {
+    if (_cookies != null) return _cookies;
+    _cookies = new List<Cookie>();
+    List<String> values = _headers["set-cookie"];
+    if (values != null) {
+      values.forEach((value) {
+        _cookies.add(new Cookie.fromSetCookieValue(value));
+      });
+    }
+    return _cookies;
   }
 
   InputStream get inputStream() {

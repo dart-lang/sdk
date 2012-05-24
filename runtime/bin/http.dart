@@ -277,6 +277,14 @@ interface HttpHeaders default _HttpHeaders {
   void forEach(void f(String name, List<String> values));
 
   /**
+   * Disable folding for the header named [name] when sending the HTTP
+   * header. By default, multiple header values are folded into a
+   * single header line by separating the values with commas. The
+   * Set-Cookie header has folding disabled by default.
+   */
+  void noFolding(String name);
+
+  /**
    * Gets and sets the date. The value of this property will
    * reflect the "Date" header
    */
@@ -368,7 +376,6 @@ interface HeaderValue default _HeaderValue {
    *     value; parameter1=value1; parameter2=value2
    */
   String toString();
-
 }
 
 
@@ -419,6 +426,75 @@ interface ContentType extends HeaderValue default _ContentType {
 
 
 /**
+ * Representation of a cookie. For cookies received by the server as
+ * Cookie header values only [:name:] and [:value:] fields will be
+ * set. When building a cookie for the Set-Cookie header in the server
+ * and when receiving cookies in the client as Set-Cookie headers all
+ * fields can be used.
+ */
+interface Cookie default _Cookie {
+  /**
+   * Creates a new cookie optionally setting the name and value.
+   */
+  Cookie([String name, String value]);
+
+  /**
+   * Creates a new cookie by parsing a header value from a Set-Cookie
+   * header.
+   */
+  Cookie.fromSetCookieValue(String value);
+
+  /**
+   * Gets and sets the name.
+   */
+  String name;
+
+  /**
+   * Gets and sets the value.
+   */
+  String value;
+
+  /**
+   * Gets and sets the expiry date.
+   */
+  Date expires;
+
+  /**
+   * Gets and sets the max age. A value of [:0:] means delete cookie
+   * now.
+   */
+  int maxAge;
+
+  /**
+   * Gets and sets the domain.
+   */
+  String domain;
+
+  /**
+   * Gets and sets the path.
+   */
+  String path;
+
+  /**
+   * Gets and sets whether this cookie is secure.
+   */
+  bool secure;
+
+  /**
+   * Gets and sets whether this cookie is HTTP only.
+   */
+  bool httpOnly;
+
+  /**
+   * Returns the formatted string representation of the cookie. The
+   * string representation can be used for for setting the Cookie or
+   * Set-Cookie headers
+   */
+  String toString();
+}
+
+
+/**
  * Http request delivered to the HTTP server callback.
  */
 interface HttpRequest default _HttpRequest {
@@ -462,6 +538,11 @@ interface HttpRequest default _HttpRequest {
    * Returns the request headers.
    */
   HttpHeaders get headers();
+
+  /**
+   * Returns the cookies in the request (from the Cookie header).
+   */
+  List<Cookie> get cookies();
 
   /**
    * Returns the input stream for the request. This is used to read
@@ -512,6 +593,11 @@ interface HttpResponse default _HttpResponse {
    * Returns the response headers.
    */
   HttpHeaders get headers();
+
+  /**
+   * Cookies to set in the client (in the Set-Cookie header).
+   */
+  List<Cookie> get cookies();
 
   /**
    * Returns the output stream for the response. This is used to write
@@ -684,6 +770,11 @@ interface HttpClientRequest default _HttpClientRequest {
   HttpHeaders get headers();
 
   /**
+   * Cookies to present to the server (in the Cookie header).
+   */
+  List<Cookie> get cookies();
+
+  /**
    * Returns the output stream for the request. This is used to write
    * the request data. When all request data has been written close
    * the stream to indicate the end of the request.
@@ -728,6 +819,11 @@ interface HttpClientResponse default _HttpClientResponse {
    * Returns the response headers.
    */
   HttpHeaders get headers();
+
+  /**
+   * Cookies set by the server (from the Set-Cookie header).
+   */
+  List<Cookie> get cookies();
 
   /**
    * Returns the input stream for the response. This is used to read
