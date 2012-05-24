@@ -50,7 +50,7 @@ void FlowGraphPrinter::PrintBlocks() {
 
 
 void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
-  char str[80];
+  char str[120];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
   OS::Print("%s", str);
@@ -58,7 +58,7 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
 
 
 void FlowGraphPrinter::PrintComputation(Computation* comp) {
-  char str[80];
+  char str[120];
   BufferFormatter f(str, sizeof(str));
   comp->PrintTo(&f);
   OS::Print("%s", str);
@@ -97,16 +97,12 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
             String::Handle(dst_type().Name()).ToCString(),
             dst_name().ToCString());
-  if (instantiator() != NULL) {
-    f->Print(" (instantiator:");
-    instantiator()->PrintTo(f);
-    f->Print(")");
-  }
-  if (instantiator_type_arguments() != NULL) {
-    f->Print(" (instantiator:");
-    instantiator_type_arguments()->PrintTo(f);
-    f->Print(")");
-  }
+  f->Print(" (instantiator:");
+  instantiator()->PrintTo(f);
+  f->Print(")");
+  f->Print(" (instantiator_type_arguments:");
+  instantiator_type_arguments()->PrintTo(f);
+  f->Print(")");
 }
 
 

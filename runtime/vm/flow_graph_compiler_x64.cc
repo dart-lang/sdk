@@ -658,47 +658,14 @@ void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
 
 
 void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  if (comp->instantiator_type_arguments() == NULL) {
-    __ movq(RDX, raw_null);
-  } else {
-    LoadValue(RDX, comp->instantiator_type_arguments());
-  }
-  if (comp->instantiator() == NULL) {
-    __ movq(RCX, raw_null);
-  } else {
-    LoadValue(RCX, comp->instantiator());
-  }
-  LoadValue(RAX, comp->value());
-  GenerateAssertAssignable(comp->cid(),
-                           comp->token_index(),
-                           comp->try_index(),
-                           comp->dst_type(),
-                           comp->dst_name());
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
-  LoadValue(RAX, comp->value());
-  // Check that the type of the value is allowed in conditional context.
-  // Call the runtime if the object is not bool::true or bool::false.
-  Label done;
-  __ CompareObject(RAX, Bool::ZoneHandle(Bool::True()));
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(RAX, Bool::ZoneHandle(Bool::False()));
-  __ j(EQUAL, &done, Assembler::kNearJump);
-
-  __ pushq(Immediate(Smi::RawValue(comp->token_index())));  // Source location.
-  __ pushq(RAX);  // Push the source object.
-  GenerateCallRuntime(comp->cid(),
-                      comp->token_index(),
-                      comp->try_index(),
-                      kConditionTypeErrorRuntimeEntry);
-  // We should never return here.
-  __ int3();
-
-  __ Bind(&done);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

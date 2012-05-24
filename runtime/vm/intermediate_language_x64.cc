@@ -5,6 +5,7 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
+#include "lib/error.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -224,22 +225,57 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* summary = new LocationSummary(3, 0);
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_in(1, Location::RegisterLocation(RCX));
+  summary->set_in(2, Location::RegisterLocation(RDX));
+  summary->set_out(Location::RegisterLocation(RAX));
+  return summary;
 }
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->in(0).reg() == RAX);  // Value.
+  ASSERT(locs()->in(1).reg() == RCX);  // Instantiator.
+  ASSERT(locs()->in(2).reg() == RDX);  // Instantiator type arguments.
+
+  compiler->GenerateAssertAssignable(cid(),
+                                     token_index(),
+                                     try_index(),
+                                     dst_type(),
+                                     dst_name());
+  ASSERT(locs()->in(0).reg() == locs()->out().reg());
 }
 
 
 LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(1, Location::SameAsFirstInput());
 }
 
 
 void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  Label done;
+  __ CompareObject(obj, Bool::ZoneHandle(Bool::True()));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ CompareObject(obj, Bool::ZoneHandle(Bool::False()));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  __ pushq(Immediate(Smi::RawValue(token_index())));  // Source location.
+  __ pushq(obj);  // Push the source object.
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kConditionTypeErrorRuntimeEntry);
+  // We should never return here.
+  __ int3();
+
+  __ Bind(&done);
+  ASSERT(obj == result);
 }
 
 

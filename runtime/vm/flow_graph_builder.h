@@ -182,6 +182,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   ClosureCallComp* BuildClosureCall(ClosureCallNode* node);
 
+  Value* BuildNullValue();
+
  private:
   // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.

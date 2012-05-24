@@ -45,16 +45,6 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-// ==== Per-instruction input counts.
-intptr_t AssertAssignableComp::InputCount() const {
-  // Value and optional instantiator and instantiator type arguments.
-  intptr_t count = 1;
-  if (instantiator() != NULL) count++;
-  if (instantiator_type_arguments() != NULL) count++;
-  return count;
-}
-
-
 intptr_t InstanceOfComp::InputCount() const {
   // Value and optional instantiator and instantiator type_arguments.
   intptr_t count = 1;

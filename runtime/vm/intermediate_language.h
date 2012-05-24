@@ -296,54 +296,44 @@ class ConstantVal: public Value {
 #undef DECLARE_VALUE
 
 
-class AssertAssignableComp : public Computation {
+class AssertAssignableComp : public TemplateComputation<3> {
  public:
   AssertAssignableComp(intptr_t token_index,
                        intptr_t try_index,
                        Value* value,
-                       Value* instantiator,  // Can be NULL.
-                       Value* instantiator_type_arguments,  // Can be NULL.
+                       Value* instantiator,
+                       Value* instantiator_type_arguments,
                        const AbstractType& dst_type,
                        const String& dst_name)
       : token_index_(token_index),
         try_index_(try_index),
-        value_(value),
-        instantiator_(instantiator),
-        instantiator_type_arguments_(instantiator_type_arguments),
         dst_type_(dst_type),
         dst_name_(dst_name) {
-    ASSERT(value_ != NULL);
+    ASSERT(value != NULL);
+    ASSERT(instantiator != NULL);
+    ASSERT(instantiator_type_arguments != NULL);
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
+    inputs_[0] = value;
+    inputs_[1] = instantiator;
+    inputs_[2] = instantiator_type_arguments;
   }
 
   DECLARE_COMPUTATION(AssertAssignable)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* value() const { return value_; }
-  Value* instantiator() const { return instantiator_; }
-  Value* instantiator_type_arguments() const {
-    return instantiator_type_arguments_;
-  }
+  Value* value() const { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[1]; }
+  Value* instantiator_type_arguments() const { return inputs_[2]; }
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    if (i == 0) return value();
-    if (i == 1) return instantiator_type_arguments();
-    return NULL;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  Value* value_;
-  Value* instantiator_;
-  Value* instantiator_type_arguments_;
   const AbstractType& dst_type_;
   const String& dst_name_;
 

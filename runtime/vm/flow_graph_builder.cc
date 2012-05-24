@@ -594,6 +594,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   instantiator = BuildInstantiator();
   if (instantiator == NULL) {
     // No instantiator when inside factory.
+    instantiator = BuildNullValue();
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_index, NULL);
   } else {
@@ -614,6 +615,13 @@ void EffectGraphVisitor::BuildTypecheckArguments(
 }
 
 
+Value* EffectGraphVisitor::BuildNullValue() {
+  BindInstr* instr = new BindInstr(new ConstantVal(Object::ZoneHandle()));
+  AddInstruction(instr);
+  return new UseVal(instr);
+}
+
+
 // Used for testing incoming arguments.
 AssertAssignableComp* EffectGraphVisitor::BuildAssertAssignable(
     intptr_t token_index,
@@ -623,7 +631,10 @@ AssertAssignableComp* EffectGraphVisitor::BuildAssertAssignable(
   // Build the type check computation.
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
-  if (!dst_type.IsInstantiated()) {
+  if (dst_type.IsInstantiated()) {
+    instantiator = BuildNullValue();
+    instantiator_type_arguments = BuildNullValue();
+  } else {
     BuildTypecheckArguments(token_index,
                             &instantiator,
                             &instantiator_type_arguments);
