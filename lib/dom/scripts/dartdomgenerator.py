@@ -139,16 +139,23 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
                          {'DARTIUM': False, 'FROG': True}),
           target_database, emitters, output_dir)
     elif system == 'htmldartium':
+      # Generate native wrappers.
+      native_system = NativeImplementationSystem(
+          TemplateLoader(template_dir, ['dom/native', 'dom', '']),
+          dom_database, html_renames, emitters, auxiliary_dir,
+          output_dir)
+      generator.Generate(dom_database, native_system,
+                         source_filter=['WebKit', 'Dart'],
+                         super_database=common_database,
+                         common_prefix='common',
+                         webkit_renames=_webkit_renames,
+                         html_renames=html_renames)
+      dom_implementation_classes = native_system.DartImplementationFiles()
       implementation_system = HtmlDartiumSystem(
           TemplateLoader(template_dir,
                          ['html/dartium', 'html/impl', 'html', ''],
                          {'DARTIUM': True, 'FROG': False}),
-          target_database, emitters, auxiliary_dir,
-          output_dir)
-    elif system == 'native':
-      implementation_system = NativeImplementationSystem(
-          TemplateLoader(template_dir, ['dom/native', 'dom', '']),
-          target_database, html_renames, emitters, auxiliary_dir,
+          target_database, emitters, auxiliary_dir, dom_implementation_classes,
           output_dir)
     else:
       raise Exception('Unsupported system %s' % system)
@@ -168,6 +175,7 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
   _logger.info('Flush...')
   emitters.Flush()
 
+def GenerateSingleFile(systems):
   if 'frog' in systems:
     _logger.info('Copy dom_frog to frog/')
     subprocess.call(['cd ../generated ; '
@@ -199,7 +207,7 @@ def main():
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
                     default='frog,dummy,htmlfrog,htmldartium',
-                    help='Systems to generate (frog, native, dummy, '
+                    help='Systems to generate (frog, dummy, '
                          'htmlfrog, htmldartium)')
   parser.add_option('--output-dir', dest='output_dir',
                     action='store', type='string',
@@ -223,6 +231,7 @@ def main():
       '../../html/generated')
   Generate(systems, database_dir, options.use_database_cache,
               dom_output_dir, html_output_dir)
+  GenerateSingleFile(systems)
 
 if __name__ == '__main__':
   sys.exit(main())

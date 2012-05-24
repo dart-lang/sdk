@@ -4,7 +4,10 @@
 
 // WARNING: Do not edit - generated code.
 
-class $CLASS extends $BASE implements $INTERFACE {
+interface _$INTERFACE {
+}
+
+class $CLASS extends $BASE implements _$INTERFACE {
   static $CLASS _create$CLASS() => new $CLASS._create$CLASS();
   $CLASS._create$CLASS();
   String get typeName() => "$INTERFACE";

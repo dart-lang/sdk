@@ -207,6 +207,9 @@ class NativeImplementationSystem(System):
   def _FilePathForCppImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
 
+  def DartImplementationFiles(self):
+    return self._dom_impl_files
+
 
 class NativeImplementationGenerator(object):
   """Generates Dart implementation for one DOM IDL interface."""
@@ -239,7 +242,6 @@ class NativeImplementationGenerator(object):
     self._current_secondary_parent = None
 
   def StartInterface(self):
-    self._class_name = self._ImplClassName(self._interface.id)
     self._interface_type_info = GetIDLTypeInfo(self._interface.id)
     self._members_emitter = emitter.Emitter()
     self._cpp_declarations_emitter = emitter.Emitter()
@@ -322,7 +324,7 @@ class NativeImplementationGenerator(object):
     if self._interface.id == 'DocumentFragment':
       # Interface DocumentFragment extends Element in dart:html but this fact
       # is not reflected in idls.
-      self._EmitEventGetter('ElementEventsImplementation')
+      self._EmitEventGetter('_ElementEventsImpl')
       return
 
     events_attributes = [attr for attr in self._interface.attributes
@@ -335,23 +337,23 @@ class NativeImplementationGenerator(object):
               interface.id != 'EventTarget')
     is_root = not _FindParent(self._interface, self._system._database, IsEventTarget)
     if is_root:
-      self._members_emitter.Emit('  EventsImplementation _on;\n')
+      self._members_emitter.Emit('  _EventsImpl _on;\n')
 
     if not events_attributes:
       if is_root:
-        self._EmitEventGetter('EventsImplementation')
+        self._EmitEventGetter('_EventsImpl')
       return
 
-    events_class = '%sEventsImplementation' % self._interface.id
+    events_class = '_%sEventsImpl' % self._interface.id
     self._EmitEventGetter(events_class)
 
     def HasEventAttributes(interface):
       return any([a.type.id == 'EventListener' for a in interface.attributes])
     parent = _FindParent(self._interface, self._system._database, HasEventAttributes)
     if parent:
-      parent_events_class = '%sEventsImplementation' % parent.id
+      parent_events_class = '_%sEventsImpl' % parent.id
     else:
-      parent_events_class = 'EventsImplementation'
+      parent_events_class = '_EventsImpl'
     html_inteface = self._system._html_renames.get(self._interface.id, self._interface.id)
     events_members = self._dart_impl_emitter.Emit(
         '\n'
@@ -361,12 +363,12 @@ class NativeImplementationGenerator(object):
         '}\n',
         EVENTS_CLASS=events_class,
         PARENT_EVENTS_CLASS=parent_events_class,
-        EVENTS_INTERFACE='html.%sEvents' % html_inteface)
+        EVENTS_INTERFACE='%sEvents' % html_inteface)
 
     events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
     for event_name in events_attributes:
       events_members.Emit(
-          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
+          '  EventListenerList get $HTML_NAME() => _get(\'$DOM_NAME\');\n',
           HTML_NAME=DomToHtmlEvent(event_name),
           DOM_NAME=event_name)
 
@@ -380,11 +382,31 @@ class NativeImplementationGenerator(object):
         EVENTS_CLASS=events_class)
 
   def _ImplClassName(self, interface_name):
-    return interface_name + 'Implementation'
+    return '_%sDOMImpl' % interface_name
+
+  def _DartType(self, idl_type):
+    # FIXME: Make dart:html wrapperless and cleanup this method.
+    if idl_type in ['EventListener', 'TimeoutHandler']:
+      return idl_type
+    if idl_type in ['EventTarget', 'IDBAny', 'IDBKey']:
+      return 'Dynamic'
+    if idl_type == 'DOMStringList':
+      return 'List<String>'
+
+    type_info = GetIDLTypeInfo(idl_type)
+    if isinstance(type_info, PrimitiveIDLTypeInfo) or isinstance(type_info, SequenceIDLTypeInfo):
+      return type_info.dart_type()
+
+    if self._system._database.HasInterface(idl_type):
+      interface = self._system._database.GetInterface(idl_type)
+      if 'Callback' in interface.ext_attrs:
+        return idl_type
+      return '_%s' % idl_type
+    return idl_type
 
   def _BaseClassName(self):
     if not self._interface.parents:
-      return 'DOMWrapperBase'
+      return '_DOMWrapperBase'
 
     supertype = self._interface.parents[0].type.id
 
@@ -394,7 +416,7 @@ class NativeImplementationGenerator(object):
     # inherit, but not the classes.
     # List methods are injected in AddIndexer.
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return 'DOMWrapperBase'
+      return '_DOMWrapperBase'
 
     if supertype == 'EventTarget':
       # Most implementors of EventTarget specify the EventListener operations
@@ -404,7 +426,7 @@ class NativeImplementationGenerator(object):
       # Applies to MessagePort.
       if not [op for op in self._interface.operations if op.id == 'addEventListener']:
         return self._ImplClassName(supertype)
-      return 'DOMWrapperBase'
+      return '_DOMWrapperBase'
 
     return self._ImplClassName(supertype)
 
@@ -413,8 +435,8 @@ class NativeImplementationGenerator(object):
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
-    factory_provider = '_' + interface_name + 'FactoryProvider'
-    implementation_class = interface_name + 'FactoryProviderImplementation'
+    factory_provider = '_%sFactoryProvider' % interface_name
+    implementation_class = '_%sFactoryProviderImpl' % interface_name
     implementation_function = 'create' + interface_name
     native_implementation_function = '%s_constructor_Callback' % interface_name
 
@@ -428,12 +450,14 @@ class NativeImplementationGenerator(object):
         interface_name)
     self._system._dom_public_files.append(dart_impl_path)
 
+    parameters = constructor_info.ParametersImplementationDeclaration(self._DartType)
+
     emitter = self._system._emitters.FileEmitter(dart_impl_path)
     emitter.Emit(
         template,
         FACTORY_PROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        PARAMETERS=parameters,
         IMPL_CLASS=implementation_class,
         IMPL_FUNCTION=implementation_function,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
@@ -445,20 +469,21 @@ class NativeImplementationGenerator(object):
     emitter = self._system._emitters.FileEmitter(dart_impl_path)
     emitter.Emit(
         'class $IMPL_CLASS {\n'
-        '  static $INTERFACE_NAME $IMPL_FUNCTION($PARAMETERS)\n'
+        '  static $TYPE $IMPL_FUNCTION($PARAMETERS)\n'
         '      native "$NATIVE_NAME";\n'
         '}',
-        INTERFACE_NAME=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        PARAMETERS=parameters,
         IMPL_CLASS=implementation_class,
+        TYPE=self._ImplClassName(interface_name),
         IMPL_FUNCTION=implementation_function,
         NATIVE_NAME=native_implementation_function)
 
   def FinishInterface(self):
+    class_name = self._ImplClassName(self._interface.id)
     base = self._BaseClassName()
     self._dart_impl_emitter.Emit(
         self._templates.Load('dart_implementation.darttemplate'),
-        CLASS=self._class_name, BASE=base, INTERFACE=self._interface.id,
+        CLASS=class_name, BASE=base, INTERFACE=self._interface.id,
         MEMBERS=self._members_emitter.Fragments())
 
     self._GenerateCppHeader()
@@ -468,7 +493,8 @@ class NativeImplementationGenerator(object):
         INTERFACE=self._interface.id,
         INCLUDES=_GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
-        RESOLVER=self._cpp_resolver_emitter.Fragments())
+        RESOLVER=self._cpp_resolver_emitter.Fragments(),
+        DART_IMPLEMENTATION_CLASS=class_name)
 
   def _GenerateCppHeader(self):
     to_native_emitter = emitter.Emitter()
@@ -568,7 +594,7 @@ class NativeImplementationGenerator(object):
   def _AddGetter(self, attr):
     type_info = GetIDLTypeInfo(attr.type.id)
     dart_declaration = '%s get %s()' % (
-        type_info.dart_type(), DartDomNameOfAttribute(attr))
+        self._DartType(attr.type.id), DartDomNameOfAttribute(attr))
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -612,7 +638,7 @@ class NativeImplementationGenerator(object):
   def _AddSetter(self, attr):
     type_info = GetIDLTypeInfo(attr.type.id)
     dart_declaration = 'void set %s(%s)' % (
-        DartDomNameOfAttribute(attr), type_info.dart_type())
+        DartDomNameOfAttribute(attr), self._DartType(attr.type.id))
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)
@@ -665,7 +691,7 @@ class NativeImplementationGenerator(object):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
-    dart_element_type = DartType(element_type)
+    dart_element_type = self._DartType(element_type)
     if self._HasNativeIndexGetter():
       self._EmitNativeIndexGetter(dart_element_type)
     else:
@@ -783,7 +809,7 @@ class NativeImplementationGenerator(object):
     # Uint8ClampedArray inherits from Uint8Array, ::set method
     # is not virtual and accessing it through Uint8Array pointer
     # would lead to wrong semantics (modulo vs. clamping.)
-    dart_element_type = DartType(element_type)
+    dart_element_type = self._DartType(element_type)
 
     if self._HasNativeIndexGetter():
       self._EmitNativeIndexGetter(dart_element_type)
@@ -818,9 +844,9 @@ class NativeImplementationGenerator(object):
       # FIXME: exclude from interface as well.
       return
 
+    parameters = info.ParametersImplementationDeclaration(self._DartType)
     if 'Custom' in info.overloads[0].ext_attrs:
-      parameters = info.ParametersImplementationDeclaration()
-      dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
+      dart_declaration = '%s %s(%s)' % (self._DartType(info.type_name), info.name, parameters)
       argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
       self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
           'Callback', True)
@@ -835,9 +861,9 @@ class NativeImplementationGenerator(object):
         '$!BODY'
         '  }\n',
         MODIFIER=modifier,
-        TYPE=info.type_name,
+        TYPE=self._DartType(info.type_name),
         NAME=info.name,
-        PARAMETERS=info.ParametersImplementationDeclaration())
+        PARAMETERS=parameters)
 
     # Process in order of ascending number of arguments to ensure missing
     # optional arguments are processed early.
@@ -911,9 +937,9 @@ class NativeImplementationGenerator(object):
       # precise type than the first.  E.g.,
       # void foo(Node x);
       # void foo(Element x);
-      type = DartType(first_overload.arguments[position].type.id)
+      type = self._DartType(first_overload.arguments[position].type.id)
       test = TypeCheck(param.name, type)
-      pred = lambda op: len(op.arguments) > position and DartType(op.arguments[position].type.id) == type
+      pred = lambda op: len(op.arguments) > position and self._DartType(op.arguments[position].type.id) == type
     else:
       type = None
       test = NullCheck(param.name)
@@ -1008,7 +1034,7 @@ class NativeImplementationGenerator(object):
     modifier = ''
     if operation.is_static:
       modifier = 'static '
-    dart_declaration = '%s%s _%s(%s)' % (modifier, info.type_name, native_name,
+    dart_declaration = '%s%s _%s(%s)' % (modifier, self._DartType(info.type_name), native_name,
                                        argument_list)
     is_custom = 'Custom' in operation.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(

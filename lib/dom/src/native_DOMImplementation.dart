@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Utils {
+class _Utils {
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
@@ -32,23 +32,21 @@ class Utils {
   }
 
   static window() native "Utils_window";
-  static print(String message) native "Utils_print";
-  static SendPort spawnDomIsolate(Window window, String entryPoint) native "Utils_spawnDomIsolate";
+  static SendPort spawnDomIsolateImpl(_DOMWindow window, String entryPoint) native "Utils_spawnDomIsolate";
 }
 
-/*
- * [NPObjectBase] is native wrapper class injected from embedder's code.
- */
-class NPObject extends DOMWrapperBase {
-  static NPObject retrieve(String key) native "NPObject_retrieve";
+Utils_print(String message) native "Utils_print";
+
+class _NPObject extends _DOMWrapperBase {
+  static _NPObject retrieve(String key) native "NPObject_retrieve";
   property(String propertyName) native "NPObject_property";
   invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
 
-  static _createNPObject() => new NPObject._createNPObject();
-  NPObject._createNPObject();
+  static _create_NPObject() => new _NPObject._create_NPObject();
+  _NPObject._create_NPObject();
 }
 
-class DOMWindowCrossFrameImplementation extends DOMWrapperBase implements DOMWindow {
+class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements _DOMWindow {
   // Fields.
   History get history() native "DOMWindow_history_cross_frame_Getter";
   Location get location() native "DOMWindow_location_cross_frame_Getter";
@@ -65,50 +63,29 @@ class DOMWindowCrossFrameImplementation extends DOMWrapperBase implements DOMWin
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   // Implementation support.
-  static DOMWindowCrossFrameImplementation _createDOMWindowCrossFrameImplementation() => new DOMWindowCrossFrameImplementation._createDOMWindowCrossFrameImplementation();
-  DOMWindowCrossFrameImplementation._createDOMWindowCrossFrameImplementation();
-
+  static _DOMWindowCrossFrameDOMImpl _create_DOMWindowCrossFrameDOMImpl() => new _DOMWindowCrossFrameDOMImpl._create_DOMWindowCrossFrameDOMImpl();
+  _DOMWindowCrossFrameDOMImpl._create_DOMWindowCrossFrameDOMImpl();
   String get typeName() => "DOMWindow";
 }
 
-class HistoryCrossFrameImplementation extends DOMWrapperBase implements History {
+class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements _History {
   // Methods.
   void back() native "History_back_Callback";
   void forward() native "History_forward_Callback";
   void go(int distance) native "History_go_Callback";
 
   // Implementation support.
-  static HistoryCrossFrameImplementation _createHistoryCrossFrameImplementation() => new HistoryCrossFrameImplementation._createHistoryCrossFrameImplementation();
-  HistoryCrossFrameImplementation._createHistoryCrossFrameImplementation();
-
+  static _HistoryCrossFrameDOMImpl _create_HistoryCrossFrameDOMImpl() => new _HistoryCrossFrameDOMImpl._create_HistoryCrossFrameDOMImpl();
+  _HistoryCrossFrameDOMImpl._create_HistoryCrossFrameDOMImpl();
   String get typeName() => "History";
 }
 
-class LocationCrossFrameImplementation extends DOMWrapperBase implements Location {
+class _LocationCrossFrameDOMImpl extends _DOMWrapperBase implements _Location {
   // Fields.
   void set href(String) native "Location_href_Setter";
 
   // Implementation support.
-  static LocationCrossFrameImplementation _createLocationCrossFrameImplementation() => new LocationCrossFrameImplementation._createLocationCrossFrameImplementation();
-  LocationCrossFrameImplementation._createLocationCrossFrameImplementation();
-
+  static _LocationCrossFrameDOMImpl _create_LocationCrossFrameDOMImpl() => new _LocationCrossFrameDOMImpl._create_LocationCrossFrameDOMImpl();
+  _LocationCrossFrameDOMImpl._create_LocationCrossFrameDOMImpl();
   String get typeName() => "Location";
-}
-
-class DOMStringMapImplementation extends DOMWrapperBase implements DOMStringMap {
-  static DOMStringMapImplementation _createDOMStringMapImplementation() => new DOMStringMapImplementation._createDOMStringMapImplementation();
-  DOMStringMapImplementation._createDOMStringMapImplementation();
-
-  bool containsValue(String value) => Maps.containsValue(this, value);
-  bool containsKey(String key) native "DOMStringMap_containsKey_Callback";
-  String operator [](String key) native "DOMStringMap_item_Callback";
-  void operator []=(String key, String value) native "DOMStringMap_setItem_Callback";
-  String putIfAbsent(String key, String ifAbsent()) => Maps.putIfAbsent(this, key, ifAbsent);
-  String remove(String key) native "DOMStringMap_remove_Callback";
-  void clear() => Maps.clear(this);
-  void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
-  Collection<String> getValues() => Maps.getValues(this);
-  int get length() => Maps.length(this);
-  bool isEmpty() => Maps.isEmpty(this);
 }

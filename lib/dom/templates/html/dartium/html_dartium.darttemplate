@@ -7,7 +7,8 @@
 
 #library("html");
 
-#import('dart:dom_deprecated', prefix:'dom');
+#import("dart:isolate");
+#import("dart:nativewrappers");
 
 $!GENERATED_DART_FILES
 
@@ -26,12 +27,16 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/_ListIterators.dart');
 #source('$AUXILIARY_DIR/_Lists.dart');
 
+#source('$AUXILIARY_DIR/native_DOMWrapperBase.dart');
+#source('$AUXILIARY_DIR/native_DOMPublic.dart');
+#source('$AUXILIARY_DIR/native_DOMImplementation.dart');
+
 _WindowImpl __window;
 _DocumentImpl __document;
 
 void _initialize() {
-  __window = _wrap(dom.window);
-  __document = _wrap(dom.document);
+  __window = _wrap(_Utils.window());
+  __document = _wrap(_Utils.window().document);
 }
 
 Window get window() {
@@ -66,12 +71,10 @@ _unwrap(raw) {
   return raw is _DOMTypeBase ? raw._ptr : raw;
 }
 
-unwrap_internal(raw) => _unwrap(raw);
-
 // Warning: does not attempt wrap event listeners.
 _wrap(raw) {
-  if (raw is! dom.DOMType) return raw;
-  dom.DOMType domObject = raw;
+  if (raw is! _DOMWrapperBase) return raw;
+  _DOMWrapperBase domObject = raw;
   if (domObject.dartObjectLocalStorage != null)
     return domObject.dartObjectLocalStorage;
   switch(domObject.typeName) {
@@ -84,11 +87,3 @@ $WRAPCASES
       throw 'Unrecognized object $domObject. Name=${domObject.typeName}';
   }
 }
-
-wrap_internal(raw) => _wrap(raw);
-
-spawnDomIsolate(Window targetWindow, String entryPoint) =>
-  dom.spawnDomIsolate(_unwrap(targetWindow), entryPoint);
-
-dom.LayoutTestController get layoutTestController() =>
-  dom.layoutTestController;

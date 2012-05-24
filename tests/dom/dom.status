@@ -5,6 +5,9 @@
 webgl_1_test: Skip  # Issue 1495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+*: Skip
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 
 [ $compiler == none && $runtime == dartium ]

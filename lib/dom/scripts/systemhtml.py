@@ -1278,7 +1278,8 @@ class HtmlFrogSystem(HtmlSystem):
 
 class HtmlDartiumSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, auxiliary_dir, output_dir):
+  def __init__(self, templates, database, emitters, auxiliary_dir,
+               dom_implementation_classes, output_dir):
     """Prepared for generating wrapping implementation.
 
     - Creates emitter for Dart code.
@@ -1286,6 +1287,7 @@ class HtmlDartiumSystem(HtmlSystem):
     super(HtmlDartiumSystem, self).__init__(
         templates, database, emitters, output_dir)
     self._auxiliary_dir = auxiliary_dir
+    self._dom_implementation_classes = dom_implementation_classes
     self._shared = HtmlSystemShared(database)
     self._dart_dartium_file_paths = []
     self._wrap_cases = []
@@ -1325,8 +1327,8 @@ class HtmlDartiumSystem(HtmlSystem):
         os.path.join(self._output_dir, 'html_dartium.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
-         self._dart_dartium_file_paths
-         ),
+         self._dart_dartium_file_paths +
+         self._dom_implementation_classes),
         AUXILIARY_DIR=MassagePath(auxiliary_dir),
         WRAPCASES='\n'.join(self._wrap_cases))
 
@@ -1467,7 +1469,8 @@ class HtmlDartiumInterfaceGenerator(object):
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
-        CONSTRUCTOR=interface_name,
+        INTERFACE=interface_name,
+        DOM_INTERFACE=self._interface.javascript_binding_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
         NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=self._UnwrappedParameters(constructor_info,

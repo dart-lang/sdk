@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This API is exploratory.
-spawnDomIsolate(Window targetWindow, String entryPoint) {
-  if (targetWindow is! DOMWindowImplementation && targetWindow is! DOMWindowCrossFrameImplementation) {
+spawnDomIsolate(Window targetWindowWrapped, String entryPoint) {
+  final targetWindow = _unwrap(targetWindowWrapped);
+  if (targetWindow is! _DOMWindowDOMImpl && targetWindow is! _DOMWindowCrossFrameDOMImpl) {
     throw 'Bad window argument: $targetWindow';
   }
   final result = new Completer<SendPort>();
-  final port = Utils.spawnDomIsolate(targetWindow, entryPoint);
+  final port = _Utils.spawnDomIsolateImpl(targetWindow, entryPoint);
   window.setTimeout(() { result.complete(port); }, 0);
   return result.future;
 }
@@ -20,12 +21,12 @@ var _layoutTestController;
 
 LayoutTestController get layoutTestController() {
   if (_layoutTestController === null)
-    _layoutTestController = new LayoutTestController._(NPObject.retrieve("layoutTestController"));
+    _layoutTestController = new LayoutTestController._(_NPObject.retrieve("layoutTestController"));
   return _layoutTestController;
 }
 
 class LayoutTestController {
-  final NPObject _npObject;
+  final _NPObject _npObject;
 
   LayoutTestController._(this._npObject);
 

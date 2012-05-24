@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory $CONSTRUCTOR($PARAMETERS) =>
-      _wrap(new dom.$CONSTRUCTOR($ARGUMENTS));
+  factory $INTERFACE($PARAMETERS) =>
+      _wrap(_$(DOM_INTERFACE)FactoryProviderImpl.create$DOM_INTERFACE($ARGUMENTS));
 }
