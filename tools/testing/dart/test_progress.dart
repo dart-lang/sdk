@@ -252,7 +252,7 @@ class CompactProgressIndicator extends CompactIndicator {
     var failedPadded = _pad(_failedTests.toString(), 5);
     Duration d = (new Date.now()).difference(_startTime);
     var progressLine =
-        '\r[${_timeString(d)} | $progressPadded% | ' +
+        '\r[${_timeString(d)} | $progressPadded% | '
         '+$passedPadded | -$failedPadded]';
     stdout.write(progressLine.charCodes());
   }

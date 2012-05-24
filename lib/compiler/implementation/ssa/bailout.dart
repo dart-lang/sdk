@@ -81,11 +81,12 @@ class Environment {
  * inconsistent way. No further analysis should rely on them.
  */
 class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
+  final Compiler compiler;
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
   int stateId = 1;
 
-  SsaTypeGuardInserter(this.work);
+  SsaTypeGuardInserter(this.compiler, this.work);
 
   void visitGraph(HGraph graph) {
     work.guards = <HTypeGuard>[];
@@ -106,6 +107,19 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
+
+    Element source = instruction.sourceElement;
+    // Do not insert a type guard if the instruction has a type
+    // annotation that disagrees with the speculated type.
+    if (source !== null) {
+      Type sourceType = source.computeType(compiler);
+      Type speculatedType = speculativeType.computeType(compiler);
+      if (speculatedType !== null
+          && !compiler.types.isSubtype(speculatedType, sourceType)) {
+        return false;
+      }
+    }
+
     bool isNested(HBasicBlock inner, HBasicBlock outer) {
       if (inner === outer) return false;
       if (outer === null) return true;

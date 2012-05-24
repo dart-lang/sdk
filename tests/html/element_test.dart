@@ -53,15 +53,14 @@ main() {
   Element makeElementWithChildren() =>
     new Element.html("<div><br/><img/><input/></div>");
 
-  asyncTest('computedStyle', 1, () {
+  test('computedStyle', () {
     final element = document.body;
-    element.computedStyle.then((style) {
+    element.computedStyle.then(expectAsync1((style) {
       Expect.equals(style.getPropertyValue('left'), 'auto');
-      callbackDone();
-    });
+    }));
   });
 
-  asyncTest('rect', 1, () {
+  test('rect', () {
     final container = new Element.tag("div");
     container.style.position = 'absolute';
     container.style.top = '8px';
@@ -72,7 +71,7 @@ main() {
     container.elements.add(element);
     document.body.elements.add(container);
 
-    element.rect.then((rect) {
+    element.rect.then(expectAsync1((rect) {
       expectLargeRect(rect.client);
       expectLargeRect(rect.offset);
       expectLargeRect(rect.scroll);
@@ -80,8 +79,7 @@ main() {
       Expect.equals(rect.bounding.top, 8);
       Expect.isTrue(rect.clientRects.length > 0);
       container.remove();
-      callbackDone();
-    });
+    }));
   });
 
   group('constructors', () {

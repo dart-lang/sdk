@@ -32,22 +32,24 @@ main() {
   final iframe = new Element.tag('iframe');
   document.body.nodes.add(iframe);
 
-  asyncTest('Simple DOM isolate test', 1, () {
-    spawnDomIsolate(iframe.contentWindow, 'isolateMain').then((sendPort) {
-      sendPort.call('check').then((msg) {
-        Expect.equals('about:blank', msg);
-        callbackDone();
-      });
-    });
+  test('Simple DOM isolate test', () {
+    spawnDomIsolate(iframe.contentWindow, 'isolateMain').then(
+      expectAsync1((sendPort) {
+        sendPort.call('check').then(
+          expectAsync1((msg) {
+            Expect.equals('about:blank', msg);
+          }));
+      }));
   });
 
-  asyncTest('Nested DOM isolates test', 1, () {
-    spawnDomIsolate(iframe.contentWindow, 'isolateMainTrampoline').then((sendPort) {
-      sendPort.call('check').then((msg) {
-        Expect.equals('about:blank', msg);
-        callbackDone();
-      });
-    });
+  test('Nested DOM isolates test', () {
+    spawnDomIsolate(iframe.contentWindow, 'isolateMainTrampoline').then(
+      expectAsync1((sendPort) {
+        sendPort.call('check').then(
+          expectAsync1((msg) {
+            Expect.equals('about:blank', msg);
+          }));
+      }));
   });
 
   test('Null as target window', () {

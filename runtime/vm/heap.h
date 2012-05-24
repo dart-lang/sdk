@@ -111,6 +111,9 @@ class Heap {
   // Verify that all pointers in the heap point to the heap.
   bool Verify() const;
 
+  // Print heap sizes.
+  void PrintSizes() const;
+
  private:
   Heap();
 

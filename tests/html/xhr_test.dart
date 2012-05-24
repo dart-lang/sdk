@@ -11,25 +11,23 @@ main() {
   useHtmlConfiguration();
 
   print(window.location.href);
-  asyncTest('XHR', 1, () {
+  test('XHR', () {
     XMLHttpRequest xhr = new XMLHttpRequest();
     xhr.open("GET", "NonExistingFile", true);
-    xhr.on.readyStateChange.add((event) {
+    xhr.on.readyStateChange.add(expectAsync1((event) {
         if (xhr.readyState == 4) {
           Expect.equals(0, xhr.status);
           Expect.stringEquals('', xhr.responseText);
-          callbackDone();
         }
-      });
+      }));
     xhr.send();
   });
 
-  asyncTest('XHR.get', 1, () {
-      new XMLHttpRequest.get("NonExistingFile", (xhr) {
+  test('XHR.get', () {
+      new XMLHttpRequest.get("NonExistingFile", expectAsync1((xhr) {
           Expect.equals(XMLHttpRequest.DONE, xhr.readyState);
           Expect.equals(0, xhr.status);
           Expect.stringEquals('', xhr.responseText);
-          callbackDone();
-      });
+      }));
   });
 }

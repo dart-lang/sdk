@@ -37,7 +37,7 @@ class Enqueuer {
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      compiler.registerInstantiatedClass(element.enclosingElement);
+      registerInstantiatedClass(element.enclosingElement);
     }
     queue.add(new WorkItem(element, elements));
   }
@@ -77,8 +77,7 @@ class Enqueuer {
         Set<Selector> invokedSelectors = universe.invokedNames[name];
         if (invokedSelectors != null) {
           for (Selector selector in invokedSelectors) {
-            compiler.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
-                                               selector);
+            registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME, selector);
           }
         }
       }
@@ -114,7 +113,7 @@ class Enqueuer {
         // We will emit a closure, so make sure the closure class is
         // generated.
         compiler.closureClass.ensureResolved(compiler);
-        compiler.registerInstantiatedClass(compiler.closureClass);
+        registerInstantiatedClass(compiler.closureClass);
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
@@ -196,5 +195,36 @@ class Enqueuer {
       }
       return false;
     });
+  }
+
+  void registerStaticUse(Element element) {
+    addToWorkList(element);
+  }
+
+  void registerGetOfStaticFunction(FunctionElement element) {
+    registerStaticUse(element);
+    universe.staticFunctionsNeedingGetter.add(element);
+  }
+
+  void registerDynamicInvocation(SourceString methodName, Selector selector) {
+    assert(selector !== null);
+    registerInvocation(methodName, selector);
+  }
+
+  void registerDynamicInvocationOf(Element element) {
+    addToWorkList(element);
+  }
+
+  void registerDynamicGetter(SourceString methodName, Selector selector) {
+    registerGetter(methodName, selector);
+  }
+
+  void registerDynamicSetter(SourceString methodName, Selector selector) {
+    registerSetter(methodName, selector);
+  }
+
+  // TODO(ngeoffray): This should get a type.
+  void registerIsCheck(Element element) {
+    universe.isChecks.add(element);
   }
 }

@@ -154,6 +154,29 @@ class TestServer extends Isolate {
     response.outputStream.close();
   }
 
+  void _contentType1Handler(HttpRequest request, HttpResponse response) {
+    Expect.equals("text/html", request.headers.contentType.value);
+    Expect.equals("text", request.headers.contentType.primaryType);
+    Expect.equals("html", request.headers.contentType.subType);
+    Expect.equals("utf-8", request.headers.contentType.parameters["charset"]);
+
+    ContentType contentType = new ContentType("text", "html");
+    contentType.parameters["charset"] = "utf-8";
+    response.headers.contentType = contentType;
+    response.outputStream.close();
+  }
+
+  void _contentType2Handler(HttpRequest request, HttpResponse response) {
+    Expect.equals("text/html", request.headers.contentType.value);
+    Expect.equals("text", request.headers.contentType.primaryType);
+    Expect.equals("html", request.headers.contentType.subType);
+    Expect.equals("utf-8", request.headers.contentType.parameters["charset"]);
+
+    response.headers.set(HttpHeaders.CONTENT_TYPE,
+                         "text/html;  charset = utf-8");
+    response.outputStream.close();
+  }
+
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
@@ -179,6 +202,14 @@ class TestServer extends Isolate {
     _requestHandlers["/expires2"] =
         (HttpRequest request, HttpResponse response) {
           _expires2Handler(request, response);
+        };
+    _requestHandlers["/contenttype1"] =
+        (HttpRequest request, HttpResponse response) {
+          _contentType1Handler(request, response);
+        };
+    _requestHandlers["/contenttype2"] =
+        (HttpRequest request, HttpResponse response) {
+          _contentType2Handler(request, response);
         };
 
     this.port.receive((var message, SendPort replyTo) {
@@ -514,6 +545,54 @@ void testExpires() {
   testServerMain.start();
 }
 
+void testContentType() {
+  TestServerMain testServerMain = new TestServerMain();
+  testServerMain.setServerStartedHandler((int port) {
+    int responses = 0;
+    HttpClient httpClient = new HttpClient();
+
+    void processResponse(HttpClientResponse response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals("text/html; charset=utf-8",
+                    response.headers.contentType.toString());
+      Expect.equals("text/html", response.headers.contentType.value);
+      Expect.equals("text", response.headers.contentType.primaryType);
+      Expect.equals("html", response.headers.contentType.subType);
+      Expect.equals("utf-8",
+                    response.headers.contentType.parameters["charset"]);
+      responses++;
+      if (responses == 2) {
+        httpClient.shutdown();
+        testServerMain.shutdown();
+      }
+    }
+
+    HttpClientConnection conn1 =
+        httpClient.get("127.0.0.1", port, "/contenttype1");
+    conn1.onRequest = (HttpClientRequest request) {
+      ContentType contentType = new ContentType();
+      contentType.value = "text/html";
+      contentType.parameters["charset"] = "utf-8";
+      request.headers.contentType = contentType;
+      request.outputStream.close();
+    };
+    conn1.onResponse = (HttpClientResponse response) {
+      processResponse(response);
+    };
+    HttpClientConnection conn2 =
+        httpClient.get("127.0.0.1", port, "/contenttype2");
+    conn2.onRequest = (HttpClientRequest request) {
+      request.headers.set(HttpHeaders.CONTENT_TYPE,
+                          "text/html;  charset = utf-8");
+      request.outputStream.close();
+    };
+    conn2.onResponse = (HttpClientResponse response) {
+      processResponse(response);
+    };
+  });
+  testServerMain.start();
+}
+
 
 void main() {
   testStartStop();
@@ -528,4 +607,5 @@ void main() {
   testReasonPhrase();
   testHost();
   testExpires();
+  testContentType();
 }

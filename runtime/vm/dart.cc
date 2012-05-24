@@ -96,6 +96,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     SnapshotReader reader(snapshot, isolate);
     reader.ReadFullSnapshot();
+    if (FLAG_trace_isolates) {
+      isolate->heap()->PrintSizes();
+    }
   }
 
   StubCode::Init(isolate);

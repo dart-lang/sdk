@@ -40,7 +40,15 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizeComments(const Code& code);
 
+  Assembler* assembler() const { return assembler_; }
+
  private:
+  // TODO(fschneider): Clean up friend-class declarations once all code
+  // generator templates have been moved to intermediate_language_x64.cc.
+#define DECLARE_FRIEND(ShortName, ClassName) friend class ClassName;
+  FOR_EACH_COMPUTATION(DECLARE_FRIEND)
+#undef DECLARE_FRIEND
+
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
   // Constructor is lighweight, major initialization work should occur here.
@@ -77,6 +85,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 #undef DECLARE_VISIT_COMPUTATION
 #undef DECLARE_VISIT_INSTRUCTION
 
+  void EmitInstructionPrologue(Instruction* instr);
+
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
@@ -112,11 +122,42 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                             intptr_t token_index,
                             intptr_t try_index);
 
+  // Type checking helper methods.
+  void CheckClasses(const GrowableArray<const Class*>& classes,
+                    Label* is_instance_lbl,
+                    Label* is_not_instance_lbl);
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
                                                 intptr_t token_index,
                                                 const AbstractType& type,
                                                 Label* is_instance,
                                                 Label* is_not_instance);
+
+  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
+      intptr_t cid,
+      intptr_t token_index,
+      const AbstractType& dst_type,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
+
+  void GenerateInstantiatedTypeNoArgumentsTest(intptr_t cid,
+                                               intptr_t token_index,
+                                               const AbstractType& dst_type,
+                                               Label* is_instance_lbl,
+                                               Label* is_not_instance_lbl);
+
+  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+      const AbstractType& dst_type,
+      intptr_t cid,
+      intptr_t token_index,
+      Label* is_instance_lbl,
+      Label* is_not_instance_label);
+
+  RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
+      intptr_t cid,
+      intptr_t token_index,
+      const Class& type_class,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
 
   void GenerateAssertAssignable(intptr_t cid,
                                 intptr_t token_index,

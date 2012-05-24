@@ -34,6 +34,9 @@ string_substring_test: Fail
 string_test: Fail  # Needs index out of range checks.
 string_replace_dollar_test: Fail
 
+# New methods (timeZoneName and timeZoneOffset) were not ported to frog.
+date_time7_test: Skip
+
 [ $compiler == frog && $runtime == drt ]
 list_sort_test: Fail, Pass # Issue 2667
 

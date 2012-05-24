@@ -1754,18 +1754,110 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 }
 
 
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address.
+// TOS + 1: instantiator type arguments (can be NULL).
+// TOS + 2: instance.
+// TOS + 3: SubtypeTestCache.
+// Result in RCX: null -> not found, otherwise result (true or false).
+static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
+  ASSERT((1 <= n) && (n <= 3));
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
+  const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
+  const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
+  __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
+  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  // RAX: instance, R10: instance class.
+  if (n > 1) {
+    // Compute instance type arguments into R13.
+    Label has_no_type_arguments;
+    __ movq(R13, raw_null);
+    __ movq(RDI, FieldAddress(R10,
+        Class::type_arguments_instance_field_offset_offset()));
+    __ cmpq(RDI, Immediate(Class::kNoTypeArguments));
+    __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+    __ movq(R13, FieldAddress(RAX, RDI, TIMES_1, 0));
+    __ Bind(&has_no_type_arguments);
+  }
+  // R13: instance type arguments or null, used only if n > 1.
+  __ movq(RDX, Address(RSP, kCacheOffsetInBytes));
+  // RDX: SubtypeTestCache.
+  __ movq(RDX, FieldAddress(RDX, SubtypeTestCache::cache_offset()));
+  __ addq(RDX, Immediate(Array::data_offset() - kHeapObjectTag));
+  // RDX: Entry start.
+  // R10: instance class.
+  // R13: instance type arguments
+  Label loop, found, not_found, next_iteration;
+  __ Bind(&loop);
+  __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClass));
+  __ cmpq(RDI, raw_null);
+  __ j(EQUAL, &not_found, Assembler::kNearJump);
+  __ cmpq(RDI, R10);
+  if (n == 1) {
+    __ j(EQUAL, &found, Assembler::kNearJump);
+  } else {
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ movq(RDI,
+        Address(RDX, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+    __ cmpq(RDI, R13);
+    if (n == 2) {
+      __ j(EQUAL, &found, Assembler::kNearJump);
+    } else {
+      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+      __ movq(RDI,
+          Address(RDX,
+                  kWordSize * SubtypeTestCache::kInstantiatorTypeArguments));
+      __ cmpq(RDI, Address(RSP, kInstantiatorTypeArgumentsInBytes));
+      __ j(EQUAL, &found, Assembler::kNearJump);
+    }
+  }
+
+  __ Bind(&next_iteration);
+  __ addq(RDX, Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
+  __ jmp(&loop, Assembler::kNearJump);
+  // Fall through to not found.
+  __ Bind(&not_found);
+  __ movq(RCX, raw_null);
+  __ ret();
+
+  __ Bind(&found);
+  __ movq(RCX, Address(RDX, kWordSize * SubtypeTestCache::kTestResult));
+  __ ret();
+}
+
+
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address.
+// TOS + 1: instantiator type arguments or NULL.
+// TOS + 2: instance.
+// TOS + 3: cache array.
+// Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
-  __ Unimplemented("Subtype1TestCache Stub");
+  GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
 
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address.
+// TOS + 1: instantiator type arguments or NULL.
+// TOS + 2: instance.
+// TOS + 3: cache array.
+// Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  __ Unimplemented("Subtype2TestCache Stub");
+  GenerateSubtypeNTestCacheStub(assembler, 2);
 }
 
 
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address.
+// TOS + 1: instantiator type arguments.
+// TOS + 2: instance.
+// TOS + 3: cache array.
+// Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  __ Unimplemented("Subtype3TestCache Stub");
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 }  // namespace dart

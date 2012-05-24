@@ -12,9 +12,9 @@
 void main() {
   useHtmlConfiguration();
 
-  asyncTest('performanceTesting', 1, () { 
+  test('performanceTesting', () { 
     window.setTimeout(BENCHMARK_SUITE.runBenchmarks, 0);
-    window.setTimeout(testForCompletion, 0);
+    window.setTimeout(expectAsync0(testForCompletion), 0);
   });
 }
 
@@ -23,5 +23,4 @@ testForCompletion() {
   RegExp re = new RegExp('Score: [0-9]+');
   print(element.text);
   Expect.isTrue(re.hasMatch(element.text));
-  callbackDone();
 }

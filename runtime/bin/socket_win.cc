@@ -191,15 +191,19 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
   // Convert the address into IPv4 dotted decimal notation.
   char* buffer = reinterpret_cast<char*>(malloc(INET_ADDRSTRLEN));
   sockaddr_in *sockaddr = reinterpret_cast<sockaddr_in *>(info->ai_addr);
-  const char* result = inet_ntop(AF_INET,
-                                 reinterpret_cast<void *>(&sockaddr->sin_addr),
-                                 buffer,
-                                 INET_ADDRSTRLEN);
-  if (result == NULL) {
+
+  // Clear the port before calling WSAAddressToString as WSAAddressToString
+  // includes the port in the formatted string.
+  DWORD len = INET_ADDRSTRLEN;
+  int err = WSAAddressToString(reinterpret_cast<LPSOCKADDR>(sockaddr),
+                               sizeof(sockaddr_in),
+                               NULL,
+                               buffer,
+                               &len);
+  if (err != 0) {
     free(buffer);
     return NULL;
   }
-  ASSERT(result == buffer);
   return buffer;
 }
 

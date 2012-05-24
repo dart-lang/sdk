@@ -19,6 +19,7 @@ class Bootstrap : public AllStatic {
  public:
   static RawScript* LoadScript();
   static RawScript* LoadImplScript();
+  static RawScript* LoadMathScript();
   static RawScript* LoadIsolateScript();
   static RawScript* LoadMirrorsScript();
   static RawError* Compile(const Library& library, const Script& script);
@@ -27,6 +28,7 @@ class Bootstrap : public AllStatic {
  private:
   static const char corelib_source_[];
   static const char corelib_impl_source_[];
+  static const char math_source_[];
   static const char isolate_source_[];
   static const char mirrors_source_[];
 };

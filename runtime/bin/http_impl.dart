@@ -32,6 +32,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void set(String name, Object value) {
+    name = name.toLowerCase();
     _checkMutable();
     removeAll(name);
     add(name, value);
@@ -115,6 +116,20 @@ class _HttpHeaders implements HttpHeaders {
     _set("expires", formatted);
   }
 
+  ContentType get contentType() {
+    var values = _headers["content-type"];
+    if (values != null) {
+      return new ContentType.fromString(values[0]);
+    } else {
+      return new ContentType();
+    }
+  }
+
+  void set contentType(ContentType contentType) {
+    _checkMutable();
+    _set("content-type", contentType.toString());
+  }
+
   void _add(String name, Object value) {
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
     if (name.toLowerCase() == "date") {
@@ -155,6 +170,8 @@ class _HttpHeaders implements HttpHeaders {
         }
         _set("host", value);
       }
+    } else if (name.toLowerCase() == "content-type") {
+      _set("content-type", value);
     } else {
       name = name.toLowerCase();
       List<String> values = _headers[name];
@@ -226,6 +243,168 @@ class _HttpHeaders implements HttpHeaders {
 
   String _host;
   int _port;
+}
+
+
+class _HeaderValue implements HeaderValue {
+  _HeaderValue([String this.value = ""]);
+
+  _HeaderValue.fromString(String value) {
+    // Parse the string.
+    _parse(value);
+  }
+
+  Map<String, String> get parameters() {
+    if (_parameters == null) _parameters = new Map<String, String>();
+    return _parameters;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add(value);
+    if (parameters != null && parameters.length > 0) {
+      _parameters.forEach((String name, String value) {
+        sb.add("; ");
+        sb.add(name);
+        sb.add("=");
+        sb.add(value);
+      });
+    }
+    return sb.toString();
+  }
+
+  void _parse(String s) {
+    int index = 0;
+
+    bool done() => index == s.length;
+
+    void skipWS() {
+      while (!done()) {
+        if (s[index] != " " && s[index] != "\t") return;
+        index++;
+      }
+    }
+
+    String parseValue() {
+      int start = index;
+      while (!done()) {
+        if (s[index] == " " || s[index] == "\t" || s[index] == ";") break;
+        index++;
+      }
+      return s.substring(start, index).toLowerCase();
+    }
+
+    void expect(String expected) {
+      if (done()) throw new HttpException("Failed to parse header value [$s]");
+      if (s[index] != expected) {
+        throw new HttpException("Failed to parse header value [$s]");
+      }
+      index++;
+    }
+
+    void parseParameters() {
+      _parameters = new Map<String, String>();
+
+      String parseParameterName() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == " " || s[index] == "\t" || s[index] == "=") break;
+          index++;
+        }
+        return s.substring(start, index).toLowerCase();
+      }
+
+      String parseParameterValue() {
+        if (s[index] == "\"") {
+          // Parse quoted value.
+          StringBuffer sb = new StringBuffer();
+          index++;
+          while (!done()) {
+            if (s[index] == "\\") {
+              if (index + 1 == s.length) {
+                throw new HttpException("Failed to parse header value [$s]");
+              }
+              index++;
+            } else if (s[index] == "\"") {
+              index++;
+              break;
+            }
+            sb.add(s[index]);
+            index++;
+          }
+          return sb.toString();
+        } else {
+          // Parse non-quoted value.
+          return parseValue();
+        }
+      }
+
+      while (!done()) {
+        skipWS();
+        if (done()) return;
+        String name = parseParameterName();
+        skipWS();
+        expect("=");
+        skipWS();
+        String value = parseParameterValue();
+        _parameters[name] = value;
+        skipWS();
+        if (done()) return;
+        expect(";");
+      }
+    }
+
+    skipWS();
+    value = parseValue();
+    skipWS();
+    if (done()) return;
+    expect(";");
+    parseParameters();
+  }
+
+  String value;
+  Map<String, String> _parameters;
+}
+
+
+class _ContentType extends _HeaderValue implements ContentType {
+  _ContentType([String this._primaryType = "", String this._subType = ""]);
+
+  _ContentType.fromString(String value) : super.fromString(value);
+
+  String get value() => "$_primaryType/$_subType";
+
+  void set value(String s) {
+    int index = s.indexOf("/");
+    if (index == -1 || index == (s.length - 1)) {
+      primaryType = s.trim().toLowerCase();
+      subType = "";
+    } else {
+      primaryType = s.substring(0, index).trim().toLowerCase();
+      subType = s.substring(index + 1).trim().toLowerCase();
+    }
+  }
+
+  String get primaryType() => _primaryType;
+
+  void set primaryType(String s) {
+    _primaryType = s;
+  }
+
+  String get subType() => _subType;
+
+  void set subType(String s) {
+    _subType = s;
+  }
+
+  String get charset() => parameters["charset"];
+
+  void set charset(String s) {
+    parameters["charset"] = s;
+  }
+
+  String _primaryType = "";
+  String _subType = "";
 }
 
 

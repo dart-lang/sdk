@@ -59,7 +59,14 @@ class DartUtils {
  public:
   // TODO(turnidge): Clean up the implementations of these so that
   // they allow for proper error propagation.
+
+  // Assumes that the value object is known to be an integer object
+  // that fits in a signed 64-bit integer.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
+  // Checks that the value object is an integer object that fits in a
+  // signed 64-bit integer. If it is, the value is returned in the
+  // value out parameter and true is returned. Otherwise, false is
+  // returned.
   static bool GetInt64Value(Dart_Handle value_obj, int64_t* value);
   static const char* GetStringValue(Dart_Handle str_obj);
   static bool GetBooleanValue(Dart_Handle bool_obj);

@@ -46,7 +46,7 @@ class SsaOptimizerTask extends CompilerTask {
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
           new SsaSpeculativeTypePropagator(compiler),
-          new SsaTypeGuardInserter(work),
+          new SsaTypeGuardInserter(compiler, work),
           new SsaEnvironmentBuilder(compiler),
           // Change the propagated types back to what they were before we
           // speculatively propagated, so that we can generate the bailout

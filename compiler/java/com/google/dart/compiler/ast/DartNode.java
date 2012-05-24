@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,8 +16,10 @@ import java.util.List;
  * Base class for all Dart AST nodes.
  */
 public abstract class DartNode extends AbstractNode {
+  private static final Type dynamicType = Types.newDynamicType();
 
   private DartNode parent;
+  private Type type = dynamicType;
 
   public final String toSource() {
     DefaultTextOutput out = new DefaultTextOutput(false);
@@ -34,11 +36,11 @@ public abstract class DartNode extends AbstractNode {
   }
 
   public void setType(Type type) {
-    throw new UnsupportedOperationException(getClass().getSimpleName());
+    this.type = type;
   }
 
   public Type getType() {
-    return Types.newDynamicType();
+    return type;
   }
 
   @Override

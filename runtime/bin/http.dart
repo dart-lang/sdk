@@ -225,13 +225,13 @@ interface HttpHeaders default _HttpHeaders {
 
   /**
    * Returns the list of values for the header named [name]. If there
-   * is no headers with the provided name null will be returned.
+   * is no headers with the provided name [:null:] will be returned.
    */
   List<String> operator[](String name);
 
   /**
    * Convenience method for the value for a single values header. If
-   * there is no header with the provided name null will be
+   * there is no header with the provided name [:null:] will be
    * returned. If the header has more than one value an exception is
    * thrown.
    */
@@ -299,6 +299,122 @@ interface HttpHeaders default _HttpHeaders {
    * connection.
    */
   int port;
+
+  /**
+   * Gets and sets the content type. Note that the content type in the
+   * header will only be updated if this field is set
+   * directly. Mutating the returned current value will have no
+   * effect.
+   */
+  ContentType contentType;
+}
+
+
+/**
+ * Representation of a header value in the form:
+ *
+ *   [:value; parameter1=value1; parameter2=value2:]
+ *
+ * [HeaderValue] can be used to conveniently build and parse header
+ * values on this form.
+ *
+ * To build an [:Accepts:] header with the value
+ *
+ *     text/plain; q=0.3, text/html
+ *
+ * use code like this:
+ *
+ *     HttpClientRequest request = ...;
+ *     var v = new HeaderValue();
+ *     v.value = "text/plain";
+ *     v.parameters["q"] = "0.3"
+ *     request.headers.add(HttpHeaders.ACCEPT, v);
+ *     request.headers.add(HttpHeaders.ACCEPT, "text/html");
+ *
+ * To parse the header values use the [:fromString:] constructor.
+ *
+ *     HttpRequest request = ...;
+ *     List<String> values = request.headers[HttpHeaders.ACCEPT];
+ *     values.forEach((value) {
+ *       HeaderValue v = new HeaderValue.fromString(value);
+ *       // Use v.value and v.parameters
+ *     });
+ */
+interface HeaderValue default _HeaderValue {
+  /**
+   * Creates a new header value object setting the value part.
+   */
+  HeaderValue([String value]);
+
+  /**
+   * Creates a new header value object from parsing a header value
+   * string with both value and optional parameters.
+   */
+  HeaderValue.fromString(String value);
+
+  /**
+   * Gets and sets the header value.
+   */
+  String value;
+
+  /**
+   * Gets the map of parameters.
+   */
+  Map<String, String> get parameters();
+
+  /**
+   * Returns the formatted string representation in the form:
+   *
+   *     value; parameter1=value1; parameter2=value2
+   */
+  String toString();
+
+}
+
+
+/**
+ * Representation of a content type.
+ */
+interface ContentType extends HeaderValue default _ContentType {
+  /**
+   * Creates a new content type object setting the primary type and
+   * sub type. If either is not passed their values will be the empty
+   * string.
+   */
+  ContentType([String primaryType, String subType]);
+
+  /**
+   * Creates a new content type object from parsing a Content-Type
+   * header value. As primary type, sub type and parameter names and
+   * values are not case sensitive all these values will be converted
+   * to lower case. Parsing this string
+   *
+   *     text/html; charset=utf-8
+   *
+   * will create a content type object with primary type [:text:], sub
+   * type [:html:] and parameter [:charset:] with value [:utf-8:].
+   */
+  ContentType.fromString(String value);
+
+  /**
+   * Gets and sets the content type in the form "primaryType/subType".
+   */
+  String value;
+
+  /**
+   * Gets and sets the primary type.
+   */
+  String primaryType;
+
+  /**
+   * Gets and sets the sub type.
+   */
+  String subType;
+
+  /**
+   * Gets and sets the character set.
+   */
+  String charset;
 }
 
 

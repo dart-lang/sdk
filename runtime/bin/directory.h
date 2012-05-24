@@ -41,28 +41,26 @@ class Directory {
     DOES_NOT_EXIST
   };
 
+  // This enum must be kept in sync with the request values in
+  // directory_impl.dart.
   enum DirectoryRequest {
     kCreateRequest = 0,
     kDeleteRequest = 1,
     kExistsRequest = 2,
     kCreateTempRequest = 3,
-    kListRequest = 4
+    kListRequest = 4,
+    kRenameRequest = 5
   };
 
   static bool List(const char* path,
                    bool recursive,
                    DirectoryListing* listing);
-
   static ExistsResult Exists(const char* path);
-
   static char* Current();
-
   static bool Create(const char* path);
-
   static char* CreateTemp(const char* const_template);
-
   static bool Delete(const char* path, bool recursive);
-
+  static bool Rename(const char* path, const char* new_path);
   static Dart_Port GetServicePort();
 
  private:

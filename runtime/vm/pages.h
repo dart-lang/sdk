@@ -88,6 +88,8 @@ class PageSpace {
   uword TryAllocate(intptr_t size);
 
   intptr_t in_use() const { return in_use_; }
+  intptr_t capacity() const { return capacity_; }
+
   bool Contains(uword addr) const;
   bool IsValidAddress(uword addr) const {
     return Contains(addr);
@@ -118,6 +120,7 @@ class PageSpace {
   void FreePages(HeapPage* pages);
 
   static intptr_t LargePageSizeFor(intptr_t size);
+
   bool CanIncreaseCapacity(intptr_t increase) {
     ASSERT(capacity_ <= max_capacity_);
     return increase <= (max_capacity_ - capacity_);

@@ -423,3 +423,10 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     return DeleteRecursively(dir_name);
   }
 }
+
+
+bool Directory::Rename(const char* path, const char* new_path) {
+  ExistsResult exists = Exists(path);
+  if (exists != EXISTS) return false;
+  return (TEMP_FAILURE_RETRY(rename(path, new_path)) == 0);
+}

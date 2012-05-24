@@ -139,6 +139,32 @@ DEFINE_NATIVE_ENTRY(DateNatives_brokenDownToSecondsSinceEpoch, 7) {
 }
 
 
+DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  int64_t seconds = dart_seconds.AsInt64Value();
+  const char* name;
+  bool succeeded = OS::GetTimeZoneName(seconds, &name);
+  if (!succeeded) {
+    UNIMPLEMENTED();
+  }
+  const String& dart_name = String::Handle(String::New(name));
+  arguments->SetReturn(dart_name);
+}
+
+
+DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  int64_t seconds = dart_seconds.AsInt64Value();
+  int offset;
+  bool succeeded = OS::GetTimeZoneOffsetInSeconds(seconds, &offset);
+  if (!succeeded) {
+    UNIMPLEMENTED();
+  }
+  const Integer& dart_offset = Integer::Handle(Integer::New(offset));
+  arguments->SetReturn(dart_offset);
+}
+
+
 DEFINE_NATIVE_ENTRY(DateNatives_currentTimeMillis, 0) {
   const Integer& time = Integer::Handle(
       Integer::New(OS::GetCurrentTimeMillis()));

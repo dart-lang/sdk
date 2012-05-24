@@ -5,24 +5,24 @@
 
 main() {
   useDomConfiguration();
-  asyncTest('Window.setTimeout', 1, () {
-    window.setTimeout(callbackDone, 10);
+  test('Window.setTimeout', () {
+    window.setTimeout(expectAsync0((){}), 10);
   });
-  asyncTest('Window.setInterval', 1, () {
+  test('Window.setInterval', () {
     int counter = 0;
     int id = null;
-    id = window.setInterval(() {
+    id = window.setInterval(expectAsync0(() {
       if (counter == 3) {
         counter = 1024;
         window.clearInterval(id);
         // Wait some more time to be sure callback won't be invoked any more.
-        window.setTimeout(callbackDone, 50);
+        window.setTimeout(expectAsync0((){}), 50);
         return;
       }
       // As callback should have been cleared on 4th invocation, counter
       // should never be greater than 3.
       assert(counter < 3);
       counter++;
-    }, 10);
+    }, count:3), 10);
   });
 }

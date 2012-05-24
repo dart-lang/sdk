@@ -38,9 +38,7 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_NewInteger(kDoesNotExist));
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
+    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -54,9 +52,7 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
+    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -72,9 +68,7 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
     free(result);
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
+    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -90,9 +84,23 @@ void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle path = Dart_GetNativeArgument(args, 0);
+  Dart_Handle newPath = Dart_GetNativeArgument(args, 1);
+  if (Directory::Rename(DartUtils::GetStringValue(path),
+                        DartUtils::GetStringValue(newPath))) {
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
@@ -179,7 +187,7 @@ static CObject* DirectoryListRequest(const CObjectArray& request,
   CObjectArray* response = new CObjectArray(CObject::NewArray(3));
   response->SetAt(0, new CObjectInt32(
       CObject::NewInt32(DirectoryListing::kListError)));
-  response->SetAt(1, request[1]);
+  response->SetAt(1, CObject::Null());
   response->SetAt(2, CObject::IllegalArgumentError());
   Dart_PostCObject(response_port, response->AsApiCObject());
 
@@ -188,6 +196,21 @@ static CObject* DirectoryListRequest(const CObjectArray& request,
       0, new CObjectInt32(CObject::NewInt32(DirectoryListing::kListDone)));
   response->SetAt(1, CObject::False());
   return response;
+}
+
+
+static CObject* DirectoryRenameRequest(const CObjectArray& request,
+                                       Dart_Port response_port) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsString()) {
+    CObjectString path(request[1]);
+    CObjectString new_path(request[2]);
+    bool completed = Directory::Rename(path.CString(), new_path.CString());
+    if (completed) return CObject::True();
+    return CObject::NewOSError();
+  }
+  return CObject::IllegalArgumentError();
 }
 
 
@@ -214,6 +237,9 @@ void DirectoryService(Dart_Port dest_port_id,
           break;
         case Directory::kListRequest:
           response = DirectoryListRequest(request, reply_port_id);
+          break;
+        case Directory::kRenameRequest:
+          response = DirectoryRenameRequest(request, reply_port_id);
           break;
         default:
           UNREACHABLE();

@@ -10,20 +10,20 @@
 main() {
   useDomConfiguration();
 
-  asyncTest('oneShot', 1, () {
-      window.webkitRequestAnimationFrame((timestamp) { callbackDone(); });
+  test('oneShot', () {
+      window.webkitRequestAnimationFrame(expectAsync1((timestamp) { }));
       layoutTestController.display();
     });
 
-  asyncTest('twoShot', 1, () {
+  test('twoShot', () {
       window.webkitRequestAnimationFrame(
           (timestamp1) {
             window.webkitRequestAnimationFrame(
-                (timestamp2) {
+                expectAsync1((timestamp2) {
                   // Not monotonic on Safari and IE.
-                  //Expect.isTrue(timestamp2 > timestamp1, 'timestamps ordered');
-                  callbackDone();
-                });
+                  // Expect.isTrue(timestamp2 > timestamp1,
+                  //   'timestamps ordered');
+                }));
             layoutTestController.display();
           });
       layoutTestController.display();

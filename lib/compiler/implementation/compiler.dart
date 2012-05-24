@@ -73,6 +73,10 @@ class JavaScriptBackend extends Backend {
   void assembleProgram() => emitter.assembleProgram();
 }
 
+class DartBackend extends Backend {
+  DartBackend(Compiler compiler) : super(compiler);
+}
+
 class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   int nextFreeClassId = 0;
@@ -80,7 +84,7 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
-  bool enableTypeAssertions = false;
+  final bool enableTypeAssertions;
 
   final Tracer tracer;
 
@@ -121,6 +125,7 @@ class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   TreeValidatorTask validator;
+  UnparseValidator unparseValidator;
   ResolverTask resolver;
   TypeCheckerTask checker;
   Backend backend;
@@ -137,7 +142,10 @@ class Compiler implements DiagnosticListener {
 
   Stopwatch codegenProgress;
 
-  Compiler([this.tracer = const Tracer()])
+  Compiler([this.tracer = const Tracer(),
+            this.enableTypeAssertions = false,
+            bool emitJavascript = true,
+            validateUnparse = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         codegenProgress = new Stopwatch.start() {
@@ -147,12 +155,14 @@ class Compiler implements DiagnosticListener {
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);
+    unparseValidator = new UnparseValidator(this, validateUnparse);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
-    backend = new JavaScriptBackend(this);
+    backend = emitJavascript ?
+        new JavaScriptBackend(this) : new DartBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             constantHandler, enqueuer];
+             unparseValidator, constantHandler, enqueuer];
   }
 
   Universe get codegenWorld() => enqueuer.codegen.universe;
@@ -182,11 +192,12 @@ class Compiler implements DiagnosticListener {
   }
 
   void unhandledExceptionOnElement(Element element) {
-    reportDiagnostic(
-        spanFromElement(element),
-        'Error: The compiler crashed when compiling this method.',
-        false);
-    print(CRASH_MESSAGE);
+    reportDiagnostic(spanFromElement(element),
+                     MessageKind.COMPILER_CRASHED.error(),
+                     false);
+    // TODO(ahe): Obtain the build ID.
+    var buildId = 'build number could not be determined';
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message([buildId]));
   }
 
   void cancel([String reason, Node node, Token token,
@@ -232,6 +243,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void enableNoSuchMethod(Element element) {
+    // TODO(ahe): Move this method to Enqueuer.
     if (enabledNoSuchMethod) return;
     if (element.enclosingElement == objectClass) return;
     enabledNoSuchMethod = true;
@@ -240,6 +252,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void enableIsolateSupport(LibraryElement element) {
+    // TODO(ahe): Move this method to Enqueuer.
     isolateLibrary = element;
     enqueuer.codegen.addToWorkList(element.find(START_ROOT_ISOLATE));
   }
@@ -366,6 +379,7 @@ class Compiler implements DiagnosticListener {
     assert(parser !== null);
     Node tree = parser.parse(element);
     validator.validate(tree);
+    unparseValidator.check(element);
     TreeElements elements = resolver.resolve(element);
     checker.check(tree, elements);
     return elements;
@@ -393,39 +407,9 @@ class Compiler implements DiagnosticListener {
     }
   }
 
-  void registerStaticUse(Element element) {
-    enqueuer.codegen.addToWorkList(element);
-  }
-
-  void registerGetOfStaticFunction(FunctionElement element) {
-    registerStaticUse(element);
-    codegenWorld.staticFunctionsNeedingGetter.add(element);
-  }
-
-  void registerDynamicInvocation(SourceString methodName, Selector selector) {
-    assert(selector !== null);
-    enqueuer.codegen.registerInvocation(methodName, selector);
-  }
-
-  void registerDynamicInvocationOf(Element element) {
-    enqueuer.codegen.addToWorkList(element);
-  }
-
-  void registerDynamicGetter(SourceString methodName, Selector selector) {
-    enqueuer.codegen.registerGetter(methodName, selector);
-  }
-
-  void registerDynamicSetter(SourceString methodName, Selector selector) {
-    enqueuer.codegen.registerSetter(methodName, selector);
-  }
-
   void registerInstantiatedClass(ClassElement cls) {
+    enqueuer.resolution.registerInstantiatedClass(cls);
     enqueuer.codegen.registerInstantiatedClass(cls);
-  }
-
-  // TODO(ngeoffray): This should get a type.
-  void registerIsCheck(Element element) {
-    codegenWorld.isChecks.add(element);
   }
 
   void resolveClass(ClassElement element) {
@@ -475,18 +459,9 @@ class Compiler implements DiagnosticListener {
       // URI.
       throw 'cannot find tokens to produce error message';
     }
-    final startOffset = begin.charOffset;
-    // TODO(ahe): Compute proper end offset in token. Right now we use
-    // the position of the next token. We want to preserve the
-    // invariant that endOffset > startOffset, but for EOF the
-    // charoffset of the next token may be [startOffset]. This can
-    // also happen for synthetized tokens that are produced during
-    // error handling.
-    final endOffset =
-      Math.max((end.next !== null) ? end.next.charOffset : 0, startOffset + 1);
-    assert(endOffset > startOffset);
     Uri uri = currentElement.getCompilationUnit().script.uri;
-    return new SourceSpan(uri, startOffset, endOffset);
+    return SourceSpan.withOffsets(begin, end, (beginOffset, endOffset) =>
+        new SourceSpan(uri, beginOffset, endOffset));
   }
 
   SourceSpan spanFromNode(Node node) {
@@ -584,18 +559,19 @@ class SourceSpan {
   final int end;
 
   const SourceSpan(this.uri, this.begin, this.end);
+
+  static withOffsets(Token begin, Token end,
+                     f(int beginOffset, int endOffset)) {
+    final beginOffset = begin.charOffset;
+    // TODO(ahe): Compute proper end offset in token. Right now we use
+    // the position of the next token. We want to preserve the
+    // invariant that endOffset > beginOffset, but for EOF the
+    // charoffset of the next token may be [beginOffset]. This can
+    // also happen for synthetized tokens that are produced during
+    // error handling.
+    final endOffset =
+      Math.max((end.next !== null) ? end.next.charOffset : 0, beginOffset + 1);
+    assert(endOffset > beginOffset);
+    return f(beginOffset, endOffset);
+  }
 }
-
-final String CRASH_MESSAGE = '''
-The compiler is broken.
-
-When compiling the above method, the compiler crashed. It is not
-possible to tell if this is caused by a problem in your program or
-not. Regardless, the compiler should not crash.
-
-The Dart team would greatly appreciate if you would take a moment to
-report this problem at http://dartbug.com/new.
-
-Please copy and paste the error and stack trace that you see here into
-the bug report, include your OS and the Dart SDK build number.
-''';

@@ -69,6 +69,7 @@ class Scavenger {
   static intptr_t end_offset() { return OFFSET_OF(Scavenger, end_); }
 
   intptr_t in_use() const { return (top_ - FirstObjectStart()); }
+  intptr_t capacity() const { return space_->size(); }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 

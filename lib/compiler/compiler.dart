@@ -38,10 +38,12 @@ typedef void DiagnosticHandler(Uri uri, int begin, int end,
  */
 Future<String> compile(Uri script,
                        Uri libraryRoot,
+                       Uri packageRoot,
                        ReadUriFromString provider,
                        DiagnosticHandler handler,
                        [List<String> options = const []]) {
-  Compiler compiler = new Compiler(provider, handler, libraryRoot, options);
+  Compiler compiler = new Compiler(provider, handler, libraryRoot, packageRoot,
+                                   options);
   compiler.run(script);
   String code = compiler.assembledCode;
   Completer<String> completer = new Completer<String>();

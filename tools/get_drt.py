@@ -38,6 +38,13 @@ DARTIUM_LATEST_PATTERN = (
     'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
 DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
 
+CHROMEDRIVER_DIR = os.path.join('tools', 'testing', 'dartium-chromedriver')
+CHROMEDRIVER_VERSION = os.path.join(CHROMEDRIVER_DIR, 'LAST_VERSION')
+CHROMEDRIVER_LATEST_PATTERN = (
+    'gs://dartium-archive/latest/chromedriver-%(osname)s-inc-*.zip')
+CHROMEDRIVER_PERMANENT_PREFIX = (
+    'gs://dartium-archive/chromedriver-%(osname)s-inc')
+
 sys.path.append(os.path.join(GSUTIL_DIR, 'boto'))
 import boto
 
@@ -190,11 +197,17 @@ def main():
   parser.add_option('--dartium', dest='dartium',
                     help='Get latest Dartium', action='store_true',
                     default=False)
+  parser.add_option('--chromedriver', dest='chromedriver',
+                    help='Get the latest built ChromeDriver',
+                    action='store_true', default=False)
   args, _ = parser.parse_args()
 
   if args.dartium:
     get_latest('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
                DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PREFIX)
+  elif args.chromedriver:
+    get_latest('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
+               CHROMEDRIVER_LATEST_PATTERN, CHROMEDRIVER_PERMANENT_PREFIX)
   else:
     get_latest('DumpRenderTree', DRT_DIR, DRT_VERSION,
                DRT_LATEST_PATTERN, DRT_PERMANENT_PREFIX)

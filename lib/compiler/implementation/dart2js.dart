@@ -29,6 +29,11 @@ String extractParameter(String argument) {
   return argument.substring(argument.indexOf('=') + 1);
 }
 
+String extractPath(String argument) {
+  String path = nativeToUriPath(extractParameter(argument));
+  return path.endsWith("/") ? path : "$path/";
+}
+
 void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   // TODO(ahe): Use ../../args/args.dart for parsing options instead.
   var patterns = <String>[];
@@ -56,31 +61,41 @@ void compile(List<String> argv) {
   bool verbose = false;
   Uri libraryRoot = cwd;
   Uri out = cwd.resolve('out.js');
+  Uri packageRoot = null;
   List<String> options = new List<String>();
   bool explicitOut = false;
   bool wantHelp = false;
 
   passThrough(String argument) => options.add(argument);
 
+  setLibraryRoot(String argument) {
+    libraryRoot = cwd.resolve(extractPath(argument));
+  }
+
+  setPackageRoot(String argument) {
+    packageRoot = cwd.resolve(extractPath(argument));
+  }
+
+  setOutput(String argument) {
+    explicitOut = true;
+    out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
+  }
+
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('--throw-on-error', (_) => throwOnError = true),
     new OptionHandler('--suppress-warnings', (_) => showWarnings = false),
+    new OptionHandler('--output-type=dart|--output-type=js', passThrough),
     new OptionHandler('--verbose|-v', (_) => verbose = true),
-    new OptionHandler('--library-root=.+', (String argument) {
-      String path = nativeToUriPath(extractParameter(argument));
-      if (!path.endsWith("/")) path = "$path/";
-      libraryRoot = cwd.resolve(path);
-    }),
-    new OptionHandler('--out=.+|-o.+', (String argument) {
-      explicitOut = true;
-      out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
-    }),
+    new OptionHandler('--library-root=.+', setLibraryRoot),
+    new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
+    new OptionHandler('--unparse-validation', passThrough),
     new OptionHandler('--no-colors', (_) => colors.enabled = false),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked|-c',
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler(@'--help|-h|/\?|/h', (_) => wantHelp = true),
+    new OptionHandler(@'--package-root=.+|-p.+', setPackageRoot),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -149,11 +164,17 @@ void compile(List<String> argv) {
   }
 
   Uri uri = cwd.resolve(arguments[0]);
+  if (packageRoot === null) {
+    packageRoot = uri.resolve('./packages/');
+  }
+
   info('compiling $uri');
+  info('package root is $packageRoot');
 
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
-  String code = api.compile(uri, libraryRoot, provider, handler, options).value;
+  String code = api.compile(uri, libraryRoot, packageRoot, provider, handler,
+                            options).value;
   if (code === null) {
     fail('Error: Compilation failed.');
   }
@@ -238,6 +259,9 @@ Supported options:
   -v, --verbose
     Display verbose information.
 
+  -p<path>, --package-root=<path>
+    Where to find packages, that is, "package:..." imports.
+
   --suppress-warnings
     Do not display any warnings.
 
@@ -246,6 +270,10 @@ Supported options:
 
 The following options are only used for compiler development and may
 be removed in a future version:
+
+  --output-type=dart
+    Output Dart code instead of JavaScript.
+
   --throw-on-error
     Throw an exception if a compile-time error is detected.
 

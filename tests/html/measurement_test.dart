@@ -10,32 +10,30 @@
 main() {
   useHtmlConfiguration();
 
-  asyncTest('measurement is async but before setTimout 0', 1, () {
+  test('measurement is async but before setTimout 0', () {
     final element = document.body;
     bool timeout0 = false;
     bool fnComplete = false;
     bool animationFrame = false;
     window.setTimeout(() { timeout0 = true; }, 0);
     final computedStyle = element.computedStyle;
-    computedStyle.then((style) {
+    computedStyle.then(expectAsync1((style) {
       Expect.equals(style.getPropertyValue('left'), 'auto');
       Expect.isTrue(fnComplete);
       Expect.isFalse(timeout0);
       Expect.isFalse(animationFrame);
-      callbackDone();
-    });
+    }));
     Expect.isFalse(computedStyle.isComplete);
     fnComplete = true;
   });
 
-  asyncTest('requestLayoutFrame', 1, () {
+  test('requestLayoutFrame', () {
     var rect;
     var computedStyle;
-    window.requestLayoutFrame(() {
+    window.requestLayoutFrame(expectAsync0(() {
       Expect.isTrue(rect.isComplete);
       Expect.isTrue(computedStyle.isComplete);
-      callbackDone();
-    });
+    }));
 
     final element = document.body;
     rect = element.rect;

@@ -75,6 +75,8 @@ mod(var a, var b) {
     int result = JS('num', @'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    b = JS('num', '#', b);
     if (b < 0) {
       return result - b;
     } else {
@@ -86,6 +88,9 @@ mod(var a, var b) {
 
 tdiv(var a, var b) {
   if (checkNumbers(a, b)) {
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    a = JS('num', '#', a);
+    b = JS('num', '#', b);
     return (a / b).truncate();
   }
   return UNINTERCEPTED(a ~/ b);
@@ -162,6 +167,9 @@ bool leB(var a, var b) => le(a, b) === true;
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    a = JS('num', '#', a);
+    b = JS('num', '#', b);
     if (b < 0) throw new IllegalArgumentException(b);
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
@@ -174,11 +182,25 @@ shl(var a, var b) {
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
+    // TODO(floitsch): Find cleaner way of forcing the type.
+    a = JS('num', '#', a);
+    b = JS('num', '#', b);
     if (b < 0) throw new IllegalArgumentException(b);
-    // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
-    // by 33 is hence equivalent to a shift by 1.
-    if (b > 31) return 0;
-    return JS('num', @'# >>> #', a, b);
+    if (a > 0) {
+      // JavaScript only looks at the last 5 bits of the shift-amount. In JS
+      // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
+      // computation when that happens.
+      if (b > 31) return 0;
+      // Given that 'a' is positive we must not use '>>'. Otherwise a number
+      // that has the 31st bit set would be treated as negative and shift in
+      // ones.
+      return JS('num', @'# >>> #', a, b);
+    }
+    // For negative numbers we just clamp the shift-by amount. 'a' could be
+    // negative but not have its 31st bit set. The ">>" would then shift in
+    // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
+    if (b > 31) b = 31;
+    return JS('num', @'(# >> #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a >> b);
 }
@@ -235,7 +257,7 @@ index(var a, var index) {
 
 void indexSet(var a, var index, var value) {
   if (isJsArray(a)) {
-    if (!(index is int)) {
+    if (index is !int) {
       throw new IllegalArgumentException(index);
     }
     if (index < 0 || index >= a.length) {
@@ -326,6 +348,19 @@ class Primitives {
       if (i is !int) throw new IllegalArgumentException(i);
     }
     return JS('String', @'String.fromCharCode.apply(#, #)', null, charCodes);
+  }
+
+  static String getTimeZoneName(receiver) {
+    // When calling toString on a Date it will emit the timezone in parenthesis.
+    // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
+    // We extract this name using a regexp.
+    var d = lazyAsJsDate(receiver);
+    return JS('String', @'/\((.*)\)/.exec(#.toString())[1]', d);
+  }
+
+  static int getTimeZoneOffsetInMinutes(receiver) {
+    // Note that JS and Dart disagree on the sign of the offset.
+    return -JS('int', @'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
   static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,

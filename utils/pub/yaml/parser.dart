@@ -1448,14 +1448,16 @@ class _Parser {
   }
 
   // 167
-  void l_stripEmpty(int indent) => captureAs('', () {
-    zeroOrMore(() => transaction(() {
-        if (!truth(s_indentLessThanOrEqualTo(indent))) return false;
-        return b_nonContent();
-      }));
-    zeroOrOne(() => l_trailComments(indent));
-    return true;
-  });
+  void l_stripEmpty(int indent) {
+    captureAs('', () {
+      zeroOrMore(() => transaction(() {
+          if (!truth(s_indentLessThanOrEqualTo(indent))) return false;
+          return b_nonContent();
+        }));
+      zeroOrOne(() => l_trailComments(indent));
+      return true;
+    });
+  }
 
   // 168
   void l_keepEmpty(int indent) {

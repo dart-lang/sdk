@@ -407,9 +407,30 @@ testCreateTempError() {
 }
 
 
+testRename() {
+  var d = new Directory('');
+  var temp1 = d.createTempSync();
+  var temp2 = d.createTempSync();
+  var temp3 = temp1.renameSync(temp2.path);
+  Expect.isFalse(temp1.existsSync());
+  Expect.isTrue(temp2.existsSync());
+  Expect.equals(temp3.path, temp2.path);
+
+  temp2.rename(temp1.path).then((temp4) {
+    Expect.isFalse(temp3.existsSync());
+    Expect.isFalse(temp2.existsSync());
+    Expect.isTrue(temp1.existsSync());
+    Expect.isTrue(temp4.existsSync());
+    Expect.equals(temp1.path, temp4.path);
+    temp1.deleteRecursivelySync();
+  });
+}
+
+
 main() {
   DirectoryTest.testMain();
   NestedTempDirectoryTest.testMain();
   testCreateTempErrorSync();
   testCreateTempError();
+  testRename();
 }

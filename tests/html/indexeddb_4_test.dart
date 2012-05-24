@@ -15,7 +15,7 @@ class Test {
   start() {
     var request = window.webkitIndexedDB.open(DB_NAME);
     Expect.isNotNull(request);
-    request.on.success.add(initDb);
+    request.on.success.add(expectAsync1(initDb));
     request.on.error.add(fail('open'));
   }
 
@@ -25,14 +25,16 @@ class Test {
     // open call and listening to onversionchange.  Can we feature-detect the
     // difference and make it work?
     var request = db.setVersion(VERSION);
-    request.on.success.add((e) {
+    request.on.success.add(
+      expectAsync1((e) {
         try {
           // Nuke object store if it already exists.
           db.deleteObjectStore(STORE_NAME);
         } catch (IDBDatabaseException e) { }
         db.createObjectStore(STORE_NAME);
         writeItems(0);
-      });
+      })
+    );
     request.on.error.add(fail('setVersion error'));
   }
 
@@ -41,16 +43,19 @@ class Test {
       var transaction = db.transaction([STORE_NAME], IDBTransaction.READ_WRITE);
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
-      request.on.success.add((e) { writeItems(index + 1); });
+      request.on.success.add(
+        expectAsync1((e) {
+          writeItems(index + 1);
+        })
+      );
       request.on.error.add(fail('put'));
-    } else {
-      callbackDone();
     }
   }
 
   fail(message) => (e) {
-    callbackDone();
-    Expect.fail('IndexedDB failure: $message');
+    guardAsync(() {
+      Expect.fail('IndexedDB failure: $message');
+    });
   };
 
   testRange(range, expectedFirst, expectedLast) {
@@ -60,26 +65,27 @@ class Test {
     int itemCount = 0;
     int firstKey = null;
     int lastKey = null;
-    cursorRequest.on.success.add((e) {
-        var cursor = e.target.result;
-        if (cursor != null) {
-          if (firstKey == null) firstKey = cursor.key;
-          lastKey = cursor.key;
-          itemCount += 1;
-          Expect.equals('Item ${cursor.key}', cursor.value);
-          cursor.continueFunction();
+    cursorRequest.on.success.add(expectAsync1((e) {
+      var cursor = e.target.result;
+      if (cursor != null) {
+        if (firstKey == null) firstKey = cursor.key;
+        lastKey = cursor.key;
+        itemCount += 1;
+        Expect.equals('Item ${cursor.key}', cursor.value);
+        cursor.continueFunction();
+      } else {
+        // Done
+        Expect.equals(expectedFirst, firstKey);
+        Expect.equals(expectedLast, lastKey);
+        if (expectedFirst == null) {
+          Expect.equals(0, itemCount);
         } else {
-          // Done
-          Expect.equals(expectedFirst, firstKey);
-          Expect.equals(expectedLast, lastKey);
-          if (expectedFirst == null) {
-            Expect.equals(0, itemCount);
-          } else {
-            Expect.equals(expectedLast - expectedFirst + 1, itemCount);
-          }
-          callbackDone();
+          Expect.equals(expectedLast - expectedFirst + 1, itemCount);
         }
-      });
+      }
+    },
+    count: 1 + ((expectedFirst == null) ?
+           0 : (expectedLast - expectedFirst + 1))));
     cursorRequest.on.error.add(fail('openCursor'));
   }
 
@@ -116,25 +122,25 @@ class Test {
 main() {
   useHtmlConfiguration();
 
-  var test = new Test();
-  asyncTest('prepare', 1, test.start);
+  var test_ = new Test();
+  test('prepare', test_.start);
 
-  asyncTest('only1', 1, test.only1);
-  asyncTest('only2', 1, test.only2);
-  asyncTest('only3', 1, test.only3);
+  test('only1', test_.only1);
+  test('only2', test_.only2);
+  test('only3', test_.only3);
 
-  asyncTest('lower1', 1, test.lower1);
-  asyncTest('lower2', 1, test.lower2);
-  asyncTest('lower3', 1, test.lower3);
+  test('lower1', test_.lower1);
+  test('lower2', test_.lower2);
+  test('lower3', test_.lower3);
 
-  asyncTest('upper1', 1, test.upper1);
-  asyncTest('upper2', 1, test.upper2);
-  asyncTest('upper3', 1, test.upper3);
+  test('upper1', test_.upper1);
+  test('upper2', test_.upper2);
+  test('upper3', test_.upper3);
 
-  asyncTest('bound1', 1, test.bound1);
-  asyncTest('bound2', 1, test.bound2);
-  asyncTest('bound3', 1, test.bound3);
-  asyncTest('bound4', 1, test.bound4);
-  asyncTest('bound5', 1, test.bound5);
+  test('bound1', test_.bound1);
+  test('bound2', test_.bound2);
+  test('bound3', test_.bound3);
+  test('bound4', test_.bound4);
+  test('bound5', test_.bound5);
 
 }

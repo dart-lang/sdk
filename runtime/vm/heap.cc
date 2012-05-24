@@ -57,10 +57,7 @@ uword Heap::AllocateNew(intptr_t size) {
   }
   CollectGarbage(kNew);
   if (FLAG_verbose_gc) {
-    OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
-                 (new_space_->in_use() / KB),
-                 (old_space_->in_use() / KB),
-                 (code_space_->in_use() / KB));
+    PrintSizes();
   }
   addr = new_space_->TryAllocate(size);
   if (addr != 0) {
@@ -76,15 +73,13 @@ uword Heap::AllocateOld(intptr_t size) {
   if (addr == 0) {
     CollectAllGarbage();
     if (FLAG_verbose_gc) {
-      OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
-                   (new_space_->in_use() / KB),
-                   (old_space_->in_use() / KB),
-                   (code_space_->in_use() / KB));
+      PrintSizes();
     }
     addr = old_space_->TryAllocate(size);
     if (addr == 0) {
       // TODO(cshapiro): Support possible heap growth and OOM exception.
-      FATAL1("Exhausted heap space, trying to allocate %d bytes.", size);
+      OS::PrintErr("Exhausted heap space, trying to allocate %d bytes.\n",
+                   size);
     }
   }
   return addr;
@@ -205,6 +200,16 @@ bool Heap::Verify() const {
   code_space_->VisitObjectPointers(&visitor);
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
+}
+
+
+void Heap::PrintSizes() const {
+  OS::PrintErr("New space (%dk of %dk) "
+               "Old space (%dk of %dk) "
+               "Code space (%dk of %dk)\n",
+               (new_space_->in_use() / KB), (new_space_->capacity() / KB),
+               (old_space_->in_use() / KB), (old_space_->capacity() / KB),
+               (code_space_->in_use() / KB), (code_space_->capacity() / KB));
 }
 
 

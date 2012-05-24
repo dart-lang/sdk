@@ -21,13 +21,12 @@ main() {
   useDomConfiguration();
   var script = document.createElement('script');
   document.body.appendChild(script);
-  asyncTest('spawn with other script tags in page', 1, () {
+  test('spawn with other script tags in page', () {
     ReceivePort port = new ReceivePort();
-    port.receive((msg, _) {
+    port.receive(expectAsync2((msg, _) {
       expect(msg).equals('re: hi');
       port.close();
-      callbackDone();
-    });
+    }));
 
     SendPort s = spawnFunction(child);
     s.send('hi', port.toSendPort());

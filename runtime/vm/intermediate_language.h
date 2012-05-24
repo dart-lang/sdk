@@ -14,8 +14,10 @@
 namespace dart {
 
 class BitVector;
+class FlowGraphCompiler;
 class FlowGraphVisitor;
 class LocalVariable;
+class LocationSummary;
 
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
@@ -77,7 +79,7 @@ class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL) {
+  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = GetNextCid(isolate);
     ic_data_ = GetICDataForCid(cid_, isolate);
@@ -108,6 +110,23 @@ class Computation : public ZoneAllocated {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  // Returns structure describing location constraints required
+  // to emit native code for this computation.
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  // Create a location summary for this computation.
+  // TODO(fschneider): Temporarily returns NULL for instructions
+  // that are not yet converted to the location based code generation.
+  virtual LocationSummary* MakeLocationSummary() const = 0;
+
+  // TODO(fschneider): Make EmitNativeCode and locs const.
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
+
  private:
   friend class Instruction;
   static intptr_t GetNextCid(Isolate* isolate) {
@@ -130,6 +149,7 @@ class Computation : public ZoneAllocated {
 
   intptr_t cid_;
   ICData* ic_data_;
+  LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
 };
@@ -140,16 +160,28 @@ class Computation : public ZoneAllocated {
 template<typename T, intptr_t N>
 class EmbeddedArray {
  public:
-  EmbeddedArray() : elements_() { }
+  EmbeddedArray() {
+    for (intptr_t i = 0; i < N; i++) elements_[i] = NULL;
+  }
 
   intptr_t length() const { return N; }
+
   const T& operator[](intptr_t i) const {
     ASSERT(i < length());
     return elements_[i];
   }
+
   T& operator[](intptr_t i) {
     ASSERT(i < length());
     return elements_[i];
+  }
+
+  const T& At(intptr_t i) const {
+    return (*this)[i];
+  }
+
+  void SetAt(intptr_t i, const T& val) {
+    (*this)[i] = val;
   }
 
  private:
@@ -205,7 +237,9 @@ class Value : public TemplateComputation<0> {
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual const char* DebugName() const { return #ShortName; }                 \
-  virtual RawAbstractType* StaticType() const;
+  virtual RawAbstractType* StaticType() const;                                 \
+  virtual LocationSummary* MakeLocationSummary() const;                        \
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
@@ -234,7 +268,8 @@ class UseVal : public Value {
 
 class ConstantVal: public Value {
  public:
-  explicit ConstantVal(const Object& value) : value_(value) {
+  explicit ConstantVal(const Object& value)
+      : value_(value) {
     ASSERT(value.IsZoneHandle());
   }
 
@@ -364,14 +399,10 @@ class ClosureCallComp : public Computation {
  public:
   ClosureCallComp(ClosureCallNode* node,
                   intptr_t try_index,
-                  Value* context,
                   ZoneGrowableArray<Value*>* arguments)
       : ast_node_(*node),
         try_index_(try_index),
-        context_(context),
-        arguments_(arguments) {
-    ASSERT(context->IsUse());
-  }
+        arguments_(arguments) { }
 
   DECLARE_COMPUTATION(ClosureCall)
 
@@ -379,21 +410,17 @@ class ClosureCallComp : public Computation {
   intptr_t token_index() const { return ast_node_.token_index(); }
   intptr_t try_index() const { return try_index_; }
 
-  Value* context() const { return context_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
   virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    return i == 0 ? context() : ArgumentAt(i - 1);
-  }
+  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureCallNode& ast_node_;
   const intptr_t try_index_;
-  Value* context_;
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
@@ -547,7 +574,8 @@ class StaticCallComp : public Computation {
 class LoadLocalComp : public TemplateComputation<0> {
  public:
   LoadLocalComp(const LocalVariable& local, intptr_t context_level)
-      : local_(local), context_level_(context_level) { }
+      : local_(local),
+        context_level_(context_level) { }
 
   DECLARE_COMPUTATION(LoadLocal)
 
@@ -569,7 +597,8 @@ class StoreLocalComp : public TemplateComputation<1> {
   StoreLocalComp(const LocalVariable& local,
                  Value* value,
                  intptr_t context_level)
-      : local_(local), context_level_(context_level) {
+      : local_(local),
+        context_level_(context_level) {
     inputs_[0] = value;
   }
 
@@ -1371,6 +1400,19 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return AbstractType::null();
   }
 
+  // Returns structure describing location constraints required
+  // to emit native code for this instruction.
+  virtual LocationSummary* locs() const {
+    // TODO(vegorov): This should be pure virtual method.
+    // However we are temporary using NULL for instructions that
+    // were not converted to the location based code generation yet.
+    return NULL;
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    UNIMPLEMENTED();
+  }
+
  private:
   intptr_t cid_;
   ICData* ic_data_;
@@ -1568,12 +1610,21 @@ class DoInstr : public Instruction {
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
   }
+
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
+
+  virtual LocationSummary* locs() const {
+    return computation()->locs();
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    computation()->EmitNativeCode(compiler);
+  }
 
  private:
   Computation* computation_;
@@ -1611,6 +1662,7 @@ class BindInstr : public Definition {
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
   }
+
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
@@ -1622,6 +1674,12 @@ class BindInstr : public Definition {
   }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
+
+  virtual LocationSummary* locs() const {
+    return computation()->locs();
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
   Computation* computation_;

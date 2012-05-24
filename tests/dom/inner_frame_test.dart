@@ -42,8 +42,8 @@ main() {
   final iframe = document.createElement('iframe');
   iframe.src = window.location.href;
 
-  asyncTest('prepare', 1, () {
-      iframe.addEventListener('load', (e) => callbackDone(), false);
+  test('prepare', () {
+      iframe.addEventListener('load', expectAsync1((e) {}), false);
       document.body.appendChild(iframe);
     });
 

@@ -17,15 +17,19 @@
 class Compiler extends leg.Compiler {
   api.ReadUriFromString provider;
   api.DiagnosticHandler handler;
-  Uri libraryRoot;
-  Uri packageRoot;
+  final Uri libraryRoot;
+  final Uri packageRoot;
   List<String> options;
   bool mockableLibraryUsed = false;
 
-  Compiler(this.provider, this.handler, this.libraryRoot, this.options)
-    : super(tracer: new ssa.HTracer()) {
-    enableTypeAssertions = options.indexOf('--enable-checked-mode') !== -1;
-  }
+  Compiler(this.provider, this.handler, this.libraryRoot, this.packageRoot,
+           List<String> options)
+    : this.options = options,
+      super(
+          tracer: new ssa.HTracer(),
+          enableTypeAssertions: options.indexOf('--enable-checked-mode') != -1,
+          emitJavascript: options.indexOf('--output-type=dart') == -1,
+          validateUnparse: options.indexOf('--unparse-validation') !== -1);
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
@@ -79,16 +83,11 @@ class Compiler extends leg.Compiler {
   translatePackageUri(Uri uri, tree.Node node) => packageRoot.resolve(uri.path);
 
   bool run(Uri uri) {
-    try {
-      packageRoot = uri.resolve('packages/');
-      bool success = super.run(uri);
-      for (final task in tasks) {
-        log('${task.name} took ${task.timing}msec');
-      }
-      return success;
-    } finally {
-      packageRoot = null;
+    bool success = super.run(uri);
+    for (final task in tasks) {
+      log('${task.name} took ${task.timing}msec');
     }
+    return success;
   }
 
   void reportDiagnostic(leg.SourceSpan span, String message, bool fatal) {

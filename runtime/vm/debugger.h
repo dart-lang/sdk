@@ -14,7 +14,7 @@ class CodeBreakpoint;
 class Isolate;
 class ObjectPointerVisitor;
 class ActiveVariables;
-
+class RemoteObjectCache;
 
 // SourceBreakpoint represents a user-specified breakpoint location in
 // Dart source. There may be more than one CodeBreakpoint object per
@@ -154,7 +154,7 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t token_index_;
   intptr_t line_number_;
 
-  LocalVarDescriptors* var_descriptors_;
+  LocalVarDescriptors& var_descriptors_;
   ZoneGrowableArray<intptr_t> desc_indices_;
 
   friend class Debugger;
@@ -184,7 +184,6 @@ class DebuggerStackTrace : public ZoneAllocated {
 
 typedef void BreakpointHandler(SourceBreakpoint* bpt,
                                DebuggerStackTrace* stack);
-
 
 
 class Debugger {
@@ -240,6 +239,10 @@ class Debugger {
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
 
+  intptr_t CacheObject(const Object& obj);
+  RawObject* GetCachedObject(intptr_t obj_id);
+  bool IsValidObjectId(intptr_t obj_id);
+
   // Utility functions.
   static const char* QualifiedFunctionName(const Function& func);
 
@@ -289,6 +292,8 @@ class Debugger {
 
   // Current stack trace. Valid while executing breakpoint callback code.
   DebuggerStackTrace* stack_trace_;
+
+  RemoteObjectCache* obj_cache_;
 
   SourceBreakpoint* src_breakpoints_;
   CodeBreakpoint* code_breakpoints_;

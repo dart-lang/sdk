@@ -717,10 +717,10 @@ public class Resolver {
               inStaticContext(currentMethod),
               inFactoryContext(currentMethod),
               TypeErrorCode.NO_SUCH_TYPE);
-       for (DartVariable variable : node.getVariables()) {
-         Elements.setType(resolveVariable(variable, node.getModifiers()), type);
-         checkVariableStatement(node, variable, isImplicitlyInitialized);
-       }
+      for (DartVariable variable : node.getVariables()) {
+        Elements.setType(resolveVariable(variable, node.getModifiers()), type);
+        checkVariableStatement(node, variable, isImplicitlyInitialized);
+      }
      }
 
     @Override

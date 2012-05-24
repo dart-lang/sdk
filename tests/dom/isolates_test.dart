@@ -33,22 +33,20 @@ class PingPongIsolate extends isolate.Isolate {
 
 main() {
   useDomConfiguration();
-  asyncTest('IsolateSpawn', 1, () {
-    new PingPongIsolate().spawn().then((isolate.SendPort port) {
-      callbackDone();
-    });
+  test('IsolateSpawn', () {
+    new PingPongIsolate().spawn().then(expectAsync1((isolate.SendPort port) {
+    }));
   });
-  asyncTest('NonDOMIsolates', 1, () {
-    new PingPongIsolate().spawn().then((isolate.SendPort port) {
+  test('NonDOMIsolates', () {
+    new PingPongIsolate().spawn().then(expectAsync1((isolate.SendPort port) {
       final msg1 = 'foo';
       final msg2 = 'bar';
-      port.call(msg1).then((response) {
+      port.call(msg1).then(expectAsync1((response) {
         Expect.equals(PingPongIsolate.responseFor(msg1), response);
-        port.call(msg2).then((response) {
+        port.call(msg2).then(expectAsync1((response) {
           Expect.equals(PingPongIsolate.responseFor(msg2), response);
-          callbackDone();
-        });
-      });
-    });
+        }));
+      }));
+    }));
   });
 }

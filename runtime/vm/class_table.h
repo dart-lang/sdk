@@ -20,9 +20,12 @@ class ClassTable {
   ~ClassTable();
 
   RawClass* At(intptr_t index) const {
-    ASSERT(index > 0);
-    ASSERT(index < top_);
+    ASSERT(IsValidIndex(index));
     return table_[index];
+  }
+
+  intptr_t IsValidIndex(intptr_t index) const {
+    return (index > 0) && (index < top_);
   }
 
   void Register(const Class& cls);

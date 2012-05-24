@@ -20,9 +20,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, eliminate_type_checks, true,
+            "Eliminate type checks when allowed by static type analysis");
+DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DECLARE_FLAG(bool, enable_type_checks);
-DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
@@ -311,6 +313,9 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
   ASSERT(FLAG_enable_type_checks);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
+  if (!FLAG_eliminate_type_checks) {
+    return false;
+  }
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
@@ -1371,12 +1376,8 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  // Context is saved around the call, it's treated as an extra operand
-  // consumed by the call (but not an argument).
-  BindInstr* context = new BindInstr(new CurrentContextComp());
-  AddInstruction(context);
-
+ClosureCallComp* EffectGraphVisitor::BuildClosureCall(
+    ClosureCallNode* node) {
   ValueGraphVisitor for_closure(owner(), temp_index());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
@@ -1385,12 +1386,31 @@ void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
       new ZoneGrowableArray<Value*>(node->arguments()->length());
   arguments->Add(for_closure.value());
   TranslateArgumentList(*node->arguments(), arguments);
-  // First operand is the saved context, consumed by the call.
-  ClosureCallComp* call =  new ClosureCallComp(node,
-                                               owner()->try_index(),
-                                               new UseVal(context),
-                                               arguments);
-  ReturnComputation(call);
+
+  // Save context around the call.
+  BuildStoreContext(*owner()->parsed_function().expression_temp_var());
+  return new ClosureCallComp(node, owner()->try_index(), arguments);
+}
+
+
+void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
+  ClosureCallComp* call = BuildClosureCall(node);
+  AddInstruction(new DoInstr(call));
+
+  // Restore context from saved location.
+  BuildLoadContext(*owner()->parsed_function().expression_temp_var());
+}
+
+
+void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
+  ClosureCallComp* call = BuildClosureCall(node);
+  BindInstr* result = new BindInstr(call);
+  AddInstruction(result);
+
+  // Restore context from temp.
+  BuildLoadContext(*owner()->parsed_function().expression_temp_var());
+
+  ReturnValue(new UseVal(result));
 }
 
 

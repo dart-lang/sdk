@@ -81,8 +81,7 @@ intptr_t StaticCallComp::InputCount() const {
 
 
 intptr_t ClosureCallComp::InputCount() const {
-  // Context and arguments.
-  return 1 + ArgumentCount();
+  return ArgumentCount();
 }
 
 

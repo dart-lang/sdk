@@ -23,6 +23,21 @@ namespace dart {
 
 static const bool verbose = false;
 
+class RemoteObjectCache : public ZoneAllocated {
+ public:
+  explicit RemoteObjectCache(intptr_t initial_size);
+  intptr_t AddObject(const Object& obj);
+  RawObject* GetObj(intptr_t obj_id) const;
+  bool IsValidId(intptr_t obj_id) const {
+    return obj_id < objs_->Length();
+  }
+
+ private:
+  GrowableObjectArray* objs_;
+
+  DISALLOW_COPY_AND_ASSIGN(RemoteObjectCache);
+};
+
 
 SourceBreakpoint::SourceBreakpoint(intptr_t id,
                                    const Function& func,
@@ -96,7 +111,7 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp)
       function_(Function::ZoneHandle()),
       token_index_(-1),
       line_number_(-1),
-      var_descriptors_(NULL),
+      var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8) {
 }
 
@@ -183,25 +198,24 @@ intptr_t ActivationFrame::LineNumber() {
 
 
 void ActivationFrame::GetDescIndices() {
-  if (var_descriptors_ == NULL) {
+  if (var_descriptors_.IsNull()) {
     ASSERT(!DartFunction().HasOptimizedCode());
     const Code& code = Code::Handle(DartFunction().unoptimized_code());
-    var_descriptors_ =
-        &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
+    var_descriptors_ = code.var_descriptors();
     // TODO(Hausner): Consider replacing this GrowableArray.
     GrowableArray<String*> var_names(8);
     intptr_t activation_token_pos = TokenIndex();
-    intptr_t var_desc_len = var_descriptors_->Length();
+    intptr_t var_desc_len = var_descriptors_.Length();
     for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
       ASSERT(var_names.length() == desc_indices_.length());
       intptr_t scope_id, begin_pos, end_pos;
-      var_descriptors_->GetScopeInfo(cur_idx, &scope_id, &begin_pos, &end_pos);
+      var_descriptors_.GetScopeInfo(cur_idx, &scope_id, &begin_pos, &end_pos);
       if ((begin_pos <= activation_token_pos) &&
           (activation_token_pos <= end_pos)) {
         // The current variable is textually in scope. Now check whether
         // there is another local variable with the same name that shadows
         // or is shadowed by this variable.
-        String& var_name = String::Handle(var_descriptors_->GetName(cur_idx));
+        String& var_name = String::Handle(var_descriptors_.GetName(cur_idx));
         intptr_t indices_len = desc_indices_.length();
         bool name_match_found = false;
         for (int i = 0; i < indices_len; i++) {
@@ -210,7 +224,7 @@ void ActivationFrame::GetDescIndices() {
             // which one is shadowed.
             name_match_found = true;
             intptr_t i_begin_pos, ignore;
-            var_descriptors_->GetScopeInfo(
+            var_descriptors_.GetScopeInfo(
                 desc_indices_[i], &ignore, &i_begin_pos, &ignore);
             if (i_begin_pos < begin_pos) {
               // The variable we found earlier is in an outer scope
@@ -253,11 +267,11 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(i < desc_indices_.length());
   ASSERT(name != NULL);
   intptr_t desc_index = desc_indices_[i];
-  *name ^= var_descriptors_->GetName(desc_index);
+  *name ^= var_descriptors_.GetName(desc_index);
   intptr_t scope_id;
-  var_descriptors_->GetScopeInfo(desc_index, &scope_id, token_pos, end_pos);
+  var_descriptors_.GetScopeInfo(desc_index, &scope_id, token_pos, end_pos);
   ASSERT(value != NULL);
-  *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(desc_index));
+  *value = GetLocalVarValue(var_descriptors_.GetSlotIndex(desc_index));
 }
 
 
@@ -268,9 +282,9 @@ RawArray* ActivationFrame::GetLocalVariables() {
   Instance& value = Instance::Handle();
   const Array& list = Array::Handle(Array::New(2 * num_variables));
   for (int i = 0; i < num_variables; i++) {
-    var_name = var_descriptors_->GetName(i);
+    var_name = var_descriptors_.GetName(i);
     list.SetAt(2 * i, var_name);
-    value = GetLocalVarValue(var_descriptors_->GetSlotIndex(i));
+    value = GetLocalVarValue(var_descriptors_.GetSlotIndex(i));
     list.SetAt((2 * i) + 1, value);
   }
   return list.raw();
@@ -426,6 +440,30 @@ void CodeBreakpoint::Disable() {
 }
 
 
+RemoteObjectCache::RemoteObjectCache(intptr_t initial_size) {
+  objs_ = &GrowableObjectArray::ZoneHandle(
+              GrowableObjectArray::New(initial_size));
+}
+
+
+intptr_t RemoteObjectCache::AddObject(const Object& obj) {
+  intptr_t len = objs_->Length();
+  for (int i = 0; i < len; i++) {
+    if (objs_->At(i) == obj.raw()) {
+      return i;
+    }
+  }
+  objs_->Add(obj);
+  return len;
+}
+
+
+RawObject* RemoteObjectCache::GetObj(intptr_t obj_id) const {
+  ASSERT(IsValidId(obj_id));
+  return objs_->At(obj_id);
+}
+
+
 Debugger::Debugger()
     : isolate_(NULL),
       initialized_(false),
@@ -433,6 +471,7 @@ Debugger::Debugger()
       event_handler_(NULL),
       next_id_(1),
       stack_trace_(NULL),
+      obj_cache_(NULL),
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
@@ -444,6 +483,7 @@ Debugger::~Debugger() {
   ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
+  ASSERT(obj_cache_ == NULL);
 }
 
 
@@ -722,6 +762,23 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
 }
 
 
+intptr_t Debugger::CacheObject(const Object& obj) {
+  ASSERT(obj_cache_ != NULL);
+  return obj_cache_->AddObject(obj);
+}
+
+
+bool Debugger::IsValidObjectId(intptr_t obj_id) {
+  ASSERT(obj_cache_ != NULL);
+  return obj_cache_->IsValidId(obj_id);
+}
+
+
+RawObject* Debugger::GetCachedObject(intptr_t obj_id) {
+  ASSERT(obj_cache_ != NULL);
+  return obj_cache_->GetObj(obj_id);
+}
+
 // TODO(hausner): Merge some of this functionality with the code in
 // dart_api_impl.cc.
 RawObject* Debugger::GetInstanceField(const Class& cls,
@@ -916,9 +973,12 @@ void Debugger::BreakpointCallback() {
   if (bp_handler_ != NULL) {
     SourceBreakpoint* src_bpt = bpt->src_bpt();
     ASSERT(stack_trace_ == NULL);
+    ASSERT(obj_cache_ == NULL);
+    obj_cache_ = new RemoteObjectCache(64);
     stack_trace_ = stack_trace;
     (*bp_handler_)(src_bpt, stack_trace);
     stack_trace_ = NULL;
+    obj_cache_ = NULL;  // Remote object cache is zone allocated.
   }
 
   if (resume_action_ == kContinue) {
