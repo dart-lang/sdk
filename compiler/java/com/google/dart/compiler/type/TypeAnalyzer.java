@@ -1619,6 +1619,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
+          Modifiers fieldModifiers = fieldElement.getModifiers();
           MethodElement getter = fieldElement.getGetter();
           MethodElement setter = fieldElement.getSetter();
           boolean inSetterContext = Elements.inSetterContext(node);
@@ -1627,8 +1628,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (fieldElement.getEnclosingElement() instanceof ClassElement) {
             enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
           }
+
+          // Implicit field declared as "final".
+          if (!fieldModifiers.isAbstractField() && fieldModifiers.isFinal() && inSetterContext) {
+            return typeError(node.getName(), TypeErrorCode.FIELD_IS_FINAL, node.getName());
+          }
+
           // Check for cases when property has no setter or getter.
-          if (fieldElement.getModifiers().isAbstractField() && enclosingClass != null) {
+          if (fieldModifiers.isAbstractField() && enclosingClass != null) {
             // Check for using field without getter in other operation that assignment.
             if (inGetterContext) {
               if (getter == null) {
@@ -1652,7 +1659,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
 
           Type result = member.getType();
-          if (fieldElement.getModifiers().isAbstractField()) {
+          if (fieldModifiers.isAbstractField()) {
             if (inSetterContext) {
               result = member.getSetterType();
               if (result == null) {

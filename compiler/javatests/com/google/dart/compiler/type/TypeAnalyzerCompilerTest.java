@@ -794,6 +794,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getTypeErrors());
   }
 
+  public void test_finalField_inClass() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  final f;",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  a.f = 0;", // 6: ERR, is final
+            "  a.f += 1;", // 7: ERR, is final
+            "  print(a.f);", // 8: OK, can read
+            "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 7, 5, 1),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 8, 5, 1));
+  }
+  
+  public void test_finalField_inInterface() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I default A {",
+            "  final f;",
+            "}",
+            "class A implements I {",
+            "  var f;",
+            "}",
+            "main() {",
+            "  I a = new I();",
+            "  a.f = 0;", // 6: ERR, is final
+            "  a.f += 1;", // 7: ERR, is final
+            "  print(a.f);", // 8: OK, can read
+            "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 10, 5, 1),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 11, 5, 1));
+  }
+
   /**
    * Test for variants of {@link DartMethodDefinition} return types.
    */
