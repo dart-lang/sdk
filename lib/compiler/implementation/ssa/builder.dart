@@ -1565,7 +1565,7 @@ class SsaBuilder implements Visitor {
     conditionBlock.addSuccessor(elseBlock);
     open(elseBlock);
     visitElse();
-    SubGrpah elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
+    SubGraph elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
     elseBlock = current;
 
     HBasicBlock joinBlock = null;
