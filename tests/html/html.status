@@ -160,8 +160,10 @@ svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 # Should investigate why this test succeeds on d8.
 svgelement2_test: Pass
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
