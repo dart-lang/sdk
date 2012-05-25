@@ -26,7 +26,7 @@ $if FROG
   _ElementImpl $dom_querySelector(String selectors) native "return this.querySelector(selectors);";
 $else
   _ElementImpl $dom_querySelector(String selectors) =>
-      _wrap(_ptr.querySelector(selectors));
+      _wrap(_ptr.query(selectors));
 $endif
 
   ElementList queryAll(String selectors) {

@@ -253,12 +253,12 @@ _html_library_remove = set([
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     "IFrameElement.get:contentDocument",
-    "IFrameElement.get:contentWindow",
     "Window.get:frameElement",
     ])
 
 _html_library_custom = set([
     'Document.querySelector',
+    'IFrameElement.get:contentWindow',
     'Window.get:document',
     'Window.get:top',
     ])
@@ -549,52 +549,43 @@ class HtmlSystemShared(object):
     self._database = database
     self._inheritance_closure = _ComputeInheritanceClosure(database)
 
-  def _AllowInHtmlLibrary(self, interface, member, member_prefix):
-    return not self._Matches(interface, member, member_prefix,
-        _html_library_remove)
+  def _FindMatch(self, interface_name, member, member_prefix, candidates):
+    for ancestor_name in self._AllAncestorInterfaces(interface_name):
+      name = ancestor_name + '.' + member
+      if name in candidates:
+        return name
+      name = interface_name + '.' + member_prefix + member
+      if name in candidates:
+        return name
+    return None
 
-  def _Matches(self, interface, member, member_prefix, candidates):
-    for interface_name in self._AllAncestorInterfaces(interface):
-      if (DartType(interface_name) + '.' + member in candidates or
-          DartType(interface_name) + '.' + member_prefix + member in candidates):
-        return True
-    return False
+  def _AllAncestorInterfaces(self, interface_name):
+    return [interface_name] + self._inheritance_closure[interface_name]
 
-  def _AllAncestorInterfaces(self, interface):
-    return [interface.id] + self._inheritance_closure[interface.id]
-
-  def RenameInHtmlLibrary(self, interface, member, member_prefix='',
+  def RenameInHtmlLibrary(self, interface_name, member, member_prefix='',
                           implementation_class=False):
     """
     Returns the name of the member in the HTML library or None if the member is
     suppressed in the HTML library
     """
-    if not self._AllowInHtmlLibrary(interface, member, member_prefix):
+    if self._FindMatch(interface_name, member, member_prefix,
+                     _html_library_remove):
       return None
 
-    target_name = member
-    for interface_name in self._AllAncestorInterfaces(interface):
-      name = interface_name + '.' + member
-      if name in _html_library_renames:
-        target_name = _html_library_renames[name]
-      name = interface.id + '.' + member_prefix + member
-      if name in _html_library_renames:
-        target_name = _html_library_renames[name]
+    name = self._FindMatch(interface_name, member, member_prefix,
+                         _html_library_renames)
+    target_name = _html_library_renames[name] if name else member
 
     if not target_name.startswith('_'):
-      if self._PrivateInHtmlLibrary(interface, member, member_prefix):
+      if self._FindMatch(interface_name, member, member_prefix,
+                       _private_html_members):
         if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
           target_name = '$dom_' + target_name
 
-    # No rename required
     return target_name
 
-  def _PrivateInHtmlLibrary(self, interface, member, member_prefix):
-    return self._Matches(interface, member, member_prefix,
-        _private_html_members)
-
   def IsCustomInHtmlLibrary(self, interface, member, member_prefix=''):
-    return self._Matches(interface, member, member_prefix,
+    return self._FindMatch(interface.id, member, member_prefix,
         _html_library_custom)
 
   # TODO(jacobr): this already exists
@@ -837,9 +828,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter)
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, dom_name, 'get:')
+      self._interface.id, dom_name, 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, dom_name, 'set:')
+      self._interface.id, dom_name, 'set:')
 
     if not html_getter_name or self._shared.IsPrivate(html_getter_name):
       getter = None
@@ -876,7 +867,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         name.
     """
     html_name = self._shared.RenameInHtmlLibrary(
-        self._interface, info.name)
+        self._interface.id, info.name)
     if html_name and not self._shared.IsPrivate(html_name):
       self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
           DOMINTERFACE=info.overloads[0].doc_js_interface_name,
@@ -1062,13 +1053,13 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if not self._shared.IsCustomInHtmlLibrary(
         self._interface, dom_name, 'get:'):
       html_getter_name = self._shared.RenameInHtmlLibrary(
-          self._interface, dom_name, 'get:',
+          self._interface.id, dom_name, 'get:',
           implementation_class=True)
     html_setter_name = None
     if not self._shared.IsCustomInHtmlLibrary(
         self._interface, dom_name, 'set:'):
       html_setter_name = self._shared.RenameInHtmlLibrary(
-          self._interface, dom_name, 'set:',
+          self._interface.id, dom_name, 'set:',
           implementation_class=True)
 
     if not html_getter_name:
@@ -1163,7 +1154,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       return
 
     html_name = self._shared.RenameInHtmlLibrary(
-        self._interface, info.name, implementation_class=True)
+        self._interface.id, info.name, implementation_class=True)
     if not html_name:
       return
 
@@ -1523,13 +1514,13 @@ class HtmlDartiumInterfaceGenerator(object):
     if not self._shared.IsCustomInHtmlLibrary(
         self._interface, dom_name, 'get:'):
       html_getter_name = self._shared.RenameInHtmlLibrary(
-          self._interface, dom_name, 'get:',
+          self._interface.id, dom_name, 'get:',
           implementation_class=True)
     html_setter_name = None
     if not self._shared.IsCustomInHtmlLibrary(
         self._interface, dom_name, 'set:'):
       html_setter_name = self._shared.RenameInHtmlLibrary(
-          self._interface, dom_name, 'set:',
+          self._interface.id, dom_name, 'set:',
           implementation_class=True)
 
     if getter and html_getter_name:
@@ -1540,9 +1531,8 @@ class HtmlDartiumInterfaceGenerator(object):
   def _AddGetter(self, attr, html_name):
     self._members_emitter.Emit(
       '\n'
-      '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$DOM_NAME);\n',
+      '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$HTML_NAME);\n',
       HTML_NAME=html_name,
-      DOM_NAME=DartDomNameOfAttribute(attr),
       TYPE=DartType(attr.type.id),
       THIS=self.DomObjectName())
 
@@ -1550,9 +1540,8 @@ class HtmlDartiumInterfaceGenerator(object):
     self._members_emitter.Emit(
         '\n'
         '  void set $(HTML_NAME)($TYPE value) { '
-        '$(THIS).$DOM_NAME = _unwrap(value); }\n',
+        '$(THIS).$HTML_NAME = _unwrap(value); }\n',
         HTML_NAME=html_name,
-        DOM_NAME=DartDomNameOfAttribute(attr),
         TYPE=DartType(attr.type.id),
         THIS=self.DomObjectName())
 
@@ -1661,13 +1650,13 @@ class HtmlDartiumInterfaceGenerator(object):
       return
 
     html_name = self._shared.RenameInHtmlLibrary(
-        self._interface, info.name, implementation_class=True)
+        self._interface.id, info.name, implementation_class=True)
 
     if not html_name:
       return
 
     arguments = self._UnwrappedParameters(info, len(info.param_infos))
-    function_call = '%s.%s(%s)' % (self.DomObjectName(), info.name, arguments)
+    function_call = '%s.%s(%s)' % (self.DomObjectName(), html_name, arguments)
     if info.type_name != 'void':
       # We could place the logic for handling Document directly in _wrap
       # but we chose to place it here so that bugs in the wrapper and

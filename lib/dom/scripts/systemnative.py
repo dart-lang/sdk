@@ -10,12 +10,12 @@ import emitter
 import os
 from generator import *
 from systembase import *
-from systemhtml import DomToHtmlEvent, DomToHtmlEvents
+from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
 
 class NativeImplementationSystem(System):
 
-  def __init__(self, templates, database, html_renames, emitters, auxiliary_dir,
-               output_dir):
+  def __init__(self, templates, database, html_database, html_renames,
+               emitters, auxiliary_dir, output_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
 
@@ -25,6 +25,7 @@ class NativeImplementationSystem(System):
     self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
+    self._html_system = HtmlSystemShared(html_database)
 
   def InterfaceGenerator(self,
                          interface,
@@ -240,6 +241,7 @@ class NativeImplementationGenerator(object):
     self._base_members = base_members
     self._templates = templates
     self._current_secondary_parent = None
+    self._html_system = self._system._html_system
 
   def StartInterface(self):
     self._interface_type_info = GetIDLTypeInfo(self._interface.id)
@@ -354,7 +356,8 @@ class NativeImplementationGenerator(object):
       parent_events_class = '_%sEventsImpl' % parent.id
     else:
       parent_events_class = '_EventsImpl'
-    html_inteface = self._system._html_renames.get(self._interface.id, self._interface.id)
+
+    html_inteface = self._HTMLInterfaceName(self._interface.id)
     events_members = self._dart_impl_emitter.Emit(
         '\n'
         'class $EVENTS_CLASS extends $PARENT_EVENTS_CLASS implements $EVENTS_INTERFACE {\n'
@@ -429,6 +432,9 @@ class NativeImplementationGenerator(object):
       return '_DOMWrapperBase'
 
     return self._ImplClassName(supertype)
+
+  def _HTMLInterfaceName(self, interface_name):
+    return self._system._html_renames.get(interface_name, interface_name)
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
@@ -583,18 +589,24 @@ class NativeImplementationGenerator(object):
       # FIXME: exclude from interface as well.
       return
 
-    if getter:
-      self._AddGetter(getter)
-    if setter:
-      self._AddSetter(setter)
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    dom_name = DartDomNameOfAttribute(getter or setter)
+    html_getter_name = self._html_system.RenameInHtmlLibrary(
+        html_interface_name, dom_name, 'get:', implementation_class=True)
+    html_setter_name = self._html_system.RenameInHtmlLibrary(
+        html_interface_name, dom_name, 'set:', implementation_class=True)
+
+    if getter and html_getter_name:
+      self._AddGetter(getter, html_getter_name)
+    if setter and html_setter_name:
+      self._AddSetter(setter, html_setter_name)
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self.AddAttribute(getter, setter)
 
-  def _AddGetter(self, attr):
+  def _AddGetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)
-    dart_declaration = '%s get %s()' % (
-        self._DartType(attr.type.id), DartDomNameOfAttribute(attr))
+    dart_declaration = '%s get %s()' % (self._DartType(attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -635,10 +647,9 @@ class NativeImplementationGenerator(object):
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
         True, invocation, raises_exceptions=raises_exceptions)
 
-  def _AddSetter(self, attr):
+  def _AddSetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)
-    dart_declaration = 'void set %s(%s)' % (
-        DartDomNameOfAttribute(attr), self._DartType(attr.type.id))
+    dart_declaration = 'void set %s(%s)' % (html_name, self._DartType(attr.type.id))
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)
@@ -844,26 +855,35 @@ class NativeImplementationGenerator(object):
       # FIXME: exclude from interface as well.
       return
 
-    parameters = info.ParametersImplementationDeclaration(self._DartType)
-    if 'Custom' in info.overloads[0].ext_attrs:
-      dart_declaration = '%s %s(%s)' % (self._DartType(info.type_name), info.name, parameters)
-      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
-      self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
-          'Callback', True)
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    html_name = self._html_system.RenameInHtmlLibrary(
+        html_interface_name, info.name, implementation_class=True)
+
+    if not html_name and info.name == 'item':
+      # FIXME: item should be renamed to operator[], not removed.
+      html_name = 'item'
+
+    if not html_name:
       return
 
-    modifier = ''
-    if info.IsStatic():
-      modifier = 'static '
+    dart_declaration = '%s%s %s(%s)' % (
+        'static ' if info.IsStatic() else '',
+        self._DartType(info.type_name),
+        html_name or info.name,
+        info.ParametersImplementationDeclaration(self._DartType))
+
+    if 'Custom' in info.overloads[0].ext_attrs:
+      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
+      self._GenerateNativeBinding(info.name , argument_count,
+          dart_declaration, 'Callback', True)
+      return
+
     body = self._members_emitter.Emit(
         '\n'
-        '  $MODIFIER$TYPE $NAME($PARAMETERS) {\n'
+        '  $DECLARATION {\n'
         '$!BODY'
         '  }\n',
-        MODIFIER=modifier,
-        TYPE=self._DartType(info.type_name),
-        NAME=info.name,
-        PARAMETERS=parameters)
+        DECLARATION=dart_declaration)
 
     self._native_version = 0
     overloads = self.CombineOverloads(info.overloads)

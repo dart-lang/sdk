@@ -24724,6 +24724,9 @@ interface IFrameElement extends Element default _Elements {
   /** @domName HTMLIFrameElement.align */
   String align;
 
+  /** @domName HTMLIFrameElement.contentWindow */
+  final Window contentWindow;
+
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
 
