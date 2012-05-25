@@ -1532,9 +1532,8 @@ class SsaBuilder implements Visitor {
     visitCondition();
     SubExpression conditionGraph =
         new SubExpression(conditionStartBlock, lastOpenedBlock);
-    bool hasElse = visitElse != null;
     HInstruction condition = popBoolified();
-    HIf branch = new HIf(condition, hasElse);
+    HIf branch = new HIf(condition, true);
     HBasicBlock conditionBlock = close(branch);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
@@ -1553,23 +1552,27 @@ class SsaBuilder implements Visitor {
 
     // Now the else part.
     localsHandler = savedLocals;
-    HBasicBlock elseBlock = null;
-    SubGraph elseGraph = null;
-    if (hasElse) {
-      elseBlock = addNewBlock();
-      conditionBlock.addSuccessor(elseBlock);
-      open(elseBlock);
-      visitElse();
-      elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
-      elseBlock = current;
+    if (visitElse == null) {
+      // Make sure to have an else part to avoid a critical edge. A
+      // critical edge is an edge that connects a block with multiple
+      // successors to a block with multiple predecessors. We avoid
+      // such edges because they prevent inserting copies during code
+      // generation of phi instructions.
+      visitElse = () {};
     }
 
+    HBasicBlock elseBlock = addNewBlock();
+    conditionBlock.addSuccessor(elseBlock);
+    open(elseBlock);
+    visitElse();
+    SubGrpah elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
+    elseBlock = current;
+
     HBasicBlock joinBlock = null;
-    if (thenBlock !== null || elseBlock !== null || !hasElse) {
+    if (thenBlock !== null || elseBlock !== null) {
       joinBlock = addNewBlock();
       if (thenBlock !== null) goto(thenBlock, joinBlock);
       if (elseBlock !== null) goto(elseBlock, joinBlock);
-      else if (!hasElse) conditionBlock.addSuccessor(joinBlock);
       // If the join block has two predecessors we have to merge the
       // locals. The current locals is what either the
       // condition or the else block left us with, so we merge that
@@ -1602,62 +1605,46 @@ class SsaBuilder implements Visitor {
   void handleLogicalAndOr(void left(), void right(), [bool isAnd = true]) {
     // x && y is transformed into:
     //   t0 = boolify(x);
-    //   if (t0) t1 = boolify(y);
-    //   result = phi(t0, t1);
+    //   if (t0) {
+    //     t1 = boolify(y);
+    //   } else {
+    //     t2 = t0;
+    //   }
+    //   result = phi(t1, t2);
     //
     // x || y is transformed into:
     //   t0 = boolify(x);
-    //   if (not(t0)) t1 = boolify(y);
-    //   result = phi(t0, t1);
-    HBasicBlock leftBlock = openNewBlock();
-    left();
-    HInstruction boolifiedLeft = popBoolified();
-    HInstruction condition;
-    if (isAnd) {
-      condition = boolifiedLeft;
-    } else {
-      condition = new HNot(boolifiedLeft);
-      add(condition);
+    //   if (not(t0)) {
+    //     t1 = boolify(y);
+    //   } else {
+    //     t2 = t0;
+    //   }
+    //   result = phi(t1, t2);
+    HInstruction boolifiedLeft;
+    HInstruction boolifiedRight;
+
+    void visitCondition() {
+      left();
+      boolifiedLeft = popBoolified();
+      HInstruction condition;
+      if (isAnd) {
+        condition = boolifiedLeft;
+      } else {
+        condition = new HNot(boolifiedLeft);
+        add(condition);
+      }
+      stack.add(condition);
     }
-    SubExpression leftGraph =
-        new SubExpression(leftBlock, lastOpenedBlock);
-    HIf branch = new HIf(condition, false);
-    leftBlock = close(branch);
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
-    HBasicBlock rightBlock = addNewBlock();
-    leftBlock.addSuccessor(rightBlock);
-    open(rightBlock);
+    void visitThen() {
+      right();
+      boolifiedRight = popBoolified();
+    }
 
-    right();
-    HInstruction boolifiedRight = popBoolified();
-    SubExpression rightGraph =
-        new SubExpression(rightBlock, current);
-    rightBlock = close(new HGoto());
-
-    HBasicBlock joinBlock = addNewBlock();
-    leftBlock.addSuccessor(joinBlock);
-    rightBlock.addSuccessor(joinBlock);
-    open(joinBlock);
-
-    leftGraph.start.setBlockFlow(
-        new HAndOrBlockInformation(
-          isAnd,
-          new HSubExpressionBlockInformation(leftGraph),
-          new HSubExpressionBlockInformation(rightGraph)),
-        joinBlock);
-    // Fallback until we handle and-or-information better.
-    branch.blockInformation = new HBlockFlow(
-      new HIfBlockInformation(
-        new HSubExpressionBlockInformation(leftGraph),
-        new HSubGraphBlockInformation(rightGraph),
-        null
-      ), joinBlock);
-
-    localsHandler.mergeWith(savedLocals, joinBlock);
+    handleIf(visitCondition, visitThen, null);
     HPhi result = new HPhi.manyInputs(null,
-        <HInstruction>[boolifiedLeft, boolifiedRight]);
-    joinBlock.addPhi(result);
+        <HInstruction>[boolifiedRight, boolifiedLeft]);
+    current.addPhi(result);
     stack.add(result);
   }
 
