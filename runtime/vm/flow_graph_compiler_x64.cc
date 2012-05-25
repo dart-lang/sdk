@@ -1143,62 +1143,14 @@ void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
 
 void FlowGraphCompiler::VisitExtractConstructorInstantiator(
     ExtractConstructorInstantiatorComp* comp) {
-  ASSERT(comp->instantiator()->IsUse());
-  LoadValue(RAX, comp->instantiator());
-
-  // RAX is the instantiator AbstractTypeArguments object (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of Dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  Label done;
-  const intptr_t len = comp->type_arguments().Length();
-  if (comp->type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    Label instantiator_not_null;
-    __ cmpq(RAX, raw_null);
-    __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
-    // Null was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, no proper instantiator needed.
-    __ movq(RAX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-    __ jmp(&done);
-    __ Bind(&instantiator_not_null);
-  }
-  // Instantiate non-null type arguments.
-  if (comp->type_arguments().IsUninstantiatedIdentity()) {
-    // TODO(regis): The following emitted code is duplicated in
-    // VisitExtractConstructorTypeArguments above. The reason is that the code
-    // is split between two computations, so that each one produces a
-    // single value, rather than producing a pair of values.
-    // If this becomes an issue, we should expose these tests at the IL level.
-
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator (RAX) for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
-    __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    Immediate arguments_length =
-        Immediate(Smi::RawValue(comp->type_arguments().Length()));
-    __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    // The instantiator was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, no proper instantiator needed.
-    __ movq(RAX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-  }
-  __ Bind(&done);
-  // RAX: instantiator or kNoInstantiator.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitAllocateContext(AllocateContextComp* comp) {
-  __ movq(R10, Immediate(comp->num_context_variables()));
-  const ExternalLabel label("alloc_context",
-                            StubCode::AllocateContextEntryPoint());
-  GenerateCall(comp->token_index(), comp->try_index(), &label,
-               PcDescriptors::kOther);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

@@ -622,23 +622,92 @@ void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
 
 LocationSummary* ExtractConstructorInstantiatorComp::
     MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
 }
 
 
 void ExtractConstructorInstantiatorComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(instantiator()->IsUse());
+  Register instantiator_reg = locs()->in(0).reg();
+  Register temp_reg = locs()->temp(0).reg();
+  ASSERT(locs()->out().reg() == instantiator_reg);
+
+  // instantiator_reg is the instantiator AbstractTypeArguments object
+  // (or null).  If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments and do not pass the instantiator.
+  Label done;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    Label instantiator_not_null;
+    __ cmpq(instantiator_reg, raw_null);
+    __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
+    // Null was used in VisitExtractConstructorTypeArguments as the
+    // instantiated type arguments, no proper instantiator needed.
+    __ movq(instantiator_reg,
+            Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+    __ jmp(&done);
+    __ Bind(&instantiator_not_null);
+  }
+  // Instantiate non-null type arguments.
+  if (type_arguments().IsUninstantiatedIdentity()) {
+    // TODO(regis): The following emitted code is duplicated in
+    // VisitExtractConstructorTypeArguments above. The reason is that the code
+    // is split between two computations, so that each one produces a
+    // single value, rather than producing a pair of values.
+    // If this becomes an issue, we should expose these tests at the IL level.
+
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check the instantiator (RAX) for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
+    __ LoadObject(temp_reg, Class::ZoneHandle(Object::type_arguments_class()));
+    __ cmpq(temp_reg, FieldAddress(instantiator_reg, Object::class_offset()));
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(type_arguments().Length()));
+    __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+    // The instantiator was used in VisitExtractConstructorTypeArguments as the
+    // instantiated type arguments, no proper instantiator needed.
+    __ movq(instantiator_reg,
+            Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  }
+  __ Bind(&done);
+  // instantiator_reg: instantiator or kNoInstantiator.
 }
 
 
 LocationSummary* AllocateContextComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_temp(0, Location::RegisterLocation(R10));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
 void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == R10);
+
+  __ movq(R10, Immediate(num_context_variables()));
+  const ExternalLabel label("alloc_context",
+                            StubCode::AllocateContextEntryPoint());
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &label,
+                         PcDescriptors::kOther);
 }
 
 
