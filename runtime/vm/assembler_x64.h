@@ -414,6 +414,7 @@ class Assembler : public ValueObject {
   void addq(Register dst, Register src);
   void addq(Register reg, const Immediate& imm);
   void addq(const Address& address, const Immediate& imm);
+  void addq(const Address& address, Register reg);
 
   void subl(Register dst, Register src);
 

@@ -18,6 +18,8 @@ DECLARE_FLAG(bool, enable_type_checks);
 // RBX: IC Data
 // R10: Arguments descriptor
 // TOS: Return address
+// The RBX, R10 registers can be destroyed only if there is no slow-path (i.e.,
+// the methods returns true).
 
 #define __ assembler->
 
@@ -40,6 +42,20 @@ bool Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
 
 
 bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  // Note that RBX is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -50,6 +66,28 @@ bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 
 
 bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
+  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
+  Label fall_through;
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  // Note that RBX is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  // Destroy RCX as we will not continue in the function.
+  __ StoreIntoObject(RAX,
+                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     RDX);
+  // Caller is responsible of preserving the value if necessary.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 

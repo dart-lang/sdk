@@ -828,7 +828,17 @@ void Assembler::addq(Register reg, const Immediate& imm) {
 
 
 void Assembler::addq(const Address& address, const Immediate& imm) {
-  UNIMPLEMENTED();
+  // TODO(srdjan): Implement shorter version for imm32.
+  movq(TMP, imm);
+  addq(address, TMP);
+}
+
+
+void Assembler::addq(const Address& address, Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg, address, REX_W);
+  EmitUint8(0x01);
+  EmitOperand(reg & 7, address);
 }
 
 
