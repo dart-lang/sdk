@@ -341,6 +341,8 @@ def Main(argv):
            join(html_dest_dir, 'html_frog.dart'))
   copyfile(join(html_src_dir, 'dartium', 'html_dartium.dart'),
            join(html_dest_dir, 'html_dartium.dart'))
+  copyfile(join(html_src_dir, 'dartium', 'nativewrappers.dart'),
+           join(html_dest_dir, 'nativewrappers.dart'))
 
   #
   # Create and populate lib/dom.

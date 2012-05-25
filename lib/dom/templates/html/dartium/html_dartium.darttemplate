@@ -68,11 +68,13 @@ _DocumentImpl get _document() {
 }
 
 _unwrap(raw) {
+  return raw;
   return raw is _DOMTypeBase ? raw._ptr : raw;
 }
 
 // Warning: does not attempt wrap event listeners.
 _wrap(raw) {
+  return raw;
   if (raw is! _DOMWrapperBase) return raw;
   _DOMWrapperBase domObject = raw;
   if (domObject.dartObjectLocalStorage != null)
