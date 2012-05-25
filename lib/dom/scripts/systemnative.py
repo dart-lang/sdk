@@ -865,68 +865,16 @@ class NativeImplementationGenerator(object):
         NAME=info.name,
         PARAMETERS=parameters)
 
+    # Process in order of ascending number of arguments to ensure missing
+    # optional arguments are processed early.
+    overloads = sorted(info.overloads,
+                       key=lambda overload: len(overload.arguments))
     self._native_version = 0
-    overloads = self.CombineOverloads(info.overloads)
-    fallthrough = self.GenerateDispatch(body, info, '    ', overloads)
+    fallthrough = self.GenerateDispatch(body, info, '    ', 0, overloads)
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
 
-  def CombineOverloads(self, overloads):
-    # Combine overloads that can be implemented by the same native method.  This
-    # undoes the expansion of optional arguments into multiple overloads unless
-    # IDL merging has made the overloads necessary.  Starting with overload with
-    # no optional arguments and grow it by adding optional arguments, then the
-    # longest overload can serve for all the shorter ones.
-    out = []
-    seed_index = 0
-    while seed_index < len(overloads):
-      seed = overloads[seed_index]
-      if len(seed.arguments) > 0 and seed.arguments[-1].is_optional:
-        # Must start with no optional arguments.
-        out.append(seed)
-        seed_index += 1
-        continue
-
-      prev = seed
-      probe_index = seed_index + 1
-      while probe_index < len(overloads):
-        probe = overloads[probe_index]
-        # Check that 'probe' extends 'prev' by one optional argument.
-        if len(probe.arguments) != len(prev.arguments) + 1:
-          break
-        if probe.arguments[:-1] != prev.arguments:
-          break
-        if not probe.arguments[-1].is_optional:
-          break
-        # See Issue 3177.  This test against known implemented types is to
-        # prevent combining a possibly unimplemented type.  Combining with an
-        # unimplemented type will cause all set of combined overloads to become
-        # 'unimplemented', even if no argument is passed to the the
-        # unimplemented parameter.
-        if DartType(probe.arguments[-1].type.id) not in [
-            'String', 'int', 'num', 'double', 'bool',
-            'IDBKeyRange']:
-          break
-        probe_index += 1
-        prev = probe
-      out.append(prev)
-      seed_index = probe_index
-
-    return out
-
-  def PrintOverloadsComment(self, emitter, info, indent, note, overloads):
-    emitter.Emit('$(INDENT)//$NOTE\n', INDENT=indent, NOTE=note)
-    for operation in overloads:
-      params = ', '.join([
-          ('[Optional] ' if arg.is_optional else '') + DartType(arg.type.id) + ' '
-          + arg.id for arg in operation.arguments])
-      emitter.Emit('$(INDENT)// $NAME($PARAMS)\n',
-                   INDENT=indent,
-                   NAME=info.name,
-                   PARAMS=params)
-    emitter.Emit('$(INDENT)//\n', INDENT=indent)
-
-  def GenerateDispatch(self, emitter, info, indent, overloads):
+  def GenerateDispatch(self, emitter, info, indent, position, overloads):
     """Generates a dispatch to one of the overloads.
 
     Arguments:
@@ -934,7 +882,7 @@ class NativeImplementationGenerator(object):
       info: the compound information about the operation and its overloads.
       indent: an indentation string for generated code.
       position: the index of the parameter to dispatch on.
-      overloads: a list of the IDLOperations to dispatch.
+      overloads: a list of the remaining IDLOperations to dispatch.
 
     Returns True if the dispatch can fall through on failure, False if the code
     always dispatches.
@@ -946,93 +894,103 @@ class NativeImplementationGenerator(object):
     def TypeCheck(name, type):
       return '%s is %s' % (name, type)
 
-    def IsNullable(type):
-      #return type != 'int' and type != 'num'
-      return True
+    def ShouldGenerateSingleOperation():
+      if position == len(info.param_infos):
+        if len(overloads) > 1:
+          raise Exception('Duplicate operations ' + str(overloads))
+        return True
 
-    def PickRequiredCppSingleOperation():
-      # Returns a special case single operation, or None.  Check if we dispatch
-      # on RequiredCppParameter arguments.  In this case all trailing arguments
-      # must be RequiredCppParameter and there is no need in dispatch.
-      def IsRequiredCppParameter(arg):
-        return 'RequiredCppParameter' in arg.ext_attrs
-      def HasRequiredCppParameters(op):
-        matches = filter(IsRequiredCppParameter, op.arguments)
-        if matches:
-          # Validate all the RequiredCppParameter ones are at the end.
-          rematches = filter(IsRequiredCppParameter,
-                             op.arguments[len(op.arguments) - len(matches):])
-          if len(matches) != len(rematches):
-            raise Exception('Invalid RequiredCppParameter - all subsequent '
-                            'parameters must also be RequiredCppParameter.')
+      # Check if we dispatch on RequiredCppParameter arguments.  In this
+      # case all trailing arguments must be RequiredCppParameter and there
+      # is no need in dispatch.
+      # TODO(antonm): better diagnositics.
+      if position >= len(overloads[0].arguments):
+        def IsRequiredCppParameter(arg):
+          return 'RequiredCppParameter' in arg.ext_attrs
+        last_overload = overloads[-1]
+        if (len(last_overload.arguments) > position and
+            IsRequiredCppParameter(last_overload.arguments[position])):
+          for overload in overloads:
+            args = overload.arguments[position:]
+            if not all([IsRequiredCppParameter(arg) for arg in args]):
+              raise Exception('Invalid overload for RequiredCppParameter')
           return True
-        return False
-      if any(HasRequiredCppParameters(op) for op in overloads):
-        longest = max(overloads, key=lambda op: len(op.arguments))
-        # Validate all other overloads are prefixes.
-        for op in overloads:
-          for (index, arg) in enumerate(op.arguments):
-            type1 = arg.type.id
-            type2 = longest.arguments[index].type.id
-            if type1 != type2:
-              raise Exception(
-                  'Overloads for method %s with RequiredCppParameter have '
-                  'inconsistent types %s and %s for parameter #%s' %
-                  (info.name, type1, type2, index))
-        return longest
-      return None
 
-    single_operation = PickRequiredCppSingleOperation()
-    if single_operation:
-      self.GenerateSingleOperation(emitter, info, indent, single_operation)
       return False
 
-    # Print just the interesting sets of overloads.
-    if len(overloads) > 1 or len(info.overloads) > 1:
-      self.PrintOverloadsComment(emitter, info, indent, '', info.overloads)
-      if overloads != info.overloads:
-        self.PrintOverloadsComment(emitter, info, indent, ' -- reduced:',
-                                   overloads)
+    if ShouldGenerateSingleOperation():
+      self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
+      return False
 
-    # Match each operation in turn.
-    # TODO: Optimize the dispatch to avoid repeated tests.
-    fallthrough = True
-    for operation in overloads:
-      tests = []
-      for (position, param) in enumerate(info.param_infos):
-        if position < len(operation.arguments):
-          arg = operation.arguments[position]
-          dart_type = DartType(arg.type.id)
-          if dart_type == param.dart_type:
-            # The overload type matches the method parameter type exactly.  We
-            # will have already tested this type in checked mode, and the target
-            # will expect (i.e. check) this type.  This case happens when all
-            # the overloads have the same type in this position, including the
-            # trivial case of one overload.
-            test = None
-          else:
-            test = TypeCheck(param.name, dart_type)
-            if IsNullable(dart_type) or arg.is_optional:
-              test = '(%s || %s)' % (NullCheck(param.name), test)
-        else:
-          test = NullCheck(param.name)
-        if test:
-          tests.append(test)
-      if tests:
-        cond = ' && '.join(tests)
-        if len(cond) + len(indent) + 7 > 80:
-          cond = (' &&\n' + indent + '    ').join(tests)
-        call = emitter.Emit(
-            '$(INDENT)if ($COND) {\n'
-            '$!CALL'
-            '$(INDENT)}\n',
-            COND=cond,
-            INDENT=indent)
-        self.GenerateSingleOperation(call, info, indent + '  ', operation)
+    # FIXME: Consider a simpler dispatch that iterates over the
+    # overloads and generates an overload specific check.  Revisit
+    # when we move to named optional arguments.
+
+    # Partition the overloads to divide and conquer on the dispatch.
+    positive = []
+    negative = []
+    first_overload = overloads[0]
+    param = info.param_infos[position]
+
+    if position < len(first_overload.arguments):
+      # FIXME: This will not work if the second overload has a more
+      # precise type than the first.  E.g.,
+      # void foo(Node x);
+      # void foo(Element x);
+      type = self._DartType(first_overload.arguments[position].type.id)
+      test = TypeCheck(param.name, type)
+      pred = lambda op: len(op.arguments) > position and self._DartType(op.arguments[position].type.id) == type
+    else:
+      type = None
+      test = NullCheck(param.name)
+      pred = lambda op: position >= len(op.arguments)
+
+    for overload in overloads:
+      if pred(overload):
+        positive.append(overload)
       else:
-        self.GenerateSingleOperation(emitter, info, indent, operation)
-        fallthrough = False
-    return fallthrough
+        negative.append(overload)
+
+    if positive and negative:
+      (true_code, false_code) = emitter.Emit(
+          '$(INDENT)if ($COND) {\n'
+          '$!TRUE'
+          '$(INDENT)} else {\n'
+          '$!FALSE'
+          '$(INDENT)}\n',
+          COND=test, INDENT=indent)
+      fallthrough1 = self.GenerateDispatch(
+          true_code, info, indent + '  ', position + 1, positive)
+      fallthrough2 = self.GenerateDispatch(
+          false_code, info, indent + '  ', position, negative)
+      return fallthrough1 or fallthrough2
+
+    if negative:
+      raise Exception('Internal error, must be all positive')
+
+    # All overloads require the same test.  Do we bother?
+
+    # If the test is the same as the method's formal parameter then checked mode
+    # will have done the test already. (It could be null too but we ignore that
+    # case since all the overload behave the same and we don't know which types
+    # in the IDL are not nullable.)
+    if type == param.dart_type:
+      return self.GenerateDispatch(
+          emitter, info, indent, position + 1, positive)
+
+    # Otherwise the overloads have the same type but the type is a subtype of
+    # the method's synthesized formal parameter. e.g we have overloads f(X) and
+    # f(Y), implemented by the synthesized method f(Z) where X<Z and Y<Z. The
+    # dispatch has removed f(X), leaving only f(Y), but there is no guarantee
+    # that Y = Z-X, so we need to check for Y.
+    true_code = emitter.Emit(
+        '$(INDENT)if ($COND) {\n'
+        '$!TRUE'
+        '$(INDENT)}\n',
+        COND=test, INDENT=indent)
+    self.GenerateDispatch(
+        true_code, info, indent + '  ', position + 1, positive)
+    return True
 
   def AddOperation(self, info):
     self._AddOperation(info)
