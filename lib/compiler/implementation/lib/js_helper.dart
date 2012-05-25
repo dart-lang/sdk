@@ -772,14 +772,13 @@ unwrapException(ex) {
     return JS('Object', @'#.dartException', ex);
   } else if (JS('bool', @'# instanceof TypeError', ex)) {
     // TODO(ahe): ex.type is Chrome specific.
-    var type = JS('String', @'#.type', ex);
-    var jsArguments = JS('Object', @'#.arguments', ex);
-    var name = jsArguments[0];
+    var type = JS('var', @'#.type', ex);
+    var name = JS('var', @'#.arguments ? #.arguments[0] : ""', ex, ex);
     if (type == 'property_not_function' ||
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      if (name !== null && name.startsWith(@'$call$')) {
+      if (name is String && name.startsWith(@'$call$')) {
         return new ObjectNotClosureException();
       } else {
         return new NullPointerException();
@@ -792,8 +791,8 @@ unwrapException(ex) {
       }
     }
   } else if (JS('bool', @'# instanceof RangeError', ex)) {
-    var message = JS('String', @'#.message', ex);
-    if (message.contains('call stack')) {
+    var message = JS('var', @'#.message', ex);
+    if (message is String && message.contains('call stack')) {
       return new StackOverflowException();
     }
   }
