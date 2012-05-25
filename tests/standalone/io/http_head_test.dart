@@ -18,7 +18,7 @@ void testHEAD(int totalConnections) {
       (request) => request.path == "/test200",
       (HttpRequest request, HttpResponse response) {
         response.contentLength = 200;
-        List<int> data = new Uint32List(200);
+        List<int> data = new List<int>(200);
         response.outputStream.write(data);
         response.outputStream.close();
       });
