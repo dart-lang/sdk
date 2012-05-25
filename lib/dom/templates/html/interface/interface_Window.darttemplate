@@ -18,5 +18,7 @@ interface $ID$EXTENDS {
   /** @domName DOMWindow.webkitRequestAnimationFrame */
   int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
+  void cancelAnimationFrame(int id);
+
 $!MEMBERS
 }
