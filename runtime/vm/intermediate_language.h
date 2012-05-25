@@ -321,11 +321,12 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
   DECLARE_COMPUTATION(AssertAssignable)
 
-  intptr_t token_index() const { return token_index_; }
-  intptr_t try_index() const { return try_index_; }
   Value* value() const { return inputs_[0]; }
   Value* instantiator() const { return inputs_[1]; }
   Value* instantiator_type_arguments() const { return inputs_[2]; }
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
@@ -857,42 +858,38 @@ class BooleanNegateComp : public TemplateComputation<1> {
 };
 
 
-class InstanceOfComp : public Computation {
+class InstanceOfComp : public TemplateComputation<3> {
  public:
   InstanceOfComp(intptr_t token_index,
                  intptr_t try_index,
                  Value* value,
-                 Value* instantiator,  // Can be NULL.
-                 Value* type_arguments,  // Can be NULL.
+                 Value* instantiator,
+                 Value* instantiator_type_arguments,
                  const AbstractType& type,
                  bool negate_result)
       : token_index_(token_index),
         try_index_(try_index),
-        value_(value),
-        instantiator_(instantiator),
-        type_arguments_(type_arguments),
         type_(type),
         negate_result_(negate_result) {
-    ASSERT(value_ != NULL);
+    ASSERT(value != NULL);
+    ASSERT(instantiator != NULL);
+    ASSERT(instantiator_type_arguments != NULL);
     ASSERT(!type.IsNull());
+    inputs_[0] = value;
+    inputs_[1] = instantiator;
+    inputs_[2] = instantiator_type_arguments;
   }
 
   DECLARE_COMPUTATION(InstanceOf)
 
-  Value* value() const { return value_; }
-  Value* instantiator() const { return instantiator_; }
-  Value* type_arguments() const { return type_arguments_; }
+  Value* value() const { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[1]; }
+  Value* instantiator_type_arguments() const { return inputs_[2]; }
+
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    if (i == 0) return value();
-    if (i == 1) return type_arguments();
-    return NULL;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

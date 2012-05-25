@@ -494,12 +494,26 @@ void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstanceOfComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* summary = new LocationSummary(3, 0);
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_in(1, Location::RegisterLocation(RCX));
+  summary->set_in(2, Location::RegisterLocation(RDX));
+  summary->set_out(Location::RegisterLocation(RAX));
+  return summary;
 }
 
 
 void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->in(0).reg() == RAX);  // Value.
+  ASSERT(locs()->in(1).reg() == RCX);  // Instantiator.
+  ASSERT(locs()->in(2).reg() == RDX);  // Instantiator type arguments.
+
+  compiler->GenerateInstanceOf(cid(),
+                               token_index(),
+                               try_index(),
+                               type(),
+                               negate_result());
+  ASSERT(locs()->out().reg() == RAX);
 }
 
 
@@ -599,12 +613,66 @@ void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
 }
 
 
 void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instantiator_reg = locs()->in(0).reg();
+  Register temp_reg = locs()->temp(0).reg();
+  Register result_reg = locs()->out().reg();
+
+  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
+  // (or null).
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(instantiator_reg, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  // Instantiate non-null type arguments.
+  if (type_arguments().IsUninstantiatedIdentity()) {
+    Label type_arguments_uninstantiated;
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check the instantiator ('instantiator_reg') for null here,
+    // because a null instantiator will have the wrong class (Null instead of
+    // TypeArguments).
+    __ LoadObject(temp_reg, Class::ZoneHandle(Object::type_arguments_class()));
+    __ cmpq(temp_reg, FieldAddress(instantiator_reg, Object::class_offset()));
+    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(type_arguments().Length()));
+    __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    __ Bind(&type_arguments_uninstantiated);
+  }
+  // A runtime call to instantiate the type arguments is required.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(type_arguments());
+  __ pushq(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kInstantiateTypeArgumentsRuntimeEntry);
+  __ popq(temp_reg);  // Pop instantiator type arguments.
+  __ popq(temp_reg);  // Pop uninstantiated type arguments.
+  __ popq(result_reg);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+  ASSERT(instantiator_reg == result_reg);
+  // 'result_reg': Instantiated type arguments.
 }
 
 

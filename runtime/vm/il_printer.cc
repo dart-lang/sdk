@@ -194,15 +194,12 @@ void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
-  if (instantiator() != NULL) {
-    f->Print(" (instantiator:");
-    instantiator()->PrintTo(f);
-    f->Print(")");
-  }
-  if (type_arguments() != NULL) {
-    f->Print(" (type-arg:");
-    type_arguments()->PrintTo(f);
-  }
+  f->Print(" (instantiator:");
+  instantiator()->PrintTo(f);
+  f->Print(")");
+  f->Print(" (type-arg:");
+  instantiator_type_arguments()->PrintTo(f);
+  f->Print(")");
 }
 
 

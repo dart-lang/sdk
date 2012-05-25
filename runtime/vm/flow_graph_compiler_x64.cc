@@ -964,24 +964,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
 
 
 void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  if (comp->type_arguments() == NULL) {
-    __ movq(RDX, raw_null);
-  } else {
-    LoadValue(RDX, comp->type_arguments());
-  }
-  if (comp->instantiator() == NULL) {
-    __ movq(RCX, raw_null);
-  } else {
-    LoadValue(RCX, comp->instantiator());
-  }
-  LoadValue(RAX, comp->value());
-  GenerateInstanceOf(comp->cid(),
-                     comp->token_index(),
-                     comp->try_index(),
-                     comp->type(),
-                     comp->negate_result());
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -1052,50 +1036,8 @@ void FlowGraphCompiler::VisitStoreVMField(StoreVMFieldComp* comp) {
 
 void FlowGraphCompiler::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsComp* comp) {
-  __ popq(RAX);  // Instantiator.
-
-  // RAX is the instantiator AbstractTypeArguments object (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of Dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = comp->type_arguments().Length();
-  if (comp->type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(RAX, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-  }
-  // Instantiate non-null type arguments.
-  if (comp->type_arguments().IsUninstantiatedIdentity()) {
-    Label type_arguments_uninstantiated;
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator (RAX) for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
-    __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
-    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    Immediate arguments_length =
-        Immediate(Smi::RawValue(comp->type_arguments().Length()));
-    __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(comp->type_arguments());
-  __ pushq(RAX);  // Push instantiator type arguments.
-  GenerateCallRuntime(comp->cid(),
-                      comp->token_index(),
-                      comp->try_index(),
-                      kInstantiateTypeArgumentsRuntimeEntry);
-  __ popq(RAX);  // Pop instantiator type arguments.
-  __ popq(RAX);  // Pop uninstantiated type arguments.
-  __ popq(RAX);  // Pop instantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
-  // RAX: Instantiated type arguments.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

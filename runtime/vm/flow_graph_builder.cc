@@ -728,18 +728,21 @@ void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
   Value* instantiator = NULL;
-  Value* type_arguments = NULL;
-  if (!type.IsInstantiated()) {
+  Value* instantiator_type_arguments = NULL;
+  if (type.IsInstantiated()) {
+    instantiator = BuildNullValue();
+    instantiator_type_arguments = BuildNullValue();
+  } else {
     BuildTypecheckArguments(node->token_index(),
                             &instantiator,
-                            &type_arguments);
+                            &instantiator_type_arguments);
   }
   InstanceOfComp* instance_of =
       new InstanceOfComp(node->token_index(),
                          owner()->try_index(),
                          for_left_value.value(),
                          instantiator,
-                         type_arguments,
+                         instantiator_type_arguments,
                          node->right()->AsTypeNode()->type(),
                          (node->kind() == Token::kISNOT));
   ReturnComputation(instance_of);
