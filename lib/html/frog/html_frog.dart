@@ -4810,8 +4810,6 @@ class _DocumentImpl extends _NodeImpl
 
   String queryCommandValue(String command) native;
 
-  _ElementImpl _query(String selectors) native "querySelector";
-
   _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   void webkitCancelFullScreen() native;
@@ -9394,17 +9392,23 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   void set text(String value) native "this.textContent = value;";
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+
   _NodeImpl $dom_appendChild(_NodeImpl newChild) native "appendChild";
 
   _NodeImpl clone(bool deep) native "cloneNode";
 
   bool contains(_NodeImpl other) native;
 
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
   bool hasChildNodes() native;
 
   _NodeImpl insertBefore(_NodeImpl newChild, _NodeImpl refChild) native;
 
   _NodeImpl $dom_removeChild(_NodeImpl oldChild) native "removeChild";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   _NodeImpl $dom_replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "replaceChild";
 
@@ -9670,9 +9674,15 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 
   String tag;
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+
   void cancel() native;
 
   void close() native;
+
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void show() native;
 }
@@ -26578,6 +26588,9 @@ interface Node extends EventTarget {
   /** @domName Node.textContent */
   String text;
 
+  /** @domName Node.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   /** @domName Node.appendChild */
   Node $dom_appendChild(Node newChild);
 
@@ -26587,6 +26600,9 @@ interface Node extends EventTarget {
   /** @domName Node.contains */
   bool contains(Node other);
 
+  /** @domName Node.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
   /** @domName Node.hasChildNodes */
   bool hasChildNodes();
 
@@ -26595,6 +26611,9 @@ interface Node extends EventTarget {
 
   /** @domName Node.removeChild */
   Node $dom_removeChild(Node oldChild);
+
+  /** @domName Node.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName Node.replaceChild */
   Node $dom_replaceChild(Node newChild, Node oldChild);
@@ -26760,11 +26779,20 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   /** @domName Notification.tag */
   String tag;
 
+  /** @domName Notification.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   /** @domName Notification.cancel */
   void cancel();
 
   /** @domName Notification.close */
   void close();
+
+  /** @domName Notification.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName Notification.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName Notification.show */
   void show();
@@ -34662,6 +34690,9 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.devicePixelRatio */
   final num devicePixelRatio;
 
+  /** @domName DOMWindow.document */
+  final Document document;
+
   /** @domName DOMWindow.event */
   final Event event;
 
@@ -34766,6 +34797,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.toolbar */
   final BarInfo toolbar;
+
+  /** @domName DOMWindow.top */
+  final Window top;
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;

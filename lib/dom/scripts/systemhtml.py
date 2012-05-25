@@ -73,11 +73,6 @@ _private_html_members = set([
   'Window.getComputedStyle',
 ])
 
-_manually_generated_html_members = set([
-  'Document.querySelectorAll',
-  'Document.querySelector',
-])
-
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 _html_library_renames = {
@@ -98,11 +93,6 @@ _html_library_renames = {
     'SVGStylable.className': '$dom_svgClassName',
 }
 
-#TODO(jacobr): inject annotations into the interfaces based on this table and
-# on _html_library_renames.
-_injected_doc_fragments = {
-    'Element.query': '  /** @domName Element.querySelector, Document.getElementById */',
-}
 # Members and classes from the dom that should be removed completelly from
 # dart:html.  These could be expressed in the IDL instead but expressing this
 # as a simple table instead is more concise.
@@ -111,7 +101,6 @@ _injected_doc_fragments = {
 # to be suppressed but not the setter, etc.
 # TODO(jacobr): cleanup and augment this list.
 _html_library_remove = set([
-    'Window.get:document', # Removed as we have a custom implementation.
     'NodeList.item',
     "Attr.*",
 #    "BarProp.*",
@@ -237,7 +226,6 @@ _html_library_remove = set([
     "Node.get:namespaceURI",
     "Node.get:DOCUMENT_FRAGMENT_NODE",
     "Node.get:localName",
-    "Node.dispatchEvent",
     "Node.isDefaultNamespace",
     "Node.compareDocumentPosition",
     "Node.get:baseURI",
@@ -258,21 +246,21 @@ _html_library_remove = set([
     "Node.get:prefix",
     "Node.set:prefix",
     "Node.get:DOCUMENT_POSITION_PRECEDING",
-    "Node.removeEventListener",
     "Node.get:nodeValue",
     "Node.set:nodeValue",
     "Node.get:CDATA_SECTION_NODE",
     "Node.get:nodeName",
-    "Node.addEventListener",
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
-    "Notification.dispatchEvent",
-    "Notification.addEventListener",
-    "Notification.removeEventListener",
     "IFrameElement.get:contentDocument",
     "IFrameElement.get:contentWindow",
     "Window.get:frameElement",
-    "Window.get:top",
+    ])
+
+_html_library_custom = set([
+    'Document.querySelector',
+    'Window.get:document',
+    'Window.get:top',
     ])
 
 # Events without onEventName attributes in the  IDL we want to support.
@@ -597,9 +585,6 @@ class HtmlSystemShared(object):
       if self._PrivateInHtmlLibrary(interface, member, member_prefix):
         if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
           target_name = '$dom_' + target_name
-      elif implementation_class and self._ManuallyGeneratedInHtmlLibrary(
-          interface, member, member_prefix):
-        target_name = '_' + target_name
 
     # No rename required
     return target_name
@@ -608,9 +593,9 @@ class HtmlSystemShared(object):
     return self._Matches(interface, member, member_prefix,
         _private_html_members)
 
-  def _ManuallyGeneratedInHtmlLibrary(self, interface, member, member_prefix):
+  def IsCustomInHtmlLibrary(self, interface, member, member_prefix=''):
     return self._Matches(interface, member, member_prefix,
-        _manually_generated_html_members)
+        _html_library_custom)
 
   # TODO(jacobr): this already exists
   def _TraverseParents(self, interface, callback):
@@ -1072,12 +1057,18 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       self._members_emitter.Emit(template, E=DartType(element_type))
 
   def AddAttribute(self, getter, setter):
-
-    html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, DartDomNameOfAttribute(getter), 'get:',
+    dom_name = DartDomNameOfAttribute(getter or setter)
+    html_getter_name = None
+    if not self._shared.IsCustomInHtmlLibrary(
+        self._interface, dom_name, 'get:'):
+      html_getter_name = self._shared.RenameInHtmlLibrary(
+          self._interface, dom_name, 'get:',
           implementation_class=True)
-    html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, DartDomNameOfAttribute(getter), 'set:',
+    html_setter_name = None
+    if not self._shared.IsCustomInHtmlLibrary(
+        self._interface, dom_name, 'set:'):
+      html_setter_name = self._shared.RenameInHtmlLibrary(
+          self._interface, dom_name, 'set:',
           implementation_class=True)
 
     if not html_getter_name:
@@ -1168,6 +1159,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     Arguments:
       info: An OperationInfo object.
     """
+    if self._shared.IsCustomInHtmlLibrary(self._interface, info.name):
+      return
+
     html_name = self._shared.RenameInHtmlLibrary(
         self._interface, info.name, implementation_class=True)
     if not html_name:
@@ -1525,10 +1519,18 @@ class HtmlDartiumInterfaceGenerator(object):
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter or setter)
-    html_getter_name = self._shared.RenameInHtmlLibrary(
-        self._interface, dom_name, 'get:', implementation_class=True)
-    html_setter_name = self._shared.RenameInHtmlLibrary(
-        self._interface, dom_name, 'set:', implementation_class=True)
+    html_getter_name = None
+    if not self._shared.IsCustomInHtmlLibrary(
+        self._interface, dom_name, 'get:'):
+      html_getter_name = self._shared.RenameInHtmlLibrary(
+          self._interface, dom_name, 'get:',
+          implementation_class=True)
+    html_setter_name = None
+    if not self._shared.IsCustomInHtmlLibrary(
+        self._interface, dom_name, 'set:'):
+      html_setter_name = self._shared.RenameInHtmlLibrary(
+          self._interface, dom_name, 'set:',
+          implementation_class=True)
 
     if getter and html_getter_name:
       self._AddGetter(getter, html_getter_name)
@@ -1655,6 +1657,9 @@ class HtmlDartiumInterfaceGenerator(object):
     Arguments:
       info: An OperationInfo object.
     """
+    if self._shared.IsCustomInHtmlLibrary(self._interface, info.name):
+      return
+
     html_name = self._shared.RenameInHtmlLibrary(
         self._interface, info.name, implementation_class=True)
 

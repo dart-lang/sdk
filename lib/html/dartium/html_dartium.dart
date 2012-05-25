@@ -5417,8 +5417,6 @@ class _DocumentImpl extends _NodeImpl
 
   String queryCommandValue(String command) => _wrap(_ptr.queryCommandValue(_unwrap(command)));
 
-  Element _query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
-
   NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
 
   void webkitCancelFullScreen() => _ptr.webkitCancelFullScreen();
@@ -9924,17 +9922,23 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   void set text(String value) { _ptr.textContent = _unwrap(value); }
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+
   Node $dom_appendChild(Node newChild) => _wrap(_ptr.appendChild(_unwrap(newChild)));
 
   Node clone(bool deep) => _wrap(_ptr.cloneNode(_unwrap(deep)));
 
   bool contains(Node other) => _wrap(_ptr.contains(_unwrap(other)));
 
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+
   bool hasChildNodes() => _wrap(_ptr.hasChildNodes());
 
   Node insertBefore(Node newChild, Node refChild) => _wrap(_ptr.insertBefore(_unwrap(newChild), _unwrap(refChild)));
 
   Node $dom_removeChild(Node oldChild) => _wrap(_ptr.removeChild(_unwrap(oldChild)));
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   Node $dom_replaceChild(Node newChild, Node oldChild) => _wrap(_ptr.replaceChild(_unwrap(newChild), _unwrap(oldChild)));
 
@@ -10179,9 +10183,15 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set tag(String value) { _ptr.tag = _unwrap(value); }
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+
   void cancel() => _ptr.cancel();
 
   void close() => _ptr.close();
+
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void show() => _ptr.show();
 }
@@ -26433,6 +26443,9 @@ interface Node extends EventTarget {
   /** @domName Node.textContent */
   String text;
 
+  /** @domName Node.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   /** @domName Node.appendChild */
   Node $dom_appendChild(Node newChild);
 
@@ -26442,6 +26455,9 @@ interface Node extends EventTarget {
   /** @domName Node.contains */
   bool contains(Node other);
 
+  /** @domName Node.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
   /** @domName Node.hasChildNodes */
   bool hasChildNodes();
 
@@ -26450,6 +26466,9 @@ interface Node extends EventTarget {
 
   /** @domName Node.removeChild */
   Node $dom_removeChild(Node oldChild);
+
+  /** @domName Node.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName Node.replaceChild */
   Node $dom_replaceChild(Node newChild, Node oldChild);
@@ -26615,11 +26634,20 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   /** @domName Notification.tag */
   String tag;
 
+  /** @domName Notification.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   /** @domName Notification.cancel */
   void cancel();
 
   /** @domName Notification.close */
   void close();
+
+  /** @domName Notification.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName Notification.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName Notification.show */
   void show();
@@ -34515,6 +34543,9 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.devicePixelRatio */
   final num devicePixelRatio;
 
+  /** @domName DOMWindow.document */
+  final Document document;
+
   /** @domName DOMWindow.event */
   final Event event;
 
@@ -34619,6 +34650,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.toolbar */
   final BarInfo toolbar;
+
+  /** @domName DOMWindow.top */
+  final Window top;
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
