@@ -16375,37 +16375,22 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   }
 
   /** @domName DOMWindow.requestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
-    _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(callback);
-  }
-
-  void cancelAnimationFrame(id) {
-    _ensureRequestAnimationFrame();
-    _cancelAnimationFrame(id);
-  }
-
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
-      native 'requestAnimationFrame';
-
-  void _cancelAnimationFrame(int id)
-      native 'cancelAnimationFrame';
-
-  _ensureRequestAnimationFrame() native '''
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
-   vendors = ['ms', 'moz', 'webkit', 'o', ''];
-   for (var i = 0; i < vendors.length && !this.requestAnimationFrame; ++i) {
-     this.requestAnimationFrame = this[vendors[i] + 'RequestAnimationFrame'];
-     this.cancelAnimationFrame =
-         this[vendors[i]+'CancelAnimationFrame'] ||
-         this[vendors[i]+'CancelRequestAnimationFrame'];
-   }
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
-   this.requestAnimationFrame = function(callback) {
-       window.setTimeout(callback, 16 /* 16ms ~= 60fps */);
-   };
-   this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native '''
+    if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame =
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          function (callback) {
+            window.setTimeout(callback, 16 /* 16ms ~= 60fps */);
+          };
+    }
+    return window.requestAnimationFrame(callback);
 ''';
+
+  // Protect member 'requestAnimationFrame'.
+  _requestAnimationFrame() native 'requestAnimationFrame';
 
 
   _WindowEventsImpl get on() =>
@@ -34625,8 +34610,6 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.webkitRequestAnimationFrame */
   int requestAnimationFrame(RequestAnimationFrameCallback callback);
-
-  void cancelAnimationFrame(int id);
 
 
   /**
