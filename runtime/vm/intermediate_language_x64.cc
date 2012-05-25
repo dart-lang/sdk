@@ -643,22 +643,39 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ChainContextComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(1, Location::NoLocation());
 }
 
 
 void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+
+  // Chain the new context in context_value to its parent in CTX.
+  __ StoreIntoObject(context_value,
+                     FieldAddress(context_value, Context::parent_offset()),
+                     CTX);
+  // Set new context as current context.
+  __ movq(CTX, context_value);
 }
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
 }
 
 
 void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushq(context_value);
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kCloneContextRuntimeEntry);
+  __ popq(result);  // Remove argument.
+  __ popq(result);  // Get result (cloned context).
 }
 
 

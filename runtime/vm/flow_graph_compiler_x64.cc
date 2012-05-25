@@ -1203,26 +1203,14 @@ void FlowGraphCompiler::VisitAllocateContext(AllocateContextComp* comp) {
 
 
 void FlowGraphCompiler::VisitChainContext(ChainContextComp* comp) {
-  __ popq(RAX);
-  // Chain the new context in RAX to its parent in CTX.
-  __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, Context::parent_offset()),
-                     CTX);
-  // Set new context as current context.
-  __ movq(CTX, RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitCloneContext(CloneContextComp* comp) {
-  __ popq(RAX);  // Get context value from stack.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushq(RAX);
-  GenerateCallRuntime(comp->cid(),
-                      comp->token_index(),
-                      comp->try_index(),
-                      kCloneContextRuntimeEntry);
-  __ popq(RAX);  // Remove argument.
-  __ popq(RAX);  // Get result (cloned context).
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

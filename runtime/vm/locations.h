@@ -60,6 +60,11 @@ class Location : public ValueObject {
     return UnallocatedLocation(kSameAsFirstInput);
   }
 
+  // Empty location. Used if there the location should be ignored.
+  static Location NoLocation() {
+    return Location();
+  }
+
   Policy policy() const {
     ASSERT(kind() == kUnallocated);
     return PolicyField::decode(payload());
