@@ -55,7 +55,7 @@ public abstract class UrlSource implements Source {
     this.uri = BASE_URI.relativize(expanded.normalize());
     this.absoluteUri = BASE_URI.resolve(expanded);
     this.systemLibraryManager = slm;
-    if (SystemLibraryManager.isDartUri(this.uri)) {
+    if (SystemLibraryManager.isDartUri(this.uri) || SystemLibraryManager.isPackageUri(this.uri)) {
       assert slm != null;
       this.shouldCareAboutLastModified = false;
       this.translatedUri = slm.resolveDartUri(this.absoluteUri);
