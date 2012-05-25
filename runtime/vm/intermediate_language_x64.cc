@@ -673,7 +673,14 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
+  const intptr_t kNumTemps = 1;
+  const intptr_t kNumInputs = 2;
+  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
 }
 
 
@@ -698,7 +705,7 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
   Register result = comp->locs()->out().reg();
-  Register temp = R10;
+  Register temp = comp->locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
                                         comp->instance_call()->token_index(),
                                         comp->instance_call()->try_index(),
