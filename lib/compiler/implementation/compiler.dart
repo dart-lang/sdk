@@ -28,6 +28,7 @@ class Backend {
   abstract String codegen(WorkItem work);
   abstract void processNativeClasses(world, libraries);
   abstract void assembleProgram();
+  abstract List<CompilerTask> get tasks();
 }
 
 class JavaScriptBackend extends Backend {
@@ -35,6 +36,10 @@ class JavaScriptBackend extends Backend {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
+
+  List<CompilerTask> get tasks() {
+    return <CompilerTask>[builder, optimizer, generator, emitter];
+  }
 
   JavaScriptBackend(Compiler compiler)
       : emitter = new CodeEmitterTask(compiler),
@@ -61,11 +66,14 @@ class JavaScriptBackend extends Backend {
     native.processNativeClasses(world, emitter, libraries);
   }
 
-  void assembleProgram() => emitter.assembleProgram();
+  void assembleProgram() {
+    emitter.assembleProgram();
+  }
 }
 
 class DartBackend extends Backend {
   DartBackend(Compiler compiler) : super(compiler);
+  final List<CompilerTask> tasks = const <CompilerTask>[];
 }
 
 class Compiler implements DiagnosticListener {
@@ -159,6 +167,7 @@ class Compiler implements DiagnosticListener {
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              unparseValidator, constantHandler, enqueuer];
+    tasks.addAll(backend.tasks);
   }
 
   Universe get codegenWorld() => enqueuer.codegen.universe;
