@@ -1568,7 +1568,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    if (node.receiver !== null) {
+    if (!node.isFromActivation()) {
       String name =
           compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
@@ -1577,13 +1577,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     } else {
-      buffer.add(JsNames.getValid(node.name.slowToString()));
+      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
   }
 
   visitFieldSet(HFieldSet node) {
     String name;
-    if (node.receiver !== null) {
+    if (!node.isFromActivation()) {
       name =
           compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1593,8 +1593,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       // TODO(ngeoffray): Remove the 'var' once we don't globally box
       // variables used in a try/catch.
-      name = JsNames.getValid(node.name.slowToString());
-      declareVariable(name);
+      if (!isGeneratingExpression()) {
+        buffer.add('var ');
+      }
+      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1742,7 +1744,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitParameterValue(HParameterValue node) {
     assert(isGenerateAtUseSite(node));
-    buffer.add(parameterNames[node.element]);
+    if (parameterNames[node.element] == null) {
+      buffer.add(temporary(node));
+    } else {
+      buffer.add(parameterNames[node.element]);
+    }
   }
 
   visitPhi(HPhi node) {

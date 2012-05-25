@@ -412,7 +412,8 @@ class LocalsHandler {
       return lookup;
     } else {
       assert(isUsedInTry(element));
-      HInstruction variable = new HFieldGet.fromActivation(element.name);
+      HParameterValue parameter = getActivationParameter(element);
+      HInstruction variable = new HFieldGet.fromActivation(parameter);
       builder.add(variable);
       return variable;
     }
@@ -433,6 +434,16 @@ class LocalsHandler {
       res.guaranteedType = cachedTypeOfThis;
     }
     return res;
+  }
+
+  HParameterValue getActivationParameter(Element element) {
+    if (element.isParameter()) return directLocals[element];
+
+    return builder.activationVariables.putIfAbsent(element, () {
+      HParameterValue parameter = new HParameterValue(element);
+      builder.add(parameter);
+      return parameter;
+    });
   }
 
   /**
@@ -461,7 +472,8 @@ class LocalsHandler {
       builder.add(new HFieldSet(redirect.name, box, value));
     } else {
       assert(isUsedInTry(element));
-      builder.add(new HFieldSet.fromActivation(element.name, value));
+      HParameterValue parameter = getActivationParameter(element);
+      builder.add(new HFieldSet.fromActivation(parameter, value));
     }
   }
 
@@ -779,6 +791,13 @@ class SsaBuilder implements Visitor {
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
+  /**
+   * Variables stored in the current activation. These variables are
+   * being updated in try/catch blocks, and should be
+   * accessed indirectly through HFieldGet and HFieldSet.
+   */
+  Map<Element, HParameterValue> activationVariables;
+
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
 
@@ -802,6 +821,7 @@ class SsaBuilder implements Visitor {
       elements = work.resolutionTree,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
+      activationVariables = new Map<Element, HParameterValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>() {
     localsHandler = new LocalsHandler(this);
   }
