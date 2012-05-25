@@ -437,11 +437,14 @@ class LocalsHandler {
   }
 
   HParameterValue getActivationParameter(Element element) {
-    if (element.isParameter()) return directLocals[element];
+    if (element.isParameter()) {
+      HInstruction instruction = directLocals[element];
+      if (instruction is HParameterValue) return instruction;
+    }
 
     return builder.activationVariables.putIfAbsent(element, () {
       HParameterValue parameter = new HParameterValue(element);
-      builder.add(parameter);
+      builder.graph.entry.addAtExit(parameter);
       return parameter;
     });
   }
