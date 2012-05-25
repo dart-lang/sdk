@@ -576,6 +576,7 @@ class _HttpRequestResponseBase {
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
       : _headers = new _HttpHeaders() {
     _state = START;
+    _headResponse = false;
   }
 
   int get contentLength() => _contentLength;
@@ -609,6 +610,7 @@ class _HttpRequestResponseBase {
 
 
   bool _write(List<int> data, bool copyBuffer) {
+    if (_headResponse) return;
     _ensureHeadersSent();
     bool allWritten = true;
     if (data.length > 0) {
@@ -627,6 +629,7 @@ class _HttpRequestResponseBase {
   }
 
   bool _writeList(List<int> data, int offset, int count) {
+    if (_headResponse) return;
     _ensureHeadersSent();
     bool allWritten = true;
     if (count > 0) {
@@ -650,10 +653,10 @@ class _HttpRequestResponseBase {
       // Terminate the content if transfer encoding is chunked.
       allWritten = _httpConnection._write(_Const.END_CHUNKED);
     } else {
-      if (_bodyBytesWritten < _contentLength) {
+      if (!_headResponse && _bodyBytesWritten < _contentLength) {
         throw new HttpException("Sending less than specified content length");
       }
-      assert(_bodyBytesWritten == _contentLength);
+      assert(_headResponse || _bodyBytesWritten == _contentLength);
     }
     if (!persistentConnection) _httpConnection._close();
     return allWritten;
@@ -705,6 +708,7 @@ class _HttpRequestResponseBase {
   }
 
   int _state;
+  bool _headResponse;
 
   _HttpConnectionBase _httpConnection;
   _HttpHeaders _headers;
@@ -1064,9 +1068,8 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     return allWritten;
   }
 
-  // Response status code.
-  int _statusCode;
-  String _reasonPhrase;
+  int _statusCode;  // Response status code.
+  String _reasonPhrase;  // Response reason phrase.
   _HttpOutputStream _outputStream;
   Function _streamErrorHandler;
 }
@@ -1316,6 +1319,7 @@ class _HttpConnection extends _HttpConnectionBase {
     _request._onRequestStart(method, uri, version);
     _request._protocolVersion = version;
     _response._protocolVersion = version;
+    _response._headResponse = method == "HEAD";
   }
 
   void _onResponseStart(int statusCode, String reasonPhrase, String version) {
@@ -1483,8 +1487,8 @@ class _HttpClientRequest
                      _HttpClientConnection connection)
       : super(connection) {
     _connection = connection;
-    // Default GET requests to have no content.
-    if (_method == "GET") {
+    // Default GET and HEAD requests to have no content.
+    if (_method == "GET" || _method == "HEAD") {
       _contentLength = 0;
     }
   }
@@ -1635,6 +1639,9 @@ class _HttpClientResponse
 
   void _onHeaderReceived(String name, String value) {
     _headers.add(name, value);
+    if (name == "content-length") {
+      _contentLength = Math.parseInt(value);
+    }
   }
 
   void _onHeadersComplete() {
@@ -1728,8 +1735,6 @@ class _HttpClientConnection
     _httpParser.dataReceived = (data) => _onDataReceived(data);
     _httpParser.dataEnd = (closed) => _onDataEnd(closed);
     _httpParser.error = (e) => _onError(e);
-    // Tell the HTTP parser the method it is expecting a response to.
-    _httpParser.responseToMethod = _method;
   }
 
   void _responseDone() {
@@ -1746,6 +1751,8 @@ class _HttpClientConnection
 
   HttpClientRequest open(String method, String uri) {
     _method = method;
+    // Tell the HTTP parser the method it is expecting a response to.
+    _httpParser.responseToMethod = method;
     _request = new _HttpClientRequest(method, uri, this);
     _response = new _HttpClientResponse(this);
     return _request;

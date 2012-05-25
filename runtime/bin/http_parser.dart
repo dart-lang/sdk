@@ -148,7 +148,9 @@ class _HttpParser {
       if (_state == _State.FAILURE) {
         throw new HttpParserException("Data on failed connection");
       }
-      while ((index < lastIndex) && _state != _State.FAILURE && _state != _State.UPGRADED) {
+      while ((index < lastIndex) &&
+             _state != _State.FAILURE &&
+             _state != _State.UPGRADED) {
         int byte = buffer[index];
         switch (_state) {
           case _State.START:
@@ -173,7 +175,8 @@ class _HttpParser {
               _httpVersionIndex++;
             } else if (_httpVersionIndex == _Const.HTTP.length &&
                        byte == _CharCode.SLASH) {
-              // HTTP/ parsed. As method is a token this cannot be a method anymore.
+              // HTTP/ parsed. As method is a token this cannot be a
+              // method anymore.
               _httpVersionIndex++;
               _state = _State.RESPONSE_HTTP_VERSION;
             } else {
@@ -181,9 +184,13 @@ class _HttpParser {
               for (int i = 0; i < _httpVersionIndex; i++) {
                 _method_or_status_code.addCharCode(_Const.HTTP[i]);
               }
-              //_method_or_status_code.addCharCode(byte);
-              _httpVersion = _HttpVersion.UNDETERMINED;
-              _state = _State.REQUEST_LINE_URI;
+              if (byte == _CharCode.SP) {
+                _state = _State.REQUEST_LINE_URI;
+              } else {
+                _method_or_status_code.addCharCode(byte);
+                _httpVersion = _HttpVersion.UNDETERMINED;
+                _state = _State.REQUEST_LINE_METHOD;
+              }
             }
             break;
 
