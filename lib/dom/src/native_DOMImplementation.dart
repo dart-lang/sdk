@@ -38,15 +38,15 @@ class _Utils {
 Utils_print(String message) native "Utils_print";
 
 class _NPObject extends _DOMWrapperBase {
+  _NPObject();
   static _NPObject retrieve(String key) native "NPObject_retrieve";
   property(String propertyName) native "NPObject_property";
   invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
-
-  static _create_NPObject() => new _NPObject._create_NPObject();
-  _NPObject._create_NPObject();
 }
 
 class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements _DOMWindow {
+  _DOMWindowCrossFrameDOMImpl();
+
   // Fields.
   History get history() native "DOMWindow_history_cross_frame_Getter";
   Location get location() native "DOMWindow_location_cross_frame_Getter";
@@ -63,29 +63,27 @@ class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements _DOMWindow 
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   // Implementation support.
-  static _DOMWindowCrossFrameDOMImpl _create_DOMWindowCrossFrameDOMImpl() => new _DOMWindowCrossFrameDOMImpl._create_DOMWindowCrossFrameDOMImpl();
-  _DOMWindowCrossFrameDOMImpl._create_DOMWindowCrossFrameDOMImpl();
   String get typeName() => "DOMWindow";
 }
 
 class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements _History {
+  _HistoryCrossFrameDOMImpl();
+
   // Methods.
   void back() native "History_back_Callback";
   void forward() native "History_forward_Callback";
   void go(int distance) native "History_go_Callback";
 
   // Implementation support.
-  static _HistoryCrossFrameDOMImpl _create_HistoryCrossFrameDOMImpl() => new _HistoryCrossFrameDOMImpl._create_HistoryCrossFrameDOMImpl();
-  _HistoryCrossFrameDOMImpl._create_HistoryCrossFrameDOMImpl();
   String get typeName() => "History";
 }
 
 class _LocationCrossFrameDOMImpl extends _DOMWrapperBase implements _Location {
+  _LocationCrossFrameDOMImpl();
+
   // Fields.
   void set href(String) native "Location_href_Setter";
 
   // Implementation support.
-  static _LocationCrossFrameDOMImpl _create_LocationCrossFrameDOMImpl() => new _LocationCrossFrameDOMImpl._create_LocationCrossFrameDOMImpl();
-  _LocationCrossFrameDOMImpl._create_LocationCrossFrameDOMImpl();
   String get typeName() => "Location";
 }
