@@ -15,13 +15,11 @@ from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
 class NativeImplementationSystem(System):
 
   def __init__(self, templates, database, html_database, html_renames,
-               emitters, auxiliary_dir, output_dir):
+               emitters, output_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
 
     self._html_renames = html_renames
-    self._auxiliary_dir = auxiliary_dir
-    self._dom_public_files = []
     self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
@@ -33,9 +31,6 @@ class NativeImplementationSystem(System):
                          super_interface_name,
                          source_filter):
     interface_name = interface.id
-
-    dart_interface_path = self._FilePathForDartInterface(interface_name)
-    self._dom_public_files.append(dart_interface_path)
 
     if IsPureInterface(interface_name):
       return None
@@ -58,9 +53,6 @@ class NativeImplementationSystem(System):
 
   def ProcessCallback(self, interface, info):
     self._interface = interface
-
-    dart_interface_path = self._FilePathForDartInterface(self._interface.id)
-    self._dom_public_files.append(dart_interface_path)
 
     if IsPureInterface(self._interface.id):
       return None
@@ -131,22 +123,6 @@ class NativeImplementationSystem(System):
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
   def GenerateLibraries(self):
-    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
-
-    # Generate dom_public.dart.
-    self._GenerateLibFile(
-        'dom_public.darttemplate',
-        os.path.join(self._output_dir, 'dom_public.dart'),
-        self._dom_public_files,
-        AUXILIARY_DIR=MassagePath(auxiliary_dir));
-
-    # Generate dom_impl.dart.
-    self._GenerateLibFile(
-        'dom_impl.darttemplate',
-        os.path.join(self._output_dir, 'dom_impl.dart'),
-        self._dom_impl_files,
-        AUXILIARY_DIR=MassagePath(auxiliary_dir));
-
     # Generate DartDerivedSourcesXX.cpp.
     partitions = 20 # FIXME: this should be configurable.
     sources_count = len(self._cpp_impl_files)
@@ -186,17 +162,9 @@ class NativeImplementationSystem(System):
   def Finish(self):
     pass
 
-  def _FilePathForDartInterface(self, interface_name):
-    return os.path.join(self._output_dir, 'src', 'interface',
-                        '%s.dart' % interface_name)
-
   def _FilePathForDartImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'dart',
                         '%sImplementation.dart' % interface_name)
-
-  def _FilePathForDartFactoryProvider(self, interface_name):
-    return os.path.join(self._output_dir, 'dart',
-                        '_%sFactoryProvider.dart' % interface_name)
 
   def _FilePathForDartFactoryProviderImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'dart',
@@ -441,37 +409,16 @@ class NativeImplementationGenerator(object):
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
-    factory_provider = '_%sFactoryProvider' % interface_name
     implementation_class = '_%sFactoryProviderImpl' % interface_name
     implementation_function = 'create' + interface_name
     native_implementation_function = '%s_constructor_Callback' % interface_name
-
-    # Emit private factory provider in public library.
-    template_file = 'factoryprovider_%s.darttemplate' % interface_name
-    template = self._system._templates.TryLoad(template_file)
-    if not template:
-      template = self._system._templates.Load('factoryprovider.darttemplate')
-
-    dart_impl_path = self._system._FilePathForDartFactoryProvider(
-        interface_name)
-    self._system._dom_public_files.append(dart_impl_path)
-
-    parameters = constructor_info.ParametersImplementationDeclaration(self._DartType)
-
-    emitter = self._system._emitters.FileEmitter(dart_impl_path)
-    emitter.Emit(
-        template,
-        FACTORY_PROVIDER=factory_provider,
-        CONSTRUCTOR=interface_name,
-        PARAMETERS=parameters,
-        IMPL_CLASS=implementation_class,
-        IMPL_FUNCTION=implementation_function,
-        ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
     # Emit public implementation in implementation libary.
     dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
         interface_name)
     self._system._dom_impl_files.append(dart_impl_path)
+
+    parameters = constructor_info.ParametersImplementationDeclaration(self._DartType)
     emitter = self._system._emitters.FileEmitter(dart_impl_path)
     emitter.Emit(
         'class $IMPL_CLASS {\n'
