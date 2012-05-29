@@ -62,7 +62,6 @@ def GetBuildInfo():
       sys.exit(1)
 
   if builder_name:
-
     dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
     frog_pattern = re.match(FROG_BUILDER, builder_name)
     web_pattern = re.match(WEB_BUILDER, builder_name)
@@ -83,7 +82,7 @@ def GetBuildInfo():
       mode = frog_pattern.group(3)
 
     elif web_pattern:
-      compiler = 'frog'
+      compiler = 'dart2js'
       runtime = web_pattern.group(1)
       mode = 'release'
       system = web_pattern.group(2)
@@ -144,8 +143,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
   return exit_code
 
 
-def BuildFrog(compiler, mode, system):
-  """ build frog.
+def BuildCompiler(compiler, mode, system):
+  """ build the compiler.
    Args:
      - compiler: either 'dart2js' or 'frog'
      - mode: either 'debug' or 'release'
@@ -172,8 +171,8 @@ def BuildFrog(compiler, mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
-  """ test frog.
+def TestCompiler(compiler, runtime, mode, system, option, flags, bot_number=None):
+  """ test the compiler.
    Args:
      - compiler: either 'dart2js' or 'frog'
      - runtime: either 'd8', or one of the browsers, see GetBuildInfo
@@ -292,37 +291,27 @@ def main():
   if compiler is None:
     return 1
 
-  status = BuildFrog(compiler, mode, system)
+  status = BuildCompiler(compiler, mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
+
   test_flags = []
   if shard_index:
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
-  if compiler == 'dart2js':
-    status = TestFrog(compiler, runtime, mode, system, option, test_flags,
-                      number)
-    if status != 0:
-      print '@@@STEP_FAILURE@@@'
-    return status # Return unconditionally for dart2js.
 
-  if runtime == 'd8' or (system == 'linux' and runtime == 'chrome'):
-    status = TestFrog(compiler, runtime, mode, system, option, test_flags,
-                      number)
-    if status != 0:
-      print '@@@STEP_FAILURE@@@'
-      return status
+  # First we run all the regular tests.
+  status = TestCompiler(compiler, runtime, mode, system, option,
+                        test_flags, number)
 
-  status = TestFrog(compiler, runtime, mode, system, option,
-                    test_flags + ['--checked'], number)
-  if status != 0:
-    print '@@@STEP_FAILURE@@@'
+  # BUG(3281): We do not run checked mode tests on dart2js.
+  if status == 0 and compiler != 'dart2js':
+    status = TestCompiler(compiler, runtime, mode, system, option,
+                          test_flags + ['--checked'], number)
 
-  if compiler == 'frog' and runtime in ['ff', 'chrome', 'safari', 'opera',
-      'ie', 'drt']:
-    CleanUpTemporaryFiles(system, runtime)
+  if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
+  if status != 0: print '@@@STEP_FAILURE@@@'
   return status
-
 
 if __name__ == '__main__':
   sys.exit(main())
