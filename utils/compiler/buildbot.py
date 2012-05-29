@@ -190,42 +190,25 @@ def TestCompiler(compiler, runtime, mode, system, option, flags):
     flags = flags + ['-j1']
 
   if compiler == 'dart2js':
-    if (option == 'checked'): flags = flags + ['--host-checked']
-    # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], ['--checked'])
+    if option == 'checked': flags = flags + ['--host-checked']
 
-    extra_suites = ['leg_only', 'frog_native']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extra_suites,
-        flags)
+    if runtime == 'd8':
+      # The dart2js compiler isn't self-hosted (yet) so we run its
+      # unit tests on the VM. We avoid doing this on the builders
+      # that run the browser tests to cut down on the cycle time.
+      TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], flags)
 
+    # Run the default set of test suites.
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
-  elif runtime == 'd8' and compiler in ['frog']:
+    # TODO(kasperl): Consider running peg and css tests too.
+    extras = ['leg_only', 'frog_native']
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+
+  elif compiler == 'frog':
     TestStep("frog", mode, system, compiler, runtime, [], flags)
-    TestStep("frog_extra", mode, system, compiler, runtime,
-        ['frog', 'frog_native', 'peg', 'css'], flags)
-    TestStep("sdk", mode, system, 'none', 'vm', ['dartdoc'], flags)
-
-  else:
-    tests = ['dom', 'html', 'json', 'benchmark_smoke',
-             'isolate', 'frog', 'css', 'corelib', 'language',
-             'frog_native', 'peg']
-
-    # TODO(efortuna): Move Mac back to DumpRenderTree when we have a more stable
-    # solution for DRT. Right now DRT is flakier than regular Chrome for the
-    # isolate tests, so we're switching to use Chrome in the short term.
-    if runtime == 'chrome' and system == 'linux':
-      TestStep('browser', mode, system, 'frog', 'drt', tests, flags)
-
-      # TODO(ngeoffray): Enable checked mode once dart2js supports type
-      # variables.
-      if not ('--checked' in flags):
-        TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
-        TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
-            ['leg_only', 'frog_native'], flags)
-
-    else:
-      TestStep(runtime, mode, system, compiler, runtime, tests, flags)
+    extras = ['frog', 'frog_native', 'peg', 'css']
+    TestStep("frog_extra", mode, system, compiler, runtime, extras, flags)
 
   return 0
 
