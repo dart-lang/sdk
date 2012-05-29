@@ -64,6 +64,8 @@ class VoidType implements Type {
   const VoidType(this.element);
   SourceString get name() => Types.VOID;
   final VoidElement element;
+
+  toString() => name.slowToString();
 }
 
 class InterfaceType implements Type {
