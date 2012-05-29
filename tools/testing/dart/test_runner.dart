@@ -730,11 +730,6 @@ class BatchRunnerProcess {
   }
 
   void _testCompleted() {
-    // TODO(3286): Remove this temporary code used to diagnose problem.
-    if (!_stdoutDrained || !_stderrDrained) {
-      print("Warning: Batch Test Runner problem:\n"
-          "  _stdoutDrained: $_stdoutDrained, _stderrDrained: $_stderrDrained");
-    }
     var test = _currentTest;
     _currentTest = null;
     test.completed();
@@ -747,23 +742,9 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    // TODO(3286): Remove this temporary code used to diagnose problem.
-    if (_currentTest == null) {
-      print("Warning: Batch Test Runner problem:\n"
-            "    _currentTest is null\n"
-            "    Stdout:");
-      for (var line in _testStdout) {
-        print(line);
-      }
-      print("    Stderr:");
-      for (var line in _testStderr) {
-        print(line);
-      }
-    } else {
-      new TestOutput.fromCase(_currentTest, exitCode, (outcome == "TIMEOUT"),
-                              _testStdout, _testStderr,
-                              new Date.now().difference(_startTime));
-    }
+    new TestOutput.fromCase(_currentTest, exitCode, (outcome == "TIMEOUT"),
+                            _testStdout, _testStderr,
+                            new Date.now().difference(_startTime));
     // Move on when both stdout and stderr has been drained. If the test
     // crashed, we restarted the process and therefore do not attempt to
     // drain stderr.
