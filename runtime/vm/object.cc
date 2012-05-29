@@ -5262,6 +5262,38 @@ RawLibrary* Library::LookupImport(const String& url) const {
 }
 
 
+RawLibrary* Library::ImportAt(intptr_t index) const {
+  if ((index < 0) || index >= num_imports()) {
+    return Library::null();
+  }
+  const Array& import_list = Array::Handle(imports());
+  Library& lib = Library::Handle();
+  lib ^= import_list.At(index);
+  return lib.raw();
+}
+
+
+RawLibraryPrefix* Library::ImportPrefixAt(intptr_t index) const {
+  const Library& imported = Library::Handle(ImportAt(index));
+  if (imported.IsNull()) {
+    return LibraryPrefix::null();
+  }
+  DictionaryIterator it(*this);
+  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+  Object& obj = Object::Handle();
+  while (it.HasNext()) {
+    obj = it.GetNext();
+    if (obj.IsLibraryPrefix()) {
+      lib_prefix ^= obj.raw();
+      if (lib_prefix.ContainsLibrary(imported)) {
+        return lib_prefix.raw();
+      }
+    }
+  }
+  return LibraryPrefix::null();
+}
+
+
 void Library::AddImport(const Library& library) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
@@ -5342,6 +5374,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
+  result.raw_ptr()->index_ = -1;
   result.InitClassDictionary();
   result.InitImportList();
   result.InitImportedIntoList();
@@ -5517,6 +5550,7 @@ void Library::Register() const {
   GrowableObjectArray& libs =
       GrowableObjectArray::Handle(object_store->libraries());
   ASSERT(!libs.IsNull());
+  set_index(libs.Length());
   libs.Add(*this);
 }
 
@@ -5572,12 +5606,10 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
 }
 
 
-void LibraryPrefix::AddLibrary(const Library& library) const {
-  Library& lib = Library::Handle();
+bool LibraryPrefix::ContainsLibrary(const Library& library) const {
   intptr_t num_current_libs = num_libs();
-
-  // First check if the library is already in the list of libraries imported.
   if (num_current_libs > 0) {
+    Library& lib = Library::Handle();
     const String& url = String::Handle(library.url());
     String& lib_url = String::Handle();
     for (intptr_t i = 0; i < num_current_libs; i++) {
@@ -5585,9 +5617,19 @@ void LibraryPrefix::AddLibrary(const Library& library) const {
       ASSERT(!lib.IsNull());
       lib_url = lib.url();
       if (url.Equals(lib_url)) {
-        return;  // Library already imported with same prefix.
+        return true;
       }
     }
+  }
+  return false;
+}
+
+void LibraryPrefix::AddLibrary(const Library& library) const {
+  intptr_t num_current_libs = num_libs();
+
+  // First check if the library is already in the list of libraries imported.
+  if (ContainsLibrary(library)) {
+    return;  // Library already imported with same prefix.
   }
 
   // The library needs to be added to the list.

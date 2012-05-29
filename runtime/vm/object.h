@@ -1757,6 +1757,9 @@ class Library : public Object {
   // Library imports.
   void AddImport(const Library& library) const;
   RawLibrary* LookupImport(const String& url) const;
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
+  RawLibrary* ImportAt(intptr_t index) const;
+  RawLibraryPrefix* ImportPrefixAt(intptr_t index) const;
 
   RawFunction* LookupFunctionInSource(const String& script_url,
                                       intptr_t line_number) const;
@@ -1772,6 +1775,11 @@ class Library : public Object {
   }
 
   RawString* PrivateName(const String& name) const;
+
+  intptr_t index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t value) const {
+    raw_ptr()->index_ = value;
+  }
 
   void Register() const;
 
@@ -1804,7 +1812,6 @@ class Library : public Object {
   static const int kImportedIntoCapacityIncrement = 2;
   static RawLibrary* New();
 
-  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
@@ -1842,6 +1849,7 @@ class LibraryPrefix : public Object {
   RawArray* libraries() const { return raw_ptr()->libraries_; }
   intptr_t num_libs() const { return raw_ptr()->num_libs_; }
 
+  bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
   void AddLibrary(const Library& library) const;
   RawClass* LookupLocalClass(const String& class_name) const;

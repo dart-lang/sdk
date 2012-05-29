@@ -894,6 +894,31 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
 }
 
 
+RawArray* Debugger::GetLibraryFields(const Library& lib) {
+  const GrowableObjectArray& field_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+  DictionaryIterator it(lib);
+  Object& entry = Object::Handle();
+  Field& field = Field::Handle();
+  Class& cls = Class::Handle();
+  String& field_name = String::Handle();
+  Object& field_value = Object::Handle();
+  while (it.HasNext()) {
+    entry = it.GetNext();
+    if (entry.IsField()) {
+      field ^= entry.raw();
+      cls = field.owner();
+      ASSERT(field.is_static());
+      field_name = field.name();
+      field_value = GetStaticField(cls, field_name);
+      field_list.Add(field_name);
+      field_list.Add(field_value);
+    }
+  }
+  return Array::MakeArray(field_list);
+}
+
+
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   SourceBreakpoint* bpt = src_breakpoints_;

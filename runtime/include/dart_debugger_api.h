@@ -44,6 +44,8 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
 
 
 /**
+ * DEPRECATED -- use Gart_GetLibraryIds instead.
+ *
  * Returns a list of urls (strings) of all the libraries loaded in the
  * current isolate.
  *
@@ -52,6 +54,17 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
  * \return A handle to a list of string handles.
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryURLs();
+
+
+/**
+ * Returns a list of ids (integers) of all the libraries loaded in the
+ * current isolate.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to a list of library ids.
+ */
+DART_EXPORT Dart_Handle Dart_GetLibraryIds();
 
 
 /**
@@ -345,7 +358,7 @@ DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls);
  */
 DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t class_id,
                                           Dart_Handle* class_name,
-                                          Dart_Handle* library,
+                                          intptr_t* library_id,
                                           intptr_t* super_class_id,
                                           Dart_Handle* static_fields);
 
@@ -378,6 +391,47 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object);
  * error object if an error was encountered evaluating the field.
  */
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls);
+
+
+/**
+ * Returns an array containing all variable names and values of
+ * the given library \library_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array containing variable names and
+ * corresponding values. The array is empty if the library has
+ * no variables. If non-empty, variable names are at array offsets 2*n,
+ * values at offset 2*n+1. Variable values may also be a handle to an
+ * error object if an error was encountered evaluating the value.
+ */
+DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id);
+
+
+/**
+ * Returns an array containing all imported libraries of
+ * the given library \library_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array containing prefix names and
+ * library ids. The array is empty if the library has
+ * no imports. If non-empty, import prefixes are at array offsets 2*n,
+ * corresponding library ids at offset 2*n+1. Prefixes may be null
+ * which indicates the respective library has been imported without
+ * a prefix.
+ */
+DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id);
+
+
+/**
+* Returns the url of the library \library_id.
+*
+* Requires there to be a current isolate.
+*
+* \return A string handle containing the URL of the library.
+*/
+DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id);
 
 
 #endif  // INCLUDE_DART_DEBUGGER_API_H_

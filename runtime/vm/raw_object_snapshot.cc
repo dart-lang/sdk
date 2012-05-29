@@ -696,6 +696,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.set_tags(tags);
 
     // Set all non object fields.
+    library.raw_ptr()->index_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_imported_into_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
@@ -742,6 +743,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObject(ptr()->url_);
   } else {
     // Write out all non object fields.
+    writer->WriteIntptrValue(ptr()->index_);
     writer->WriteIntptrValue(ptr()->num_imports_);
     writer->WriteIntptrValue(ptr()->num_imported_into_);
     writer->WriteIntptrValue(ptr()->num_anonymous_);

@@ -673,6 +673,7 @@ class RawLibrary : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
   }
 
+  intptr_t index_;               // Library id number.
   intptr_t num_imports_;         // Number of entries in imports_.
   intptr_t num_imported_into_;   // Number of entries in imported_into_.
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.

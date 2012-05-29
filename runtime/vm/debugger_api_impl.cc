@@ -376,6 +376,19 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls_in) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib =
+      Library::Handle(isolate, Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  return Api::NewHandle(isolate, isolate->debugger()->GetLibraryFields(lib));
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -409,7 +422,7 @@ DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
 DART_EXPORT Dart_Handle Dart_GetClassInfo(
                             intptr_t cls_id,
                             Dart_Handle* class_name,
-                            Dart_Handle* library,
+                            intptr_t* library_id,
                             intptr_t* super_class_id,
                             Dart_Handle* static_fields) {
   Isolate* isolate = Isolate::Current();
@@ -422,8 +435,9 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
   if (class_name != NULL) {
     *class_name = Api::NewHandle(isolate, cls.Name());
   }
-  if (library != NULL) {
-    *library = Api::NewHandle(isolate, cls.library());
+  if (library_id != NULL) {
+    const Library& lib = Library::Handle(isolate, cls.library());
+    *library_id = lib.index();
   }
   if (super_class_id != NULL) {
     *super_class_id = 0;
@@ -490,6 +504,71 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
     script_list.SetAt(i, url);
   }
   return Api::NewHandle(isolate, script_list.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  int num_libs = libs.Length();
+
+  // Create new list and populate with the url of loaded libraries.
+  Library &lib = Library::Handle();
+  const Array& library_id_list = Array::Handle(Array::New(num_libs));
+  for (int i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    ASSERT(Smi::IsValid(lib.index()));
+    library_id_list.SetAt(i, Smi::Handle(Smi::New(lib.index())));
+  }
+  return Api::NewHandle(isolate, library_id_list.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  String& prefix_name = String::Handle();
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  Library& imported = Library::Handle();
+  intptr_t num_imports = lib.num_imports();
+  const Array& import_list = Array::Handle(Array::New(2 * num_imports));
+  for (int i = 0; i < num_imports; i++) {
+    prefix_name = String::null();
+    prefix = lib.ImportPrefixAt(i);
+    if (!prefix.IsNull()) {
+      prefix_name = prefix.name();
+    }
+    import_list.SetAt(2 * i, prefix_name);
+    imported = lib.ImportAt(i);
+    ASSERT(!imported.IsNull());
+    ASSERT(Smi::IsValid(imported.index()));
+    import_list.SetAt(2 * i + 1, Smi::Handle(Smi::New(imported.index())));
+  }
+  return Api::NewHandle(isolate, import_list.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  return Api::NewHandle(isolate, lib.url());
 }
 
 

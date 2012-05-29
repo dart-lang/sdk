@@ -238,6 +238,7 @@ class Debugger {
 
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
+  RawArray* GetLibraryFields(const Library& lib);
 
   intptr_t CacheObject(const Object& obj);
   RawObject* GetCachedObject(intptr_t obj_id);
