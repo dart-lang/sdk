@@ -357,4 +357,11 @@ class BuildbotProgressIndicator extends ProgressIndicator {
     print('@@@STEP_CLEAR@@@');
     print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
   }
+
+  void _printFailureSummary() {
+    if (!_failureSummary.isEmpty()) {
+      print('@@@BUILD_STEP failures@@@');
+    }
+    super._printFailureSummary();
+  }
 }

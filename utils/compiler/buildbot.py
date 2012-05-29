@@ -164,8 +164,6 @@ def BuildSDK(mode, system):
 
   os.chdir(DART_PATH)
 
-  print '@@@BUILD_STEP build sdk@@@'
-
   args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
   print 'running %s' % (' '.join(args))
   return subprocess.call(args, env=NO_COLOR_ENV)
@@ -267,6 +265,8 @@ def CleanUpTemporaryFiles(system, browser):
     _DeleteFirefoxProfiles('/var/tmp')
 
 def main():
+  print '@@@BUILD_STEP build sdk@@@'
+
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
     return 1
