@@ -2283,20 +2283,36 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 
 
 static RawObject* ResolveConstructor(const char* current_func,
-                                     Class& cls,
-                                     String& dotted_name,
+                                     const Class& cls,
+                                     const String& class_name,
+                                     const String& dotted_name,
                                      int num_args) {
   // The constructor must be present in the interface.
-  const String& class_name = String::Handle(cls.Name());
   String& constr_name = String::Handle(String::Concat(class_name, dotted_name));
   const Function& constructor =
       Function::Handle(cls.LookupFunction(constr_name));
   if (constructor.IsNull() ||
       (!constructor.IsConstructor() && !constructor.IsFactory())) {
-    const String& message = String::Handle(
-        String::NewFormatted("%s: could not find constructor '%s'.",
-                             current_func, constr_name.ToCString()));
-    return ApiError::New(message);
+    const String& lookup_class_name = String::Handle(cls.Name());
+    if (!class_name.Equals(lookup_class_name)) {
+      // When the class name used to build the constructor name is
+      // different than the name of the class in which we are doing
+      // the lookup, it can be confusing to the user to figure out
+      // what's going on.  Be a little more explicit for these error
+      // messages.
+      const String& message = String::Handle(
+          String::NewFormatted(
+              "%s: could not find factory '%s' in class '%s'.",
+              current_func,
+              constr_name.ToCString(),
+              lookup_class_name.ToCString()));
+      return ApiError::New(message);
+    } else {
+      const String& message = String::Handle(
+          String::NewFormatted("%s: could not find constructor '%s'.",
+                               current_func, constr_name.ToCString()));
+      return ApiError::New(message);
+    }
   }
   int extra_args = (constructor.IsConstructor() ? 2 : 1);
   if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0)) {
@@ -2333,6 +2349,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
+  String& base_constructor_name = String::Handle();
+  base_constructor_name = cls.Name();
 
   // And get the name of the constructor to invoke.
   String& dot_name = String::Handle(isolate);
@@ -2359,17 +2377,34 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   // Check for interfaces with default implementations.
   if (cls.is_interface()) {
     // Make sure that the constructor is found in the interface.
-    result = ResolveConstructor("Dart_New", cls, dot_name, number_of_arguments);
+    result = ResolveConstructor(
+        "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
     if (result.IsError()) {
       return Api::NewHandle(isolate, result.raw());
     }
 
     ASSERT(cls.HasResolvedFactoryClass());
+    const Class& factory_class = Class::Handle(cls.FactoryClass());
+
+    // If the factory class implements the requested interface, then
+    // we use the name of the factory class when looking up the
+    // constructor.  Otherwise we use the original interface name when
+    // looking up the constructor.
+    const TypeArguments& no_type_args = TypeArguments::Handle(isolate);
+    Error& error = Error::Handle();
+    if (factory_class.IsSubtypeOf(no_type_args, cls, no_type_args, &error)) {
+      base_constructor_name = factory_class.Name();
+    }
+    if (!error.IsNull()) {
+      return Api::NewHandle(isolate, error.raw());
+    }
+
     cls ^= cls.FactoryClass();
   }
 
   // Resolve the constructor.
-  result = ResolveConstructor("Dart_New", cls, dot_name, number_of_arguments);
+  result = ResolveConstructor(
+      "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
@@ -2387,10 +2422,13 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   int extra_args = (constructor.IsConstructor() ? 2 : 1);
   GrowableArray<const Object*> args(number_of_arguments + extra_args);
   if (constructor.IsConstructor()) {
-    // Constructors get the uninitialized object as an extra arg.
+    // Constructors get the uninitialized object and a constructor phase.
     args.Add(&new_object);
+    args.Add(&Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
+  } else {
+    // Factories get type arguments.
+    args.Add(&TypeArguments::Handle(isolate));
   }
-  args.Add(&Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg =
         Object::Handle(isolate, Api::UnwrapHandle(arguments[i]));

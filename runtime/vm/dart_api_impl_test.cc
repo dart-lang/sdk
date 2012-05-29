@@ -2923,33 +2923,56 @@ TEST_CASE(GetStaticField_RunsInitializer) {
 
 TEST_CASE(New) {
   const char* kScriptChars =
-      "class Test implements TestInterface {\n"
-      "  Test() : foo = 7 {}\n"
-      "  Test.named(value) : foo = value {}\n"
-      "  Test._hidden(value) : foo = -value {}\n"
-      "  Test.exception(value) : foo = value {\n"
+      "class MyClass implements MyInterface {\n"
+      "  MyClass() : foo = 7 {}\n"
+      "  MyClass.named(value) : foo = value {}\n"
+      "  MyClass._hidden(value) : foo = -value {}\n"
+      "  MyClass.exception(value) : foo = value {\n"
       "    throw 'ConstructorDeath';\n"
       "  }\n"
-      "  factory Test.multiply(value) {\n"
-      "    return new Test.named(value * 100);\n"
+      "  factory MyClass.multiply(value) {\n"
+      "    return new MyClass.named(value * 100);\n"
       "  }\n"
-      "  factory Test.nullo() {\n"
+      "  factory MyClass.nullo() {\n"
       "    return null;\n"
+      "  }\n"
+      "  factory MyInterface.multiply(value) {  // won't get called.\n"
+      "    return new MyClass.named(value * 1000);\n"
+      "  }\n"
+      "  factory MyInterface2.unused(value) {\n"
+      "    return new MyClass2(-value);\n"
+      "  }\n"
+      "  factory MyInterface2.multiply(value) {\n"
+      "    return new MyClass2(value * 10000);\n"
       "  }\n"
       "  var foo;\n"
       "}\n"
       "\n"
-      "interface TestInterface default Test {\n"
-      "  TestInterface.named(value);\n"
-      "  TestInterface.multiply(value);\n"
-      "  TestInterface.notfound(value);\n"
+      "class MyClass2 implements MyInterface2 {\n"
+      "  MyClass2(value) : bar = value {}\n"
+      "  var bar;\n"
+      "}\n"
+      "\n"
+      "interface MyInterface default MyClass {\n"
+      "  MyInterface.named(value);\n"
+      "  MyInterface.multiply(value);\n"
+      "  MyInterface.notfound(value);\n"
+      "}\n"
+      "\n"
+      "interface MyInterface2 default MyClass {\n"
+      "  MyInterface2.multiply(value);\n"
+      "  MyInterface2.notfound(value);\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Test"));
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("MyClass"));
   EXPECT_VALID(cls);
-  Dart_Handle intf = Dart_GetClass(lib, Dart_NewString("TestInterface"));
+  Dart_Handle cls2 = Dart_GetClass(lib, Dart_NewString("MyClass2"));
+  EXPECT_VALID(cls2);
+  Dart_Handle intf = Dart_GetClass(lib, Dart_NewString("MyInterface"));
   EXPECT_VALID(intf);
+  Dart_Handle intf2 = Dart_GetClass(lib, Dart_NewString("MyInterface2"));
+  EXPECT_VALID(intf2);
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
   Dart_Handle bad_args[1];
@@ -3028,9 +3051,10 @@ TEST_CASE(New) {
 
   // Pass the wrong arg count.
   result = Dart_New(cls, Dart_NewString("named"), 0, NULL);
-  EXPECT_ERROR(result,
-               "Dart_New: wrong argument count for constructor 'Test.named': "
-               "expected 1 but saw 0.");
+  EXPECT_ERROR(
+      result,
+      "Dart_New: wrong argument count for constructor 'MyClass.named': "
+      "expected 1 but saw 0.");
 
   // Pass a bad argument.  Error is passed through.
   result = Dart_New(cls, Dart_NewString("named"), 1, bad_args);
@@ -3044,11 +3068,24 @@ TEST_CASE(New) {
 
   // Invoke a missing constructor.
   result = Dart_New(cls, Dart_NewString("missing"), 1, args);
-  EXPECT_ERROR(result, "Dart_New: could not find constructor 'Test.missing'.");
+  EXPECT_ERROR(result,
+               "Dart_New: could not find constructor 'MyClass.missing'.");
 
   // Invoke a constructor which throws an exception.
   result = Dart_New(cls, Dart_NewString("exception"), 1, args);
   EXPECT_ERROR(result, "ConstructorDeath");
+
+  // MyInterface has default class MyClass.
+  //
+  // MyClass *implements* MyInterface.
+  //
+  // Therefore the constructor call:
+  //
+  //   MyInterface.foo()
+  //
+  // Becomes:
+  //
+  //   MyClass.foo() from the class MyClass.
 
   // Invoke an interface constructor.
   result = Dart_New(intf, Dart_NewString("named"), 1, args);
@@ -3061,7 +3098,7 @@ TEST_CASE(New) {
   EXPECT_EQ(11, int_value);
 
   // Invoke an interface constructor which in turn calls a factory
-  // constructor.  Why not?
+  // constructor.
   result = Dart_New(intf, Dart_NewString("multiply"), 1, args);
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
@@ -3075,12 +3112,67 @@ TEST_CASE(New) {
   // in the default class.
   result = Dart_New(intf, Dart_Null(), 0, NULL);
   EXPECT_ERROR(result,
-               "Dart_New: could not find constructor 'TestInterface.'.");
+               "Dart_New: could not find constructor 'MyInterface.'.");
 
   // Invoke a constructor that is present in the interface but missing
   // in the default class.
   result = Dart_New(intf, Dart_NewString("notfound"), 1, args);
-  EXPECT_ERROR(result, "Dart_New: could not find constructor 'Test.notfound'.");
+  EXPECT_ERROR(result,
+               "Dart_New: could not find constructor 'MyClass.notfound'.");
+
+  // MyInterface2 has default class MyClass.
+  //
+  // MyClass *does not implement* MyInterface2.
+  //
+  // Therefore the constructor call:
+  //
+  //   new MyInterface2.foo()
+  //
+  // Becomes:
+  //
+  //   new MyInterface2.foo() from the class MyClass.
+
+  // Invoke an interface constructor which in turn calls a factory
+  // constructor.
+  result = Dart_New(intf2, Dart_NewString("multiply"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_ObjectIsType(result, cls2, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  Dart_Handle bar = Dart_GetField(result, Dart_NewString("bar"));
+  EXPECT_VALID(Dart_IntegerToInt64(bar, &int_value));
+  EXPECT_EQ(110000, int_value);
+
+  // Invoke a constructor that is missing in the interface but present
+  // in the default class.
+  result = Dart_New(intf2, Dart_NewString("unused"), 1, args);
+  EXPECT_ERROR(result,
+               "Dart_New: could not find constructor 'MyInterface2.unused'.");
+
+  // Invoke a constructor that is present in the interface but missing
+  // in the default class.
+  result = Dart_New(intf2, Dart_NewString("notfound"), 1, args);
+  EXPECT_ERROR(result,
+               "Dart_New: could not find factory 'MyInterface2.notfound' "
+               "in class 'MyClass'.");
+}
+
+
+TEST_CASE(New_Issue2971) {
+  // Issue 2971: We were unable to use Dart_New to construct an
+  // instance of List, due to problems implementing interface
+  // factories.
+  Dart_Handle core_lib = Dart_LookupLibrary(Dart_NewString("dart:core"));
+  EXPECT_VALID(core_lib);
+  Dart_Handle list_class = Dart_GetClass(core_lib, Dart_NewString("List"));
+  EXPECT_VALID(list_class);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  args[0] = Dart_NewInteger(1);
+  Dart_Handle list_obj = Dart_New(list_class, Dart_Null(), kNumArgs, args);
+  EXPECT_VALID(list_obj);
+  EXPECT(Dart_IsList(list_obj));
 }
 
 
