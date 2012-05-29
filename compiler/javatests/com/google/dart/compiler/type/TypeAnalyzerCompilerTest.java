@@ -837,6 +837,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.FIELD_IS_FINAL, 11, 5, 1));
   }
 
+  public void test_notFinalField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I default A {",
+            "  var f;",
+            "}",
+            "class A implements I {",
+            "  var f;",
+            "}",
+            "main() {",
+            "  I a = new I();",
+            "  a.f = 0;", // 6: OK, field "f" is not final
+            "  a.f += 1;", // 7: OK, field "f" is not final
+            "  print(a.f);", // 8: OK, can read
+            "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
   /**
    * Test for variants of {@link DartMethodDefinition} return types.
    */
