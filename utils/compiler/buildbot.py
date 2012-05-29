@@ -143,10 +143,9 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
   return exit_code
 
 
-def BuildCompiler(compiler, mode, system):
-  """ build the compiler.
+def BuildSDK(mode, system):
+  """ build the SDK.
    Args:
-     - compiler: either 'dart2js' or 'frog'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
@@ -164,7 +163,7 @@ def BuildCompiler(compiler, mode, system):
 
   os.chdir(DART_PATH)
 
-  print '@@@BUILD_STEP build frog@@@'
+  print '@@@BUILD_STEP build sdk@@@'
 
   args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
   print 'running %s' % (' '.join(args))
@@ -291,7 +290,7 @@ def main():
   if compiler is None:
     return 1
 
-  status = BuildCompiler(compiler, mode, system)
+  status = BuildSDK(mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
