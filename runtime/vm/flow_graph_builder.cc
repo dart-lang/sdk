@@ -162,12 +162,11 @@ Computation* EffectGraphVisitor::BuildStoreLocal(
       AddInstruction(load);
       context_value = new UseVal(load);
     }
-    Computation* store = new StoreVMFieldComp(
+    return new StoreVMFieldComp(
         context_value,
         Context::variable_offset(local.index()),
         value,
         local.type());
-    return store;
   } else {
     return new StoreLocalComp(local, value, owner()->context_level());
   }
@@ -188,9 +187,8 @@ Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
       AddInstruction(load);
       context_value = new UseVal(load);
     }
-    Computation* store = new LoadVMFieldComp(
+    return new LoadVMFieldComp(
         context_value, Context::variable_offset(local.index()), local.type());
-    return store;
   } else {
     return new LoadLocalComp(local, owner()->context_level());
   }
