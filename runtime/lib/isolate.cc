@@ -121,7 +121,7 @@ static bool RunIsolate(uword parameter) {
     StartIsolateScope start_scope(isolate);
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
-    ASSERT(ClassFinalizer::FinalizePendingClasses());
+    ASSERT(ClassFinalizer::AllClassesFinalized());
     // Lookup the target class by name, create an instance and call the run
     // method.
     const String& lib_name = String::Handle(String::NewSymbol(library_url));
@@ -549,7 +549,10 @@ static bool RunIsolate2(uword parameter) {
     StartIsolateScope start_scope(isolate);
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
-    ASSERT(ClassFinalizer::FinalizePendingClasses());
+    if (!ClassFinalizer::FinalizePendingClasses()) {
+      // Error is in sticky error already.
+      return false;
+    }
     Object& result = Object::Handle();
 
     result = state->ResolveFunction();
