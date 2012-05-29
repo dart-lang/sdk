@@ -639,6 +639,15 @@ class RunningProcess {
   }
 }
 
+/**
+ * This class holds a value, that can be changed.  It is used when
+ * closures need a shared value, that they can all change and read.
+ */
+class MutableValue<T> {
+  MutableValue(T this.value);
+  T value;
+}
+
 class BatchRunnerProcess {
   String _executable;
   List<String> _batchArguments;
@@ -650,8 +659,10 @@ class BatchRunnerProcess {
   TestCase _currentTest;
   List<String> _testStdout;
   List<String> _testStderr;
+  String _status;
   bool _stdoutDrained = false;
   bool _stderrDrained = false;
+  MutableValue<bool> _ignoreStreams;
   Date _startTime;
   Timer _timer;
 
@@ -666,6 +677,7 @@ class BatchRunnerProcess {
   bool get active() => _currentTest != null;
 
   void startTest(TestCase testCase) {
+    Expect.isNull(_currentTest);
     _currentTest = testCase;
     if (_process === null) {
       // Start process if not yet started.
@@ -716,8 +728,10 @@ class BatchRunnerProcess {
     _startTime = new Date.now();
     _testStdout = [];
     _testStderr = [];
+    _status = null;
     _stdoutDrained = false;
     _stderrDrained = false;
+    _ignoreStreams = new MutableValue<bool>(false);  // Captured by closures.
     _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
     _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
     _timer = new Timer(testCase.timeout * 1000, _timeoutHandler);
@@ -729,41 +743,48 @@ class BatchRunnerProcess {
     return Strings.join(arguments, ' ').concat('\n');
   }
 
-  void _testCompleted() {
-    var test = _currentTest;
-    _currentTest = null;
-    test.completed();
-  }
+  void _reportResult() {
+    if (!active) return;
+    // _status == '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
 
-  int _reportResult(String output) {
-    _stdoutDrained = true;
-    // output = '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
-    var outcome = output.split(" ")[2];
+    var outcome = _status.split(" ")[2];
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     new TestOutput.fromCase(_currentTest, exitCode, (outcome == "TIMEOUT"),
                             _testStdout, _testStderr,
                             new Date.now().difference(_startTime));
-    // Move on when both stdout and stderr has been drained. If the test
-    // crashed, we restarted the process and therefore do not attempt to
-    // drain stderr.
-    if (_stderrDrained || (_currentTest.output.hasCrashed)) _testCompleted();
+    var test = _currentTest;
+    _currentTest = null;
+    test.completed();
   }
 
   void _stderrDone() {
     _stderrDrained = true;
     // Move on when both stdout and stderr has been drained.
-    if (_stdoutDrained) _testCompleted();
+    if (_stdoutDrained) _reportResult();
+  }
+
+  void _stdoutDone() {
+    _stdoutDrained = true;
+    // Move on when both stdout and stderr has been drained.
+    if (_stderrDrained) _reportResult();
   }
 
   Function _readStdout(StringInputStream stream, List<String> buffer) {
+    var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
     return () {
-      var status;
+      if (ignoreStreams.value) {
+         while (stream.readLine() != null) {
+          // Do nothing.
+        }
+        return;
+      }
+      // Otherwise, process output and call _reportResult() when done.
       var line = stream.readLine();
       while (line != null) {
         if (line.startsWith('>>> TEST')) {
-          status = line;
+          _status = line;
         } else if (line.startsWith('>>> BATCH START')) {
           // ignore
         } else if (line.startsWith('>>> ')) {
@@ -773,18 +794,23 @@ class BatchRunnerProcess {
         }
         line = stream.readLine();
       }
-      if (status != null) {
+      if (_status != null) {
         _timer.cancel();
-        // For crashing processes, let the exit handler deal with it.
-        if (!status.contains("CRASH")) {
-          _reportResult(status);
-        }
+        _stdoutDone();
       }
     };
   }
 
   Function _readStderr(StringInputStream stream, List<String> buffer) {
+    var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
     return () {
+      if (ignoreStreams.value) {
+        while (stream.readLine() != null) {
+	  // Do nothing.
+        }
+	return;
+      }
+      // Otherwise, process output and call _reportResult() when done.
       var line = stream.readLine();
       while (line != null) {
         if (line.startsWith('>>> EOF STDERR')) {
@@ -797,21 +823,36 @@ class BatchRunnerProcess {
     };
   }
 
-  void _exitHandler(exitCode) {
-    if (_timer != null) _timer.cancel();
-    _process.close();
-    _startProcess(() {
-      _reportResult(">>> TEST CRASH");
-    });
-  }
-
-  void _timeoutHandler(ignore) {
-    _process.onExit = (exitCode) {
-      _process.close();
-      _startProcess(() {
-        _reportResult(">>> TEST TIMEOUT");
-      });
+  Function makeExitHandler(String status) {
+    return (exitCode) {
+      if (active) {
+        if (_timer != null) _timer.cancel();
+        _status = status;
+        // Read current content of streams, ignore any later output.
+        _ignoreStreams.value = true;
+        var line = _stdoutStream.readLine();
+        while (line != null) {
+          _testStdout.add(line);
+          line = _stdoutStream.readLine();
+        }
+        line = _stderrStream.readLine();
+        while (line != null) {
+          _testStderr.add(line);
+          line = _stderrStream.readLine();
+        }
+        _stderrDrained = true;
+        _stdoutDrained = true;
+        _process.close();
+        _startProcess(() { _reportResult(); });
+      } else {  // No active test case running.
+        _process.close();
+        _startProcess(() { });
+      }
     };
+  } 
+
+  void _timeoutHandler(ignore) { 
+    _process.onExit = makeExitHandler(">>> TEST TIMEOUT");
     _process.kill();
   }
 
@@ -819,13 +860,7 @@ class BatchRunnerProcess {
     _process = Process.start(_executable, _batchArguments);
     _stdoutStream = new StringInputStream(_process.stdout);
     _stderrStream = new StringInputStream(_process.stderr);
-    _testStdout = new List<String>();
-    _testStderr = new List<String>();
-    _stdoutDrained = false;
-    _stderrDrained = false;
-    _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
-    _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
-    _process.onExit = _exitHandler;
+    _process.onExit = makeExitHandler(">>> TEST CRASH");
     _process.onError = (e) {
       print("Error starting process:");
       print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
