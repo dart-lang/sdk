@@ -956,7 +956,7 @@ class NativeImplementationGenerator(object):
       for (position, param) in enumerate(info.param_infos):
         if position < len(operation.arguments):
           arg = operation.arguments[position]
-          dart_type = DartType(arg.type.id)
+          dart_type = self._DartType(arg.type.id)
           if dart_type == param.dart_type:
             # The overload type matches the method parameter type exactly.  We
             # will have already tested this type in checked mode, and the target
