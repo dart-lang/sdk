@@ -155,7 +155,7 @@ class HGraph {
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
     ObjectConstant objectConstant = constant;
-    return new HExactType(objectConstant.type);
+    return new HBoundedType.exact(objectConstant.type);
   }
 
   HConstant addConstant(Constant constant) {

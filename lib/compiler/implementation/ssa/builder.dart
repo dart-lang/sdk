@@ -332,7 +332,7 @@ class LocalsHandler {
       // context.
       ClassElement cls = function.enclosingElement;
       Type type = cls.computeType(builder.compiler);
-      HInstruction thisInstruction = new HThis(new HBoundedType(type));
+      HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
       builder.add(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
     }
@@ -429,7 +429,7 @@ class LocalsHandler {
         Element element = closureData.thisElement;
         ClassElement cls = element.enclosingElement.enclosingElement;
         Type type = cls.computeType(builder.compiler);
-        cachedTypeOfThis = new HBoundedType(type);
+        cachedTypeOfThis = new HBoundedType.nonNull(type);
       }
       res.guaranteedType = cachedTypeOfThis;
     }
@@ -2319,7 +2319,7 @@ class SsaBuilder implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.enclosingElement;
-        return new HExactType(cls.type);
+        return new HBoundedType.exact(cls.type);
       } else {
         return HType.UNKNOWN;
       }

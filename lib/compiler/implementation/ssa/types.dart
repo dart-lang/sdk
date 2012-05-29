@@ -35,7 +35,8 @@ abstract class HType {
     } else if (Elements.isStringSupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveString(type, canBeNull);
     } else {
-      return new HBoundedType(type, canBeNull);
+      return canBeNull ? new HBoundedType.withNull(type)
+                       : new HBoundedType.nonNull(type);
     }
   }
 
@@ -597,30 +598,59 @@ class HExtendableArrayType extends HMutableArrayType {
 class HBoundedType extends HType {
   final Type type;
   final bool _canBeNull;
+  final bool _isExact;
+
+  toString() {
+    return 'BoundedType($type, $_canBeNull, $_isExact)';
+  }
 
   bool canBeNull() => _canBeNull;
 
-  const HBoundedType(Type this.type, [bool this._canBeNull = false]);
-  String toString() => type.toString();
+  bool isExact() => _isExact;
+
+  const HBoundedType(Type this.type,
+                     [bool canBeNull = false, isExact = false])
+      : _canBeNull = canBeNull, _isExact = isExact;
+  const HBoundedType.exact(Type type) : this(type, isExact: true);
+  const HBoundedType.withNull(Type type) : this(type, canBeNull: true);
+  const HBoundedType.nonNull(Type type) : this(type);
 
   Type computeType(Compiler compiler) => type;
 
-  HType combine(HType other) {
+  Element lookupMember(SourceString name) {
+    if (!isExact()) return null;
+    ClassElement classElement = type.element;
+    return classElement.lookupMember(name);
+  }
+
+  HType intersection(HType other) {
+    assert(!(isExact() && canBeNull()));
+    if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
     if (other is HBoundedType) {
       HBoundedType temp = other;
-      // Return [other] in case it is an exact type.
-      if (this.type === temp.type) return other;
+      if (this.type === temp.type) {
+        if (isExact()) {
+          return this;
+        } else if (other.isExact()){
+          return other;
+        } else if (canBeNull()) {
+          return other;
+        } else {
+          return this;
+        }
+      } else if (canBeNull() && other.canBeNull()) {
+        return HType.NULL;
+      }
     }
     if (other.isUnknown()) return this;
     return HType.CONFLICTING;
   }
 
-  // As long as we don't keep track of super/sub types for non-primitive types
-  // the intersection and union is the same, except when [other] is
-  // null.
-  HType intersection(HType other) {
-    if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
-    return combine(other);
+  bool operator ==(HType other) {
+    if (other is !HBoundedType) return false;
+    HBoundedType bounded = other;
+    return (type === bounded.type && canBeNull() === bounded.canBeNull()
+            && isExact() === other .isExact());
   }
 
   HType union(HType other) {
@@ -628,40 +658,24 @@ class HBoundedType extends HType {
       if (canBeNull()) {
         return this;
       } else {
-        return new HBoundedType(type, true);
+        return new HBoundedType.withNull(type);
       }
     }
-    return combine(other);
-  }
-}
-
-class HExactType extends HBoundedType {
-  const HExactType(Type type) : super(type);
-  bool isExact() => true;
-
-  Element lookupMember(SourceString name) {
-    ClassElement classElement = type.element;
-    return classElement.lookupMember(name);
-  }
-
-  HType combine(HType other) {
-    if (other.isExact()) {
-      HExactType concrete = other;
-      if (this.type === concrete.type) return this;
+    if (other is HBoundedType) {
+      HBoundedType temp = other;
+      if (type !== temp.type) return HType.CONFLICTING;
+      if (isExact()) return other;
+      if (other.isExact()) return this;
+      return canBeNull() ? this : other;
     }
     if (other.isUnknown()) return this;
     return HType.CONFLICTING;
-  }
-
-  HType union(HType other) {
-    if (other.isNull()) return HType.CONFLICTING;
-    return combine(other);
   }
 }
 
 class HBoundedPotentialPrimitiveType extends HBoundedType {
   const HBoundedPotentialPrimitiveType(Type type, bool canBeNull)
-      : super(type, canBeNull);
+      : super(type, canBeNull, false);
   bool canBePrimitive() => true;
 }
 
