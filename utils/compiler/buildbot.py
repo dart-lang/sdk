@@ -125,6 +125,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
               '--compiler=' + compiler,
               '--runtime=' + runtime,
               '--time',
+              '--use-sdk',
               '--report'])
 
   if user_test == 'yes':
@@ -166,7 +167,7 @@ def BuildFrog(compiler, mode, system):
 
   print '@@@BUILD_STEP build frog@@@'
 
-  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'dart2js']
+  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
   print 'running %s' % (' '.join(args))
   return subprocess.call(args, env=NO_COLOR_ENV)
 
@@ -215,9 +216,14 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
     # isolate tests, so we're switching to use Chrome in the short term.
     if runtime == 'chrome' and system == 'linux':
       TestStep('browser', mode, system, 'frog', 'drt', tests, flags)
-      TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
-      TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
-               ['leg_only', 'frog_native'], flags)
+
+      # TODO(ngeoffray): Enable checked mode once dart2js supports type
+      # variables.
+      if not ('--checked' in flags):
+        TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
+        TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
+            ['leg_only', 'frog_native'], flags)
+
     else:
       additional_flags = []
       if system.startswith('win') and runtime == 'ie':
@@ -227,10 +233,10 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
         additional_flags += ['-j1']
         # The IE bots are slow lately. Split up the tests they do.
         if bot_number == '2':
-          tests = ['corelib', 'language']
+          tests = ['language']
         else:
           tests = ['dom', 'html', 'json', 'benchmark_smoke',
-                   'isolate', 'frog', 'css', 'frog_native', 'peg']
+                   'isolate', 'frog', 'css', 'frog_native', 'peg', 'corelib']
       TestStep(runtime, mode, system, compiler, runtime, tests,
           flags + additional_flags)
 

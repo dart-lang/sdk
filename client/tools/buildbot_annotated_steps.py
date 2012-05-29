@@ -115,18 +115,18 @@ def ProcessTools(mode, name, version):
 
   return subprocess.call(cmds, env=local_env)
 
-def ProcessFrog(name):
+def ProcessCompiler(name):
   '''
-  build and test experimental frog build
+  build and test the compiler
   '''
-  print 'ProcessFrog'
+  print 'ProcessCompiler'
   has_shell=False
   if 'windows' in name:
     # In Windows we need to run in the shell, so that we have all the
     # environment variables available.
     has_shell=True
   return subprocess.call([sys.executable,
-      os.path.join('frog', 'scripts', 'buildbot_annotated_steps.py')],
+      os.path.join('utils', 'compiler', 'buildbot.py')],
       env=os.environ, shell=has_shell)
 
 def main():
@@ -144,7 +144,7 @@ def main():
   if name.startswith('dart-editor'):
     status = ProcessTools('release', name, version)
   else:
-    status = ProcessFrog(name)
+    status = ProcessCompiler(name)
 
   if status:
     print '@@@STEP_FAILURE@@@'
