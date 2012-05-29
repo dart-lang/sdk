@@ -34,6 +34,7 @@ import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MemberBuilder;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -676,7 +677,7 @@ public class DartCompiler {
               if (dartSource.getRelativePath().equals(sourceNode.getText())) {
                 context.onError(new DartCompilationError(unit.getDirectives().get(0),
                     DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT,
-                    dartSource.getRelativePath()));
+                    Elements.getRelativeSourcePath(dartSource, lib.getSource())));
               }
             }
           }
@@ -1226,6 +1227,8 @@ public class DartCompiler {
             // Ignore errors. Resolver and TypeAnalyzer should be able to cope with
             // resolution errors.
           }
+          // To help support the IDE, notify the listener that this unit is compiled.
+          context.unitCompiled(unit);
         }
       }
     }
