@@ -171,3 +171,7 @@ indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Er
 # DOM errors.
 indexeddb_2_test: Fail # Uncaught error
 window_open_test: Fail # TypeError: Object [object Window] has no method 'close$0'
+
+[ $compiler == dart2js && $runtime == chrome && $system == mac ]
+element_test: Fail # method not found: 'get$add'
+fileapi_test: Skip # Issue 3022
