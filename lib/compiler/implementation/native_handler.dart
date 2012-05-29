@@ -215,12 +215,13 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     return;
   }
 
-  HInstruction convertDartClosure(Element parameter) {
+  HInstruction convertDartClosure(Element parameter, Type type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
-    // TODO(ngeoffray): by better analyzing the function type and
-    // its formal parameters, we could pass a method with a defined arity.
+    // TODO(ngeoffray): For static methods, we could pass a method with a
+    // defined arity.
     builder.push(new HStatic(builder.interceptors.getClosureConverter()));
-    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local];
+    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
+    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local, arity];
     HInstruction closure = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
     builder.add(closure);
     return closure;
@@ -265,7 +266,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     parameters.forEachParameter((Element parameter) {
       Type type = parameter.computeType(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
-      if (type is FunctionType) input = convertDartClosure(parameter);
+      if (type is FunctionType) input = convertDartClosure(parameter, type);
       inputs.add(input);
       arguments.add('#');
     });
@@ -296,7 +297,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     parameters.forEachParameter((Element parameter) {
       Type type = parameter.computeType(compiler);
       if (type is FunctionType) {
-        HInstruction jsClosure = convertDartClosure(parameter);
+        HInstruction jsClosure = convertDartClosure(parameter, type);
         // Because the JS code references the argument name directly,
         // we must keep the name and assign the JS closure to it.
         builder.add(new HForeign(

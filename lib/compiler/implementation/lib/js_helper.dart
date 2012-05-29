@@ -850,17 +850,18 @@ invokeClosure(Function closure,
  * Called by generated code to convert a Dart closure to a JS
  * closure when the Dart closure is passed to the DOM.
  */
-convertDartClosureToJS(closure) {
+convertDartClosureToJS(closure, int arity) {
   if (closure === null) return null;
   var function = JS('var', @'#.$identity', closure);
   if (JS('bool', @'!!#', function)) return function;
 
   function = JS("var", @"""function() {
-    return #(#, #, arguments.length, arguments[0], arguments[1]);
+    return #(#, #, #, arguments[0], arguments[1]);
   }""",
   DART_CLOSURE_TO_JS(invokeClosure),
   closure,
-  JS_CURRENT_ISOLATE());
+  JS_CURRENT_ISOLATE(),
+  arity);
 
   JS('void', @'#.$identity = #', closure, function);
   return function;

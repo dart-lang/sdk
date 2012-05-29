@@ -40,6 +40,3 @@ dummy_compiler_test: Fail # Issue 2263.
 
 [ $compiler == frog && $runtime == none ]
 *: Skip
-
-[ $compiler == dart2js && $runtime == ff ]
-*: Skip # Issue 2615

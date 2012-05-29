@@ -440,6 +440,17 @@ class Compiler implements DiagnosticListener {
                               () => resolver.resolveSignature(element));
   }
 
+  FunctionSignature resolveTypedef(TypedefElement element) {
+    return withCurrentElement(element,
+                              () => resolver.resolveTypedef(element));
+  }
+
+  FunctionType computeFunctionType(Element element,
+                                   FunctionSignature signature) {
+    return withCurrentElement(element,
+        () => resolver.computeFunctionType(element, signature));
+  }
+
   Constant compileVariable(VariableElement element) {
     return withCurrentElement(element, () {
       return constantHandler.compileVariable(element);

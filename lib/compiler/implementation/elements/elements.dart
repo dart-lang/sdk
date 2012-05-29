@@ -354,17 +354,18 @@ class PrefixElement extends Element {
 }
 
 class TypedefElement extends Element {
-  final Token token;
   Type cachedType;
+  Typedef cachedNode;
 
-  TypedefElement(SourceString name, Element enclosing, this.token)
-      : super(name, ElementKind.TYPEDEF, enclosing) {
-    cachedType = new InterfaceType(this);
+  TypedefElement(SourceString name, Element enclosing)
+      : super(name, ElementKind.TYPEDEF, enclosing);
+
+  Type computeType(Compiler compiler) {
+    if (cachedType !== null) return cachedType;
+    cachedType = compiler.computeFunctionType(
+        this, compiler.resolveTypedef(this));
+    return cachedType;
   }
-
-  position() => findMyName(token);
-
-  Type computeType(Compiler compiler) => cachedType;
 }
 
 class VariableElement extends Element {
@@ -611,19 +612,7 @@ class FunctionElement extends Element {
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    compiler.withCurrentElement(this, () {
-      FunctionSignature signature = computeSignature(compiler);
-      LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-      for (Link<Element> link = signature.requiredParameters;
-           !link.isEmpty();
-           link = link.tail) {
-         parameterTypes.addLast(link.head.computeType(compiler));
-         // TODO(karlklose): optional parameters.
-      }
-      type = new FunctionType(signature.returnType,
-                              parameterTypes.toLink(),
-                              this);
-    });
+    type = compiler.computeFunctionType(this, computeSignature(compiler));
     return type;
   }
 

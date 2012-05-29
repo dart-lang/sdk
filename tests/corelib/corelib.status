@@ -85,4 +85,5 @@ string_base_vm_test: Fail, OK # VM specific test.
 list_sort_test: Fail, Pass # Issue 2667
 
 [ $compiler == dart2js && $runtime == ff ]
-*: Skip # Issue 2615
+core_runtime_types_test: Fail
+const_list_literal_test: Fail # Uncaught error: Instance of 'TypeError'

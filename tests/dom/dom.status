@@ -124,4 +124,9 @@ indexeddb_2_test: Fail # Uncaught error
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == ff ]
-*: Skip # Issue 2615
+cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
+canvas_pixel_array_type_alias_test: Fail # Expectation: CreateImageData. Caught NoSuchMethodException : method not found: 'get$data'
+window_nosuchmethod_test: Fail # Expectation: windowNonMethod. Caught Instance of 'TypeError'
+xhr_test: Skip # Timeout
+inner_frame_test: Skip # Timeout
+svg_3_test: Skip # Timeout

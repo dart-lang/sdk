@@ -18,6 +18,3 @@ crypto/sha256_test: Fail
 
 [ $runtime == opera ]
 *: Skip
-
-[ $compiler == dart2js && $runtime == ff ]
-*: Skip # Issue 2615

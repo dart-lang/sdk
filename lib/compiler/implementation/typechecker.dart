@@ -105,6 +105,12 @@ class FunctionType implements Type {
   }
 
   SourceString get name() => const SourceString('Function');
+
+  int computeArity() {
+    int arity = 0;
+    parameterTypes.forEach((_) { arity++; });
+    return arity;
+  }
 }
 
 class Types {
