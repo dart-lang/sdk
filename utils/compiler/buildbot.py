@@ -189,6 +189,10 @@ def TestCompiler(compiler, runtime, mode, system, option, flags):
     # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
     flags = flags + ['-j1']
 
+  if system == 'linux' and runtime == 'chrome':
+    # TODO(ngeoffray): We should install selenium on the buildbot.
+    runtime = 'drt'
+
   if compiler == 'dart2js':
     if option == 'checked': flags = flags + ['--host-checked']
 
