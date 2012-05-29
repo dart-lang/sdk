@@ -1237,6 +1237,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitIdentifier(DartIdentifier node) {
+      if (node.getType() != null) {
+        return node.getType();
+      }
       Element element = node.getElement();
       Type type;
       switch (ElementKind.of(element)) {
@@ -1579,10 +1582,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
-      Element element = node.getElement();
       if (node.getType() != null) {
         return node.getType();
       }
+      Element element = node.getElement();
       if (element != null) {
         return element.getType();
       }

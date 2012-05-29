@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.NodeElement;
-import com.google.dart.compiler.type.Type;
 
 /**
  * Represents a Dart property access expression (a.b).
@@ -15,7 +14,6 @@ public class DartPropertyAccess extends DartExpression {
 
   private DartNode qualifier;
   private DartIdentifier name;
-  private Type type;
 
   public DartPropertyAccess(DartNode qualifier, DartIdentifier name) {
     this.qualifier = becomeParentOf(qualifier);
@@ -51,16 +49,6 @@ public class DartPropertyAccess extends DartExpression {
   @Override
   public NodeElement getElement() {
     return name.getElement();
-  }
-
-  @Override
-  public void setType(Type type) {
-    this.type = type;
-  }
-
-  @Override
-  public Type getType() {
-    return type;
   }
 
   @Override

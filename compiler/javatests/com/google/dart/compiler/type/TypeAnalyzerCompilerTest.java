@@ -813,7 +813,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.FIELD_IS_FINAL, 7, 5, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 8, 5, 1));
   }
-  
+
   public void test_finalField_inInterface() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         getName(),
@@ -1458,6 +1458,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
     assertVariableTypeString(libraryResult, "v1", "bool");
     assertVariableTypeString(libraryResult, "v2", "bool");
+  }
+
+  public void test_getType_getterInSwitch() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "int get foo() {}",
+        "f() {",
+        "  switch (true) {",
+        "    default:",
+        "      int v = foo;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   /**
