@@ -1049,7 +1049,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known.
-    if (_contentLength > 0) {
+    if (_contentLength >= 0) {
       _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
@@ -1343,10 +1343,7 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   void _onDataEnd(bool close) {
-    if (_request != null) {
-      _request._onDataEnd();
-    }
-    _request = null;
+    _request._onDataEnd();
   }
 
   void _responseDone() {
@@ -1463,9 +1460,7 @@ class _HttpServer implements HttpServer {
       _defaultHandler(request, response);
     } else {
       response.statusCode = HttpStatus.NOT_FOUND;
-      if (request.protocolVersion == "1.0") {
-        response.contentLength = 0;
-      }
+      response.contentLength = 0;
       response.outputStream.close();
     }
   }
