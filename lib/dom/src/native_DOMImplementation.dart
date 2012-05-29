@@ -32,7 +32,7 @@ class _Utils {
   }
 
   static window() native "Utils_window";
-  static SendPort spawnDomIsolateImpl(_DOMWindow window, String entryPoint) native "Utils_spawnDomIsolate";
+  static SendPort spawnDomIsolateImpl(Window window, String entryPoint) native "Utils_spawnDomIsolate";
 }
 
 Utils_print(String message) native "Utils_print";
@@ -44,7 +44,7 @@ class _NPObject extends _DOMWrapperBase {
   invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements _DOMWindow {
+class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements Window {
   _DOMWindowCrossFrameDOMImpl();
 
   // Fields.
@@ -66,7 +66,7 @@ class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements _DOMWindow 
   String get typeName() => "DOMWindow";
 }
 
-class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements _History {
+class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements History {
   _HistoryCrossFrameDOMImpl();
 
   // Methods.
@@ -78,7 +78,7 @@ class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements _History {
   String get typeName() => "History";
 }
 
-class _LocationCrossFrameDOMImpl extends _DOMWrapperBase implements _Location {
+class _LocationCrossFrameDOMImpl extends _DOMWrapperBase implements Location {
   _LocationCrossFrameDOMImpl();
 
   // Fields.

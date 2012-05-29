@@ -356,24 +356,8 @@ class NativeImplementationGenerator(object):
     return '_%sDOMImpl' % interface_name
 
   def _DartType(self, idl_type):
-    # FIXME: Make dart:html wrapperless and cleanup this method.
-    if idl_type in ['EventListener', 'TimeoutHandler']:
-      return idl_type
-    if idl_type in ['EventTarget', 'IDBAny', 'IDBKey']:
-      return 'Dynamic'
-    if idl_type == 'DOMStringList':
-      return 'List<String>'
-
     type_info = GetIDLTypeInfo(idl_type)
-    if isinstance(type_info, PrimitiveIDLTypeInfo) or isinstance(type_info, SequenceIDLTypeInfo):
-      return type_info.dart_type()
-
-    if self._system._database.HasInterface(idl_type):
-      interface = self._system._database.GetInterface(idl_type)
-      if 'Callback' in interface.ext_attrs:
-        return idl_type
-      return '_%s' % idl_type
-    return idl_type
+    return self._HTMLInterfaceName(type_info.dart_type())
 
   def _BaseClassName(self):
     if not self._interface.parents:
@@ -436,7 +420,10 @@ class NativeImplementationGenerator(object):
     base = self._BaseClassName()
     self._dart_impl_emitter.Emit(
         self._templates.Load('dart_implementation.darttemplate'),
-        CLASS=class_name, BASE=base, INTERFACE=self._interface.id,
+        CLASS=class_name,
+        BASE=base,
+        INTERFACE=self._interface.id,
+        HTML_INTERFACE=self._HTMLInterfaceName(self._interface.id),
         MEMBERS=self._members_emitter.Fragments())
 
     self._GenerateCppHeader()

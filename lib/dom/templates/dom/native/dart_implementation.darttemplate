@@ -4,10 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface _$INTERFACE {
-}
-
-class $CLASS extends $BASE implements _$INTERFACE {
+class $CLASS extends $BASE implements $HTML_INTERFACE {
   $CLASS();
   String get typeName() => "$INTERFACE";
 $MEMBERS
