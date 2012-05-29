@@ -71,7 +71,9 @@ v2_unresolved_ports_test: Fail, OK # dart2js does not support APIv2
 v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 v2_spawn_uri_vm_negative_test: Skip # ditto above.
 constructor_test: Fail, OK # dart2js does not support subclassing Isolate
-v2_compute_this_script_browser_test: Fail, OK # dart2js does not support APIv2
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2js && $browser ]
+v2_compute_this_script_browser_test: Fail, OK # dart2js does not support APIv2

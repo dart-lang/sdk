@@ -105,7 +105,7 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
 
-[ $runtime == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == ie ]
@@ -172,6 +172,6 @@ indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Er
 indexeddb_2_test: Fail # Uncaught error
 window_open_test: Fail # TypeError: Object [object Window] has no method 'close$0'
 
-[ $compiler == dart2js && $runtime == chrome && $system == mac ]
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
 element_test: Fail # method not found: 'get$add'
 fileapi_test: Skip # Issue 3022
