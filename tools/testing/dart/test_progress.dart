@@ -360,6 +360,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 
   void _printFailureSummary() {
     if (!_failureSummary.isEmpty()) {
+      print('@@@STEP_FAILURE@@@');
       print('@@@BUILD_STEP failures@@@');
     }
     super._printFailureSummary();
