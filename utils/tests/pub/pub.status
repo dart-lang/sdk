@@ -22,3 +22,6 @@ pubspec_test: Skip
 
 [ $compiler == frog ]
 yaml_test: Fail # Issue 3215
+
+[ $runtime == opera ]
+*: Skip
