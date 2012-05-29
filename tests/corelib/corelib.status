@@ -83,3 +83,6 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 [ $compiler == dart2js && $runtime == drt ]
 list_sort_test: Fail, Pass # Issue 2667
+
+[ $compiler == dart2js && $runtime == ff ]
+*: Skip # Issue 2615

@@ -77,3 +77,6 @@ constructor_test: Fail, OK # dart2js does not support subclassing Isolate
 
 [ $compiler == dart2js && $browser ]
 v2_compute_this_script_browser_test: Fail, OK # dart2js does not support APIv2
+
+[ $compiler == dart2js && $runtime == ff ]
+*: Skip # Issue 2615

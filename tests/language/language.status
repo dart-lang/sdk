@@ -459,3 +459,6 @@ constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
 
 [ $arch == arm ]
 *: Skip
+
+[ $compiler == dart2js && $runtime == ff ]
+*: Skip # Issue 2615

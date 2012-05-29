@@ -177,3 +177,6 @@ window_open_test: Fail # TypeError: Object [object Window] has no method 'close$
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 element_test: Fail # method not found: 'get$add'
 fileapi_test: Skip # Issue 3022
+
+[ $compiler == dart2js && $runtime == ff ]
+*: Skip # Issue 2615
