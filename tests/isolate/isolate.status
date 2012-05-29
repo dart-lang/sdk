@@ -66,6 +66,7 @@ v2*: Skip
 
 [ $compiler == dart2js ]
 v2_spawn_function_test: Fail, OK # dart2js does not support APIv2
+v2_spawn_function_custom_class_test: Skip # dart2js does not support APIv2
 v2_spawn_uri_test: Fail, OK # dart2js does not support APIv2
 v2_unresolved_ports_test: Fail, OK # dart2js does not support APIv2
 v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
