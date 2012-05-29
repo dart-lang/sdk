@@ -747,9 +747,7 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
-  // Visitor should not be used to compile this instruction.
-  // Native code template for StrictCompareComp was moved to
-  // StrictCompareComp::EmitNativeCode.
+  // Moved to intermediate_language_x64.cc.
   UNREACHABLE();
 }
 
@@ -810,66 +808,20 @@ void FlowGraphCompiler::VisitStoreStaticField(StoreStaticFieldComp* comp) {
 
 
 void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
-  // Call operator []= but preserve the third argument value under the
-  // arguments as the result of the computation.
-  const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
-
-  // Insert a copy of the third (last) argument under the arguments.
-  __ popq(RAX);  // Value.
-  __ popq(RBX);  // Index.
-  __ popq(RCX);  // Receiver.
-  __ pushq(RAX);
-  __ pushq(RCX);
-  __ pushq(RBX);
-  __ pushq(RAX);
-  EmitInstanceCall(comp->cid(),
-                   comp->token_index(),
-                   comp->try_index(),
-                   function_name,
-                   3,
-                   Array::ZoneHandle(),
-                   1);
-  __ popq(RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
-  // Preserve the second argument under the arguments as the result of the
-  // computation, then call the setter.
-  const String& function_name =
-      String::ZoneHandle(Field::SetterSymbol(comp->field_name()));
-
-  // Insert a copy of the second (last) argument under the arguments.
-  __ popq(RAX);  // Value.
-  __ popq(RBX);  // Receiver.
-  __ pushq(RAX);
-  __ pushq(RBX);
-  __ pushq(RAX);
-  EmitInstanceCall(comp->cid(),
-                   comp->token_index(),
-                   comp->try_index(),
-                   function_name,
-                   2,
-                   Array::ZoneHandle(),
-                   1);
-  __ popq(RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitStaticSetter(StaticSetterComp* comp) {
-  // Preserve the argument as the result of the computation,
-  // then call the setter.
-
-  // Duplicate the argument.
-  __ movq(RAX, Address(RSP, 0));
-  __ pushq(RAX);
-  EmitStaticCall(comp->token_index(),
-                 comp->try_index(),
-                 comp->setter_function(),
-                 1,
-                 Array::ZoneHandle());
-  __ popq(RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
