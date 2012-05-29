@@ -52,7 +52,6 @@ def GetBuildInfo():
   option = None
   shard_index = None
   total_shards = None
-  number = None
   if not builder_name:
     # We are not running on a buildbot.
     if args.name:
@@ -87,9 +86,12 @@ def GetBuildInfo():
       mode = 'release'
       system = web_pattern.group(2)
 
-      # TODO(jmesserly): do we want to do anything different for the second IE
-      # bot? For now we're using it to track down flakiness.
-      number = web_pattern.group(4)
+      # TODO(kasperl): Update the names of the web builders so we can
+      # use the generic sharding mechanism.
+      if (runtime == 'ie'):
+        total_shards = 2
+        if web_pattern.group(4) == '2': shard_index = 2
+        else: shard_index = 1
 
   if system == 'windows':
     system = 'win7'
@@ -100,8 +102,7 @@ def GetBuildInfo():
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
     sys.exit(1)
-  return (compiler, runtime, mode, system, option, shard_index, total_shards,
-          number)
+  return (compiler, runtime, mode, system, option, shard_index, total_shards)
 
 
 def NeedsXterm(compiler, runtime):
@@ -170,7 +171,7 @@ def BuildSDK(mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestCompiler(compiler, runtime, mode, system, option, flags, bot_number=None):
+def TestCompiler(compiler, runtime, mode, system, option, flags):
   """ test the compiler.
    Args:
      - compiler: either 'dart2js' or 'frog'
@@ -179,16 +180,19 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, bot_number=None
      - system: either 'linux', 'mac', or 'win7'
      - option: 'checked'
      - flags: extra flags to pass to test.dart
-     - bot_number: (optional) Number of the buildbot. Used for dividing test
-       sets between bots.
   """
 
   # Make sure we are in the frog directory
   os.chdir(DART_PATH)
 
+  if system.startswith('win') and runtime == 'ie':
+    # There should not be more than one InternetExplorerDriver instance
+    # running at a time. For details, see
+    # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
+    flags = flags + ['-j1']
+
   if compiler == 'dart2js':
-    if (option == 'checked'):
-      flags.append('--host-checked')
+    if (option == 'checked'): flags = flags + ['--host-checked']
     # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], ['--checked'])
 
@@ -223,20 +227,7 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, bot_number=None
             ['leg_only', 'frog_native'], flags)
 
     else:
-      additional_flags = []
-      if system.startswith('win') and runtime == 'ie':
-        # There should not be more than one InternetExplorerDriver instance
-        # running at a time. For details, see
-        # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-        additional_flags += ['-j1']
-        # The IE bots are slow lately. Split up the tests they do.
-        if bot_number == '2':
-          tests = ['language']
-        else:
-          tests = ['dom', 'html', 'json', 'benchmark_smoke',
-                   'isolate', 'frog', 'css', 'frog_native', 'peg', 'corelib']
-      TestStep(runtime, mode, system, compiler, runtime, tests,
-          flags + additional_flags)
+      TestStep(runtime, mode, system, compiler, runtime, tests, flags)
 
   return 0
 
@@ -280,7 +271,7 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  compiler, runtime, mode, system, option, shard_index, total_shards, number = (
+  compiler, runtime, mode, system, option, shard_index, total_shards = (
       GetBuildInfo())
   shard_description = ""
   if shard_index:
@@ -300,13 +291,12 @@ def main():
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
 
   # First we run all the regular tests.
-  status = TestCompiler(compiler, runtime, mode, system, option,
-                        test_flags, number)
+  status = TestCompiler(compiler, runtime, mode, system, option, test_flags)
 
   # BUG(3281): We do not run checked mode tests on dart2js.
   if status == 0 and compiler != 'dart2js':
     status = TestCompiler(compiler, runtime, mode, system, option,
-                          test_flags + ['--checked'], number)
+                          test_flags + ['--checked'])
 
   if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
   if status != 0: print '@@@STEP_FAILURE@@@'
