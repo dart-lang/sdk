@@ -744,20 +744,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return true;
   }
 
+  void visitBodyIgnoreLabels(HLoopBlockInformation info) {
+    if (info.body.start.isLabeledBlock()) {
+      HBlockInformation oldInfo = currentBlockInformation;
+      currentBlockInformation = info.body.start.blockFlow.body;
+      generateStatements(info.body);
+      currentBlockInformation = oldInfo;
+    } else {
+      generateStatements(info.body);
+    }
+  }
+
   bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
-
-    void visitBodyIgnoreLabels() {
-      if (info.body.start.isLabeledBlock()) {
-        HBlockInformation oldInfo = currentBlockInformation;
-        currentBlockInformation = info.body.start.blockFlow.body;
-        generateStatements(info.body);
-        currentBlockInformation = oldInfo;
-      } else {
-        generateStatements(info.body);
-      }
-    }
 
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
@@ -801,7 +801,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // subgraph.
           // TODO(lrn): Remove this extra labeling when handling all loops
           // using subgraphs.
-          visitBodyIgnoreLabels();
+          visitBodyIgnoreLabels(info);
 
           indent--;
         } else {
@@ -827,7 +827,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             wrapLoopBodyForContinue(info);
             generateStatements(info.updates);
           } else {
-            visitBodyIgnoreLabels();
+            visitBodyIgnoreLabels(info);
           }
           indent--;
         }
@@ -851,7 +851,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (!isConditionExpression || info.updates !== null) {
           wrapLoopBodyForContinue(info);
         } else {
-          visitBodyIgnoreLabels();
+          visitBodyIgnoreLabels(info);
         }
         if (info.updates !== null) {
           generateStatements(info.updates);
@@ -968,7 +968,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(":{\n");
       continueAction[info.target] = implicitContinueAsBreak;
       indent++;
-      generateStatements(info.body);
+      visitBodyIgnoreLabels(info);
       indent--;
       addIndented("}\n");
       continueAction.remove(info.target);
