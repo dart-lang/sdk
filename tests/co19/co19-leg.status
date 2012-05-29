@@ -64,7 +64,7 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 *: Skip
 
 
-[ $compiler == dart2js && $runtime == drt]
+[ $compiler == dart2js && $browser ]
 *: Skip
 
 

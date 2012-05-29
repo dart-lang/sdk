@@ -46,7 +46,7 @@ package/*: Skip # Do not run those in Dartium.
 [ $compiler == dartc]
 *: Skip
 
-[ $compiler == frog || ($compiler == dart2js && $runtime == drt) ]
+[ $compiler == frog ]
 *: Skip
 
 [ $arch == x64 ]
@@ -76,3 +76,6 @@ io/options_test: Fail, OK # Cannot pass options to d8.
 [ $compiler == dart2js && $runtime == none ]
 fail_test: Skip # fails only at runtime, overrides default expectation from standalone.status
 io/options_test: Fail
+
+[$compiler == dart2js && $browser ]
+*: Skip
