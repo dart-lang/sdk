@@ -1430,6 +1430,34 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * It was requested that even if Editor can be helpful and warn about types incompatibility, it
+   * should not do this to completely satisfy specification.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3223
+   */
+  public void test_typesPropagation_noExtraWarnings() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(int v) {}",
+        "f1() {",
+        "  var v = true;",
+        "  f(v);",
+        "}",
+        "f2(var v) {",
+        "  if (v is bool) {",
+        "    f(v);",
+        "  }",
+        "}",
+        "f3(var v) {",
+        "  while (v is bool) {",
+        "    f(v);",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
    * There was problem that using <code>() -> bool</code> getter in negation ('!') caused assignment
    * warnings. Actual reason was that with negation getter access is visited twice and on the second
    * time type of getter method, instead of return type, was returned.

@@ -535,7 +535,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
                 if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
                     && arg2 instanceof DartTypeExpression) {
                   VariableElement variableElement = (VariableElement) arg1.getElement();
-                  variableRestorer.setType(variableElement, arg2.getType());
+                  Type isType = arg2.getType();
+                  Type varType = InferredType.Helper.make(isType);
+                  variableRestorer.setType(variableElement, varType);
                 }
               }
               // visit && expressions
@@ -614,10 +616,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private boolean checkAssignable(DartNode node, Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
+      // ignore inferred types, treat them as Dynamic
+      if (t instanceof InferredType || s instanceof InferredType) {
+        return true;
+      }
+      // do check and report error
       if (!types.isAssignable(t, s)) {
         typeError(node, TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
         return false;
       }
+      // OK
       return true;
     }
 
@@ -1909,7 +1917,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (value != null) {
             Type valueType = value.getType();
             if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
-              Elements.setType(element, valueType);
+              Type varType = InferredType.Helper.make(valueType);
+              Elements.setType(element, varType);
               Elements.setTypeInferred(element, true);
               propagetedTypeVariables.add(element);
             }
