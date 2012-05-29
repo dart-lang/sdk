@@ -182,6 +182,6 @@ fileapi_test: Skip # Issue 3022
 *: Skip # Issue 2615
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows]
-css_test: Fail # Issue #2823
+css_test: Pass, Fail # Issue #2823
 element_test: Fail # method not found: 'get$add'
 fileapi_test: Skip # Issue 3022
