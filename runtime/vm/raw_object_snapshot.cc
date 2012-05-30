@@ -83,9 +83,10 @@ void RawClass::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   if ((kind == Snapshot::kFull) ||
-      (kind == Snapshot::kScript && !IsCreatedFromSnapshot())) {
+      (kind == Snapshot::kScript &&
+       !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)))) {
     // Write out the class and tags information.
-    writer->WriteObjectHeader(Object::kClassClass, ptr()->tags_);
+    writer->WriteObjectHeader(Object::kClassClass, writer->GetObjectTags(this));
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
@@ -146,7 +147,8 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kUnresolvedClassClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kUnresolvedClassClass,
+                            writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->token_index_);
@@ -217,7 +219,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTypeClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kTypeClass, writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->token_index_);
@@ -270,7 +272,8 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTypeParameterClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kTypeParameterClass,
+                            writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->index_);
@@ -341,7 +344,8 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTypeArgumentsClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kTypeArgumentsClass,
+                            writer->GetObjectTags(this));
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -394,7 +398,7 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteObjectHeader(Object::kInstantiatedTypeArgumentsClass,
-                            ptr()->tags_);
+                            writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -445,13 +449,15 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kFunctionClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kFunctionClass,
+                            writer->GetObjectTags(this));
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_index_);
@@ -507,13 +513,14 @@ void RawField::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kFieldClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kFieldClass, writer->GetObjectTags(this));
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_index_);
@@ -564,7 +571,8 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kLiteralTokenClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kLiteralTokenClass,
+                            writer->GetObjectTags(this));
 
   // Write out the kind field.
   writer->Write<intptr_t>(ptr()->kind_);
@@ -606,13 +614,15 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTokenStreamClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kTokenStreamClass,
+                            writer->GetObjectTags(this));
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -659,13 +669,14 @@ void RawScript::WriteTo(SnapshotWriter* writer,
                         Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(tokens_ != TokenStream::null());
-  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kScriptClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kScriptClass, writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   writer->WriteObject(ptr()->url_);
@@ -735,9 +746,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kLibraryClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kLibraryClass, writer->GetObjectTags(this));
 
-  if (IsCreatedFromSnapshot()) {
+  if (RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
     ASSERT(kind != Snapshot::kFull);
     // Write out library URL so that it can be looked up when reading.
     writer->WriteObject(ptr()->url_);
@@ -797,13 +808,15 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kLibraryPrefixClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kLibraryPrefixClass,
+                            writer->GetObjectTags(this));
 
   // Write out all non object fields.
   writer->WriteIntptrValue(ptr()->num_libs_);
@@ -955,7 +968,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kContextClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kContextClass, writer->GetObjectTags(this));
 
   // Write out num of variables in the context.
   writer->WriteIntptrValue(ptr()->num_variables_);
@@ -1006,7 +1019,8 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kContextScopeClass, ptr()->tags_);
+  writer->WriteObjectHeader(Object::kContextScopeClass,
+                            writer->GetObjectTags(this));
 
   // Serialize number of variables.
   writer->WriteIntptrValue(ptr()->num_variables_);
@@ -1183,7 +1197,8 @@ void RawMint::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kMintClass, ptr()->tags_);
+  writer->WriteObjectHeader(ObjectStore::kMintClass,
+                            writer->GetObjectTags(this));
 
   // Write out the 64 bit value.
   writer->Write<int64_t>(ptr()->value_);
@@ -1232,7 +1247,8 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kBigintClass, ptr()->tags_);
+  writer->WriteObjectHeader(ObjectStore::kBigintClass,
+                            writer->GetObjectTags(this));
 
   // Write out the bigint value as a HEXCstring.
   intptr_t length = ptr()->signed_length_;
@@ -1303,7 +1319,8 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kDoubleClass, ptr()->tags_);
+  writer->WriteObjectHeader(ObjectStore::kDoubleClass,
+                            writer->GetObjectTags(this));
 
   // Write out the double value.
   writer->Write<double>(ptr()->value_);
@@ -1484,7 +1501,7 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 ObjectStore::kOneByteStringClass,
-                ptr()->tags_,
+                writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->data_);
@@ -1498,7 +1515,7 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 ObjectStore::kTwoByteStringClass,
-                ptr()->tags_,
+                writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->data_);
@@ -1512,7 +1529,7 @@ void RawFourByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 ObjectStore::kFourByteStringClass,
-                ptr()->tags_,
+                writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->data_);
@@ -1557,7 +1574,7 @@ void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 ObjectStore::kOneByteStringClass,
-                ptr()->tags_,
+                writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->external_data_->data());
@@ -1572,7 +1589,7 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 ObjectStore::kTwoByteStringClass,
-                ptr()->tags_,
+                writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->external_data_->data());
@@ -1587,7 +1604,7 @@ void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 ObjectStore::kFourByteStringClass,
-                ptr()->tags_,
+                writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->external_data_->data());
@@ -1699,7 +1716,7 @@ void RawArray::WriteTo(SnapshotWriter* writer,
                object_id,
                kind,
                ObjectStore::kArrayClass,
-               ptr()->tags_,
+               writer->GetObjectTags(this),
                ptr()->length_,
                ptr()->type_arguments_,
                ptr()->data());
@@ -1713,7 +1730,7 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
                object_id,
                kind,
                ObjectStore::kImmutableArrayClass,
-               ptr()->tags_,
+               writer->GetObjectTags(this),
                ptr()->length_,
                ptr()->type_arguments_,
                ptr()->data());
@@ -1757,7 +1774,7 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteObjectHeader(ObjectStore::kGrowableObjectArrayClass,
-                            ptr()->tags_);
+                            writer->GetObjectTags(this));
 
   // Write out the used length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -2040,7 +2057,7 @@ void RawInt8Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt8ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2053,7 +2070,7 @@ void RawUint8Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint8ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2066,7 +2083,7 @@ void RawInt16Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt16ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2079,7 +2096,7 @@ void RawUint16Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint16ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2092,7 +2109,7 @@ void RawInt32Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt32ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2105,7 +2122,7 @@ void RawUint32Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint32ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2118,7 +2135,7 @@ void RawInt64Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt64ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2131,7 +2148,7 @@ void RawUint64Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint64ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2144,7 +2161,7 @@ void RawFloat32Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kFloat32ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2157,7 +2174,7 @@ void RawFloat64Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kFloat64ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->data_));
 }
@@ -2170,7 +2187,7 @@ void RawExternalInt8Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt8ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2184,7 +2201,7 @@ void RawExternalUint8Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint8ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2198,7 +2215,7 @@ void RawExternalInt16Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt16ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2212,7 +2229,7 @@ void RawExternalUint16Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint16ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2226,7 +2243,7 @@ void RawExternalInt32Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt32ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2240,7 +2257,7 @@ void RawExternalUint32Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint32ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2254,7 +2271,7 @@ void RawExternalInt64Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kInt64ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2268,7 +2285,7 @@ void RawExternalUint64Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kUint64ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2282,7 +2299,7 @@ void RawExternalFloat32Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kFloat32ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2296,7 +2313,7 @@ void RawExternalFloat64Array::WriteTo(SnapshotWriter* writer,
                    object_id,
                    kind,
                    ObjectStore::kFloat64ArrayClass,
-                   ptr()->tags_,
+                   writer->GetObjectTags(this),
                    ptr()->length_,
                    reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
 }
@@ -2376,7 +2393,8 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
   writer->WriteSerializationMarker(kInlined, object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kJSRegExpClass, ptr()->tags_);
+  writer->WriteObjectHeader(ObjectStore::kJSRegExpClass,
+                            writer->GetObjectTags(this));
 
   // Write out the data length field.
   writer->Write<RawObject*>(ptr()->data_length_);

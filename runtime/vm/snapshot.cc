@@ -49,7 +49,11 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(kLengthIndex == length_offset());
   ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
-  ASSERT((kHeapObjectTag & kObjectId));
+  // No object can have kFreeBit and kMarkBit set simultaneously. If kFreeBit
+  // is set then the rest of tags is a pointer to the next FreeListElement which
+  // is kObjectAlignment aligned and has at least 2 lower bits set to zero.
+  ASSERT(kObjectId ==
+         ((1 << RawObject::kFreeBit) | (1 << RawObject::kMarkBit)));
   ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
   return snapshot;
@@ -523,7 +527,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (rawobj->ptr()->class_ == Object::code_class()) {
+  if (RawObject::ClassTag::decode(GetObjectTags(rawobj)) == kCode) {
     WriteIndexedObject(Object::kNullObject);
     return;
   }
@@ -547,7 +551,7 @@ void SnapshotWriter::UnmarkAll() {
   NoGCScope no_gc;
   for (intptr_t i = 0; i < forward_list_.length(); i++) {
     RawObject* raw = forward_list_[i]->raw();
-    raw->ptr()->class_ = forward_list_[i]->cls();  // Restore original class.
+    raw->ptr()->tags_ = forward_list_[i]->tags();  // Restore original tags.
   }
 }
 
@@ -569,6 +573,17 @@ void SnapshotWriter::WriteFullSnapshot() {
 }
 
 
+uword SnapshotWriter::GetObjectTags(RawObject* raw) {
+  uword tags = raw->ptr()->tags_;
+  if (SerializedHeaderTag::decode(tags) == kObjectId) {
+    intptr_t id = SerializedHeaderData::decode(tags);
+    return forward_list_[id - kMaxPredefinedObjectIds]->tags();
+  } else {
+    return tags;
+  }
+}
+
+
 intptr_t SnapshotWriter::MarkObject(RawObject* raw, RawClass* cls) {
   NoGCScope no_gc;
   intptr_t object_id = forward_list_.length() + kMaxPredefinedObjectIds;
@@ -576,8 +591,9 @@ intptr_t SnapshotWriter::MarkObject(RawObject* raw, RawClass* cls) {
   uword value = 0;
   value = SerializedHeaderTag::update(kObjectId, value);
   value = SerializedHeaderData::update(object_id, value);
-  raw->ptr()->class_ = reinterpret_cast<RawClass*>(value);
-  ForwardObjectNode* node = new ForwardObjectNode(raw, cls);
+  uword tags = raw->ptr()->tags_;
+  raw->ptr()->tags_ = value;
+  ForwardObjectNode* node = new ForwardObjectNode(raw, tags);
   ASSERT(node != NULL);
   forward_list_.Add(node);
   return object_id;
@@ -586,15 +602,17 @@ intptr_t SnapshotWriter::MarkObject(RawObject* raw, RawClass* cls) {
 
 void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   NoGCScope no_gc;
-  RawClass* cls = raw->ptr()->class_;
+  uword tags = raw->ptr()->tags_;
 
   // Check if object has already been serialized, in that
   // case just write the object id out.
-  if (SerializedHeaderTag::decode(reinterpret_cast<uword>(cls)) == kObjectId) {
-    intptr_t id = SerializedHeaderData::decode(reinterpret_cast<intptr_t>(cls));
+  if (SerializedHeaderTag::decode(tags) == kObjectId) {
+    intptr_t id = SerializedHeaderData::decode(tags);
     WriteIndexedObject(id);
     return;
   }
+
+  RawClass* cls = class_table_->At(RawObject::ClassTag::decode(tags));
 
   // Object is being serialized, add it to the forward ref list and mark
   // it so that future references to this object in the snapshot will use
@@ -617,7 +635,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     WriteIntptrValue(SerializedHeaderData::encode(kInstanceId));
 
     // Write out the tags.
-    WriteIntptrValue(raw->ptr()->tags_);
+    WriteIntptrValue(tags);
 
     // Write out the class information for this object.
     WriteObject(cls);
