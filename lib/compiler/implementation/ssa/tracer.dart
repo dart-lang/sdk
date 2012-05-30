@@ -23,6 +23,7 @@ class HTracer extends HGraphVisitor implements Tracer {
     if (enabled) output.closeSync();
   }
 
+  String method;
   void traceCompilation(String methodName) {
     tag("compilation", () {
       printProperty("name", methodName);
@@ -235,12 +236,12 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
-    return 'get ${node.name.slowToString()}';
+    return 'get ${temporaryId(node.receiver)}';
   }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
-    return 'set ${node.name.slowToString()} to $valueId';
+    return 'set ${temporaryId(node.receiver)} to $valueId';
   }
 
   String visitGoto(HGoto node) {
@@ -394,19 +395,18 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitTry(HTry node) {
     List<HBasicBlock> successors = currentBlock.successors;
     String tryBlock = 'B${successors[0].id}';
-    StringBuffer catchBlocks = new StringBuffer();
-    for (int i = 1; i < successors.length - 1; i++) {
-      catchBlocks.add('B${successors[i].id}, ');
+    String catchBlock = 'none';
+    if (node.catchBlock != null) {
+      catchBlock = 'B${successors[1].id}';
     }
 
-    String finallyBlock;
+    String finallyBlock = 'none';
     if (node.finallyBlock != null) {
       finallyBlock = 'B${node.finallyBlock.id}';
-    } else {
-      catchBlocks.add('B${successors[successors.length - 1].id}');
-      finallyBlock = 'none';
     }
-    return "Try: $tryBlock, Catch: $catchBlocks, Finally: $finallyBlock";
+
+    return "Try: $tryBlock, Catch: $catchBlock, Finally: $finallyBlock, "
+        "Join: B${successors.last().id}";
   }
 
   String visitTypeGuard(HTypeGuard node) {

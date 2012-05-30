@@ -726,7 +726,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HParameterValue exception = info.catchVariable;
       String name = temporary(exception);
       parameterNames[exception.element] = name;
-      buffer.add('catch ($name) {\n');
+      buffer.add(' catch ($name) {\n');
       indent++;
       generateStatements(info.catchBlock);
       parameterNames.remove(exception.element);

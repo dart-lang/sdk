@@ -661,6 +661,14 @@ class HBasicBlock extends HInstructionList implements Hashable {
     }
   }
 
+  void forEachInstruction(void f(HInstruction instruction)) {
+    HInstruction current = first;
+    while (current !== null) {
+      f(current);
+      current = current.next;
+    }
+  }
+
   bool isValid() {
     assert(isClosed());
     HValidator validator = new HValidator();
@@ -1664,6 +1672,7 @@ class HContinue extends HGoto {
 
 class HTry extends HControlFlow {
   HParameterValue exception;
+  HBasicBlock catchBlock;
   HBasicBlock finallyBlock;
   HTry() : super(const <HInstruction>[]);
   toString() => 'try';

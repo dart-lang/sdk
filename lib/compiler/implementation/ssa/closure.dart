@@ -436,8 +436,9 @@ class ClosureTranslator extends AbstractVisitor {
 
   visitTryStatement(TryStatement node) {
     // TODO(ngeoffray): implement finer grain state.
+    bool oldInTryCatchOrFinally = inTryCatchOrFinally;
     inTryCatchOrFinally = true;
     node.visitChildren(this);
-    inTryCatchOrFinally = false;
+    inTryCatchOrFinally = oldInTryCatchOrFinally;
   }
 }

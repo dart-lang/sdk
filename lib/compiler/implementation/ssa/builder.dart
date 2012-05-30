@@ -437,10 +437,9 @@ class LocalsHandler {
   }
 
   HParameterValue getActivationParameter(Element element) {
-    if (element.isParameter()) {
-      HInstruction instruction = directLocals[element];
-      if (instruction is HParameterValue) return instruction;
-    }
+    // If the element is a parameter, we already have a
+    // HParameterValue for it.
+    if (element.isParameter()) return directLocals[element];
 
     return builder.activationVariables.putIfAbsent(element, () {
       HParameterValue parameter = new HParameterValue(element);
@@ -545,13 +544,15 @@ class LocalsHandler {
 
     // Create phis for all elements in the definitions environment.
     saved.forEach((Element element, HInstruction instruction) {
-      // We know 'this' cannot be modified.
-      if (element !== closureData.thisElement) {
-        HPhi phi = new HPhi.singleInput(element, instruction);
-        loopEntry.addPhi(phi);
-        directLocals[element] = phi;
-      } else {
-        directLocals[element] = instruction;
+      if (isAccessedDirectly(element)) {
+        // We know 'this' cannot be modified.
+        if (element !== closureData.thisElement) {
+          HPhi phi = new HPhi.singleInput(element, instruction);
+          loopEntry.addPhi(phi);
+          directLocals[element] = phi;
+        } else {
+          directLocals[element] = instruction;
+        }
       }
     });
   }
@@ -3118,6 +3119,13 @@ class SsaBuilder implements Visitor {
 
   visitTryStatement(TryStatement node) {
     work.allowSpeculativeOptimization = false;
+    // Save the current locals. The catch block and the finally block
+    // must not reuse the existing locals handler. None of the variables
+    // that have been defined in the body-block will be used, but for
+    // loops we will add (unnecessary) phis that will reference the body
+    // variables. This will make it look as if the variables were used
+    // in a non-dominated block.
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     List<HBasicBlock> blocks = <HBasicBlock>[];
@@ -3132,6 +3140,7 @@ class SsaBuilder implements Visitor {
     SubGraph catchGraph = null;
     HParameterValue exception = null;
     if (!node.catchBlocks.isEmpty()) {
+      localsHandler = new LocalsHandler.from(savedLocals);
       HBasicBlock block = graph.addNewBlock();
       enterBlock.addSuccessor(block);
       open(block);
@@ -3198,11 +3207,13 @@ class SsaBuilder implements Visitor {
       if (!isAborted()) blocks.add(close(new HGoto()));
 
       rethrowableException = oldRethrowableException;
+      tryInstruction.catchBlock = block;
       catchGraph = new SubGraph(block, lastOpenedBlock);
     }
 
     SubGraph finallyGraph = null;
     if (node.finallyBlock != null) {
+      localsHandler = new LocalsHandler.from(savedLocals);
       HBasicBlock finallyBlock = graph.addNewBlock();
       enterBlock.addSuccessor(finallyBlock);
       open(finallyBlock);
@@ -3218,6 +3229,9 @@ class SsaBuilder implements Visitor {
       block.addSuccessor(exitBlock);
     }
 
+    // Use the locals handler not altered by the catch and finally
+    // blocks.
+    localsHandler = savedLocals;
     open(exitBlock);
     enterBlock.setBlockFlow(
         new HTryBlockInformation(

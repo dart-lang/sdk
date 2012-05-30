@@ -82,6 +82,28 @@ class HValidator extends HInstructionVisitor {
 
     if (!isValid) return;
     block.forEachPhi(visitInstruction);
+
+    // Make sure the parameters of a phi are dominating the
+    // corresponding predecessor block.
+    block.forEachPhi((HPhi phi) {
+      for (int i = 0; i < phi.inputs.length; i++) {
+        HInstruction input = phi.inputs[i];
+        if (!input.block.dominates(block.predecessors[i])) {
+          markInvalid("Definition does not dominate use");
+        }
+      }
+    });
+
+    // Make sure the inputs of an instruction dominate the
+    // instruction.
+    block.forEachInstruction((HInstruction instruction) {
+      for (HInstruction input in instruction.inputs) {
+        if (!input.block.dominates(block)) {
+          markInvalid("Definition does not dominate use");
+        }
+      }
+    });
+
     super.visitBasicBlock(block);
   }
 
