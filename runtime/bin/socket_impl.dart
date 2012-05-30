@@ -225,7 +225,7 @@ class _SocketBase {
 
   int hashCode() => _hashCode;
 
-  bool _propagateError(Exception e) => null;
+  bool _propagateError(Exception e) => false;
 
   abstract bool _isListenSocket();
   abstract bool _isPipe();

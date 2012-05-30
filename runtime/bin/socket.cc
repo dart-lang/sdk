@@ -20,15 +20,22 @@ int Socket::service_ports_index_ = 0;
 
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle socketobj = Dart_GetNativeArgument(args, 0);
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   const char* host = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  int64_t port = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  intptr_t socket = Socket::CreateConnect(host, port);
-  if (socket >= 0) {
-    DartUtils::SetIntegerField(socketobj, DartUtils::kIdFieldName, socket);
-    Dart_SetReturnValue(args, Dart_True());
+  int64_t port = 0;
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &port)) {
+    intptr_t socket = Socket::CreateConnect(host, port);
+    if (socket >= 0) {
+      DartUtils::SetIntegerField(socket_obj, DartUtils::kIdFieldName, socket);
+      Dart_SetReturnValue(args, Dart_True());
+    } else {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    }
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
 }
@@ -54,38 +61,45 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                  DartUtils::kIdFieldName);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsList(buffer_obj));
-  intptr_t offset =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  intptr_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  intptr_t buffer_len = 0;
-  Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  ASSERT((offset + length) <= buffer_len);
-
-  if (Dart_IsVMFlagSet("short_socket_read")) {
-    length = (length + 1) / 2;
-  }
-
-  uint8_t* buffer = new uint8_t[length];
-  intptr_t bytes_read = Socket::Read(socket, buffer, length);
-  if (bytes_read > 0) {
-    Dart_Handle result =
-        Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
+  int64_t offset = 0;
+  int64_t length = 0;
+  Dart_Handle offset_obj = Dart_GetNativeArgument(args, 2);
+  Dart_Handle length_obj = Dart_GetNativeArgument(args, 3);
+  if (Dart_IsList(buffer_obj) &&
+      DartUtils::GetInt64Value(offset_obj, &offset) &&
+      DartUtils::GetInt64Value(length_obj, &length)) {
+    intptr_t buffer_len = 0;
+    Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
     if (Dart_IsError(result)) {
-      delete[] buffer;
       Dart_PropagateError(result);
     }
-  }
-  delete[] buffer;
-  if (bytes_read >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
+    ASSERT((offset + length) <= buffer_len);
+    if (Dart_IsVMFlagSet("short_socket_read")) {
+      length = (length + 1) / 2;
+    }
+    uint8_t* buffer = new uint8_t[length];
+    intptr_t bytes_read = Socket::Read(socket, buffer, length);
+    if (bytes_read > 0) {
+      Dart_Handle result =
+          Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
+      if (Dart_IsError(result)) {
+        delete[] buffer;
+        Dart_PropagateError(result);
+      }
+    }
+    delete[] buffer;
+    if (bytes_read >= 0) {
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
+    } else {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    }
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
   }
+
   Dart_ExitScope();
 }
 
@@ -193,13 +207,13 @@ void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle socketobj = Dart_GetNativeArgument(args, 0);
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   intptr_t num =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   ASSERT(num == 0 || num == 1 || num == 2);
   intptr_t socket = Socket::GetStdioHandle(num);
   DartUtils::SetIntegerField(
-      socketobj, DartUtils::kIdFieldName, socket);
+      socket_obj, DartUtils::kIdFieldName, socket);
   Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
   Dart_ExitScope();
 }
@@ -207,20 +221,30 @@ void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle socketobj = Dart_GetNativeArgument(args, 0);
-  const char* bindAddress =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  intptr_t port = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  intptr_t backlog =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  intptr_t socket =
-      ServerSocket::CreateBindListen(bindAddress, port, backlog);
-  if (socket >= 0) {
-    DartUtils::SetIntegerField(
-        socketobj, DartUtils::kIdFieldName, socket);
-    Dart_SetReturnValue(args, Dart_True());
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
+  Dart_Handle bind_address_obj = Dart_GetNativeArgument(args, 1);
+  Dart_Handle port_obj = Dart_GetNativeArgument(args, 2);
+  Dart_Handle backlog_obj = Dart_GetNativeArgument(args, 3);
+  int64_t port = 0;
+  int64_t backlog = 0;
+  if (Dart_IsString(bind_address_obj) &&
+      DartUtils::GetInt64Value(port_obj, &port) &&
+      DartUtils::GetInt64Value(backlog_obj, &backlog)) {
+    const char* bind_address = DartUtils::GetStringValue(bind_address_obj);
+    intptr_t socket =
+        ServerSocket::CreateBindListen(bind_address, port, backlog);
+    if (socket >= 0) {
+      DartUtils::SetIntegerField(
+          socket_obj, DartUtils::kIdFieldName, socket);
+      Dart_SetReturnValue(args, Dart_True());
+    } else {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    }
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
 }
@@ -231,13 +255,13 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   intptr_t socket =
       DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                  DartUtils::kIdFieldName);
-  Dart_Handle socketobj = Dart_GetNativeArgument(args, 1);
-  intptr_t newSocket = ServerSocket::Accept(socket);
-  if (newSocket >= 0) {
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 1);
+  intptr_t new_socket = ServerSocket::Accept(socket);
+  if (new_socket >= 0) {
     DartUtils::SetIntegerField(
-        socketobj, DartUtils::kIdFieldName, newSocket);
+        socket_obj, DartUtils::kIdFieldName, new_socket);
     Dart_SetReturnValue(args, Dart_True());
-  } else if (newSocket == ServerSocket::kTemporaryFailure) {
+  } else if (new_socket == ServerSocket::kTemporaryFailure) {
     Dart_SetReturnValue(args, Dart_False());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -273,8 +297,8 @@ void SocketService(Dart_Port dest_port_id,
   CObjectArray request(message);
   if (message->type == Dart_CObject::kArray) {
     if (request.Length() > 1 && request[0]->IsInt32()) {
-      CObjectInt32 requestType(request[0]);
-      switch (requestType.Value()) {
+      CObjectInt32 request_type(request[0]);
+      switch (request_type.Value()) {
         case Socket::kLookupRequest:
           response = LookupRequest(request);
           break;
