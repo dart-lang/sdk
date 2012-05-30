@@ -572,7 +572,7 @@ class Assembler : public ValueObject {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
 
-  void Comment(const char* comment);
+  void Comment(const char* format, ...);
   const Code::Comments& GetCodeComments() const;
 
  private:

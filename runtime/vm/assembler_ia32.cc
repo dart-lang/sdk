@@ -1593,10 +1593,17 @@ void Assembler::CompareClassOfObject(Register object,
 }
 
 
-void Assembler::Comment(const char* comment) {
+void Assembler::Comment(const char* format, ...) {
   if (FLAG_code_comments) {
+    char buffer[1024];
+
+    va_list args;
+    va_start(args, format);
+    OS::VSNPrint(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
     comments_.Add(new CodeComment(buffer_.GetPosition(),
-                                  String::Handle(String::New(comment))));
+                                  String::Handle(String::New(buffer))));
   }
 }
 

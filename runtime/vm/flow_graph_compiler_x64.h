@@ -201,6 +201,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   GrowableArray<BlockInfo*> block_info_;
   BlockEntryInstr* current_block_;
   DescriptorList* pc_descriptors_list_;
+  StackmapBuilder* stackmap_builder_;
   ExceptionHandlerList* exception_handlers_list_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
