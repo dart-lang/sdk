@@ -353,7 +353,7 @@ class NativeImplementationGenerator(object):
         EVENTS_CLASS=events_class)
 
   def _ImplClassName(self, interface_name):
-    return '_%sDOMImpl' % interface_name
+    return '_%sImpl' % interface_name
 
   def _DartType(self, idl_type):
     type_info = GetIDLTypeInfo(idl_type)
@@ -393,38 +393,43 @@ class NativeImplementationGenerator(object):
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
-    implementation_class = '_%sFactoryProviderImpl' % interface_name
-    implementation_function = 'create' + interface_name
-    native_implementation_function = '%s_constructor_Callback' % interface_name
-
-    # Emit public implementation in implementation libary.
     dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
         interface_name)
     self._system._dom_impl_files.append(dart_impl_path)
 
-    parameters = constructor_info.ParametersImplementationDeclaration(self._DartType)
+    html_interface_name = self._HTMLInterfaceName(interface_name)
+    template_file = 'factoryprovider_%s.darttemplate' % html_interface_name
+    template = self._system._templates.TryLoad(template_file)
+    if not template:
+      template = self._system._templates.Load('factoryprovider.darttemplate')
+
+    native_implementation_function = '%s_constructor_Callback' % interface_name
     emitter = self._system._emitters.FileEmitter(dart_impl_path)
     emitter.Emit(
-        'class $IMPL_CLASS {\n'
-        '  static $TYPE $IMPL_FUNCTION($PARAMETERS)\n'
-        '      native "$NATIVE_NAME";\n'
-        '}',
-        PARAMETERS=parameters,
-        IMPL_CLASS=implementation_class,
-        TYPE=self._ImplClassName(interface_name),
-        IMPL_FUNCTION=implementation_function,
+        template,
+        FACTORYPROVIDER='_%sFactoryProvider' % html_interface_name,
+        INTERFACE=html_interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
+        ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_implementation_function)
 
   def FinishInterface(self):
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    template = None
+    if html_interface_name == self._interface.id or not self._system._database.HasInterface(html_interface_name):
+      template_file = 'impl_%s.darttemplate' % html_interface_name
+      template = self._templates.TryLoad(template_file)
+    if not template:
+      template = self._templates.Load('dart_implementation.darttemplate')
+
     class_name = self._ImplClassName(self._interface.id)
-    base = self._BaseClassName()
-    self._dart_impl_emitter.Emit(
-        self._templates.Load('dart_implementation.darttemplate'),
-        CLASS=class_name,
-        BASE=base,
-        INTERFACE=self._interface.id,
-        HTML_INTERFACE=self._HTMLInterfaceName(self._interface.id),
-        MEMBERS=self._members_emitter.Fragments())
+    members_emitter = self._dart_impl_emitter.Emit(
+        template,
+        CLASSNAME=class_name,
+        EXTENDS=' extends ' + self._BaseClassName(),
+        IMPLEMENTS=' implements ' + html_interface_name,
+        NATIVESPEC='')
+    members_emitter.Emit(''.join(self._members_emitter.Fragments()))
 
     self._GenerateCppHeader()
 
@@ -650,101 +655,26 @@ class NativeImplementationGenerator(object):
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
     else:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) {\n'
-          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-          '  }\n',
-          TYPE=dart_element_type)
+      # The HTML library implementation of NodeList has a custom indexed setter
+      # implementation that uses the parent node the NodeList is associated
+      # with if one is available.
+      if self._interface.id != 'NodeList':
+        self._members_emitter.Emit(
+            '\n'
+            '  void operator[]=(int index, $TYPE value) {\n'
+            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+            '  }\n',
+            TYPE=dart_element_type)
 
-    self._members_emitter.Emit(
-        '\n'
-        '  void add($TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void addLast($TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void addAll(Collection<$TYPE> collection) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void sort(int compare($TYPE a, $TYPE b)) {\n'
-        '    throw new UnsupportedOperationException("Cannot sort immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void copyFrom(List<Object> src, int srcStart, '
-        'int dstStart, int count) {\n'
-        '    throw new UnsupportedOperationException("This object is immutable.");\n'
-        '  }\n'
-        '\n'
-        '  int indexOf($TYPE element, [int start = 0]) {\n'
-        '    return _Lists.indexOf(this, element, start, this.length);\n'
-        '  }\n'
-        '\n'
-        '  int lastIndexOf($TYPE element, [int start = null]) {\n'
-        '    if (start === null) start = length - 1;\n'
-        '    return _Lists.lastIndexOf(this, element, start);\n'
-        '  }\n'
-        '\n'
-        '  int clear() {\n'
-        '    throw new UnsupportedOperationException("Cannot clear immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  $TYPE removeLast() {\n'
-        '    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  $TYPE last() {\n'
-        '    return this[length - 1];\n'
-        '  }\n'
-        '\n'
-        '  void forEach(void f($TYPE element)) {\n'
-        '    _Collections.forEach(this, f);\n'
-        '  }\n'
-        '\n'
-        '  Collection map(f($TYPE element)) {\n'
-        '    return _Collections.map(this, [], f);\n'
-        '  }\n'
-        '\n'
-        '  Collection<$TYPE> filter(bool f($TYPE element)) {\n'
-        '    return _Collections.filter(this, new List<$TYPE>(), f);\n'
-        '  }\n'
-        '\n'
-        '  bool every(bool f($TYPE element)) {\n'
-        '    return _Collections.every(this, f);\n'
-        '  }\n'
-        '\n'
-        '  bool some(bool f($TYPE element)) {\n'
-        '    return _Collections.some(this, f);\n'
-        '  }\n'
-        '\n'
-        '  void setRange(int start, int length, List<$TYPE> from, [int startFrom]) {\n'
-        '    throw new UnsupportedOperationException("Cannot setRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void removeRange(int start, int length) {\n'
-        '    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void insertRange(int start, int length, [$TYPE initialValue]) {\n'
-        '    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  List<$TYPE> getRange(int start, int length) {\n'
-        '    throw new NotImplementedException();\n'
-        '  }\n'
-        '\n'
-        '  bool isEmpty() {\n'
-        '    return length == 0;\n'
-        '  }\n'
-        '\n'
-        '  Iterator<$TYPE> iterator() {\n'
-        '    return new _FixedSizeListIterator<$TYPE>(this);\n'
-        '  }\n',
-        TYPE=dart_element_type)
+    # The list interface for this class is manually generated.
+    if self._interface.id == 'NodeList':
+      return
+
+    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
+    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
+    template_file = 'immutable_list_mixin.darttemplate'
+    template = self._system._templates.Load(template_file)
+    self._members_emitter.Emit(template, E=dart_element_type)
 
   def AmendIndexer(self, element_type):
     # If interface is marked as having native indexed
@@ -812,12 +742,17 @@ class NativeImplementationGenerator(object):
           dart_declaration, 'Callback', True)
       return
 
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $DECLARATION {\n'
-        '$!BODY'
-        '  }\n',
-        DECLARATION=dart_declaration)
+    if self._interface.id == 'Document' and info.name == 'querySelector':
+      # Document.querySelector has custom implementation in dart:html.
+      # FIXME: Cleanup query selectors and remove this hack.
+      body = emitter.Emitter()
+    else:
+      body = self._members_emitter.Emit(
+          '\n'
+          '  $DECLARATION {\n'
+          '$!BODY'
+          '  }\n',
+          DECLARATION=dart_declaration)
 
     self._native_version = 0
     overloads = self.CombineOverloads(info.overloads)
@@ -1212,6 +1147,7 @@ class NativeImplementationGenerator(object):
 
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
+
 
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in includes])

@@ -10,12 +10,10 @@
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    final _EventTargetImpl targetImpl = target;
-    targetImpl.$dom_addEventListener(type, listener, useCapture);
+    target.$dom_addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    final _EventTargetImpl targetImpl = target;
-    targetImpl.$dom_removeEventListener(type, listener, useCapture);
+    target.$dom_removeEventListener(type, listener, useCapture);
   }
 
 }

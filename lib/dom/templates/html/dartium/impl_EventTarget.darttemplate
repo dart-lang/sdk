@@ -104,13 +104,7 @@ class _EventListenerListImpl implements EventListenerList {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-
-  Events _on;
-
-  Events get on() {
-    if (_on == null) _on = new _EventsImpl(this);
-    return _on;
-  }
-
+/*
 $!MEMBERS
+*/
 }

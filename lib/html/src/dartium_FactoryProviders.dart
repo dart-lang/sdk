@@ -10,17 +10,17 @@ class _AudioContextFactoryProvider {
 class _IDBKeyRangeFactoryProvider {
 
   factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _wrap(_IDBKeyRangeDOMImpl.only(_unwrap(value)));
+      _wrap(_IDBKeyRangeImpl.only(_unwrap(value)));
 
   factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(_IDBKeyRangeDOMImpl.lowerBound(_unwrap(bound), open));
+      _wrap(_IDBKeyRangeImpl.lowerBound(_unwrap(bound), open));
 
   factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(_IDBKeyRangeDOMImpl.upperBound(_unwrap(bound), open));
+      _wrap(_IDBKeyRangeImpl.upperBound(_unwrap(bound), open));
 
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
-      _wrap(_IDBKeyRangeDOMImpl.bound(_unwrap(lower), _unwrap(upper),
+      _wrap(_IDBKeyRangeImpl.bound(_unwrap(lower), _unwrap(upper),
                                       lowerOpen, upperOpen));
 }
 

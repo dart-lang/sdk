@@ -44,8 +44,8 @@ class _NPObject extends _DOMWrapperBase {
   invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements Window {
-  _DOMWindowCrossFrameDOMImpl();
+class _DOMWindowCrossFrameImpl extends _DOMWrapperBase implements Window {
+  _DOMWindowCrossFrameImpl();
 
   // Fields.
   History get history() native "DOMWindow_history_cross_frame_Getter";
@@ -66,8 +66,8 @@ class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements Window {
   String get typeName() => "DOMWindow";
 }
 
-class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements History {
-  _HistoryCrossFrameDOMImpl();
+class _HistoryCrossFrameImpl extends _DOMWrapperBase implements History {
+  _HistoryCrossFrameImpl();
 
   // Methods.
   void back() native "History_back_Callback";
@@ -78,8 +78,8 @@ class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements History {
   String get typeName() => "History";
 }
 
-class _LocationCrossFrameDOMImpl extends _DOMWrapperBase implements Location {
-  _LocationCrossFrameDOMImpl();
+class _LocationCrossFrameImpl extends _DOMWrapperBase implements Location {
+  _LocationCrossFrameImpl();
 
   // Fields.
   void set href(String) native "Location_href_Setter";

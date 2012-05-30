@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory $INTERFACE() => _wrap(_$(DOM_INTERFACE)FactoryProviderImpl.create$DOM_INTERFACE());
+  factory $INTERFACE($PARAMETERS) => _create$INTERFACE($ARGUMENTS);
+  static $INTERFACE _create$INTERFACE($PARAMETERS) native "$NATIVE_NAME";
 
   factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>

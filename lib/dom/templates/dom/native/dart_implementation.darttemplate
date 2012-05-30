@@ -4,8 +4,6 @@
 
 // WARNING: Do not edit - generated code.
 
-class $CLASS extends $BASE implements $HTML_INTERFACE {
-  $CLASS();
-  String get typeName() => "$INTERFACE";
-$MEMBERS
+class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
 }

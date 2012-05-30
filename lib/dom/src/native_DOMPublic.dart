@@ -5,7 +5,7 @@
 // This API is exploratory.
 spawnDomIsolate(Window targetWindowWrapped, String entryPoint) {
   final targetWindow = _unwrap(targetWindowWrapped);
-  if (targetWindow is! _DOMWindowDOMImpl && targetWindow is! _DOMWindowCrossFrameDOMImpl) {
+  if (targetWindow is! _DOMWindowImpl && targetWindow is! _DOMWindowCrossFrameImpl) {
     throw 'Bad window argument: $targetWindow';
   }
   final result = new Completer<SendPort>();

@@ -141,7 +141,9 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
     elif system == 'htmldartium':
       # Generate native wrappers.
       native_system = NativeImplementationSystem(
-          TemplateLoader(template_dir, ['dom/native', 'dom', '']),
+          TemplateLoader(template_dir, ['dom/native', 'html/dartium',
+                                        'html/impl', ''],
+                         {'DARTIUM': True, 'FROG': False}),
           dom_database, html_database, html_renames, emitters, output_dir)
       generator.Generate(dom_database, native_system,
                          source_filter=['WebKit', 'Dart'],

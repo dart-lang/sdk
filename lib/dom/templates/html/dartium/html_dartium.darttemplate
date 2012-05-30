@@ -31,59 +31,13 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/native_DOMPublic.dart');
 #source('$AUXILIARY_DIR/native_DOMImplementation.dart');
 
-_WindowImpl __window;
-_DocumentImpl __document;
+Window get window() => _Utils.window();
+Window get _window() => _Utils.window();
 
-void _initialize() {
-  __window = _wrap(_Utils.window());
-  __document = _wrap(_Utils.window().document);
-}
+Document get document() => window.document;
+Document get _document() => window.document;
 
-Window get window() {
-  if (__window == null) {
-    _initialize();
-  }
-  return __window;
-}
+// FIXME: get rid of _uwrap and _wrap.
+_unwrap(raw) => raw;
 
-Document get document() {
-  if (__document == null) {
-    _initialize();
-  }
-  return __document;
-}
-
-_WindowImpl get _window() {
-  if (__window == null) {
-    _initialize();
-  }
-  return __window;
-}
-
-_DocumentImpl get _document() {
-  if (__document == null) {
-    _initialize();
-  }
-  return __document;
-}
-
-_unwrap(raw) {
-  return raw is _DOMTypeBase ? raw._ptr : raw;
-}
-
-// Warning: does not attempt wrap event listeners.
-_wrap(raw) {
-  if (raw is! _DOMWrapperBase) return raw;
-  _DOMWrapperBase domObject = raw;
-  if (domObject.dartObjectLocalStorage != null)
-    return domObject.dartObjectLocalStorage;
-  switch(domObject.typeName) {
-    case 'HTMLElement':
-      return new _UnknownElementImpl._wrap(domObject);
-$WRAPCASES
-    case 'HTMLDocument':
-      return new _DocumentImpl._wrap(domObject);
-    default:
-      throw 'Unrecognized object $domObject. Name=${domObject.typeName}';
-  }
-}
+_wrap(raw) => raw;
