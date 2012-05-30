@@ -251,7 +251,7 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 private3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
-label_test: Skip # timeout
+label_test: Skip # Timeout
 
 
 [ $compiler == dart2js && $runtime == ie ]
