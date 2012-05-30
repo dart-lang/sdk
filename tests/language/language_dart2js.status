@@ -313,7 +313,6 @@ unhandled_exception_negative_test: Skip # BUG(3304): Times out.
 double_to_string_as_fixed_test: Fail
 
 [ $compiler == dart2js && $runtime == safari ]
-arithmetic2_test: Fail # Uncaught error: Instance of 'TypeError'
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'

@@ -814,7 +814,7 @@ unwrapException(ex) {
     // If we cannot determine what kind of error this is, we fall back
     // to reporting this as a TypeError even though that may be
     // inaccurate. It's probably better than nothing.
-    return new TypeError(message);
+    return new TypeError(message is String ? message : '');
   }
 
   if (JS('bool', @'# instanceof RangeError', ex)) {
@@ -830,7 +830,7 @@ unwrapException(ex) {
 
   // Check for the Firefox specific stack overflow signal.
   if (JS('bool',
-         @"typeof InternalError == 'object' && # instanceof InternalError",
+         @"typeof InternalError == 'function' && # instanceof InternalError",
          ex)) {
     if (message is String && message == 'too much recursion') {
       return new StackOverflowException();
