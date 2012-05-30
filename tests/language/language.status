@@ -389,7 +389,7 @@ static_final_field2_negative_test: Skip
 [ $runtime == ff && $system == windows ]
 ct_const2_test: Pass,Fail  # Issue 2101
 
-[ $runtime == ie ]
+[ $compiler == frog && $runtime == ie ]
 stack_overflow_test: Fail
 object_dynamic_method_test: Fail
 number_syntax_test: Fail
@@ -459,21 +459,3 @@ constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
 
 [ $arch == arm ]
 *: Skip
-
-[ $compiler == dart2js && $runtime == ff ]
-call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
-call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
-double_to_string_as_fixed_test: Fail
-double_to_string_as_exponential_test: Fail
-local_function3_test: Fail # Uncaught error: Instance of 'TypeError'
-savannah_test: Fail # Uncaught error: Instance of 'TypeError'
-implied_interface_test: Fail # Uncaught error: Instance of 'TypeError'
-bad_named_parameters_test: Fail # Uncaught error: Instance of 'TypeError'
-bad_named_parameters2_test: Fail # Uncaught error: Instance of 'TypeError'
-arithmetic2_test: Fail # Uncaught error: Instance of 'TypeError'
-null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
-string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-closure3_test: Fail # Uncaught error: Instance of 'TypeError'
-private3_test: Fail # Uncaught error: Instance of 'TypeError'
-method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
-label_test: Skip # timeout

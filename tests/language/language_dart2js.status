@@ -209,7 +209,6 @@ string_interpolation7_negative_test: Fail, OK # Negative language test.
 throw7_negative_test: Fail, OK # Negative language test.
 try_catch_syntax_test/08: Fail, OK # Negative language test.
 
-
 type_vm_test: Fail, OK # VM specific test.
 disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
@@ -224,17 +223,36 @@ bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
 optimization_test: Fail, OK # Expects negative results of bit-operations.
 
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
-
 reg_exp3_test: Fail, OK # Expects exception from const constructor.
-
-
 list_test: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
+
 
 [ $compiler == dart2js && $mode == release ]
 assign_top_method_negative_test: Crash
 
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+
+[ $compiler == dart2js && $runtime == ff ]
+call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
+call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
+double_to_string_as_fixed_test: Fail
+double_to_string_as_exponential_test: Fail
+local_function3_test: Fail # Uncaught error: Instance of 'TypeError'
+savannah_test: Fail # Uncaught error: Instance of 'TypeError'
+implied_interface_test: Fail # Uncaught error: Instance of 'TypeError'
+bad_named_parameters_test: Fail # Uncaught error: Instance of 'TypeError'
+bad_named_parameters2_test: Fail # Uncaught error: Instance of 'TypeError'
+arithmetic2_test: Fail # Uncaught error: Instance of 'TypeError'
+null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
+string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
+closure3_test: Fail # Uncaught error: Instance of 'TypeError'
+private3_test: Fail # Uncaught error: Instance of 'TypeError'
+method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
+label_test: Skip # timeout
+
 
 [ $compiler == dart2js && $runtime == ie ]
 arithmetic2_test: Skip # BUG(3304): Times out.
@@ -303,6 +321,8 @@ type_checks_in_factory_method_test: Skip # BUG(3304): Times out.
 typed_message_test: Skip # BUG(3304): Times out.
 unbound_getter_test: Skip # BUG(3304): Times out.
 unhandled_exception_negative_test: Skip # BUG(3304): Times out.
+stack_overflow_test: Fail
+double_to_string_as_fixed_test: Fail
 
 [ $compiler == dart2js && $runtime == safari ]
 arithmetic2_test: Fail # Uncaught error: Instance of 'TypeError'
