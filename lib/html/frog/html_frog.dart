@@ -859,8 +859,6 @@ class _CSSRuleImpl implements CSSRule native "*CSSRule" {
 
   static final int WEBKIT_KEYFRAME_RULE = 8;
 
-  static final int WEBKIT_REGION_RULE = 10;
-
   String cssText;
 
   final _CSSRuleImpl parentRule;
@@ -3839,6 +3837,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   final num webkitBackingStorePixelRatio;
 
+  bool webkitImageSmoothingEnabled;
+
   List webkitLineDash;
 
   num webkitLineDashOffset;
@@ -4174,6 +4174,11 @@ class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicati
   EventListenerList get updateReady() => _get('updateready');
 }
 
+class _DOMErrorImpl implements DOMError native "*DOMError" {
+
+  final String name;
+}
+
 class _DOMExceptionImpl implements DOMException native "*DOMException" {
 
   static final int ABORT_ERR = 20;
@@ -4469,6 +4474,9 @@ class _DOMStringListImpl implements DOMStringList native "*DOMStringList" {
   String item(int index) native;
 }
 
+class _DOMStringMapImpl implements DOMStringMap native "*DOMStringMap" {
+}
+
 class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
   final int length;
@@ -4498,8 +4506,6 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
   _BlobImpl getAsFile() native;
 
   void getAsString([StringCallback callback = null]) native;
-
-  void webkitGetAsEntry([EntryCallback callback = null]) native;
 }
 
 class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
@@ -4815,8 +4821,6 @@ class _DocumentImpl extends _NodeImpl
   void webkitCancelFullScreen() native;
 
   void webkitExitFullscreen() native;
-
-  _WebKitNamedFlowImpl webkitGetFlowByName(String name) native;
 
   // TODO(jacobr): implement all Element methods not on Document. 
 
@@ -6675,6 +6679,8 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement nativ
 
   bool disabled;
 
+  final _HTMLCollectionImpl elements;
+
   final _FormElementImpl form;
 
   String name;
@@ -7586,7 +7592,7 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
 class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
-  final String keyPath;
+  final Dynamic keyPath;
 
   final bool multiEntry;
 
@@ -7623,9 +7629,11 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
 class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
+  final bool autoIncrement;
+
   final List<String> indexNames;
 
-  final String keyPath;
+  final Dynamic keyPath;
 
   final String name;
 
@@ -8387,6 +8395,14 @@ class _LinkElementImpl extends _ElementImpl implements LinkElement native "*HTML
 class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
+
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _LocationImpl implements Location native "*Location" {
@@ -8608,9 +8624,17 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayImpl initData = null]) native;
 
-  void webkitSourceAppend(_Uint8ArrayImpl data) native;
+  void webkitSourceAbort(String id) native;
+
+  void webkitSourceAddId(String id, String type) native;
+
+  void webkitSourceAppend(String id, _Uint8ArrayImpl data) native;
+
+  _TimeRangesImpl webkitSourceBuffered(String id) native;
 
   void webkitSourceEndOfStream(int status) native;
+
+  void webkitSourceRemoveId(String id) native;
 }
 
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
@@ -8623,6 +8647,12 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
   EventListenerList get keyMessage() => _get('webkitkeymessage');
 
   EventListenerList get needKey() => _get('webkitneedkey');
+
+  EventListenerList get sourceClose() => _get('webkitsourceclose');
+
+  EventListenerList get sourceEnded() => _get('webkitsourceended');
+
+  EventListenerList get sourceOpen() => _get('webkitsourceopen');
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -9910,6 +9940,11 @@ class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*Ov
   final int orient;
 
   final bool verticalOverflow;
+}
+
+class _PagePopupControllerImpl implements PagePopupController native "*PagePopupController" {
+
+  void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 
 class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent native "*PageTransitionEvent" {
@@ -13161,6 +13196,8 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   final _SVGPointImpl currentTranslate;
 
+  final _SVGViewSpecImpl currentView;
+
   final _SVGAnimatedLengthImpl height;
 
   final num pixelUnitToMillimeterX;
@@ -13171,7 +13208,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   final num screenPixelToMillimeterY;
 
-  bool useCurrentView;
+  final bool useCurrentView;
 
   final _SVGRectImpl viewport;
 
@@ -13760,7 +13797,9 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement nati
   int zoomAndPan;
 }
 
-class _SVGViewSpecImpl extends _SVGZoomAndPanImpl implements SVGViewSpec native "*SVGViewSpec" {
+class _SVGViewSpecImpl implements SVGViewSpec native "*SVGViewSpec" {
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
   final String preserveAspectRatioString;
 
@@ -13768,17 +13807,15 @@ class _SVGViewSpecImpl extends _SVGZoomAndPanImpl implements SVGViewSpec native 
 
   final String transformString;
 
+  final _SVGAnimatedRectImpl viewBox;
+
   final String viewBoxString;
 
   final _SVGElementImpl viewTarget;
 
   final String viewTargetString;
 
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
+  int zoomAndPan;
 }
 
 class _SVGZoomAndPanImpl implements SVGZoomAndPan native "*SVGZoomAndPan" {
@@ -13940,8 +13977,6 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   String innerHTML;
 
-  final _DOMSelectionImpl selection;
-
   _ElementImpl getElementById(String elementId) native;
 
   _NodeListImpl getElementsByClassName(String className) native;
@@ -13949,6 +13984,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
   _NodeListImpl getElementsByTagName(String tagName) native;
 
   _NodeListImpl getElementsByTagNameNS(String namespaceURI, String localName) native;
+
+  _DOMSelectionImpl getSelection() native;
 }
 
 class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker native "*SharedWorker" {
@@ -16260,11 +16297,6 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
   final int operationType;
 }
 
-class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
-
-  final _CSSRuleListImpl cssRules;
-}
-
 class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
@@ -16276,7 +16308,9 @@ class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" 
 
   final _NodeListImpl contentNodes;
 
-  final bool overflow;
+  final String name;
+
+  final bool overset;
 
   _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
 }
@@ -16472,6 +16506,8 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final int outerHeight;
 
   final int outerWidth;
+
+  final _PagePopupControllerImpl pagePopupController;
 
   final int pageXOffset;
 
@@ -18721,8 +18757,6 @@ interface CSSRule {
 
   static final int WEBKIT_KEYFRAME_RULE = 8;
 
-  static final int WEBKIT_REGION_RULE = 10;
-
   /** @domName CSSRule.cssText */
   String cssText;
 
@@ -20897,6 +20931,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
   final num webkitBackingStorePixelRatio;
 
+  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  bool webkitImageSmoothingEnabled;
+
   /** @domName CanvasRenderingContext2D.webkitLineDash */
   List webkitLineDash;
 
@@ -21451,6 +21488,18 @@ interface DOMApplicationCacheEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMError
+interface DOMError {
+
+  /** @domName DOMError.name */
+  final String name;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMException
 interface DOMException {
 
@@ -21806,6 +21855,15 @@ interface DOMStringList extends List<String> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMStringMap
+interface DOMStringMap {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMTokenList
 interface DOMTokenList {
 
@@ -21861,9 +21919,6 @@ interface DataTransferItem {
 
   /** @domName DataTransferItem.getAsString */
   void getAsString([StringCallback callback]);
-
-  /** @domName DataTransferItem.webkitGetAsEntry */
-  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22402,9 +22457,6 @@ interface Document extends HtmlElement {
 
   /** @domName Document.webkitExitFullscreen */
   void webkitExitFullscreen();
-
-  /** @domName Document.webkitGetFlowByName */
-  WebKitNamedFlow webkitGetFlowByName(String name);
 
 }
 
@@ -23463,6 +23515,9 @@ interface FieldSetElement extends Element default _Elements {
   /** @domName HTMLFieldSetElement.disabled */
   bool disabled;
 
+  /** @domName HTMLFieldSetElement.elements */
+  final HTMLCollection elements;
+
   /** @domName HTMLFieldSetElement.form */
   final FormElement form;
 
@@ -24449,7 +24504,7 @@ interface IDBFactory {
 interface IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  final String keyPath;
+  final Dynamic keyPath;
 
   /** @domName IDBIndex.multiEntry */
   final bool multiEntry;
@@ -24539,11 +24594,14 @@ interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
 /// @domName IDBObjectStore
 interface IDBObjectStore {
 
+  /** @domName IDBObjectStore.autoIncrement */
+  final bool autoIncrement;
+
   /** @domName IDBObjectStore.indexNames */
   final List<String> indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  final String keyPath;
+  final Dynamic keyPath;
 
   /** @domName IDBObjectStore.name */
   final String name;
@@ -25390,7 +25448,7 @@ interface LinkElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName LocalMediaStream
-interface LocalMediaStream extends MediaStream {
+interface LocalMediaStream extends MediaStream, EventTarget {
 
   /** @domName LocalMediaStream.stop */
   void stop();
@@ -25737,11 +25795,23 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
+  /** @domName HTMLMediaElement.webkitSourceAbort */
+  void webkitSourceAbort(String id);
+
+  /** @domName HTMLMediaElement.webkitSourceAddId */
+  void webkitSourceAddId(String id, String type);
+
   /** @domName HTMLMediaElement.webkitSourceAppend */
-  void webkitSourceAppend(Uint8Array data);
+  void webkitSourceAppend(String id, Uint8Array data);
+
+  /** @domName HTMLMediaElement.webkitSourceBuffered */
+  TimeRanges webkitSourceBuffered(String id);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
+
+  /** @domName HTMLMediaElement.webkitSourceRemoveId */
+  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -25753,6 +25823,12 @@ interface MediaElementEvents extends ElementEvents {
   EventListenerList get keyMessage();
 
   EventListenerList get needKey();
+
+  EventListenerList get sourceClose();
+
+  EventListenerList get sourceEnded();
+
+  EventListenerList get sourceOpen();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27189,6 +27265,18 @@ interface OverflowEvent extends Event {
 
   /** @domName OverflowEvent.verticalOverflow */
   final bool verticalOverflow;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName PagePopupController
+interface PagePopupController {
+
+  /** @domName PagePopupController.setValueAndClosePopup */
+  void setValueAndClosePopup(int numberValue, String stringValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30717,6 +30805,9 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   /** @domName SVGSVGElement.currentTranslate */
   final SVGPoint currentTranslate;
 
+  /** @domName SVGSVGElement.currentView */
+  final SVGViewSpec currentView;
+
   /** @domName SVGSVGElement.height */
   final SVGAnimatedLength height;
 
@@ -30733,7 +30824,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   final num screenPixelToMillimeterY;
 
   /** @domName SVGSVGElement.useCurrentView */
-  bool useCurrentView;
+  final bool useCurrentView;
 
   /** @domName SVGSVGElement.viewport */
   final SVGRect viewport;
@@ -31282,7 +31373,10 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGViewSpec
-interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
+interface SVGViewSpec {
+
+  /** @domName SVGViewSpec.preserveAspectRatio */
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGViewSpec.preserveAspectRatioString */
   final String preserveAspectRatioString;
@@ -31293,6 +31387,9 @@ interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
   /** @domName SVGViewSpec.transformString */
   final String transformString;
 
+  /** @domName SVGViewSpec.viewBox */
+  final SVGAnimatedRect viewBox;
+
   /** @domName SVGViewSpec.viewBoxString */
   final String viewBoxString;
 
@@ -31301,6 +31398,9 @@ interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
   /** @domName SVGViewSpec.viewTargetString */
   final String viewTargetString;
+
+  /** @domName SVGViewSpec.zoomAndPan */
+  int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31590,9 +31690,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
-  /** @domName ShadowRoot.selection */
-  final DOMSelection selection;
-
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -31604,6 +31701,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   /** @domName ShadowRoot.getElementsByTagNameNS */
   NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+
+  /** @domName ShadowRoot.getSelection */
+  DOMSelection getSelection();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34467,18 +34567,6 @@ interface WebKitCSSFilterValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName WebKitCSSRegionRule
-interface WebKitCSSRegionRule extends CSSRule {
-
-  /** @domName WebKitCSSRegionRule.cssRules */
-  final CSSRuleList cssRules;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName WebKitMutationObserver
 interface WebKitMutationObserver {
 
@@ -34500,8 +34588,11 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.contentNodes */
   final NodeList contentNodes;
 
-  /** @domName WebKitNamedFlow.overflow */
-  final bool overflow;
+  /** @domName WebKitNamedFlow.name */
+  final String name;
+
+  /** @domName WebKitNamedFlow.overset */
+  final bool overset;
 
   /** @domName WebKitNamedFlow.getRegionsByContentNode */
   NodeList getRegionsByContentNode(Node contentNode);
@@ -34743,6 +34834,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.outerWidth */
   final int outerWidth;
+
+  /** @domName DOMWindow.pagePopupController */
+  final PagePopupController pagePopupController;
 
   /** @domName DOMWindow.pageXOffset */
   final int pageXOffset;
@@ -35640,90 +35734,90 @@ class _Elements {
   // helper code goes here
 
   factory AnchorElement([String href]) {
-    _AnchorElementImpl _e = _document.$dom_createElement("a");
+    AnchorElement _e = _document.$dom_createElement("a");
     if (href != null) _e.href = href;
     return _e;
   }
 
   factory AreaElement() {
-    _AreaElementImpl _e = _document.$dom_createElement("area");
+    AreaElement _e = _document.$dom_createElement("area");
     return _e;
   }
 
   factory BRElement() {
-    _BRElementImpl _e = _document.$dom_createElement("br");
+    BRElement _e = _document.$dom_createElement("br");
     return _e;
   }
 
   factory BaseElement() {
-    _BaseElementImpl _e = _document.$dom_createElement("base");
+    BaseElement _e = _document.$dom_createElement("base");
     return _e;
   }
 
   factory BodyElement() {
-    _BodyElementImpl _e = _document.$dom_createElement("body");
+    BodyElement _e = _document.$dom_createElement("body");
     return _e;
   }
 
   factory ButtonElement() {
-    _ButtonElementImpl _e = _document.$dom_createElement("button");
+    ButtonElement _e = _document.$dom_createElement("button");
     return _e;
   }
 
   factory CanvasElement([int height, int width]) {
-    _CanvasElementImpl _e = _document.$dom_createElement("canvas");
+    CanvasElement _e = _document.$dom_createElement("canvas");
     if (height != null) _e.height = height;
     if (width != null) _e.width = width;
     return _e;
   }
 
   factory DListElement() {
-    _DListElementImpl _e = _document.$dom_createElement("dl");
+    DListElement _e = _document.$dom_createElement("dl");
     return _e;
   }
 
   factory DetailsElement() {
-    _DetailsElementImpl _e = _document.$dom_createElement("details");
+    DetailsElement _e = _document.$dom_createElement("details");
     return _e;
   }
 
   factory DivElement() {
-    _DivElementImpl _e = _document.$dom_createElement("div");
+    DivElement _e = _document.$dom_createElement("div");
     return _e;
   }
 
   factory EmbedElement() {
-    _EmbedElementImpl _e = _document.$dom_createElement("embed");
+    EmbedElement _e = _document.$dom_createElement("embed");
     return _e;
   }
 
   factory FieldSetElement() {
-    _FieldSetElementImpl _e = _document.$dom_createElement("fieldset");
+    FieldSetElement _e = _document.$dom_createElement("fieldset");
     return _e;
   }
 
   factory HRElement() {
-    _HRElementImpl _e = _document.$dom_createElement("hr");
+    HRElement _e = _document.$dom_createElement("hr");
     return _e;
   }
 
   factory HeadElement() {
-    _HeadElementImpl _e = _document.$dom_createElement("head");
+    HeadElement _e = _document.$dom_createElement("head");
     return _e;
   }
 
   factory HtmlElement() {
-    _HtmlElementImpl _e = _document.$dom_createElement("html");
+    HtmlElement _e = _document.$dom_createElement("html");
     return _e;
   }
 
   factory IFrameElement() {
-    _IFrameElementImpl _e = _document.$dom_createElement("iframe");
+    IFrameElement _e = _document.$dom_createElement("iframe");
     return _e;
   }
 
   factory ImageElement([String src, int height, int width]) {
-    _ImageElementImpl _e = _document.$dom_createElement("img");
+    ImageElement _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
     if (height != null) _e.height = height;
     if (width != null) _e.width = width;
@@ -35731,158 +35825,158 @@ class _Elements {
   }
 
   factory InputElement([String type]) {
-    _InputElementImpl _e = _document.$dom_createElement("input");
+    InputElement _e = _document.$dom_createElement("input");
     if (type != null) _e.type = type;
     return _e;
   }
 
   factory KeygenElement() {
-    _KeygenElementImpl _e = _document.$dom_createElement("keygen");
+    KeygenElement _e = _document.$dom_createElement("keygen");
     return _e;
   }
 
   factory LIElement() {
-    _LIElementImpl _e = _document.$dom_createElement("li");
+    LIElement _e = _document.$dom_createElement("li");
     return _e;
   }
 
   factory LabelElement() {
-    _LabelElementImpl _e = _document.$dom_createElement("label");
+    LabelElement _e = _document.$dom_createElement("label");
     return _e;
   }
 
   factory LegendElement() {
-    _LegendElementImpl _e = _document.$dom_createElement("legend");
+    LegendElement _e = _document.$dom_createElement("legend");
     return _e;
   }
 
   factory LinkElement() {
-    _LinkElementImpl _e = _document.$dom_createElement("link");
+    LinkElement _e = _document.$dom_createElement("link");
     return _e;
   }
 
   factory MapElement() {
-    _MapElementImpl _e = _document.$dom_createElement("map");
+    MapElement _e = _document.$dom_createElement("map");
     return _e;
   }
 
   factory MenuElement() {
-    _MenuElementImpl _e = _document.$dom_createElement("menu");
+    MenuElement _e = _document.$dom_createElement("menu");
     return _e;
   }
 
   factory MeterElement() {
-    _MeterElementImpl _e = _document.$dom_createElement("meter");
+    MeterElement _e = _document.$dom_createElement("meter");
     return _e;
   }
 
   factory OListElement() {
-    _OListElementImpl _e = _document.$dom_createElement("ol");
+    OListElement _e = _document.$dom_createElement("ol");
     return _e;
   }
 
   factory ObjectElement() {
-    _ObjectElementImpl _e = _document.$dom_createElement("object");
+    ObjectElement _e = _document.$dom_createElement("object");
     return _e;
   }
 
   factory OptGroupElement() {
-    _OptGroupElementImpl _e = _document.$dom_createElement("optgroup");
+    OptGroupElement _e = _document.$dom_createElement("optgroup");
     return _e;
   }
 
   factory OutputElement() {
-    _OutputElementImpl _e = _document.$dom_createElement("output");
+    OutputElement _e = _document.$dom_createElement("output");
     return _e;
   }
 
   factory ParagraphElement() {
-    _ParagraphElementImpl _e = _document.$dom_createElement("p");
+    ParagraphElement _e = _document.$dom_createElement("p");
     return _e;
   }
 
   factory ParamElement() {
-    _ParamElementImpl _e = _document.$dom_createElement("param");
+    ParamElement _e = _document.$dom_createElement("param");
     return _e;
   }
 
   factory PreElement() {
-    _PreElementImpl _e = _document.$dom_createElement("pre");
+    PreElement _e = _document.$dom_createElement("pre");
     return _e;
   }
 
   factory ProgressElement() {
-    _ProgressElementImpl _e = _document.$dom_createElement("progress");
+    ProgressElement _e = _document.$dom_createElement("progress");
     return _e;
   }
 
   factory ScriptElement() {
-    _ScriptElementImpl _e = _document.$dom_createElement("script");
+    ScriptElement _e = _document.$dom_createElement("script");
     return _e;
   }
 
   factory SourceElement() {
-    _SourceElementImpl _e = _document.$dom_createElement("source");
+    SourceElement _e = _document.$dom_createElement("source");
     return _e;
   }
 
   factory SpanElement() {
-    _SpanElementImpl _e = _document.$dom_createElement("span");
+    SpanElement _e = _document.$dom_createElement("span");
     return _e;
   }
 
   factory StyleElement() {
-    _StyleElementImpl _e = _document.$dom_createElement("style");
+    StyleElement _e = _document.$dom_createElement("style");
     return _e;
   }
 
   factory TableCaptionElement() {
-    _TableCaptionElementImpl _e = _document.$dom_createElement("caption");
+    TableCaptionElement _e = _document.$dom_createElement("caption");
     return _e;
   }
 
   factory TableCellElement() {
-    _TableCellElementImpl _e = _document.$dom_createElement("td");
+    TableCellElement _e = _document.$dom_createElement("td");
     return _e;
   }
 
   factory TableColElement() {
-    _TableColElementImpl _e = _document.$dom_createElement("col");
+    TableColElement _e = _document.$dom_createElement("col");
     return _e;
   }
 
   factory TableElement() {
-    _TableElementImpl _e = _document.$dom_createElement("table");
+    TableElement _e = _document.$dom_createElement("table");
     return _e;
   }
 
   factory TableRowElement() {
-    _TableRowElementImpl _e = _document.$dom_createElement("tr");
+    TableRowElement _e = _document.$dom_createElement("tr");
     return _e;
   }
 
   factory TextAreaElement() {
-    _TextAreaElementImpl _e = _document.$dom_createElement("textarea");
+    TextAreaElement _e = _document.$dom_createElement("textarea");
     return _e;
   }
 
   factory TitleElement() {
-    _TitleElementImpl _e = _document.$dom_createElement("title");
+    TitleElement _e = _document.$dom_createElement("title");
     return _e;
   }
 
   factory TrackElement() {
-    _TrackElementImpl _e = _document.$dom_createElement("track");
+    TrackElement _e = _document.$dom_createElement("track");
     return _e;
   }
 
   factory UListElement() {
-    _UListElementImpl _e = _document.$dom_createElement("ul");
+    UListElement _e = _document.$dom_createElement("ul");
     return _e;
   }
 
   factory VideoElement() {
-    _VideoElementImpl _e = _document.$dom_createElement("video");
+    VideoElement _e = _document.$dom_createElement("video");
     return _e;
   }
 }
@@ -37003,12 +37097,10 @@ class _TypedArrayFactoryProvider {
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    final _EventTargetImpl targetImpl = target;
-    targetImpl.$dom_addEventListener(type, listener, useCapture);
+    target.$dom_addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    final _EventTargetImpl targetImpl = target;
-    targetImpl.$dom_removeEventListener(type, listener, useCapture);
+    target.$dom_removeEventListener(type, listener, useCapture);
   }
 
 }// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
