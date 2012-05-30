@@ -837,9 +837,10 @@ unwrapException(ex) {
     }
   }
 
-  // Last resort: Create a completely generic exception object and use
-  // the JS exception message as its argument.
-  return new Exception(message);
+  // Just return the exception. We should not wrap it because in case
+  // the exception comes from the DOM, it is a JavaScript
+  // object backed by a native Dart class.
+  return ex;
 }
 
 /**
