@@ -4,36 +4,115 @@
 
 // VM-specific implementation of the dart:mirrors library.
 
-class _IsolateMirrorImpl implements IsolateMirror {
-  _IsolateMirrorImpl(this.port, this.debugName) {}
-
-  final SendPort port;
-  final String debugName;
-
-  static _make(SendPort port, String debugName) {
-    return new _IsolateMirrorImpl(port, debugName);
-  }
+// These values are allowed to be passed directly over the wire.
+bool isSimpleValue(var value) {
+  return (value === null || value is num || value is String || value is bool);
 }
 
-class _Mirrors {
-  static Future<IsolateMirror> isolateMirrorOf(SendPort port) {
-    Completer<IsolateMirror> completer = new Completer<IsolateMirror>();
-    String request = '{ "command": "isolateMirrorOf" }';
-    ReceivePort rp = new ReceivePort();
-    if (!send(port, request, rp.toSendPort())) {
-      throw new Exception("Unable to send mirror request to port $port");
+abstract class _LocalMirrorImpl implements Mirror {
+  // Local mirrors always return the same IsolateMirror.  This field
+  // is more interesting once we implement remote mirrors.
+  IsolateMirror get isolate() { return Mirrors.localIsolateMirror(); }
+}
+
+class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
+    implements IsolateMirror {
+  _LocalIsolateMirrorImpl(this.debugName, this.rootLibrary, this.libraries) {}
+
+  final String debugName;
+  final LibraryMirror rootLibrary;
+  final Map<String, LibraryMirror> libraries;
+}
+
+// A VMReference is used to hold a reference to a VM-internal object,
+// which can include things like libraries, classes, etc.
+class VMReference extends NativeFieldWrapperClass1 {
+}
+
+abstract class _LocalVMObjectMirrorImpl extends _LocalMirrorImpl {
+  _LocalVMObjectMirrorImpl(this._reference) {}
+
+  // For now, all VMObjects hold a VMReference.  We could consider
+  // storing the Object reference itself here if the object is a Dart
+  // language objects (except for objects of type VMReference, of
+  // course).
+  VMReference _reference;
+}
+
+abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
+    implements ObjectMirror {
+  _LocalObjectMirrorImpl(ref) : super(ref) {}
+
+  Future<InstanceMirror> invoke(String memberName,
+                                List<Object> positionalArguments,
+                                [Map<String,Object> namedArguments]) {
+    if (namedArguments !== null) {
+      throw new NotImplementedException('named arguments not implemented');
     }
-    rp.receive((message, _) {
-        rp.close();
-        completer.complete(_Mirrors.processResponse(
-            port, "isolateMirrorOf", message));
-      });
+    // Walk the arguments and make sure they are legal.
+    for (int i = 0; i < positionalArguments.length; i++) {
+      var arg = positionalArguments[i];
+      if (arg is Mirror) {
+        throw new MirrorException(
+            'positional argument $i ($arg) was not an InstanceMirror');
+      }
+      if (!isSimpleValue(arg)) {
+        throw new MirrorException(
+            'positional argument $i ($arg) was not a simple value');
+      }
+    }
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    completer.complete(
+        _invoke(this, memberName, positionalArguments));
     return completer.future;
   }
 
-  static bool send(SendPort port, String request, SendPort replyTo)
-      native "Mirrors_send";
+  static _invoke(ref, memberName, positionalArguments)
+      native 'LocalObjectMirrorImpl_invoke';
+}
 
-  static processResponse(SendPort port, String command, String response)
-      native "Mirrors_processResponse";
+class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
+    implements InstanceMirror {
+  _LocalInstanceMirrorImpl(ref, this.simpleValue) : super(ref) {}
+
+  final simpleValue;
+}
+
+class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
+    implements LibraryMirror {
+  _LocalLibraryMirrorImpl(ref, this.simpleName, this.url) : super(ref) {}
+
+  final String simpleName;
+  final String url;
+}
+
+class _Mirrors {
+  // Does a port refer to our local isolate?
+  static bool isLocalPort(SendPort port) native 'Mirrors_isLocalPort';
+
+  static IsolateMirror _localIsolateMirror;
+
+  // The IsolateMirror for the current isolate.
+  static IsolateMirror localIsolateMirror() {
+    if (_localIsolateMirror === null) {
+      _localIsolateMirror = makeLocalIsolateMirror();
+    }
+    return _localIsolateMirror;
+  }
+
+  // Creates a new local IsolateMirror.
+  static bool makeLocalIsolateMirror()
+      native 'Mirrors_makeLocalIsolateMirror';
+
+  static Future<IsolateMirror> isolateMirrorOf(SendPort port) {
+    Completer<IsolateMirror> completer = new Completer<IsolateMirror>();
+    if (isLocalPort(port)) {
+      // Make a local isolate mirror.
+      completer.complete(localIsolateMirror());
+    } else {
+      // Make a remote isolate mirror.
+      throw new NotImplementedException('Remote mirrors not yet implemented');
+    }
+    return completer.future;
+  }
 }

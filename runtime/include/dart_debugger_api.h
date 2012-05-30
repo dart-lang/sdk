@@ -54,6 +54,9 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
  * \return A handle to a list of string handles.
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryURLs();
+// TODO(turnidge): The embedding and debugger apis are not consistent
+// in how they capitalize url.  One uses 'Url' and the other 'URL'.
+// They should be the same.
 
 
 /**

@@ -699,6 +699,14 @@ DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
 }
 
 
+DART_EXPORT Dart_Handle Dart_DebugName() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return Api::NewHandle(isolate, String::New(isolate->name()));
+}
+
+
+
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate dart_isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
@@ -2496,6 +2504,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
   const Array& kNoArgNames = Array::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  if (obj.IsError()) {
+    return target;
+  }
+
   if (obj.IsNull() || obj.IsInstance()) {
     Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
@@ -2894,20 +2906,35 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
+                                                         int* count) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  if (instance.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, obj, Instance);
+  }
+  const Class& cls = Class::Handle(isolate, instance.clazz());
+  *count = cls.num_native_fields();
+  return Api::Success(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Instance& object = Api::UnwrapInstanceHandle(isolate, obj);
-  if (object.IsNull()) {
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  if (!object.IsValidNativeIndex(index)) {
+  if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
-        "Invalid index passed in to access native instance field");
+        "%s: invalid index %d passed in to access native instance field",
+        CURRENT_FUNC, index);
   }
-  *value = object.GetNativeField(index);
+  *value = instance.GetNativeField(index);
   return Api::Success(isolate);
 }
 
@@ -2917,15 +2944,16 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Instance& object = Api::UnwrapInstanceHandle(isolate, obj);
-  if (object.IsNull()) {
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  if (!object.IsValidNativeIndex(index)) {
+  if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
-        "Invalid index passed in to set native instance field");
+        "%s: invalid index %d passed in to set native instance field",
+        CURRENT_FUNC, index);
   }
-  object.SetNativeField(index, value);
+  instance.SetNativeField(index, value);
   return Api::Success(isolate);
 }
 
@@ -3190,6 +3218,19 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                          cls_name.ToCString(), lib_name.ToCString());
   }
   return Api::NewHandle(isolate, cls.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+  const String& name = String::Handle(isolate, lib.name());
+  ASSERT(!name.IsNull());
+  return Api::NewHandle(isolate, name.raw());
 }
 
 

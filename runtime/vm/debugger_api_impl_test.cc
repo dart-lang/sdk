@@ -975,6 +975,36 @@ TEST_CASE(Debug_LookupSourceLine) {
   EXPECT_STREQ(kScriptChars, source_chars);
 }
 
+
+TEST_CASE(GetLibraryURLs) {
+  const char* kScriptChars =
+      "main() {"
+      "  return 12345;"
+      "}";
+
+  Dart_Handle lib_list = Dart_GetLibraryURLs();
+  EXPECT_VALID(lib_list);
+  EXPECT(Dart_IsList(lib_list));
+  Dart_Handle list_as_string = Dart_ToString(lib_list);
+  const char* list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_as_string, &list_cstr));
+  EXPECT_NOTSUBSTRING(TestCase::url(), list_cstr);
+
+  // Load a script.
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  EXPECT_VALID(Dart_LoadScript(url, source));
+
+  lib_list = Dart_GetLibraryURLs();
+  EXPECT_VALID(lib_list);
+  EXPECT(Dart_IsList(lib_list));
+  list_as_string = Dart_ToString(lib_list);
+  list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_as_string, &list_cstr));
+  EXPECT_SUBSTRING(TestCase::url(), list_cstr);
+}
+
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

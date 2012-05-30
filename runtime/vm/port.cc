@@ -217,6 +217,19 @@ bool PortMap::PostMessage(Message* message) {
 }
 
 
+bool PortMap::IsLocalPort(Dart_Port id) {
+  MutexLocker ml(mutex_);
+  intptr_t index = FindPort(id);
+  if (index < 0) {
+    // Port does not exist.
+    return false;
+  }
+
+  MessageHandler* handler = map_[index].handler;
+  return handler->IsCurrentIsolate();
+}
+
+
 void PortMap::InitOnce() {
   mutex_ = new Mutex();
 

@@ -2157,6 +2157,13 @@ UNIT_TEST_CASE(Isolates) {
 }
 
 
+TEST_CASE(DebugName) {
+  Dart_Handle debug_name = Dart_DebugName();
+  EXPECT_VALID(debug_name);
+  EXPECT(Dart_IsString(debug_name));
+}
+
+
 static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {
 }
 
@@ -2698,7 +2705,10 @@ static void TestNativeFields(Dart_Handle retobj) {
   const int kNativeFld2 = 2;
   const int kNativeFld3 = 3;
   const int kNativeFld4 = 4;
+  int field_count = 0;
   intptr_t field_value = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceFieldCount(retobj, &field_count));
+  EXPECT_EQ(4, field_count);
   result = Dart_GetNativeInstanceField(retobj, kNativeFld4, &field_value);
   EXPECT(Dart_IsError(result));
   result = Dart_GetNativeInstanceField(retobj, kNativeFld0, &field_value);
@@ -2775,6 +2785,18 @@ TEST_CASE(NativeFieldAccess) {
 
   // Now access and set various instance fields of the returned object.
   TestNativeFields(retobj);
+
+  // Test that accessing an error handle propagates the error.
+  Dart_Handle error = Api::NewError("myerror");
+  intptr_t field_value = 0;
+
+  result = Dart_GetNativeInstanceField(error, 0, &field_value);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("myerror", Dart_GetError(result));
+
+  result = Dart_SetNativeInstanceField(error, 0, 1);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("myerror", Dart_GetError(result));
 }
 
 
@@ -3300,33 +3322,45 @@ TEST_CASE(Invoke_FunnyArgs) {
       "test(arg) => 'hello $arg';\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle func_name = Dart_NewString("test");
   Dart_Handle args[1];
   const char* str;
 
   // Make sure that valid args yield valid results.
   args[0] = Dart_NewString("!!!");
-  Dart_Handle result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  Dart_Handle result = Dart_Invoke(lib, func_name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("hello !!!", str);
 
   // Make sure that null is legal.
   args[0] = Dart_Null();
-  result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  result = Dart_Invoke(lib, func_name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("hello null", str);
 
-  // Pass a non-instance handle.
+  // Pass an error handle as the target.  The error is propagated.
+  result = Dart_Invoke(Api::NewError("myerror"),
+                       func_name, 1, args);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("myerror", Dart_GetError(result));
+
+  // Pass an error handle as the function name.  The error is propagated.
+  result = Dart_Invoke(lib, Api::NewError("myerror"), 1, args);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("myerror", Dart_GetError(result));
+
+  // Pass a non-instance handle as a parameter..
   args[0] = lib;
-  result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  result = Dart_Invoke(lib, func_name, 1, args);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_Invoke expects argument 0 to be an instance of Object.",
                Dart_GetError(result));
 
-  // Pass an error handle.  The error is contagious.
+  // Pass an error handle as a parameter.  The error is propagated.
   args[0] = Api::NewError("myerror");
-  result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  result = Dart_Invoke(lib, func_name, 1, args);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("myerror", Dart_GetError(result));
 }
@@ -3750,6 +3784,31 @@ TEST_CASE(LoadScript) {
 }
 
 
+TEST_CASE(RootLibrary) {
+  const char* kScriptChars =
+      "main() {"
+      "  return 12345;"
+      "}";
+
+  Dart_Handle root_lib = Dart_RootLibrary();
+  EXPECT_VALID(root_lib);
+  EXPECT(Dart_IsNull(root_lib));
+
+  // Load a script.
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  EXPECT_VALID(Dart_LoadScript(url, source));
+
+  root_lib = Dart_RootLibrary();
+  Dart_Handle lib_name = Dart_LibraryName(root_lib);
+  EXPECT_VALID(lib_name);
+  EXPECT(!Dart_IsNull(root_lib));
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(lib_name, &name_cstr));
+  EXPECT_STREQ(TestCase::url(), name_cstr);
+}
+
+
 static const char* var_mapping[] = {
   "GOOGLE3", ".",
   "ABC", "lala",
@@ -3916,6 +3975,39 @@ TEST_CASE(LookupLibrary) {
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LookupLibrary: library 'noodles.dart' not found.",
                Dart_GetError(result));
+}
+
+
+TEST_CASE(LibraryName) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');";
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  Dart_Handle error = Dart_Error("incoming error");
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_LibraryName(Dart_Null());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LibraryName expects argument 'library' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LibraryName(Dart_True());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LibraryName expects argument 'library' to be of type Library.",
+      Dart_GetError(result));
+
+  result = Dart_LibraryName(error);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LibraryName(lib);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  const char* cstr = NULL;
+  EXPECT_VALID(Dart_StringToCString(result, &cstr));
+  EXPECT_STREQ("library1_name", cstr);
 }
 
 

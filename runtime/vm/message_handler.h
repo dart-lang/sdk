@@ -69,6 +69,9 @@ class MessageHandler {
   // ------------ START PortMap API ------------
   // These functions should only be called from the PortMap.
 
+  // Does this message handler correspond to the current isolate?
+  virtual bool IsCurrentIsolate() const { return false; }
+
   // Posts a message on this handler's message queue.
   void PostMessage(Message* message);
 

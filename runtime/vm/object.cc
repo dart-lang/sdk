@@ -5434,6 +5434,9 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
   lib.Register();
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   lib.AddImport(isolate_lib);
+  const Library& wrappers_lib =
+      Library::Handle(Library::NativeWrappersLibrary());
+  lib.AddImport(wrappers_lib);
   isolate->object_store()->set_mirrors_library(lib);
 }
 

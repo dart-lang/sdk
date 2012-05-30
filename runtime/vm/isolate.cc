@@ -46,6 +46,8 @@ class IsolateMessageHandler : public MessageHandler {
   // Check that it is safe to access this handler.
   void CheckAccess();
 #endif
+  bool IsCurrentIsolate() const;
+
  private:
   Isolate* isolate_;
 };
@@ -120,9 +122,14 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 #if defined(DEBUG)
 void IsolateMessageHandler::CheckAccess() {
-  ASSERT(isolate_ == Isolate::Current());
+  ASSERT(IsCurrentIsolate());
 }
 #endif
+
+
+bool IsolateMessageHandler::IsCurrentIsolate() const {
+  return (isolate_ == Isolate::Current());
+}
 
 
 #if defined(DEBUG)

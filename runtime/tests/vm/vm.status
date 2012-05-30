@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# NOTE(turnidge): These tests (and the code they cover) is going away soon.
-dart/isolate_mirror*: Skip
-
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 cc/RunLoop_ExceptionChild: Fail
 
@@ -16,11 +13,9 @@ cc/IsolateInterrupt: Skip
 
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
-dart/isolate_mirror_self_test: Skip  # TODO(turnidge): Fix this
 
 [ $runtime == drt ]
 dart/import_map_test: Skip
-dart/isolate_mirror_self_test: Skip  # TODO(turnidge,antonm): investigate
 
 [ $compiler == dart2js || $compiler == frog || $compiler == dartc ]
 dart/import_map_test: Skip # compilers not aware of import maps.

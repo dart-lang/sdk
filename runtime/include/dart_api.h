@@ -535,6 +535,14 @@ DART_EXPORT void Dart_ShutdownIsolate();
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
 
 /**
+ * Returns the debugging name for the current isolate.
+ *
+ * This name is unique to each isolate and should only be used to make
+ * debugging messages more comprehensible.
+ */
+DART_EXPORT Dart_Handle Dart_DebugName();
+
+/**
  * Enters an isolate. After calling this function,
  * the current isolate will be set to the provided isolate.
  *
@@ -1114,6 +1122,8 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* length);
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewString(const char* str);
+// TODO(turnidge): Document what happens when we run out of memory
+// during this call.
 
 /**
  * Returns a String built from an array of 8-bit codepoints.
@@ -1787,6 +1797,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle name,
                                     int number_of_arguments,
                                     Dart_Handle* arguments);
+// TODO(turnidge): Document how to invoke operators.
 
 /**
  * Gets the value of a field.
@@ -1841,6 +1852,12 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
 DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
                                                       Dart_Handle class_name,
                                                       int field_count);
+
+/**
+ * Gets the number of native instance fields in an object.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
+                                                         int* count);
 
 /**
  * Gets the value of a native field.
@@ -2016,9 +2033,11 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer);
 /**
  * Gets the library for the root script for the current isolate.
  *
- * \return Returns the Library object corresponding to the root script
- *   if it has been set by a successful call to Dart_LoadScript or
- *   Dart_LoadScriptFromSnapshot.  Otherwise returns Dart_Null().
+ * If the root script has not yet been set for the current isolate,
+ * this function returns Dart_Null().  This function never returns an
+ * error handle.
+ *
+ * \return Returns the root Library for the current isolate or Dart_Null().
  */
 DART_EXPORT Dart_Handle Dart_RootLibrary();
 
@@ -2049,6 +2068,14 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
 // TODO(turnidge): Consider returning Dart_Null() when the class is
 // not found to distinguish that from a true error case.
 
+/**
+ * Returns the name of a library as declared in the #library directive.
+ */
+DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library);
+
+/**
+ * Returns the url from which a library was loaded.
+ */
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);

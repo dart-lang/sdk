@@ -183,8 +183,9 @@ namespace dart {
   V(isolate_getPortInternal, 0)                                                \
   V(isolate_spawnFunction, 1)                                                  \
   V(isolate_spawnUri, 1)                                                       \
-  V(Mirrors_processResponse, 3)                                                \
-  V(Mirrors_send, 3)                                                           \
+  V(Mirrors_isLocalPort, 1)                                                    \
+  V(Mirrors_makeLocalIsolateMirror, 0)                                         \
+  V(LocalObjectMirrorImpl_invoke, 3)                                           \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \
