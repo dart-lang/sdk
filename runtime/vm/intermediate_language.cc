@@ -381,7 +381,8 @@ RawAbstractType* NativeCallComp::StaticType() const {
 
 
 RawAbstractType* StoreIndexedComp::StaticType() const {
-  return value()->StaticType();
+  UNREACHABLE();
+  return AbstractType::null();
 }
 
 

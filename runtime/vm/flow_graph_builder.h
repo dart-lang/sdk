@@ -155,6 +155,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
                               const AbstractType& dst_type,
                               const String& dst_name);
 
+  void BuildStoreIndexedValues(StoreIndexedNode* node,
+                               Value** array,
+                               Value** index,
+                               Value** value);
+
   virtual void BuildInstanceOf(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
@@ -220,6 +225,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
 

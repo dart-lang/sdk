@@ -485,6 +485,7 @@ class Parser : ValueObject {
 
   const LocalVariable& GetIncrementTempLocal();
   void EnsureExpressionTemp();
+  AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
 
   ConstructorCallNode* CreateConstructorCallNode(
       intptr_t token_index,

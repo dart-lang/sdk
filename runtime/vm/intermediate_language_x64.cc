@@ -376,7 +376,7 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  return MakeSimpleLocationSummary(kNumInputs, Location::RequiresRegister());
+  return MakeSimpleLocationSummary(kNumInputs, Location::NoLocation());
 }
 
 
@@ -384,27 +384,22 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register receiver = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register value = locs()->in(2).reg();
-  Register result = locs()->out().reg();
 
-  // Call operator []= but preserve the third argument value under the
-  // arguments as the result of the computation.
   const String& function_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
 
-  // Insert a copy of the value (third argument) under the arguments.
-  // TODO(fschneider): Avoid preserving the value if the result is not used.
-  __ pushq(value);
   __ pushq(receiver);
   __ pushq(index);
   __ pushq(value);
+  const intptr_t kNumArguments = 3;
+  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
   compiler->EmitInstanceCall(cid(),
                              token_index(),
                              try_index(),
                              function_name,
-                             3,
-                             Array::ZoneHandle(),
-                             1);
-  __ popq(result);
+                             kNumArguments,
+                             Array::ZoneHandle(),  // No optional arguments.
+                             kNumArgsChecked);
 }
 
 

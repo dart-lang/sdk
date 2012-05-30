@@ -4839,7 +4839,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     AstNode* loop_var_primary = ResolveVarOrField(loop_var_pos, *loop_var_name);
     ASSERT(!loop_var_primary->IsPrimaryNode());
     loop_var_assignment =
-        loop_var_primary->MakeAssignmentNode(iterator_next);
+        CreateAssignmentNode(loop_var_primary, iterator_next);
     if (loop_var_assignment == NULL) {
       ErrorMsg(loop_var_pos, "variable or field '%s' is not assignable",
                loop_var_name->ToCString());
@@ -6109,6 +6109,16 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 }
 
 
+// Ensure that the expression temp is allocated for nodes that may need it.
+AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
+  AstNode* result = original->MakeAssignmentNode(rhs);
+  if ((result != NULL) && result->IsStoreIndexedNode()) {
+    EnsureExpressionTemp();
+  }
+  return result;
+}
+
+
 AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   TRACE_PARSER("ParseExpr");
   const intptr_t expr_pos = token_index_;
@@ -6135,7 +6145,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   }
   right_expr =
       ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-  AstNode* assign_expr = left_expr->MakeAssignmentNode(right_expr);
+  AstNode* assign_expr = CreateAssignmentNode(left_expr, right_expr);
   if (assign_expr == NULL) {
     ErrorMsg(assignment_pos,
              "left hand side of '%s' is not assignable",
@@ -6202,7 +6212,7 @@ AstNode* Parser::ParseUnaryExpr() {
         binary_op,
         expr,
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = left_expr->MakeAssignmentNode(add);
+    AstNode* store = CreateAssignmentNode(left_expr, add);
     expr = store;
   } else {
     expr = ParsePostfixExpr();
@@ -6367,7 +6377,7 @@ AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
       left_load_access = PrepareCompoundAssignmentNodes(&load_access);
     }
     value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = left_load_access->MakeAssignmentNode(value);
+    access = CreateAssignmentNode(left_load_access, value);
   } else {
     access = CallGetter(call_pos, receiver, field_name);
   }
@@ -6450,7 +6460,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       load_access = GenerateStaticFieldLookup(field, token_index_);
     }
     value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = load_access->MakeAssignmentNode(value);
+    access = CreateAssignmentNode(load_access, value);
   } else {  // Not Token::IsAssignmentOperator(CurrentToken()).
     if (field.IsNull()) {
       // No field, check if we have an explicit getter function.
@@ -6693,7 +6703,7 @@ AstNode* Parser::ParsePostfixExpr() {
         binary_op,
         save,
         new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = left_expr->MakeAssignmentNode(add);
+    AstNode* store = CreateAssignmentNode(left_expr, add);
     LoadLocalNode* load_res =
         new LoadLocalNode(postfix_expr_pos, temp, store);
     return load_res;

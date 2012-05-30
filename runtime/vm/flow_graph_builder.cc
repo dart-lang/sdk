@@ -1920,7 +1920,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
+void EffectGraphVisitor::BuildStoreIndexedValues(
+    StoreIndexedNode* node, Value** array, Value** index, Value** value) {
   ValueGraphVisitor for_array(owner(), temp_index());
   node->array()->Visit(&for_array);
   Append(for_array);
@@ -1930,12 +1931,40 @@ void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
   ValueGraphVisitor for_value(owner(), for_index.temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
+  *array = for_array.value();
+  *index = for_index.value();
+  *value = for_value.value();
+}
+
+
+void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
+  Value *array, *index, *value;
+  BuildStoreIndexedValues(node, &array, &index, &value);
   StoreIndexedComp* store = new StoreIndexedComp(node->token_index(),
                                                  owner()->try_index(),
-                                                 for_array.value(),
-                                                 for_index.value(),
-                                                 for_value.value());
+                                                 array,
+                                                 index,
+                                                 value);
   ReturnComputation(store);
+}
+
+
+void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
+  Value *array, *index, *value;
+  BuildStoreIndexedValues(node, &array, &index, &value);
+  BindInstr* store_local_instr = new BindInstr(
+      BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                      value));
+  AddInstruction(store_local_instr);
+  UseVal* saved_value = new UseVal(store_local_instr);
+  StoreIndexedComp* store = new StoreIndexedComp(node->token_index(),
+                                                 owner()->try_index(),
+                                                 array,
+                                                 index,
+                                                 saved_value);
+  AddInstruction(new DoInstr(store));
+  ReturnComputation(
+       BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }
 
 
