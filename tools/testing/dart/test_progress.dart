@@ -360,8 +360,15 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 
   void _printFailureSummary() {
     if (!_failureSummary.isEmpty()) {
+      // We need to create a unique name for each step, otherwise, the
+      // build bot will show the same failure when several steps
+      // fail. We don't know the name of the current step as it is
+      // printed by the program invoking this.
+      // TODO(ahe): Pass in the step name as an option, and let
+      // test.py take care of printing the steps.
+      var name = 'failures ($_startTime)';
       print('@@@STEP_FAILURE@@@');
-      print('@@@BUILD_STEP failures@@@');
+      print('@@@BUILD_STEP $name@@@');
     }
     super._printFailureSummary();
   }
