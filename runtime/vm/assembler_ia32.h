@@ -529,6 +529,17 @@ class Assembler : public ValueObject {
   void CallRuntime(const RuntimeEntry& entry);
 
   /*
+   * Loading and comparing classes of objects
+   */
+  void LoadClassOfObject(Register result, Register object, Register scratch);
+
+  void LoadClassIndexOfObject(Register result, Register object);
+
+  void CompareClassOfObject(Register object,
+                            const Class& clazz,
+                            Register scratch);
+
+  /*
    * Misc. functionality
    */
   void SmiTag(Register reg) {

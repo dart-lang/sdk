@@ -983,8 +983,9 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, &is_smi);
 
-    __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
-    __ CompareObject(EBX, Class::ZoneHandle(object_store->mint_class()));
+    __ CompareClassOfObject(EAX,
+                            Class::Handle(object_store->mint_class()),
+                            EBX);
     __ j(NOT_EQUAL, deopt_blob->label());
 
     // Load lower Mint word, convert to Smi. It is OK to loose bits.
@@ -1049,8 +1050,7 @@ void OptimizingCodeGenerator::CheckIfDoubleOrSmi(Register reg,
                                                  Label* not_double_or_smi) {
   __ testl(reg, Immediate(kSmiTagMask));
   __ j(ZERO, is_smi);
-  __ movl(temp, FieldAddress(reg, Object::class_offset()));
-  __ CompareObject(temp, double_class_);
+  __ CompareClassOfObject(reg, double_class_, temp);
   __ j(NOT_EQUAL, not_double_or_smi);
 }
 
@@ -1417,14 +1417,14 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     __ j(ZERO, deopt_blob->label());
   }
 
-  __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
+  __ LoadClassIndexOfObject(EAX, EBX);
   const ICData& ic_data = node->ic_data();
   Function& target = Function::Handle();
   Label load_field;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    Class& cls = Class::ZoneHandle();
+    Class& cls = Class::Handle();
     ic_data.GetOneClassCheckAt(i, &cls, &target);
-    __ CompareObject(EAX, cls);
+    __ cmpl(EAX, Immediate(cls.index()));
     if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
     } else {
@@ -1627,7 +1627,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
     __ testl(recv_reg, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
   }
-  __ movl(EBX, FieldAddress(recv_reg, Object::class_offset()));
+  __ LoadClassIndexOfObject(EBX, recv_reg);
   // Initialize setter arguments, but leave the class and target fields NULL.
   InstanceSetterArgs setter_args =
       {NULL, NULL, &field_name, recv_reg, value_reg,
@@ -1636,7 +1636,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   if (unique_target) {
     Label store_field;
     for (intptr_t i = 0; i < classes.length(); i++) {
-      __ CompareObject(EBX, *classes[i]);
+      __ cmpl(EBX, Immediate(classes[i]->index()));
       if (i == (classes.length() - 1)) {
         __ j(NOT_EQUAL, deopt_blob->label());
       } else {
@@ -1654,7 +1654,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   for (intptr_t i = 0; i < classes.length(); i++) {
     setter_args.cls = classes[i];
     setter_args.target = targets[i];
-    __ CompareObject(EBX, *classes[i]);
+    __ cmpl(EBX, Immediate(classes[i]->index()));
     if (i == (classes.length() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
       GenerateInstanceSetter(setter_args);
@@ -1990,10 +1990,10 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
     // Smi causes deoptimization.
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
-    __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
+    __ LoadClassIndexOfObject(EBX, EAX);
     for (intptr_t i = 0; i < num_classes; i++) {
       const Class& cls = *(*classes)[i];
-      __ CompareObject(EBX, cls);
+      __ cmpl(EBX, Immediate(cls.index()));
       if (i == (num_classes - 1)) {
         __ j(NOT_EQUAL, deopt_blob->label());
       } else {
@@ -2171,8 +2171,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     if (!array_info.IsClass(test_class)) {
       __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
       __ j(ZERO, deopt_blob->label());
-      __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
-      __ CompareObject(EAX, test_class);
+      __ CompareClassOfObject(EBX, test_class, EAX);
       __ j(NOT_EQUAL, deopt_blob->label());
       PropagateBackLocalClass(node->array(), test_class);
     }
@@ -2209,8 +2208,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     if (!array_info.IsClass(growable_object_array_class_)) {
       __ testl(EDX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is Smi.
-      __ movl(EBX, FieldAddress(EDX, Object::class_offset()));
-      __ CompareObject(EBX, growable_object_array_class_);
+      __ CompareClassOfObject(EDX, growable_object_array_class_, EBX);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
       PropagateBackLocalClass(node->array(), growable_object_array_class_);
     }
@@ -2277,8 +2275,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     if (class_of_this_array.raw() != object_array_class.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
-      __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
-      __ CompareObject(EDX, object_array_class);
+      __ CompareClassOfObject(EAX, object_array_class, EDX);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not ObjectArray -> deopt.
       PropagateBackLocalClass(node->array(), object_array_class);
     }
@@ -2318,8 +2315,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     if (class_of_this_array.raw() != growable_object_array_class_.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
-      __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
-      __ CompareObject(EDX, growable_object_array_class_);
+      __ CompareClassOfObject(EAX, growable_object_array_class_, EDX);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
       PropagateBackLocalClass(node->array(), growable_object_array_class_);
     }
@@ -2647,11 +2643,11 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
   } else {
     // Receiver cannot be Smi, no need to test it.
   }
-  __ movl(EAX, FieldAddress(EAX, Object::class_offset()));  // Receiver's class.
+  __ LoadClassIndexOfObject(EAX, EAX);  // Receiver's class.
   for (intptr_t i = start_ix; i < classes.length(); i++) {
     const Class& cls = *classes[i];
     const Function& target = *targets[i];
-    __ CompareObject(EAX, cls);
+    __ cmpl(EAX, Immediate(cls.index()));
     if (i == (classes.length() - 1)) {
       // Last check.
       DeoptimizationBlob* deopt_blob =

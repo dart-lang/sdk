@@ -61,6 +61,9 @@ class Isolate : public BaseIsolate {
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 
   ClassTable* class_table() { return &class_table_; }
+  static intptr_t class_table_offset() {
+    return OFFSET_OF(Isolate, class_table_);
+  }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;

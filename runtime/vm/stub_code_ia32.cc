@@ -295,7 +295,7 @@ static void MegamorphicLookup(Assembler* assembler) {
   __ j(EQUAL, &null_receiver, Assembler::kNearJump);
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, &smi_receiver, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EAX, Object::class_offset()));
+  __ LoadClassOfObject(EAX, EAX, EDI);
   __ jmp(&class_in_eax, Assembler::kNearJump);
   __ Bind(&smi_receiver);
   // For Smis we need to get the class from the isolate.
@@ -772,7 +772,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(ZERO, &not_closure, Assembler::kNearJump);  // Not a closure, but a smi.
   // Verify that the class of the object is a closure class by checking that
   // class.signature_function() is not null.
-  __ movl(EAX, FieldAddress(EDI, Object::class_offset()));
+  __ LoadClassOfObject(EAX, EDI, ECX);
   __ movl(EAX, FieldAddress(EAX, Class::signature_function_offset()));
   __ cmpl(EAX, raw_null);
   // Actual class is not a closure class.
@@ -1576,8 +1576,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is Smi.
 
   Label get_class, ic_miss;
-  __ call(&get_class);
-  // EAX: receiver's class
   // ECX: IC data array.
 
 #if defined(DEBUG)
@@ -1601,6 +1599,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // EBX: points directly to the first ic data array element.
   Label loop, found;
   if (num_args == 1) {
+    __ call(&get_class);
+    // EAX: receiver's class
     __ Bind(&loop);
     __ movl(EDI, Address(EBX, 0));  // Get class to check.
     __ cmpl(EAX, EDI);  // Match?
@@ -1613,21 +1613,22 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     Label no_match;
     __ Bind(&loop);
     // Get class from IC data to check.
-    __ movl(EDI, Address(EBX, 0));
     // Get receiver using argument descriptor in EDX.
     __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (arg. count) is Smi.
     __ call(&get_class);
+    // TODO(vegorov): switch IC data to store class index instead of class.
+    __ movl(EDI, Address(EBX, 0));
     __ cmpl(EAX, EDI);  // Match?
     __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
     // Check second class/argument.
     // Get class from IC data to check.
-    __ movl(EDI, Address(EBX, kWordSize));
     // Get next argument.
     __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, -kWordSize));
     // EAX (argument count) is Smi.
     __ call(&get_class);
+    __ movl(EDI, Address(EBX, kWordSize));
     __ cmpl(EAX, EDI);  // Match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ Bind(&no_match);
@@ -1696,7 +1697,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_smi);
-  __ movl(EAX, FieldAddress(EAX, Object::class_offset()));
+  __ LoadClassOfObject(EAX, EAX, EDI);
   __ ret();
 }
 
@@ -1802,7 +1803,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+  __ LoadClassOfObject(ECX, EAX, EBX);
   // EAX: instance, ECX: instance-class.
   // Get instance type arguments
   if (n > 1) {

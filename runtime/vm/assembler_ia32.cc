@@ -1562,6 +1562,37 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 
+void Assembler::LoadClassOfObject(Register result,
+                                  Register object,
+                                  Register scratch) {
+  ASSERT(scratch != result);
+  LoadClassIndexOfObject(scratch, object);
+
+  movl(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  movl(result, Address(result, table_offset_in_isolate));
+  movl(result, Address(result, scratch, TIMES_4, 0));
+}
+
+
+void Assembler::LoadClassIndexOfObject(Register result, Register object) {
+  ASSERT(RawObject::kClassTagBit == 16);
+  ASSERT(RawObject::kClassTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassTagBit / kBitsPerByte;
+  movzxw(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::CompareClassOfObject(Register object,
+                                     const Class& clazz,
+                                     Register scratch) {
+  LoadClassIndexOfObject(scratch, object);
+  cmpl(scratch, Immediate(clazz.index()));
+}
+
+
 void Assembler::Comment(const char* comment) {
   if (FLAG_code_comments) {
     comments_.Add(new CodeComment(buffer_.GetPosition(),
