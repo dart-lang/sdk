@@ -53,6 +53,34 @@ class BitOperationsTest {
     TestNegativeValueShifts();
     TestPositiveValueShifts();
     TestNoMaskingOfShiftCount();
+    TestNegativeCountShifts();
+  }
+  
+  static void TestNegativeCountShifts() {
+    bool throwOnLeft(a, b) {
+      try {
+        var x = a << b;
+        return false;
+      } catch(var e) {
+        return true;
+      }
+    }
+    
+    bool throwOnRight(a, b) {
+      try {
+        var x = a >> b;
+        return false;
+      } catch(var e) {
+        return true;
+      }
+    }
+  
+    Expect.isTrue(throwOnLeft(12, -3));
+    Expect.isTrue(throwOnRight(12, -3));
+    for (int i = 0; i < 4000; i++) {
+      Expect.isFalse(throwOnLeft(12, 3));
+      Expect.isFalse(throwOnRight(12, 3));
+    }
   }
 
   static void TestNegativeValueShifts() {

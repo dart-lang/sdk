@@ -988,14 +988,44 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
-  const intptr_t kNumTemps = 1;
   const intptr_t kNumInputs = 2;
-  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  summary->set_temp(0, Location::RequiresRegister());
-  return summary;
+  if (op_kind() == Token::kTRUNCDIV) {
+    const intptr_t kNumTemps = 3;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RegisterLocation(RAX));
+    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RegisterLocation(RBX));
+    // Will be used for for sign extension.
+    summary->set_temp(1, Location::RegisterLocation(RDX));
+    summary->set_temp(2, Location::RequiresRegister());
+    return summary;
+  } else if (op_kind() == Token::kSHR) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  } else if (op_kind() == Token::kSHL) {
+    const intptr_t kNumTemps = 2;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RegisterLocation(RCX));
+    return summary;
+  } else {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
 }
 
 
@@ -1021,6 +1051,7 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
   Register right = comp->locs()->in(1).reg();
   Register result = comp->locs()->out().reg();
   Register temp = comp->locs()->temp(0).reg();
+  ASSERT(left == result);
   Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
                                         comp->instance_call()->token_index(),
                                         comp->instance_call()->try_index(),
@@ -1036,13 +1067,110 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
     case Token::kADD: {
       __ addq(left, right);
       __ j(OVERFLOW, deopt);
-      if (result != left) {
-        __ movq(result, left);
-      }
       break;
+    }
+    case Token::kSUB: {
+      __ subq(left, right);
+      __ j(OVERFLOW, deopt);
+      break;
+    }
+    case Token::kMUL: {
+      __ SmiUntag(left);
+      __ imulq(left, right);
+      __ j(OVERFLOW, deopt);
+      break;
+    }
+    case Token::kBIT_AND: {
+      // No overflow check.
+      __ andq(left, right);
+      break;
+    }
+    case Token::kBIT_OR: {
+      // No overflow check.
+      __ orq(left, right);
+      break;
+    }
+    case Token::kBIT_XOR: {
+      // No overflow check.
+      __ xorq(left, right);
+      break;
+    }
+    case Token::kTRUNCDIV: {
+      // Handle divide by zero in runtime.
+      // Deoptimization requires that temp and right are preserved.
+      __ testq(right, right);
+      __ j(ZERO, deopt);
+      ASSERT(left == RAX);
+      ASSERT((right != RDX) && (right != RAX));
+      ASSERT((temp != RDX) && (temp != RAX));
+      ASSERT(comp->locs()->temp(1).reg() == RDX);
+      ASSERT(result == RAX);
+      Register right_temp = comp->locs()->temp(2).reg();
+      __ movq(right_temp, right);
+      __ SmiUntag(left);
+      __ SmiUntag(right_temp);
+      __ cqo();  // Sign extend RAX -> RDX:RAX.
+      __ idivq(right_temp);  //  RAX: quotient, RDX: remainder.
+      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+      // case we cannot tag the result.
+      __ cmpq(result, Immediate(0x4000000000000000));
+      __ j(EQUAL, deopt);
+      __ SmiTag(result);
+      break;
+    }
+    case Token::kDIV: {
+      // Dispatches to 'Double./'.
+      // TODO(srdjan): Implement as conversion to double and double division.
+      return false;
+    }
+    case Token::kMOD: {
+      // TODO(srdjan): Implement.
+      return false;
+    }
+    case Token::kSHR: {
+      const Immediate kCountLimit = Immediate(0x1F);
+      __ cmpq(right, Immediate(0));
+      __ j(LESS, deopt);
+      __ SmiUntag(right);
+      __ cmpq(right, kCountLimit);
+      Label count_ok;
+      __ j(LESS, &count_ok, Assembler::kNearJump);
+      __ movq(right, kCountLimit);
+      __ Bind(&count_ok);
+      ASSERT(right == RCX);  // Count must be in ECX
+      __ SmiUntag(left);
+      __ sarq(left, right);
+      __ SmiTag(left);
+      break;
+    }
+    case Token::kSHL: {
+      // Check if count too large for handling it inlined.
+      __ cmpq(right,
+          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
+      __ j(ABOVE_EQUAL, deopt);
+      Register right_temp = comp->locs()->temp(1).reg();
+      ASSERT(right_temp == RCX);  // Count must be in RCX
+      __ movq(right_temp, right);
+      __ SmiUntag(right_temp);
+      // Overflow test (preserve temp and right);
+      __ shlq(left, right_temp);
+      __ sarq(left, right_temp);
+      __ cmpq(left, temp);
+      __ j(NOT_EQUAL, deopt);  // Overflow.
+      // Shift for result now we know there is no overflow.
+      __ shlq(left, right_temp);
+      break;
+    }
+    case Token::kOR:
+    case Token::kAND: {
+      // Flow graph builder has dissected this operation to guarantee correct
+      // behavior (short-circuit evaluation).
+      UNREACHABLE();
+      return false;
     }
     default:
       UNREACHABLE();
+      return false;
   }
   return true;
 }

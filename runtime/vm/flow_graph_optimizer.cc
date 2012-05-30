@@ -39,17 +39,6 @@ void FlowGraphOptimizer::VisitBlocks() {
 }
 
 
-static Token::Kind GetBinaryOp(const String& name) {
-  if (name.Length() == 1) {
-    switch (name.CharAt(0)) {
-      case '+' : return Token::kADD;
-      default: return Token::kILLEGAL;
-    }
-  }
-  return Token::kILLEGAL;
-}
-
-
 static bool ICDataHasTwoReceiverClasses(const ICData& ic_data,
                                         const Class& cls1,
                                         const Class& cls2) {
@@ -81,7 +70,7 @@ static bool HasTwoSmi(const ICData& ic_data) {
 
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
   if ((comp->ic_data() != NULL) && (!comp->ic_data()->IsNull())) {
-    Token::Kind op_kind = GetBinaryOp(comp->function_name());
+    Token::Kind op_kind = Token::GetBinaryOp(comp->function_name());
     if (op_kind == Token::kILLEGAL) {
       // Not a recognized binary operation.
       return;

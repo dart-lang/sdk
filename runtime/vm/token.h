@@ -178,6 +178,8 @@ namespace dart {
   KW(kWHILE, "while", 0, kKeyword) /* == kLastKeyword */
 
 
+class String;
+
 class Token {
  public:
 #define T(t, s, p, a) t,
@@ -265,6 +267,9 @@ class Token {
             (tok == Token::kERROR) ||
             (tok == Token::kDOUBLE));
   }
+
+  // Returns kILLEGAL if 'name' does not match a BinaryOp.
+  static Token::Kind GetBinaryOp(const String& name);
 
  private:
   static const char* name_[];

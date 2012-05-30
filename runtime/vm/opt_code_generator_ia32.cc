@@ -643,6 +643,8 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
       PropagateBackLocalClass(node->left(), smi_class_);
       PropagateBackLocalClass(node->right(), smi_class_);
     }
+    __ cmpl(ECX, Immediate(0));
+    __ j(LESS, deopt_blob->label());
     Immediate count_limit = Immediate(0x1F);
     __ SmiUntag(ECX);
     __ cmpl(ECX, count_limit);

@@ -69,6 +69,8 @@ enum RexBits {
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
 const Register CTX = R15;  // Caches current context in generated code.
+const Register SPREG = RSP;
+const Register FPREG = RBP;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

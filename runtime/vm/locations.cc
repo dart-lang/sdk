@@ -55,6 +55,8 @@ void LocationSummary::AllocateRegisters() {
 
   // Do not allocate known registers.
   blocked_registers[CTX] = true;
+  blocked_registers[SPREG] = true;
+  blocked_registers[FPREG] = true;
   if (TMP != kNoRegister) {
     blocked_registers[TMP] = true;
   }
