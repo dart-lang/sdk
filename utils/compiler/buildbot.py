@@ -87,8 +87,8 @@ def GetBuildInfo():
       runtime = web_pattern.group(1)
       system = web_pattern.group(2)
       mode = 'release'
-      shard_index = dart2js_pattern.group(3)
-      total_shards = dart2js_pattern.group(4)
+      shard_index = web_pattern.group(3)
+      total_shards = web_pattern.group(4)
 
   if system == 'windows':
     system = 'win7'
