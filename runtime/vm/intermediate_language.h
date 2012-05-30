@@ -966,7 +966,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 };
 
 
-class CreateArrayComp : public Computation {
+class CreateArrayComp : public TemplateComputation<1> {
  public:
   CreateArrayComp(intptr_t token_index,
                   intptr_t try_index,
@@ -974,14 +974,14 @@ class CreateArrayComp : public Computation {
                   Value* element_type)
       : token_index_(token_index),
         try_index_(try_index),
-        elements_(elements),
-        element_type_(element_type) {
+        elements_(elements) {
 #if defined(DEBUG)
     for (int i = 0; i < ElementCount(); ++i) {
       ASSERT(ElementAt(i) != NULL);
     }
-    ASSERT(element_type_ != NULL);
+    ASSERT(element_type != NULL);
 #endif
+    inputs_[0] = element_type;
   }
 
   DECLARE_COMPUTATION(CreateArray)
@@ -990,7 +990,7 @@ class CreateArrayComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
-  Value* element_type() const { return element_type_; }
+  Value* element_type() const { return inputs_[0]; }
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ElementAt(i); }
@@ -1001,7 +1001,6 @@ class CreateArrayComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
-  Value* element_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };

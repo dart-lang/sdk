@@ -935,42 +935,14 @@ void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
 
 
 void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
-  // 1. Allocate the array.  R10 = length, RBX = element type.
-  __ movq(R10, Immediate(Smi::RawValue(comp->ElementCount())));
-  LoadValue(RBX, comp->element_type());
-  GenerateCall(comp->token_index(),
-               comp->try_index(),
-               &StubCode::AllocateArrayLabel(),
-               PcDescriptors::kOther);
-
-  // 2. Initialize the array in RAX with the element values.
-  __ leaq(RCX, FieldAddress(RAX, Array::data_offset()));
-  for (int i = comp->ElementCount() - 1; i >= 0; --i) {
-    if (comp->ElementAt(i)->IsUse()) {
-      __ popq(Address(RCX, i * kWordSize));
-    } else {
-      LoadValue(RDX, comp->ElementAt(i));
-      __ movq(Address(RCX, i * kWordSize), RDX);
-    }
-  }
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
-  const Function& function = comp->function();
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(function));
-  const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(comp->token_index(), comp->try_index(), &label,
-               PcDescriptors::kOther);
-
-  const Class& cls = Class::Handle(function.signature_class());
-  if (cls.HasTypeArguments()) {
-    __ popq(RCX);  // Discard type arguments.
-  }
-  if (function.IsImplicitInstanceClosureFunction()) {
-    __ popq(RCX);  // Discard receiver.
-  }
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -1273,7 +1245,7 @@ void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
 }
 
 
-// Coped from CodeGenerator::CopyParameters (CodeGenerator will be deprecated).
+// Copied from CodeGenerator::CopyParameters (CodeGenerator will be deprecated).
 void FlowGraphCompiler::CopyParameters() {
   const Function& function = parsed_function_.function();
   LocalScope* scope = parsed_function_.node_sequence()->scope();
@@ -1539,8 +1511,6 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 
-// TODO(srdjan): Investigate where to put the argument type checks for
-// checked mode.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
   if (TryIntrinsify()) {

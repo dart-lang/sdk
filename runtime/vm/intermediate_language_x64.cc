@@ -581,22 +581,64 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateArrayComp::MakeLocationSummary() const {
-  return NULL;
+  // TODO(regis): The elements of the array could be considered as arguments to
+  // CreateArrayComp, thereby making CreateArrayComp a call.
+  // For VerifyCallComputation to work, CreateArrayComp would need an
+  // ArgumentCount getter and an ArgumentAt getter.
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RegisterLocation(RBX));
+  locs->set_temp(0, Location::RegisterLocation(R10));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->in(0).reg() == RBX);
+  ASSERT(locs()->temp(0).reg() == R10);
+
+  // 1. Allocate the array.  R10 = length, RBX = element type.
+  __ movq(R10, Immediate(Smi::RawValue(ElementCount())));
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &StubCode::AllocateArrayLabel(),
+                         PcDescriptors::kOther);
+
+  // 2. Initialize the array in RAX with the element values.
+  __ leaq(R10, FieldAddress(RAX, Array::data_offset()));
+  for (int i = ElementCount() - 1; i >= 0; --i) {
+    if (ElementAt(i)->IsUse()) {
+      __ popq(Address(R10, i * kWordSize));
+    } else {
+      compiler->LoadValue(RBX, ElementAt(i));
+      __ movq(Address(R10, i * kWordSize), RBX);
+    }
+  }
 }
 
 
 LocationSummary* CreateClosureComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Function& closure_function = function();
+  const Code& stub = Code::Handle(
+      StubCode::GetAllocationStubForClosure(closure_function));
+  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_index(), try_index(), &label,
+                         PcDescriptors::kOther);
+
+  const Class& cls = Class::Handle(closure_function.signature_class());
+  if (cls.HasTypeArguments()) {
+    __ Drop(1);  // Discard type arguments.
+  }
+  if (closure_function.IsImplicitInstanceClosureFunction()) {
+    __ Drop(1);  // Discard receiver.
+  }
 }
 
 
