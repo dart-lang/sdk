@@ -24,8 +24,10 @@ DART_PATH = os.path.dirname(
 
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?-?(\d*)-?(\d*)')
-FROG_BUILDER = r'(frog)-(linux|mac|windows)-(debug|release)'
-WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
+FROG_BUILDER = (
+    r'(frog)-(linux|mac|windows)-(debug|release)')
+WEB_BUILDER = (
+    r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)-?(\d*)-?(\d*)')
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
@@ -83,15 +85,10 @@ def GetBuildInfo():
     elif web_pattern:
       compiler = 'dart2js'
       runtime = web_pattern.group(1)
-      mode = 'release'
       system = web_pattern.group(2)
-
-      # TODO(kasperl): Update the names of the web builders so we can
-      # use the generic sharding mechanism.
-      if (runtime == 'ie'):
-        total_shards = 2
-        if web_pattern.group(4) == '2': shard_index = 2
-        else: shard_index = 1
+      mode = 'release'
+      shard_index = dart2js_pattern.group(3)
+      total_shards = dart2js_pattern.group(4)
 
   if system == 'windows':
     system = 'win7'
