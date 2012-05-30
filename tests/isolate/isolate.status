@@ -81,3 +81,7 @@ v2_compute_this_script_browser_test: Fail, OK # dart2js does not support APIv2
 
 [ $compiler == dart2js && $runtime == ff ]
 isolate2_negative_test: Fail
+
+[ $compiler == dart2js && $runtime == ie ]
+mint_maker_test: Skip # BUG(3304): Times out.
+nested_spawn2_test: Skip # BUG(3304): Times out.
