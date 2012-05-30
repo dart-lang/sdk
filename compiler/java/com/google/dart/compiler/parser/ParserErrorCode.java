@@ -39,6 +39,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_COMMA_OR_RIGHT_BRACE("Expected ',' or '}'"),
   EXPECTED_COMMA_OR_RIGHT_PAREN("Expected ',' or ')', but got '%s'"),
   EXPECTED_EOS("Unexpected token '%s' (expected end of file)"),
+  EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
   EXPECTED_EXTENDS("Expected 'extends'"),
   EXPECTED_IDENTIFIER("Expected identifier"),
   EXPECTED_LEFT_PAREN("'(' expected"),
