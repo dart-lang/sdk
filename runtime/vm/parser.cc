@@ -3942,7 +3942,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   const bool kTestOnly = false;
   LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
   if (receiver == NULL) {
-    ErrorMsg(token_pos, "illegal access to 'this'");
+    ErrorMsg(token_pos, "illegal implicit access to receiver 'this'");
   }
   return new LoadLocalNode(token_index_, *receiver);
 }
@@ -8163,7 +8163,7 @@ AstNode* Parser::ParsePrimary() {
     const String& this_name = String::Handle(String::NewSymbol(kThisName));
     LocalVariable* local = LookupLocalScope(this_name);
     if (local == NULL) {
-      ErrorMsg("unexpected use of 'this' in primary expression");
+      ErrorMsg("receiver 'this' is not in scope");
     }
     primary = new LoadLocalNode(token_index_, *local);
     ConsumeToken();
