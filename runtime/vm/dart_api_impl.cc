@@ -631,11 +631,46 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 // --- Isolates ---
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
+static char* BuildIsolateName(const char* script_uri,
+                              const char* main) {
+  if (script_uri == NULL) {
+    // Just use the main as the name.
+    if (main == NULL) {
+      return strdup("isolate");
+    } else {
+      return strdup(main);
+    }
+  }
+
+  // Skip past any slashes and backslashes in the script uri.
+  const char* last_slash = strrchr(script_uri, '/');
+  if (last_slash != NULL) {
+    script_uri = last_slash + 1;
+  }
+  const char* last_backslash = strrchr(script_uri, '\\');
+  if (last_backslash != NULL) {
+    script_uri = last_backslash + 1;
+  }
+  if (main == NULL) {
+    main = "main";
+  }
+
+  char* chars = NULL;
+  intptr_t len = OS::SNPrint(NULL, 0, "%s/%s", script_uri, main) + 1;
+  chars = reinterpret_cast<char*>(malloc(len));
+  OS::SNPrint(chars, len, "%s/%s", script_uri, main);
+  return chars;
+}
+
+
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
+                                            const char* main,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
-  Isolate* isolate = Dart::CreateIsolate(name_prefix);
+  char* isolate_name = BuildIsolateName(script_uri, main);
+  Isolate* isolate = Dart::CreateIsolate(isolate_name);
+  free(isolate_name);
   {
     DARTSCOPE_NOCHECKS(isolate);
     const Error& error_obj =
@@ -662,6 +697,14 @@ DART_EXPORT void Dart_ShutdownIsolate() {
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
   return Api::CastIsolate(Isolate::Current());
 }
+
+
+DART_EXPORT Dart_Handle Dart_DebugName() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return Api::NewHandle(isolate, String::New(isolate->name()));
+}
+
 
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate dart_isolate) {
@@ -2248,20 +2291,36 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 
 
 static RawObject* ResolveConstructor(const char* current_func,
-                                     Class& cls,
-                                     String& dotted_name,
+                                     const Class& cls,
+                                     const String& class_name,
+                                     const String& dotted_name,
                                      int num_args) {
   // The constructor must be present in the interface.
-  const String& class_name = String::Handle(cls.Name());
   String& constr_name = String::Handle(String::Concat(class_name, dotted_name));
   const Function& constructor =
       Function::Handle(cls.LookupFunction(constr_name));
   if (constructor.IsNull() ||
       (!constructor.IsConstructor() && !constructor.IsFactory())) {
-    const String& message = String::Handle(
-        String::NewFormatted("%s: could not find constructor '%s'.",
-                             current_func, constr_name.ToCString()));
-    return ApiError::New(message);
+    const String& lookup_class_name = String::Handle(cls.Name());
+    if (!class_name.Equals(lookup_class_name)) {
+      // When the class name used to build the constructor name is
+      // different than the name of the class in which we are doing
+      // the lookup, it can be confusing to the user to figure out
+      // what's going on.  Be a little more explicit for these error
+      // messages.
+      const String& message = String::Handle(
+          String::NewFormatted(
+              "%s: could not find factory '%s' in class '%s'.",
+              current_func,
+              constr_name.ToCString(),
+              lookup_class_name.ToCString()));
+      return ApiError::New(message);
+    } else {
+      const String& message = String::Handle(
+          String::NewFormatted("%s: could not find constructor '%s'.",
+                               current_func, constr_name.ToCString()));
+      return ApiError::New(message);
+    }
   }
   int extra_args = (constructor.IsConstructor() ? 2 : 1);
   if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0)) {
@@ -2298,6 +2357,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
+  String& base_constructor_name = String::Handle();
+  base_constructor_name = cls.Name();
 
   // And get the name of the constructor to invoke.
   String& dot_name = String::Handle(isolate);
@@ -2324,17 +2385,34 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   // Check for interfaces with default implementations.
   if (cls.is_interface()) {
     // Make sure that the constructor is found in the interface.
-    result = ResolveConstructor("Dart_New", cls, dot_name, number_of_arguments);
+    result = ResolveConstructor(
+        "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
     if (result.IsError()) {
       return Api::NewHandle(isolate, result.raw());
     }
 
     ASSERT(cls.HasResolvedFactoryClass());
+    const Class& factory_class = Class::Handle(cls.FactoryClass());
+
+    // If the factory class implements the requested interface, then
+    // we use the name of the factory class when looking up the
+    // constructor.  Otherwise we use the original interface name when
+    // looking up the constructor.
+    const TypeArguments& no_type_args = TypeArguments::Handle(isolate);
+    Error& error = Error::Handle();
+    if (factory_class.IsSubtypeOf(no_type_args, cls, no_type_args, &error)) {
+      base_constructor_name = factory_class.Name();
+    }
+    if (!error.IsNull()) {
+      return Api::NewHandle(isolate, error.raw());
+    }
+
     cls ^= cls.FactoryClass();
   }
 
   // Resolve the constructor.
-  result = ResolveConstructor("Dart_New", cls, dot_name, number_of_arguments);
+  result = ResolveConstructor(
+      "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
@@ -2352,10 +2430,13 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   int extra_args = (constructor.IsConstructor() ? 2 : 1);
   GrowableArray<const Object*> args(number_of_arguments + extra_args);
   if (constructor.IsConstructor()) {
-    // Constructors get the uninitialized object as an extra arg.
+    // Constructors get the uninitialized object and a constructor phase.
     args.Add(&new_object);
+    args.Add(&Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
+  } else {
+    // Factories get type arguments.
+    args.Add(&TypeArguments::Handle(isolate));
   }
-  args.Add(&Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg =
         Object::Handle(isolate, Api::UnwrapHandle(arguments[i]));
@@ -2423,6 +2504,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
   const Array& kNoArgNames = Array::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  if (obj.IsError()) {
+    return target;
+  }
+
   if (obj.IsNull() || obj.IsInstance()) {
     Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
@@ -2576,6 +2661,11 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
         DartEntry::InvokeDynamic(instance, getter, args, kNoArgNames));
 
   } else if (obj.IsClass()) {
+    // Finalize all classes.
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
     // To access a static field we may need to use the Field or the
     // getter Function.
     Class& cls = Class::Handle(isolate);
@@ -2601,6 +2691,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     }
 
   } else if (obj.IsLibrary()) {
+    // TODO(turnidge): Do we need to call CheckIsolateState here?
+
     // To access a top-level we may need to use the Field or the
     // getter Function.  The getter function may either be in the
     // library or in the field's owner class, depending.
@@ -2814,20 +2906,35 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
+                                                         int* count) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  if (instance.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, obj, Instance);
+  }
+  const Class& cls = Class::Handle(isolate, instance.clazz());
+  *count = cls.num_native_fields();
+  return Api::Success(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Instance& object = Api::UnwrapInstanceHandle(isolate, obj);
-  if (object.IsNull()) {
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  if (!object.IsValidNativeIndex(index)) {
+  if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
-        "Invalid index passed in to access native instance field");
+        "%s: invalid index %d passed in to access native instance field",
+        CURRENT_FUNC, index);
   }
-  *value = object.GetNativeField(index);
+  *value = instance.GetNativeField(index);
   return Api::Success(isolate);
 }
 
@@ -2837,15 +2944,16 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Instance& object = Api::UnwrapInstanceHandle(isolate, obj);
-  if (object.IsNull()) {
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, obj);
+  if (instance.IsNull()) {
     RETURN_TYPE_ERROR(isolate, obj, Instance);
   }
-  if (!object.IsValidNativeIndex(index)) {
+  if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
-        "Invalid index passed in to set native instance field");
+        "%s: invalid index %d passed in to set native instance field",
+        CURRENT_FUNC, index);
   }
-  object.SetNativeField(index, value);
+  instance.SetNativeField(index, value);
   return Api::Success(isolate);
 }
 
@@ -2941,6 +3049,18 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetImportMap(Dart_Handle import_map) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
+  if (mapping_array.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, import_map, Array);
+  }
+  isolate->object_store()->set_import_map(mapping_array);
+  return Api::Success(isolate);
+}
+
+
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
@@ -2974,8 +3094,7 @@ static void CompileSource(Isolate* isolate,
 
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle source,
-                                        Dart_Handle import_map) {
+                                        Dart_Handle source) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2987,7 +3106,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
-  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());
   if (!library.IsNull()) {
@@ -2996,11 +3114,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                          CURRENT_FUNC, library_url.ToCString());
   }
   library = Library::New(url_str);
-  if (mapping_array.IsNull()) {
-    library.set_import_map(Array::Handle(isolate, Array::Empty()));
-  } else {
-    library.set_import_map(mapping_array);
-  }
   library.Register();
   isolate->object_store()->set_root_library(library);
   Dart_Handle result;
@@ -3046,6 +3159,15 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_RootLibrary() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Library& library =
+      Library::Handle(isolate, isolate->object_store()->root_library());
+  return Api::NewHandle(isolate, library.raw());
+}
+
+
 static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(isolate, Library::CompileAll());
@@ -3075,27 +3197,40 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
+DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
+                                      Dart_Handle class_name) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& param = Object::Handle(isolate, Api::UnwrapHandle(name));
-  if (param.IsNull() || !param.IsString()) {
-    return Api::NewError("Invalid class name specified");
-  }
-  const Library& lib =
-      Library::CheckedHandle(isolate, Api::UnwrapHandle(library));
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
-    return Api::NewError("Invalid parameter, Unknown library specified");
+    RETURN_TYPE_ERROR(isolate, library, Library);
   }
-  String& cls_name = String::Handle(isolate);
-  cls_name ^= param.raw();
-  const Class& cls = Class::Handle(isolate, lib.LookupClass(cls_name));
+  const String& cls_name = Api::UnwrapStringHandle(isolate, class_name);
+  if (cls_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, class_name, String);
+  }
+  const Class& cls =
+      Class::Handle(isolate, lib.LookupClassAllowPrivate(cls_name));
   if (cls.IsNull()) {
+    // TODO(turnidge): Return null or error in this case?
     const String& lib_name = String::Handle(isolate, lib.name());
     return Api::NewError("Class '%s' not found in library '%s'.",
                          cls_name.ToCString(), lib_name.ToCString());
   }
   return Api::NewHandle(isolate, cls.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+  const String& name = String::Handle(isolate, lib.name());
+  ASSERT(!name.IsNull());
+  return Api::NewHandle(isolate, name.raw());
 }
 
 
@@ -3131,8 +3266,7 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source,
-                                         Dart_Handle import_map) {
+                                         Dart_Handle source) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -3144,15 +3278,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
-  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
   Library& library = Library::Handle(isolate, Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
-    if (mapping_array.IsNull()) {
-      library.set_import_map(Array::Handle(isolate, Array::Empty()));
-    } else {
-      library.set_import_map(mapping_array);
-    }
     library.Register();
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the

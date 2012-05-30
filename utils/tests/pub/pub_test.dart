@@ -46,7 +46,7 @@ main() {
   group('an unknown command', () {
     test('displays an error message', () {
       runPub(args: ['quylthulg'],
-          output: '''
+          error: '''
           Unknown command "quylthulg".
           Run "pub help" to see available commands.
           ''',
@@ -143,65 +143,67 @@ installCommand() {
         ''');
   });
 
-/*
   test('checks out a package from Git', () {
-    git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
-    ]).scheduleCreate();
+    withGit(() {
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";')
+      ]).scheduleCreate();
 
-    dir(appPath, [
-      file('pubspec', '''
+      dir(appPath, [
+        file('pubspec', '''
 dependencies:
   foo:
     git: ../foo.git
 ''')
-    ]).scheduleCreate();
+      ]).scheduleCreate();
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
-      ])
-    ]).scheduleValidate();
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
+        ])
+      ]).scheduleValidate();
 
-    runPub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+      runPub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+    });
   });
 
   test('checks out packages transitively from Git', () {
-    git('foo.git', [
-      file('foo.dart', 'main() => "foo";'),
-      file('pubspec', '''
+    withGit(() {
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";'),
+        file('pubspec', '''
 dependencies:
   bar:
     git: ../bar.git
 ''')
-    ]).scheduleCreate();
+      ]).scheduleCreate();
 
-    git('bar.git', [
-      file('bar.dart', 'main() => "bar";')
-    ]).scheduleCreate();
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar";')
+      ]).scheduleCreate();
 
-    dir(appPath, [
-      file('pubspec', '''
+      dir(appPath, [
+        file('pubspec', '''
 dependencies:
   foo:
     git: ../foo.git
 ''')
-    ]).scheduleCreate();
+      ]).scheduleCreate();
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
-      ]),
-      dir('bar', [
-        file('bar.dart', 'main() => "bar";')
-      ])
-    ]).scheduleValidate();
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";')
+        ])
+      ]).scheduleValidate();
 
-    runPub(args: ['install'],
-        output: const RegExp("Dependencies installed!\$"));
+      runPub(args: ['install'],
+          output: const RegExp("Dependencies installed!\$"));
+    });
   });
-*/
 }
 
 versionCommand() {

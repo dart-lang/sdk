@@ -177,7 +177,8 @@ function(cls, fields, methods) {
       Type type = parameter.computeType(compiler);
       if (type is FunctionType) {
         String name = parameter.name.slowToString();
-        code.add('  $name = $closureConverter($name);\n');
+        int arity = type.computeArity();
+        code.add('  $name = $closureConverter($name, $arity);\n');
       }
     });
   }

@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "vm/globals.h"
 
 namespace dart {
 
@@ -33,6 +34,10 @@ class ClassTable {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void Print();
+
+  static intptr_t table_offset() {
+    return OFFSET_OF(ClassTable, table_);
+  }
 
  private:
   static const int initial_capacity_ = 512;

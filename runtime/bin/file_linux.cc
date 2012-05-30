@@ -174,6 +174,15 @@ off_t File::LengthFromName(const char* name) {
 }
 
 
+time_t File::LastModified(const char* name) {
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
+    return st.st_mtime;
+  }
+  return -1;
+}
+
+
 bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
 }

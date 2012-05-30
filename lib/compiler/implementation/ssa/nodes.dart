@@ -155,7 +155,7 @@ class HGraph {
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
     ObjectConstant objectConstant = constant;
-    return new HExactType(objectConstant.type);
+    return new HBoundedType.exact(objectConstant.type);
   }
 
   HConstant addConstant(Constant constant) {
@@ -655,6 +655,14 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   void forEachPhi(void f(HPhi phi)) {
     HPhi current = phis.first;
+    while (current !== null) {
+      f(current);
+      current = current.next;
+    }
+  }
+
+  void forEachInstruction(void f(HInstruction instruction)) {
+    HInstruction current = first;
     while (current !== null) {
       f(current);
       current = current.next;
@@ -1215,9 +1223,11 @@ class HFieldGet extends HInstruction {
   final SourceString name;
   HFieldGet(this.name, HInstruction receiver)
       : super(<HInstruction>[receiver]);
-  HFieldGet.fromActivation(this.name) : super(<HInstruction>[]);
+  HFieldGet.fromActivation(receiver) : this(null, receiver);
 
   HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
+  bool isFromActivation() => name === null;
+
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn() {
@@ -1233,12 +1243,13 @@ class HFieldSet extends HInstruction {
   final SourceString name;
   HFieldSet(this.name, HInstruction receiver, HInstruction value)
       : super(<HInstruction>[receiver, value]);
-  HFieldSet.fromActivation(this.name, HInstruction value)
-      : super(<HInstruction>[value]);
+  HFieldSet.fromActivation(receiver, value)
+      : this(null, receiver, value);
 
   HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
   HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
+  bool isFromActivation() => name === null;
 
   void prepareGvn() {
     // TODO(ngeoffray): implement more fine grain side effects.
@@ -1661,6 +1672,7 @@ class HContinue extends HGoto {
 
 class HTry extends HControlFlow {
   HParameterValue exception;
+  HBasicBlock catchBlock;
   HBasicBlock finallyBlock;
   HTry() : super(const <HInstruction>[]);
   toString() => 'try';

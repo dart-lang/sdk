@@ -15,6 +15,7 @@
 #include "vm/flags.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/flow_graph_optimizer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -93,8 +94,9 @@ static RawArray* ExtractTypeFeedbackArray(const Code& code) {
       code.ExtractIcDataArraysAtCalls(&computation_ids, ic_data_objs);
   const Array& result = Array::Handle(Array::New(max_id + 1));
   for (intptr_t i = 0; i < computation_ids.length(); i++) {
-    ASSERT(result.At(i) == Object::null());
-    result.SetAt(i, Object::Handle(ic_data_objs.At(i)));
+    intptr_t result_index = computation_ids[i];
+    ASSERT(result.At(result_index) == Object::null());
+    result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
   }
   return result.raw();
 }
@@ -153,6 +155,8 @@ static bool CompileWithNewCompiler(
     const ParsedFunction& parsed_function, bool optimized) {
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  const intptr_t prev_cid = isolate->computation_id();
+  isolate->set_computation_id(0);
   LongJump* old_base = isolate->long_jump_base();
   LongJump bailout_jump;
   isolate->set_long_jump_base(&bailout_jump);
@@ -190,6 +194,10 @@ static bool CompileWithNewCompiler(
       intptr_t length = graph_builder.postorder_block_entries().length();
       for (intptr_t i = length - 1; i >= 0; --i) {
         block_order.Add(graph_builder.postorder_block_entries()[i]);
+      }
+      if (optimized) {
+        FlowGraphOptimizer optimizer(block_order);
+        optimizer.ApplyICData();
       }
     }
 
@@ -240,6 +248,7 @@ static bool CompileWithNewCompiler(
     is_compiled = false;
   }
   isolate->set_long_jump_base(old_base);
+  isolate->set_computation_id(prev_cid);
   return is_compiled;
 }
 

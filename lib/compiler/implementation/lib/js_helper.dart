@@ -11,6 +11,88 @@
 #source('regexp_helper.dart');
 #source('string_helper.dart');
 
+// Performance critical helper methods.
+add(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# + #', a, b)
+    : add$slow(a, b);
+
+sub(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# - #', a, b)
+    : sub$slow(a, b);
+
+div(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# / #', a, b)
+    : div$slow(a, b);
+
+mul(var a, var b) => (a is num && b is num)
+    ? JS('num', @'# * #', a, b)
+    : mul$slow(a, b);
+
+gt(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# > #', a, b)
+    : gt$slow(a, b);
+
+ge(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# >= #', a, b)
+    : ge$slow(a, b);
+
+lt(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# < #', a, b)
+    : lt$slow(a, b);
+
+le(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# <= #', a, b)
+    : le$slow(a, b);
+
+gtB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# > #', a, b)
+    : gt$slow(a, b) === true;
+
+geB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# >= #', a, b)
+    : ge$slow(a, b) === true;
+
+ltB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# < #', a, b)
+    : lt$slow(a, b) === true;
+
+leB(var a, var b) => (a is num && b is num)
+    ? JS('bool', @'# <= #', a, b)
+    : le$slow(a, b) === true;
+
+index(var a, var index) {
+  // The type test may cause a NullPointerException to be thrown but
+  // that matches the specification of what the indexing operator is
+  // supposed to do.
+  bool isJsArrayOrString = JS('bool',
+      @'typeof # == "string" || #.constructor === Array',
+      a, a);
+  if (isJsArrayOrString) {
+    var key = JS('int', '# >>> 0', index);
+    if (key === index && key < JS('int', @'#.length', a)) {
+      return JS('var', @'#[#]', a, key);
+    }
+  }
+  return index$slow(a, index);
+}
+
+indexSet(var a, var index, var value) {
+  // The type test may cause a NullPointerException to be thrown but
+  // that matches the specification of what the indexing operator is
+  // supposed to do.
+  bool isMutableJsArray = JS('bool',
+      @'#.constructor === Array && !#.immutable$list',
+      a, a);
+  if (isMutableJsArray) {
+    var key = JS('int', '# >>> 0', index);
+    if (key === index && key < JS('int', @'#.length', a)) {
+      JS('void', @'#[#] = #', a, key, value);
+      return;
+    }
+  }
+  indexSet$slow(a, index, value);
+}
+
 /**
  * Returns true if both arguments are numbers.
  *
@@ -33,7 +115,7 @@ bool isJsArray(var value) {
   return value !== null && JS('bool', @'#.constructor === Array', value);
 }
 
-add(var a, var b) {
+add$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# + #', a, b);
   } else if (a is String) {
@@ -48,21 +130,21 @@ add(var a, var b) {
   return UNINTERCEPTED(a + b);
 }
 
-div(var a, var b) {
+div$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# / #', a, b);
   }
   return UNINTERCEPTED(a / b);
 }
 
-mul(var a, var b) {
+mul$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# * #', a, b);
   }
   return UNINTERCEPTED(a * b);
 }
 
-sub(var a, var b) {
+sub$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# - #', a, b);
   }
@@ -108,7 +190,17 @@ eq(var a, var b) {
   return JS('bool', @'# === #', a, b);
 }
 
-bool eqB(var a, var b) => eq(a, b) === true;
+bool eqB(var a, var b) {
+  if (JS('bool', @'typeof # === "object"', a)) {
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == b) === true;
+    } else {
+      return JS('bool', @'# === #', a, b);
+    }
+  }
+  // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
+  return JS('bool', @'# === #', a, b);
+}
 
 eqq(var a, var b) {
   return JS('bool', @'# === #', a, b);
@@ -126,43 +218,45 @@ eqNull(var a) {
   }
 }
 
-bool eqNullB(var a) => eqNull(a) === true;
+bool eqNullB(var a) {
+  if (JS('bool', @'typeof # === "object"', a)) {
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == null) === true;
+    } else {
+      return false;
+    }
+  } else {
+    return JS('bool', @'typeof # === "undefined"', a);
+  }
+}
 
-gt(var a, var b) {
+gt$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# > #', a, b);
   }
   return UNINTERCEPTED(a > b);
 }
 
-bool gtB(var a, var b) => gt(a, b) === true;
-
-ge(var a, var b) {
+ge$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# >= #', a, b);
   }
   return UNINTERCEPTED(a >= b);
 }
 
-bool geB(var a, var b) => ge(a, b) === true;
-
-lt(var a, var b) {
+lt$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# < #', a, b);
   }
   return UNINTERCEPTED(a < b);
 }
 
-bool ltB(var a, var b) => lt(a, b) === true;
-
-le(var a, var b) {
+le$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# <= #', a, b);
   }
   return UNINTERCEPTED(a <= b);
 }
-
-bool leB(var a, var b) => le(a, b) === true;
 
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
@@ -241,7 +335,7 @@ neg(var a) {
   return UNINTERCEPTED(-a);
 }
 
-index(var a, var index) {
+index$slow(var a, var index) {
   if (a is String || isJsArray(a)) {
     if (index is !int) {
       if (index is !num) throw new IllegalArgumentException(index);
@@ -255,7 +349,7 @@ index(var a, var index) {
   return UNINTERCEPTED(a[index]);
 }
 
-void indexSet(var a, var index, var value) {
+void indexSet$slow(var a, var index, var value) {
   if (isJsArray(a)) {
     if (index is !int) {
       throw new IllegalArgumentException(index);
@@ -419,49 +513,49 @@ class Primitives {
   }
 
   static getYear(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCFullYear()', lazyAsJsDate(receiver))
       : JS('int', @'#.getFullYear()', lazyAsJsDate(receiver));
   }
 
   static getMonth(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
       : JS('int', @'#.getMonth()', lazyAsJsDate(receiver)) + 1;
   }
 
   static getDay(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCDate()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDate()', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCHours()', lazyAsJsDate(receiver))
       : JS('int', @'#.getHours()', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCMinutes()', lazyAsJsDate(receiver))
       : JS('int', @'#.getMinutes()', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCSeconds()', lazyAsJsDate(receiver))
       : JS('int', @'#.getSeconds()', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
       : JS('int', @'#.getMilliseconds()', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
-    return (receiver.timeZone.isUtc)
+    return (receiver.isUtc())
       ? JS('int', @'#.getUTCDay()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDay()', lazyAsJsDate(receiver));
   }
@@ -676,16 +770,23 @@ unwrapException(ex) {
   // has, it could be set to null if the thrown value is null.
   if (JS('bool', @'"dartException" in #', ex)) {
     return JS('Object', @'#.dartException', ex);
-  } else if (JS('bool', @'# instanceof TypeError', ex)) {
-    // TODO(ahe): ex.type is Chrome specific.
-    var type = JS('String', @'#.type', ex);
-    var jsArguments = JS('Object', @'#.arguments', ex);
-    var name = jsArguments[0];
+  }
+
+  // Grab hold of the exception message. This field is available on
+  // all supported browsers.
+  var message = JS('var', @'#.message', ex);
+
+  if (JS('bool', @'# instanceof TypeError', ex)) {
+    // The type and arguments fields are Chrome specific but they
+    // allow us to get very detailed information about what kind of
+    // exception occurred.
+    var type = JS('var', @'#.type', ex);
+    var name = JS('var', @'#.arguments ? #.arguments[0] : ""', ex, ex);
     if (type == 'property_not_function' ||
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      if (name !== null && name.startsWith(@'$call$')) {
+      if (name is String && name.startsWith(@'$call$')) {
         return new ObjectNotClosureException();
       } else {
         return new NullPointerException();
@@ -697,12 +798,50 @@ unwrapException(ex) {
         return new NoSuchMethodException('', name, []);
       }
     }
-  } else if (JS('bool', @'# instanceof RangeError', ex)) {
-    var message = JS('String', @'#.message', ex);
-    if (message.contains('call stack')) {
+
+    // If we cannot use [type] to determine what kind of exception
+    // we're dealing with we fall back on looking at the exception
+    // message if it is available and a string.
+    if (message is String) {
+      if (message.endsWith('is null') ||
+          message.endsWith('is undefined') ||
+          message.endsWith('is null or undefined')) {
+        return new NullPointerException();
+      } else if (message.endsWith('is not a function')) {
+        // TODO(kasperl): Compute the right name if possible.
+        return new NoSuchMethodException('', '<unknown>', []);
+      }
+    }
+
+    // If we cannot determine what kind of error this is, we fall back
+    // to reporting this as a TypeError even though that may be
+    // inaccurate. It's probably better than nothing.
+    return new TypeError(message is String ? message : '');
+  }
+
+  if (JS('bool', @'# instanceof RangeError', ex)) {
+    if (message is String && message.contains('call stack')) {
+      return new StackOverflowException();
+    }
+
+    // In general, a RangeError is thrown when trying to pass a number
+    // as an argument to a function that does not allow a range that
+    // includes that number.
+    return new IllegalArgumentException();
+  }
+
+  // Check for the Firefox specific stack overflow signal.
+  if (JS('bool',
+         @"typeof InternalError == 'function' && # instanceof InternalError",
+         ex)) {
+    if (message is String && message == 'too much recursion') {
       return new StackOverflowException();
     }
   }
+
+  // Just return the exception. We should not wrap it because in case
+  // the exception comes from the DOM, it is a JavaScript
+  // object backed by a native Dart class.
   return ex;
 }
 
@@ -757,17 +896,18 @@ invokeClosure(Function closure,
  * Called by generated code to convert a Dart closure to a JS
  * closure when the Dart closure is passed to the DOM.
  */
-convertDartClosureToJS(closure) {
+convertDartClosureToJS(closure, int arity) {
   if (closure === null) return null;
   var function = JS('var', @'#.$identity', closure);
   if (JS('bool', @'!!#', function)) return function;
 
   function = JS("var", @"""function() {
-    return #(#, #, arguments.length, arguments[0], arguments[1]);
+    return #(#, #, #, arguments[0], arguments[1]);
   }""",
   DART_CLOSURE_TO_JS(invokeClosure),
   closure,
-  JS_CURRENT_ISOLATE());
+  JS_CURRENT_ISOLATE(),
+  arity);
 
   JS('void', @'#.$identity = #', closure, function);
   return function;

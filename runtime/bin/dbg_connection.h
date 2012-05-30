@@ -55,12 +55,14 @@ class DebuggerConnectionHandler {
   static void HandleStepIntoCmd(const char* msg);
   static void HandleStepOverCmd(const char* msg);
   static void HandleStepOutCmd(const char* msg);
-  static void HandleGetLibraryURLsCmd(const char* json_msg);
+  static void HandleGetLibrariesCmd(const char* json_msg);
   static void HandleGetClassPropsCmd(const char* json_msg);
+  static void HandleGetLibPropsCmd(const char* json_msg);
   static void HandleGetObjPropsCmd(const char* json_msg);
   static void HandleGetScriptURLsCmd(const char* json_msg);
   static void HandleGetStackTraceCmd(const char* json_msg);
   static void HandleSetBpCmd(const char* json_msg);
+  static void HandleRemBpCmd(const char* json_msg);
   static void HandleUnknownMsg(const char* json_msg);
 
   static void SendError(int msg_id, const char* err_msg);

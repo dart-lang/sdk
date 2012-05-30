@@ -40,7 +40,8 @@ class FlowGraphPrinter : public ValueObject {
   // to the end of the block if it ends with an unconditional jump to
   // another block and that block is not next in reverse postorder.
   void PrintBlocks();
-  void Print(Instruction* instr);
+  static void PrintInstruction(Instruction* instr);
+  static void PrintComputation(Computation* comp);
 
  private:
   const Function& function_;

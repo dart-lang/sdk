@@ -36,7 +36,7 @@ if [[ "$1" == "--cached" ]] ; then
   shift
 fi
 
-ALLSYSTEMS="frog,dummy,native,htmlfrog,htmldartium,native"
+ALLSYSTEMS="frog,dummy,htmlfrog,htmldartium"
 SYSTEMS="$ALLSYSTEMS"
 
 if [[ "$1" != "" ]] ; then

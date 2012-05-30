@@ -40,6 +40,9 @@ class PortMap: public AllStatic {
   // Claims ownership of 'message'.
   static bool PostMessage(Message* message);
 
+  // Returns whether a port is local to the current isolate.
+  static bool IsLocalPort(Dart_Port id);
+
   static void InitOnce();
 
  private:

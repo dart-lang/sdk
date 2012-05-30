@@ -51,14 +51,31 @@ String GetHtmlContents(String title,
 </html>
 """;
 
+/**
+ * Returns the native [path] converted for use in a URI.
+ */
+nativePathToUri(String path) {
+  // This regexp matches Windows-like file names. Strictly speaking,
+  // this prevents us from having a file named a:something on Linux,
+  // but since this wrapping is a hack in the first place, it seems
+  // better to exercise this path on all architectures.
+  final re = const RegExp('^[a-z]:', ignoreCase: true);
+  if (re.hasMatch(path)) {
+    path = '/$path';
+  }
+  return path.replaceAll('\\', '/');
+}
+
 String WrapDartTestInLibrary(String test) =>
 """
 #library('libraryWrapper');
-#source('$test');
+#source('${nativePathToUri(test)}');
 """;
 
-String DartTestWrapper(String dartHome, String library) =>
-"""
+String DartTestWrapper(String dartHome, String library) {
+  dartHome = nativePathToUri(dartHome);
+  library = nativePathToUri(library);
+return """
 #library('test');
 
 #import('${dartHome}/lib/unittest/unittest.dart', prefix: 'unittest');
@@ -77,3 +94,4 @@ main() {
   }
 }
 """;
+}

@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('git_source');
+
+#import('io.dart');
+#import('package.dart');
+#import('source.dart');
+#import('utils.dart');
+
 /**
  * A package source that installs packages from Git repos.
  */
@@ -22,9 +29,18 @@ class GitSource extends Source {
    * Clones a Git repo to the local filesystem.
    */
   Future<bool> install(PackageId id, String destPath) {
-    return runProcess("git", ["clone", "--progress", id.description, destPath],
-        pipeStdout: true, pipeStderr: true).
-      transform((result) => result.success);
+    return isGitInstalled.chain((installed) {
+      if (installed) {
+        return runProcess("git",
+            ["clone", "--progress", id.description, destPath],
+            pipeStdout: true, pipeStderr: true).
+          transform((result) => result.success);
+      } else {
+        throw new Exception(
+            "Cannot install '${id.name}' from Git (${id.description}).\n"
+            "Please ensure Git is correctly installed.");
+      }
+    });
   }
 
   /**

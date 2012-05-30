@@ -22,6 +22,6 @@ $RESOLVER
     return 0;
 }
 
-const char* const Dart$(INTERFACE)::dartImplementationClassName = "$(INTERFACE)Implementation";
+const char* const Dart$(INTERFACE)::dartImplementationClassName = "$DART_IMPLEMENTATION_CLASS";
 
 }

@@ -7,6 +7,7 @@
 #import('../../../lib/unittest/unittest.dart');
 #import('../../pub/pubspec.dart');
 #import('../../pub/source.dart');
+#import('../../pub/source_registry.dart');
 #import('../../pub/utils.dart');
 
 class MockSource extends Source {

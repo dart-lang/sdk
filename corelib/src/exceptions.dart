@@ -131,7 +131,7 @@ class NullPointerException implements Exception {
           "Arguments: $arguments";
     }
   }
-  
+
   String get exceptionName() => "NullPointerException";
 
   final String functionName;
@@ -159,8 +159,11 @@ class UnsupportedOperationException implements Exception {
 
 
 class NotImplementedException implements Exception {
-  const NotImplementedException();
-  String toString() => "NotImplementedException";
+  const NotImplementedException([String this._message]);
+  String toString() => (this._message !== null
+                        ? "NotImplementedException: $_message"
+                        : "NotImplementedException");
+  final String _message;
 }
 
 

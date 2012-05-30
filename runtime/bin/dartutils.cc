@@ -218,8 +218,7 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
                                   Dart_Handle library,
                                   Dart_Handle url,
                                   Dart_LibraryTag tag,
-                                  const char* url_string,
-                                  Dart_Handle import_map) {
+                                  const char* url_string) {
   if (url_mapping != NULL && IsDartSchemeURL(url_string)) {
     const char* mapped_url_string = MapLibraryUrl(url_mapping, url_string);
     if (mapped_url_string == NULL) {
@@ -237,7 +236,7 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
   }
   if (tag == kImportTag) {
     // Return library object or an error string.
-    return Dart_LoadLibrary(url, source, import_map);
+    return Dart_LoadLibrary(url, source);
   } else if (tag == kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }
@@ -312,14 +311,16 @@ Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   if (Dart_IsError(url)) return url;
   Dart_Handle lib = Dart_LookupLibrary(url);
   if (Dart_IsError(lib)) return lib;
-  Dart_Handle function_name = Dart_NewString("_makeOSError");
-  if (Dart_IsError(function_name)) return function_name;
+  Dart_Handle class_name = Dart_NewString("OSError");
+  if (Dart_IsError(class_name)) return class_name;
+  Dart_Handle clazz = Dart_GetClass(lib, class_name);
+  if (Dart_IsError(clazz)) return clazz;
   Dart_Handle args[2];
   args[0] = Dart_NewString(os_error->message());
   if (Dart_IsError(args[0])) return args[0];
   args[1] = Dart_NewInteger(os_error->code());
   if (Dart_IsError(args[1])) return args[1];
-  Dart_Handle err = Dart_Invoke(lib, function_name, 2, args);
+  Dart_Handle err = Dart_New(clazz, Dart_Null(), 2, args);
   return err;
 }
 

@@ -234,7 +234,35 @@ class ResolverTask extends CompilerTask {
   }
 
   FunctionSignature resolveSignature(FunctionElement element) {
-    return measure(() => SignatureResolver.analyze(compiler, element));
+    return compiler.withCurrentElement(element, () {
+      FunctionExpression node =
+          compiler.parser.measure(() => element.parseNode(compiler));
+      return measure(() => SignatureResolver.analyze(
+          compiler, node.parameters, node.returnType, element));
+    });
+  }
+
+  FunctionSignature resolveTypedef(TypedefElement element) {
+    return compiler.withCurrentElement(element, () {
+      Typedef node =
+          compiler.parser.measure(() => element.parseNode(compiler));
+      return measure(() => SignatureResolver.analyze(
+          compiler, node.formals, node.returnType, element));
+    });
+  }
+
+  FunctionType computeFunctionType(Element element,
+                                   FunctionSignature signature) {
+    LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
+    for (Link<Element> link = signature.requiredParameters;
+         !link.isEmpty();
+         link = link.tail) {
+       parameterTypes.addLast(link.head.computeType(compiler));
+       // TODO(karlklose): optional parameters.
+    }
+    return new FunctionType(signature.returnType,
+                            parameterTypes.toLink(),
+                            element);
   }
 
   error(Node node, MessageKind kind, [arguments = const []]) {
@@ -1130,12 +1158,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           type = new InterfaceType(cls, arguments.toLink());
         }
       } else if (element.isTypedef()) {
-        // TODO(ngeoffray): This is a hack to help us get support for the
-        // DOM library.
-        // TODO(ngeoffray): The list of types for the argument is wrong.
-        type = new FunctionType(compiler.types.dynamicType,
-                                const EmptyLink<Type>(),
-                                element);
+        type = element.computeType(compiler);
       } else if (element.isTypeVariable()) {
         type = element.computeType(compiler);
       } else {
@@ -1733,8 +1756,6 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
     resolveExpression(node.arguments.head);
-    // TODO(ahe): Move this to codegen, and make sure that element isn't null.
-    if (element !== null) compiler.enqueuer.codegen.addToWorkList(element);
     return element;
   }
 
@@ -1762,15 +1783,15 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   static FunctionSignature analyze(Compiler compiler,
-                                   FunctionElement element) {
-    FunctionExpression node =
-          compiler.parser.measure(() => element.parseNode(compiler));
+                                   NodeList formalParameters,
+                                   Node returnNode,
+                                   Element element) {
     SignatureResolver visitor = new SignatureResolver(compiler, element);
-    Link<Node> nodes = node.parameters.nodes;
-    LinkBuilder<Element> parametersBuilder = visitor.analyzeNodes(nodes);
+    LinkBuilder<Element> parametersBuilder =
+        visitor.analyzeNodes(formalParameters.nodes);
     Link<Element> parameters = parametersBuilder.toLink();
     Type returnType =
-        compiler.resolveTypeAnnotation(element, node.returnType);
+        compiler.resolveTypeAnnotation(element, returnNode);
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
                                  parametersBuilder.length,

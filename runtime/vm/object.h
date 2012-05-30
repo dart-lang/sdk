@@ -1712,8 +1712,6 @@ class Library : public Object {
 
   RawString* url() const { return raw_ptr()->url_; }
   RawString* private_key() const { return raw_ptr()->private_key_; }
-  RawArray* import_map() const { return raw_ptr()->import_map_; }
-  void set_import_map(const Array& map) const;
   bool LoadNotStarted() const {
     return raw_ptr()->load_state_ == RawLibrary::kAllocated;
   }
@@ -1735,10 +1733,15 @@ class Library : public Object {
   static RawLibrary* New(const String& url);
 
   // Library scope name dictionary.
+  //
+  // TODO(turnidge): The Lookup functions are not consistent in how
+  // they deal with private names.  Go through and make them a bit
+  // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
+  RawClass* LookupClassAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
   RawField* LookupFieldAllowPrivate(const String& name) const;
@@ -1752,9 +1755,11 @@ class Library : public Object {
   void AddAnonymousClass(const Class& cls) const;
 
   // Library imports.
-  RawString* LookupImportMap(const String& name) const;
   void AddImport(const Library& library) const;
   RawLibrary* LookupImport(const String& url) const;
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
+  RawLibrary* ImportAt(intptr_t index) const;
+  RawLibraryPrefix* ImportPrefixAt(intptr_t index) const;
 
   RawFunction* LookupFunctionInSource(const String& script_url,
                                       intptr_t line_number) const;
@@ -1771,13 +1776,17 @@ class Library : public Object {
 
   RawString* PrivateName(const String& name) const;
 
-  void Register() const;
+  intptr_t index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t value) const {
+    raw_ptr()->index_ = value;
+  }
 
-  RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
+  void Register() const;
 
   RawString* DuplicateDefineErrorString(const String& entry_name,
                                         const Library& conflicting_lib) const;
   static RawLibrary* LookupLibrary(const String& url);
+  static RawLibrary* GetLibrary(intptr_t index);
   static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
 
@@ -1803,7 +1812,6 @@ class Library : public Object {
   static const int kImportedIntoCapacityIncrement = 2;
   static RawLibrary* New();
 
-  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
@@ -1841,6 +1849,7 @@ class LibraryPrefix : public Object {
   RawArray* libraries() const { return raw_ptr()->libraries_; }
   intptr_t num_libs() const { return raw_ptr()->num_libs_; }
 
+  bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
   void AddLibrary(const Library& library) const;
   RawClass* LookupLocalClass(const String& class_name) const;

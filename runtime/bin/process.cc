@@ -96,6 +96,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                            "Environment values must be builtin strings",
                            &environment_length);
     if (string_environment == NULL) {
+      delete[] string_args;
       Dart_SetReturnValue(args, Dart_NewBoolean(false));
       Dart_ExitScope();
       return;

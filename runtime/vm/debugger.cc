@@ -725,13 +725,14 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                                           intptr_t line_number) {
   Library& lib = Library::Handle();
   Script& script = Script::Handle();
-  lib = isolate_->object_store()->registered_libraries();
-  while (!lib.IsNull()) {
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
       break;
     }
-    lib = lib.next_registered();
   }
   if (script.IsNull()) {
     if (verbose) {
@@ -883,6 +884,31 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
   for (int i = 0; i < fields.Length(); i++) {
     field ^= fields.At(i);
     if (field.is_static()) {
+      field_name = field.name();
+      field_value = GetStaticField(cls, field_name);
+      field_list.Add(field_name);
+      field_list.Add(field_value);
+    }
+  }
+  return Array::MakeArray(field_list);
+}
+
+
+RawArray* Debugger::GetLibraryFields(const Library& lib) {
+  const GrowableObjectArray& field_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+  DictionaryIterator it(lib);
+  Object& entry = Object::Handle();
+  Field& field = Field::Handle();
+  Class& cls = Class::Handle();
+  String& field_name = String::Handle();
+  Object& field_value = Object::Handle();
+  while (it.HasNext()) {
+    entry = it.GetNext();
+    if (entry.IsField()) {
+      field ^= entry.raw();
+      cls = field.owner();
+      ASSERT(field.is_static());
       field_name = field.name();
       field_value = GetStaticField(cls, field_name);
       field_list.Add(field_name);

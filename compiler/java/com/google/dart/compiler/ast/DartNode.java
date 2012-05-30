@@ -7,7 +7,6 @@ package com.google.dart.compiler.ast;
 import com.google.dart.compiler.common.AbstractNode;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.Types;
 import com.google.dart.compiler.util.DefaultTextOutput;
 
 import java.util.List;
@@ -16,10 +15,8 @@ import java.util.List;
  * Base class for all Dart AST nodes.
  */
 public abstract class DartNode extends AbstractNode {
-  private static final Type dynamicType = Types.newDynamicType();
-
   private DartNode parent;
-  private Type type = dynamicType;
+  private Type type;
 
   public final String toSource() {
     DefaultTextOutput out = new DefaultTextOutput(false);

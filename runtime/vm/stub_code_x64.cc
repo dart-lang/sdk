@@ -581,7 +581,6 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  __ Untested("Deoptimize stub");
   AssemblerMacros::EnterStubFrame(assembler);
   // RAX: deoptimization reason id.
   // Stack at this point:

@@ -15,3 +15,6 @@ crypto/hmac_sha1_test: Fail
 crypto/hmac_sha256_test: Fail
 crypto/sha1_test: Fail
 crypto/sha256_test: Fail
+
+[ $runtime == opera ]
+*: Skip

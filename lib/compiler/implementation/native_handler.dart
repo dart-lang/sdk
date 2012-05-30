@@ -11,10 +11,11 @@
 #import('tree/tree.dart');
 #import('util/util.dart');
 
-void processNativeClasses(CodeEmitterTask emitter,
+void processNativeClasses(Enqueuer world,
+                          CodeEmitterTask emitter,
                           Collection<LibraryElement> libraries) {
   for (LibraryElement library in libraries) {
-    processNativeClassesInLibrary(emitter, library);
+    processNativeClassesInLibrary(world, emitter, library);
   }
 }
 
@@ -33,7 +34,8 @@ void addSubtypes(ClassElement cls,
   directSubtypes.add(cls);
 }
 
-void processNativeClassesInLibrary(CodeEmitterTask emitter,
+void processNativeClassesInLibrary(Enqueuer world,
+                                   CodeEmitterTask emitter,
                                    LibraryElement library) {
   bool hasNativeClass = false;
   final compiler = emitter.compiler;
@@ -44,7 +46,7 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
       ClassElement classElement = element;
       if (classElement.isNative()) {
         hasNativeClass = true;
-        compiler.registerInstantiatedClass(classElement);
+        world.registerInstantiatedClass(classElement);
         // Also parse the node to know all its methods because
         // otherwise it will only be parsed if there is a call to
         // one of its constructor.
@@ -59,17 +61,14 @@ void processNativeClassesInLibrary(CodeEmitterTask emitter,
     }
   }
   if (hasNativeClass) {
-    final worlds = [compiler.enqueuer.resolution, compiler.enqueuer.codegen];
-    for (var world in worlds) {
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('dynamicFunction')));
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('dynamicSetMetadata')));
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('defineProperty')));
-      world.registerStaticUse(compiler.findHelper(
-          const SourceString('toStringForNativeObject')));
-    }
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicFunction')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicSetMetadata')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('defineProperty')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('toStringForNativeObject')));
   }
 }
 
@@ -216,12 +215,13 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     return;
   }
 
-  HInstruction convertDartClosure(Element parameter) {
+  HInstruction convertDartClosure(Element parameter, Type type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
-    // TODO(ngeoffray): by better analyzing the function type and
-    // its formal parameters, we could pass a method with a defined arity.
+    // TODO(ngeoffray): For static methods, we could pass a method with a
+    // defined arity.
     builder.push(new HStatic(builder.interceptors.getClosureConverter()));
-    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local];
+    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
+    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local, arity];
     HInstruction closure = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
     builder.add(closure);
     return closure;
@@ -266,7 +266,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     parameters.forEachParameter((Element parameter) {
       Type type = parameter.computeType(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
-      if (type is FunctionType) input = convertDartClosure(parameter);
+      if (type is FunctionType) input = convertDartClosure(parameter, type);
       inputs.add(input);
       arguments.add('#');
     });
@@ -297,7 +297,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     parameters.forEachParameter((Element parameter) {
       Type type = parameter.computeType(compiler);
       if (type is FunctionType) {
-        HInstruction jsClosure = convertDartClosure(parameter);
+        HInstruction jsClosure = convertDartClosure(parameter, type);
         // Because the JS code references the argument name directly,
         // we must keep the name and assign the JS closure to it.
         builder.add(new HForeign(

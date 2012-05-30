@@ -1316,6 +1316,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 // Once the invocation counter threshold is reached any entry into the
 // unoptimized code is redirected to this function.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
+  const intptr_t kLowInvocationCount = -100000000;
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
@@ -1328,7 +1329,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
     // TODO(srdjan): Investigate excessive deoptimization.
-    function.set_usage_counter(0);
+    function.set_usage_counter(kLowInvocationCount);
     return;
   }
   if (function.HasOptimizedCode()) {
@@ -1337,7 +1338,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // a loop. Maybe test if the code has been optimized before calling.
     // If this happens from optimized code, then it means that the optimized
     // code needs to be reoptimized.
-    function.set_usage_counter(0);
+    function.set_usage_counter(kLowInvocationCount);
     return;
   }
   if (function.is_optimizable()) {
@@ -1354,7 +1355,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     ASSERT(!unoptimized_code.IsNull());
   } else {
     // TODO(5442338): Abort as this should not happen.
-    function.set_usage_counter(0);
+    function.set_usage_counter(kLowInvocationCount);
   }
 }
 

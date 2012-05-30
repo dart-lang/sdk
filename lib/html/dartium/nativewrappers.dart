@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class $FACTORY_PROVIDER {
-  factory $CONSTRUCTOR($PARAMETERS) =>
-      $IMPL_CLASS.$IMPL_FUNCTION($ARGUMENTS);
+#library('nativewrappers');
+
+class NativeFieldWrapperClass1 {
 }

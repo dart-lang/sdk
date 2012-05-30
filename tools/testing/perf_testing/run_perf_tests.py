@@ -827,7 +827,9 @@ class DromaeoTest(RuntimePerformanceTest):
   """Runs Dromaeo tests, in the browser."""
   def __init__(self, test_runner):
     super(DromaeoTest, self).__init__(
-        self.name(), BrowserTester.get_browsers(), 'browser',
+        self.name(),
+        filter(lambda x: x != 'ie', BrowserTester.get_browsers()),
+        'browser',
         DromaeoTester.get_dromaeo_versions(), 
         DromaeoTester.get_dromaeo_benchmarks(), test_runner,
         self.DromaeoPerfTester(self),
@@ -844,6 +846,9 @@ class DromaeoTest(RuntimePerformanceTest):
     # TODO(vsm): This avoids a bug in 32-bit Chrome (dartium)
     # running JS dromaeo.
     if browser == 'dartium' and version == 'js':
+      return False
+    # dart:dom has been removed from Dartium.
+    if browser == 'dartium' and 'dom' in version:
       return False
     # Only run dart2js on Chrome until we validate it elsewhere.
     if browser != 'chrome' and 'dart2js' in version:
@@ -932,7 +937,7 @@ class DromaeoTest(RuntimePerformanceTest):
 
       versions = DromaeoTester.get_dromaeo_versions()
 
-      for browser in BrowserTester.get_browsers():
+      for browser in filter(lambda x: x != 'ie', BrowserTester.get_browsers()):
         self.move_chrome_driver_if_needed(browser)
         for version_name in versions:
           if not self.test.is_valid_combination(browser, version_name):
@@ -945,6 +950,10 @@ class DromaeoTest(RuntimePerformanceTest):
           self.add_svn_revision_to_trace(self.test.trace_file, browser)
           file_path = '"%s"' % os.path.join(os.getcwd(), dromaeo_path,
               'index-js.html?%s' % version)
+          if platform.system() == 'Windows':
+	    file_path = file_path.replace('&', '^&')
+	    file_path = file_path.replace('?', '^?')
+	    file_path = file_path.replace('|', '^|')
           self.test.test_runner.run_cmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
                '--out', file_path, '--browser', browser,

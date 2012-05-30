@@ -14,15 +14,20 @@ static const int kReadHandle = 0;
 static const int kWriteHandle = 1;
 
 
-// ProcessInfo is used to map a process id to the process handle and
-// the pipe used to communicate the exit code of the process to Dart.
+// ProcessInfo is used to map a process id to the process handle,
+// wait handle for registered exit code event and the pipe used to
+// communicate the exit code of the process to Dart.
 // ProcessInfo objects are kept in the static singly-linked
 // ProcessInfoList.
 class ProcessInfo {
  public:
-  ProcessInfo(DWORD process_id, HANDLE process_handle, HANDLE exit_pipe)
+  ProcessInfo(DWORD process_id,
+              HANDLE process_handle,
+              HANDLE wait_handle,
+              HANDLE exit_pipe)
       : process_id_(process_id),
         process_handle_(process_handle),
+        wait_handle_(wait_handle),
         exit_pipe_(exit_pipe) { }
 
   ~ProcessInfo() {
@@ -38,14 +43,22 @@ class ProcessInfo {
 
   DWORD pid() { return process_id_; }
   HANDLE process_handle() { return process_handle_; }
+  HANDLE wait_handle() { return wait_handle_; }
   HANDLE exit_pipe() { return exit_pipe_; }
   ProcessInfo* next() { return next_; }
   void set_next(ProcessInfo* next) { next_ = next; }
 
  private:
-  DWORD process_id_;  // Process id.
-  HANDLE process_handle_;  // Process handle.
-  HANDLE exit_pipe_;  // File descriptor for pipe to report exit code.
+  // Process id.
+  DWORD process_id_;
+  // Process handle.
+  HANDLE process_handle_;
+  // Wait handle identifying the exit-code wait operation registered
+  // with RegisterWaitForSingleObject.
+  HANDLE wait_handle_;
+  // File descriptor for pipe to report exit code.
+  HANDLE exit_pipe_;
+  // Link to next ProcessInfo object in the singly-linked list.
   ProcessInfo* next_;
 };
 
@@ -55,37 +68,36 @@ class ProcessInfo {
 class ProcessInfoList {
  public:
   static void AddProcess(DWORD pid, HANDLE handle, HANDLE pipe) {
+    // Create a wait operation for the process handle to extract
+    // the exit code.
+    HANDLE wait_handle = INVALID_HANDLE_VALUE;
+    BOOL success = RegisterWaitForSingleObject(
+        &wait_handle,
+        handle,
+        reinterpret_cast<WAITORTIMERCALLBACK>(ExitCodeCallback),
+        reinterpret_cast<void*>(pid),
+        INFINITE,
+        WT_EXECUTEONLYONCE);
+    if (!success) {
+      FATAL("Failed to register exit code wait operation.");
+    }
+    ProcessInfo* info = new ProcessInfo(pid, handle, wait_handle, pipe);
+    // Now mutate the process list under the mutex.
     MutexLocker locker(&mutex_);
-    ProcessInfo* info = new ProcessInfo(pid, handle, pipe);
     info->set_next(active_processes_);
     active_processes_ = info;
-    ++number_of_processes_;
-    BOOL success = SetEvent(GetProcessAddedEvent());
-    if (!success) {
-      FATAL("Failed to set process added event");
-    }
   }
 
-  static bool LookupProcess(DWORD pid, HANDLE* handle, HANDLE* pipe) {
+  static bool LookupProcess(DWORD pid,
+                            HANDLE* handle,
+                            HANDLE* wait_handle,
+                            HANDLE* pipe) {
     MutexLocker locker(&mutex_);
     ProcessInfo* current = active_processes_;
     while (current != NULL) {
       if (current->pid() == pid) {
         *handle = current->process_handle();
-        *pipe = current->exit_pipe();
-        return true;
-      }
-      current = current->next();
-    }
-    return false;
-  }
-
-  static bool LookupProcessByHandle(HANDLE handle, DWORD* pid, HANDLE* pipe) {
-    MutexLocker locker(&mutex_);
-    ProcessInfo* current = active_processes_;
-    while (current != NULL) {
-      if (current->process_handle() == handle) {
-        *pid = current->pid();
+        *wait_handle = current->wait_handle();
         *pipe = current->exit_pipe();
         return true;
       }
@@ -106,7 +118,6 @@ class ProcessInfoList {
           prev->set_next(current->next());
         }
         delete current;
-        --number_of_processes_;
         return;
       }
       prev = current;
@@ -114,227 +125,63 @@ class ProcessInfoList {
     }
   }
 
-  // Extract the process handles from the process list. The handles
-  // array argument must have space for MAXIMUM_WAIT_OBJECTS handles.
-  static DWORD GetHandleArray(HANDLE* handles, intptr_t prefix_size) {
-    MutexLocker locker(&mutex_);
-    ASSERT(prefix_size >= 0);
-    DWORD number_of_handles = prefix_size + number_of_processes_;
-    if (number_of_handles > MAXIMUM_WAIT_OBJECTS) {
-      FATAL1("Only %d processes supported on Windows at this point\n",
-             MAXIMUM_WAIT_OBJECTS - prefix_size);
-    }
-    intptr_t i = prefix_size;
-    ProcessInfo* current = active_processes_;
-    while (current != NULL) {
-      handles[i++] = current->process_handle();
-      current = current->next();
-    }
-    ASSERT(i == number_of_handles);
-    // We have taken a new snapshot of the handles in the list. Reset
-    // the process_added_event so we will get signaled if more
-    // processes are added.
-    BOOL success = ResetEvent(GetProcessAddedEvent());
+ private:
+  // Callback called when an exit code is available from one of the
+  // processes in the list.
+  static void ExitCodeCallback(void* data, bool timed_out) {
+    if (timed_out) return;
+    DWORD pid = reinterpret_cast<DWORD>(data);
+    HANDLE handle;
+    HANDLE wait_handle;
+    HANDLE exit_pipe;
+    bool success = LookupProcess(pid, &handle, &wait_handle, &exit_pipe);
     if (!success) {
-      FATAL("Failed to reset process added event");
+      FATAL("Failed to lookup process in list of active processes");
     }
-    return number_of_handles;
+    // Unregister the event in a non-blocking way.
+    BOOL ok = UnregisterWait(wait_handle);
+    if (!ok && GetLastError() != ERROR_IO_PENDING) {
+      FATAL("Failed unregistering wait operation");
+    }
+    // Get and report the exit code to Dart.
+    int exit_code;
+    ok = GetExitCodeProcess(handle,
+                            reinterpret_cast<DWORD*>(&exit_code));
+    if (!ok) {
+      FATAL1("GetExitCodeProcess failed %d\n", GetLastError());
+    }
+    int negative = 0;
+    if (exit_code < 0) {
+      exit_code = abs(exit_code);
+      negative = 1;
+    }
+    int message[2] = { exit_code, negative };
+    DWORD written;
+    ok = WriteFile(exit_pipe, message, sizeof(message), &written, NULL);
+    // If the process has been closed, the read end of the exit
+    // pipe has been closed. It is therefore not a problem that
+    // WriteFile fails with a closed pipe error
+    // (ERROR_NO_DATA). Other errors should not happen.
+    if (ok && written != sizeof(message)) {
+      FATAL("Failed to write entire process exit message");
+    } else if (!ok && GetLastError() != ERROR_NO_DATA) {
+      FATAL1("Failed to write exit code: %d", GetLastError());
+    }
+    // Remove the process from the list of active processes.
+    RemoveProcess(pid);
   }
 
- private:
-  friend class ExitCodeHandler;
-  static HANDLE GetProcessAddedEvent() {
-    MutexLocker locker(&process_added_event_mutex_);
-    if (process_added_event_ == INVALID_HANDLE_VALUE) {
-      process_added_event_ = CreateEvent(NULL, TRUE, FALSE, NULL);
-      if (process_added_event_ == NULL) {
-        FATAL("Failed to allocate event for signaling addition of processes");
-      }
-    }
-    return process_added_event_;
-  }
-  // Number of processes currently in the list.
-  static intptr_t number_of_processes_;
   // Linked list of ProcessInfo objects for all active processes
   // started from Dart code.
   static ProcessInfo* active_processes_;
   // Mutex protecting all accesses to the linked list of active
   // processes.
   static dart::Mutex mutex_;
-  // Event used to signal that more processes have been added to the
-  // list.
-  static HANDLE process_added_event_;
-  static dart::Mutex process_added_event_mutex_;
 };
 
 
-intptr_t ProcessInfoList::number_of_processes_ = 0;
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
 dart::Mutex ProcessInfoList::mutex_;
-HANDLE ProcessInfoList::process_added_event_ = INVALID_HANDLE_VALUE;
-dart::Mutex ProcessInfoList::process_added_event_mutex_;
-
-
-// The exit code handler sets up a separate thread which is waiting
-// for Dart process termination and process start. When a process
-// terminates the exit code is extracted and communicated to Dart
-// through the event loop.
-class ExitCodeHandler {
- public:
-  // Ensure that the ExitCodeHandler has been initialized.
-  static bool EnsureInitialized() {
-    // Multiple isolates could be starting processes at the same
-    // time. Make sure that only one of them initializes the
-    // ExitCodeHandler.
-    MutexLocker locker(&mutex_);
-    if (initialized_) {
-      return true;
-    }
-
-    // Allocate an event object to be signaled when the exit code
-    // thread should terminate.
-    terminate_event_ = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (terminate_event_ == NULL) {
-      return false;
-    }
-
-    // Start thread that waits for the process-addition and
-    // thread-termination events as well as all process handles for
-    // all active processes.
-    HANDLE* events = new HANDLE[2];
-    events[0] = ProcessInfoList::GetProcessAddedEvent();
-    events[1] = terminate_event_;
-    int result = dart::Thread::Start(ExitCodeHandlerEntry,
-                                     reinterpret_cast<uword>(events));
-    if (result != 0) {
-      FATAL1("Failed to start exit code handler thread: %d", result);
-    }
-
-    // Thread started and the ExitCodeHandler is initialized.
-    initialized_ = true;
-    return true;
-  }
-
-  static void TerminateExitCodeThread() {
-    MutexLocker locker(&mutex_);
-    if (!initialized_) {
-      return;
-    }
-
-    BOOL success = SetEvent(terminate_event_);
-    if (!success) {
-      FATAL("Failed to set terminate event for exit code handler shutdown");
-    }
-
-    {
-      MonitorLocker terminate_locker(&thread_terminate_monitor_);
-      while (!thread_terminated_) {
-        terminate_locker.Wait();
-      }
-    }
-  }
-
-  static void ExitCodeThreadTerminated() {
-    MonitorLocker locker(&thread_terminate_monitor_);
-    thread_terminated_ = true;
-    locker.Notify();
-  }
-
- private:
-  // Entry point for the exit code handler thread started by the
-  // ExitCodeHandler.
-  static void ExitCodeHandlerEntry(uword param) {
-    HANDLE* events = reinterpret_cast<HANDLE*>(param);
-    HANDLE wake_up_event = events[0];
-    HANDLE terminate_event = events[1];
-    delete[] events;
-
-    HANDLE handles[MAXIMUM_WAIT_OBJECTS];
-    handles[0] = wake_up_event;
-    handles[1] = terminate_event;
-
-    while (true) {
-      // Get the list of handles to wait for. Allocate a prefix of two
-      // extra handles for the 'process added' and 'thread
-      // termination' event objects.
-      static const intptr_t kPrefixSize = 2;
-      DWORD number_of_handles =
-          ProcessInfoList::GetHandleArray(handles, kPrefixSize);
-      ASSERT(handles[0] == wake_up_event);
-      ASSERT(handles[1] == terminate_event);
-
-      // Wait for the handles.
-      DWORD result =
-          WaitForMultipleObjects(number_of_handles, handles, FALSE, INFINITE);
-      if (result == WAIT_FAILED) {
-        FATAL("Failed to wait for multiple objects for exit code handling");
-      }
-
-      if (result == 0) {
-        // If the result is 0 the thread woke up because of process
-        // addition. We don't have to do anything we just need to
-        // update the list of handles we are waiting for.
-      } else if (result == 1) {
-        // The termination event was triggered. Free event objects and
-        // exit.
-        CloseHandle(terminate_event_);
-        CloseHandle(wake_up_event);
-        ExitCodeThreadTerminated();
-        return;
-      } else {
-        // The result is the index of the process that was
-        // signalled. Get its exit code and communicate it to Dart.
-        ASSERT(result < number_of_handles);
-        int exit_code;
-        BOOL ok = GetExitCodeProcess(handles[result],
-                                     reinterpret_cast<DWORD*>(&exit_code));
-        if (!ok) {
-          FATAL1("GetExitCodeProcess failed %d\n", GetLastError());
-        }
-        int negative = 0;
-        if (exit_code < 0) {
-          exit_code = abs(exit_code);
-          negative = 1;
-        }
-
-        DWORD pid;
-        HANDLE exit_pipe;
-        bool success = ProcessInfoList::LookupProcessByHandle(handles[result],
-                                                              &pid,
-                                                              &exit_pipe);
-        if (!success) {
-          FATAL("Failed to lookup pid and exit pipe from process handle");
-        }
-        int message[2] = { exit_code, negative };
-        DWORD written;
-        ok = WriteFile(exit_pipe, message, sizeof(message), &written, NULL);
-        // If the process has been closed, the read end of the exit
-        // pipe has been closed. It is therefore not a problem that
-        // WriteFile fails with a closed pipe error
-        // (ERROR_NO_DATA). Other errors should not happen.
-        if (ok && written != sizeof(message)) {
-          FATAL("Failed to write entire process exit message");
-        } else if (!ok && GetLastError() != ERROR_NO_DATA) {
-          FATAL1("Failed to write exit code: %d", GetLastError());
-        }
-        ProcessInfoList::RemoveProcess(pid);
-      }
-    }
-  }
-
-  static dart::Mutex mutex_;
-  static bool initialized_;
-  static HANDLE terminate_event_;
-  static bool thread_terminated_;
-  static dart::Monitor thread_terminate_monitor_;
-};
-
-
-dart::Mutex ExitCodeHandler::mutex_;
-bool ExitCodeHandler::initialized_ = false;
-HANDLE ExitCodeHandler::terminate_event_ = INVALID_HANDLE_VALUE;
-bool ExitCodeHandler::thread_terminated_ = false;
-dart::Monitor ExitCodeHandler::thread_terminate_monitor_;
 
 
 // Types of pipes to create.
@@ -478,14 +325,6 @@ int Process::Start(const char* path,
                    intptr_t* exit_handler,
                    char* os_error_message,
                    int os_error_message_len) {
-  // Ensure that the process exit handler thread has been started.
-  bool initialized = ExitCodeHandler::EnsureInitialized();
-  if (!initialized) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    fprintf(stderr, "Failed to initialize ExitCodeHandler: %d\n", error_code);
-    return error_code;
-  }
-
   HANDLE stdin_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
   HANDLE stdout_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
   HANDLE stderr_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
@@ -663,9 +502,12 @@ int Process::Start(const char* path,
 
 bool Process::Kill(intptr_t id) {
   HANDLE process_handle;
+  HANDLE wait_handle;
   HANDLE exit_pipe;
-  bool success =
-      ProcessInfoList::LookupProcess(id, &process_handle, &exit_pipe);
+  bool success = ProcessInfoList::LookupProcess(id,
+                                                &process_handle,
+                                                &wait_handle,
+                                                &exit_pipe);
   ASSERT(success);
   BOOL result = TerminateProcess(process_handle, -1);
   if (!result) {
@@ -676,5 +518,6 @@ bool Process::Kill(intptr_t id) {
 
 
 void Process::TerminateExitCodeHandler() {
-  ExitCodeHandler::TerminateExitCodeThread();
+  // Nothing needs to be done on Windows.
 }
+

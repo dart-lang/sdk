@@ -25,6 +25,7 @@ public enum TypeErrorCode implements ErrorCode {
   EXTRA_ARGUMENT("extra argument"),
   FIELD_HAS_NO_GETTER("Field '%s' has no getter"),
   FIELD_HAS_NO_SETTER("Field '%s' has no setter"),
+  FIELD_IS_FINAL("Field '%s' is final"),
   FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
   FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
   INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),

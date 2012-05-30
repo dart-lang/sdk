@@ -665,16 +665,15 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
-  RawArray* import_map_;         // Map of import variable names to strings.
   RawArray* imports_;            // List of libraries imported without prefix.
   RawArray* imported_into_;      // List of libraries where this library
                                  // is imported into without a prefix.
-  RawLibrary* next_registered_;  // Linked list of registered libraries.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->next_registered_);
+    return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
   }
 
+  intptr_t index_;               // Library id number.
   intptr_t num_imports_;         // Number of entries in imports_.
   intptr_t num_imported_into_;   // Number of entries in imported_into_.
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.

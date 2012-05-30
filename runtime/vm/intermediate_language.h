@@ -55,8 +55,8 @@ class LocationSummary;
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
   M(AllocateObjectWithBoundsCheck, AllocateObjectWithBoundsCheckComp)          \
-  M(NativeLoadField, NativeLoadFieldComp)                                      \
-  M(NativeStoreField, NativeStoreFieldComp)                                    \
+  M(LoadVMField, LoadVMFieldComp)                                              \
+  M(StoreVMField, StoreVMFieldComp)                                            \
   M(InstantiateTypeArguments, InstantiateTypeArgumentsComp)                    \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
@@ -64,6 +64,7 @@ class LocationSummary;
   M(ChainContext, ChainContextComp)                                            \
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
+  M(BinaryOp, BinaryOpComp)                                                    \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -72,6 +73,7 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 
 // Forward declarations.
 class BufferFormatter;
+class Instruction;
 class Value;
 
 
@@ -79,7 +81,7 @@ class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
+  Computation() : cid_(-1), ic_data_(NULL), instr_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = GetNextCid(isolate);
     ic_data_ = GetICDataForCid(cid_, isolate);
@@ -88,7 +90,8 @@ class Computation : public ZoneAllocated {
   // Unique computation/instruction id, used for deoptimization.
   intptr_t cid() const { return cid_; }
 
-  const ICData* ic_data() const { return ic_data_; }
+  ICData* ic_data() const { return ic_data_; }
+  void set_ic_data(ICData* value) { ic_data_ = value; }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -119,6 +122,11 @@ class Computation : public ZoneAllocated {
     return locs_;
   }
 
+  // TODO(srdjan): Eliminate Instructions hierarchy. If 'use' is NULL
+  // it acts as a DoInstr, otherwise a BindInstr.
+  void set_instr(Instruction* value) { instr_ = value; }
+  Instruction* instr() const { return instr_; }
+
   // Create a location summary for this computation.
   // TODO(fschneider): Temporarily returns NULL for instructions
   // that are not yet converted to the location based code generation.
@@ -139,16 +147,19 @@ class Computation : public ZoneAllocated {
       return NULL;
     } else {
       const Array& array_handle = Array::Handle(isolate->ic_data_array());
-      ICData& ic_data_handle = ICData::ZoneHandle();
-      if (cid < array_handle.Length()) {
-        ic_data_handle ^= array_handle.At(cid);
+      if (cid >= array_handle.Length()) {
+        // For computations being added in the optimizing compiler.
+        return NULL;
       }
+      ICData& ic_data_handle = ICData::ZoneHandle();
+      ic_data_handle ^= array_handle.At(cid);
       return &ic_data_handle;
     }
   }
 
   intptr_t cid_;
   ICData* ic_data_;
+  Instruction* instr_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -248,19 +259,18 @@ class Value : public TemplateComputation<0> {
   virtual void PrintTo(BufferFormatter* f) const;
 
 
-// Definitions and uses are mutually recursive.
-class Definition;
+class BindInstr;
 
 class UseVal : public Value {
  public:
-  explicit UseVal(Definition* definition) : definition_(definition) { }
+  explicit UseVal(BindInstr* definition) : definition_(definition) {}
 
   DECLARE_VALUE(Use)
 
-  Definition* definition() const { return definition_; }
+  BindInstr* definition() const { return definition_; }
 
  private:
-  Definition* const definition_;
+  BindInstr* definition_;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -286,54 +296,45 @@ class ConstantVal: public Value {
 #undef DECLARE_VALUE
 
 
-class AssertAssignableComp : public Computation {
+class AssertAssignableComp : public TemplateComputation<3> {
  public:
   AssertAssignableComp(intptr_t token_index,
                        intptr_t try_index,
                        Value* value,
-                       Value* instantiator,  // Can be NULL.
-                       Value* instantiator_type_arguments,  // Can be NULL.
+                       Value* instantiator,
+                       Value* instantiator_type_arguments,
                        const AbstractType& dst_type,
                        const String& dst_name)
       : token_index_(token_index),
         try_index_(try_index),
-        value_(value),
-        instantiator_(instantiator),
-        instantiator_type_arguments_(instantiator_type_arguments),
         dst_type_(dst_type),
         dst_name_(dst_name) {
-    ASSERT(value_ != NULL);
+    ASSERT(value != NULL);
+    ASSERT(instantiator != NULL);
+    ASSERT(instantiator_type_arguments != NULL);
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
+    inputs_[0] = value;
+    inputs_[1] = instantiator;
+    inputs_[2] = instantiator_type_arguments;
   }
 
   DECLARE_COMPUTATION(AssertAssignable)
 
+  Value* value() const { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[1]; }
+  Value* instantiator_type_arguments() const { return inputs_[2]; }
+
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* value() const { return value_; }
-  Value* instantiator() const { return instantiator_; }
-  Value* instantiator_type_arguments() const {
-    return instantiator_type_arguments_;
-  }
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    if (i == 0) return value();
-    if (i == 1) return instantiator_type_arguments();
-    return NULL;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  Value* value_;
-  Value* instantiator_;
-  Value* instantiator_type_arguments_;
   const AbstractType& dst_type_;
   const String& dst_name_;
 
@@ -857,42 +858,38 @@ class BooleanNegateComp : public TemplateComputation<1> {
 };
 
 
-class InstanceOfComp : public Computation {
+class InstanceOfComp : public TemplateComputation<3> {
  public:
   InstanceOfComp(intptr_t token_index,
                  intptr_t try_index,
                  Value* value,
-                 Value* instantiator,  // Can be NULL.
-                 Value* type_arguments,  // Can be NULL.
+                 Value* instantiator,
+                 Value* instantiator_type_arguments,
                  const AbstractType& type,
                  bool negate_result)
       : token_index_(token_index),
         try_index_(try_index),
-        value_(value),
-        instantiator_(instantiator),
-        type_arguments_(type_arguments),
         type_(type),
         negate_result_(negate_result) {
-    ASSERT(value_ != NULL);
+    ASSERT(value != NULL);
+    ASSERT(instantiator != NULL);
+    ASSERT(instantiator_type_arguments != NULL);
     ASSERT(!type.IsNull());
+    inputs_[0] = value;
+    inputs_[1] = instantiator;
+    inputs_[2] = instantiator_type_arguments;
   }
 
   DECLARE_COMPUTATION(InstanceOf)
 
-  Value* value() const { return value_; }
-  Value* instantiator() const { return instantiator_; }
-  Value* type_arguments() const { return type_arguments_; }
+  Value* value() const { return inputs_[0]; }
+  Value* instantiator() const { return inputs_[1]; }
+  Value* instantiator_type_arguments() const { return inputs_[2]; }
+
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    if (i == 0) return value();
-    if (i == 1) return type_arguments();
-    return NULL;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -969,7 +966,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 };
 
 
-class CreateArrayComp : public Computation {
+class CreateArrayComp : public TemplateComputation<1> {
  public:
   CreateArrayComp(intptr_t token_index,
                   intptr_t try_index,
@@ -977,14 +974,14 @@ class CreateArrayComp : public Computation {
                   Value* element_type)
       : token_index_(token_index),
         try_index_(try_index),
-        elements_(elements),
-        element_type_(element_type) {
+        elements_(elements) {
 #if defined(DEBUG)
     for (int i = 0; i < ElementCount(); ++i) {
       ASSERT(ElementAt(i) != NULL);
     }
-    ASSERT(element_type_ != NULL);
+    ASSERT(element_type != NULL);
 #endif
+    inputs_[0] = element_type;
   }
 
   DECLARE_COMPUTATION(CreateArray)
@@ -993,7 +990,7 @@ class CreateArrayComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
-  Value* element_type() const { return element_type_; }
+  Value* element_type() const { return inputs_[0]; }
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ElementAt(i); }
@@ -1004,7 +1001,6 @@ class CreateArrayComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
-  Value* element_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
@@ -1043,18 +1039,18 @@ class CreateClosureComp : public Computation {
 };
 
 
-class NativeLoadFieldComp : public TemplateComputation<1> {
+class LoadVMFieldComp : public TemplateComputation<1> {
  public:
-  NativeLoadFieldComp(Value* value,
-                      intptr_t offset_in_bytes,
-                      const AbstractType& type)
+  LoadVMFieldComp(Value* value,
+                  intptr_t offset_in_bytes,
+                  const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
   }
 
-  DECLARE_COMPUTATION(NativeLoadField)
+  DECLARE_COMPUTATION(LoadVMField)
 
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -1066,27 +1062,27 @@ class NativeLoadFieldComp : public TemplateComputation<1> {
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
 
-  DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
+  DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };
 
 
-class NativeStoreFieldComp : public TemplateComputation<2> {
+class StoreVMFieldComp : public TemplateComputation<2> {
  public:
-  NativeStoreFieldComp(Value* dest,
-                       intptr_t offset_in_bytes,
-                       Value* value,
-                       const AbstractType& type)
+  StoreVMFieldComp(Value* dest,
+                   intptr_t offset_in_bytes,
+                   Value* value,
+                   const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    inputs_[0] = dest;
-    inputs_[1] = value;
+    inputs_[0] = value;
+    inputs_[1] = dest;
   }
 
-  DECLARE_COMPUTATION(NativeStoreField)
+  DECLARE_COMPUTATION(StoreVMField)
 
-  Value* dest() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
+  Value* value() const { return inputs_[0]; }
+  Value* dest() const { return inputs_[1]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
 
@@ -1096,7 +1092,7 @@ class NativeStoreFieldComp : public TemplateComputation<2> {
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
 
-  DISALLOW_COPY_AND_ASSIGN(NativeStoreFieldComp);
+  DISALLOW_COPY_AND_ASSIGN(StoreVMFieldComp);
 };
 
 
@@ -1280,6 +1276,35 @@ class CatchEntryComp : public TemplateComputation<0> {
 };
 
 
+class BinaryOpComp : public TemplateComputation<2> {
+ public:
+  BinaryOpComp(Token::Kind op_kind,
+               InstanceCallComp* instance_call,
+               Value* left,
+               Value* right)
+      : op_kind_(op_kind), instance_call_(instance_call) {
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(BinaryOp)
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+};
+
 #undef DECLARE_COMPUTATION
 
 
@@ -1344,9 +1369,9 @@ class Instruction : public ZoneAllocated {
   BlockEntryInstr* AsBlockEntry() {
     return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
   }
-  virtual bool IsDefinition() const { return false; }
-  Definition* AsDefinition() {
-    return IsDefinition() ? reinterpret_cast<Definition*>(this) : NULL;
+  virtual bool IsBindInstr() const { return false; }
+  virtual BindInstr* AsBindInstr() {
+    return NULL;
   }
 
   virtual intptr_t InputCount() const = 0;
@@ -1357,6 +1382,9 @@ class Instruction : public ZoneAllocated {
   virtual Instruction* StraightLineSuccessor() const = 0;
   virtual void SetSuccessor(Instruction* instr) = 0;
 
+  virtual void replace_computation(Computation* value) {
+    UNREACHABLE();
+  }
   // Discover basic-block structure by performing a recursive depth first
   // traversal of the instruction graph reachable from this instruction.  As
   // a side effect, the block entry instructions in the graph are assigned
@@ -1600,12 +1628,16 @@ class TargetEntryInstr : public BlockEntryInstr {
 
 class DoInstr : public Instruction {
  public:
-  explicit DoInstr(Computation* comp)
-      : computation_(comp), successor_(NULL) { }
+  explicit DoInstr(Computation* computation)
+      : computation_(computation), successor_(NULL) {
+    ASSERT(computation != NULL);
+    computation->set_instr(this);
+  }
 
   DECLARE_INSTRUCTION(Do)
 
   Computation* computation() const { return computation_; }
+  virtual void replace_computation(Computation* value) { computation_ = value; }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1634,30 +1666,24 @@ class DoInstr : public Instruction {
 };
 
 
-class Definition : public Instruction {
+class BindInstr : public Instruction {
  public:
-  Definition() : temp_index_(-1) { }
+  explicit BindInstr(Computation* computation)
+      : temp_index_(-1), computation_(computation), successor_(NULL) {
+    ASSERT(computation != NULL);
+    computation->set_instr(this);
+  }
 
-  virtual bool IsDefinition() const { return true; }
+  DECLARE_INSTRUCTION(Bind)
+
+  virtual bool IsBindInstr() const { return true; }
+  virtual BindInstr* AsBindInstr() { return this; }
 
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
 
- private:
-  intptr_t temp_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(Definition);
-};
-
-
-class BindInstr : public Definition {
- public:
-  explicit BindInstr(Computation* computation)
-      : Definition(), computation_(computation), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(Bind)
-
   Computation* computation() const { return computation_; }
+  virtual void replace_computation(Computation* value) { computation_ = value; }
 
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
@@ -1682,6 +1708,7 @@ class BindInstr : public Definition {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
+  intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
 

@@ -5,6 +5,9 @@
 webgl_1_test: Skip  # Issue 1495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+*: Skip
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 
 [ $compiler == none && $runtime == dartium ]
@@ -43,6 +46,12 @@ history_test: Fail
 # TODO(vsm): Triage DOM failures.
 *: Skip
 
+[ $compiler == frog && $runtime == ff ]
+# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
+hidden_dom_1_test: Fail
+# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
+hidden_dom_2_test: Fail
+
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analogue to WebKitCSSMatrix
@@ -51,10 +60,6 @@ canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribut
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 dart_object_local_storage_test: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
-# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
-hidden_dom_1_test: Fail
-# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
-hidden_dom_2_test: Fail
 indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
@@ -119,3 +124,10 @@ indexeddb_2_test: Fail # Uncaught error
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2js && $runtime == ff ]
+cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
+canvas_pixel_array_type_alias_test: Fail # Expectation: CreateImageData. Caught NoSuchMethodException : method not found: 'get$data'
+xhr_test: Skip # Timeout
+inner_frame_test: Skip # Timeout
+svg_3_test: Skip # Timeout

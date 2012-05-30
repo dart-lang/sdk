@@ -241,7 +241,7 @@ class SeleniumBindingsInstaller(object):
 def main():
   args = parse_args()
   SeleniumBindingsInstaller(args.buildbot).run()
-  GoogleCodeInstaller('chromedriver', ind_depot_tools_location(args.buildbot),
+  GoogleCodeInstaller('chromedriver', find_depot_tools_location(args.buildbot),
       lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
   if 'win32' not in sys.platform and 'cygwin' not in sys.platform:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),

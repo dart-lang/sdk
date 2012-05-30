@@ -45,28 +45,13 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-// ==== Per-instruction input counts.
-intptr_t AssertAssignableComp::InputCount() const {
-  // Value and optional instantiator and instantiator type arguments.
-  intptr_t count = 1;
-  if (instantiator() != NULL) count++;
-  if (instantiator_type_arguments() != NULL) count++;
-  return count;
-}
-
-
-intptr_t InstanceOfComp::InputCount() const {
-  // Value and optional instantiator and instantiator type_arguments.
-  intptr_t count = 1;
-  if (instantiator() != NULL) count++;
-  if (type_arguments() != NULL) count++;
-  return count;
-}
-
-
 intptr_t CreateClosureComp::InputCount() const {
+  intptr_t input_count = 0;
   // Optional type arguments.
-  return (type_arguments() == NULL) ? 0 : 1;
+  if (type_arguments() != NULL) input_count++;
+  // Optional receiver.
+  if (function().IsImplicitInstanceClosureFunction()) input_count++;
+  return input_count;
 }
 
 
@@ -396,7 +381,8 @@ RawAbstractType* NativeCallComp::StaticType() const {
 
 
 RawAbstractType* StoreIndexedComp::StaticType() const {
-  return value()->StaticType();
+  UNREACHABLE();
+  return AbstractType::null();
 }
 
 
@@ -493,13 +479,13 @@ RawAbstractType* AllocateObjectWithBoundsCheckComp::StaticType() const {
 }
 
 
-RawAbstractType* NativeLoadFieldComp::StaticType() const {
+RawAbstractType* LoadVMFieldComp::StaticType() const {
   ASSERT(!type().IsNull());
   return type().raw();
 }
 
 
-RawAbstractType* NativeStoreFieldComp::StaticType() const {
+RawAbstractType* StoreVMFieldComp::StaticType() const {
   ASSERT(!type().IsNull());
   const AbstractType& assigned_value_type =
       AbstractType::Handle(value()->StaticType());
@@ -550,6 +536,12 @@ RawAbstractType* CloneContextComp::StaticType() const {
 RawAbstractType* CatchEntryComp::StaticType() const {
   UNREACHABLE();
   return AbstractType::null();
+}
+
+
+RawAbstractType* BinaryOpComp::StaticType() const {
+  // TODO(srdjan): Compute based on input types (ICData).
+  return Type::DynamicType();
 }
 
 

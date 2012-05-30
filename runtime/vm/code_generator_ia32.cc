@@ -1233,7 +1233,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Check immediate equality.
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+  __ LoadClassOfObject(ECX, EAX, EDI);
   // ECX: instance class.
   __ CompareObject(ECX, type_class);
   __ j(EQUAL, is_instance_lbl);
@@ -1454,16 +1454,16 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
       type_arguments.IsRaw(type_arguments.Length());
   if (is_raw_type) {
     // Dynamic type argument, check only classes.
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    __ LoadClassIndexOfObject(ECX, EAX);
     if (!type_class.is_interface()) {
-      __ CompareObject(ECX, type_class);
+      __ cmpl(ECX, Immediate(type_class.index()));
       __ j(EQUAL, is_instance_lbl);
     }
     if (type.IsListInterface()) {
       // TODO(srdjan) also accept List<Object>.
-      __ CompareObject(ECX, *CoreClass("ObjectArray"));
+      __ cmpl(ECX, Immediate(CoreClass("ObjectArray")->index()));
       __ j(EQUAL, is_instance_lbl);
-      __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
+      __ cmpl(ECX, Immediate(CoreClass("GrowableObjectArray")->index()));
       __ j(EQUAL, is_instance_lbl);
     }
     return
@@ -1527,7 +1527,7 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   ASSERT(type.IsInstantiated());
-  const Class& type_class = Class::ZoneHandle(type.type_class());
+  const Class& type_class = Class::Handle(type.type_class());
   ASSERT(!type_class.HasTypeArguments());
 
   Label compare_classes;
@@ -1552,10 +1552,9 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
   // However, for specific core library interfaces, we can check for
   // specific core library classes.
   if (type.IsBoolInterface()) {
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    const Class& bool_class = Class::ZoneHandle(
+    const Class& bool_class = Class::Handle(
         Isolate::Current()->object_store()->bool_class());
-    __ CompareObject(ECX, bool_class);
+    __ CompareClassOfObject(EAX, bool_class, ECX);
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -1563,54 +1562,42 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
   // If type is an interface, we can skip the class equality check,
   // because instances cannot be of an interface type.
   if (!type_class.is_interface()) {
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    __ CompareObject(ECX, type_class);
+    __ CompareClassOfObject(EAX, type_class, ECX);
     __ j(EQUAL, is_instance_lbl);
   }
   if (type.IsSubtypeOf(
         Type::Handle(Type::NumberInterface()), &malformed_error)) {
     // Custom checking for numbers (Smi, Mint, Bigint and Double)
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    __ LoadClassIndexOfObject(ECX, EAX);
+
     if (type.IsIntInterface() || type.IsNumberInterface()) {
       // We already checked for Smi above.
-      const Class& mint_class = Class::ZoneHandle(
-          Isolate::Current()->object_store()->mint_class());
-      const Class& bigint_class = Class::ZoneHandle(
-          Isolate::Current()->object_store()->bigint_class());
-      __ CompareObject(ECX, mint_class);
+      __ cmpl(ECX, Immediate(kMint));
       __ j(EQUAL, is_instance_lbl);
-      __ CompareObject(ECX, bigint_class);
+      __ cmpl(ECX, Immediate(kBigint));
       __ j(EQUAL, is_instance_lbl);
       if (type.IsIntInterface()) {
         __ jmp(is_not_instance_lbl);
       }
     }
     if (type.IsDoubleInterface() || type.IsNumberInterface()) {
-      const Class& double_class = Class::ZoneHandle(
-          Isolate::Current()->object_store()->double_class());
-      __ CompareObject(ECX, double_class);
+      __ cmpl(ECX, Immediate(kDouble));
       __ j(EQUAL, is_instance_lbl);
       __ jmp(is_not_instance_lbl);
     }
   } else if (type.IsStringInterface()) {
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    const Class& one_byte_string_class = Class::ZoneHandle(
-        Isolate::Current()->object_store()->one_byte_string_class());
-    const Class& two_byte_string_class = Class::ZoneHandle(
-        Isolate::Current()->object_store()->two_byte_string_class());
-    const Class& four_byte_string_class = Class::ZoneHandle(
-        Isolate::Current()->object_store()->four_byte_string_class());
-    __ CompareObject(ECX, one_byte_string_class);
+    __ LoadClassIndexOfObject(ECX, EAX);
+    __ cmpl(ECX, Immediate(kOneByteString));
     __ j(EQUAL, is_instance_lbl);
-    __ CompareObject(ECX, two_byte_string_class);
+    __ cmpl(ECX, Immediate(kTwoByteString));
     __ j(EQUAL, is_instance_lbl);
-    __ CompareObject(ECX, four_byte_string_class);
+    __ cmpl(ECX, Immediate(kFourByteString));
     __ j(EQUAL, is_instance_lbl);
   } else if (type.IsFunctionInterface()) {
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    __ LoadClassOfObject(ECX, EAX, EBX);
     __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
     __ cmpl(ECX, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
@@ -1646,8 +1633,9 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
     // We expect that frequently checked objects wull have their type arguments
     // converted into instance of TypeArguments.
-    __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
-    __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
+    __ CompareClassOfObject(EBX,
+                            Class::Handle(Object::type_arguments_class()),
+                            EDX);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
     __ movl(EDX,
@@ -1879,9 +1867,8 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   // 'bool'. Check only class 'Bool' since it is the only legal implementation
   // of the interface 'bool'.
   const Class& bool_class =
-      Class::ZoneHandle(Isolate::Current()->object_store()->bool_class());
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-  __ CompareObject(ECX, bool_class);
+      Class::Handle(Isolate::Current()->object_store()->bool_class());
+  __ CompareClassOfObject(EAX, bool_class, ECX);
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
@@ -2523,8 +2510,9 @@ void CodeGenerator::GenerateTypeArguments(
       // No need to check RAX for null (again), because a null instance will
       // have the wrong class (Null instead of TypeArguments).
       Label type_arguments_uninstantiated;
-      __ LoadObject(ECX, Class::ZoneHandle(Object::type_arguments_class()));
-      __ cmpl(ECX, FieldAddress(EAX, Object::class_offset()));
+      __ CompareClassOfObject(EAX,
+                              Class::Handle(Object::type_arguments_class()),
+                              ECX);
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
       __ cmpl(FieldAddress(EAX, TypeArguments::length_offset()),
               Immediate(Smi::RawValue(len)));

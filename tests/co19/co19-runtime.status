@@ -122,9 +122,9 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $checked ]
 Language/09_Generics/09_Generics_A04_t06: Fail # co19 issue 118
-Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/11_Statements/15_Assert_A03_t08: Fail # TODO(vm-team): New failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # Issue 1380
+Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # Issue 1380
+Language/11_Statements/15_Assert_A03_t08: Fail # Issue 1584
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
 LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
 Language/12_Libraries_and_Scripts/3_Scripts_A02_t01: Fail # Issue co19 - 110
@@ -138,6 +138,41 @@ LibTest/core/double/remainder_A01_t04: Fail
 LibTest/core/Math/atan2_A01_t03: Fail
 LibTest/core/int/remainder_A01_t02: Fail
 LibTest/core/int/operator_remainder_A01_t02: Fail
+
+
+[ $runtime == vm ]
+
+# The following tests use the deprecated Date interface.
+LibTest/core/Date/Date_A02_t01: Fail
+LibTest/core/Date/Date.now_A02_t01: Fail
+LibTest/core/Date/add_A04_t01: Fail
+LibTest/core/Date/value_A01_t02: Skip
+LibTest/core/Date/value_A02_t01: Skip
+LibTest/core/Date/isLocalTime_A01_t01: Fail
+LibTest/core/Date/toString_A02_t01: Skip
+LibTest/core/Date/Date.fromString_A01_t03: Fail
+LibTest/core/Date/changeTimeZone_A01_t01: Skip
+LibTest/core/Date/changeTimeZone_A02_t01: Fail
+LibTest/core/Date/changeTimeZone_A03_t01: Fail
+LibTest/core/Date/changeTimeZone_A04_t01: Skip
+LibTest/core/Date/changeTimeZone_A05_t01: Fail
+LibTest/core/Date/isUtc_A01_t01: Fail
+LibTest/core/Date/timeZone_A01_t01: Skip
+LibTest/core/Date/timeZone_A01_t02: Fail
+LibTest/core/Date/timeZone_A01_t03: Fail
+LibTest/core/Date/difference_A01_t01: Skip
+LibTest/core/Date/difference_A01_t02: Skip
+LibTest/core/Date/subtract_A04_t01: Fail
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail
+LibTest/core/Date/Date.fromEpoch_A01_t02: Skip
+LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t02: Skip
+LibTest/core/Date/Date.withTimeZone_A01_t03: Skip
+
+LibTest/core/TimeZone/TimeZone.local_A01_t01: Skip
+LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 
 
 [ $runtime == vm ]
@@ -214,6 +249,7 @@ LibTest/core/Date/Date.withTimeZone_A01_t02: Pass,Fail
 
 LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
+Language/03_Overview/1_Scoping_A02_t05: Fail # co19 issue 126
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
 Language/07_Classes/07_Classes_A02_t08: Fail
@@ -269,6 +305,9 @@ Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail
 Language/08_Interfaces/4_Superinterfaces_A01_t02: Fail
+Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 issue 127
+Language/13_Types/4_Interface_Types_A10_t09: Fail # co19 issue 127
+Language/13_Types/5_Function_Types_A01_t08: Fail # co19 issue 127
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t01: Fail
 LibTest/core/Match/group_A01_t01: Fail # co19 issue 92
@@ -285,27 +324,20 @@ LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
 
 
-Language/03_Overview/1_Scoping_A01_t34: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t35: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t36: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/11_Statements/11_Labels_A01_t03: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/2_Privacy_A01_t11: Fail # Related to issue 978
+Language/03_Overview/2_Privacy_A01_t16: Fail # Issue 2242
+Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
+Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 3206
 
 
 [ $runtime == vm && $arch == ia32 ]
-LibTest/core/int/operator_left_shift_A01_t02: Fail
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 
 [ $runtime == vm && $unchecked ]
 Language/09_Generics/09_Generics_A04_t04: Fail # co19 issue 117
-Language/13_Types/1_Static_Types_A02_t08: Fail
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # # co19 issue 97
+Language/13_Types/1_Static_Types_A02_t08: Fail # co19 issue 128
+Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 
 
 [ $arch == simarm ]

@@ -529,6 +529,17 @@ class Assembler : public ValueObject {
   void CallRuntime(const RuntimeEntry& entry);
 
   /*
+   * Loading and comparing classes of objects
+   */
+  void LoadClassOfObject(Register result, Register object, Register scratch);
+
+  void LoadClassIndexOfObject(Register result, Register object);
+
+  void CompareClassOfObject(Register object,
+                            const Class& clazz,
+                            Register scratch);
+
+  /*
    * Misc. functionality
    */
   void SmiTag(Register reg) {
@@ -561,7 +572,7 @@ class Assembler : public ValueObject {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
 
-  void Comment(const char* comment);
+  void Comment(const char* format, ...);
   const Code::Comments& GetCodeComments() const;
 
  private:

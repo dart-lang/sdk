@@ -7,6 +7,7 @@
 #import("dart:io");
 #import("dart:builtin");
 #import("drt_updater.dart");
+#import("test_suite.dart");
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
@@ -466,8 +467,13 @@ Note: currently only implemented for dart2js.''',
     configuration['unchecked'] = !configuration['checked'];
     configuration['host_unchecked'] = !configuration['host_checked'];
 
-    if (configuration['runtime'] == 'firefox') {
+    String runtime = configuration['runtime'];
+    if (runtime == 'firefox') {
       configuration['runtime'] == 'ff';
+    }
+
+    if (TestUtils.isBrowserRuntime(runtime)) {
+      configuration['browser'] = true;
     }
 
     // Expand the test selectors into a suite name and a simple

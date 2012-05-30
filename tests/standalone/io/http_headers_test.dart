@@ -50,11 +50,9 @@ void testMultiValue() {
 }
 
 void testDate() {
-  Date date1 = new Date.withTimeZone(
-      1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+  Date date1 = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.withTimeZone(
-      2000, Date.AUG, 16, 12, 34, 56, 0, new TimeZone.utc());
+  Date date2 = new Date(2000, Date.AUG, 16, 12, 34, 56, 0, isUtc: true);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();
@@ -78,11 +76,9 @@ void testDate() {
 }
 
 void testExpires() {
-  Date date1 = new Date.withTimeZone(
-      1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+  Date date1 = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.withTimeZone(
-      2000, Date.AUG, 16, 12, 34, 56, 0, new TimeZone.utc());
+  Date date2 = new Date(2000, Date.AUG, 16, 12, 34, 56, 0, isUtc: true);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();
@@ -276,6 +272,95 @@ void testContentTypeCache() {
   Expect.equals("/", headers.contentType.value);
 }
 
+void testCookie() {
+  void checkCookiesEquals(a, b) {
+    Expect.equals(a.name, b.name);
+    Expect.equals(a.value, b.value);
+    Expect.equals(a.expires, b.expires);
+    Expect.equals(a.toString(), b.toString());
+  }
+
+  void checkCookie(cookie, s) {
+    Expect.equals(s, cookie.toString());
+    var c = new _Cookie.fromSetCookieValue(s);
+    checkCookiesEquals(cookie, c);
+  }
+
+  Cookie cookie;
+  cookie = new Cookie("name", "value");
+  Expect.equals("name=value", cookie.toString());
+  TimeZone utc = new TimeZone.utc();
+  Date date = new Date.withTimeZone(2014, Date.JAN, 5, 23, 59, 59, 0, utc);
+  cookie.expires = date;
+  checkCookie(cookie, "name=value"
+                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT");
+  cookie.maxAge = 567;
+  checkCookie(cookie, "name=value"
+                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                      "; Max-Age=567");
+  cookie.domain = "example.com";
+  checkCookie(cookie, "name=value"
+                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                      "; Max-Age=567"
+                      "; Domain=example.com");
+  cookie.path = "/xxx";
+  checkCookie(cookie, "name=value"
+                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                      "; Max-Age=567"
+                      "; Domain=example.com"
+                      "; Path=/xxx");
+  cookie.secure = true;
+  checkCookie(cookie, "name=value"
+                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                      "; Max-Age=567"
+                      "; Domain=example.com"
+                      "; Path=/xxx"
+                      "; Secure");
+  cookie.httpOnly = true;
+  checkCookie(cookie, "name=value"
+                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                      "; Max-Age=567"
+                      "; Domain=example.com"
+                      "; Path=/xxx"
+                      "; Secure"
+                      "; HttpOnly");
+  cookie.expires = null;
+  checkCookie(cookie, "name=value"
+                      "; Max-Age=567"
+                      "; Domain=example.com"
+                      "; Path=/xxx"
+                      "; Secure"
+                      "; HttpOnly");
+  cookie.maxAge = null;
+  checkCookie(cookie, "name=value"
+                      "; Domain=example.com"
+                      "; Path=/xxx"
+                      "; Secure"
+                      "; HttpOnly");
+  cookie.domain = null;
+  checkCookie(cookie, "name=value"
+                      "; Path=/xxx"
+                      "; Secure"
+                      "; HttpOnly");
+  cookie.path = null;
+  checkCookie(cookie, "name=value"
+                      "; Secure"
+                      "; HttpOnly");
+  cookie.secure = false;
+  checkCookie(cookie, "name=value"
+                      "; HttpOnly");
+  cookie.httpOnly = false;
+  checkCookie(cookie, "name=value");
+}
+
+void testInvalidCookie() {
+  Expect.throws(() => new _Cookie.fromSetCookieValue(""));
+  Expect.throws(() => new _Cookie.fromSetCookieValue("="));
+  Expect.throws(() => new _Cookie.fromSetCookieValue("=xxx"));
+  Expect.throws(() => new _Cookie.fromSetCookieValue("xxx"));
+  Expect.throws(() => new _Cookie.fromSetCookieValue("xxx=yyy; expires=12 jan 2013"));
+}
+
 main() {
   testMultiValue();
   testExpires();
@@ -284,4 +369,6 @@ main() {
   testHeaderValue();
   testContentType();
   testContentTypeCache();
+  testCookie();
+  testInvalidCookie();
 }

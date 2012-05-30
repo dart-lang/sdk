@@ -93,8 +93,7 @@ class DartUtils {
                                 Dart_Handle library,
                                 Dart_Handle url,
                                 Dart_LibraryTag tag,
-                                const char* filename,
-                                Dart_Handle import_map);
+                                const char* filename);
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
 

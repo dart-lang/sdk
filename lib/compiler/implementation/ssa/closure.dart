@@ -255,6 +255,8 @@ class ClosureTranslator extends AbstractVisitor {
     } else if (node.receiver === null &&
                Elements.isInstanceSend(node, elements)) {
       useLocal(closureData.thisElement);
+    } else if (node.isSuperCall) {
+      useLocal(closureData.thisElement);
     }
     node.visitChildren(this);
   }
@@ -434,8 +436,9 @@ class ClosureTranslator extends AbstractVisitor {
 
   visitTryStatement(TryStatement node) {
     // TODO(ngeoffray): implement finer grain state.
+    bool oldInTryCatchOrFinally = inTryCatchOrFinally;
     inTryCatchOrFinally = true;
     node.visitChildren(this);
-    inTryCatchOrFinally = false;
+    inTryCatchOrFinally = oldInTryCatchOrFinally;
   }
 }

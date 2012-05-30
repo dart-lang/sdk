@@ -54,6 +54,8 @@ enum XmmRegister {
 // Register aliases.
 const Register TMP = kNoRegister;  // No scratch register used by assembler.
 const Register CTX = ESI;          // Caches current context in generated code.
+const Register SPREG = ESP;
+const Register FPREG = EBP;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

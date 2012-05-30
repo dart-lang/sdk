@@ -12,20 +12,11 @@ class WorkItem {
 
   bool isAnalyzed() => resolutionTree !== null;
 
-  int hashCode() => element.hashCode();
-
-  String run(Compiler compiler) {
-    String code = compiler.codegenWorld.generatedCode[element];
+  String run(Compiler compiler, Enqueuer world) {
+    String code = world.universe.generatedCode[element];
     if (code !== null) return code;
-    try {
-      if (!isAnalyzed()) compiler.analyze(this);
-      return compiler.codegen(this);
-    } catch (CompilerCancelledException ex) {
-      throw;
-    } catch (var ex) {
-      compiler.unhandledExceptionOnElement(element);
-      throw;
-    }
+    if (!isAnalyzed()) compiler.analyze(this);
+    return compiler.codegen(this);
   }
 }
 
@@ -35,8 +26,9 @@ class Backend {
   Backend(this.compiler);
 
   abstract String codegen(WorkItem work);
-  abstract void processNativeClasses(libraries);
+  abstract void processNativeClasses(world, libraries);
   abstract void assembleProgram();
+  abstract List<CompilerTask> get tasks();
 }
 
 class JavaScriptBackend extends Backend {
@@ -44,6 +36,10 @@ class JavaScriptBackend extends Backend {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
+
+  List<CompilerTask> get tasks() {
+    return <CompilerTask>[builder, optimizer, generator, emitter];
+  }
 
   JavaScriptBackend(Compiler compiler)
       : emitter = new CodeEmitterTask(compiler),
@@ -66,15 +62,18 @@ class JavaScriptBackend extends Backend {
     return generator.generateMethod(work, graph);
   }
 
-  void processNativeClasses(libraries) {
-    native.processNativeClasses(emitter, libraries);
+  void processNativeClasses(world, libraries) {
+    native.processNativeClasses(world, emitter, libraries);
   }
 
-  void assembleProgram() => emitter.assembleProgram();
+  void assembleProgram() {
+    emitter.assembleProgram();
+  }
 }
 
 class DartBackend extends Backend {
   DartBackend(Compiler compiler) : super(compiler);
+  final List<CompilerTask> tasks = const <CompilerTask>[];
 }
 
 class Compiler implements DiagnosticListener {
@@ -115,6 +114,11 @@ class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
+    } catch (CompilerCancelledException ex) {
+      throw;
+    } catch (var ex) {
+      unhandledExceptionOnElement(element);
+      throw;
     } finally {
       _currentElement = old;
     }
@@ -163,6 +167,7 @@ class Compiler implements DiagnosticListener {
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              unparseValidator, constantHandler, enqueuer];
+    tasks.addAll(backend.tasks);
   }
 
   Universe get codegenWorld() => enqueuer.codegen.universe;
@@ -193,7 +198,7 @@ class Compiler implements DiagnosticListener {
 
   void unhandledExceptionOnElement(Element element) {
     reportDiagnostic(spanFromElement(element),
-                     MessageKind.COMPILER_CRASHED.error(),
+                     MessageKind.COMPILER_CRASHED.error().toString(),
                      false);
     // TODO(ahe): Obtain the build ID.
     var buildId = 'build number could not be determined';
@@ -356,23 +361,33 @@ class Compiler implements DiagnosticListener {
         reportFatalError('main cannot have parameters', parameter);
       });
     }
-    Collection<LibraryElement> libraries = libraries.getValues();
-    backend.processNativeClasses(libraries);
-    world.populate(this, libraries);
-    enqueuer.codegen.addToWorkList(main);
-    codegenProgress.reset();
-    while (!enqueuer.codegen.queue.isEmpty()) {
-      WorkItem work = enqueuer.codegen.queue.removeLast();
-      withCurrentElement(work.element, () => work.run(this));
-    }
-    enqueuer.codegen.queueIsClosed = true;
-    assert(enqueuer.codegen.checkNoEnqueuedInvokedInstanceMethods());
-    enqueuer.codegen.registerFieldClosureInvocations();
+
+    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
+    // should know this.
+    world.populate(this, libraries.getValues());
+
+    // Not yet ready to process the enqueuer.resolution queue...
+    // processQueue(enqueuer.resolution);
+    processQueue(enqueuer.codegen, main);
+
     backend.assembleProgram();
     if (!enqueuer.codegen.queue.isEmpty()) {
       internalErrorOnElement(enqueuer.codegen.queue.first().element,
                              "work list is not empty");
     }
+  }
+
+  processQueue(Enqueuer world, Element main) {
+    backend.processNativeClasses(world, libraries.getValues());
+    world.addToWorkList(main);
+    codegenProgress.reset();
+    while (!world.queue.isEmpty()) {
+      WorkItem work = world.queue.removeLast();
+      withCurrentElement(work.element, () => work.run(this, world));
+    }
+    world.queueIsClosed = true;
+    assert(world.checkNoEnqueuedInvokedInstanceMethods());
+    world.registerFieldClosureInvocations();
   }
 
   TreeElements analyzeElement(Element element) {
@@ -423,6 +438,17 @@ class Compiler implements DiagnosticListener {
   FunctionSignature resolveSignature(FunctionElement element) {
     return withCurrentElement(element,
                               () => resolver.resolveSignature(element));
+  }
+
+  FunctionSignature resolveTypedef(TypedefElement element) {
+    return withCurrentElement(element,
+                              () => resolver.resolveTypedef(element));
+  }
+
+  FunctionType computeFunctionType(Element element,
+                                   FunctionSignature signature) {
+    return withCurrentElement(element,
+        () => resolver.computeFunctionType(element, signature));
   }
 
   Constant compileVariable(VariableElement element) {

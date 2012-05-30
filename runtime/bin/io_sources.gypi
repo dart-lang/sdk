@@ -27,6 +27,7 @@
     'input_stream.dart',
     'list_stream.dart',
     'list_stream_impl.dart',
+    'mime_multipart_parser.dart',
     'output_stream.dart',
     'stream_util.dart',
     'string_stream.dart',

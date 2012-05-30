@@ -213,6 +213,25 @@ void DebuggerConnectionHandler::SendError(int msg_id,
 }
 
 
+static const char* GetStringChars(Dart_Handle str) {
+  ASSERT(Dart_IsString(str));
+  const char* chars;
+  Dart_Handle res = Dart_StringToCString(str, &chars);
+  ASSERT(!Dart_IsError(res));
+  return chars;
+}
+
+
+static int GetIntValue(Dart_Handle int_handle) {
+  int64_t int64_val = -1;
+  ASSERT(Dart_IsInteger(int_handle));
+  Dart_Handle res = Dart_IntegerToInt64(int_handle, &int64_val);
+  ASSERT(!Dart_IsError(res));
+  // TODO(hausner): Range check.
+  return int64_val;
+}
+
+
 void DebuggerConnectionHandler::HandleResumeCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   dart::TextBuffer msg(64);
@@ -246,14 +265,8 @@ void DebuggerConnectionHandler::HandleStepOverCmd(const char* json_msg) {
 void DebuggerConnectionHandler::HandleGetScriptURLsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   dart::TextBuffer msg(64);
-  const char* params = msgbuf_->Params();
-  ASSERT(params != NULL);
-  dart::JSONReader pr(params);
-  pr.Seek("library");
-  ASSERT(pr.Type() == dart::JSONReader::kString);
-  char lib_url_chars[128];
-  pr.GetValueChars(lib_url_chars, sizeof(lib_url_chars));
-  Dart_Handle lib_url = Dart_NewString(lib_url_chars);
+  intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
+  Dart_Handle lib_url = Dart_GetLibraryURL(lib_id);
   ASSERT_NOT_ERROR(lib_url);
   Dart_Handle urls = Dart_GetScriptURLs(lib_url);
   if (Dart_IsError(urls)) {
@@ -267,42 +280,37 @@ void DebuggerConnectionHandler::HandleGetScriptURLsCmd(const char* json_msg) {
   msg.Printf("\"result\": { \"urls\": [");
   for (int i = 0; i < num_urls; i++) {
     Dart_Handle script_url = Dart_ListGetAt(urls, i);
-    ASSERT(Dart_IsString(script_url));
-    char const* chars;
-    Dart_StringToCString(lib_url, &chars);
-    msg.Printf("%s\"%s\"", (i == 0) ? "" : ", ", chars);
+    msg.Printf("%s\"%s\"", (i == 0) ? "" : ", ", GetStringChars(script_url));
   }
   msg.Printf("] }}");
   SendMsg(&msg);
 }
 
 
-void DebuggerConnectionHandler::HandleGetLibraryURLsCmd(const char* json_msg) {
+void DebuggerConnectionHandler::HandleGetLibrariesCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   dart::TextBuffer msg(64);
-  msg.Printf("{ \"id\": %d, \"result\": { \"urls\": [", msg_id);
-  Dart_Handle urls = Dart_GetLibraryURLs();
-  ASSERT_NOT_ERROR(urls);
+  msg.Printf("{ \"id\": %d, \"result\": { \"libraries\": [", msg_id);
+  Dart_Handle lib_ids = Dart_GetLibraryIds();
+  ASSERT_NOT_ERROR(lib_ids);
   intptr_t num_libs;
-  Dart_ListLength(urls, &num_libs);
+  Dart_Handle res = Dart_ListLength(lib_ids, &num_libs);
+  ASSERT_NOT_ERROR(res);
   for (int i = 0; i < num_libs; i++) {
-    Dart_Handle lib_url = Dart_ListGetAt(urls, i);
+    Dart_Handle lib_id_handle = Dart_ListGetAt(lib_ids, i);
+    ASSERT(Dart_IsInteger(lib_id_handle));
+    int lib_id = GetIntValue(lib_id_handle);
+    Dart_Handle lib_url = Dart_GetLibraryURL(lib_id);
+    ASSERT_NOT_ERROR(lib_url);
+    ASSERT(!Dart_IsNull(lib_url));
     ASSERT(Dart_IsString(lib_url));
-    char const* chars;
+    char const* chars = NULL;
     Dart_StringToCString(lib_url, &chars);
-    msg.Printf("%s\"%s\"", (i == 0) ? "" : ", ", chars);
+    msg.Printf("%s{\"id\":%d,\"url\":\"%s\"}",
+               (i == 0) ? "" : ", ", lib_id, chars);
   }
-  msg.Printf("] }}");
+  msg.Printf("]}}");
   SendMsg(&msg);
-}
-
-
-static const char* GetStringChars(Dart_Handle str) {
-  ASSERT(Dart_IsString(str));
-  const char* chars;
-  Dart_Handle res = Dart_StringToCString(str, &chars);
-  ASSERT(!Dart_IsError(res));
-  return chars;
 }
 
 
@@ -352,21 +360,18 @@ static void FormatFieldList(dart::TextBuffer* buf,
 
 static const char* FormatClassProps(dart::TextBuffer* buf,
                                     intptr_t cls_id) {
-  Dart_Handle name, library, static_fields;
-  intptr_t super_id;
+  Dart_Handle name, static_fields;
+  intptr_t super_id = -1;
+  intptr_t library_id = -1;
   Dart_Handle res =
-      Dart_GetClassInfo(cls_id, &name, &library, &super_id, &static_fields);
+      Dart_GetClassInfo(cls_id, &name, &library_id, &super_id, &static_fields);
   RETURN_IF_ERROR(res);
   RETURN_IF_ERROR(name);
   buf->Printf("{\"name\":\"%s\",", GetStringChars(name));
   if (super_id > 0) {
     buf->Printf("\"superclassId\":%d,", super_id);
   }
-  RETURN_IF_ERROR(library);
-  ASSERT(!Dart_IsNull(library));
-  // TODO(hausner): get proper library id.
-  intptr_t libId = 0;
-  buf->Printf("\"libraryId\":%d,", libId);
+  buf->Printf("\"libraryId\":%d,", library_id);
   RETURN_IF_ERROR(static_fields);
   buf->Printf("\"fields\":");
   FormatFieldList(buf, static_fields);
@@ -375,9 +380,51 @@ static const char* FormatClassProps(dart::TextBuffer* buf,
 }
 
 
+static const char* FormatLibraryProps(dart::TextBuffer* buf,
+                                      intptr_t lib_id) {
+  Dart_Handle url = Dart_GetLibraryURL(lib_id);
+  RETURN_IF_ERROR(url);
+  buf->Printf("{\"url\":\"%s\",", GetStringChars(url));
+
+  // Imports and prefixes.
+  Dart_Handle import_list = Dart_GetLibraryImports(lib_id);
+  RETURN_IF_ERROR(import_list);
+  ASSERT(Dart_IsList(import_list));
+  intptr_t list_length = 0;
+  Dart_Handle res = Dart_ListLength(import_list, &list_length);
+  RETURN_IF_ERROR(res);
+  buf->Printf("\"imports\":[");
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle lib_id = Dart_ListGetAt(import_list, i + 1);
+    ASSERT_NOT_ERROR(lib_id);
+    buf->Printf("%s{\"libraryId\":%d,",
+                (i > 0) ? ",": "",
+                GetIntValue(lib_id));
+
+    Dart_Handle name = Dart_ListGetAt(import_list, i);
+    ASSERT_NOT_ERROR(name);
+    buf->Printf("\"prefix\":\"%s\"}",
+                Dart_IsNull(name) ? "" : GetStringChars(name));
+  }
+  buf->Printf("],");
+
+  // Global variables in the library.
+  Dart_Handle global_vars = Dart_GetLibraryFields(lib_id);
+  RETURN_IF_ERROR(global_vars);
+  buf->Printf("\"globals\":");
+  FormatFieldList(buf, global_vars);
+  buf->Printf("}");
+  return NULL;
+}
+
+
 static const char* FormatObjProps(dart::TextBuffer* buf,
                                   Dart_Handle object) {
   intptr_t class_id;
+  if (Dart_IsNull(object)) {
+    buf->Printf("{\"classId\":-1,\"fields\":[]}");
+    return NULL;
+  }
   Dart_Handle res = Dart_GetObjClassId(object, &class_id);
   RETURN_IF_ERROR(res);
   buf->Printf("{\"classId\": %d, \"fields\":", class_id);
@@ -468,6 +515,20 @@ void DebuggerConnectionHandler::HandleSetBpCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandleRemBpCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  int bpt_id = msgbuf_->GetIntParam("breakpointId");
+  Dart_Handle res = Dart_RemoveBreakpoint(bpt_id);
+  if (Dart_IsError(res)) {
+    SendError(msg_id, Dart_GetError(res));
+    return;
+  }
+  dart::TextBuffer msg(32);
+  msg.Printf("{ \"id\": %d }", msg_id);
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleGetObjPropsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   intptr_t obj_id = msgbuf_->GetIntParam("objectId");
@@ -503,6 +564,21 @@ void DebuggerConnectionHandler::HandleGetClassPropsCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandleGetLibPropsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  intptr_t cls_id = msgbuf_->GetIntParam("libraryId");
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\":", msg_id);
+  const char* err = FormatLibraryProps(&msg, cls_id);
+  if (err != NULL) {
+    SendError(msg_id, err);
+    return;
+  }
+  msg.Printf("}");
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleUnknownMsg(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   ASSERT(msg_id >= 0);
@@ -513,12 +589,14 @@ void DebuggerConnectionHandler::HandleUnknownMsg(const char* json_msg) {
 void DebuggerConnectionHandler::HandleMessages() {
   static JSONDebuggerCommand debugger_commands[] = {
     { "resume", HandleResumeCmd },
-    { "getLibraryURLs", HandleGetLibraryURLsCmd },
+    { "getLibraries", HandleGetLibrariesCmd },
     { "getClassProperties", HandleGetClassPropsCmd },
+    { "getLibraryProperties", HandleGetLibPropsCmd },
     { "getObjectProperties", HandleGetObjPropsCmd },
     { "getScriptURLs", HandleGetScriptURLsCmd },
     { "getStackTrace", HandleGetStackTraceCmd },
     { "setBreakpoint", HandleSetBpCmd },
+    { "removeBreakpoint", HandleRemBpCmd },
     { "stepInto", HandleStepIntoCmd },
     { "stepOut", HandleStepOutCmd },
     { "stepOver", HandleStepOverCmd },

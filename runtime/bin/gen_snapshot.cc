@@ -116,8 +116,7 @@ static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
 
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                    Dart_Handle library,
-                                                   Dart_Handle url,
-                                                   Dart_Handle import_map) {
+                                                   Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
@@ -142,8 +141,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                library,
                                url,
                                tag,
-                               url_string,
-                               import_map);
+                               url_string);
 }
 
 
@@ -153,18 +151,14 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
     return source;  // source contains the error string.
   }
   Dart_Handle url = Dart_NewString(script_name);
-  Dart_Handle import_map = Dart_NewList(0);
 
-  return Dart_LoadScript(url,
-                         source,
-                         import_map);
+  return Dart_LoadScript(url, source);
 }
 
 
 static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
                                             Dart_Handle library,
-                                            Dart_Handle url,
-                                            Dart_Handle import_map) {
+                                            Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
@@ -264,7 +258,7 @@ int main(int argc, char** argv) {
   Dart_Initialize(NULL, NULL);
 
   char* error;
-  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, &error);
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error);
   if (isolate == NULL) {
     fprintf(stderr, "%s", error);
     free(error);

@@ -7,33 +7,87 @@
 
 #include "vm/intrinsifier.h"
 
+#include "vm/assembler.h"
+#include "vm/instructions.h"
+
 namespace dart {
+
+DECLARE_FLAG(bool, enable_type_checks);
+
+// When entering intrinsics code:
+// RBX: IC Data
+// R10: Arguments descriptor
+// TOS: Return address
+// The RBX, R10 registers can be destroyed only if there is no slow-path (i.e.,
+// the methods returns true).
+
+#define __ assembler->
+
 bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   return false;
 }
 
 
 bool Intrinsifier::Array_getLength(Assembler* assembler) {
-  return false;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
+  __ ret();
+  return true;
 }
 
 
 bool Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
-  return false;
+  return Array_getLength(assembler);
 }
 
 
 bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  // Note that RBX is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
-  return false;
+  return Array_getIndexed(assembler);
 }
 
 
 bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
+  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
+  Label fall_through;
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  // Note that RBX is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  // Destroy RCX as we will not continue in the function.
+  __ StoreIntoObject(RAX,
+                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     RDX);
+  // Caller is responsible of preserving the value if necessary.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -43,13 +97,22 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
 }
 
 
+// Get length of growable object array.
+// On stack: growable array (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
-  return false;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  __ ret();
+  return true;
 }
 
 
 bool Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
-  return false;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
+  __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
+  __ ret();
+  return true;
 }
 
 
@@ -68,8 +131,17 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
 }
 
 
+// Set data of growable object array.
+// On stack: growable array (+2), data (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
-  return false;
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));
+  __ movq(RBX, Address(RSP, + 1 * kWordSize));
+  __ movq(FieldAddress(RAX, GrowableObjectArray::data_offset()), RBX);
+  __ ret();
+  return true;
 }
 
 
@@ -225,7 +297,12 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 
 
 bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  return false;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ ret();
+  // Generate enough code to satisfy patchability constraint.
+  intptr_t offset = __ CodeSize();
+  __ nop(JumpPattern::InstructionLength() - offset);
+  return true;
 }
 
 bool Intrinsifier::Double_add(Assembler* assembler) {
@@ -259,7 +336,19 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 
 
 bool Intrinsifier::Double_isNaN(Assembler* assembler) {
-  return false;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label is_true;
+  __ movq(RAX, Address(RSP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
+  __ comisd(XMM0, XMM0);
+  __ j(PARITY_EVEN, &is_true, Assembler::kNearJump);  // NaN -> true;
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  return true;  // Method is complete, no slow case.
 }
 
 
@@ -316,6 +405,8 @@ bool Intrinsifier::String_hashCode(Assembler* assembler) {
 bool Intrinsifier::String_isEmpty(Assembler* assembler) {
   return false;
 }
+
+#undef __
 
 }  // namespace dart
 

@@ -2,6 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class DOMWrapperBase extends NativeFieldWrapperClass1 implements DOMType {
-  var dartObjectLocalStorage;
+// FIXME: get rid of _DOMWrapperBase.
+class _DOMWrapperBase extends NativeFieldWrapperClass1 {
 }

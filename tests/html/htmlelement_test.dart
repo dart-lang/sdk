@@ -26,7 +26,7 @@ main() {
 
     Expect.equals(2, row.cells.length);
 
-    TableRowElement headerRow = table.rows.item(0);
+    TableRowElement headerRow = table.rows[0];
     Expect.equals(2, headerRow.cells.length);
   });
   test('dataAttributes', () {

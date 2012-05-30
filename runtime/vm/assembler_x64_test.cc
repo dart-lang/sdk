@@ -1211,6 +1211,29 @@ ASSEMBLER_TEST_RUN(TestAlignLarge, entry) {
   EXPECT_EQ(16, res);  // 16 bytes emitted.
 }
 
+
+ASSEMBLER_TEST_GENERATE(TestAdds, assembler) {
+  __ movq(RAX, Immediate(4));
+  __ pushq(RAX);
+  __ addq(Address(RSP, 0), Immediate(5));
+  // TOS: 9
+  __ addq(Address(RSP, 0), Immediate(-2));
+  // TOS: 7
+  __ movq(RCX, Immediate(3));
+  __ addq(Address(RSP, 0), RCX);
+  // TOS: 10
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestAdds, entry) {
+  typedef int (*TestAdds)();
+  int res = reinterpret_cast<TestAdds>(entry)();
+  EXPECT_EQ(10, res);
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

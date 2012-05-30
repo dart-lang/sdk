@@ -12,7 +12,7 @@ TEST_CASE(InstructionTests) {
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDo());
   EXPECT(!target_instr->IsBind());
-  DoInstr* do_instr = new DoInstr(NULL);
+  DoInstr* do_instr = new DoInstr(new CurrentContextComp());
   EXPECT(do_instr->IsDo());
   EXPECT(!do_instr->IsBlockEntry());
   EXPECT(!do_instr->IsBind());

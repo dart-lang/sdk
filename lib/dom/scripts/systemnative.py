@@ -10,21 +10,20 @@ import emitter
 import os
 from generator import *
 from systembase import *
-from systemhtml import DomToHtmlEvent, DomToHtmlEvents
+from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
 
 class NativeImplementationSystem(System):
 
-  def __init__(self, templates, database, html_renames, emitters, auxiliary_dir,
-               output_dir):
+  def __init__(self, templates, database, html_database, html_renames,
+               emitters, output_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
 
     self._html_renames = html_renames
-    self._auxiliary_dir = auxiliary_dir
-    self._dom_public_files = []
     self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
+    self._html_system = HtmlSystemShared(html_database)
 
   def InterfaceGenerator(self,
                          interface,
@@ -32,9 +31,6 @@ class NativeImplementationSystem(System):
                          super_interface_name,
                          source_filter):
     interface_name = interface.id
-
-    dart_interface_path = self._FilePathForDartInterface(interface_name)
-    self._dom_public_files.append(dart_interface_path)
 
     if IsPureInterface(interface_name):
       return None
@@ -57,9 +53,6 @@ class NativeImplementationSystem(System):
 
   def ProcessCallback(self, interface, info):
     self._interface = interface
-
-    dart_interface_path = self._FilePathForDartInterface(self._interface.id)
-    self._dom_public_files.append(dart_interface_path)
 
     if IsPureInterface(self._interface.id):
       return None
@@ -130,22 +123,6 @@ class NativeImplementationSystem(System):
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
   def GenerateLibraries(self):
-    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
-
-    # Generate dom_public.dart.
-    self._GenerateLibFile(
-        'dom_public.darttemplate',
-        os.path.join(self._output_dir, 'dom_public.dart'),
-        self._dom_public_files,
-        AUXILIARY_DIR=MassagePath(auxiliary_dir));
-
-    # Generate dom_impl.dart.
-    self._GenerateLibFile(
-        'dom_impl.darttemplate',
-        os.path.join(self._output_dir, 'dom_impl.dart'),
-        self._dom_impl_files,
-        AUXILIARY_DIR=MassagePath(auxiliary_dir));
-
     # Generate DartDerivedSourcesXX.cpp.
     partitions = 20 # FIXME: this should be configurable.
     sources_count = len(self._cpp_impl_files)
@@ -185,17 +162,9 @@ class NativeImplementationSystem(System):
   def Finish(self):
     pass
 
-  def _FilePathForDartInterface(self, interface_name):
-    return os.path.join(self._output_dir, 'src', 'interface',
-                        '%s.dart' % interface_name)
-
   def _FilePathForDartImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'dart',
                         '%sImplementation.dart' % interface_name)
-
-  def _FilePathForDartFactoryProvider(self, interface_name):
-    return os.path.join(self._output_dir, 'dart',
-                        '_%sFactoryProvider.dart' % interface_name)
 
   def _FilePathForDartFactoryProviderImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'dart',
@@ -206,6 +175,9 @@ class NativeImplementationSystem(System):
 
   def _FilePathForCppImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
+
+  def DartImplementationFiles(self):
+    return self._dom_impl_files
 
 
 class NativeImplementationGenerator(object):
@@ -237,9 +209,9 @@ class NativeImplementationGenerator(object):
     self._base_members = base_members
     self._templates = templates
     self._current_secondary_parent = None
+    self._html_system = self._system._html_system
 
   def StartInterface(self):
-    self._class_name = self._ImplClassName(self._interface.id)
     self._interface_type_info = GetIDLTypeInfo(self._interface.id)
     self._members_emitter = emitter.Emitter()
     self._cpp_declarations_emitter = emitter.Emitter()
@@ -322,7 +294,7 @@ class NativeImplementationGenerator(object):
     if self._interface.id == 'DocumentFragment':
       # Interface DocumentFragment extends Element in dart:html but this fact
       # is not reflected in idls.
-      self._EmitEventGetter('ElementEventsImplementation')
+      self._EmitEventGetter('_ElementEventsImpl')
       return
 
     events_attributes = [attr for attr in self._interface.attributes
@@ -335,24 +307,25 @@ class NativeImplementationGenerator(object):
               interface.id != 'EventTarget')
     is_root = not _FindParent(self._interface, self._system._database, IsEventTarget)
     if is_root:
-      self._members_emitter.Emit('  EventsImplementation _on;\n')
+      self._members_emitter.Emit('  _EventsImpl _on;\n')
 
     if not events_attributes:
       if is_root:
-        self._EmitEventGetter('EventsImplementation')
+        self._EmitEventGetter('_EventsImpl')
       return
 
-    events_class = '%sEventsImplementation' % self._interface.id
+    events_class = '_%sEventsImpl' % self._interface.id
     self._EmitEventGetter(events_class)
 
     def HasEventAttributes(interface):
       return any([a.type.id == 'EventListener' for a in interface.attributes])
     parent = _FindParent(self._interface, self._system._database, HasEventAttributes)
     if parent:
-      parent_events_class = '%sEventsImplementation' % parent.id
+      parent_events_class = '_%sEventsImpl' % parent.id
     else:
-      parent_events_class = 'EventsImplementation'
-    html_inteface = self._system._html_renames.get(self._interface.id, self._interface.id)
+      parent_events_class = '_EventsImpl'
+
+    html_inteface = self._HTMLInterfaceName(self._interface.id)
     events_members = self._dart_impl_emitter.Emit(
         '\n'
         'class $EVENTS_CLASS extends $PARENT_EVENTS_CLASS implements $EVENTS_INTERFACE {\n'
@@ -361,12 +334,12 @@ class NativeImplementationGenerator(object):
         '}\n',
         EVENTS_CLASS=events_class,
         PARENT_EVENTS_CLASS=parent_events_class,
-        EVENTS_INTERFACE='html.%sEvents' % html_inteface)
+        EVENTS_INTERFACE='%sEvents' % html_inteface)
 
     events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
     for event_name in events_attributes:
       events_members.Emit(
-          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
+          '  EventListenerList get $HTML_NAME() => _get(\'$DOM_NAME\');\n',
           HTML_NAME=DomToHtmlEvent(event_name),
           DOM_NAME=event_name)
 
@@ -380,11 +353,15 @@ class NativeImplementationGenerator(object):
         EVENTS_CLASS=events_class)
 
   def _ImplClassName(self, interface_name):
-    return interface_name + 'Implementation'
+    return '_%sImpl' % interface_name
+
+  def _DartType(self, idl_type):
+    type_info = GetIDLTypeInfo(idl_type)
+    return self._HTMLInterfaceName(type_info.dart_type())
 
   def _BaseClassName(self):
     if not self._interface.parents:
-      return 'DOMWrapperBase'
+      return '_DOMWrapperBase'
 
     supertype = self._interface.parents[0].type.id
 
@@ -394,7 +371,7 @@ class NativeImplementationGenerator(object):
     # inherit, but not the classes.
     # List methods are injected in AddIndexer.
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return 'DOMWrapperBase'
+      return '_DOMWrapperBase'
 
     if supertype == 'EventTarget':
       # Most implementors of EventTarget specify the EventListener operations
@@ -404,62 +381,55 @@ class NativeImplementationGenerator(object):
       # Applies to MessagePort.
       if not [op for op in self._interface.operations if op.id == 'addEventListener']:
         return self._ImplClassName(supertype)
-      return 'DOMWrapperBase'
+      return '_DOMWrapperBase'
 
     return self._ImplClassName(supertype)
+
+  def _HTMLInterfaceName(self, interface_name):
+    return self._system._html_renames.get(interface_name, interface_name)
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
-    factory_provider = '_' + interface_name + 'FactoryProvider'
-    implementation_class = interface_name + 'FactoryProviderImplementation'
-    implementation_function = 'create' + interface_name
-    native_implementation_function = '%s_constructor_Callback' % interface_name
+    dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
+        interface_name)
+    self._system._dom_impl_files.append(dart_impl_path)
 
-    # Emit private factory provider in public library.
-    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    html_interface_name = self._HTMLInterfaceName(interface_name)
+    template_file = 'factoryprovider_%s.darttemplate' % html_interface_name
     template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('factoryprovider.darttemplate')
 
-    dart_impl_path = self._system._FilePathForDartFactoryProvider(
-        interface_name)
-    self._system._dom_public_files.append(dart_impl_path)
-
+    native_implementation_function = '%s_constructor_Callback' % interface_name
     emitter = self._system._emitters.FileEmitter(dart_impl_path)
     emitter.Emit(
         template,
-        FACTORY_PROVIDER=factory_provider,
-        CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
-        IMPL_CLASS=implementation_class,
-        IMPL_FUNCTION=implementation_function,
-        ARGUMENTS=constructor_info.ParametersAsArgumentList())
-
-    # Emit public implementation in implementation libary.
-    dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
-        interface_name)
-    self._system._dom_impl_files.append(dart_impl_path)
-    emitter = self._system._emitters.FileEmitter(dart_impl_path)
-    emitter.Emit(
-        'class $IMPL_CLASS {\n'
-        '  static $INTERFACE_NAME $IMPL_FUNCTION($PARAMETERS)\n'
-        '      native "$NATIVE_NAME";\n'
-        '}',
-        INTERFACE_NAME=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
-        IMPL_CLASS=implementation_class,
-        IMPL_FUNCTION=implementation_function,
+        FACTORYPROVIDER='_%sFactoryProvider' % html_interface_name,
+        INTERFACE=html_interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
+        ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_implementation_function)
 
   def FinishInterface(self):
-    base = self._BaseClassName()
-    self._dart_impl_emitter.Emit(
-        self._templates.Load('dart_implementation.darttemplate'),
-        CLASS=self._class_name, BASE=base, INTERFACE=self._interface.id,
-        MEMBERS=self._members_emitter.Fragments())
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    template = None
+    if html_interface_name == self._interface.id or not self._system._database.HasInterface(html_interface_name):
+      template_file = 'impl_%s.darttemplate' % html_interface_name
+      template = self._templates.TryLoad(template_file)
+    if not template:
+      template = self._templates.Load('dart_implementation.darttemplate')
+
+    class_name = self._ImplClassName(self._interface.id)
+    members_emitter = self._dart_impl_emitter.Emit(
+        template,
+        CLASSNAME=class_name,
+        EXTENDS=' extends ' + self._BaseClassName(),
+        IMPLEMENTS=' implements ' + html_interface_name,
+        NATIVESPEC='')
+    members_emitter.Emit(''.join(self._members_emitter.Fragments()))
 
     self._GenerateCppHeader()
 
@@ -468,7 +438,8 @@ class NativeImplementationGenerator(object):
         INTERFACE=self._interface.id,
         INCLUDES=_GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
-        RESOLVER=self._cpp_resolver_emitter.Fragments())
+        RESOLVER=self._cpp_resolver_emitter.Fragments(),
+        DART_IMPLEMENTATION_CLASS=class_name)
 
   def _GenerateCppHeader(self):
     to_native_emitter = emitter.Emitter()
@@ -557,18 +528,24 @@ class NativeImplementationGenerator(object):
       # FIXME: exclude from interface as well.
       return
 
-    if getter:
-      self._AddGetter(getter)
-    if setter:
-      self._AddSetter(setter)
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    dom_name = DartDomNameOfAttribute(getter or setter)
+    html_getter_name = self._html_system.RenameInHtmlLibrary(
+        html_interface_name, dom_name, 'get:', implementation_class=True)
+    html_setter_name = self._html_system.RenameInHtmlLibrary(
+        html_interface_name, dom_name, 'set:', implementation_class=True)
+
+    if getter and html_getter_name:
+      self._AddGetter(getter, html_getter_name)
+    if setter and html_setter_name:
+      self._AddSetter(setter, html_setter_name)
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self.AddAttribute(getter, setter)
 
-  def _AddGetter(self, attr):
+  def _AddGetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)
-    dart_declaration = '%s get %s()' % (
-        type_info.dart_type(), DartDomNameOfAttribute(attr))
+    dart_declaration = '%s get %s()' % (self._DartType(attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -609,10 +586,9 @@ class NativeImplementationGenerator(object):
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
         True, invocation, raises_exceptions=raises_exceptions)
 
-  def _AddSetter(self, attr):
+  def _AddSetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)
-    dart_declaration = 'void set %s(%s)' % (
-        DartDomNameOfAttribute(attr), type_info.dart_type())
+    dart_declaration = 'void set %s(%s)' % (html_name, self._DartType(attr.type.id))
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)
@@ -665,7 +641,7 @@ class NativeImplementationGenerator(object):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
-    dart_element_type = DartType(element_type)
+    dart_element_type = self._DartType(element_type)
     if self._HasNativeIndexGetter():
       self._EmitNativeIndexGetter(dart_element_type)
     else:
@@ -679,101 +655,26 @@ class NativeImplementationGenerator(object):
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
     else:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) {\n'
-          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-          '  }\n',
-          TYPE=dart_element_type)
+      # The HTML library implementation of NodeList has a custom indexed setter
+      # implementation that uses the parent node the NodeList is associated
+      # with if one is available.
+      if self._interface.id != 'NodeList':
+        self._members_emitter.Emit(
+            '\n'
+            '  void operator[]=(int index, $TYPE value) {\n'
+            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+            '  }\n',
+            TYPE=dart_element_type)
 
-    self._members_emitter.Emit(
-        '\n'
-        '  void add($TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void addLast($TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void addAll(Collection<$TYPE> collection) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void sort(int compare($TYPE a, $TYPE b)) {\n'
-        '    throw new UnsupportedOperationException("Cannot sort immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void copyFrom(List<Object> src, int srcStart, '
-        'int dstStart, int count) {\n'
-        '    throw new UnsupportedOperationException("This object is immutable.");\n'
-        '  }\n'
-        '\n'
-        '  int indexOf($TYPE element, [int start = 0]) {\n'
-        '    return _Lists.indexOf(this, element, start, this.length);\n'
-        '  }\n'
-        '\n'
-        '  int lastIndexOf($TYPE element, [int start = null]) {\n'
-        '    if (start === null) start = length - 1;\n'
-        '    return _Lists.lastIndexOf(this, element, start);\n'
-        '  }\n'
-        '\n'
-        '  int clear() {\n'
-        '    throw new UnsupportedOperationException("Cannot clear immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  $TYPE removeLast() {\n'
-        '    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  $TYPE last() {\n'
-        '    return this[length - 1];\n'
-        '  }\n'
-        '\n'
-        '  void forEach(void f($TYPE element)) {\n'
-        '    _Collections.forEach(this, f);\n'
-        '  }\n'
-        '\n'
-        '  Collection map(f($TYPE element)) {\n'
-        '    return _Collections.map(this, [], f);\n'
-        '  }\n'
-        '\n'
-        '  Collection<$TYPE> filter(bool f($TYPE element)) {\n'
-        '    return _Collections.filter(this, new List<$TYPE>(), f);\n'
-        '  }\n'
-        '\n'
-        '  bool every(bool f($TYPE element)) {\n'
-        '    return _Collections.every(this, f);\n'
-        '  }\n'
-        '\n'
-        '  bool some(bool f($TYPE element)) {\n'
-        '    return _Collections.some(this, f);\n'
-        '  }\n'
-        '\n'
-        '  void setRange(int start, int length, List<$TYPE> from, [int startFrom]) {\n'
-        '    throw new UnsupportedOperationException("Cannot setRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void removeRange(int start, int length) {\n'
-        '    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void insertRange(int start, int length, [$TYPE initialValue]) {\n'
-        '    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  List<$TYPE> getRange(int start, int length) {\n'
-        '    throw new NotImplementedException();\n'
-        '  }\n'
-        '\n'
-        '  bool isEmpty() {\n'
-        '    return length == 0;\n'
-        '  }\n'
-        '\n'
-        '  Iterator<$TYPE> iterator() {\n'
-        '    return new _FixedSizeListIterator<$TYPE>(this);\n'
-        '  }\n',
-        TYPE=dart_element_type)
+    # The list interface for this class is manually generated.
+    if self._interface.id == 'NodeList':
+      return
+
+    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
+    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
+    template_file = 'immutable_list_mixin.darttemplate'
+    template = self._system._templates.Load(template_file)
+    self._members_emitter.Emit(template, E=dart_element_type)
 
   def AmendIndexer(self, element_type):
     # If interface is marked as having native indexed
@@ -783,7 +684,7 @@ class NativeImplementationGenerator(object):
     # Uint8ClampedArray inherits from Uint8Array, ::set method
     # is not virtual and accessing it through Uint8Array pointer
     # would lead to wrong semantics (modulo vs. clamping.)
-    dart_element_type = DartType(element_type)
+    dart_element_type = self._DartType(element_type)
 
     if self._HasNativeIndexGetter():
       self._EmitNativeIndexGetter(dart_element_type)
@@ -818,37 +719,103 @@ class NativeImplementationGenerator(object):
       # FIXME: exclude from interface as well.
       return
 
-    if 'Custom' in info.overloads[0].ext_attrs:
-      parameters = info.ParametersImplementationDeclaration()
-      dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
-      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
-      self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
-          'Callback', True)
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    html_name = self._html_system.RenameInHtmlLibrary(
+        html_interface_name, info.name, implementation_class=True)
+
+    if not html_name and info.name == 'item':
+      # FIXME: item should be renamed to operator[], not removed.
+      html_name = 'item'
+
+    if not html_name:
       return
 
-    modifier = ''
-    if info.IsStatic():
-      modifier = 'static '
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $MODIFIER$TYPE $NAME($PARAMETERS) {\n'
-        '$!BODY'
-        '  }\n',
-        MODIFIER=modifier,
-        TYPE=info.type_name,
-        NAME=info.name,
-        PARAMETERS=info.ParametersImplementationDeclaration())
+    dart_declaration = '%s%s %s(%s)' % (
+        'static ' if info.IsStatic() else '',
+        self._DartType(info.type_name),
+        html_name or info.name,
+        info.ParametersImplementationDeclaration(self._DartType))
 
-    # Process in order of ascending number of arguments to ensure missing
-    # optional arguments are processed early.
-    overloads = sorted(info.overloads,
-                       key=lambda overload: len(overload.arguments))
+    if 'Custom' in info.overloads[0].ext_attrs:
+      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
+      self._GenerateNativeBinding(info.name , argument_count,
+          dart_declaration, 'Callback', True)
+      return
+
+    if self._interface.id == 'Document' and info.name == 'querySelector':
+      # Document.querySelector has custom implementation in dart:html.
+      # FIXME: Cleanup query selectors and remove this hack.
+      body = emitter.Emitter()
+    else:
+      body = self._members_emitter.Emit(
+          '\n'
+          '  $DECLARATION {\n'
+          '$!BODY'
+          '  }\n',
+          DECLARATION=dart_declaration)
+
     self._native_version = 0
-    fallthrough = self.GenerateDispatch(body, info, '    ', 0, overloads)
+    overloads = self.CombineOverloads(info.overloads)
+    fallthrough = self.GenerateDispatch(body, info, '    ', overloads)
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
 
-  def GenerateDispatch(self, emitter, info, indent, position, overloads):
+  def CombineOverloads(self, overloads):
+    # Combine overloads that can be implemented by the same native method.  This
+    # undoes the expansion of optional arguments into multiple overloads unless
+    # IDL merging has made the overloads necessary.  Starting with overload with
+    # no optional arguments and grow it by adding optional arguments, then the
+    # longest overload can serve for all the shorter ones.
+    out = []
+    seed_index = 0
+    while seed_index < len(overloads):
+      seed = overloads[seed_index]
+      if len(seed.arguments) > 0 and seed.arguments[-1].is_optional:
+        # Must start with no optional arguments.
+        out.append(seed)
+        seed_index += 1
+        continue
+
+      prev = seed
+      probe_index = seed_index + 1
+      while probe_index < len(overloads):
+        probe = overloads[probe_index]
+        # Check that 'probe' extends 'prev' by one optional argument.
+        if len(probe.arguments) != len(prev.arguments) + 1:
+          break
+        if probe.arguments[:-1] != prev.arguments:
+          break
+        if not probe.arguments[-1].is_optional:
+          break
+        # See Issue 3177.  This test against known implemented types is to
+        # prevent combining a possibly unimplemented type.  Combining with an
+        # unimplemented type will cause all set of combined overloads to become
+        # 'unimplemented', even if no argument is passed to the the
+        # unimplemented parameter.
+        if DartType(probe.arguments[-1].type.id) not in [
+            'String', 'int', 'num', 'double', 'bool',
+            'IDBKeyRange']:
+          break
+        probe_index += 1
+        prev = probe
+      out.append(prev)
+      seed_index = probe_index
+
+    return out
+
+  def PrintOverloadsComment(self, emitter, info, indent, note, overloads):
+    emitter.Emit('$(INDENT)//$NOTE\n', INDENT=indent, NOTE=note)
+    for operation in overloads:
+      params = ', '.join([
+          ('[Optional] ' if arg.is_optional else '') + DartType(arg.type.id) + ' '
+          + arg.id for arg in operation.arguments])
+      emitter.Emit('$(INDENT)// $NAME($PARAMS)\n',
+                   INDENT=indent,
+                   NAME=info.name,
+                   PARAMS=params)
+    emitter.Emit('$(INDENT)//\n', INDENT=indent)
+
+  def GenerateDispatch(self, emitter, info, indent, overloads):
     """Generates a dispatch to one of the overloads.
 
     Arguments:
@@ -856,7 +823,7 @@ class NativeImplementationGenerator(object):
       info: the compound information about the operation and its overloads.
       indent: an indentation string for generated code.
       position: the index of the parameter to dispatch on.
-      overloads: a list of the remaining IDLOperations to dispatch.
+      overloads: a list of the IDLOperations to dispatch.
 
     Returns True if the dispatch can fall through on failure, False if the code
     always dispatches.
@@ -868,103 +835,93 @@ class NativeImplementationGenerator(object):
     def TypeCheck(name, type):
       return '%s is %s' % (name, type)
 
-    def ShouldGenerateSingleOperation():
-      if position == len(info.param_infos):
-        if len(overloads) > 1:
-          raise Exception('Duplicate operations ' + str(overloads))
-        return True
+    def IsNullable(type):
+      #return type != 'int' and type != 'num'
+      return True
 
-      # Check if we dispatch on RequiredCppParameter arguments.  In this
-      # case all trailing arguments must be RequiredCppParameter and there
-      # is no need in dispatch.
-      # TODO(antonm): better diagnositics.
-      if position >= len(overloads[0].arguments):
-        def IsRequiredCppParameter(arg):
-          return 'RequiredCppParameter' in arg.ext_attrs
-        last_overload = overloads[-1]
-        if (len(last_overload.arguments) > position and
-            IsRequiredCppParameter(last_overload.arguments[position])):
-          for overload in overloads:
-            args = overload.arguments[position:]
-            if not all([IsRequiredCppParameter(arg) for arg in args]):
-              raise Exception('Invalid overload for RequiredCppParameter')
+    def PickRequiredCppSingleOperation():
+      # Returns a special case single operation, or None.  Check if we dispatch
+      # on RequiredCppParameter arguments.  In this case all trailing arguments
+      # must be RequiredCppParameter and there is no need in dispatch.
+      def IsRequiredCppParameter(arg):
+        return 'RequiredCppParameter' in arg.ext_attrs
+      def HasRequiredCppParameters(op):
+        matches = filter(IsRequiredCppParameter, op.arguments)
+        if matches:
+          # Validate all the RequiredCppParameter ones are at the end.
+          rematches = filter(IsRequiredCppParameter,
+                             op.arguments[len(op.arguments) - len(matches):])
+          if len(matches) != len(rematches):
+            raise Exception('Invalid RequiredCppParameter - all subsequent '
+                            'parameters must also be RequiredCppParameter.')
           return True
+        return False
+      if any(HasRequiredCppParameters(op) for op in overloads):
+        longest = max(overloads, key=lambda op: len(op.arguments))
+        # Validate all other overloads are prefixes.
+        for op in overloads:
+          for (index, arg) in enumerate(op.arguments):
+            type1 = arg.type.id
+            type2 = longest.arguments[index].type.id
+            if type1 != type2:
+              raise Exception(
+                  'Overloads for method %s with RequiredCppParameter have '
+                  'inconsistent types %s and %s for parameter #%s' %
+                  (info.name, type1, type2, index))
+        return longest
+      return None
 
+    single_operation = PickRequiredCppSingleOperation()
+    if single_operation:
+      self.GenerateSingleOperation(emitter, info, indent, single_operation)
       return False
 
-    if ShouldGenerateSingleOperation():
-      self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
-      return False
+    # Print just the interesting sets of overloads.
+    if len(overloads) > 1 or len(info.overloads) > 1:
+      self.PrintOverloadsComment(emitter, info, indent, '', info.overloads)
+      if overloads != info.overloads:
+        self.PrintOverloadsComment(emitter, info, indent, ' -- reduced:',
+                                   overloads)
 
-    # FIXME: Consider a simpler dispatch that iterates over the
-    # overloads and generates an overload specific check.  Revisit
-    # when we move to named optional arguments.
-
-    # Partition the overloads to divide and conquer on the dispatch.
-    positive = []
-    negative = []
-    first_overload = overloads[0]
-    param = info.param_infos[position]
-
-    if position < len(first_overload.arguments):
-      # FIXME: This will not work if the second overload has a more
-      # precise type than the first.  E.g.,
-      # void foo(Node x);
-      # void foo(Element x);
-      type = DartType(first_overload.arguments[position].type.id)
-      test = TypeCheck(param.name, type)
-      pred = lambda op: len(op.arguments) > position and DartType(op.arguments[position].type.id) == type
-    else:
-      type = None
-      test = NullCheck(param.name)
-      pred = lambda op: position >= len(op.arguments)
-
-    for overload in overloads:
-      if pred(overload):
-        positive.append(overload)
+    # Match each operation in turn.
+    # TODO: Optimize the dispatch to avoid repeated tests.
+    fallthrough = True
+    for operation in overloads:
+      tests = []
+      for (position, param) in enumerate(info.param_infos):
+        if position < len(operation.arguments):
+          arg = operation.arguments[position]
+          dart_type = self._DartType(arg.type.id)
+          if dart_type == param.dart_type:
+            # The overload type matches the method parameter type exactly.  We
+            # will have already tested this type in checked mode, and the target
+            # will expect (i.e. check) this type.  This case happens when all
+            # the overloads have the same type in this position, including the
+            # trivial case of one overload.
+            test = None
+          else:
+            test = TypeCheck(param.name, dart_type)
+            if IsNullable(dart_type) or arg.is_optional:
+              test = '(%s || %s)' % (NullCheck(param.name), test)
+        else:
+          test = NullCheck(param.name)
+        if test:
+          tests.append(test)
+      if tests:
+        cond = ' && '.join(tests)
+        if len(cond) + len(indent) + 7 > 80:
+          cond = (' &&\n' + indent + '    ').join(tests)
+        call = emitter.Emit(
+            '$(INDENT)if ($COND) {\n'
+            '$!CALL'
+            '$(INDENT)}\n',
+            COND=cond,
+            INDENT=indent)
+        self.GenerateSingleOperation(call, info, indent + '  ', operation)
       else:
-        negative.append(overload)
-
-    if positive and negative:
-      (true_code, false_code) = emitter.Emit(
-          '$(INDENT)if ($COND) {\n'
-          '$!TRUE'
-          '$(INDENT)} else {\n'
-          '$!FALSE'
-          '$(INDENT)}\n',
-          COND=test, INDENT=indent)
-      fallthrough1 = self.GenerateDispatch(
-          true_code, info, indent + '  ', position + 1, positive)
-      fallthrough2 = self.GenerateDispatch(
-          false_code, info, indent + '  ', position, negative)
-      return fallthrough1 or fallthrough2
-
-    if negative:
-      raise Exception('Internal error, must be all positive')
-
-    # All overloads require the same test.  Do we bother?
-
-    # If the test is the same as the method's formal parameter then checked mode
-    # will have done the test already. (It could be null too but we ignore that
-    # case since all the overload behave the same and we don't know which types
-    # in the IDL are not nullable.)
-    if type == param.dart_type:
-      return self.GenerateDispatch(
-          emitter, info, indent, position + 1, positive)
-
-    # Otherwise the overloads have the same type but the type is a subtype of
-    # the method's synthesized formal parameter. e.g we have overloads f(X) and
-    # f(Y), implemented by the synthesized method f(Z) where X<Z and Y<Z. The
-    # dispatch has removed f(X), leaving only f(Y), but there is no guarantee
-    # that Y = Z-X, so we need to check for Y.
-    true_code = emitter.Emit(
-        '$(INDENT)if ($COND) {\n'
-        '$!TRUE'
-        '$(INDENT)}\n',
-        COND=test, INDENT=indent)
-    self.GenerateDispatch(
-        true_code, info, indent + '  ', position + 1, positive)
-    return True
+        self.GenerateSingleOperation(emitter, info, indent, operation)
+        fallthrough = False
+    return fallthrough
 
   def AddOperation(self, info):
     self._AddOperation(info)
@@ -1008,7 +965,7 @@ class NativeImplementationGenerator(object):
     modifier = ''
     if operation.is_static:
       modifier = 'static '
-    dart_declaration = '%s%s _%s(%s)' % (modifier, info.type_name, native_name,
+    dart_declaration = '%s%s _%s(%s)' % (modifier, self._DartType(info.type_name), native_name,
                                        argument_list)
     is_custom = 'Custom' in operation.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(
@@ -1190,6 +1147,7 @@ class NativeImplementationGenerator(object):
 
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
+
 
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in includes])

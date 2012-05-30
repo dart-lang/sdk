@@ -479,6 +479,7 @@ class SnapshotWriter : public BaseWriter {
       : BaseWriter(buffer, alloc),
         kind_(kind),
         object_store_(Isolate::Current()->object_store()),
+        class_table_(Isolate::Current()->class_table()),
         forward_list_() {
   }
   ~SnapshotWriter() { }
@@ -505,16 +506,18 @@ class SnapshotWriter : public BaseWriter {
   // Writes a full snapshot of the Isolate.
   void WriteFullSnapshot();
 
+  uword GetObjectTags(RawObject* raw);
+
  private:
   class ForwardObjectNode : public ZoneAllocated {
    public:
-    ForwardObjectNode(RawObject* raw, RawClass* cls) : raw_(raw), cls_(cls) {}
+    ForwardObjectNode(RawObject* raw, uword tags) : raw_(raw), tags_(tags) {}
     RawObject* raw() const { return raw_; }
-    RawClass* cls() const { return cls_; }
+    uword tags() const { return tags_; }
 
    private:
     RawObject* raw_;
-    RawClass* cls_;
+    uword tags_;
 
     DISALLOW_COPY_AND_ASSIGN(ForwardObjectNode);
   };
@@ -527,6 +530,7 @@ class SnapshotWriter : public BaseWriter {
 
   Snapshot::Kind kind_;
   ObjectStore* object_store_;  // Object store for common classes.
+  ClassTable* class_table_;  // Class table for the class index to class lookup.
   GrowableArray<ForwardObjectNode*> forward_list_;
 
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);

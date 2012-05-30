@@ -4,6 +4,8 @@
 
 #include "vm/token.h"
 
+#include "vm/object.h"
+
 namespace dart {
 
 #define TOKEN_NAME(t, s, p, a) #t,
@@ -33,6 +35,35 @@ const uint8_t Token::precedence_[] = {
     DART_KEYWORD_LIST(TOKEN_ATTRIBUTE)
   };
 #undef TOKEN_ATTRIBUTE
+
+
+Token::Kind Token::GetBinaryOp(const String& name) {
+  if (name.Length() == 1) {
+    switch (name.CharAt(0)) {
+      case '+' : return Token::kADD;
+      case '-' : return Token::kSUB;
+      case '*' : return Token::kMUL;
+      case '/' : return Token::kDIV;
+      case '%' : return Token::kMOD;
+      case '|' : return Token::kBIT_OR;
+      case '^' : return Token::kBIT_XOR;
+      case '&' : return Token::kBIT_AND;
+      default: return Token::kILLEGAL;  // Not a binary operation.
+    }
+  }
+  if (name.Length() == 2) {
+    switch (name.CharAt(0)) {
+      case '|' : return name.CharAt(1) == '|' ? Token::kOR : Token::kILLEGAL;
+      case '&' : return name.CharAt(1) == '&' ? Token::kAND : Token::kILLEGAL;
+      case '<' : return name.CharAt(1) == '<' ? Token::kSHL : Token::kILLEGAL;
+      case '>' : return name.CharAt(1) == '>' ? Token::kSHR : Token::kILLEGAL;
+      case '~' :
+          return name.CharAt(1) == '/' ? Token::kTRUNCDIV : Token::kILLEGAL;
+      default: return Token::kILLEGAL;  // Not a binary operation.
+    }
+  }
+  return Token::kILLEGAL;
+}
 
 
 }  // namespace dart

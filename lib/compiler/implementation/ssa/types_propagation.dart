@@ -27,7 +27,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     // We unconditionally replace the propagated type with the new type. The
     // computeType must make sure that we eventually reach a stable state.
     instruction.propagatedType = newType;
-    return oldType !== newType;
+    return oldType != newType;
   }
 
   void visitGraph(HGraph graph) {
@@ -52,7 +52,9 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       });
     } else {
       block.forEachPhi((HPhi phi) {
-        if (updateType(phi)) addDependentInstructionsToWorkList(phi);
+        if (updateType(phi)) {
+          addDependentInstructionsToWorkList(phi);
+        }
       });
     }
 

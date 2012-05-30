@@ -46,6 +46,8 @@ const_constructor_syntax_test/05: Fail
 
 constructor_redirect_test/01: Fail # Issue 2103.
 
+closure_with_super_send_test: Fail # Issue 3197.
+
 # DartC or Frog specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
@@ -329,6 +331,7 @@ switch_label_test: Fail
 type_checks_in_factory_method_test: Fail # Issue 925
 type_variable_bounds_test/10: Fail # Issue 2134
 type_variable_scope2_test: Fail # Issue 2395
+type_variable_scope3_test/00: Fail # Issue 2239
 type_variable_identifier_expression_negative_test: Fail # Issue 643
 type_variable_shadows_class: Fail # Issue 643
 wrong_number_type_arguments_test/00: Fail # Issue 2134
@@ -353,7 +356,7 @@ string_escape1_negative_test: Fail # TODO(sra): investigate
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
 
-[ $runtime == ff || $runtime == safari || $runtime == ie) ]
+[ $compiler == frog && ($runtime == ff || $runtime == safari || $runtime == ie) ]
 closure3_test: Fail
 method_invocation_test: Fail
 private3_test: Fail
@@ -377,16 +380,16 @@ execute_finally6_test: Skip
 [ $runtime == opera ]
 *: Skip
 
-[ $runtime == ff ]
+[ $compiler == frog && $runtime == ff ]
 naming_test: Fail
 stack_overflow_test: Fail
 execute_finally7_test: Skip
 static_final_field2_negative_test: Skip
 
-[ $runtime == ff && $system == windows ]
+[ $compiler == frog && $runtime == ff && $system == windows ]
 ct_const2_test: Pass,Fail  # Issue 2101
 
-[ $runtime == ie ]
+[ $compiler == frog && $runtime == ie ]
 stack_overflow_test: Fail
 object_dynamic_method_test: Fail
 number_syntax_test: Fail

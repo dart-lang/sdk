@@ -203,7 +203,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     HType receiverType = node.receiver.propagatedType;
     if (receiverType.isExact()) {
-      HExactType type = receiverType;
+      HBoundedType type = receiverType;
       Element element = type.lookupMember(node.name);
       // TODO(ngeoffray): Also fold if it's a getter or variable.
       if (element != null && element.isFunction()) {
@@ -229,7 +229,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         methodName,
         node.inputs.getRange(1, node.inputs.length - 1));
     if (type.isExact()) {
-      HExactType concrete = type;
+      HBoundedType concrete = type;
       result.element = concrete.lookupMember(methodName);
     }
     return result;
@@ -429,7 +429,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (left.propagatedType.isExact()) {
-      HExactType type = left.propagatedType;
+      HBoundedType type = left.propagatedType;
       Element element = type.lookupMember(Namer.OPERATOR_EQUALS);
       if (element !== null) {
         // If the left-hand side is guaranteed to be a non-primitive

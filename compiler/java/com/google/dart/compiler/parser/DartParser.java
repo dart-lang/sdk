@@ -1564,9 +1564,6 @@ public class DartParser extends CompletionHooksParserBase {
    * </pre>
    */
   private DartFieldDefinition parseFieldDeclaration(Modifiers modifiers, DartTypeNode type) {
-    if (isParsingInterface) {
-      modifiers = modifiers.makeFinal();
-    }
     List<DartField> fields = new ArrayList<DartField>();
     do {
       beginVariableDeclaration();

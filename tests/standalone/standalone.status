@@ -15,6 +15,7 @@ io/http_test: Pass, Fail  # Issue 2987
 io/process_invalid_arguments_test: Fail, OK
 io/directory_invalid_arguments_test: Fail, OK
 io/file_invalid_arguments_test: Fail, OK
+io/socket_invalid_arguments_test: Fail, OK
 # These test have type errors on purpose and take very long to run in
 # checked mode with no benefit. Skip.
 io/file_fuzz_test: Skip
@@ -45,7 +46,7 @@ package/*: Skip # Do not run those in Dartium.
 [ $compiler == dartc]
 *: Skip
 
-[ $compiler == frog || ($compiler == dart2js && $runtime == drt) ]
+[ $compiler == frog ]
 *: Skip
 
 [ $arch == x64 ]
@@ -75,3 +76,6 @@ io/options_test: Fail, OK # Cannot pass options to d8.
 [ $compiler == dart2js && $runtime == none ]
 fail_test: Skip # fails only at runtime, overrides default expectation from standalone.status
 io/options_test: Fail
+
+[$compiler == dart2js && $browser ]
+*: Skip

@@ -24,8 +24,10 @@ DART_PATH = os.path.dirname(
 
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?-?(\d*)-?(\d*)')
-FROG_BUILDER = r'(frog)-(linux|mac|windows)-(debug|release)'
-WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
+FROG_BUILDER = (
+    r'(frog)-(linux|mac|windows)-(debug|release)')
+WEB_BUILDER = (
+    r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)-?(\d*)-?(\d*)')
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
@@ -52,7 +54,6 @@ def GetBuildInfo():
   option = None
   shard_index = None
   total_shards = None
-  number = None
   if not builder_name:
     # We are not running on a buildbot.
     if args.name:
@@ -62,7 +63,6 @@ def GetBuildInfo():
       sys.exit(1)
 
   if builder_name:
-
     dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
     frog_pattern = re.match(FROG_BUILDER, builder_name)
     web_pattern = re.match(WEB_BUILDER, builder_name)
@@ -83,14 +83,12 @@ def GetBuildInfo():
       mode = frog_pattern.group(3)
 
     elif web_pattern:
-      compiler = 'frog'
+      compiler = 'dart2js'
       runtime = web_pattern.group(1)
-      mode = 'release'
       system = web_pattern.group(2)
-
-      # TODO(jmesserly): do we want to do anything different for the second IE
-      # bot? For now we're using it to track down flakiness.
-      number = web_pattern.group(4)
+      mode = 'release'
+      shard_index = web_pattern.group(3)
+      total_shards = web_pattern.group(4)
 
   if system == 'windows':
     system = 'win7'
@@ -101,8 +99,7 @@ def GetBuildInfo():
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
     sys.exit(1)
-  return (compiler, runtime, mode, system, option, shard_index, total_shards,
-          number)
+  return (compiler, runtime, mode, system, option, shard_index, total_shards)
 
 
 def NeedsXterm(compiler, runtime):
@@ -125,6 +122,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
               '--compiler=' + compiler,
               '--runtime=' + runtime,
               '--time',
+              '--use-sdk',
               '--report'])
 
   if user_test == 'yes':
@@ -143,10 +141,9 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
   return exit_code
 
 
-def BuildFrog(compiler, mode, system):
-  """ build frog.
+def BuildSDK(mode, system):
+  """ build the SDK.
    Args:
-     - compiler: either 'dart2js' or 'frog'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
@@ -164,15 +161,13 @@ def BuildFrog(compiler, mode, system):
 
   os.chdir(DART_PATH)
 
-  print '@@@BUILD_STEP build frog@@@'
-
-  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'dart2js']
+  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
   print 'running %s' % (' '.join(args))
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
-  """ test frog.
+def TestCompiler(compiler, runtime, mode, system, option, flags):
+  """ test the compiler.
    Args:
      - compiler: either 'dart2js' or 'frog'
      - runtime: either 'd8', or one of the browsers, see GetBuildInfo
@@ -180,59 +175,41 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
      - system: either 'linux', 'mac', or 'win7'
      - option: 'checked'
      - flags: extra flags to pass to test.dart
-     - bot_number: (optional) Number of the buildbot. Used for dividing test
-       sets between bots.
   """
 
   # Make sure we are in the frog directory
   os.chdir(DART_PATH)
 
+  if system.startswith('win') and runtime == 'ie':
+    # There should not be more than one InternetExplorerDriver instance
+    # running at a time. For details, see
+    # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
+    flags = flags + ['-j1']
+
+  if system == 'linux' and runtime == 'chrome':
+    # TODO(ngeoffray): We should install selenium on the buildbot.
+    runtime = 'drt'
+
   if compiler == 'dart2js':
-    if (option == 'checked'):
-      flags.append('--host-checked')
-    # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], ['--checked'])
+    if option == 'checked': flags = flags + ['--host-checked']
 
-    extra_suites = ['leg_only', 'frog_native']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extra_suites,
-        flags)
+    if runtime == 'd8':
+      # The dart2js compiler isn't self-hosted (yet) so we run its
+      # unit tests on the VM. We avoid doing this on the builders
+      # that run the browser tests to cut down on the cycle time.
+      TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], flags)
 
+    # Run the default set of test suites.
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
-  elif runtime == 'd8' and compiler in ['frog']:
+    # TODO(kasperl): Consider running peg and css tests too.
+    extras = ['leg_only', 'frog_native']
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+
+  elif compiler == 'frog':
     TestStep("frog", mode, system, compiler, runtime, [], flags)
-    TestStep("frog_extra", mode, system, compiler, runtime,
-        ['frog', 'frog_native', 'peg', 'css'], flags)
-    TestStep("sdk", mode, system, 'none', 'vm', ['dartdoc'], flags)
-
-  else:
-    tests = ['dom', 'html', 'json', 'benchmark_smoke',
-             'isolate', 'frog', 'css', 'corelib', 'language',
-             'frog_native', 'peg']
-
-    # TODO(efortuna): Move Mac back to DumpRenderTree when we have a more stable
-    # solution for DRT. Right now DRT is flakier than regular Chrome for the
-    # isolate tests, so we're switching to use Chrome in the short term.
-    if runtime == 'chrome' and system == 'linux':
-      TestStep('browser', mode, system, 'frog', 'drt', tests, flags)
-      TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
-      TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
-               ['leg_only', 'frog_native'], flags)
-    else:
-      additional_flags = []
-      if system.startswith('win') and runtime == 'ie':
-        # There should not be more than one InternetExplorerDriver instance
-        # running at a time. For details, see
-        # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-        additional_flags += ['-j1']
-        # The IE bots are slow lately. Split up the tests they do.
-        if bot_number == '2':
-          tests = ['corelib', 'language']
-        else:
-          tests = ['dom', 'html', 'json', 'benchmark_smoke',
-                   'isolate', 'frog', 'css', 'frog_native', 'peg']
-      TestStep(runtime, mode, system, compiler, runtime, tests,
-          flags + additional_flags)
+    extras = ['frog', 'frog_native', 'peg', 'css']
+    TestStep("frog_extra", mode, system, compiler, runtime, extras, flags)
 
   return 0
 
@@ -272,11 +249,13 @@ def CleanUpTemporaryFiles(system, browser):
     _DeleteFirefoxProfiles('/var/tmp')
 
 def main():
+  print '@@@BUILD_STEP build sdk@@@'
+
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
     return 1
 
-  compiler, runtime, mode, system, option, shard_index, total_shards, number = (
+  compiler, runtime, mode, system, option, shard_index, total_shards = (
       GetBuildInfo())
   shard_description = ""
   if shard_index:
@@ -286,37 +265,26 @@ def main():
   if compiler is None:
     return 1
 
-  status = BuildFrog(compiler, mode, system)
+  status = BuildSDK(mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
+
   test_flags = []
   if shard_index:
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
-  if compiler == 'dart2js':
-    status = TestFrog(compiler, runtime, mode, system, option, test_flags,
-                      number)
-    if status != 0:
-      print '@@@STEP_FAILURE@@@'
-    return status # Return unconditionally for dart2js.
 
-  if runtime == 'd8' or (system == 'linux' and runtime == 'chrome'):
-    status = TestFrog(compiler, runtime, mode, system, option, test_flags,
-                      number)
-    if status != 0:
-      print '@@@STEP_FAILURE@@@'
-      return status
+  # First we run all the regular tests.
+  status = TestCompiler(compiler, runtime, mode, system, option, test_flags)
 
-  status = TestFrog(compiler, runtime, mode, system, option,
-                    test_flags + ['--checked'], number)
-  if status != 0:
-    print '@@@STEP_FAILURE@@@'
+  # BUG(3281): We do not run checked mode tests on dart2js.
+  if status == 0 and compiler != 'dart2js':
+    status = TestCompiler(compiler, runtime, mode, system, option,
+                          test_flags + ['--checked'])
 
-  if compiler == 'frog' and runtime in ['ff', 'chrome', 'safari', 'opera',
-      'ie', 'drt']:
-    CleanUpTemporaryFiles(system, runtime)
+  if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
+  if status != 0: print '@@@STEP_FAILURE@@@'
   return status
-
 
 if __name__ == '__main__':
   sys.exit(main())

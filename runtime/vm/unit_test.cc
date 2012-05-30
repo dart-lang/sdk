@@ -48,8 +48,7 @@ void TestCaseBase::RunAll() {
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
-                                     Dart_Handle url,
-                                     Dart_Handle import_map) {
+                                     Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
@@ -93,8 +92,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                  library,
                                  url,
                                  tag,
-                                 url_chars,
-                                 import_map);
+                                 url_chars);
   if (!Dart_IsError(result) && (tag == kImportTag)) {
     Builtin::ImportLibrary(result, Builtin::kBuiltinLibrary);
   }
@@ -109,7 +107,9 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   Dart_Handle source = Dart_NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source, import_map);
+  result = Dart_SetImportMap(import_map);
+  EXPECT_VALID(result);
+  Dart_Handle lib = Dart_LoadScript(url, source);
   DART_CHECK_VALID(lib);
   result = Dart_SetNativeResolver(lib, resolver);
   DART_CHECK_VALID(result);
@@ -128,8 +128,7 @@ Dart_Handle TestCase::lib() {
 
 Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
                                       Dart_Handle library,
-                                      Dart_Handle url,
-                                      Dart_Handle import_map) {
+                                      Dart_Handle url) {
   if (tag == kCanonicalizeUrl) {
     return url;
   }

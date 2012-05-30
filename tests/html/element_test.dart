@@ -42,7 +42,7 @@ void testConstructorHelper(String tag, String htmlSnippet,
   Expect.isTrue(isExpectedClass(new Element.tag(tag)));
   final elementFromSnippet = new Element.html(htmlSnippet);
   Expect.isTrue(isExpectedClass(elementFromSnippet));
-  Expect.equals(elementFromSnippet.text, expectedText);
+  Expect.equals(expectedText, elementFromSnippet.text);
 }
 
 main() {

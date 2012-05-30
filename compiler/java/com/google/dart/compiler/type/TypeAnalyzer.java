@@ -10,6 +10,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
@@ -168,6 +169,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType boolType;
     private final InterfaceType numType;
     private final InterfaceType intType;
+    private final InterfaceType doubleType;
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
@@ -193,6 +195,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.boolType = typeProvider.getBoolType();
       this.numType = typeProvider.getNumType();
       this.intType = typeProvider.getIntType();
+      this.doubleType = typeProvider.getDoubleType();
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
@@ -288,16 +291,39 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return "operator " + operator.getSyntax();
     }
 
-    private Type analyzeBinaryOperator(DartNode node, Type lhs, Token operator,
-                                       DartNode diagnosticNode, DartExpression rhs) {
+    private Type analyzeBinaryOperator(DartNode node, Type lhsType, Token operator,
+        DartNode diagnosticNode, DartExpression rhs) {
       Type rhsType = nonVoidTypeOf(rhs);
       String methodName = methodNameForBinaryOperator(operator);
-      Member member = lookupMember(lhs, methodName, diagnosticNode);
+      Member member = lookupMember(lhsType, methodName, diagnosticNode);
       if (member != null) {
         node.setElement(member.getElement());
-        return analyzeMethodInvocation(lhs, member, methodName, diagnosticNode,
-                                       Collections.<Type>singletonList(rhsType),
-                                       Collections.<DartExpression>singletonList(rhs));
+        Type returnType = analyzeMethodInvocation(lhsType, member, methodName, diagnosticNode,
+            Collections.<Type> singletonList(rhsType),
+            Collections.<DartExpression> singletonList(rhs));
+        // tweak return type for int/int and int/double operators
+        {
+          boolean lhsInt = intType.equals(lhsType);
+          boolean rhsInt = intType.equals(rhsType);
+          boolean lhsDouble = doubleType.equals(lhsType);
+          boolean rhsDouble = doubleType.equals(rhsType);
+          switch (operator) {
+            case ADD:
+            case SUB:
+            case MUL:
+            case TRUNC:
+            case MOD:
+              if (lhsInt && rhsInt) {
+                return intType;
+              }
+            case DIV:
+              if (lhsDouble || rhsDouble) {
+                return doubleType;
+              }
+          }
+        }
+        // done
+        return returnType;
       } else {
         return dynamicType;
       }
@@ -476,22 +502,139 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       return false;
     }
+    
+    /**
+     * Helper for visiting {@link DartNode} which happens only if "condition" is satisfied. Attempts
+     * to infer types of {@link VariableElement}s from given "condition".
+     */
+    private void visitConditionalNode(DartExpression condition, DartNode node) {
+      final VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
+      try {
+        if (condition != null) {
+          condition.accept(new ASTVisitor<Void>() {
+            boolean negation = false;
+            @Override
+            public Void visitUnaryExpression(DartUnaryExpression node) {
+              boolean negationOld = negation;
+              try {
+                if (node.getOperator() == Token.NOT) {
+                  negation = !negation;
+                }
+                return super.visitUnaryExpression(node);
+              } finally {
+                negation = negationOld;
+              }
+            }
+
+            @Override
+            public Void visitBinaryExpression(DartBinaryExpression node) {
+              // don't infer type if condition negated
+              if (!negation && node.getOperator() == Token.IS) {
+                DartExpression arg1 = node.getArg1();
+                DartExpression arg2 = node.getArg2();
+                if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
+                    && arg2 instanceof DartTypeExpression) {
+                  VariableElement variableElement = (VariableElement) arg1.getElement();
+                  Type isType = arg2.getType();
+                  Type varType = InferredType.Helper.make(isType);
+                  variableRestorer.setType(variableElement, varType);
+                }
+              }
+              // visit && expressions
+              if (node.getOperator() == Token.AND) {
+                return super.visitBinaryExpression(node);
+              }
+              // other operators, such as || - don't infer types
+              return null;
+            }
+          });
+        }
+        typeOf(node);
+      } finally {
+        variableRestorer.restore();
+      }
+    }
+
+    /**
+     * Helper to temporarily set {@link Type} of {@link VariableElement} and restore original later.
+     */
+    private class VariableElementsRestorer {
+      private final Map<VariableElement, Type> typesMap = Maps.newHashMap();
+      private final Map<VariableElement, Boolean> flagsMap = Maps.newHashMap();
+      void setType(VariableElement element, Type inferredType) {
+        Type currentType = element.getType();
+        // remember original if not yet
+        if (!typesMap.containsKey(element)) {
+          typesMap.put(element, currentType);
+          flagsMap.put(element, element.isTypeInferred());
+        }
+        // apply inferred type
+        if (inferredType != null) {
+          if (TypeKind.of(currentType) == TypeKind.DYNAMIC && element.isTypeInferred()) {
+            // if we fell back to Dynamic, keep it
+          } else {
+            Type unionType = getUnionType(currentType, inferredType);
+            Elements.setType(element, unionType);
+            Elements.setTypeInferred(element, true);
+          }
+        }
+      }
+
+      /**
+       * @return the {@link Type} which is both "a" and "b" types. May be "Dynamic" if "a" and "b"
+       *         don't form hierarchy.
+       */
+      Type getUnionType(Type a, Type b) {
+        if (TypeKind.of(a) == TypeKind.DYNAMIC) {
+          return b;
+        }
+        if (TypeKind.of(b) == TypeKind.DYNAMIC) {
+          return a;
+        }
+        if (types.isSubtype(a, b)) {
+          return a;
+        }
+        if (types.isSubtype(b, a)) {
+          return b;
+        }
+        // TODO(scheglov) return union of types, but this is not easy
+        return dynamicType;
+      }
+
+      void restore() {
+        // restore types
+        for (Entry<VariableElement, Type> entry : typesMap.entrySet()) {
+          Elements.setType(entry.getKey(), entry.getValue());
+        }
+        // restore "inferred" flags
+        for (Entry<VariableElement, Boolean> entry : flagsMap.entrySet()) {
+          Elements.setTypeInferred(entry.getKey(), entry.getValue().booleanValue());
+        }
+      }
+    }
 
     private boolean checkAssignable(DartNode node, Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
+      // ignore inferred types, treat them as Dynamic
+      if (t instanceof InferredType || s instanceof InferredType) {
+        return true;
+      }
+      // do check and report error
       if (!types.isAssignable(t, s)) {
         typeError(node, TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
         return false;
       }
+      // OK
       return true;
     }
 
     private boolean checkAssignable(Type targetType, DartExpression node) {
+      Type nodeType = nonVoidTypeOf(node);
       if (isVariableInferredType(node)) {
         return true;
       }
-      return checkAssignable(node, targetType, nonVoidTypeOf(node));
+      return checkAssignable(node, targetType, nodeType);
     }
 
     private Type analyzeMethodInvocation(Type receiver, Member member, String name,
@@ -1012,21 +1155,28 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitForInStatement(DartForInStatement node) {
       Type variableType;
+      VariableElement variableElement;
       if (node.introducesVariable()) {
         variableType = typeOf(node.getVariableStatement());
+        variableElement = node.getVariableStatement().getVariables().get(0).getElement();
       } else {
         variableType = typeOf(node.getIdentifier());
+        variableElement = (VariableElement) node.getIdentifier().getElement();
       }
+      // prepare Iterable type
       DartExpression iterableExpression = node.getIterable();
       Type iterableType = typeOf(iterableExpression);
+      // analyze compatibility of variable and Iterator elements types
       Member iteratorMember = lookupMember(iterableType, "iterator", iterableExpression);
+      Type elementType = null;
       if (iteratorMember != null) {
         if (TypeKind.of(iteratorMember.getType()) == TypeKind.FUNCTION) {
           FunctionType iteratorMethod = (FunctionType) iteratorMember.getType();
           InterfaceType asInstanceOf = types.asInstanceOf(iteratorMethod.getReturnType(),
               dynamicIteratorType.getElement());
           if (asInstanceOf != null) {
-            checkAssignable(iterableExpression, variableType, asInstanceOf.getArguments().get(0));
+            elementType = asInstanceOf.getArguments().get(0);
+            checkAssignable(iterableExpression, variableType, elementType);
           } else {
             InterfaceType expectedIteratorType = dynamicIteratorType.subst(
                 Arrays.asList(variableType), dynamicIteratorType.getElement().getTypeParameters());
@@ -1039,15 +1189,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typeError(iterableExpression, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
         }
       }
-      return typeAsVoid(node);
+      // visit body with inferred variable type
+      VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
+      try {
+        if (elementType != null) {
+          variableRestorer.setType(variableElement, elementType);
+        }
+        return typeAsVoid(node.getBody());
+      } finally {
+        variableRestorer.restore();
+      }
     }
 
     @Override
     public Type visitForStatement(DartForStatement node) {
       typeOf(node.getInit());
-      checkCondition(node.getCondition());
-      typeOf(node.getIncrement());
-      typeOf(node.getBody());
+      DartExpression condition = node.getCondition();
+      checkCondition(condition);
+      visitConditionalNode(condition, node.getBody());
+      visitConditionalNode(condition, node.getIncrement());
       return voidType;
     }
 
@@ -1085,6 +1245,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitIdentifier(DartIdentifier node) {
+      if (node.getType() != null) {
+        return node.getType();
+      }
       Element element = node.getElement();
       Type type;
       switch (ElementKind.of(element)) {
@@ -1137,12 +1300,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitIfStatement(DartIfStatement node) {
-      checkCondition(node.getCondition());
-      typeOf(node.getThenStatement());
+      DartExpression condition = node.getCondition();
+      checkCondition(condition);
+      visitConditionalNode(condition, node.getThenStatement());
       typeOf(node.getElseStatement());
       return voidType;
     }
-
+    
     @Override
     public Type visitInitializer(DartInitializer node) {
       DartIdentifier name = node.getName();
@@ -1419,13 +1583,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitParenthesizedExpression(DartParenthesizedExpression node) {
-      Type type = node.getExpression().accept(this);
+      Type type = nonVoidTypeOf(node.getExpression());
       type.getClass(); // quick null check
       return type;
     }
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
+      if (node.getType() != null) {
+        return node.getType();
+      }
       Element element = node.getElement();
       if (element != null) {
         return element.getType();
@@ -1463,6 +1630,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
+          Modifiers fieldModifiers = fieldElement.getModifiers();
           MethodElement getter = fieldElement.getGetter();
           MethodElement setter = fieldElement.getSetter();
           boolean inSetterContext = Elements.inSetterContext(node);
@@ -1471,8 +1639,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (fieldElement.getEnclosingElement() instanceof ClassElement) {
             enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
           }
+
+          // Implicit field declared as "final".
+          if (!fieldModifiers.isAbstractField() && fieldModifiers.isFinal() && inSetterContext) {
+            return typeError(node.getName(), TypeErrorCode.FIELD_IS_FINAL, node.getName());
+          }
+
           // Check for cases when property has no setter or getter.
-          if (fieldElement.getModifiers().isAbstractField() && enclosingClass != null) {
+          if (fieldModifiers.isAbstractField() && enclosingClass != null) {
             // Check for using field without getter in other operation that assignment.
             if (inGetterContext) {
               if (getter == null) {
@@ -1496,7 +1670,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
 
           Type result = member.getType();
-          if (fieldElement.getModifiers().isAbstractField()) {
+          if (fieldModifiers.isAbstractField()) {
             if (inSetterContext) {
               result = member.getSetterType();
               if (result == null) {
@@ -1742,9 +1916,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression value = node.getValue();
           if (value != null) {
             Type valueType = value.getType();
-            Elements.setType(element, valueType);
-            Elements.setTypeInferred(element);
-            propagetedTypeVariables.add(element);
+            if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
+              Type varType = InferredType.Helper.make(valueType);
+              Elements.setType(element, varType);
+              Elements.setTypeInferred(element, true);
+              propagetedTypeVariables.add(element);
+            }
           }
         }
       }
@@ -1754,8 +1931,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitWhileStatement(DartWhileStatement node) {
-      checkCondition(node.getCondition());
-      typeOf(node.getBody());
+      DartExpression condition = node.getCondition();
+      checkCondition(condition);
+      visitConditionalNode(condition, node.getBody());
       return voidType;
     }
 
@@ -1765,7 +1943,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       // Intentionally skip the expression's name -- it's stored as an identifier, but doesn't need
       // to be resolved or type-checked.
-      Type type =  node.getExpression().accept(this);
+      Type type = nonVoidTypeOf(node.getExpression());
       type.getClass(); // quick null check
       return type;
     }

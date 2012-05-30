@@ -31,11 +31,13 @@ class CodeEmitterTask extends CompilerTask {
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
+  final Map<int, String> boundClosureCache;
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
         boundClosureBuffer = new StringBuffer(),
         mainBuffer = new StringBuffer(),
+        boundClosureCache = new Map<int, String>(),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
   }
@@ -628,66 +630,83 @@ function() {
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
     // 'foo' and somewhere in the code there is a dynamic property get of
-    // 'foo'. Then we generate the following code (in pseudo Dart):
+    // 'foo'. Then we generate the following code (in pseudo Dart/JavaScript):
     //
     // class A {
     //    foo(x, y, z) { ... } // Original function.
-    //    get foo() { return new BoundClosure499(this); }
+    //    get foo() { return new BoundClosure499(this, "foo"); }
     // }
     // class BoundClosure499 extends Closure {
     //   var self;
-    //   BoundClosure499(this.self);
-    //   $call3(x, y, z) { return self.foo(x, y, z); }
+    //   BoundClosure499(this.self, this.name);
+    //   $call3(x, y, z) { return self[name](x, y, z); }
     // }
 
     // TODO(floitsch): share the closure classes with other classes
-    // if they share methods with the same signature.
+    // if they share methods with the same signature. Currently we do this only
+    // if there are no optional parameters. Closures with optional parameters
+    // are more difficult to canonicalize because they would need to have the
+    // same default values.
 
-    // The closure class.
-    SourceString name = const SourceString("BoundClosure");
-    ClassElement closureClassElement =
-        new ClosureClassElement(compiler, member.getCompilationUnit());
-    String mangledName = namer.getName(closureClassElement);
-    String superName = namer.getName(closureClassElement.superclass);
-    needsClosureClass = true;
-
-    // Define the constructor with a name so that Object.toString can
-    // find the class name of the closure class.
-    boundClosureBuffer.add("$defineClassName('$mangledName', '$superName', ");
-    boundClosureBuffer.add("function $name(self) { this.self = self; }, {\n");
-
-    // Now add the methods on the closure class. The instance method does not
-    // have the correct name. Since [addParameterStubs] use the name to create
-    // its stubs we simply create a fake element with the correct name.
-    // Note: the callElement will not have any enclosingElement.
-    FunctionElement callElement =
-        new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
-
+    bool hasOptionalParameters = member.optionalParameterCount(compiler) != 0;
     int parameterCount = member.parameterCount(compiler);
-    String invocationName =
-        namer.instanceMethodName(member.getLibrary(),
-                                 callElement.name, parameterCount);
-    String targetName = namer.instanceMethodName(member.getLibrary(),
-                                                 member.name, parameterCount);
-    List<String> arguments = new List<String>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      arguments[i] = "arg$i";
+
+    String closureClass =
+        hasOptionalParameters ? null : boundClosureCache[parameterCount];
+    if (closureClass === null) {
+      // Either the class was not cached yet, or there are optional parameters.
+      // Create a new closure class.
+      SourceString name = const SourceString("BoundClosure");
+      ClassElement closureClassElement =
+          new ClosureClassElement(compiler, member.getCompilationUnit());
+      String mangledName = namer.getName(closureClassElement);
+      String superName = namer.getName(closureClassElement.superclass);
+      needsClosureClass = true;
+
+      // Define the constructor with a name so that Object.toString can
+      // find the class name of the closure class.
+      boundClosureBuffer.add("$defineClassName('$mangledName', '$superName', ");
+      boundClosureBuffer.add("['self', 'target'], {\n");
+
+      // Now add the methods on the closure class. The instance method does not
+      // have the correct name. Since [addParameterStubs] use the name to create
+      // its stubs we simply create a fake element with the correct name.
+      // Note: the callElement will not have any enclosingElement.
+      FunctionElement callElement =
+          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
+
+      String invocationName =
+          namer.instanceMethodName(member.getLibrary(),
+                                   callElement.name, parameterCount);
+      List<String> arguments = new List<String>(parameterCount);
+      for (int i = 0; i < parameterCount; i++) {
+        arguments[i] = "p$i";
+      }
+      String joinedArgs = Strings.join(arguments, ", ");
+      boundClosureBuffer.add(
+          "$invocationName: function($joinedArgs) {");
+      boundClosureBuffer.add(" return this.self[this.target]($joinedArgs);");
+      boundClosureBuffer.add(" }");
+      addParameterStubs(callElement, (String stubName, String memberValue) {
+        boundClosureBuffer.add(',\n $stubName: $memberValue');
+      });
+      boundClosureBuffer.add("\n});\n");
+
+      closureClass = namer.isolateAccess(closureClassElement);
+
+      // Cache it.
+      if (!hasOptionalParameters) {
+        boundClosureCache[parameterCount] = closureClass;
+      }
     }
-    String joinedArgs = Strings.join(arguments, ", ");
-    boundClosureBuffer.add(
-        " $invocationName: function($joinedArgs) {");
-    boundClosureBuffer.add(" return this.self.$targetName($joinedArgs);");
-    boundClosureBuffer.add(" }");
-    addParameterStubs(callElement, (String stubName, String memberValue) {
-      boundClosureBuffer.add(',\n $stubName: $memberValue');
-    });
-    boundClosureBuffer.add("\n});\n");
 
     // And finally the getter.
     String getterName = namer.getterName(member.getLibrary(), member.name);
-    String closureClass = namer.isolateAccess(closureClassElement);
-    defineInstanceMember(getterName,
-                         "function() { return new $closureClass(this); }");
+    String targetName = namer.instanceMethodName(member.getLibrary(),
+                                                 member.name, parameterCount);
+    defineInstanceMember(
+        getterName,
+        "function() { return new $closureClass(this, '$targetName'); }");
   }
 
   void emitCallStubForGetter(Element member,

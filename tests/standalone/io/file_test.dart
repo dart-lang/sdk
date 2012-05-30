@@ -971,6 +971,21 @@ class FileTest {
     });
   }
 
+  static void testLastModified() {
+    var port = new ReceivePort();
+    new File(new Options().executable).lastModified().then((modified) {
+      Expect.isTrue(modified is Date);
+      Expect.isTrue(modified < new Date.now());
+      port.close();
+    });
+  }
+
+  static void testLastModifiedSync() {
+    var modified = new File(new Options().executable).lastModifiedSync();
+    Expect.isTrue(modified is Date);
+    Expect.isTrue(modified < new Date.now());
+  }
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -1044,6 +1059,8 @@ class FileTest {
     testReadAsLines();
     testReadAsLinesSync();
     testReadAsErrors();
+    testLastModified();
+    testLastModifiedSync();
 
     createTempDirectory(() {
       testReadWrite();

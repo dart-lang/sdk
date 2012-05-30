@@ -25,6 +25,7 @@ GS_SITE = 'gs://'
 GS_DIR = 'dart-dump-render-tree'
 GS_SDK_DIR = 'sdk'
 SDK_LOCAL_ZIP = "dart-sdk.zip"
+SDK_LOCAL_TARGZ = "dart-sdk.tar.gz"
 
 def ExecuteCommand(cmd):
   """Execute a command in a subprocess.
@@ -68,16 +69,19 @@ def main(argv):
     sys.stderr.write('Path not found: %s\n' % argv[1])
     Usage(argv[0])
     return 1
+
   if not os.path.exists(GSUTIL):
     #TODO: Determine where we are running, if we're running on a buildbot we
     #should fail with a message.  
     #If we are not on a buildbot then fail silently. 
     utils.Touch(os.path.join(argv[1], 'upload.stamp'))
     exit(0)
+  
   revision = utils.GetSVNRevision()
   if revision is None:
     sys.stderr.write('Unable to find SVN revision.\n')
     return 1
+
   os.chdir(os.path.dirname(argv[1]))
 
   if (os.path.basename(os.path.dirname(argv[1])) ==
@@ -86,20 +90,32 @@ def main(argv):
   else:
     sdk_suffix = '-debug'
   # TODO(dgrove) - deal with architectures that are not ia32.
-  sdk_file = 'dart-%s-%s%s.zip' % (utils.GuessOS(), revision, sdk_suffix)
+  sdk_file_zip = 'dart-%s-%s%s.zip' % (utils.GuessOS(), revision, sdk_suffix)
+  sdk_file_targz = 'dart-%s-%s%s.tar.gz' % (utils.GuessOS(), revision,
+      sdk_suffix)
   if (os.path.exists(SDK_LOCAL_ZIP)):
     os.remove(SDK_LOCAL_ZIP)
+  if (os.path.exists(SDK_LOCAL_TARGZ)):
+    os.remove(SDK_LOCAL_TARGZ)
   if platform.system() == 'Windows':
     # Windows does not have zip. We use the 7 zip utility in third party.
     ExecuteCommand([os.path.join('..', 'third_party', '7zip', '7za'), 'a',
         '-tzip', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
   else:
     ExecuteCommand(['zip', '-yr', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
+    ExecuteCommand(['tar', 'czf', SDK_LOCAL_TARGZ, os.path.basename(argv[1])])
   UploadArchive(SDK_LOCAL_ZIP,
-                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, sdk_file]))
-  latest_name = 'dart-%s-latest%s.zip' % (utils.GuessOS(), sdk_suffix)
+                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, sdk_file_zip]))
+  if (os.path.exists(SDK_LOCAL_TARGZ)):
+    UploadArchive(SDK_LOCAL_TARGZ,
+                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, sdk_file_targz]))
+  latest_name_zip = 'dart-%s-latest%s.zip' % (utils.GuessOS(), sdk_suffix)
+  latest_name_targz = 'dart-%s-latest%s.tar.gz' % (utils.GuessOS(), sdk_suffix)
   UploadArchive(SDK_LOCAL_ZIP,
-                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, latest_name]))
+                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, latest_name_zip]))
+  if (os.path.exists(SDK_LOCAL_TARGZ)):
+    UploadArchive(SDK_LOCAL_TARGZ,
+                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, latest_name_targz]))
   utils.Touch('upload.stamp')
 
 

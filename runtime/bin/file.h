@@ -63,12 +63,13 @@ class File {
     kTruncateRequest = 9,
     kLengthRequest = 10,
     kLengthFromNameRequest = 11,
-    kFlushRequest = 12,
-    kReadByteRequest = 13,
-    kWriteByteRequest = 14,
-    kReadListRequest = 15,
-    kWriteListRequest = 16,
-    kWriteStringRequest = 17
+    kLastModifiedRequest = 12,
+    kFlushRequest = 13,
+    kReadByteRequest = 14,
+    kWriteByteRequest = 15,
+    kReadListRequest = 16,
+    kWriteListRequest = 17,
+    kWriteStringRequest = 18
   };
 
   ~File();
@@ -125,6 +126,7 @@ class File {
   static bool Create(const char* name);
   static bool Delete(const char* name);
   static off_t LengthFromName(const char* name);
+  static time_t LastModified(const char* name);
   static bool IsAbsolutePath(const char* pathname);
   static char* GetCanonicalPath(const char* name);
   static char* GetContainingDirectory(char* name);

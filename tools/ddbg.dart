@@ -33,9 +33,11 @@ void printHelp() {
   so  Step over
   si  Step into
   sbp [<file>] <line> Set breakpoint
+  rbp <id> Remove breakpoint with given id
   po <id> Print object info for given id
   pc <id> Print class info for given id
   ll  List loaded libraries
+  pl <id> Print dlibrary info for given id
   ls <libname> List loaded scripts in library
   h   Print help
 """);
@@ -68,27 +70,17 @@ void processCommand(String cmdLine) {
     return;
   }
   var command = args[0];
-  if (command == "r") {
-    var cmd = { "id": seqNum, "command": "resume" };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
-  } else if (command == "s") {
-    var cmd = { "id": seqNum, "command": "stepOver" };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
-  } else if (command == "si") {
-    var cmd = { "id": seqNum, "command": "stepInto" };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
-  } else if (command == "so") {
-    var cmd = { "id": seqNum, "command": "stepOut" };
+  var simple_commands =
+      { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
+  if (simple_commands[command] != null) {
+    var cmd = { "id": seqNum, "command": simple_commands[command]};
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
   } else if (command == "bt") {
     var cmd = { "id": seqNum, "command": "getStackTrace" };
     sendCmd(cmd).then((result) => handleStackTraceResponse(result));
   } else if (command == "ll") {
-    var cmd = { "id": seqNum, "command": "getLibraryURLs" };
+    var cmd = { "id": seqNum, "command": "getLibraries" };
     sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
@@ -103,10 +95,15 @@ void processCommand(String cmdLine) {
                 "command": "setBreakpoint",
                 "params": { "url": url, "line": line }};
     sendCmd(cmd).then((result) => handleSetBpResponse(result));
+  } else if (command == "rbp" && args.length == 2) {
+    var cmd = { "id": seqNum,
+                "command": "removeBreakpoint",
+                "params": { "breakpointId": Math.parseInt(args[1]) }};
+    sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
-                 "command": "getScriptURLs",
-                "params": { "library": args[1] }};
+                "command": "getScriptURLs",
+                "params": { "libraryId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
   } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum, "command": "getObjectProperties",
@@ -116,6 +113,10 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum, "command": "getClassProperties",
                 "params": {"classId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
+  } else if (command == "pl" && args.length == 2) {
+    var cmd = { "id": seqNum, "command": "getLibraryProperties",
+                "params": {"libraryId": Math.parseInt(args[1]) }};
+    sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
   } else if (command == "q") {
     quitShell();
   } else if (command == "h") {
@@ -145,6 +146,10 @@ printNamedObject(obj) {
 handleGetObjPropsResponse(response) {
   Map props = response["result"];
   int class_id = props["classId"];
+  if (class_id == -1) {
+    print("  null");
+    return;
+  }
   List fields = props["fields"];
   print("  class id: $class_id");
   for (int i = 0; i < fields.length; i++) {
@@ -169,12 +174,36 @@ handleGetClassPropsResponse(response) {
 }
 
 
+handleGetLibraryPropsResponse(response) {
+  Map props = response["result"];
+  assert(props["url"] != null);
+  print("  library url=${props["url"]}");
+  List imports = props["imports"];
+  assert(imports != null);
+  if (imports.length > 0) {
+    print("  imports:");
+    for (int i = 0; i < imports.length; i++) {
+      print("    id ${imports[i]["libraryId"]} prefix ${imports[i]["prefix"]}");
+    }
+  }
+  List globals = props["globals"];
+  assert(globals != null);
+  if (globals.length > 0) {
+    print("  global variables:");
+    for (int i = 0; i < globals.length; i++) {
+      printNamedObject(globals[i]);
+    }
+  }
+}
+
+
 void handleGetLibraryResponse(response) {
   Map result = response["result"];
-  List urls = result["urls"];
+  List libs = result["libraries"];
   print("Loaded libraries:");
-  for (int i = 0; i < urls.length; i++) {
-    print("  $i ${urls[i]}");
+  print(libs);
+  for (int i = 0; i < libs.length; i++) {
+    print("  ${libs[i]["id"]} ${libs[i]["url"]}");
   }
 }
 

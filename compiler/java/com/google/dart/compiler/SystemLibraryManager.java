@@ -144,7 +144,7 @@ public class SystemLibraryManager {
               // TODO(keertip): fix to handle spaces
               uri = new URI(PACKAGE_SCHEME + ":/" + spec);
             } else {
-              uri = new URI(null,null,PACKAGE_SCHEME + "://" + spec,null);
+              uri = new URI(PACKAGE_SCHEME + "://" + spec);
             } 
           } catch (URISyntaxException e) {
             throw new AssertionError();

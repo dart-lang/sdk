@@ -297,29 +297,21 @@ class HttpParserTest {
   static void testParseRequest() {
     String request;
     Map headers;
-    request = "GET / HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "GET", "/");
-
-    request = "POST / HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "POST", "/");
-
-    request = "GET /index.html HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "GET", "/index.html");
-
-    request = "POST /index.html HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "POST", "/index.html");
-
-    request = "H /index.html HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "H", "/index.html");
-
-    request = "HT /index.html HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "HT", "/index.html");
-
-    request = "HTT /index.html HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "HTT", "/index.html");
-
-    request = "HTTP /index.html HTTP/1.1\r\n\r\n";
-    _testParseRequest(request, "HTTP", "/index.html");
+    var methods = [
+        // RFC 2616 methods.
+        "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT",
+        // WebDAV methods from RFC 4918.
+        "PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK",
+        // WebDAV methods from RFC 5323.
+        "SEARCH",
+        // Methods with HTTP prefix.
+        "H", "HT", "HTT", "HTTP", "HX", "HTX", "HTTX", "HTTPX"];
+    methods.forEach((method) {
+       request = "$method / HTTP/1.1\r\n\r\n";
+      _testParseRequest(request, method, "/");
+       request = "$method /index.html HTTP/1.1\r\n\r\n";
+      _testParseRequest(request, method, "/index.html");
+    });
 
     request = "GET / HTTP/1.0\r\n\r\n";
     _testParseRequest(request, "GET", "/", expectedVersion: "1.0", connectionClose: true);

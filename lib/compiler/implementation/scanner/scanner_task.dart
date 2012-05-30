@@ -91,26 +91,19 @@ class ScannerTask extends CompilerTask {
     Script script = compilationUnit.script;
     Token tokens;
     try {
-      try {
-        tokens = new StringScanner(script.text).tokenize();
-      } catch (MalformedInputException ex) {
-        Token token;
-        var message;
-        if (ex.position is num) {
-          // TODO(ahe): Always use tokens in MalformedInputException.
-          token = new Token(EOF_INFO, ex.position);
-        } else {
-          token = ex.position;
-        }
-        compiler.cancel(ex.message, token: token);
+      tokens = new StringScanner(script.text).tokenize();
+    } catch (MalformedInputException ex) {
+      Token token;
+      var message;
+      if (ex.position is num) {
+        // TODO(ahe): Always use tokens in MalformedInputException.
+        token = new Token(EOF_INFO, ex.position);
+      } else {
+        token = ex.position;
       }
-      compiler.dietParser.dietParse(compilationUnit, tokens);
-    } catch (CompilerCancelledException ex) {
-      throw;
-    } catch (var ex) {
-      compiler.unhandledExceptionOnElement(compilationUnit);
-      throw;
+      compiler.cancel(ex.message, token: token);
     }
+    compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 
   LibraryElement loadLibrary(Uri uri, Node node) {
@@ -124,8 +117,10 @@ class ScannerTask extends CompilerTask {
           return element;
         });
     if (newLibrary) {
-      compiler.withCurrentElement(library, () => scan(library));
-      compiler.onLibraryLoaded(library, uri);
+      compiler.withCurrentElement(library, () {
+        scan(library);
+        compiler.onLibraryLoaded(library, uri);
+      });
     }
     return library;
   }

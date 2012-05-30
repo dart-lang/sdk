@@ -13,20 +13,19 @@
 #source("../../../runtime/bin/http_utils.dart");
 
 void testParseHttpDate() {
-  TimeZone utc = new TimeZone.utc();
   Date date;
-  date = new Date.withTimeZone(1999, Date.JUN, 11, 18, 46, 53, 0, utc);
+  date = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
   Expect.equals(date, _HttpUtils.parseDate("Fri, 11 Jun 1999 18:46:53 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Friday, 11-Jun-1999 18:46:53 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Fri Jun 11 18:46:53 1999"));
 
-  date = new Date.withTimeZone(1970, Date.JAN, 1, 0, 0, 0, 0, utc);
+  date = new Date(1970, Date.JAN, 1, 0, 0, 0, 0, isUtc: true);
   Expect.equals(date, _HttpUtils.parseDate("Thu, 1 Jan 1970 00:00:00 GMT"));
   Expect.equals(date,
                 _HttpUtils.parseDate("Thursday, 1-Jan-1970 00:00:00 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Thu Jan  1 00:00:00 1970"));
 
-  date = new Date.withTimeZone(2012, Date.MAR, 5, 23, 59, 59, 0, utc);
+  date = new Date(2012, Date.MAR, 5, 23, 59, 59, 0, isUtc: true);
   Expect.equals(date, _HttpUtils.parseDate("Mon, 5 Mar 2012 23:59:59 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Monday, 5-Mar-2012 23:59:59 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Mon Mar  5 23:59:59 2012"));
@@ -40,11 +39,9 @@ void testFormatParseHttpDate() {
        int minutes,
        int seconds,
        String expectedFormatted) {
-    TimeZone utc = new TimeZone.utc();
     Date date;
     String formatted;
-    date = new Date.withTimeZone(
-        year, month, day, hours, minutes, seconds, 0, utc);
+    date = new Date(year, month, day, hours, minutes, seconds, 0, isUtc: true);
     formatted = _HttpUtils.formatDate(date);
     Expect.equals(expectedFormatted, formatted);
     Expect.equals(date, _HttpUtils.parseDate(formatted));

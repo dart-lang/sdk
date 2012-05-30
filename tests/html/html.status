@@ -10,8 +10,8 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-indexeddb_3_test: Fail  # exception not caught - not 'is IDBDatabaseException' ?
-indexeddb_4_test: Fail  # exception not caught - not 'is IDBDatabaseException' ?
+indexeddb_3_test: Fail  # exception not caught - not 'is IDBDatabaseException', issue 3301
+indexeddb_4_test: Skip  # timeout, issue 3301
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
@@ -66,6 +66,12 @@ node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
 
+[ $compiler == frog && $runtime == ff ]
+# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
+hidden_dom_1_test: Fail
+# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
+hidden_dom_2_test: Fail
+
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
@@ -77,10 +83,6 @@ dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTE
 documentfragment_test: Fail
 element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
-# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
-hidden_dom_1_test: Fail
-# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
-hidden_dom_2_test: Fail
 indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
@@ -105,7 +107,7 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
 
-[ $runtime == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == ie ]
@@ -160,12 +162,34 @@ svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 # Should investigate why this test succeeds on d8.
 svgelement2_test: Pass
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) && $system == linux]
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 # DOM errors.
 indexeddb_2_test: Fail # Uncaught error
 window_open_test: Fail # TypeError: Object [object Window] has no method 'close$0'
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+element_test: Fail # method not found: 'get$add'
+fileapi_test: Skip # Issue 3022
+
+[ $compiler == dart2js && $runtime == ff ]
+cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
+canvas_pixel_array_type_alias_test: Fail # Expectation: CreateImageData. Caught NoSuchMethodException : method not found: 'get$data'
+xhr_test: Skip # Timeout
+inner_frame_test: Skip # Timeout
+svg_3_test: Skip # Timeout
+documentfragment_test: Skip # Timeout
+fileapi_test: Skip # Issue 3022
+
+[ $compiler == dart2js && $runtime == chrome && $system == windows]
+css_test: Pass, Fail # Issue #2823
+element_test: Fail # method not found: 'get$add'
+fileapi_test: Skip # Issue 3022

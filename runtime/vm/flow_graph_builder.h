@@ -125,7 +125,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Creates an instantiated type argument vector used in preparation of an
   // allocation call.
   // May be called only if allocating an object of a parameterized class.
-  Definition* BuildInstantiatedTypeArguments(
+  BindInstr* BuildInstantiatedTypeArguments(
       intptr_t token_index,
       const AbstractTypeArguments& type_arguments);
 
@@ -155,6 +155,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
                               const AbstractType& dst_type,
                               const String& dst_name);
 
+  void BuildStoreIndexedValues(StoreIndexedNode* node,
+                               Value** array,
+                               Value** index,
+                               Value** value);
+
   virtual void BuildInstanceOf(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
@@ -172,7 +177,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
-  Definition* BuildObjectAllocation(ConstructorCallNode* node);
+  BindInstr* BuildObjectAllocation(ConstructorCallNode* node);
   void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
 
   void BuildStoreContext(const LocalVariable& variable);
@@ -181,6 +186,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildThrowNode(ThrowNode* node);
 
   ClosureCallComp* BuildClosureCall(ClosureCallNode* node);
+
+  Value* BuildNullValue();
 
  private:
   // Specify a computation as the final result.  Adds a Do instruction to
@@ -218,6 +225,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
 

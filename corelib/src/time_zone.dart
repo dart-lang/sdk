@@ -6,6 +6,8 @@
 
 /**
  * [TimeZone]s represent locations (for example Europe/Paris).
+ *
+ * *DEPRECATED*
  */
 interface TimeZone default TimeZoneImplementation {
   const TimeZone.utc();

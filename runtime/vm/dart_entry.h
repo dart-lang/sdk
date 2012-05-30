@@ -90,7 +90,7 @@ class DartLibraryCalls : public AllStatic {
 
   // Gets the _id field of a SendPort/ReceivePort.
   //
-  // Returns null on success, a RawError on failure.
+  // Returns the value of _id on success, a RawError on failure.
   static RawObject* PortGetId(const Instance& port);
 };
 

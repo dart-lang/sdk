@@ -33,8 +33,8 @@ interface Date extends Comparable, Hashable default DateImplementation {
   static final int DEC = 12;
 
   /**
-   * Constructs a [Date] instance based on the individual parts, in the
-   * local time-zone.
+   * Constructs a [Date] instance based on the individual parts. The date is
+   * in the local time-zone if [isUtc] is false.
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
@@ -44,11 +44,14 @@ interface Date extends Comparable, Hashable default DateImplementation {
         int hours,
         int minutes,
         int seconds,
-        int milliseconds]);
+        int milliseconds,
+        bool isUtc]);
 
   /**
    * Constructs a [Date] instance based on the individual parts.
    * [timeZone] may not be [:null:].
+   *
+   * *DEPRECATED*
    */
   Date.withTimeZone(int year,
                     int month,
@@ -60,8 +63,8 @@ interface Date extends Comparable, Hashable default DateImplementation {
                     TimeZone timeZone);
 
   /**
-   * Constructs a new [Date] instance with current date time value.
-   * The [timeZone] of this instance is set to the local time-zone.
+   * Constructs a new [Date] instance with current date time value in the
+   * local time zone.
    */
   Date.now();
 
@@ -71,37 +74,59 @@ interface Date extends Comparable, Hashable default DateImplementation {
   Date.fromString(String formattedString);
 
   /**
-   * Constructs a new [Date] instance with the given time zone. The given
-   * [timeZone] must not be [:null:].
-   *
-   * This constructor is the only one that doesn't need to be computations and
-   * which can therefore be [:const:].
+   * Constructs a new [Date] instance with the given [value]. If [isUtc] is
+   * false then the date is in the local time-zone.
    *
    * The constructed [Date] represents 1970-01-01T00:00:00Z + [value]ms in
-   * the given [timeZone].
+   * the given time-zone (local or UTC).
    */
-  const Date.fromEpoch(int value, TimeZone timeZone);
+  // TODO(floitsch): the spec allows default values in interfaces, but our
+  // tools don't yet. Eventually we want to have default values here.
+  Date.fromEpoch(int value, [bool isUtc]);
 
   /**
+   * Returns true if [this] occurs at the same time as [other]. The
+   * comparison is independent of whether the time is utc or in the local
+   * time zone.
+   */
+  bool operator ==(Date other);
+  /**
    * Returns true if [this] occurs before [other]. The comparison is independent
-   * of the timezone the [Date] is in.
+   * of whether the time is utc or in the local time zone.
    */
   bool operator <(Date other);
   /**
    * Returns true if [this] occurs at the same time or before [other]. The
-   * comparison is independent of the timezone the [Date] is in.
+   * comparison is independent of whether the time is utc or in the local
+   * time zone.
    */
   bool operator <=(Date other);
   /**
    * Returns true if [this] occurs after [other]. The comparison is independent
-   * of the timezone the [Date] is in.
+   * of whether the time is utc or in the local time zone.
    */
   bool operator >(Date other);
   /**
    * Returns true if [this] occurs at the same time or after [other]. The
-   * comparison is independent of the timezone the [Date] is in.
+   * comparison is independent of whether the time is utc or in the local
+   * time zone.
    */
   bool operator >=(Date other);
+
+
+  /**
+   * Returns [this] in the local time-zone. Returns itself if it is already in
+   * the local time zone. Otherwise, this method is equivalent to
+   * [:new Date.fromEpoch(this.value, isUtc: false):].
+   */
+  Date toLocal();
+
+  /**
+   * Returns [this] in UTC. Returns itself if it is already in UTC. Otherwise,
+   * this method is equivalent to
+   * [:new Date.fromEpoch(this.value, isUtc: true):].
+   */
+  Date toUtc();
 
   /**
    * Returns a new [Date] in the given [targetTimeZone] time zone. The
@@ -109,6 +134,8 @@ interface Date extends Comparable, Hashable default DateImplementation {
    *
    * This call is equivalent to
    *  [:new Date.fromEpoch(this.value, targetTimeZone):].
+   *
+   * *DEPRECATED*
    */
   Date changeTimeZone(TimeZone targetTimeZone);
 
@@ -172,29 +199,18 @@ interface Date extends Comparable, Hashable default DateImplementation {
   /**
    * Returns milliseconds from 1970-01-01T00:00:00Z (UTC).
    *
-   * Note that this value is independent of [timeZone].
+   * Note that this value is independent of the time zone.
    */
   final int value;
 
   /**
-   * Returns the timeZone of this instance.
-   */
-  final TimeZone timeZone;
-
-  /**
-   * Returns true if this [Date] is set to local time.
-   */
-  bool isLocalTime();
-
-  /**
    * Returns true if this [Date] is set to UTC time.
-   * This is equivalent to [:this.timeZone.isUtc():].
    */
   bool isUtc();
 
   /**
    * Returns a human readable string for this instance.
-   * The returned string is constructed for the [timeZone] of this instance.
+   * The returned string is constructed for the time zone of this instance.
    */
   String toString();
 

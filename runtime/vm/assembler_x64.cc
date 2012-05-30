@@ -524,6 +524,17 @@ void Assembler::divsd(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::comisd(XmmRegister a, XmmRegister b) {
+  ASSERT(a <= XMM7);
+  ASSERT(b <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x2F);
+  EmitXmmRegisterOperand(a, b);
+}
+
+
 void Assembler::xchgl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -817,7 +828,17 @@ void Assembler::addq(Register reg, const Immediate& imm) {
 
 
 void Assembler::addq(const Address& address, const Immediate& imm) {
-  UNIMPLEMENTED();
+  // TODO(srdjan): Implement shorter version for imm32.
+  movq(TMP, imm);
+  addq(address, TMP);
+}
+
+
+void Assembler::addq(const Address& address, Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg, address, REX_W);
+  EmitUint8(0x01);
+  EmitOperand(reg & 7, address);
 }
 
 
@@ -1270,11 +1291,13 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 
 void Assembler::Drop(intptr_t stack_elements) {
   ASSERT(stack_elements >= 0);
-  if (stack_elements > 0) {
-    // TODO(fschneider): When optimizing for code size, we could
-    // consider using pop for stack_elements < 4 instead.
-    addq(RSP, Immediate(stack_elements * kWordSize));
+  if (stack_elements <= 4) {
+    for (intptr_t i = 0; i < stack_elements; i++) {
+      popq(TMP);
+    }
+    return;
   }
+  addq(RSP, Immediate(stack_elements * kWordSize));
 }
 
 

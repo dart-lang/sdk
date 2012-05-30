@@ -26,6 +26,8 @@ class ValidatorListener implements DiagnosticListener {
 class UnparseValidator extends CompilerTask {
   final bool validateUnparse;
 
+  String get name() => "Unparse validator";
+
   UnparseValidator(Compiler compiler, this.validateUnparse) : super(compiler);
 
   void check(Element element) {

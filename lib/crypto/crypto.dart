@@ -106,6 +106,15 @@ class CryptoUtils {
   static String bytesToHex(List<int> bytes) {
     return _CryptoUtils.bytesToHex(bytes);
   }
+
+  /**
+   * Converts a list of bytes (for example a message digest) into a
+   * base64 encoded string optionally broken up in to lines of
+   * [lineLength] chars separated by '\r\n'.
+   */
+  static String bytesToBase64(List<int> bytes, [int lineLength]) {
+    return _CryptoUtils.bytesToBase64(bytes, lineLength);
+  }
 }
 
 /**

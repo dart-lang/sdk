@@ -64,6 +64,8 @@ class VoidType implements Type {
   const VoidType(this.element);
   SourceString get name() => Types.VOID;
   final VoidElement element;
+
+  toString() => name.slowToString();
 }
 
 class InterfaceType implements Type {
@@ -105,6 +107,12 @@ class FunctionType implements Type {
   }
 
   SourceString get name() => const SourceString('Function');
+
+  int computeArity() {
+    int arity = 0;
+    parameterTypes.forEach((_) { arity++; });
+    return arity;
+  }
 }
 
 class Types {
@@ -226,6 +234,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
   reportTypeWarning(Node node, MessageKind kind, [List arguments = const []]) {
     compiler.reportWarning(node, new TypeWarning(kind, arguments));
   }
+
+  // TODO(karlklose): remove these functions.
+  Type unhandledStatement() => StatementType.NOT_RETURNING;
+  Type unhandledExpression() => types.dynamicType;
 
   Type analyzeNonVoid(Node node) {
     Type type = analyze(node);
@@ -362,7 +374,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (node.isThis()) {
       return currentClass.computeType(compiler);
     } else {
-      fail(node, 'internal error: unexpected identifier');
+      // This is an identifier of a formal parameter.
+      return types.dynamicType;
     }
   }
 
@@ -375,7 +388,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitLoop(Loop node) {
-    fail(node, 'internal error');
+    return unhandledStatement();
   }
 
   Type lookupMethodType(Node node, ClassElement classElement,
@@ -400,7 +413,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   void analyzeArguments(Send send, FunctionType funType) {
     Link<Node> arguments = send.arguments;
-    if (funType === null) {
+    if (funType === null || funType === types.dynamicType) {
       while(!arguments.isEmpty()) {
         analyze(arguments.head);
         arguments = arguments.tail;
@@ -462,9 +475,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
       fail(selector, 'unexpected operator ${name}');
 
     } else if (node.isPropertyAccess) {
-      if (node.receiver !== null) fail(node, 'cannot handle fields');
+      if (node.receiver !== null) {
+        // TODO(karlklose): we cannot handle fields.
+        return unhandledExpression();
+      }
       Element element = elements[node];
-      if (element === null) fail(node.selector, 'unresolved property');
+      if (element === null) return types.dynamicType;
       return computeType(element);
 
     } else if (node.isFunctionObjectInvocation) {
@@ -478,8 +494,21 @@ class TypeCheckerVisitor implements Visitor<Type> {
           if (receiverType === null) {
             fail(node.receiver, 'receivertype is null');
           }
-          if (receiverType.element.kind !== ElementKind.CLASS) {
-            fail(node.receiver, 'receivertype is not a class');
+          if (receiverType.element.kind === ElementKind.GETTER) {
+            FunctionType getterType  = receiverType;
+            receiverType = getterType.returnType;
+          }
+          ElementKind receiverKind = receiverType.element.kind;
+          if (receiverKind === ElementKind.TYPEDEF) {
+            // TODO(karlklose): handle typedefs.
+            return null;
+          }
+          if (receiverKind === ElementKind.TYPE_VARIABLE) {
+            // TODO(karlklose): handle type variables.
+            return null;
+          }
+          if (receiverKind !== ElementKind.CLASS) {
+            fail(node.receiver, 'unexpected receiver kind: ${receiverKind}');
           }
           ClassElement classElement = receiverType.element;
           // TODO(karlklose): substitute type arguments.
@@ -494,6 +523,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
           } else if (element.kind === ElementKind.FUNCTION) {
             return computeType(element);
           } else if (element.kind === ElementKind.FOREIGN) {
+            return null;
+          } else if (element.kind === ElementKind.VARIABLE
+                     || element.kind === ElementKind.FIELD) {
+            // TODO(karlklose): handle object invocations.
             return null;
           } else {
             fail(node, 'unexpected element kind ${element.kind}');
@@ -717,42 +750,42 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitLiteralMap(LiteralMap node) {
-    fail(node);
+    return unhandledExpression();
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
-    fail(node);
+    return unhandledExpression();
   }
 
   visitNamedArgument(NamedArgument node) {
-    fail(node, 'named argument not implemented');
+    return unhandledExpression();
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    fail(node);
+    return unhandledStatement();
   }
 
   visitSwitchCase(SwitchCase node) {
-    fail(node);
+    return unhandledStatement();
   }
 
   visitCaseMatch(CaseMatch node) {
-    fail(node);
+    return unhandledStatement();
   }
 
   visitTryStatement(TryStatement node) {
-    fail(node, 'unimplemented');
+    return unhandledStatement();
   }
 
   visitScriptTag(ScriptTag node) {
-    fail(node);
+    return unhandledExpression();
   }
 
   visitCatchBlock(CatchBlock node) {
-    fail(node);
+    return unhandledStatement();
   }
 
   visitTypedef(Typedef node) {
-    fail(node);
+    return unhandledStatement();
   }
 }

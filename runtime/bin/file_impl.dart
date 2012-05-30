@@ -213,33 +213,34 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
 // Helper class containing static file helper methods.
 class _FileUtils {
-  static final kExistsRequest = 0;
-  static final kCreateRequest = 1;
-  static final kDeleteRequest = 2;
-  static final kOpenRequest = 3;
-  static final kFullPathRequest = 4;
-  static final kDirectoryRequest = 5;
-  static final kCloseRequest = 6;
-  static final kPositionRequest = 7;
-  static final kSetPositionRequest = 8;
-  static final kTruncateRequest = 9;
-  static final kLengthRequest = 10;
-  static final kLengthFromNameRequest = 11;
-  static final kFlushRequest = 12;
-  static final kReadByteRequest = 13;
-  static final kWriteByteRequest = 14;
-  static final kReadListRequest = 15;
-  static final kWriteListRequest = 16;
-  static final kWriteStringRequest = 17;
+  static final EXISTS_REQUEST = 0;
+  static final CREATE_REQUEST = 1;
+  static final DELETE_REQUEST = 2;
+  static final OPEN_REQUEST = 3;
+  static final FULL_PATH_REQUEST = 4;
+  static final DIRECTORY_REQUEST = 5;
+  static final CLOSE_REQUEST = 6;
+  static final POSITION_REQUEST = 7;
+  static final SET_POSITION_REQUEST = 8;
+  static final TRUNCATE_REQUEST = 9;
+  static final LENGTH_REQUEST = 10;
+  static final LENGTH_FROM_NAME_REQUEST = 11;
+  static final LAST_MODIFIED_REQUEST = 12;
+  static final FLUSH_REQUEST = 13;
+  static final READ_BYTE_REQUEST = 14;
+  static final WRITE_BYTE_REQUEST = 15;
+  static final READ_LIST_REQUEST = 16;
+  static final WRITE_LIST_REQUEST = 17;
+  static final WRITE_STRING_REQUEST = 18;
 
-  static final kSuccessResponse = 0;
-  static final kIllegalArgumentResponse = 1;
-  static final kOSErrorResponse = 2;
-  static final kFileClosedResponse = 3;
+  static final SUCCESS_RESPONSE = 0;
+  static final ILLEGAL_ARGUMENT_RESPONSE = 1;
+  static final OSERROR_RESPONSE = 2;
+  static final FILE_CLOSED_RESPONSE = 3;
 
-  static final kErrorResponseErrorType = 0;
-  static final kOSErrorResponseErrorCode = 1;
-  static final kOSErrorResponseMessage = 2;
+  static final ERROR_RESPONSE_ERROR_TYPE = 0;
+  static final OSERROR_RESPONSE_ERROR_CODE = 1;
+  static final OSERROR_RESPONSE_MESSAGE = 2;
 
   static List ensureFastAndSerializableBuffer(
       List buffer, int offset, int bytes) {
@@ -274,6 +275,7 @@ class _FileUtils {
   static fullPath(String name) native "File_FullPath";
   static directory(String name) native "File_Directory";
   static lengthFromName(String name) native "File_LengthFromName";
+  static lastModified(String name) native "File_LastModified";
   static int close(int id) native "File_Close";
   static readByte(int id) native "File_ReadByte";
   static readList(int id, List<int> buffer, int offset, int bytes)
@@ -298,83 +300,58 @@ class _FileUtils {
   static SendPort newServicePort() native "File_NewServicePort";
 
   static bool checkedExists(String name) {
-    if (name is !String) {
-      throw new IllegalArgumentException();
-    }
+    if (name is !String) throw new IllegalArgumentException();
     var result = exists(name);
-    if (result is OSError) {
-      throw new FileIOException("Cannot check existence of file '$name'",
-                                result);
-    }
+    throwIfError(result, "Cannot check existence of file '$name'");
     return result;
   }
 
   static int checkedOpen(String name, int mode) {
-    if (name is !String || mode is !int) {
-      throw new IllegalArgumentException();
-    };
+    if (name is !String || mode is !int) throw new IllegalArgumentException();
     var result = open(name, mode);
-    if (result is OSError) {
-      throw new FileIOException("Cannot open file '$name'", result);
-    }
+    throwIfError(result, "Cannot open file '$name'");
     return result;
   }
 
   static bool checkedCreate(String name) {
-    if (name is !String) {
-      throw new IllegalArgumentException();
-    };
+    if (name is !String) throw new IllegalArgumentException();
     var result = create(name);
-    if (result is OSError) {
-      throw new FileIOException("Cannot create file '$name'", result);
-    }
+    throwIfError(result, "Cannot create file '$name'");
     return true;
   }
 
   static bool checkedDelete(String name) {
-    if (name is !String) {
-      throw new IllegalArgumentException();
-    };
+    if (name is !String) throw new IllegalArgumentException();
     var result = delete(name);
-    if (result is OSError) {
-      throw new FileIOException("Cannot delete file '$name'", result);
-    }
+    throwIfError(result, "Cannot delete file '$name'");
     return true;
   }
 
   static String checkedFullPath(String name) {
-    if (name is !String) {
-      throw new IllegalArgumentException();
-    };
+    if (name is !String) throw new IllegalArgumentException();
     var result = fullPath(name);
-    if (result is OSError) {
-      throw new FileIOException(
-          "Cannot retrieve full path for file '$name'", result);
-    }
+    throwIfError(result, "Cannot retrieve full path for file '$name'");
     return result;
   }
 
   static String checkedDirectory(String name) {
-    if (name is !String) {
-      throw new IllegalArgumentException();
-    }
+    if (name is !String) throw new IllegalArgumentException();
     var result = directory(name);
-    if (result is OSError) {
-      throw new FileIOException(
-          "Cannot retrieve directory for file '$name'", result);
-    }
+    throwIfError(result, "Cannot retrieve directory for file '$name'");
     return result;
   }
 
   static int checkedLengthFromName(String name) {
-    if (name is !String) {
-      throw new IllegalArgumentException();
-    }
+    if (name is !String) throw new IllegalArgumentException();
     var result = lengthFromName(name);
-    if (result is OSError) {
-      throw new FileIOException(
-          "Cannot retrieve length of file '$name'", result);
-    }
+    throwIfError(result, "Cannot retrieve length of file '$name'");
+    return result;
+  }
+
+  static int checkedLastModified(String name) {
+    if (name is !String) throw new IllegalArgumentException();
+    var result = lastModified(name);
+    throwIfError(result, "Cannot retrieve modification time for file '$name'");
     return result;
   }
 
@@ -386,28 +363,33 @@ class _FileUtils {
   }
 
   static int checkedWriteString(int id, String string) {
-    if (string is !String) return -1;
+    if (string is !String) throw new IllegalArgumentException();
     return writeString(id, string);
   }
 
+  static throwIfError(Object result, String msg) {
+    if (result is OSError) {
+      throw new FileIOException(msg, result);
+    }
+  }
 }
 
 // Base class for _File and _RandomAccessFile with shared functions.
 class _FileBase {
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _FileUtils.kSuccessResponse;
+    return response is List && response[0] != _FileUtils.SUCCESS_RESPONSE;
   }
 
   Exception _exceptionFromResponse(response, String message) {
     assert(_isErrorResponse(response));
-    switch (response[_FileUtils.kErrorResponseErrorType]) {
-      case _FileUtils.kIllegalArgumentResponse:
+    switch (response[_FileUtils.ERROR_RESPONSE_ERROR_TYPE]) {
+      case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
         return new IllegalArgumentException();
-      case _FileUtils.kOSErrorResponse:
-        var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
-                              response[_FileUtils.kOSErrorResponseErrorCode]);
+      case _FileUtils.OSERROR_RESPONSE:
+        var err = new OSError(response[_FileUtils.OSERROR_RESPONSE_MESSAGE],
+                              response[_FileUtils.OSERROR_RESPONSE_ERROR_CODE]);
         return new FileIOException(message, err);
-      case _FileUtils.kFileClosedResponse:
+      case _FileUtils.FILE_CLOSED_RESPONSE:
         return new FileIOException("File closed");
       default:
         return new Exception("Unknown error");
@@ -423,7 +405,7 @@ class _File extends _FileBase implements File {
   Future<bool> exists() {
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kExistsRequest;
+    request[0] = _FileUtils.EXISTS_REQUEST;
     request[1] = _name;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -440,7 +422,7 @@ class _File extends _FileBase implements File {
   Future<File> create() {
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kCreateRequest;
+    request[0] = _FileUtils.CREATE_REQUEST;
     request[1] = _name;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -460,7 +442,7 @@ class _File extends _FileBase implements File {
   Future<File> delete() {
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kDeleteRequest;
+    request[0] = _FileUtils.DELETE_REQUEST;
     request[1] = _name;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -477,7 +459,7 @@ class _File extends _FileBase implements File {
   Future<Directory> directory() {
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kDirectoryRequest;
+    request[0] = _FileUtils.DIRECTORY_REQUEST;
     request[1] = _name;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -506,7 +488,7 @@ class _File extends _FileBase implements File {
       return completer.future;
     }
     List request = new List(3);
-    request[0] = _FileUtils.kOpenRequest;
+    request[0] = _FileUtils.OPEN_REQUEST;
     request[1] = _name;
     request[2] = mode._mode;  // Direct int value for serialization.
     return _fileService.call(request).transform((response) {
@@ -520,7 +502,7 @@ class _File extends _FileBase implements File {
   Future<int> length() {
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kLengthFromNameRequest;
+    request[0] = _FileUtils.LENGTH_FROM_NAME_REQUEST;
     request[1] = _name;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -533,12 +515,26 @@ class _File extends _FileBase implements File {
   }
 
   int lengthSync() {
-    var result = _FileUtils.checkedLengthFromName(_name);
-    if (result is OSError) {
-      throw new FileIOException("Cannot retrieve length of file '$_name'",
-                                result);
-    }
-    return result;
+    return _FileUtils.checkedLengthFromName(_name);
+  }
+
+  Future<Date> lastModified() {
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _FileUtils.LAST_MODIFIED_REQUEST;
+    request[1] = _name;
+    return _fileService.call(request).transform((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Cannot retrieve modification time "
+                                     "for file '$_name'");
+      }
+      return new Date.fromEpoch(response);
+    });
+  }
+
+  Date lastModifiedSync() {
+    return new Date.fromEpoch(_FileUtils.checkedLastModified(_name));
   }
 
   RandomAccessFile openSync([FileMode mode = FileMode.READ]) {
@@ -564,7 +560,7 @@ class _File extends _FileBase implements File {
   Future<String> fullPath() {
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kFullPathRequest;
+    request[0] = _FileUtils.FULL_PATH_REQUEST;
     request[1] = _name;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -692,7 +688,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     if (_isClosed) return _completeWithClosedException(completer);
     _ensureFileService();
     List request = new List(2);
-    request[0] = _FileUtils.kCloseRequest;
+    request[0] = _FileUtils.CLOSE_REQUEST;
     request[1] = _id;
     // Set the id_ to 0 (NULL) to ensure the no more async requests
     // can be issues for this file.
@@ -720,7 +716,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<int> completer = new Completer<int>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
-    request[0] = _FileUtils.kReadByteRequest;
+    request[0] = _FileUtils.READ_BYTE_REQUEST;
     request[1] = _id;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -755,7 +751,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     };
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
-    request[0] = _FileUtils.kReadListRequest;
+    request[0] = _FileUtils.READ_LIST_REQUEST;
     request[1] = _id;
     request[2] = bytes;
     return _fileService.call(request).transform((response) {
@@ -805,7 +801,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
-    request[0] = _FileUtils.kWriteByteRequest;
+    request[0] = _FileUtils.WRITE_BYTE_REQUEST;
     request[1] = _id;
     request[2] = value;
     return _fileService.call(request).transform((response) {
@@ -861,7 +857,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     int outOffset = result[1];
 
     List request = new List(5);
-    request[0] = _FileUtils.kWriteListRequest;
+    request[0] = _FileUtils.WRITE_LIST_REQUEST;
     request[1] = _id;
     request[2] = outBuffer;
     request[3] = outOffset;
@@ -900,7 +896,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
-    request[0] = _FileUtils.kWriteStringRequest;
+    request[0] = _FileUtils.WRITE_STRING_REQUEST;
     request[1] = _id;
     request[2] = string;
     return _fileService.call(request).transform((response) {
@@ -916,7 +912,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _checkNotClosed();
     var result = _FileUtils.checkedWriteString(_id, string);
     if (result is OSError) {
-      throw new FileIOException("writeString failed for file '$_name'", result);
+      throw new FileIOException("writeString failed for file '$_name'");
     }
     return result;
   }
@@ -926,7 +922,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<int> completer = new Completer<int>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
-    request[0] = _FileUtils.kPositionRequest;
+    request[0] = _FileUtils.POSITION_REQUEST;
     request[1] = _id;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -951,7 +947,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
-    request[0] = _FileUtils.kSetPositionRequest;
+    request[0] = _FileUtils.SET_POSITION_REQUEST;
     request[1] = _id;
     request[2] = position;
     return _fileService.call(request).transform((response) {
@@ -976,7 +972,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(3);
-    request[0] = _FileUtils.kTruncateRequest;
+    request[0] = _FileUtils.TRUNCATE_REQUEST;
     request[1] = _id;
     request[2] = length;
     return _fileService.call(request).transform((response) {
@@ -1001,7 +997,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<int> completer = new Completer<int>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
-    request[0] = _FileUtils.kLengthRequest;
+    request[0] = _FileUtils.LENGTH_REQUEST;
     request[1] = _id;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -1026,7 +1022,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (_isClosed) return _completeWithClosedException(completer);
     List request = new List(2);
-    request[0] = _FileUtils.kFlushRequest;
+    request[0] = _FileUtils.FLUSH_REQUEST;
     request[1] = _id;
     return _fileService.call(request).transform((response) {
       if (_isErrorResponse(response)) {

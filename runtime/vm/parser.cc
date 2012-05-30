@@ -1034,6 +1034,17 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     params->has_field_initializer = true;
   }
 
+  // Check for duplicate formal parameters.
+  const intptr_t num_existing_parameters =
+      params->num_fixed_parameters + params->num_optional_parameters;
+  for (intptr_t i = 0; i < num_existing_parameters; i++) {
+    ParamDesc& existing_parameter = (*params->parameters)[i];
+    if (existing_parameter.name->Equals(*parameter.name)) {
+      ErrorMsg(parameter.name_pos, "duplicate formal parameter '%s'",
+               parameter.name->ToCString());
+    }
+  }
+
   if (CurrentToken() == Token::kLPAREN) {
     // This parameter is probably a closure. If we saw the keyword 'var'
     // or 'final', a closure is not legal here and we ignore the
@@ -3142,7 +3153,9 @@ void Parser::ParseTypeParameters(const Class& cls) {
     const GrowableObjectArray& bounds_array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
-    AbstractType& type_parameter = TypeParameter::Handle();
+    TypeParameter& type_parameter = TypeParameter::Handle();
+    TypeParameter& existing_type_parameter = TypeParameter::Handle();
+    String& existing_type_parameter_name = String::Handle();
     AbstractType& bound = Type::Handle();
     do {
       ConsumeToken();
@@ -3154,6 +3167,15 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           index,
                                           type_parameter_name,
                                           token_index_);
+      // Check for duplicate type parameters.
+      for (intptr_t i = 0; i < index; i++) {
+        existing_type_parameter ^= type_parameters_array.At(i);
+        existing_type_parameter_name = existing_type_parameter.Name();
+        if (existing_type_parameter_name.Equals(type_parameter_name)) {
+          ErrorMsg("duplicate type parameter '%s'",
+                   type_parameter_name.ToCString());
+        }
+      }
       ConsumeToken();
       bound = Type::DynamicType();
       if (CurrentToken() == Token::kEXTENDS) {
@@ -3530,8 +3552,7 @@ void Parser::ParseLibraryName() {
 
 Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
-                                          const String& url,
-                                          const Array& import_map) {
+                                          const String& url) {
   Isolate* isolate = Isolate::Current();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
@@ -3539,8 +3560,7 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   }
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate, library_.raw()),
-                               Api::NewHandle(isolate, url.raw()),
-                               Api::NewHandle(isolate, import_map.raw()));
+                               Api::NewHandle(isolate, url.raw()));
   if (Dart_IsError(result)) {
     Error& prev_error = Error::Handle();
     prev_error ^= Api::UnwrapHandle(result);
@@ -3580,17 +3600,15 @@ void Parser::ParseLibraryImport() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    const Array& import_map = Array::Handle(library_.import_map());
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                import_pos,
-                                               url,
-                                               import_map);
+                                               url);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
     if (library.IsNull()) {
       // Call the library tag handler to load the library.
-      CallLibraryTagHandler(kImportTag, import_pos, canon_url, import_map);
+      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
       // If the library tag handler succeded without registering the
       // library we create an empty library to import.
       library = Library::LookupLibrary(canon_url);
@@ -3618,7 +3636,6 @@ void Parser::ParseLibraryImport() {
 
 void Parser::ParseLibraryInclude() {
   TRACE_PARSER("ParseLibraryInclude");
-  const Array& import_map = Array::Handle(library_.import_map());
   while (CurrentToken() == Token::kSOURCE) {
     const intptr_t source_pos = token_index_;
     ConsumeToken();
@@ -3631,10 +3648,9 @@ void Parser::ParseLibraryInclude() {
     ExpectToken(Token::kSEMICOLON);
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                source_pos,
-                                               url,
-                                               import_map);
+                                               url);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
-    CallLibraryTagHandler(kSourceTag, source_pos, canon_url, import_map);
+    CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
   }
 }
 
@@ -4823,7 +4839,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     AstNode* loop_var_primary = ResolveVarOrField(loop_var_pos, *loop_var_name);
     ASSERT(!loop_var_primary->IsPrimaryNode());
     loop_var_assignment =
-        loop_var_primary->MakeAssignmentNode(iterator_next);
+        CreateAssignmentNode(loop_var_primary, iterator_next);
     if (loop_var_assignment == NULL) {
       ErrorMsg(loop_var_pos, "variable or field '%s' is not assignable",
                loop_var_name->ToCString());
@@ -6093,6 +6109,16 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 }
 
 
+// Ensure that the expression temp is allocated for nodes that may need it.
+AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
+  AstNode* result = original->MakeAssignmentNode(rhs);
+  if ((result != NULL) && result->IsStoreIndexedNode()) {
+    EnsureExpressionTemp();
+  }
+  return result;
+}
+
+
 AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   TRACE_PARSER("ParseExpr");
   const intptr_t expr_pos = token_index_;
@@ -6119,7 +6145,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   }
   right_expr =
       ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-  AstNode* assign_expr = left_expr->MakeAssignmentNode(right_expr);
+  AstNode* assign_expr = CreateAssignmentNode(left_expr, right_expr);
   if (assign_expr == NULL) {
     ErrorMsg(assignment_pos,
              "left hand side of '%s' is not assignable",
@@ -6186,7 +6212,7 @@ AstNode* Parser::ParseUnaryExpr() {
         binary_op,
         expr,
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = left_expr->MakeAssignmentNode(add);
+    AstNode* store = CreateAssignmentNode(left_expr, add);
     expr = store;
   } else {
     expr = ParsePostfixExpr();
@@ -6351,7 +6377,7 @@ AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
       left_load_access = PrepareCompoundAssignmentNodes(&load_access);
     }
     value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = left_load_access->MakeAssignmentNode(value);
+    access = CreateAssignmentNode(left_load_access, value);
   } else {
     access = CallGetter(call_pos, receiver, field_name);
   }
@@ -6434,7 +6460,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       load_access = GenerateStaticFieldLookup(field, token_index_);
     }
     value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = load_access->MakeAssignmentNode(value);
+    access = CreateAssignmentNode(load_access, value);
   } else {  // Not Token::IsAssignmentOperator(CurrentToken()).
     if (field.IsNull()) {
       // No field, check if we have an explicit getter function.
@@ -6677,7 +6703,7 @@ AstNode* Parser::ParsePostfixExpr() {
         binary_op,
         save,
         new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = left_expr->MakeAssignmentNode(add);
+    AstNode* store = CreateAssignmentNode(left_expr, add);
     LoadLocalNode* load_res =
         new LoadLocalNode(postfix_expr_pos, temp, store);
     return load_res;
@@ -7216,9 +7242,20 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
 // when the script is loaded.
 RawString* Parser::ResolveImportVar(intptr_t ident_pos, const String& ident) {
   TRACE_PARSER("ResolveImportVar");
-  String& map_name = String::Handle(library_.LookupImportMap(ident));
-  if (!map_name.IsNull()) {
-    return map_name.raw();
+  const Array& import_map =
+      Array::Handle(Isolate::Current()->object_store()->import_map());
+  if (!import_map.IsNull()) {
+    intptr_t length = import_map.Length();
+    intptr_t index = 0;
+    String& name = String::Handle();
+    while (index < (length - 1)) {
+      name ^= import_map.At(index);
+      if (name.Equals(ident)) {
+        name ^= import_map.At(index + 1);
+        return name.raw();
+      }
+      index += 2;
+    }
   }
   ErrorMsg(ident_pos, "import variable '%s' has not been defined",
            ident.ToCString());

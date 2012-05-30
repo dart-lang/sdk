@@ -40,8 +40,3 @@ class OSError {
     */
   final int errorCode;
 }
-
-
-// TODO(sgjesse): Remove this once Dart constructors can be invoked
-// through the API.
-OSError _makeOSError(message, code) => new OSError(message, code);

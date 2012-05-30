@@ -4,16 +4,16 @@
 
 
 class _Directory implements Directory {
-  static final kCreateRequest = 0;
-  static final kDeleteRequest = 1;
-  static final kExistsRequest = 2;
-  static final kCreateTempRequest = 3;
-  static final kListRequest = 4;
-  static final kRenameRequest = 5;
+  static final CREATE_REQUEST = 0;
+  static final DELETE_REQUEST = 1;
+  static final EXISTS_REQUEST = 2;
+  static final CREATE_TEMP_REQUEST = 3;
+  static final LIST_REQUEST = 4;
+  static final RENAME_REQUEST = 5;
 
-  static final kSuccessResponse = 0;
-  static final kIllegalArgumentResponse = 1;
-  static final kOSErrorResponse = 2;
+  static final SUCCESS_RESPONSE = 0;
+  static final ILLEGAL_ARGUMENT_RESPONSE = 1;
+  static final OSERROR_RESPONSE = 2;
 
   _Directory(String this._path);
   _Directory.current() : _path = _current();
@@ -29,7 +29,7 @@ class _Directory implements Directory {
   Future<bool> exists() {
     _ensureDirectoryService();
     List request = new List(2);
-    request[0] = kExistsRequest;
+    request[0] = EXISTS_REQUEST;
     request[1] = _path;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -53,7 +53,7 @@ class _Directory implements Directory {
   Future<Directory> create() {
     _ensureDirectoryService();
     List request = new List(2);
-    request[0] = kCreateRequest;
+    request[0] = CREATE_REQUEST;
     request[1] = _path;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -76,7 +76,7 @@ class _Directory implements Directory {
   Future<Directory> createTemp() {
     _ensureDirectoryService();
     List request = new List(2);
-    request[0] = kCreateTempRequest;
+    request[0] = CREATE_TEMP_REQUEST;
     request[1] = _path;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
@@ -103,7 +103,7 @@ class _Directory implements Directory {
   Future<Directory> _deleteHelper(bool recursive, String errorMsg) {
     _ensureDirectoryService();
     List request = new List(3);
-    request[0] = kDeleteRequest;
+    request[0] = DELETE_REQUEST;
     request[1] = _path;
     request[2] = recursive;
     return _directoryService.call(request).transform((response) {
@@ -146,7 +146,7 @@ class _Directory implements Directory {
   Future<Directory> rename(String newPath) {
     _ensureDirectoryService();
     List request = new List(3);
-    request[0] = kRenameRequest;
+    request[0] = RENAME_REQUEST;
     request[1] = _path;
     request[2] = newPath;
     return _directoryService.call(request).transform((response) {
@@ -175,17 +175,17 @@ class _Directory implements Directory {
   String get path() { return _path; }
 
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _FileUtils.kSuccessResponse;
+    return response is List && response[0] != _FileUtils.SUCCESS_RESPONSE;
   }
 
   Exception _exceptionFromResponse(response, String message) {
     assert(_isErrorResponse(response));
-    switch (response[_FileUtils.kErrorResponseErrorType]) {
-      case _FileUtils.kIllegalArgumentResponse:
+    switch (response[_FileUtils.ERROR_RESPONSE_ERROR_TYPE]) {
+      case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
         return new IllegalArgumentException();
-      case _FileUtils.kOSErrorResponse:
-        var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
-                              response[_FileUtils.kOSErrorResponseErrorCode]);
+      case _FileUtils.OSERROR_RESPONSE:
+        var err = new OSError(response[_FileUtils.OSERROR_RESPONSE_MESSAGE],
+                              response[_FileUtils.OSERROR_RESPONSE_ERROR_CODE]);
         return new DirectoryIOException(message, _path, err);
       default:
         return new Exception("Unknown error");
@@ -204,18 +204,18 @@ class _Directory implements Directory {
 
 class _DirectoryLister implements DirectoryLister {
   _DirectoryLister(String path, bool recursive) {
-    final int kListDirectory = 0;
-    final int kListFile = 1;
-    final int kListError = 2;
-    final int kListDone = 3;
+    final int LIST_DIRECTORY = 0;
+    final int LIST_FILE = 1;
+    final int LIST_ERROR = 2;
+    final int LIST_DONE = 3;
 
-    final int kResponseType = 0;
-    final int kResponsePath = 1;
-    final int kResponseComplete = 1;
-    final int kResponseError = 2;
+    final int RESPONSE_TYPE = 0;
+    final int RESPONSE_PATH = 1;
+    final int RESPONSE_COMPLETE = 1;
+    final int RESPONSE_ERROR = 2;
 
     List request = new List(3);
-    request[0] = _Directory.kListRequest;
+    request[0] = _Directory.LIST_REQUEST;
     request[1] = path;
     request[2] = recursive;
     ReceivePort responsePort = new ReceivePort();
@@ -223,28 +223,29 @@ class _DirectoryLister implements DirectoryLister {
     // listing operations on the same directory can run in parallel.
     _Directory._newServicePort().send(request, responsePort.toSendPort());
     responsePort.receive((message, replyTo) {
-      if (message is !List || message[kResponseType] is !int) {
+      if (message is !List || message[RESPONSE_TYPE] is !int) {
         responsePort.close();
         _reportError(new DirectoryIOException("Internal error"));
         return;
       }
-      switch (message[kResponseType]) {
-        case kListDirectory:
-          if (_onDir != null) _onDir(message[kResponsePath]);
+      switch (message[RESPONSE_TYPE]) {
+        case LIST_DIRECTORY:
+          if (_onDir != null) _onDir(message[RESPONSE_PATH]);
           break;
-        case kListFile:
-          if (_onFile != null) _onFile(message[kResponsePath]);
+        case LIST_FILE:
+          if (_onFile != null) _onFile(message[RESPONSE_PATH]);
           break;
-        case kListError:
+        case LIST_ERROR:
           var errorType =
-              message[kResponseError][_FileUtils.kErrorResponseErrorType];
-          if (errorType == _FileUtils.kIllegalArgumentResponse) {
+              message[RESPONSE_ERROR][_FileUtils.ERROR_RESPONSE_ERROR_TYPE];
+          if (errorType == _FileUtils.ILLEGAL_ARGUMENT_RESPONSE) {
             _reportError(new IllegalArgumentException());
-          } else if (errorType == _FileUtils.kOSErrorResponse) {
+          } else if (errorType == _FileUtils.OSERROR_RESPONSE) {
+            var responseError = message[RESPONSE_ERROR];
             var err = new OSError(
-                message[kResponseError][_FileUtils.kOSErrorResponseMessage],
-                message[kResponseError][_FileUtils.kOSErrorResponseErrorCode]);
-            var errorPath = message[kResponsePath];
+                responseError[_FileUtils.OSERROR_RESPONSE_MESSAGE],
+                responseError[_FileUtils.OSERROR_RESPONSE_ERROR_CODE]);
+            var errorPath = message[RESPONSE_PATH];
             if (errorPath == null) errorPath = path;
             _reportError(new DirectoryIOException("Directory listing failed",
                                                   errorPath,
@@ -253,9 +254,9 @@ class _DirectoryLister implements DirectoryLister {
             _reportError(new DirectoryIOException("Internal error"));
           }
           break;
-        case kListDone:
+        case LIST_DONE:
           responsePort.close();
-          if (_onDone != null) _onDone(message[kResponseComplete]);
+          if (_onDone != null) _onDone(message[RESPONSE_COMPLETE]);
           break;
       }
     });

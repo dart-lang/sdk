@@ -39,6 +39,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
+      parameterNames.forEach((element, name) {
+        compiler.enqueuer.codegen.addToWorkList(element);
+      });
       String parameters = Strings.join(parameterNames.getValues(), ', ');
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
@@ -723,7 +726,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HParameterValue exception = info.catchVariable;
       String name = temporary(exception);
       parameterNames[exception.element] = name;
-      buffer.add('catch ($name) {\n');
+      buffer.add(' catch ($name) {\n');
       indent++;
       generateStatements(info.catchBlock);
       parameterNames.remove(exception.element);
@@ -741,20 +744,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return true;
   }
 
+  void visitBodyIgnoreLabels(HLoopBlockInformation info) {
+    if (info.body.start.isLabeledBlock()) {
+      HBlockInformation oldInfo = currentBlockInformation;
+      currentBlockInformation = info.body.start.blockFlow.body;
+      generateStatements(info.body);
+      currentBlockInformation = oldInfo;
+    } else {
+      generateStatements(info.body);
+    }
+  }
+
   bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
-
-    void visitBodyIgnoreLabels() {
-      if (info.body.start.isLabeledBlock()) {
-        HBlockInformation oldInfo = currentBlockInformation;
-        currentBlockInformation = info.body.start.blockFlow.body;
-        generateStatements(info.body);
-        currentBlockInformation = oldInfo;
-      } else {
-        generateStatements(info.body);
-      }
-    }
 
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
@@ -798,7 +801,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // subgraph.
           // TODO(lrn): Remove this extra labeling when handling all loops
           // using subgraphs.
-          visitBodyIgnoreLabels();
+          visitBodyIgnoreLabels(info);
 
           indent--;
         } else {
@@ -824,7 +827,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             wrapLoopBodyForContinue(info);
             generateStatements(info.updates);
           } else {
-            visitBodyIgnoreLabels();
+            visitBodyIgnoreLabels(info);
           }
           indent--;
         }
@@ -848,7 +851,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (!isConditionExpression || info.updates !== null) {
           wrapLoopBodyForContinue(info);
         } else {
-          visitBodyIgnoreLabels();
+          visitBodyIgnoreLabels(info);
         }
         if (info.updates !== null) {
           generateStatements(info.updates);
@@ -965,7 +968,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(":{\n");
       continueAction[info.target] = implicitContinueAsBreak;
       indent++;
-      generateStatements(info.body);
+      visitBodyIgnoreLabels(info);
       indent--;
       addIndented("}\n");
       continueAction.remove(info.target);
@@ -1565,7 +1568,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    if (node.receiver !== null) {
+    if (!node.isFromActivation()) {
       String name =
           compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
@@ -1574,13 +1577,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     } else {
-      buffer.add(JsNames.getValid(node.name.slowToString()));
+      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
   }
 
   visitFieldSet(HFieldSet node) {
     String name;
-    if (node.receiver !== null) {
+    if (!node.isFromActivation()) {
       name =
           compiler.namer.instanceFieldName(currentLibrary, node.name);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1590,8 +1593,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       // TODO(ngeoffray): Remove the 'var' once we don't globally box
       // variables used in a try/catch.
-      name = JsNames.getValid(node.name.slowToString());
-      declareVariable(name);
+      if (!isGeneratingExpression()) {
+        buffer.add('var ');
+      }
+      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1739,7 +1744,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitParameterValue(HParameterValue node) {
     assert(isGenerateAtUseSite(node));
-    buffer.add(parameterNames[node.element]);
+    if (parameterNames[node.element] == null) {
+      buffer.add(temporary(node));
+    } else {
+      buffer.add(parameterNames[node.element]);
+    }
   }
 
   visitPhi(HPhi node) {

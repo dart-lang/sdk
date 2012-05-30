@@ -601,8 +601,8 @@ class ElementListener extends Listener {
     NodeList typeVariables = popNode(); // TOOD(karlklose): do not throw away.
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
-    pushElement(new TypedefElement(name.source, compilationUnitElement,
-                                   typedefKeyword));
+    pushElement(new PartialTypedefElement(name.source, compilationUnitElement,
+                                          typedefKeyword));
   }
 
   void handleVoidKeyword(Token token) {
@@ -904,7 +904,7 @@ class NodeListener extends ElementListener {
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     NodeList formals = popNode();
-    NodeList typeParameters = null; // TODO(ahe): Don't discard these.
+    NodeList typeParameters = popNode();
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
     pushNode(new Typedef(returnType, name, typeParameters, formals,
@@ -1508,6 +1508,23 @@ class PartialFieldListElement extends VariableListElement {
   }
 
   Token position() => beginToken; // findMyName doesn't work. I'm nameless.
+}
+
+class PartialTypedefElement extends TypedefElement {
+  final Token token;
+
+  PartialTypedefElement(SourceString name, Element enclosing, this.token)
+      : super(name, enclosing);
+
+  Node parseNode(DiagnosticListener listener) {
+    if (cachedNode !== null) return cachedNode;
+    cachedNode = parse(listener,
+                       getCompilationUnit(),
+                       (p) => p.parseTopLevelDeclaration(token));
+    return cachedNode;
+  }
+
+  position() => findMyName(token);
 }
 
 Node parse(DiagnosticListener diagnosticListener,

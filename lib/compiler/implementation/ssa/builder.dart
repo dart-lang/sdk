@@ -332,7 +332,7 @@ class LocalsHandler {
       // context.
       ClassElement cls = function.enclosingElement;
       Type type = cls.computeType(builder.compiler);
-      HInstruction thisInstruction = new HThis(new HBoundedType(type));
+      HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
       builder.add(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
     }
@@ -412,7 +412,8 @@ class LocalsHandler {
       return lookup;
     } else {
       assert(isUsedInTry(element));
-      HInstruction variable = new HFieldGet.fromActivation(element.name);
+      HParameterValue parameter = getActivationParameter(element);
+      HInstruction variable = new HFieldGet.fromActivation(parameter);
       builder.add(variable);
       return variable;
     }
@@ -428,11 +429,23 @@ class LocalsHandler {
         Element element = closureData.thisElement;
         ClassElement cls = element.enclosingElement.enclosingElement;
         Type type = cls.computeType(builder.compiler);
-        cachedTypeOfThis = new HBoundedType(type);
+        cachedTypeOfThis = new HBoundedType.nonNull(type);
       }
       res.guaranteedType = cachedTypeOfThis;
     }
     return res;
+  }
+
+  HParameterValue getActivationParameter(Element element) {
+    // If the element is a parameter, we already have a
+    // HParameterValue for it.
+    if (element.isParameter()) return directLocals[element];
+
+    return builder.activationVariables.putIfAbsent(element, () {
+      HParameterValue parameter = new HParameterValue(element);
+      builder.graph.entry.addAtExit(parameter);
+      return parameter;
+    });
   }
 
   /**
@@ -461,7 +474,8 @@ class LocalsHandler {
       builder.add(new HFieldSet(redirect.name, box, value));
     } else {
       assert(isUsedInTry(element));
-      builder.add(new HFieldSet.fromActivation(element.name, value));
+      HParameterValue parameter = getActivationParameter(element);
+      builder.add(new HFieldSet.fromActivation(parameter, value));
     }
   }
 
@@ -530,13 +544,15 @@ class LocalsHandler {
 
     // Create phis for all elements in the definitions environment.
     saved.forEach((Element element, HInstruction instruction) {
-      // We know 'this' cannot be modified.
-      if (element !== closureData.thisElement) {
-        HPhi phi = new HPhi.singleInput(element, instruction);
-        loopEntry.addPhi(phi);
-        directLocals[element] = phi;
-      } else {
-        directLocals[element] = instruction;
+      if (isAccessedDirectly(element)) {
+        // We know 'this' cannot be modified.
+        if (element !== closureData.thisElement) {
+          HPhi phi = new HPhi.singleInput(element, instruction);
+          loopEntry.addPhi(phi);
+          directLocals[element] = phi;
+        } else {
+          directLocals[element] = instruction;
+        }
       }
     });
   }
@@ -779,6 +795,13 @@ class SsaBuilder implements Visitor {
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
+  /**
+   * Variables stored in the current activation. These variables are
+   * being updated in try/catch blocks, and should be
+   * accessed indirectly through HFieldGet and HFieldSet.
+   */
+  Map<Element, HParameterValue> activationVariables;
+
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
 
@@ -802,6 +825,7 @@ class SsaBuilder implements Visitor {
       elements = work.resolutionTree,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
+      activationVariables = new Map<Element, HParameterValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>() {
     localsHandler = new LocalsHandler(this);
   }
@@ -1532,9 +1556,8 @@ class SsaBuilder implements Visitor {
     visitCondition();
     SubExpression conditionGraph =
         new SubExpression(conditionStartBlock, lastOpenedBlock);
-    bool hasElse = visitElse != null;
     HInstruction condition = popBoolified();
-    HIf branch = new HIf(condition, hasElse);
+    HIf branch = new HIf(condition, true);
     HBasicBlock conditionBlock = close(branch);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
@@ -1553,23 +1576,27 @@ class SsaBuilder implements Visitor {
 
     // Now the else part.
     localsHandler = savedLocals;
-    HBasicBlock elseBlock = null;
-    SubGraph elseGraph = null;
-    if (hasElse) {
-      elseBlock = addNewBlock();
-      conditionBlock.addSuccessor(elseBlock);
-      open(elseBlock);
-      visitElse();
-      elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
-      elseBlock = current;
+    if (visitElse == null) {
+      // Make sure to have an else part to avoid a critical edge. A
+      // critical edge is an edge that connects a block with multiple
+      // successors to a block with multiple predecessors. We avoid
+      // such edges because they prevent inserting copies during code
+      // generation of phi instructions.
+      visitElse = () {};
     }
 
+    HBasicBlock elseBlock = addNewBlock();
+    conditionBlock.addSuccessor(elseBlock);
+    open(elseBlock);
+    visitElse();
+    SubGraph elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
+    elseBlock = current;
+
     HBasicBlock joinBlock = null;
-    if (thenBlock !== null || elseBlock !== null || !hasElse) {
+    if (thenBlock !== null || elseBlock !== null) {
       joinBlock = addNewBlock();
       if (thenBlock !== null) goto(thenBlock, joinBlock);
       if (elseBlock !== null) goto(elseBlock, joinBlock);
-      else if (!hasElse) conditionBlock.addSuccessor(joinBlock);
       // If the join block has two predecessors we have to merge the
       // locals. The current locals is what either the
       // condition or the else block left us with, so we merge that
@@ -1602,62 +1629,46 @@ class SsaBuilder implements Visitor {
   void handleLogicalAndOr(void left(), void right(), [bool isAnd = true]) {
     // x && y is transformed into:
     //   t0 = boolify(x);
-    //   if (t0) t1 = boolify(y);
-    //   result = phi(t0, t1);
+    //   if (t0) {
+    //     t1 = boolify(y);
+    //   } else {
+    //     t2 = t0;
+    //   }
+    //   result = phi(t1, t2);
     //
     // x || y is transformed into:
     //   t0 = boolify(x);
-    //   if (not(t0)) t1 = boolify(y);
-    //   result = phi(t0, t1);
-    HBasicBlock leftBlock = openNewBlock();
-    left();
-    HInstruction boolifiedLeft = popBoolified();
-    HInstruction condition;
-    if (isAnd) {
-      condition = boolifiedLeft;
-    } else {
-      condition = new HNot(boolifiedLeft);
-      add(condition);
+    //   if (not(t0)) {
+    //     t1 = boolify(y);
+    //   } else {
+    //     t2 = t0;
+    //   }
+    //   result = phi(t1, t2);
+    HInstruction boolifiedLeft;
+    HInstruction boolifiedRight;
+
+    void visitCondition() {
+      left();
+      boolifiedLeft = popBoolified();
+      HInstruction condition;
+      if (isAnd) {
+        condition = boolifiedLeft;
+      } else {
+        condition = new HNot(boolifiedLeft);
+        add(condition);
+      }
+      stack.add(condition);
     }
-    SubExpression leftGraph =
-        new SubExpression(leftBlock, lastOpenedBlock);
-    HIf branch = new HIf(condition, false);
-    leftBlock = close(branch);
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
-    HBasicBlock rightBlock = addNewBlock();
-    leftBlock.addSuccessor(rightBlock);
-    open(rightBlock);
+    void visitThen() {
+      right();
+      boolifiedRight = popBoolified();
+    }
 
-    right();
-    HInstruction boolifiedRight = popBoolified();
-    SubExpression rightGraph =
-        new SubExpression(rightBlock, current);
-    rightBlock = close(new HGoto());
-
-    HBasicBlock joinBlock = addNewBlock();
-    leftBlock.addSuccessor(joinBlock);
-    rightBlock.addSuccessor(joinBlock);
-    open(joinBlock);
-
-    leftGraph.start.setBlockFlow(
-        new HAndOrBlockInformation(
-          isAnd,
-          new HSubExpressionBlockInformation(leftGraph),
-          new HSubExpressionBlockInformation(rightGraph)),
-        joinBlock);
-    // Fallback until we handle and-or-information better.
-    branch.blockInformation = new HBlockFlow(
-      new HIfBlockInformation(
-        new HSubExpressionBlockInformation(leftGraph),
-        new HSubGraphBlockInformation(rightGraph),
-        null
-      ), joinBlock);
-
-    localsHandler.mergeWith(savedLocals, joinBlock);
+    handleIf(visitCondition, visitThen, null);
     HPhi result = new HPhi.manyInputs(null,
-        <HInstruction>[boolifiedLeft, boolifiedRight]);
-    joinBlock.addPhi(result);
+        <HInstruction>[boolifiedRight, boolifiedLeft]);
+    current.addPhi(result);
     stack.add(result);
   }
 
@@ -2309,7 +2320,7 @@ class SsaBuilder implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.enclosingElement;
-        return new HExactType(cls.type);
+        return new HBoundedType.exact(cls.type);
       } else {
         return HType.UNKNOWN;
       }
@@ -3108,6 +3119,13 @@ class SsaBuilder implements Visitor {
 
   visitTryStatement(TryStatement node) {
     work.allowSpeculativeOptimization = false;
+    // Save the current locals. The catch block and the finally block
+    // must not reuse the existing locals handler. None of the variables
+    // that have been defined in the body-block will be used, but for
+    // loops we will add (unnecessary) phis that will reference the body
+    // variables. This will make it look as if the variables were used
+    // in a non-dominated block.
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     List<HBasicBlock> blocks = <HBasicBlock>[];
@@ -3122,6 +3140,7 @@ class SsaBuilder implements Visitor {
     SubGraph catchGraph = null;
     HParameterValue exception = null;
     if (!node.catchBlocks.isEmpty()) {
+      localsHandler = new LocalsHandler.from(savedLocals);
       HBasicBlock block = graph.addNewBlock();
       enterBlock.addSuccessor(block);
       open(block);
@@ -3188,11 +3207,13 @@ class SsaBuilder implements Visitor {
       if (!isAborted()) blocks.add(close(new HGoto()));
 
       rethrowableException = oldRethrowableException;
+      tryInstruction.catchBlock = block;
       catchGraph = new SubGraph(block, lastOpenedBlock);
     }
 
     SubGraph finallyGraph = null;
     if (node.finallyBlock != null) {
+      localsHandler = new LocalsHandler.from(savedLocals);
       HBasicBlock finallyBlock = graph.addNewBlock();
       enterBlock.addSuccessor(finallyBlock);
       open(finallyBlock);
@@ -3208,6 +3229,9 @@ class SsaBuilder implements Visitor {
       block.addSuccessor(exitBlock);
     }
 
+    // Use the locals handler not altered by the catch and finally
+    // blocks.
+    localsHandler = savedLocals;
     open(exitBlock);
     enterBlock.setBlockFlow(
         new HTryBlockInformation(
