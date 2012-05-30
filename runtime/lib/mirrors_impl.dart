@@ -101,7 +101,7 @@ class _Mirrors {
   }
 
   // Creates a new local IsolateMirror.
-  static bool makeLocalIsolateMirror()
+  static IsolateMirror makeLocalIsolateMirror()
       native 'Mirrors_makeLocalIsolateMirror';
 
   static Future<IsolateMirror> isolateMirrorOf(SendPort port) {
