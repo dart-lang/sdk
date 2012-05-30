@@ -803,7 +803,9 @@ unwrapException(ex) {
     // we're dealing with we fall back on looking at the exception
     // message if it is available and a string.
     if (message is String) {
-      if (message.endsWith('is null') || message.endsWith('is undefined')) {
+      if (message.endsWith('is null') ||
+          message.endsWith('is undefined') ||
+          message.endsWith('is null or undefined')) {
         return new NullPointerException();
       } else if (message.endsWith('is not a function')) {
         // TODO(kasperl): Compute the right name if possible.
