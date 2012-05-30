@@ -480,6 +480,8 @@ class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int WEBKIT_KEYFRAME_RULE = 8;
 
+  static final int WEBKIT_REGION_RULE = 10;
+
   String cssText;
 
   final _CSSRuleJs parentRule;
@@ -616,8 +618,6 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
   String textBaseline;
 
   final num webkitBackingStorePixelRatio;
-
-  bool webkitImageSmoothingEnabled;
 
   List webkitLineDash;
 
@@ -927,11 +927,6 @@ class _DOMApplicationCacheJs extends _EventTargetJs implements DOMApplicationCac
   void update() native;
 }
 
-class _DOMErrorJs extends _DOMTypeJs implements DOMError native "*DOMError" {
-
-  final String name;
-}
-
 class _DOMExceptionJs extends _DOMTypeJs implements DOMException native "*DOMException" {
 
   static final int ABORT_ERR = 20;
@@ -1227,9 +1222,6 @@ class _DOMStringListJs extends _DOMTypeJs implements DOMStringList native "*DOMS
   String item(int index) native;
 }
 
-class _DOMStringMapJs extends _DOMTypeJs implements DOMStringMap native "*DOMStringMap" {
-}
-
 class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTokenList" {
 
   final int length;
@@ -1331,8 +1323,6 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
   final int outerHeight;
 
   final int outerWidth;
-
-  final _PagePopupControllerJs pagePopupController;
 
   final int pageXOffset;
 
@@ -1477,6 +1467,8 @@ class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native 
   _BlobJs getAsFile() native;
 
   void getAsString([StringCallback callback = null]) native;
+
+  void webkitGetAsEntry([EntryCallback callback = null]) native;
 }
 
 class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
@@ -1803,6 +1795,8 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
   void webkitCancelFullScreen() native;
 
   void webkitExitFullscreen() native;
+
+  _WebKitNamedFlowJs webkitGetFlowByName(String name) native;
 }
 
 class _DocumentFragmentJs extends _NodeJs implements DocumentFragment native "*DocumentFragment" {
@@ -3086,8 +3080,6 @@ class _HTMLFieldSetElementJs extends _HTMLElementJs implements HTMLFieldSetEleme
 
   bool disabled;
 
-  final _HTMLCollectionJs elements;
-
   final _HTMLFormElementJs form;
 
   String name;
@@ -3632,17 +3624,9 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayJs initData = null]) native;
 
-  void webkitSourceAbort(String id) native;
-
-  void webkitSourceAddId(String id, String type) native;
-
-  void webkitSourceAppend(String id, _Uint8ArrayJs data) native;
-
-  _TimeRangesJs webkitSourceBuffered(String id) native;
+  void webkitSourceAppend(_Uint8ArrayJs data) native;
 
   void webkitSourceEndOfStream(int status) native;
-
-  void webkitSourceRemoveId(String id) native;
 }
 
 class _HTMLMenuElementJs extends _HTMLElementJs implements HTMLMenuElement native "*HTMLMenuElement" {
@@ -4356,7 +4340,7 @@ class _IDBFactoryJs extends _DOMTypeJs implements IDBFactory native "*IDBFactory
 
 class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
-  final keyPath;
+  final String keyPath;
 
   final bool multiEntry;
 
@@ -4393,11 +4377,9 @@ class _IDBKeyRangeJs extends _DOMTypeJs implements IDBKeyRange native "*IDBKeyRa
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
 
-  final bool autoIncrement;
-
   final List<String> indexNames;
 
-  final keyPath;
+  final String keyPath;
 
   final String name;
 
@@ -4841,14 +4823,6 @@ class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*Keyb
 class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
-
-  // From EventTarget
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  bool dispatchEvent(_EventJs event) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
@@ -5818,11 +5792,6 @@ class _OverflowEventJs extends _EventJs implements OverflowEvent native "*Overfl
   final int orient;
 
   final bool verticalOverflow;
-}
-
-class _PagePopupControllerJs extends _DOMTypeJs implements PagePopupController native "*PagePopupController" {
-
-  void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 
 class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent native "*PageTransitionEvent" {
@@ -8870,8 +8839,6 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   final _SVGPointJs currentTranslate;
 
-  final _SVGViewSpecJs currentView;
-
   final _SVGAnimatedLengthJs height;
 
   final num pixelUnitToMillimeterX;
@@ -8882,7 +8849,7 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   final num screenPixelToMillimeterY;
 
-  final bool useCurrentView;
+  bool useCurrentView;
 
   final _SVGRectJs viewport;
 
@@ -9468,9 +9435,7 @@ class _SVGViewElementJs extends _SVGElementJs implements SVGViewElement native "
   int zoomAndPan;
 }
 
-class _SVGViewSpecJs extends _DOMTypeJs implements SVGViewSpec native "*SVGViewSpec" {
-
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+class _SVGViewSpecJs extends _SVGZoomAndPanJs implements SVGViewSpec native "*SVGViewSpec" {
 
   final String preserveAspectRatioString;
 
@@ -9478,15 +9443,17 @@ class _SVGViewSpecJs extends _DOMTypeJs implements SVGViewSpec native "*SVGViewS
 
   final String transformString;
 
-  final _SVGAnimatedRectJs viewBox;
-
   final String viewBoxString;
 
   final _SVGElementJs viewTarget;
 
   final String viewTargetString;
 
-  int zoomAndPan;
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+
+  final _SVGAnimatedRectJs viewBox;
 }
 
 class _SVGZoomAndPanJs extends _DOMTypeJs implements SVGZoomAndPan native "*SVGZoomAndPan" {
@@ -9579,6 +9546,8 @@ class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*S
 
   String innerHTML;
 
+  final _DOMSelectionJs selection;
+
   _ElementJs getElementById(String elementId) native;
 
   _NodeListJs getElementsByClassName(String className) native;
@@ -9586,8 +9555,6 @@ class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*S
   _NodeListJs getElementsByTagName(String tagName) native;
 
   _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
-
-  _DOMSelectionJs getSelection() native;
 }
 
 class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
@@ -11645,6 +11612,11 @@ class _WebKitCSSMatrixJs extends _DOMTypeJs implements WebKitCSSMatrix native "*
   _WebKitCSSMatrixJs translate(num x, num y, num z) native;
 }
 
+class _WebKitCSSRegionRuleJs extends _CSSRuleJs implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
+
+  final _CSSRuleListJs cssRules;
+}
+
 class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTransformValue native "*WebKitCSSTransformValue" {
 
   static final int CSS_MATRIX = 11;
@@ -11703,9 +11675,7 @@ class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*
 
   final _NodeListJs contentNodes;
 
-  final String name;
-
-  final bool overset;
+  final bool overflow;
 
   _NodeListJs getRegionsByContentNode(_NodeJs contentNode) native;
 }
@@ -12934,6 +12904,8 @@ interface CSSRule {
 
   static final int WEBKIT_KEYFRAME_RULE = 8;
 
+  static final int WEBKIT_REGION_RULE = 10;
+
   String cssText;
 
   final CSSRule parentRule;
@@ -13125,8 +13097,6 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   String textBaseline;
 
   final num webkitBackingStorePixelRatio;
-
-  bool webkitImageSmoothingEnabled;
 
   List webkitLineDash;
 
@@ -13501,16 +13471,6 @@ interface DOMApplicationCache extends ApplicationCache {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMError {
-
-  final String name;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface DOMException {
 
   static final int ABORT_ERR = 20;
@@ -13797,14 +13757,6 @@ interface DOMStringList extends List<String> {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMStringMap {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface DOMTokenList {
 
   final int length;
@@ -13890,8 +13842,6 @@ interface Window extends EventTarget {
   final int outerHeight;
 
   final int outerWidth;
-
-  final PagePopupController pagePopupController;
 
   final int pageXOffset;
 
@@ -14049,6 +13999,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14457,6 +14409,8 @@ interface Document extends Node, NodeSelector {
   void webkitCancelFullScreen();
 
   void webkitExitFullscreen();
+
+  WebKitNamedFlow webkitGetFlowByName(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15742,8 +15696,6 @@ interface HTMLFieldSetElement extends HTMLElement {
 
   bool disabled;
 
-  final HTMLCollection elements;
-
   final HTMLFormElement form;
 
   String name;
@@ -16376,17 +16328,9 @@ interface HTMLMediaElement extends HTMLElement {
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  void webkitSourceAbort(String id);
-
-  void webkitSourceAddId(String id, String type);
-
-  void webkitSourceAppend(String id, Uint8Array data);
-
-  TimeRanges webkitSourceBuffered(String id);
+  void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17306,7 +17250,7 @@ interface IDBFactory {
 
 interface IDBIndex {
 
-  final /*IDBAny*/ keyPath;
+  final String keyPath;
 
   final bool multiEntry;
 
@@ -17368,11 +17312,9 @@ interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
 
 interface IDBObjectStore {
 
-  final bool autoIncrement;
-
   final List<String> indexNames;
 
-  final /*IDBAny*/ keyPath;
+  final String keyPath;
 
   final String name;
 
@@ -17649,7 +17591,7 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream, EventTarget {
+interface LocalMediaStream extends MediaStream {
 
   void stop();
 }
@@ -18616,16 +18558,6 @@ interface OverflowEvent extends Event {
   final int orient;
 
   final bool verticalOverflow;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PagePopupController {
-
-  void setValueAndClosePopup(int numberValue, String stringValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21261,8 +21193,6 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
   final SVGPoint currentTranslate;
 
-  final SVGViewSpec currentView;
-
   final SVGAnimatedLength height;
 
   final num pixelUnitToMillimeterX;
@@ -21273,7 +21203,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
   final num screenPixelToMillimeterY;
 
-  final bool useCurrentView;
+  bool useCurrentView;
 
   final SVGRect viewport;
 
@@ -21701,9 +21631,7 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 
 // WARNING: Do not edit - generated code.
 
-interface SVGViewSpec {
-
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
   final String preserveAspectRatioString;
 
@@ -21711,15 +21639,11 @@ interface SVGViewSpec {
 
   final String transformString;
 
-  final SVGAnimatedRect viewBox;
-
   final String viewBoxString;
 
   final SVGElement viewTarget;
 
   final String viewTargetString;
-
-  int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21851,6 +21775,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   String innerHTML;
 
+  final DOMSelection selection;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -21858,8 +21784,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   NodeList getElementsByTagName(String tagName);
 
   NodeList getElementsByTagNameNS(String namespaceURI, String localName);
-
-  DOMSelection getSelection();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23899,6 +23823,16 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+interface WebKitCSSRegionRule extends CSSRule {
+
+  final CSSRuleList cssRules;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebKitCSSTransformValue extends CSSValueList {
 
   static final int CSS_MATRIX = 11;
@@ -23967,9 +23901,7 @@ interface WebKitNamedFlow {
 
   final NodeList contentNodes;
 
-  final String name;
-
-  final bool overset;
+  final bool overflow;
 
   NodeList getRegionsByContentNode(Node contentNode);
 }

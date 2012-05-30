@@ -822,6 +822,8 @@ interface CSSRule {
 
   static final int WEBKIT_KEYFRAME_RULE = 8;
 
+  static final int WEBKIT_REGION_RULE = 10;
+
   String cssText;
 
   final CSSRule parentRule;
@@ -1013,8 +1015,6 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   String textBaseline;
 
   final num webkitBackingStorePixelRatio;
-
-  bool webkitImageSmoothingEnabled;
 
   List webkitLineDash;
 
@@ -1389,16 +1389,6 @@ interface DOMApplicationCache extends ApplicationCache {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMError {
-
-  final String name;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface DOMException {
 
   static final int ABORT_ERR = 20;
@@ -1685,14 +1675,6 @@ interface DOMStringList extends List<String> {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMStringMap {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface DOMTokenList {
 
   final int length;
@@ -1778,8 +1760,6 @@ interface Window extends EventTarget {
   final int outerHeight;
 
   final int outerWidth;
-
-  final PagePopupController pagePopupController;
 
   final int pageXOffset;
 
@@ -1937,6 +1917,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2345,6 +2327,8 @@ interface Document extends Node, NodeSelector {
   void webkitCancelFullScreen();
 
   void webkitExitFullscreen();
+
+  WebKitNamedFlow webkitGetFlowByName(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3630,8 +3614,6 @@ interface HTMLFieldSetElement extends HTMLElement {
 
   bool disabled;
 
-  final HTMLCollection elements;
-
   final HTMLFormElement form;
 
   String name;
@@ -4264,17 +4246,9 @@ interface HTMLMediaElement extends HTMLElement {
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
-  void webkitSourceAbort(String id);
-
-  void webkitSourceAddId(String id, String type);
-
-  void webkitSourceAppend(String id, Uint8Array data);
-
-  TimeRanges webkitSourceBuffered(String id);
+  void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5194,7 +5168,7 @@ interface IDBFactory {
 
 interface IDBIndex {
 
-  final /*IDBAny*/ keyPath;
+  final String keyPath;
 
   final bool multiEntry;
 
@@ -5256,11 +5230,9 @@ interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
 
 interface IDBObjectStore {
 
-  final bool autoIncrement;
-
   final List<String> indexNames;
 
-  final /*IDBAny*/ keyPath;
+  final String keyPath;
 
   final String name;
 
@@ -5537,7 +5509,7 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream, EventTarget {
+interface LocalMediaStream extends MediaStream {
 
   void stop();
 }
@@ -6504,16 +6476,6 @@ interface OverflowEvent extends Event {
   final int orient;
 
   final bool verticalOverflow;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PagePopupController {
-
-  void setValueAndClosePopup(int numberValue, String stringValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9149,8 +9111,6 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
   final SVGPoint currentTranslate;
 
-  final SVGViewSpec currentView;
-
   final SVGAnimatedLength height;
 
   final num pixelUnitToMillimeterX;
@@ -9161,7 +9121,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
   final num screenPixelToMillimeterY;
 
-  final bool useCurrentView;
+  bool useCurrentView;
 
   final SVGRect viewport;
 
@@ -9589,9 +9549,7 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 
 // WARNING: Do not edit - generated code.
 
-interface SVGViewSpec {
-
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
   final String preserveAspectRatioString;
 
@@ -9599,15 +9557,11 @@ interface SVGViewSpec {
 
   final String transformString;
 
-  final SVGAnimatedRect viewBox;
-
   final String viewBoxString;
 
   final SVGElement viewTarget;
 
   final String viewTargetString;
-
-  int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9739,6 +9693,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   String innerHTML;
 
+  final DOMSelection selection;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -9746,8 +9702,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   NodeList getElementsByTagName(String tagName);
 
   NodeList getElementsByTagNameNS(String namespaceURI, String localName);
-
-  DOMSelection getSelection();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11787,6 +11741,16 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+interface WebKitCSSRegionRule extends CSSRule {
+
+  final CSSRuleList cssRules;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebKitCSSTransformValue extends CSSValueList {
 
   static final int CSS_MATRIX = 11;
@@ -11855,9 +11819,7 @@ interface WebKitNamedFlow {
 
   final NodeList contentNodes;
 
-  final String name;
-
-  final bool overset;
+  final bool overflow;
 
   NodeList getRegionsByContentNode(Node contentNode);
 }
