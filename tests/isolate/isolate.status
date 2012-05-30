@@ -89,3 +89,5 @@ isolate2_negative_test: Fail
 mint_maker_test: Skip # BUG(3304): Times out.
 nested_spawn2_test: Skip # BUG(3304): Times out.
 isolate2_negative_test: Fail
+mixed2_test: Fail # NullPointerException
+cross_isolate_message_test: Fail # NullPointerException
