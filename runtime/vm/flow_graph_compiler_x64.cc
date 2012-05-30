@@ -967,43 +967,8 @@ void FlowGraphCompiler::VisitInstantiateTypeArguments(
 
 void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
     ExtractConstructorTypeArgumentsComp* comp) {
-  __ popq(RAX);  // Instantiator.
-
-  // RAX is the instantiator AbstractTypeArguments object (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of Dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = comp->type_arguments().Length();
-  if (comp->type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(RAX, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-  }
-  // Instantiate non-null type arguments.
-  if (comp->type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator (RAX) for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
-    __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
-    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    Immediate arguments_length =
-        Immediate(Smi::RawValue(comp->type_arguments().Length()));
-    __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(RAX, comp->type_arguments());
-  // RAX: uninstantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
-  // RAX: uninstantiated or instantiated type arguments.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -1032,22 +997,9 @@ void FlowGraphCompiler::VisitCloneContext(CloneContextComp* comp) {
 }
 
 
-// Restore stack and initialize the two exception variables:
-// exception and stack trace variables.
 void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
-  // Restore RSP from RBP as we are coming from a throw and the code for
-  // popping arguments has not been run.
-  const intptr_t locals_space_size = StackSize() * kWordSize;
-  ASSERT(locals_space_size >= 0);
-  intptr_t offset_size = -locals_space_size + kLocalsOffsetFromFP;
-  __ leaq(RSP, Address(RBP, offset_size));
-
-  ASSERT(!comp->exception_var().is_captured());
-  ASSERT(!comp->stacktrace_var().is_captured());
-  __ movq(Address(RBP, comp->exception_var().index() * kWordSize),
-          kExceptionObjectReg);
-  __ movq(Address(RBP, comp->stacktrace_var().index() * kWordSize),
-          kStackTraceObjectReg);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

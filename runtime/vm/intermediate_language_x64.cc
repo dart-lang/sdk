@@ -783,13 +783,59 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ExtractConstructorTypeArgumentsComp::
     MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
 }
 
 
 void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instantiator_reg = locs()->in(0).reg();
+  Register temp_reg = locs()->temp(0).reg();
+  Register result_reg = locs()->out().reg();
+  ASSERT(instantiator_reg == result_reg);
+
+  // instantiator_reg is the instantiator type argument vector, i.e. an
+  // AbstractTypeArguments object (or null).
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(instantiator_reg, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  // Instantiate non-null type arguments.
+  if (type_arguments().IsUninstantiatedIdentity()) {
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check instantiator_reg for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
+    Label type_arguments_uninstantiated;
+    __ LoadObject(temp_reg, Class::ZoneHandle(Object::type_arguments_class()));
+    __ cmpq(temp_reg, FieldAddress(instantiator_reg, Object::class_offset()));
+    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(type_arguments().Length()));
+    __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    __ Bind(&type_arguments_uninstantiated);
+  }
+  // In the non-factory case, we rely on the allocation stub to
+  // instantiate the type arguments.
+  __ LoadObject(result_reg, type_arguments());
+  // result_reg: uninstantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+  // result_reg: uninstantiated or instantiated type arguments.
 }
 
 
@@ -922,12 +968,27 @@ void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CatchEntryComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeSimpleLocationSummary(0, Location::NoLocation());
 }
 
 
+// Restore stack and initialize the two exception variables:
+// exception and stack trace variables.
 void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // Restore RSP from RBP as we are coming from a throw and the code for
+  // popping arguments has not been run.
+  const intptr_t locals_space_size = compiler->StackSize() * kWordSize;
+  ASSERT(locals_space_size >= 0);
+  const intptr_t offset_size =
+      -locals_space_size + FlowGraphCompiler::kLocalsOffsetFromFP;
+  __ leaq(RSP, Address(RBP, offset_size));
+
+  ASSERT(!exception_var().is_captured());
+  ASSERT(!stacktrace_var().is_captured());
+  __ movq(Address(RBP, exception_var().index() * kWordSize),
+          kExceptionObjectReg);
+  __ movq(Address(RBP, stacktrace_var().index() * kWordSize),
+          kStackTraceObjectReg);
 }
 
 
