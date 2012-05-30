@@ -23,7 +23,6 @@ _pure_interfaces = set([
     'SVGTests',
     'SVGTransformable',
     'SVGURIReference',
-    'SVGViewSpec',
     'SVGZoomAndPan',
     'TimeoutHandler'])
 
