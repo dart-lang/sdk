@@ -770,8 +770,16 @@ unwrapException(ex) {
   // has, it could be set to null if the thrown value is null.
   if (JS('bool', @'"dartException" in #', ex)) {
     return JS('Object', @'#.dartException', ex);
-  } else if (JS('bool', @'# instanceof TypeError', ex)) {
-    // TODO(ahe): ex.type is Chrome specific.
+  }
+
+  // Grab hold of the exception message. This field is available on
+  // all supported browsers.
+  var message = JS('var', @'#.message', ex);
+
+  if (JS('bool', @'# instanceof TypeError', ex)) {
+    // The type and arguments fields are Chrome specific but they
+    // allow us to get very detailed information about what kind of
+    // exception occurred.
     var type = JS('var', @'#.type', ex);
     var name = JS('var', @'#.arguments ? #.arguments[0] : ""', ex, ex);
     if (type == 'property_not_function' ||
@@ -790,13 +798,46 @@ unwrapException(ex) {
         return new NoSuchMethodException('', name, []);
       }
     }
-  } else if (JS('bool', @'# instanceof RangeError', ex)) {
-    var message = JS('var', @'#.message', ex);
+
+    // If we cannot use [type] to determine what kind of exception
+    // we're dealing with we fall back on looking at the exception
+    // message if it is available and a string.
+    if (message is String) {
+      if (message.endsWith('is null') || message.endsWith('is undefined')) {
+        return new NullPointerException();
+      } else if (message.endsWith('is not a function')) {
+        // TODO(kasperl): Compute the right name if possible.
+        return new NoSuchMethodException('', '<unknown>', []);
+      }
+    }
+
+    // If we cannot determine what kind of error this is, we fall back
+    // to reporting this as a TypeError even though that may be
+    // inaccurate. It's probably better than nothing.
+    return new TypeError(message);
+  }
+
+  if (JS('bool', @'# instanceof RangeError', ex)) {
     if (message is String && message.contains('call stack')) {
       return new StackOverflowException();
     }
+
+    // In general, a RangeError is thrown when trying to pass a number
+    // as an argument to a function that does not allow a range that
+    // includes that number.
+    return new IllegalArgumentException();
   }
-  return ex;
+
+  // Check for the Firefox specific stack overflow signal.
+  if (JS('bool', @'InternalError && # instanceof InternalError', ex)) {
+    if (message is String && message == 'too much recursion') {
+      return new StackOverflowException();
+    }
+  }
+
+  // Last resort: Create a completely generic exception object and use
+  // the JS exception message as its argument.
+  return new Exception(message);
 }
 
 /**

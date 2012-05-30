@@ -131,7 +131,7 @@ class NullPointerException implements Exception {
           "Arguments: $arguments";
     }
   }
-  
+
   String get exceptionName() => "NullPointerException";
 
   final String functionName;
