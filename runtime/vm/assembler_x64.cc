@@ -1291,11 +1291,13 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 
 void Assembler::Drop(intptr_t stack_elements) {
   ASSERT(stack_elements >= 0);
-  if (stack_elements > 0) {
-    // TODO(fschneider): When optimizing for code size, we could
-    // consider using pop for stack_elements < 4 instead.
-    addq(RSP, Immediate(stack_elements * kWordSize));
+  if (stack_elements <= 4) {
+    for (intptr_t i = 0; i < stack_elements; i++) {
+      popq(TMP);
+    }
+    return;
   }
+  addq(RSP, Immediate(stack_elements * kWordSize));
 }
 
 
