@@ -1,6 +1,7 @@
 #library('html');
 
-#import('dart:dom_deprecated', prefix:'dom');
+#import('dart:isolate');
+#import('dart:nativewrappers');
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13,12 +14,13 @@
 
 
 
+
 _WindowImpl __window;
 _DocumentImpl __document;
 
 void _initialize() {
-  __window = _wrap(dom.window);
-  __document = _wrap(dom.document);
+  __window = _wrap(_Utils.window());
+  __document = _wrap(_Utils.window().document);
 }
 
 Window get window() {
@@ -53,12 +55,10 @@ _unwrap(raw) {
   return raw is _DOMTypeBase ? raw._ptr : raw;
 }
 
-unwrap_internal(raw) => _unwrap(raw);
-
 // Warning: does not attempt wrap event listeners.
 _wrap(raw) {
-  if (raw is! dom.DOMType) return raw;
-  dom.DOMType domObject = raw;
+  if (raw is! _DOMWrapperBase) return raw;
+  _DOMWrapperBase domObject = raw;
   if (domObject.dartObjectLocalStorage != null)
     return domObject.dartObjectLocalStorage;
   switch(domObject.typeName) {
@@ -163,6 +163,7 @@ _wrap(raw) {
     case 'DOMTokenList': return new _DOMTokenListImpl._wrap(domObject);
     case 'DOMSettableTokenList': return new _DOMSettableTokenListImpl._wrap(domObject);
     case 'DOMStringList': return new _DOMStringListImpl._wrap(domObject);
+    case 'DOMStringMap': return new _DOMStringMapImpl._wrap(domObject);
     case 'DOMURL': return new _DOMURLImpl._wrap(domObject);
     case 'DataTransferItem': return new _DataTransferItemImpl._wrap(domObject);
     case 'DataTransferItemList': return new _DataTransferItemListImpl._wrap(domObject);
@@ -593,24 +594,22333 @@ _wrap(raw) {
   }
 }
 
-wrap_internal(raw) => _wrap(raw);
+class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
+  _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get error() => _get('error');
 
-spawnDomIsolate(Window targetWindow, String entryPoint) =>
-  dom.spawnDomIsolate(_unwrap(targetWindow), entryPoint);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-dom.LayoutTestController get layoutTestController() =>
-  dom.layoutTestController;
+// WARNING: Do not edit - generated code.
+
+class _AbstractWorkerDOMImpl extends _DOMWrapperBase implements AbstractWorker {
+  _AbstractWorkerDOMImpl();
+  String get typeName() => "AbstractWorker";
+  _EventsImpl _on;
+
+  _AbstractWorkerEventsImpl get on() {
+    if (_on === null) _on = new _AbstractWorkerEventsImpl(this);
+    return _on;
+  }
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "AbstractWorker_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "AbstractWorker_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "AbstractWorker_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ArrayBufferDOMImpl extends _DOMWrapperBase implements ArrayBuffer {
+  _ArrayBufferDOMImpl();
+  String get typeName() => "ArrayBuffer";
+
+  int get byteLength() native "ArrayBuffer_byteLength_Getter";
+
+  ArrayBuffer slice(int begin, [int end = null]) {
+    //
+    // slice(int begin)
+    // slice(int begin, [Optional] int end)
+    //
+    // -- reduced:
+    // slice(int begin, [Optional] int end)
+    //
+    return _slice(begin, end);
+  }
+
+  ArrayBuffer _slice(begin, end) native "ArrayBuffer_slice_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ArrayBufferViewDOMImpl extends _DOMWrapperBase implements ArrayBufferView {
+  _ArrayBufferViewDOMImpl();
+  String get typeName() => "ArrayBufferView";
+
+  ArrayBuffer get buffer() native "ArrayBufferView_buffer_Getter";
+
+  int get byteLength() native "ArrayBufferView_byteLength_Getter";
+
+  int get byteOffset() native "ArrayBufferView_byteOffset_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AttrDOMImpl extends _NodeDOMImpl implements Attr {
+  _AttrDOMImpl();
+  String get typeName() => "Attr";
+
+  bool get isId() native "Attr_isId_Getter";
+
+  String get name() native "Attr_name_Getter";
+
+  Element get ownerElement() native "Attr_ownerElement_Getter";
+
+  bool get specified() native "Attr_specified_Getter";
+
+  String get value() native "Attr_value_Getter";
+
+  void set value(String) native "Attr_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioBufferDOMImpl extends _DOMWrapperBase implements AudioBuffer {
+  _AudioBufferDOMImpl();
+  String get typeName() => "AudioBuffer";
+
+  num get duration() native "AudioBuffer_duration_Getter";
+
+  num get gain() native "AudioBuffer_gain_Getter";
+
+  void set gain(num) native "AudioBuffer_gain_Setter";
+
+  int get length() native "AudioBuffer_length_Getter";
+
+  int get numberOfChannels() native "AudioBuffer_numberOfChannels_Getter";
+
+  num get sampleRate() native "AudioBuffer_sampleRate_Getter";
+
+  Float32Array getChannelData(int channelIndex) {
+    return _getChannelData(channelIndex);
+  }
+
+  Float32Array _getChannelData(channelIndex) native "AudioBuffer_getChannelData_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioBufferSourceNodeDOMImpl extends _AudioSourceNodeDOMImpl implements AudioBufferSourceNode {
+  _AudioBufferSourceNodeDOMImpl();
+  String get typeName() => "AudioBufferSourceNode";
+
+  AudioBuffer get buffer() native "AudioBufferSourceNode_buffer_Getter";
+
+  void set buffer(AudioBuffer) native "AudioBufferSourceNode_buffer_Setter";
+
+  AudioGain get gain() native "AudioBufferSourceNode_gain_Getter";
+
+  bool get loop() native "AudioBufferSourceNode_loop_Getter";
+
+  void set loop(bool) native "AudioBufferSourceNode_loop_Setter";
+
+  bool get looping() native "AudioBufferSourceNode_looping_Getter";
+
+  void set looping(bool) native "AudioBufferSourceNode_looping_Setter";
+
+  AudioParam get playbackRate() native "AudioBufferSourceNode_playbackRate_Getter";
+
+  int get playbackState() native "AudioBufferSourceNode_playbackState_Getter";
+
+  void noteGrainOn(num when, num grainOffset, num grainDuration) {
+    _noteGrainOn(when, grainOffset, grainDuration);
+    return;
+  }
+
+  void _noteGrainOn(when, grainOffset, grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
+
+  void noteOff(num when) {
+    _noteOff(when);
+    return;
+  }
+
+  void _noteOff(when) native "AudioBufferSourceNode_noteOff_Callback";
+
+  void noteOn(num when) {
+    _noteOn(when);
+    return;
+  }
+
+  void _noteOn(when) native "AudioBufferSourceNode_noteOn_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioChannelMergerDOMImpl extends _AudioNodeDOMImpl implements AudioChannelMerger {
+  _AudioChannelMergerDOMImpl();
+  String get typeName() => "AudioChannelMerger";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioChannelSplitterDOMImpl extends _AudioNodeDOMImpl implements AudioChannelSplitter {
+  _AudioChannelSplitterDOMImpl();
+  String get typeName() => "AudioChannelSplitter";
+
+}
+
+class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
+  _AudioContextEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get complete() => _get('complete');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioContextDOMImpl extends _EventTargetDOMImpl implements AudioContext {
+  _AudioContextDOMImpl();
+  String get typeName() => "AudioContext";
+  _EventsImpl _on;
+
+  _AudioContextEventsImpl get on() {
+    if (_on === null) _on = new _AudioContextEventsImpl(this);
+    return _on;
+  }
+
+  int get activeSourceCount() native "AudioContext_activeSourceCount_Getter";
+
+  num get currentTime() native "AudioContext_currentTime_Getter";
+
+  AudioDestinationNode get destination() native "AudioContext_destination_Getter";
+
+  AudioListener get listener() native "AudioContext_listener_Getter";
+
+  num get sampleRate() native "AudioContext_sampleRate_Getter";
+
+  RealtimeAnalyserNode createAnalyser() {
+    return _createAnalyser();
+  }
+
+  RealtimeAnalyserNode _createAnalyser() native "AudioContext_createAnalyser_Callback";
+
+  BiquadFilterNode createBiquadFilter() {
+    return _createBiquadFilter();
+  }
+
+  BiquadFilterNode _createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
+
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) {
+    //
+    // createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate)
+    // createBuffer(ArrayBuffer buffer, bool mixToMono)
+    //
+    if ((buffer_OR_numberOfChannels === null || buffer_OR_numberOfChannels is int) &&
+        (mixToMono_OR_numberOfFrames === null || mixToMono_OR_numberOfFrames is int)) {
+      return _createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
+    }
+    if ((buffer_OR_numberOfChannels === null || buffer_OR_numberOfChannels is ArrayBuffer) &&
+        (mixToMono_OR_numberOfFrames === null || mixToMono_OR_numberOfFrames is bool) &&
+        sampleRate === null) {
+      return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  AudioBuffer _createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext_createBuffer_Callback";
+
+  AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext_createBuffer_2_Callback";
+
+  AudioBufferSourceNode createBufferSource() {
+    return _createBufferSource();
+  }
+
+  AudioBufferSourceNode _createBufferSource() native "AudioContext_createBufferSource_Callback";
+
+  AudioChannelMerger createChannelMerger([int numberOfInputs = null]) {
+    //
+    // createChannelMerger()
+    // createChannelMerger([Optional] int numberOfInputs)
+    //
+    // -- reduced:
+    // createChannelMerger([Optional] int numberOfInputs)
+    //
+    return _createChannelMerger(numberOfInputs);
+  }
+
+  AudioChannelMerger _createChannelMerger(numberOfInputs) native "AudioContext_createChannelMerger_Callback";
+
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs = null]) {
+    //
+    // createChannelSplitter()
+    // createChannelSplitter([Optional] int numberOfOutputs)
+    //
+    // -- reduced:
+    // createChannelSplitter([Optional] int numberOfOutputs)
+    //
+    return _createChannelSplitter(numberOfOutputs);
+  }
+
+  AudioChannelSplitter _createChannelSplitter(numberOfOutputs) native "AudioContext_createChannelSplitter_Callback";
+
+  ConvolverNode createConvolver() {
+    return _createConvolver();
+  }
+
+  ConvolverNode _createConvolver() native "AudioContext_createConvolver_Callback";
+
+  DelayNode createDelayNode([num maxDelayTime = null]) {
+    //
+    // createDelayNode()
+    // createDelayNode([Optional] num maxDelayTime)
+    //
+    // -- reduced:
+    // createDelayNode([Optional] num maxDelayTime)
+    //
+    return _createDelayNode(maxDelayTime);
+  }
+
+  DelayNode _createDelayNode(maxDelayTime) native "AudioContext_createDelayNode_Callback";
+
+  DynamicsCompressorNode createDynamicsCompressor() {
+    return _createDynamicsCompressor();
+  }
+
+  DynamicsCompressorNode _createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
+
+  AudioGainNode createGainNode() {
+    return _createGainNode();
+  }
+
+  AudioGainNode _createGainNode() native "AudioContext_createGainNode_Callback";
+
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) {
+    //
+    // createJavaScriptNode(int bufferSize)
+    // createJavaScriptNode(int bufferSize, [Optional] int numberOfInputChannels)
+    // createJavaScriptNode(int bufferSize, [Optional] int numberOfInputChannels, [Optional] int numberOfOutputChannels)
+    //
+    // -- reduced:
+    // createJavaScriptNode(int bufferSize, [Optional] int numberOfInputChannels, [Optional] int numberOfOutputChannels)
+    //
+    return _createJavaScriptNode(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+  }
+
+  JavaScriptAudioNode _createJavaScriptNode(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createJavaScriptNode_Callback";
+
+  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) {
+    if ((mediaElement === null || mediaElement is MediaElement)) {
+      return _createMediaElementSource(mediaElement);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  MediaElementAudioSourceNode _createMediaElementSource(mediaElement) native "AudioContext_createMediaElementSource_Callback";
+
+  Oscillator createOscillator() {
+    return _createOscillator();
+  }
+
+  Oscillator _createOscillator() native "AudioContext_createOscillator_Callback";
+
+  AudioPannerNode createPanner() {
+    return _createPanner();
+  }
+
+  AudioPannerNode _createPanner() native "AudioContext_createPanner_Callback";
+
+  WaveShaperNode createWaveShaper() {
+    return _createWaveShaper();
+  }
+
+  WaveShaperNode _createWaveShaper() native "AudioContext_createWaveShaper_Callback";
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag) {
+    return _createWaveTable(real, imag);
+  }
+
+  WaveTable _createWaveTable(real, imag) native "AudioContext_createWaveTable_Callback";
+
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) {
+    _decodeAudioData(audioData, successCallback, errorCallback);
+    return;
+  }
+
+  void _decodeAudioData(audioData, successCallback, errorCallback) native "AudioContext_decodeAudioData_Callback";
+
+  void startRendering() {
+    _startRendering();
+    return;
+  }
+
+  void _startRendering() native "AudioContext_startRendering_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioDestinationNodeDOMImpl extends _AudioNodeDOMImpl implements AudioDestinationNode {
+  _AudioDestinationNodeDOMImpl();
+  String get typeName() => "AudioDestinationNode";
+
+  int get numberOfChannels() native "AudioDestinationNode_numberOfChannels_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioGainDOMImpl extends _AudioParamDOMImpl implements AudioGain {
+  _AudioGainDOMImpl();
+  String get typeName() => "AudioGain";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioGainNodeDOMImpl extends _AudioNodeDOMImpl implements AudioGainNode {
+  _AudioGainNodeDOMImpl();
+  String get typeName() => "AudioGainNode";
+
+  AudioGain get gain() native "AudioGainNode_gain_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioListenerDOMImpl extends _DOMWrapperBase implements AudioListener {
+  _AudioListenerDOMImpl();
+  String get typeName() => "AudioListener";
+
+  num get dopplerFactor() native "AudioListener_dopplerFactor_Getter";
+
+  void set dopplerFactor(num) native "AudioListener_dopplerFactor_Setter";
+
+  num get speedOfSound() native "AudioListener_speedOfSound_Getter";
+
+  void set speedOfSound(num) native "AudioListener_speedOfSound_Setter";
+
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) {
+    _setOrientation(x, y, z, xUp, yUp, zUp);
+    return;
+  }
+
+  void _setOrientation(x, y, z, xUp, yUp, zUp) native "AudioListener_setOrientation_Callback";
+
+  void setPosition(num x, num y, num z) {
+    _setPosition(x, y, z);
+    return;
+  }
+
+  void _setPosition(x, y, z) native "AudioListener_setPosition_Callback";
+
+  void setVelocity(num x, num y, num z) {
+    _setVelocity(x, y, z);
+    return;
+  }
+
+  void _setVelocity(x, y, z) native "AudioListener_setVelocity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioNodeDOMImpl extends _DOMWrapperBase implements AudioNode {
+  _AudioNodeDOMImpl();
+  String get typeName() => "AudioNode";
+
+  AudioContext get context() native "AudioNode_context_Getter";
+
+  int get numberOfInputs() native "AudioNode_numberOfInputs_Getter";
+
+  int get numberOfOutputs() native "AudioNode_numberOfOutputs_Getter";
+
+  void connect(destination, int output, [int input = null]) {
+    //
+    // connect(AudioNode destination, int output, int input)
+    // connect(AudioParam destination, int output)
+    //
+    if ((destination === null || destination is AudioNode)) {
+      _connect(destination, output, input);
+      return;
+    }
+    if ((destination === null || destination is AudioParam) && input === null) {
+      _connect_2(destination, output);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _connect(destination, output, input) native "AudioNode_connect_Callback";
+
+  void _connect_2(destination, output) native "AudioNode_connect_2_Callback";
+
+  void disconnect(int output) {
+    _disconnect(output);
+    return;
+  }
+
+  void _disconnect(output) native "AudioNode_disconnect_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioPannerNodeDOMImpl extends _AudioNodeDOMImpl implements AudioPannerNode {
+  _AudioPannerNodeDOMImpl();
+  String get typeName() => "AudioPannerNode";
+
+  AudioGain get coneGain() native "AudioPannerNode_coneGain_Getter";
+
+  num get coneInnerAngle() native "AudioPannerNode_coneInnerAngle_Getter";
+
+  void set coneInnerAngle(num) native "AudioPannerNode_coneInnerAngle_Setter";
+
+  num get coneOuterAngle() native "AudioPannerNode_coneOuterAngle_Getter";
+
+  void set coneOuterAngle(num) native "AudioPannerNode_coneOuterAngle_Setter";
+
+  num get coneOuterGain() native "AudioPannerNode_coneOuterGain_Getter";
+
+  void set coneOuterGain(num) native "AudioPannerNode_coneOuterGain_Setter";
+
+  AudioGain get distanceGain() native "AudioPannerNode_distanceGain_Getter";
+
+  int get distanceModel() native "AudioPannerNode_distanceModel_Getter";
+
+  void set distanceModel(int) native "AudioPannerNode_distanceModel_Setter";
+
+  num get maxDistance() native "AudioPannerNode_maxDistance_Getter";
+
+  void set maxDistance(num) native "AudioPannerNode_maxDistance_Setter";
+
+  int get panningModel() native "AudioPannerNode_panningModel_Getter";
+
+  void set panningModel(int) native "AudioPannerNode_panningModel_Setter";
+
+  num get refDistance() native "AudioPannerNode_refDistance_Getter";
+
+  void set refDistance(num) native "AudioPannerNode_refDistance_Setter";
+
+  num get rolloffFactor() native "AudioPannerNode_rolloffFactor_Getter";
+
+  void set rolloffFactor(num) native "AudioPannerNode_rolloffFactor_Setter";
+
+  void setOrientation(num x, num y, num z) {
+    _setOrientation(x, y, z);
+    return;
+  }
+
+  void _setOrientation(x, y, z) native "AudioPannerNode_setOrientation_Callback";
+
+  void setPosition(num x, num y, num z) {
+    _setPosition(x, y, z);
+    return;
+  }
+
+  void _setPosition(x, y, z) native "AudioPannerNode_setPosition_Callback";
+
+  void setVelocity(num x, num y, num z) {
+    _setVelocity(x, y, z);
+    return;
+  }
+
+  void _setVelocity(x, y, z) native "AudioPannerNode_setVelocity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioParamDOMImpl extends _DOMWrapperBase implements AudioParam {
+  _AudioParamDOMImpl();
+  String get typeName() => "AudioParam";
+
+  num get defaultValue() native "AudioParam_defaultValue_Getter";
+
+  num get maxValue() native "AudioParam_maxValue_Getter";
+
+  num get minValue() native "AudioParam_minValue_Getter";
+
+  String get name() native "AudioParam_name_Getter";
+
+  int get units() native "AudioParam_units_Getter";
+
+  num get value() native "AudioParam_value_Getter";
+
+  void set value(num) native "AudioParam_value_Setter";
+
+  void cancelScheduledValues(num startTime) {
+    _cancelScheduledValues(startTime);
+    return;
+  }
+
+  void _cancelScheduledValues(startTime) native "AudioParam_cancelScheduledValues_Callback";
+
+  void exponentialRampToValueAtTime(num value, num time) {
+    _exponentialRampToValueAtTime(value, time);
+    return;
+  }
+
+  void _exponentialRampToValueAtTime(value, time) native "AudioParam_exponentialRampToValueAtTime_Callback";
+
+  void linearRampToValueAtTime(num value, num time) {
+    _linearRampToValueAtTime(value, time);
+    return;
+  }
+
+  void _linearRampToValueAtTime(value, time) native "AudioParam_linearRampToValueAtTime_Callback";
+
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant) {
+    _setTargetValueAtTime(targetValue, time, timeConstant);
+    return;
+  }
+
+  void _setTargetValueAtTime(targetValue, time, timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
+
+  void setValueAtTime(num value, num time) {
+    _setValueAtTime(value, time);
+    return;
+  }
+
+  void _setValueAtTime(value, time) native "AudioParam_setValueAtTime_Callback";
+
+  void setValueCurveAtTime(Float32Array values, num time, num duration) {
+    _setValueCurveAtTime(values, time, duration);
+    return;
+  }
+
+  void _setValueCurveAtTime(values, time, duration) native "AudioParam_setValueCurveAtTime_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioProcessingEventDOMImpl extends _EventDOMImpl implements AudioProcessingEvent {
+  _AudioProcessingEventDOMImpl();
+  String get typeName() => "AudioProcessingEvent";
+
+  AudioBuffer get inputBuffer() native "AudioProcessingEvent_inputBuffer_Getter";
+
+  AudioBuffer get outputBuffer() native "AudioProcessingEvent_outputBuffer_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _AudioSourceNodeDOMImpl extends _AudioNodeDOMImpl implements AudioSourceNode {
+  _AudioSourceNodeDOMImpl();
+  String get typeName() => "AudioSourceNode";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _BarInfoDOMImpl extends _DOMWrapperBase implements BarInfo {
+  _BarInfoDOMImpl();
+  String get typeName() => "BarInfo";
+
+  bool get visible() native "BarInfo_visible_Getter";
+
+}
+
+class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
+  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get chargingChange() => _get('chargingchange');
+  EventListenerList get chargingTimeChange() => _get('chargingtimechange');
+  EventListenerList get dischargingTimeChange() => _get('dischargingtimechange');
+  EventListenerList get levelChange() => _get('levelchange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _BatteryManagerDOMImpl extends _DOMWrapperBase implements BatteryManager {
+  _BatteryManagerDOMImpl();
+  String get typeName() => "BatteryManager";
+  _EventsImpl _on;
+
+  _BatteryManagerEventsImpl get on() {
+    if (_on === null) _on = new _BatteryManagerEventsImpl(this);
+    return _on;
+  }
+
+  bool get charging() native "BatteryManager_charging_Getter";
+
+  num get chargingTime() native "BatteryManager_chargingTime_Getter";
+
+  num get dischargingTime() native "BatteryManager_dischargingTime_Getter";
+
+  num get level() native "BatteryManager_level_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "BatteryManager_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "BatteryManager_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "BatteryManager_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _BeforeLoadEventDOMImpl extends _EventDOMImpl implements BeforeLoadEvent {
+  _BeforeLoadEventDOMImpl();
+  String get typeName() => "BeforeLoadEvent";
+
+  String get url() native "BeforeLoadEvent_url_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _BiquadFilterNodeDOMImpl extends _AudioNodeDOMImpl implements BiquadFilterNode {
+  _BiquadFilterNodeDOMImpl();
+  String get typeName() => "BiquadFilterNode";
+
+  AudioParam get Q() native "BiquadFilterNode_Q_Getter";
+
+  AudioParam get frequency() native "BiquadFilterNode_frequency_Getter";
+
+  AudioParam get gain() native "BiquadFilterNode_gain_Getter";
+
+  int get type() native "BiquadFilterNode_type_Getter";
+
+  void set type(int) native "BiquadFilterNode_type_Setter";
+
+  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) {
+    _getFrequencyResponse(frequencyHz, magResponse, phaseResponse);
+    return;
+  }
+
+  void _getFrequencyResponse(frequencyHz, magResponse, phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _BlobDOMImpl extends _DOMWrapperBase implements Blob {
+  _BlobDOMImpl();
+  String get typeName() => "Blob";
+
+  int get size() native "Blob_size_Getter";
+
+  String get type() native "Blob_type_Getter";
+
+  Blob webkitSlice([int start = null, int end = null, String contentType = null]) {
+    //
+    // webkitSlice()
+    // webkitSlice([Optional] int start)
+    // webkitSlice([Optional] int start, [Optional] int end)
+    // webkitSlice([Optional] int start, [Optional] int end, [Optional] String contentType)
+    //
+    // -- reduced:
+    // webkitSlice([Optional] int start, [Optional] int end, [Optional] String contentType)
+    //
+    return _webkitSlice(start, end, contentType);
+  }
+
+  Blob _webkitSlice(start, end, contentType) native "Blob_webkitSlice_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CDATASectionDOMImpl extends _TextDOMImpl implements CDATASection {
+  _CDATASectionDOMImpl();
+  String get typeName() => "CDATASection";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSCharsetRuleDOMImpl extends _CSSRuleDOMImpl implements CSSCharsetRule {
+  _CSSCharsetRuleDOMImpl();
+  String get typeName() => "CSSCharsetRule";
+
+  String get encoding() native "CSSCharsetRule_encoding_Getter";
+
+  void set encoding(String) native "CSSCharsetRule_encoding_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSFontFaceRuleDOMImpl extends _CSSRuleDOMImpl implements CSSFontFaceRule {
+  _CSSFontFaceRuleDOMImpl();
+  String get typeName() => "CSSFontFaceRule";
+
+  CSSStyleDeclaration get style() native "CSSFontFaceRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSImportRuleDOMImpl extends _CSSRuleDOMImpl implements CSSImportRule {
+  _CSSImportRuleDOMImpl();
+  String get typeName() => "CSSImportRule";
+
+  String get href() native "CSSImportRule_href_Getter";
+
+  MediaList get media() native "CSSImportRule_media_Getter";
+
+  CSSStyleSheet get styleSheet() native "CSSImportRule_styleSheet_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSMediaRuleDOMImpl extends _CSSRuleDOMImpl implements CSSMediaRule {
+  _CSSMediaRuleDOMImpl();
+  String get typeName() => "CSSMediaRule";
+
+  CSSRuleList get cssRules() native "CSSMediaRule_cssRules_Getter";
+
+  MediaList get media() native "CSSMediaRule_media_Getter";
+
+  void deleteRule(int index) {
+    _deleteRule(index);
+    return;
+  }
+
+  void _deleteRule(index) native "CSSMediaRule_deleteRule_Callback";
+
+  int insertRule(String rule, int index) {
+    return _insertRule(rule, index);
+  }
+
+  int _insertRule(rule, index) native "CSSMediaRule_insertRule_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSPageRuleDOMImpl extends _CSSRuleDOMImpl implements CSSPageRule {
+  _CSSPageRuleDOMImpl();
+  String get typeName() => "CSSPageRule";
+
+  String get selectorText() native "CSSPageRule_selectorText_Getter";
+
+  void set selectorText(String) native "CSSPageRule_selectorText_Setter";
+
+  CSSStyleDeclaration get style() native "CSSPageRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSPrimitiveValueDOMImpl extends _CSSValueDOMImpl implements CSSPrimitiveValue {
+  _CSSPrimitiveValueDOMImpl();
+  String get typeName() => "CSSPrimitiveValue";
+
+  int get primitiveType() native "CSSPrimitiveValue_primitiveType_Getter";
+
+  Counter getCounterValue() {
+    return _getCounterValue();
+  }
+
+  Counter _getCounterValue() native "CSSPrimitiveValue_getCounterValue_Callback";
+
+  num getFloatValue(int unitType) {
+    return _getFloatValue(unitType);
+  }
+
+  num _getFloatValue(unitType) native "CSSPrimitiveValue_getFloatValue_Callback";
+
+  RGBColor getRGBColorValue() {
+    return _getRGBColorValue();
+  }
+
+  RGBColor _getRGBColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
+
+  Rect getRectValue() {
+    return _getRectValue();
+  }
+
+  Rect _getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
+
+  String getStringValue() {
+    return _getStringValue();
+  }
+
+  String _getStringValue() native "CSSPrimitiveValue_getStringValue_Callback";
+
+  void setFloatValue(int unitType, num floatValue) {
+    _setFloatValue(unitType, floatValue);
+    return;
+  }
+
+  void _setFloatValue(unitType, floatValue) native "CSSPrimitiveValue_setFloatValue_Callback";
+
+  void setStringValue(int stringType, String stringValue) {
+    _setStringValue(stringType, stringValue);
+    return;
+  }
+
+  void _setStringValue(stringType, stringValue) native "CSSPrimitiveValue_setStringValue_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSRuleDOMImpl extends _DOMWrapperBase implements CSSRule {
+  _CSSRuleDOMImpl();
+  String get typeName() => "CSSRule";
+
+  String get cssText() native "CSSRule_cssText_Getter";
+
+  void set cssText(String) native "CSSRule_cssText_Setter";
+
+  CSSRule get parentRule() native "CSSRule_parentRule_Getter";
+
+  CSSStyleSheet get parentStyleSheet() native "CSSRule_parentStyleSheet_Getter";
+
+  int get type() native "CSSRule_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSRuleListDOMImpl extends _DOMWrapperBase implements CSSRuleList {
+  _CSSRuleListDOMImpl();
+  String get typeName() => "CSSRuleList";
+
+  int get length() native "CSSRuleList_length_Getter";
+
+  CSSRule item(int index) {
+    return _item(index);
+  }
+
+  CSSRule _item(index) native "CSSRuleList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSStyleDeclarationDOMImpl extends _DOMWrapperBase implements CSSStyleDeclaration {
+  _CSSStyleDeclarationDOMImpl();
+  String get typeName() => "CSSStyleDeclaration";
+
+  String get cssText() native "CSSStyleDeclaration_cssText_Getter";
+
+  void set cssText(String) native "CSSStyleDeclaration_cssText_Setter";
+
+  int get length() native "CSSStyleDeclaration_length_Getter";
+
+  CSSRule get parentRule() native "CSSStyleDeclaration_parentRule_Getter";
+
+  CSSValue getPropertyCSSValue(String propertyName) {
+    return _getPropertyCSSValue(propertyName);
+  }
+
+  CSSValue _getPropertyCSSValue(propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
+
+  String getPropertyPriority(String propertyName) {
+    return _getPropertyPriority(propertyName);
+  }
+
+  String _getPropertyPriority(propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback";
+
+  String getPropertyShorthand(String propertyName) {
+    return _getPropertyShorthand(propertyName);
+  }
+
+  String _getPropertyShorthand(propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
+
+  String getPropertyValue(String propertyName) {
+    return _getPropertyValue(propertyName);
+  }
+
+  String _getPropertyValue(propertyName) native "CSSStyleDeclaration_getPropertyValue_Callback";
+
+  bool isPropertyImplicit(String propertyName) {
+    return _isPropertyImplicit(propertyName);
+  }
+
+  bool _isPropertyImplicit(propertyName) native "CSSStyleDeclaration_isPropertyImplicit_Callback";
+
+  String item(int index) {
+    return _item(index);
+  }
+
+  String _item(index) native "CSSStyleDeclaration_item_Callback";
+
+  String removeProperty(String propertyName) {
+    return _removeProperty(propertyName);
+  }
+
+  String _removeProperty(propertyName) native "CSSStyleDeclaration_removeProperty_Callback";
+
+  void setProperty(String propertyName, String value, [String priority = null]) {
+    _setProperty(propertyName, value, priority);
+    return;
+  }
+
+  void _setProperty(propertyName, value, priority) native "CSSStyleDeclaration_setProperty_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSStyleRuleDOMImpl extends _CSSRuleDOMImpl implements CSSStyleRule {
+  _CSSStyleRuleDOMImpl();
+  String get typeName() => "CSSStyleRule";
+
+  String get selectorText() native "CSSStyleRule_selectorText_Getter";
+
+  void set selectorText(String) native "CSSStyleRule_selectorText_Setter";
+
+  CSSStyleDeclaration get style() native "CSSStyleRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSStyleSheetDOMImpl extends _StyleSheetDOMImpl implements CSSStyleSheet {
+  _CSSStyleSheetDOMImpl();
+  String get typeName() => "CSSStyleSheet";
+
+  CSSRuleList get cssRules() native "CSSStyleSheet_cssRules_Getter";
+
+  CSSRule get ownerRule() native "CSSStyleSheet_ownerRule_Getter";
+
+  CSSRuleList get rules() native "CSSStyleSheet_rules_Getter";
+
+  int addRule(String selector, String style, [int index = null]) {
+    //
+    // addRule(String selector, String style)
+    // addRule(String selector, String style, [Optional] int index)
+    //
+    // -- reduced:
+    // addRule(String selector, String style, [Optional] int index)
+    //
+    return _addRule(selector, style, index);
+  }
+
+  int _addRule(selector, style, index) native "CSSStyleSheet_addRule_Callback";
+
+  void deleteRule(int index) {
+    _deleteRule(index);
+    return;
+  }
+
+  void _deleteRule(index) native "CSSStyleSheet_deleteRule_Callback";
+
+  int insertRule(String rule, int index) {
+    return _insertRule(rule, index);
+  }
+
+  int _insertRule(rule, index) native "CSSStyleSheet_insertRule_Callback";
+
+  void removeRule(int index) {
+    _removeRule(index);
+    return;
+  }
+
+  void _removeRule(index) native "CSSStyleSheet_removeRule_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSUnknownRuleDOMImpl extends _CSSRuleDOMImpl implements CSSUnknownRule {
+  _CSSUnknownRuleDOMImpl();
+  String get typeName() => "CSSUnknownRule";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSValueDOMImpl extends _DOMWrapperBase implements CSSValue {
+  _CSSValueDOMImpl();
+  String get typeName() => "CSSValue";
+
+  String get cssText() native "CSSValue_cssText_Getter";
+
+  void set cssText(String) native "CSSValue_cssText_Setter";
+
+  int get cssValueType() native "CSSValue_cssValueType_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CSSValueListDOMImpl extends _CSSValueDOMImpl implements CSSValueList {
+  _CSSValueListDOMImpl();
+  String get typeName() => "CSSValueList";
+
+  int get length() native "CSSValueList_length_Getter";
+
+  CSSValue item(int index) {
+    return _item(index);
+  }
+
+  CSSValue _item(index) native "CSSValueList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CanvasGradientDOMImpl extends _DOMWrapperBase implements CanvasGradient {
+  _CanvasGradientDOMImpl();
+  String get typeName() => "CanvasGradient";
+
+  void addColorStop(num offset, String color) {
+    _addColorStop(offset, color);
+    return;
+  }
+
+  void _addColorStop(offset, color) native "CanvasGradient_addColorStop_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CanvasPatternDOMImpl extends _DOMWrapperBase implements CanvasPattern {
+  _CanvasPatternDOMImpl();
+  String get typeName() => "CanvasPattern";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CanvasRenderingContext2DDOMImpl extends _CanvasRenderingContextDOMImpl implements CanvasRenderingContext2D {
+  _CanvasRenderingContext2DDOMImpl();
+  String get typeName() => "CanvasRenderingContext2D";
+
+  Dynamic get fillStyle() native "CanvasRenderingContext2D_fillStyle_Getter";
+
+  void set fillStyle(Dynamic) native "CanvasRenderingContext2D_fillStyle_Setter";
+
+  String get font() native "CanvasRenderingContext2D_font_Getter";
+
+  void set font(String) native "CanvasRenderingContext2D_font_Setter";
+
+  num get globalAlpha() native "CanvasRenderingContext2D_globalAlpha_Getter";
+
+  void set globalAlpha(num) native "CanvasRenderingContext2D_globalAlpha_Setter";
+
+  String get globalCompositeOperation() native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
+
+  void set globalCompositeOperation(String) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
+
+  String get lineCap() native "CanvasRenderingContext2D_lineCap_Getter";
+
+  void set lineCap(String) native "CanvasRenderingContext2D_lineCap_Setter";
+
+  String get lineJoin() native "CanvasRenderingContext2D_lineJoin_Getter";
+
+  void set lineJoin(String) native "CanvasRenderingContext2D_lineJoin_Setter";
+
+  num get lineWidth() native "CanvasRenderingContext2D_lineWidth_Getter";
+
+  void set lineWidth(num) native "CanvasRenderingContext2D_lineWidth_Setter";
+
+  num get miterLimit() native "CanvasRenderingContext2D_miterLimit_Getter";
+
+  void set miterLimit(num) native "CanvasRenderingContext2D_miterLimit_Setter";
+
+  num get shadowBlur() native "CanvasRenderingContext2D_shadowBlur_Getter";
+
+  void set shadowBlur(num) native "CanvasRenderingContext2D_shadowBlur_Setter";
+
+  String get shadowColor() native "CanvasRenderingContext2D_shadowColor_Getter";
+
+  void set shadowColor(String) native "CanvasRenderingContext2D_shadowColor_Setter";
+
+  num get shadowOffsetX() native "CanvasRenderingContext2D_shadowOffsetX_Getter";
+
+  void set shadowOffsetX(num) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
+
+  num get shadowOffsetY() native "CanvasRenderingContext2D_shadowOffsetY_Getter";
+
+  void set shadowOffsetY(num) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
+
+  Dynamic get strokeStyle() native "CanvasRenderingContext2D_strokeStyle_Getter";
+
+  void set strokeStyle(Dynamic) native "CanvasRenderingContext2D_strokeStyle_Setter";
+
+  String get textAlign() native "CanvasRenderingContext2D_textAlign_Getter";
+
+  void set textAlign(String) native "CanvasRenderingContext2D_textAlign_Setter";
+
+  String get textBaseline() native "CanvasRenderingContext2D_textBaseline_Getter";
+
+  void set textBaseline(String) native "CanvasRenderingContext2D_textBaseline_Setter";
+
+  num get webkitBackingStorePixelRatio() native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
+
+  List get webkitLineDash() native "CanvasRenderingContext2D_webkitLineDash_Getter";
+
+  void set webkitLineDash(List) native "CanvasRenderingContext2D_webkitLineDash_Setter";
+
+  num get webkitLineDashOffset() native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
+
+  void set webkitLineDashOffset(num) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
+
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) {
+    _arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    return;
+  }
+
+  void _arc(x, y, radius, startAngle, endAngle, anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+
+  void arcTo(num x1, num y1, num x2, num y2, num radius) {
+    _arcTo(x1, y1, x2, y2, radius);
+    return;
+  }
+
+  void _arcTo(x1, y1, x2, y2, radius) native "CanvasRenderingContext2D_arcTo_Callback";
+
+  void beginPath() {
+    _beginPath();
+    return;
+  }
+
+  void _beginPath() native "CanvasRenderingContext2D_beginPath_Callback";
+
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) {
+    _bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+    return;
+  }
+
+  void _bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) native "CanvasRenderingContext2D_bezierCurveTo_Callback";
+
+  void clearRect(num x, num y, num width, num height) {
+    _clearRect(x, y, width, height);
+    return;
+  }
+
+  void _clearRect(x, y, width, height) native "CanvasRenderingContext2D_clearRect_Callback";
+
+  void clearShadow() {
+    _clearShadow();
+    return;
+  }
+
+  void _clearShadow() native "CanvasRenderingContext2D_clearShadow_Callback";
+
+  void clip() {
+    _clip();
+    return;
+  }
+
+  void _clip() native "CanvasRenderingContext2D_clip_Callback";
+
+  void closePath() {
+    _closePath();
+    return;
+  }
+
+  void _closePath() native "CanvasRenderingContext2D_closePath_Callback";
+
+  ImageData createImageData(imagedata_OR_sw, [num sh = null]) {
+    //
+    // createImageData(ImageData imagedata)
+    // createImageData(num sw, num sh)
+    //
+    if ((imagedata_OR_sw === null || imagedata_OR_sw is ImageData) &&
+        sh === null) {
+      return _createImageData(imagedata_OR_sw);
+    }
+    if ((imagedata_OR_sw === null || imagedata_OR_sw is num)) {
+      return _createImageData_2(imagedata_OR_sw, sh);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  ImageData _createImageData(imagedata_OR_sw) native "CanvasRenderingContext2D_createImageData_Callback";
+
+  ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D_createImageData_2_Callback";
+
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) {
+    return _createLinearGradient(x0, y0, x1, y1);
+  }
+
+  CanvasGradient _createLinearGradient(x0, y0, x1, y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
+
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
+    //
+    // createPattern(HTMLCanvasElement canvas, String repetitionType)
+    // createPattern(HTMLImageElement image, String repetitionType)
+    //
+    if ((canvas_OR_image === null || canvas_OR_image is CanvasElement)) {
+      return _createPattern(canvas_OR_image, repetitionType);
+    }
+    if ((canvas_OR_image === null || canvas_OR_image is ImageElement)) {
+      return _createPattern_2(canvas_OR_image, repetitionType);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  CanvasPattern _createPattern(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_Callback";
+
+  CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_2_Callback";
+
+  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) {
+    return _createRadialGradient(x0, y0, r0, x1, y1, r1);
+  }
+
+  CanvasGradient _createRadialGradient(x0, y0, r0, x1, y1, r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
+
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
+    //
+    // drawImage(HTMLImageElement image, num x, num y)
+    // drawImage(HTMLImageElement image, num x, num y, num width, num height)
+    // drawImage(HTMLImageElement image, num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh)
+    // drawImage(HTMLCanvasElement canvas, num x, num y)
+    // drawImage(HTMLCanvasElement canvas, num x, num y, num width, num height)
+    // drawImage(HTMLCanvasElement canvas, num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh)
+    // drawImage(HTMLVideoElement video, num x, num y)
+    // drawImage(HTMLVideoElement video, num x, num y, num width, num height)
+    // drawImage(HTMLVideoElement video, num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh)
+    //
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is ImageElement) &&
+        sw_OR_width === null &&
+        height_OR_sh === null &&
+        dx === null &&
+        dy === null &&
+        dw === null &&
+        dh === null) {
+      _drawImage(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is ImageElement) &&
+        dx === null &&
+        dy === null &&
+        dw === null &&
+        dh === null) {
+      _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is ImageElement)) {
+      _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is CanvasElement) &&
+        sw_OR_width === null &&
+        height_OR_sh === null &&
+        dx === null &&
+        dy === null &&
+        dw === null &&
+        dh === null) {
+      _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is CanvasElement) &&
+        dx === null &&
+        dy === null &&
+        dw === null &&
+        dh === null) {
+      _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is CanvasElement)) {
+      _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is VideoElement) &&
+        sw_OR_width === null &&
+        height_OR_sh === null &&
+        dx === null &&
+        dy === null &&
+        dw === null &&
+        dh === null) {
+      _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is VideoElement) &&
+        dx === null &&
+        dy === null &&
+        dw === null &&
+        dh === null) {
+      _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video === null || canvas_OR_image_OR_video is VideoElement)) {
+      _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _drawImage(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_Callback";
+
+  void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_2_Callback";
+
+  void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_3_Callback";
+
+  void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_4_Callback";
+
+  void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_5_Callback";
+
+  void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_6_Callback";
+
+  void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_7_Callback";
+
+  void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_8_Callback";
+
+  void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
+
+  void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
+    //
+    // drawImageFromRect(HTMLImageElement image)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh, [Optional] num dx)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh, [Optional] num dx, [Optional] num dy)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh, [Optional] num dx, [Optional] num dy, [Optional] num dw)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh, [Optional] num dx, [Optional] num dy, [Optional] num dw, [Optional] num dh)
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh, [Optional] num dx, [Optional] num dy, [Optional] num dw, [Optional] num dh, [Optional] String compositeOperation)
+    //
+    // -- reduced:
+    // drawImageFromRect(HTMLImageElement image, [Optional] num sx, [Optional] num sy, [Optional] num sw, [Optional] num sh, [Optional] num dx, [Optional] num dy, [Optional] num dw, [Optional] num dh, [Optional] String compositeOperation)
+    //
+    if ((image === null || image is ImageElement)) {
+      _drawImageFromRect(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _drawImageFromRect(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_Callback";
+
+  void fill() {
+    _fill();
+    return;
+  }
+
+  void _fill() native "CanvasRenderingContext2D_fill_Callback";
+
+  void fillRect(num x, num y, num width, num height) {
+    _fillRect(x, y, width, height);
+    return;
+  }
+
+  void _fillRect(x, y, width, height) native "CanvasRenderingContext2D_fillRect_Callback";
+
+  void fillText(String text, num x, num y, [num maxWidth = null]) {
+    //
+    // fillText(String text, num x, num y)
+    // fillText(String text, num x, num y, [Optional] num maxWidth)
+    //
+    // -- reduced:
+    // fillText(String text, num x, num y, [Optional] num maxWidth)
+    //
+    _fillText(text, x, y, maxWidth);
+    return;
+  }
+
+  void _fillText(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_Callback";
+
+  ImageData getImageData(num sx, num sy, num sw, num sh) {
+    return _getImageData(sx, sy, sw, sh);
+  }
+
+  ImageData _getImageData(sx, sy, sw, sh) native "CanvasRenderingContext2D_getImageData_Callback";
+
+  bool isPointInPath(num x, num y) {
+    return _isPointInPath(x, y);
+  }
+
+  bool _isPointInPath(x, y) native "CanvasRenderingContext2D_isPointInPath_Callback";
+
+  void lineTo(num x, num y) {
+    _lineTo(x, y);
+    return;
+  }
+
+  void _lineTo(x, y) native "CanvasRenderingContext2D_lineTo_Callback";
+
+  TextMetrics measureText(String text) {
+    return _measureText(text);
+  }
+
+  TextMetrics _measureText(text) native "CanvasRenderingContext2D_measureText_Callback";
+
+  void moveTo(num x, num y) {
+    _moveTo(x, y);
+    return;
+  }
+
+  void _moveTo(x, y) native "CanvasRenderingContext2D_moveTo_Callback";
+
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
+    //
+    // putImageData(ImageData imagedata, num dx, num dy)
+    // putImageData(ImageData imagedata, num dx, num dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight)
+    //
+    if (dirtyX === null &&
+        dirtyY === null &&
+        dirtyWidth === null &&
+        dirtyHeight === null) {
+      _putImageData(imagedata, dx, dy);
+      return;
+    }
+    _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
+  }
+
+  void _putImageData(imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_Callback";
+
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_2_Callback";
+
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) {
+    _quadraticCurveTo(cpx, cpy, x, y);
+    return;
+  }
+
+  void _quadraticCurveTo(cpx, cpy, x, y) native "CanvasRenderingContext2D_quadraticCurveTo_Callback";
+
+  void rect(num x, num y, num width, num height) {
+    _rect(x, y, width, height);
+    return;
+  }
+
+  void _rect(x, y, width, height) native "CanvasRenderingContext2D_rect_Callback";
+
+  void restore() {
+    _restore();
+    return;
+  }
+
+  void _restore() native "CanvasRenderingContext2D_restore_Callback";
+
+  void rotate(num angle) {
+    _rotate(angle);
+    return;
+  }
+
+  void _rotate(angle) native "CanvasRenderingContext2D_rotate_Callback";
+
+  void save() {
+    _save();
+    return;
+  }
+
+  void _save() native "CanvasRenderingContext2D_save_Callback";
+
+  void scale(num sx, num sy) {
+    _scale(sx, sy);
+    return;
+  }
+
+  void _scale(sx, sy) native "CanvasRenderingContext2D_scale_Callback";
+
+  void setAlpha(num alpha) {
+    _setAlpha(alpha);
+    return;
+  }
+
+  void _setAlpha(alpha) native "CanvasRenderingContext2D_setAlpha_Callback";
+
+  void setCompositeOperation(String compositeOperation) {
+    _setCompositeOperation(compositeOperation);
+    return;
+  }
+
+  void _setCompositeOperation(compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
+
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
+    //
+    // setFillColor(String color)
+    // setFillColor(String color, [Optional] num alpha)
+    // setFillColor(num grayLevel)
+    // setFillColor(num grayLevel, [Optional] num alpha)
+    // setFillColor(num r, num g, num b, num a)
+    // setFillColor(num c, num m, num y, num k, num a)
+    //
+    // -- reduced:
+    // setFillColor(String color, [Optional] num alpha)
+    // setFillColor(num grayLevel, [Optional] num alpha)
+    // setFillColor(num r, num g, num b, num a)
+    // setFillColor(num c, num m, num y, num k, num a)
+    //
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is String) &&
+        b_OR_y === null &&
+        a_OR_k === null &&
+        a === null) {
+      _setFillColor(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num) &&
+        b_OR_y === null &&
+        a_OR_k === null &&
+        a === null) {
+      _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num) &&
+        a === null) {
+      _setFillColor_3(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num)) {
+      _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _setFillColor(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setFillColor_Callback";
+
+  void _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setFillColor_2_Callback";
+
+  void _setFillColor_3(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setFillColor_3_Callback";
+
+  void _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setFillColor_4_Callback";
+
+  void setLineCap(String cap) {
+    _setLineCap(cap);
+    return;
+  }
+
+  void _setLineCap(cap) native "CanvasRenderingContext2D_setLineCap_Callback";
+
+  void setLineJoin(String join) {
+    _setLineJoin(join);
+    return;
+  }
+
+  void _setLineJoin(join) native "CanvasRenderingContext2D_setLineJoin_Callback";
+
+  void setLineWidth(num width) {
+    _setLineWidth(width);
+    return;
+  }
+
+  void _setLineWidth(width) native "CanvasRenderingContext2D_setLineWidth_Callback";
+
+  void setMiterLimit(num limit) {
+    _setMiterLimit(limit);
+    return;
+  }
+
+  void _setMiterLimit(limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
+
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
+    //
+    // setShadow(num width, num height, num blur)
+    // setShadow(num width, num height, num blur, [Optional] String color)
+    // setShadow(num width, num height, num blur, [Optional] String color, [Optional] num alpha)
+    // setShadow(num width, num height, num blur, num grayLevel)
+    // setShadow(num width, num height, num blur, num grayLevel, [Optional] num alpha)
+    // setShadow(num width, num height, num blur, num r, num g, num b, num a)
+    // setShadow(num width, num height, num blur, num c, num m, num y, num k, num a)
+    //
+    // -- reduced:
+    // setShadow(num width, num height, num blur, [Optional] String color, [Optional] num alpha)
+    // setShadow(num width, num height, num blur, num grayLevel, [Optional] num alpha)
+    // setShadow(num width, num height, num blur, num r, num g, num b, num a)
+    // setShadow(num width, num height, num blur, num c, num m, num y, num k, num a)
+    //
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is String) &&
+        b_OR_y === null &&
+        a_OR_k === null &&
+        a === null) {
+      _setShadow(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num) &&
+        b_OR_y === null &&
+        a_OR_k === null &&
+        a === null) {
+      _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num) &&
+        a === null) {
+      _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num)) {
+      _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _setShadow(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_Callback";
+
+  void _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_2_Callback";
+
+  void _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setShadow_3_Callback";
+
+  void _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_4_Callback";
+
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
+    //
+    // setStrokeColor(String color)
+    // setStrokeColor(String color, [Optional] num alpha)
+    // setStrokeColor(num grayLevel)
+    // setStrokeColor(num grayLevel, [Optional] num alpha)
+    // setStrokeColor(num r, num g, num b, num a)
+    // setStrokeColor(num c, num m, num y, num k, num a)
+    //
+    // -- reduced:
+    // setStrokeColor(String color, [Optional] num alpha)
+    // setStrokeColor(num grayLevel, [Optional] num alpha)
+    // setStrokeColor(num r, num g, num b, num a)
+    // setStrokeColor(num c, num m, num y, num k, num a)
+    //
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is String) &&
+        b_OR_y === null &&
+        a_OR_k === null &&
+        a === null) {
+      _setStrokeColor(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num) &&
+        b_OR_y === null &&
+        a_OR_k === null &&
+        a === null) {
+      _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num) &&
+        a === null) {
+      _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+      return;
+    }
+    if ((c_OR_color_OR_grayLevel_OR_r === null || c_OR_color_OR_grayLevel_OR_r is num)) {
+      _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _setStrokeColor(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setStrokeColor_Callback";
+
+  void _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setStrokeColor_2_Callback";
+
+  void _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setStrokeColor_3_Callback";
+
+  void _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setStrokeColor_4_Callback";
+
+  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) {
+    _setTransform(m11, m12, m21, m22, dx, dy);
+    return;
+  }
+
+  void _setTransform(m11, m12, m21, m22, dx, dy) native "CanvasRenderingContext2D_setTransform_Callback";
+
+  void stroke() {
+    _stroke();
+    return;
+  }
+
+  void _stroke() native "CanvasRenderingContext2D_stroke_Callback";
+
+  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
+    //
+    // strokeRect(num x, num y, num width, num height)
+    // strokeRect(num x, num y, num width, num height, [Optional] num lineWidth)
+    //
+    // -- reduced:
+    // strokeRect(num x, num y, num width, num height, [Optional] num lineWidth)
+    //
+    _strokeRect(x, y, width, height, lineWidth);
+    return;
+  }
+
+  void _strokeRect(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_Callback";
+
+  void strokeText(String text, num x, num y, [num maxWidth = null]) {
+    //
+    // strokeText(String text, num x, num y)
+    // strokeText(String text, num x, num y, [Optional] num maxWidth)
+    //
+    // -- reduced:
+    // strokeText(String text, num x, num y, [Optional] num maxWidth)
+    //
+    _strokeText(text, x, y, maxWidth);
+    return;
+  }
+
+  void _strokeText(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_Callback";
+
+  void transform(num m11, num m12, num m21, num m22, num dx, num dy) {
+    _transform(m11, m12, m21, m22, dx, dy);
+    return;
+  }
+
+  void _transform(m11, m12, m21, m22, dx, dy) native "CanvasRenderingContext2D_transform_Callback";
+
+  void translate(num tx, num ty) {
+    _translate(tx, ty);
+    return;
+  }
+
+  void _translate(tx, ty) native "CanvasRenderingContext2D_translate_Callback";
+
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
+    return _webkitGetImageDataHD(sx, sy, sw, sh);
+  }
+
+  ImageData _webkitGetImageDataHD(sx, sy, sw, sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
+
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
+    //
+    // webkitPutImageDataHD(ImageData imagedata, num dx, num dy)
+    // webkitPutImageDataHD(ImageData imagedata, num dx, num dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight)
+    //
+    if (dirtyX === null &&
+        dirtyY === null &&
+        dirtyWidth === null &&
+        dirtyHeight === null) {
+      _webkitPutImageDataHD(imagedata, dx, dy);
+      return;
+    }
+    _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
+  }
+
+  void _webkitPutImageDataHD(imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_Callback";
+
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CanvasRenderingContextDOMImpl extends _DOMWrapperBase implements CanvasRenderingContext {
+  _CanvasRenderingContextDOMImpl();
+  String get typeName() => "CanvasRenderingContext";
+
+  CanvasElement get canvas() native "CanvasRenderingContext_canvas_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CharacterDataDOMImpl extends _NodeDOMImpl implements CharacterData {
+  _CharacterDataDOMImpl();
+  String get typeName() => "CharacterData";
+
+  String get data() native "CharacterData_data_Getter";
+
+  void set data(String) native "CharacterData_data_Setter";
+
+  int get length() native "CharacterData_length_Getter";
+
+  void appendData(String data) {
+    _appendData(data);
+    return;
+  }
+
+  void _appendData(data) native "CharacterData_appendData_Callback";
+
+  void deleteData(int offset, int length) {
+    _deleteData(offset, length);
+    return;
+  }
+
+  void _deleteData(offset, length) native "CharacterData_deleteData_Callback";
+
+  void insertData(int offset, String data) {
+    _insertData(offset, data);
+    return;
+  }
+
+  void _insertData(offset, data) native "CharacterData_insertData_Callback";
+
+  void replaceData(int offset, int length, String data) {
+    _replaceData(offset, length, data);
+    return;
+  }
+
+  void _replaceData(offset, length, data) native "CharacterData_replaceData_Callback";
+
+  String substringData(int offset, int length) {
+    return _substringData(offset, length);
+  }
+
+  String _substringData(offset, length) native "CharacterData_substringData_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ClientRectDOMImpl extends _DOMWrapperBase implements ClientRect {
+  _ClientRectDOMImpl();
+  String get typeName() => "ClientRect";
+
+  num get bottom() native "ClientRect_bottom_Getter";
+
+  num get height() native "ClientRect_height_Getter";
+
+  num get left() native "ClientRect_left_Getter";
+
+  num get right() native "ClientRect_right_Getter";
+
+  num get top() native "ClientRect_top_Getter";
+
+  num get width() native "ClientRect_width_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ClientRectListDOMImpl extends _DOMWrapperBase implements ClientRectList {
+  _ClientRectListDOMImpl();
+  String get typeName() => "ClientRectList";
+
+  int get length() native "ClientRectList_length_Getter";
+
+  ClientRect item(int index) {
+    return _item(index);
+  }
+
+  ClientRect _item(index) native "ClientRectList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ClipboardDOMImpl extends _DOMWrapperBase implements Clipboard {
+  _ClipboardDOMImpl();
+  String get typeName() => "Clipboard";
+
+  String get dropEffect() native "Clipboard_dropEffect_Getter";
+
+  void set dropEffect(String) native "Clipboard_dropEffect_Setter";
+
+  String get effectAllowed() native "Clipboard_effectAllowed_Getter";
+
+  void set effectAllowed(String) native "Clipboard_effectAllowed_Setter";
+
+  FileList get files() native "Clipboard_files_Getter";
+
+  DataTransferItemList get items() native "Clipboard_items_Getter";
+
+  List get types() native "Clipboard_types_Getter";
+
+  void clearData([String type = null]) native "Clipboard_clearData_Callback";
+
+  String getData(String type) {
+    return _getData(type);
+  }
+
+  String _getData(type) native "Clipboard_getData_Callback";
+
+  bool setData(String type, String data) {
+    return _setData(type, data);
+  }
+
+  bool _setData(type, data) native "Clipboard_setData_Callback";
+
+  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CloseEventDOMImpl extends _EventDOMImpl implements CloseEvent {
+  _CloseEventDOMImpl();
+  String get typeName() => "CloseEvent";
+
+  int get code() native "CloseEvent_code_Getter";
+
+  String get reason() native "CloseEvent_reason_Getter";
+
+  bool get wasClean() native "CloseEvent_wasClean_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CommentDOMImpl extends _CharacterDataDOMImpl implements Comment {
+  _CommentDOMImpl();
+  String get typeName() => "Comment";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CompositionEventDOMImpl extends _UIEventDOMImpl implements CompositionEvent {
+  _CompositionEventDOMImpl();
+  String get typeName() => "CompositionEvent";
+
+  String get data() native "CompositionEvent_data_Getter";
+
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
+    if ((viewArg === null || viewArg is Window)) {
+      _initCompositionEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initCompositionEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ConsoleDOMImpl extends _DOMWrapperBase implements Console {
+  _ConsoleDOMImpl();
+  String get typeName() => "Console";
+
+  MemoryInfo get memory() native "Console_memory_Getter";
+
+  List<ScriptProfile> get profiles() native "Console_profiles_Getter";
+
+  void assertCondition(bool condition, Object arg) {
+    _assertCondition(condition, arg);
+    return;
+  }
+
+  void _assertCondition(condition, arg) native "Console_assertCondition_Callback";
+
+  void count() {
+    _count();
+    return;
+  }
+
+  void _count() native "Console_count_Callback";
+
+  void debug(Object arg) {
+    _debug(arg);
+    return;
+  }
+
+  void _debug(arg) native "Console_debug_Callback";
+
+  void dir() {
+    _dir();
+    return;
+  }
+
+  void _dir() native "Console_dir_Callback";
+
+  void dirxml() {
+    _dirxml();
+    return;
+  }
+
+  void _dirxml() native "Console_dirxml_Callback";
+
+  void error(Object arg) {
+    _error(arg);
+    return;
+  }
+
+  void _error(arg) native "Console_error_Callback";
+
+  void group(Object arg) {
+    _group(arg);
+    return;
+  }
+
+  void _group(arg) native "Console_group_Callback";
+
+  void groupCollapsed(Object arg) {
+    _groupCollapsed(arg);
+    return;
+  }
+
+  void _groupCollapsed(arg) native "Console_groupCollapsed_Callback";
+
+  void groupEnd() {
+    _groupEnd();
+    return;
+  }
+
+  void _groupEnd() native "Console_groupEnd_Callback";
+
+  void info(Object arg) {
+    _info(arg);
+    return;
+  }
+
+  void _info(arg) native "Console_info_Callback";
+
+  void log(Object arg) {
+    _log(arg);
+    return;
+  }
+
+  void _log(arg) native "Console_log_Callback";
+
+  void markTimeline() {
+    _markTimeline();
+    return;
+  }
+
+  void _markTimeline() native "Console_markTimeline_Callback";
+
+  void profile(String title) native "Console_profile_Callback";
+
+  void profileEnd(String title) native "Console_profileEnd_Callback";
+
+  void time(String title) {
+    _time(title);
+    return;
+  }
+
+  void _time(title) native "Console_time_Callback";
+
+  void timeEnd(String title, Object arg) {
+    _timeEnd(title, arg);
+    return;
+  }
+
+  void _timeEnd(title, arg) native "Console_timeEnd_Callback";
+
+  void timeStamp(Object arg) {
+    _timeStamp(arg);
+    return;
+  }
+
+  void _timeStamp(arg) native "Console_timeStamp_Callback";
+
+  void trace(Object arg) {
+    _trace(arg);
+    return;
+  }
+
+  void _trace(arg) native "Console_trace_Callback";
+
+  void warn(Object arg) {
+    _warn(arg);
+    return;
+  }
+
+  void _warn(arg) native "Console_warn_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ConvolverNodeDOMImpl extends _AudioNodeDOMImpl implements ConvolverNode {
+  _ConvolverNodeDOMImpl();
+  String get typeName() => "ConvolverNode";
+
+  AudioBuffer get buffer() native "ConvolverNode_buffer_Getter";
+
+  void set buffer(AudioBuffer) native "ConvolverNode_buffer_Setter";
+
+  bool get normalize() native "ConvolverNode_normalize_Getter";
+
+  void set normalize(bool) native "ConvolverNode_normalize_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CoordinatesDOMImpl extends _DOMWrapperBase implements Coordinates {
+  _CoordinatesDOMImpl();
+  String get typeName() => "Coordinates";
+
+  num get accuracy() native "Coordinates_accuracy_Getter";
+
+  num get altitude() native "Coordinates_altitude_Getter";
+
+  num get altitudeAccuracy() native "Coordinates_altitudeAccuracy_Getter";
+
+  num get heading() native "Coordinates_heading_Getter";
+
+  num get latitude() native "Coordinates_latitude_Getter";
+
+  num get longitude() native "Coordinates_longitude_Getter";
+
+  num get speed() native "Coordinates_speed_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CounterDOMImpl extends _DOMWrapperBase implements Counter {
+  _CounterDOMImpl();
+  String get typeName() => "Counter";
+
+  String get identifier() native "Counter_identifier_Getter";
+
+  String get listStyle() native "Counter_listStyle_Getter";
+
+  String get separator() native "Counter_separator_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CryptoDOMImpl extends _DOMWrapperBase implements Crypto {
+  _CryptoDOMImpl();
+  String get typeName() => "Crypto";
+
+  void getRandomValues(ArrayBufferView array) {
+    _getRandomValues(array);
+    return;
+  }
+
+  void _getRandomValues(array) native "Crypto_getRandomValues_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _CustomEventDOMImpl extends _EventDOMImpl implements CustomEvent {
+  _CustomEventDOMImpl();
+  String get typeName() => "CustomEvent";
+
+  Object get detail() native "CustomEvent_detail_Getter";
+
+  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
+    _initCustomEvent(typeArg, canBubbleArg, cancelableArg, detailArg);
+    return;
+  }
+
+  void _initCustomEvent(typeArg, canBubbleArg, cancelableArg, detailArg) native "CustomEvent_initCustomEvent_Callback";
+
+}
+
+class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
+  _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get cached() => _get('cached');
+  EventListenerList get checking() => _get('checking');
+  EventListenerList get downloading() => _get('downloading');
+  EventListenerList get error() => _get('error');
+  EventListenerList get noUpdate() => _get('noupdate');
+  EventListenerList get obsolete() => _get('obsolete');
+  EventListenerList get progress() => _get('progress');
+  EventListenerList get updateReady() => _get('updateready');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMApplicationCacheDOMImpl extends _DOMWrapperBase implements DOMApplicationCache {
+  _DOMApplicationCacheDOMImpl();
+  String get typeName() => "DOMApplicationCache";
+  _EventsImpl _on;
+
+  _DOMApplicationCacheEventsImpl get on() {
+    if (_on === null) _on = new _DOMApplicationCacheEventsImpl(this);
+    return _on;
+  }
+
+  int get status() native "DOMApplicationCache_status_Getter";
+
+  void abort() {
+    _abort();
+    return;
+  }
+
+  void _abort() native "DOMApplicationCache_abort_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "DOMApplicationCache_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "DOMApplicationCache_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "DOMApplicationCache_removeEventListener_Callback";
+
+  void swapCache() {
+    _swapCache();
+    return;
+  }
+
+  void _swapCache() native "DOMApplicationCache_swapCache_Callback";
+
+  void update() {
+    _update();
+    return;
+  }
+
+  void _update() native "DOMApplicationCache_update_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMExceptionDOMImpl extends _DOMWrapperBase implements DOMException {
+  _DOMExceptionDOMImpl();
+  String get typeName() => "DOMException";
+
+  int get code() native "DOMException_code_Getter";
+
+  String get message() native "DOMException_message_Getter";
+
+  String get name() native "DOMException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "DOMException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMFileSystemDOMImpl extends _DOMWrapperBase implements DOMFileSystem {
+  _DOMFileSystemDOMImpl();
+  String get typeName() => "DOMFileSystem";
+
+  String get name() native "DOMFileSystem_name_Getter";
+
+  DirectoryEntry get root() native "DOMFileSystem_root_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMFileSystemSyncDOMImpl extends _DOMWrapperBase implements DOMFileSystemSync {
+  _DOMFileSystemSyncDOMImpl();
+  String get typeName() => "DOMFileSystemSync";
+
+  String get name() native "DOMFileSystemSync_name_Getter";
+
+  DirectoryEntrySync get root() native "DOMFileSystemSync_root_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMFormDataDOMImpl extends _DOMWrapperBase implements DOMFormData {
+  _DOMFormDataDOMImpl();
+  String get typeName() => "DOMFormData";
+
+  void append(String name, String value, String filename) native "DOMFormData_append_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMImplementationDOMImpl extends _DOMWrapperBase implements DOMImplementation {
+  _DOMImplementationDOMImpl();
+  String get typeName() => "DOMImplementation";
+
+  CSSStyleSheet createCSSStyleSheet(String title, String media) {
+    return _createCSSStyleSheet(title, media);
+  }
+
+  CSSStyleSheet _createCSSStyleSheet(title, media) native "DOMImplementation_createCSSStyleSheet_Callback";
+
+  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) {
+    return _createDocument(namespaceURI, qualifiedName, doctype);
+  }
+
+  Document _createDocument(namespaceURI, qualifiedName, doctype) native "DOMImplementation_createDocument_Callback";
+
+  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) {
+    return _createDocumentType(qualifiedName, publicId, systemId);
+  }
+
+  DocumentType _createDocumentType(qualifiedName, publicId, systemId) native "DOMImplementation_createDocumentType_Callback";
+
+  Document createHTMLDocument(String title) {
+    return _createHTMLDocument(title);
+  }
+
+  Document _createHTMLDocument(title) native "DOMImplementation_createHTMLDocument_Callback";
+
+  bool hasFeature(String feature, String version) {
+    return _hasFeature(feature, version);
+  }
+
+  bool _hasFeature(feature, version) native "DOMImplementation_hasFeature_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMMimeTypeArrayDOMImpl extends _DOMWrapperBase implements DOMMimeTypeArray {
+  _DOMMimeTypeArrayDOMImpl();
+  String get typeName() => "DOMMimeTypeArray";
+
+  int get length() native "DOMMimeTypeArray_length_Getter";
+
+  DOMMimeType item(int index) {
+    return _item(index);
+  }
+
+  DOMMimeType _item(index) native "DOMMimeTypeArray_item_Callback";
+
+  DOMMimeType namedItem(String name) {
+    return _namedItem(name);
+  }
+
+  DOMMimeType _namedItem(name) native "DOMMimeTypeArray_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMMimeTypeDOMImpl extends _DOMWrapperBase implements DOMMimeType {
+  _DOMMimeTypeDOMImpl();
+  String get typeName() => "DOMMimeType";
+
+  String get description() native "DOMMimeType_description_Getter";
+
+  DOMPlugin get enabledPlugin() native "DOMMimeType_enabledPlugin_Getter";
+
+  String get suffixes() native "DOMMimeType_suffixes_Getter";
+
+  String get type() native "DOMMimeType_type_Getter";
+
+}
+class _DOMParserFactoryProviderImpl {
+  static _DOMParserDOMImpl createDOMParser()
+      native "DOMParser_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMParserDOMImpl extends _DOMWrapperBase implements DOMParser {
+  _DOMParserDOMImpl();
+  String get typeName() => "DOMParser";
+
+  Document parseFromString(String str, String contentType) {
+    return _parseFromString(str, contentType);
+  }
+
+  Document _parseFromString(str, contentType) native "DOMParser_parseFromString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMPluginArrayDOMImpl extends _DOMWrapperBase implements DOMPluginArray {
+  _DOMPluginArrayDOMImpl();
+  String get typeName() => "DOMPluginArray";
+
+  int get length() native "DOMPluginArray_length_Getter";
+
+  DOMPlugin item(int index) {
+    return _item(index);
+  }
+
+  DOMPlugin _item(index) native "DOMPluginArray_item_Callback";
+
+  DOMPlugin namedItem(String name) {
+    return _namedItem(name);
+  }
+
+  DOMPlugin _namedItem(name) native "DOMPluginArray_namedItem_Callback";
+
+  void refresh(bool reload) {
+    _refresh(reload);
+    return;
+  }
+
+  void _refresh(reload) native "DOMPluginArray_refresh_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMPluginDOMImpl extends _DOMWrapperBase implements DOMPlugin {
+  _DOMPluginDOMImpl();
+  String get typeName() => "DOMPlugin";
+
+  String get description() native "DOMPlugin_description_Getter";
+
+  String get filename() native "DOMPlugin_filename_Getter";
+
+  int get length() native "DOMPlugin_length_Getter";
+
+  String get name() native "DOMPlugin_name_Getter";
+
+  DOMMimeType item(int index) {
+    return _item(index);
+  }
+
+  DOMMimeType _item(index) native "DOMPlugin_item_Callback";
+
+  DOMMimeType namedItem(String name) {
+    return _namedItem(name);
+  }
+
+  DOMMimeType _namedItem(name) native "DOMPlugin_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMSelectionDOMImpl extends _DOMWrapperBase implements DOMSelection {
+  _DOMSelectionDOMImpl();
+  String get typeName() => "DOMSelection";
+
+  Node get anchorNode() native "DOMSelection_anchorNode_Getter";
+
+  int get anchorOffset() native "DOMSelection_anchorOffset_Getter";
+
+  Node get baseNode() native "DOMSelection_baseNode_Getter";
+
+  int get baseOffset() native "DOMSelection_baseOffset_Getter";
+
+  Node get extentNode() native "DOMSelection_extentNode_Getter";
+
+  int get extentOffset() native "DOMSelection_extentOffset_Getter";
+
+  Node get focusNode() native "DOMSelection_focusNode_Getter";
+
+  int get focusOffset() native "DOMSelection_focusOffset_Getter";
+
+  bool get isCollapsed() native "DOMSelection_isCollapsed_Getter";
+
+  int get rangeCount() native "DOMSelection_rangeCount_Getter";
+
+  String get type() native "DOMSelection_type_Getter";
+
+  void addRange(Range range) {
+    _addRange(range);
+    return;
+  }
+
+  void _addRange(range) native "DOMSelection_addRange_Callback";
+
+  void collapse(Node node, int index) {
+    _collapse(node, index);
+    return;
+  }
+
+  void _collapse(node, index) native "DOMSelection_collapse_Callback";
+
+  void collapseToEnd() {
+    _collapseToEnd();
+    return;
+  }
+
+  void _collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
+
+  void collapseToStart() {
+    _collapseToStart();
+    return;
+  }
+
+  void _collapseToStart() native "DOMSelection_collapseToStart_Callback";
+
+  bool containsNode(Node node, bool allowPartial) {
+    return _containsNode(node, allowPartial);
+  }
+
+  bool _containsNode(node, allowPartial) native "DOMSelection_containsNode_Callback";
+
+  void deleteFromDocument() {
+    _deleteFromDocument();
+    return;
+  }
+
+  void _deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
+
+  void empty() {
+    _empty();
+    return;
+  }
+
+  void _empty() native "DOMSelection_empty_Callback";
+
+  void extend(Node node, int offset) {
+    _extend(node, offset);
+    return;
+  }
+
+  void _extend(node, offset) native "DOMSelection_extend_Callback";
+
+  Range getRangeAt(int index) {
+    return _getRangeAt(index);
+  }
+
+  Range _getRangeAt(index) native "DOMSelection_getRangeAt_Callback";
+
+  void modify(String alter, String direction, String granularity) {
+    _modify(alter, direction, granularity);
+    return;
+  }
+
+  void _modify(alter, direction, granularity) native "DOMSelection_modify_Callback";
+
+  void removeAllRanges() {
+    _removeAllRanges();
+    return;
+  }
+
+  void _removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
+
+  void selectAllChildren(Node node) {
+    _selectAllChildren(node);
+    return;
+  }
+
+  void _selectAllChildren(node) native "DOMSelection_selectAllChildren_Callback";
+
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) {
+    _setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset);
+    return;
+  }
+
+  void _setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
+
+  void setPosition(Node node, int offset) {
+    _setPosition(node, offset);
+    return;
+  }
+
+  void _setPosition(node, offset) native "DOMSelection_setPosition_Callback";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "DOMSelection_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMSettableTokenListDOMImpl extends _DOMTokenListDOMImpl implements DOMSettableTokenList {
+  _DOMSettableTokenListDOMImpl();
+  String get typeName() => "DOMSettableTokenList";
+
+  String get value() native "DOMSettableTokenList_value_Getter";
+
+  void set value(String) native "DOMSettableTokenList_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMStringListDOMImpl extends _DOMWrapperBase implements DOMStringList {
+  _DOMStringListDOMImpl();
+  String get typeName() => "DOMStringList";
+
+  int get length() native "DOMStringList_length_Getter";
+
+  String operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(String a, String b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(String element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(String element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  String removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  String last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(String element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(String element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<String> filter(bool f(String element)) {
+    return _Collections.filter(this, new List<String>(), f);
+  }
+
+  bool every(bool f(String element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(String element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<String> iterator() {
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  bool contains(String string) {
+    return _contains(string);
+  }
+
+  bool _contains(string) native "DOMStringList_contains_Callback";
+
+  String item(int index) {
+    return _item(index);
+  }
+
+  String _item(index) native "DOMStringList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMTokenListDOMImpl extends _DOMWrapperBase implements DOMTokenList {
+  _DOMTokenListDOMImpl();
+  String get typeName() => "DOMTokenList";
+
+  int get length() native "DOMTokenList_length_Getter";
+
+  void add(String token) {
+    _add(token);
+    return;
+  }
+
+  void _add(token) native "DOMTokenList_add_Callback";
+
+  bool contains(String token) {
+    return _contains(token);
+  }
+
+  bool _contains(token) native "DOMTokenList_contains_Callback";
+
+  String item(int index) {
+    return _item(index);
+  }
+
+  String _item(index) native "DOMTokenList_item_Callback";
+
+  void remove(String token) {
+    _remove(token);
+    return;
+  }
+
+  void _remove(token) native "DOMTokenList_remove_Callback";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "DOMTokenList_toString_Callback";
+
+  bool toggle(String token) {
+    return _toggle(token);
+  }
+
+  bool _toggle(token) native "DOMTokenList_toggle_Callback";
+
+}
+class _DOMURLFactoryProviderImpl {
+  static _DOMURLDOMImpl createDOMURL()
+      native "DOMURL_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMURLDOMImpl extends _DOMWrapperBase implements DOMURL {
+  _DOMURLDOMImpl();
+  String get typeName() => "DOMURL";
+
+  static String createObjectURL(blob_OR_stream) {
+    //
+    // createObjectURL(MediaStream stream)
+    // createObjectURL(Blob blob)
+    //
+    if ((blob_OR_stream === null || blob_OR_stream is MediaStream)) {
+      return _createObjectURL(blob_OR_stream);
+    }
+    if ((blob_OR_stream === null || blob_OR_stream is Blob)) {
+      return _createObjectURL_2(blob_OR_stream);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  static String _createObjectURL(blob_OR_stream) native "DOMURL_createObjectURL_Callback";
+
+  static String _createObjectURL_2(blob_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+
+  static void revokeObjectURL(String url) {
+    _revokeObjectURL(url);
+    return;
+  }
+
+  static void _revokeObjectURL(url) native "DOMURL_revokeObjectURL_Callback";
+
+}
+
+class _DOMWindowEventsImpl extends _EventsImpl implements WindowEvents {
+  _DOMWindowEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get animationEnd() => _get('webkitAnimationEnd');
+  EventListenerList get animationIteration() => _get('webkitAnimationIteration');
+  EventListenerList get animationStart() => _get('webkitAnimationStart');
+  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get blur() => _get('blur');
+  EventListenerList get canPlay() => _get('canplay');
+  EventListenerList get canPlayThrough() => _get('canplaythrough');
+  EventListenerList get change() => _get('change');
+  EventListenerList get click() => _get('click');
+  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get deviceMotion() => _get('devicemotion');
+  EventListenerList get deviceOrientation() => _get('deviceorientation');
+  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get drag() => _get('drag');
+  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get drop() => _get('drop');
+  EventListenerList get durationChange() => _get('durationchange');
+  EventListenerList get emptied() => _get('emptied');
+  EventListenerList get ended() => _get('ended');
+  EventListenerList get error() => _get('error');
+  EventListenerList get focus() => _get('focus');
+  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get input() => _get('input');
+  EventListenerList get invalid() => _get('invalid');
+  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get load() => _get('load');
+  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get loadedData() => _get('loadeddata');
+  EventListenerList get loadedMetadata() => _get('loadedmetadata');
+  EventListenerList get message() => _get('message');
+  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get offline() => _get('offline');
+  EventListenerList get online() => _get('online');
+  EventListenerList get pageHide() => _get('pagehide');
+  EventListenerList get pageShow() => _get('pageshow');
+  EventListenerList get pause() => _get('pause');
+  EventListenerList get play() => _get('play');
+  EventListenerList get playing() => _get('playing');
+  EventListenerList get popState() => _get('popstate');
+  EventListenerList get progress() => _get('progress');
+  EventListenerList get rateChange() => _get('ratechange');
+  EventListenerList get reset() => _get('reset');
+  EventListenerList get resize() => _get('resize');
+  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get search() => _get('search');
+  EventListenerList get seeked() => _get('seeked');
+  EventListenerList get seeking() => _get('seeking');
+  EventListenerList get select() => _get('select');
+  EventListenerList get stalled() => _get('stalled');
+  EventListenerList get storage() => _get('storage');
+  EventListenerList get submit() => _get('submit');
+  EventListenerList get suspend() => _get('suspend');
+  EventListenerList get timeUpdate() => _get('timeupdate');
+  EventListenerList get touchCancel() => _get('touchcancel');
+  EventListenerList get touchEnd() => _get('touchend');
+  EventListenerList get touchMove() => _get('touchmove');
+  EventListenerList get touchStart() => _get('touchstart');
+  EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
+  EventListenerList get unload() => _get('unload');
+  EventListenerList get volumeChange() => _get('volumechange');
+  EventListenerList get waiting() => _get('waiting');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DOMWindowDOMImpl extends _DOMWrapperBase implements Window {
+  _DOMWindowDOMImpl();
+  String get typeName() => "DOMWindow";
+  _EventsImpl _on;
+
+  _DOMWindowEventsImpl get on() {
+    if (_on === null) _on = new _DOMWindowEventsImpl(this);
+    return _on;
+  }
+
+  DOMApplicationCache get applicationCache() native "DOMWindow_applicationCache_Getter";
+
+  Navigator get clientInformation() native "DOMWindow_clientInformation_Getter";
+
+  bool get closed() native "DOMWindow_closed_Getter";
+
+  Console get console() native "DOMWindow_console_Getter";
+
+  Crypto get crypto() native "DOMWindow_crypto_Getter";
+
+  String get defaultStatus() native "DOMWindow_defaultStatus_Getter";
+
+  void set defaultStatus(String) native "DOMWindow_defaultStatus_Setter";
+
+  String get defaultstatus() native "DOMWindow_defaultstatus_Getter";
+
+  void set defaultstatus(String) native "DOMWindow_defaultstatus_Setter";
+
+  num get devicePixelRatio() native "DOMWindow_devicePixelRatio_Getter";
+
+  Document get document() native "DOMWindow_document_Getter";
+
+  Event get event() native "DOMWindow_event_Getter";
+
+  Window get frames() native "DOMWindow_frames_Getter";
+
+  History get history() native "DOMWindow_history_Getter";
+
+  int get innerHeight() native "DOMWindow_innerHeight_Getter";
+
+  int get innerWidth() native "DOMWindow_innerWidth_Getter";
+
+  int get length() native "DOMWindow_length_Getter";
+
+  Storage get localStorage() native "DOMWindow_localStorage_Getter";
+
+  Location get location() native "DOMWindow_location_Getter";
+
+  void set location(Location) native "DOMWindow_location_Setter";
+
+  BarInfo get locationbar() native "DOMWindow_locationbar_Getter";
+
+  BarInfo get menubar() native "DOMWindow_menubar_Getter";
+
+  String get name() native "DOMWindow_name_Getter";
+
+  void set name(String) native "DOMWindow_name_Setter";
+
+  Navigator get navigator() native "DOMWindow_navigator_Getter";
+
+  bool get offscreenBuffering() native "DOMWindow_offscreenBuffering_Getter";
+
+  Window get opener() native "DOMWindow_opener_Getter";
+
+  int get outerHeight() native "DOMWindow_outerHeight_Getter";
+
+  int get outerWidth() native "DOMWindow_outerWidth_Getter";
+
+  int get pageXOffset() native "DOMWindow_pageXOffset_Getter";
+
+  int get pageYOffset() native "DOMWindow_pageYOffset_Getter";
+
+  Window get parent() native "DOMWindow_parent_Getter";
+
+  Performance get performance() native "DOMWindow_performance_Getter";
+
+  BarInfo get personalbar() native "DOMWindow_personalbar_Getter";
+
+  Screen get screen() native "DOMWindow_screen_Getter";
+
+  int get screenLeft() native "DOMWindow_screenLeft_Getter";
+
+  int get screenTop() native "DOMWindow_screenTop_Getter";
+
+  int get screenX() native "DOMWindow_screenX_Getter";
+
+  int get screenY() native "DOMWindow_screenY_Getter";
+
+  int get scrollX() native "DOMWindow_scrollX_Getter";
+
+  int get scrollY() native "DOMWindow_scrollY_Getter";
+
+  BarInfo get scrollbars() native "DOMWindow_scrollbars_Getter";
+
+  Window get self() native "DOMWindow_self_Getter";
+
+  Storage get sessionStorage() native "DOMWindow_sessionStorage_Getter";
+
+  String get status() native "DOMWindow_status_Getter";
+
+  void set status(String) native "DOMWindow_status_Setter";
+
+  BarInfo get statusbar() native "DOMWindow_statusbar_Getter";
+
+  StyleMedia get styleMedia() native "DOMWindow_styleMedia_Getter";
+
+  BarInfo get toolbar() native "DOMWindow_toolbar_Getter";
+
+  Window get top() native "DOMWindow_top_Getter";
+
+  IDBFactory get webkitIndexedDB() native "DOMWindow_webkitIndexedDB_Getter";
+
+  NotificationCenter get webkitNotifications() native "DOMWindow_webkitNotifications_Getter";
+
+  StorageInfo get webkitStorageInfo() native "DOMWindow_webkitStorageInfo_Getter";
+
+  Window get window() native "DOMWindow_window_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "DOMWindow_addEventListener_Callback";
+
+  void alert(String message) {
+    _alert(message);
+    return;
+  }
+
+  void _alert(message) native "DOMWindow_alert_Callback";
+
+  String atob(String string) {
+    return _atob(string);
+  }
+
+  String _atob(string) native "DOMWindow_atob_Callback";
+
+  void blur() {
+    _blur();
+    return;
+  }
+
+  void _blur() native "DOMWindow_blur_Callback";
+
+  String btoa(String string) {
+    return _btoa(string);
+  }
+
+  String _btoa(string) native "DOMWindow_btoa_Callback";
+
+  void captureEvents() {
+    _captureEvents();
+    return;
+  }
+
+  void _captureEvents() native "DOMWindow_captureEvents_Callback";
+
+  void clearInterval(int handle) {
+    _clearInterval(handle);
+    return;
+  }
+
+  void _clearInterval(handle) native "DOMWindow_clearInterval_Callback";
+
+  void clearTimeout(int handle) {
+    _clearTimeout(handle);
+    return;
+  }
+
+  void _clearTimeout(handle) native "DOMWindow_clearTimeout_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "DOMWindow_close_Callback";
+
+  bool confirm(String message) {
+    return _confirm(message);
+  }
+
+  bool _confirm(message) native "DOMWindow_confirm_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "DOMWindow_dispatchEvent_Callback";
+
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) {
+    return _find(string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
+  }
+
+  bool _find(string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) native "DOMWindow_find_Callback";
+
+  void focus() {
+    _focus();
+    return;
+  }
+
+  void _focus() native "DOMWindow_focus_Callback";
+
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) {
+    return _getComputedStyle(element, pseudoElement);
+  }
+
+  CSSStyleDeclaration _getComputedStyle(element, pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) {
+    return _getMatchedCSSRules(element, pseudoElement);
+  }
+
+  CSSRuleList _getMatchedCSSRules(element, pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+
+  DOMSelection getSelection() {
+    return _getSelection();
+  }
+
+  DOMSelection _getSelection() native "DOMWindow_getSelection_Callback";
+
+  MediaQueryList matchMedia(String query) {
+    return _matchMedia(query);
+  }
+
+  MediaQueryList _matchMedia(query) native "DOMWindow_matchMedia_Callback";
+
+  void moveBy(num x, num y) {
+    _moveBy(x, y);
+    return;
+  }
+
+  void _moveBy(x, y) native "DOMWindow_moveBy_Callback";
+
+  void moveTo(num x, num y) {
+    _moveTo(x, y);
+    return;
+  }
+
+  void _moveTo(x, y) native "DOMWindow_moveTo_Callback";
+
+  Window open(String url, String name, [String options = null]) native "DOMWindow_open_Callback";
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    return _openDatabase(name, version, displayName, estimatedSize, creationCallback);
+  }
+
+  Database _openDatabase(name, version, displayName, estimatedSize, creationCallback) native "DOMWindow_openDatabase_Callback";
+
+  void postMessage(message, String targetOrigin, [List messagePorts = null]) native "DOMWindow_postMessage_Callback";
+
+  void print() {
+    _print();
+    return;
+  }
+
+  void _print() native "DOMWindow_print_Callback";
+
+  String prompt(String message, String defaultValue) {
+    return _prompt(message, defaultValue);
+  }
+
+  String _prompt(message, defaultValue) native "DOMWindow_prompt_Callback";
+
+  void releaseEvents() {
+    _releaseEvents();
+    return;
+  }
+
+  void _releaseEvents() native "DOMWindow_releaseEvents_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "DOMWindow_removeEventListener_Callback";
+
+  void resizeBy(num x, num y) {
+    _resizeBy(x, y);
+    return;
+  }
+
+  void _resizeBy(x, y) native "DOMWindow_resizeBy_Callback";
+
+  void resizeTo(num width, num height) {
+    _resizeTo(width, height);
+    return;
+  }
+
+  void _resizeTo(width, height) native "DOMWindow_resizeTo_Callback";
+
+  void scroll(int x, int y) {
+    _scroll(x, y);
+    return;
+  }
+
+  void _scroll(x, y) native "DOMWindow_scroll_Callback";
+
+  void scrollBy(int x, int y) {
+    _scrollBy(x, y);
+    return;
+  }
+
+  void _scrollBy(x, y) native "DOMWindow_scrollBy_Callback";
+
+  void scrollTo(int x, int y) {
+    _scrollTo(x, y);
+    return;
+  }
+
+  void _scrollTo(x, y) native "DOMWindow_scrollTo_Callback";
+
+  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
+
+  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
+
+  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) native "DOMWindow_showModalDialog_Callback";
+
+  void stop() {
+    _stop();
+    return;
+  }
+
+  void _stop() native "DOMWindow_stop_Callback";
+
+  void webkitCancelAnimationFrame(int id) {
+    _webkitCancelAnimationFrame(id);
+    return;
+  }
+
+  void _webkitCancelAnimationFrame(id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+
+  void webkitCancelRequestAnimationFrame(int id) {
+    _webkitCancelRequestAnimationFrame(id);
+    return;
+  }
+
+  void _webkitCancelRequestAnimationFrame(id) native "DOMWindow_webkitCancelRequestAnimationFrame_Callback";
+
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) {
+    if ((p === null || p is Point)) {
+      return _webkitConvertPointFromNodeToPage(node, p);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  Point _webkitConvertPointFromNodeToPage(node, p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+
+  Point webkitConvertPointFromPageToNode(Node node, Point p) {
+    if ((p === null || p is Point)) {
+      return _webkitConvertPointFromPageToNode(node, p);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  Point _webkitConvertPointFromPageToNode(node, p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+
+  void webkitPostMessage(message, String targetOrigin, [List transferList = null]) native "DOMWindow_webkitPostMessage_Callback";
+
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) {
+    return _webkitRequestAnimationFrame(callback);
+  }
+
+  int _webkitRequestAnimationFrame(callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
+
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _webkitRequestFileSystem(type, size, successCallback, errorCallback);
+    return;
+  }
+
+  void _webkitRequestFileSystem(type, size, successCallback, errorCallback) native "DOMWindow_webkitRequestFileSystem_Callback";
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    _webkitResolveLocalFileSystemURL(url, successCallback, errorCallback);
+    return;
+  }
+
+  void _webkitResolveLocalFileSystemURL(url, successCallback, errorCallback) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DataTransferItemDOMImpl extends _DOMWrapperBase implements DataTransferItem {
+  _DataTransferItemDOMImpl();
+  String get typeName() => "DataTransferItem";
+
+  String get kind() native "DataTransferItem_kind_Getter";
+
+  String get type() native "DataTransferItem_type_Getter";
+
+  Blob getAsFile() {
+    return _getAsFile();
+  }
+
+  Blob _getAsFile() native "DataTransferItem_getAsFile_Callback";
+
+  void getAsString([StringCallback callback = null]) {
+    _getAsString(callback);
+    return;
+  }
+
+  void _getAsString(callback) native "DataTransferItem_getAsString_Callback";
+
+  void webkitGetAsEntry([EntryCallback callback = null]) {
+    _webkitGetAsEntry(callback);
+    return;
+  }
+
+  void _webkitGetAsEntry(callback) native "DataTransferItem_webkitGetAsEntry_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DataTransferItemListDOMImpl extends _DOMWrapperBase implements DataTransferItemList {
+  _DataTransferItemListDOMImpl();
+  String get typeName() => "DataTransferItemList";
+
+  int get length() native "DataTransferItemList_length_Getter";
+
+  void add(data_OR_file, [String type = null]) {
+    //
+    // add(File file)
+    // add(String data, String type)
+    //
+    if ((data_OR_file === null || data_OR_file is File) && type === null) {
+      _add(data_OR_file);
+      return;
+    }
+    if ((data_OR_file === null || data_OR_file is String)) {
+      _add_2(data_OR_file, type);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _add(data_OR_file) native "DataTransferItemList_add_Callback";
+
+  void _add_2(data_OR_file, type) native "DataTransferItemList_add_2_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "DataTransferItemList_clear_Callback";
+
+  DataTransferItem item(int index) {
+    return _item(index);
+  }
+
+  DataTransferItem _item(index) native "DataTransferItemList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DataViewDOMImpl extends _ArrayBufferViewDOMImpl implements DataView {
+  _DataViewDOMImpl();
+  String get typeName() => "DataView";
+
+  num getFloat32(int byteOffset, [bool littleEndian = null]) {
+    //
+    // getFloat32(int byteOffset)
+    // getFloat32(int byteOffset, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // getFloat32(int byteOffset, [Optional] bool littleEndian)
+    //
+    return _getFloat32(byteOffset, littleEndian);
+  }
+
+  num _getFloat32(byteOffset, littleEndian) native "DataView_getFloat32_Callback";
+
+  num getFloat64(int byteOffset, [bool littleEndian = null]) {
+    //
+    // getFloat64(int byteOffset)
+    // getFloat64(int byteOffset, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // getFloat64(int byteOffset, [Optional] bool littleEndian)
+    //
+    return _getFloat64(byteOffset, littleEndian);
+  }
+
+  num _getFloat64(byteOffset, littleEndian) native "DataView_getFloat64_Callback";
+
+  int getInt16(int byteOffset, [bool littleEndian = null]) {
+    //
+    // getInt16(int byteOffset)
+    // getInt16(int byteOffset, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // getInt16(int byteOffset, [Optional] bool littleEndian)
+    //
+    return _getInt16(byteOffset, littleEndian);
+  }
+
+  int _getInt16(byteOffset, littleEndian) native "DataView_getInt16_Callback";
+
+  int getInt32(int byteOffset, [bool littleEndian = null]) {
+    //
+    // getInt32(int byteOffset)
+    // getInt32(int byteOffset, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // getInt32(int byteOffset, [Optional] bool littleEndian)
+    //
+    return _getInt32(byteOffset, littleEndian);
+  }
+
+  int _getInt32(byteOffset, littleEndian) native "DataView_getInt32_Callback";
+
+  Object getInt8() native "DataView_getInt8_Callback";
+
+  int getUint16(int byteOffset, [bool littleEndian = null]) {
+    //
+    // getUint16(int byteOffset)
+    // getUint16(int byteOffset, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // getUint16(int byteOffset, [Optional] bool littleEndian)
+    //
+    return _getUint16(byteOffset, littleEndian);
+  }
+
+  int _getUint16(byteOffset, littleEndian) native "DataView_getUint16_Callback";
+
+  int getUint32(int byteOffset, [bool littleEndian = null]) {
+    //
+    // getUint32(int byteOffset)
+    // getUint32(int byteOffset, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // getUint32(int byteOffset, [Optional] bool littleEndian)
+    //
+    return _getUint32(byteOffset, littleEndian);
+  }
+
+  int _getUint32(byteOffset, littleEndian) native "DataView_getUint32_Callback";
+
+  Object getUint8() native "DataView_getUint8_Callback";
+
+  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
+    //
+    // setFloat32(int byteOffset, num value)
+    // setFloat32(int byteOffset, num value, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // setFloat32(int byteOffset, num value, [Optional] bool littleEndian)
+    //
+    _setFloat32(byteOffset, value, littleEndian);
+    return;
+  }
+
+  void _setFloat32(byteOffset, value, littleEndian) native "DataView_setFloat32_Callback";
+
+  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
+    //
+    // setFloat64(int byteOffset, num value)
+    // setFloat64(int byteOffset, num value, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // setFloat64(int byteOffset, num value, [Optional] bool littleEndian)
+    //
+    _setFloat64(byteOffset, value, littleEndian);
+    return;
+  }
+
+  void _setFloat64(byteOffset, value, littleEndian) native "DataView_setFloat64_Callback";
+
+  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
+    //
+    // setInt16(int byteOffset, int value)
+    // setInt16(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // setInt16(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    _setInt16(byteOffset, value, littleEndian);
+    return;
+  }
+
+  void _setInt16(byteOffset, value, littleEndian) native "DataView_setInt16_Callback";
+
+  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
+    //
+    // setInt32(int byteOffset, int value)
+    // setInt32(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // setInt32(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    _setInt32(byteOffset, value, littleEndian);
+    return;
+  }
+
+  void _setInt32(byteOffset, value, littleEndian) native "DataView_setInt32_Callback";
+
+  void setInt8() native "DataView_setInt8_Callback";
+
+  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
+    //
+    // setUint16(int byteOffset, int value)
+    // setUint16(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // setUint16(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    _setUint16(byteOffset, value, littleEndian);
+    return;
+  }
+
+  void _setUint16(byteOffset, value, littleEndian) native "DataView_setUint16_Callback";
+
+  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
+    //
+    // setUint32(int byteOffset, int value)
+    // setUint32(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    // -- reduced:
+    // setUint32(int byteOffset, int value, [Optional] bool littleEndian)
+    //
+    _setUint32(byteOffset, value, littleEndian);
+    return;
+  }
+
+  void _setUint32(byteOffset, value, littleEndian) native "DataView_setUint32_Callback";
+
+  void setUint8() native "DataView_setUint8_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DatabaseDOMImpl extends _DOMWrapperBase implements Database {
+  _DatabaseDOMImpl();
+  String get typeName() => "Database";
+
+  String get version() native "Database_version_Getter";
+
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
+    _changeVersion(oldVersion, newVersion, callback, errorCallback, successCallback);
+    return;
+  }
+
+  void _changeVersion(oldVersion, newVersion, callback, errorCallback, successCallback) native "Database_changeVersion_Callback";
+
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
+    _readTransaction(callback, errorCallback, successCallback);
+    return;
+  }
+
+  void _readTransaction(callback, errorCallback, successCallback) native "Database_readTransaction_Callback";
+
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
+    _transaction(callback, errorCallback, successCallback);
+    return;
+  }
+
+  void _transaction(callback, errorCallback, successCallback) native "Database_transaction_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DatabaseSyncDOMImpl extends _DOMWrapperBase implements DatabaseSync {
+  _DatabaseSyncDOMImpl();
+  String get typeName() => "DatabaseSync";
+
+  String get lastErrorMessage() native "DatabaseSync_lastErrorMessage_Getter";
+
+  String get version() native "DatabaseSync_version_Getter";
+
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) {
+    _changeVersion(oldVersion, newVersion, callback);
+    return;
+  }
+
+  void _changeVersion(oldVersion, newVersion, callback) native "DatabaseSync_changeVersion_Callback";
+
+  void readTransaction(SQLTransactionSyncCallback callback) {
+    _readTransaction(callback);
+    return;
+  }
+
+  void _readTransaction(callback) native "DatabaseSync_readTransaction_Callback";
+
+  void transaction(SQLTransactionSyncCallback callback) {
+    _transaction(callback);
+    return;
+  }
+
+  void _transaction(callback) native "DatabaseSync_transaction_Callback";
+
+}
+
+class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
+  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get message() => _get('message');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DedicatedWorkerContextDOMImpl extends _WorkerContextDOMImpl implements DedicatedWorkerContext {
+  _DedicatedWorkerContextDOMImpl();
+  String get typeName() => "DedicatedWorkerContext";
+
+  _DedicatedWorkerContextEventsImpl get on() {
+    if (_on === null) _on = new _DedicatedWorkerContextEventsImpl(this);
+    return _on;
+  }
+
+  void postMessage(Object message, [List messagePorts = null]) native "DedicatedWorkerContext_postMessage_Callback";
+
+  void webkitPostMessage(Object message, [List transferList = null]) native "DedicatedWorkerContext_webkitPostMessage_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DelayNodeDOMImpl extends _AudioNodeDOMImpl implements DelayNode {
+  _DelayNodeDOMImpl();
+  String get typeName() => "DelayNode";
+
+  AudioParam get delayTime() native "DelayNode_delayTime_Getter";
+
+}
+class _DeprecatedPeerConnectionFactoryProviderImpl {
+  static _DeprecatedPeerConnectionDOMImpl createDeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback)
+      native "DeprecatedPeerConnection_constructor_Callback";
+}
+class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
+  _DeprecatedPeerConnectionEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get addStream() => _get('addstream');
+  EventListenerList get connecting() => _get('connecting');
+  EventListenerList get message() => _get('message');
+  EventListenerList get open() => _get('open');
+  EventListenerList get removeStream() => _get('removestream');
+  EventListenerList get stateChange() => _get('statechange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DeprecatedPeerConnectionDOMImpl extends _DOMWrapperBase implements DeprecatedPeerConnection {
+  _DeprecatedPeerConnectionDOMImpl();
+  String get typeName() => "DeprecatedPeerConnection";
+  _EventsImpl _on;
+
+  _DeprecatedPeerConnectionEventsImpl get on() {
+    if (_on === null) _on = new _DeprecatedPeerConnectionEventsImpl(this);
+    return _on;
+  }
+
+  MediaStreamList get localStreams() native "DeprecatedPeerConnection_localStreams_Getter";
+
+  int get readyState() native "DeprecatedPeerConnection_readyState_Getter";
+
+  MediaStreamList get remoteStreams() native "DeprecatedPeerConnection_remoteStreams_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "DeprecatedPeerConnection_addEventListener_Callback";
+
+  void addStream(MediaStream stream) {
+    _addStream(stream);
+    return;
+  }
+
+  void _addStream(stream) native "DeprecatedPeerConnection_addStream_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "DeprecatedPeerConnection_close_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "DeprecatedPeerConnection_dispatchEvent_Callback";
+
+  void processSignalingMessage(String message) {
+    _processSignalingMessage(message);
+    return;
+  }
+
+  void _processSignalingMessage(message) native "DeprecatedPeerConnection_processSignalingMessage_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "DeprecatedPeerConnection_removeEventListener_Callback";
+
+  void removeStream(MediaStream stream) {
+    _removeStream(stream);
+    return;
+  }
+
+  void _removeStream(stream) native "DeprecatedPeerConnection_removeStream_Callback";
+
+  void send(String text) {
+    _send(text);
+    return;
+  }
+
+  void _send(text) native "DeprecatedPeerConnection_send_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DeviceMotionEventDOMImpl extends _EventDOMImpl implements DeviceMotionEvent {
+  _DeviceMotionEventDOMImpl();
+  String get typeName() => "DeviceMotionEvent";
+
+  num get interval() native "DeviceMotionEvent_interval_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DeviceOrientationEventDOMImpl extends _EventDOMImpl implements DeviceOrientationEvent {
+  _DeviceOrientationEventDOMImpl();
+  String get typeName() => "DeviceOrientationEvent";
+
+  bool get absolute() native "DeviceOrientationEvent_absolute_Getter";
+
+  num get alpha() native "DeviceOrientationEvent_alpha_Getter";
+
+  num get beta() native "DeviceOrientationEvent_beta_Getter";
+
+  num get gamma() native "DeviceOrientationEvent_gamma_Getter";
+
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DirectoryEntryDOMImpl extends _EntryDOMImpl implements DirectoryEntry {
+  _DirectoryEntryDOMImpl();
+  String get typeName() => "DirectoryEntry";
+
+  DirectoryReader createReader() {
+    return _createReader();
+  }
+
+  DirectoryReader _createReader() native "DirectoryEntry_createReader_Callback";
+
+  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DirectoryEntry_getDirectory_Callback";
+
+  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DirectoryEntry_getFile_Callback";
+
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _removeRecursively(successCallback, errorCallback);
+    return;
+  }
+
+  void _removeRecursively(successCallback, errorCallback) native "DirectoryEntry_removeRecursively_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DirectoryEntrySyncDOMImpl extends _EntrySyncDOMImpl implements DirectoryEntrySync {
+  _DirectoryEntrySyncDOMImpl();
+  String get typeName() => "DirectoryEntrySync";
+
+  DirectoryReaderSync createReader() {
+    return _createReader();
+  }
+
+  DirectoryReaderSync _createReader() native "DirectoryEntrySync_createReader_Callback";
+
+  DirectoryEntrySync getDirectory(String path, Object flags) native "DirectoryEntrySync_getDirectory_Callback";
+
+  FileEntrySync getFile(String path, Object flags) native "DirectoryEntrySync_getFile_Callback";
+
+  void removeRecursively() {
+    _removeRecursively();
+    return;
+  }
+
+  void _removeRecursively() native "DirectoryEntrySync_removeRecursively_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DirectoryReaderDOMImpl extends _DOMWrapperBase implements DirectoryReader {
+  _DirectoryReaderDOMImpl();
+  String get typeName() => "DirectoryReader";
+
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _readEntries(successCallback, errorCallback);
+    return;
+  }
+
+  void _readEntries(successCallback, errorCallback) native "DirectoryReader_readEntries_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DirectoryReaderSyncDOMImpl extends _DOMWrapperBase implements DirectoryReaderSync {
+  _DirectoryReaderSyncDOMImpl();
+  String get typeName() => "DirectoryReaderSync";
+
+  EntryArraySync readEntries() {
+    return _readEntries();
+  }
+
+  EntryArraySync _readEntries() native "DirectoryReaderSync_readEntries_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DocumentFragmentDOMImpl extends _NodeDOMImpl implements DocumentFragment {
+  _DocumentFragmentDOMImpl();
+  String get typeName() => "DocumentFragment";
+
+  _ElementEventsImpl get on() {
+    if (_on === null) _on = new _ElementEventsImpl(this);
+    return _on;
+  }
+
+  Element query(String selectors) {
+    return _querySelector(selectors);
+  }
+
+  Element _querySelector(selectors) native "DocumentFragment_querySelector_Callback";
+
+  NodeList $dom_querySelectorAll(String selectors) {
+    return _querySelectorAll(selectors);
+  }
+
+  NodeList _querySelectorAll(selectors) native "DocumentFragment_querySelectorAll_Callback";
+
+}
+
+class _DocumentEventsImpl extends _EventsImpl implements DocumentEvents {
+  _DocumentEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get beforeCopy() => _get('beforecopy');
+  EventListenerList get beforeCut() => _get('beforecut');
+  EventListenerList get beforePaste() => _get('beforepaste');
+  EventListenerList get blur() => _get('blur');
+  EventListenerList get change() => _get('change');
+  EventListenerList get click() => _get('click');
+  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get copy() => _get('copy');
+  EventListenerList get cut() => _get('cut');
+  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get drag() => _get('drag');
+  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get drop() => _get('drop');
+  EventListenerList get error() => _get('error');
+  EventListenerList get focus() => _get('focus');
+  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
+  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
+  EventListenerList get input() => _get('input');
+  EventListenerList get invalid() => _get('invalid');
+  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get load() => _get('load');
+  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get paste() => _get('paste');
+  EventListenerList get readyStateChange() => _get('readystatechange');
+  EventListenerList get reset() => _get('reset');
+  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get search() => _get('search');
+  EventListenerList get select() => _get('select');
+  EventListenerList get selectStart() => _get('selectstart');
+  EventListenerList get selectionChange() => _get('selectionchange');
+  EventListenerList get submit() => _get('submit');
+  EventListenerList get touchCancel() => _get('touchcancel');
+  EventListenerList get touchEnd() => _get('touchend');
+  EventListenerList get touchMove() => _get('touchmove');
+  EventListenerList get touchStart() => _get('touchstart');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DocumentDOMImpl extends _NodeDOMImpl implements Document {
+  _DocumentDOMImpl();
+  String get typeName() => "Document";
+
+  _DocumentEventsImpl get on() {
+    if (_on === null) _on = new _DocumentEventsImpl(this);
+    return _on;
+  }
+
+  Element get body() native "Document_body_Getter";
+
+  void set body(Element) native "Document_body_Setter";
+
+  String get charset() native "Document_charset_Getter";
+
+  void set charset(String) native "Document_charset_Setter";
+
+  String get cookie() native "Document_cookie_Getter";
+
+  void set cookie(String) native "Document_cookie_Setter";
+
+  Window get window() native "Document_defaultView_Getter";
+
+  Element get documentElement() native "Document_documentElement_Getter";
+
+  String get domain() native "Document_domain_Getter";
+
+  HeadElement get head() native "Document_head_Getter";
+
+  String get lastModified() native "Document_lastModified_Getter";
+
+  String get preferredStylesheetSet() native "Document_preferredStylesheetSet_Getter";
+
+  String get readyState() native "Document_readyState_Getter";
+
+  String get referrer() native "Document_referrer_Getter";
+
+  String get selectedStylesheetSet() native "Document_selectedStylesheetSet_Getter";
+
+  void set selectedStylesheetSet(String) native "Document_selectedStylesheetSet_Setter";
+
+  StyleSheetList get styleSheets() native "Document_styleSheets_Getter";
+
+  String get title() native "Document_title_Getter";
+
+  void set title(String) native "Document_title_Setter";
+
+  Element get webkitCurrentFullScreenElement() native "Document_webkitCurrentFullScreenElement_Getter";
+
+  bool get webkitFullScreenKeyboardInputAllowed() native "Document_webkitFullScreenKeyboardInputAllowed_Getter";
+
+  Element get webkitFullscreenElement() native "Document_webkitFullscreenElement_Getter";
+
+  bool get webkitFullscreenEnabled() native "Document_webkitFullscreenEnabled_Getter";
+
+  bool get webkitHidden() native "Document_webkitHidden_Getter";
+
+  bool get webkitIsFullScreen() native "Document_webkitIsFullScreen_Getter";
+
+  String get webkitVisibilityState() native "Document_webkitVisibilityState_Getter";
+
+  Range caretRangeFromPoint(int x, int y) {
+    return _caretRangeFromPoint(x, y);
+  }
+
+  Range _caretRangeFromPoint(x, y) native "Document_caretRangeFromPoint_Callback";
+
+  CDATASection createCDATASection(String data) {
+    return _createCDATASection(data);
+  }
+
+  CDATASection _createCDATASection(data) native "Document_createCDATASection_Callback";
+
+  DocumentFragment createDocumentFragment() {
+    return _createDocumentFragment();
+  }
+
+  DocumentFragment _createDocumentFragment() native "Document_createDocumentFragment_Callback";
+
+  Element $dom_createElement(String tagName) {
+    return _createElement(tagName);
+  }
+
+  Element _createElement(tagName) native "Document_createElement_Callback";
+
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName) {
+    return _createElementNS(namespaceURI, qualifiedName);
+  }
+
+  Element _createElementNS(namespaceURI, qualifiedName) native "Document_createElementNS_Callback";
+
+  Event $dom_createEvent(String eventType) {
+    return _createEvent(eventType);
+  }
+
+  Event _createEvent(eventType) native "Document_createEvent_Callback";
+
+  Range createRange() {
+    return _createRange();
+  }
+
+  Range _createRange() native "Document_createRange_Callback";
+
+  Text $dom_createTextNode(String data) {
+    return _createTextNode(data);
+  }
+
+  Text _createTextNode(data) native "Document_createTextNode_Callback";
+
+  Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+    if ((window === null || window is Window)) {
+      return _createTouch(window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  Touch _createTouch(window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "Document_createTouch_Callback";
+
+  TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
+
+  Element elementFromPoint(int x, int y) {
+    return _elementFromPoint(x, y);
+  }
+
+  Element _elementFromPoint(x, y) native "Document_elementFromPoint_Callback";
+
+  bool execCommand(String command, bool userInterface, String value) {
+    return _execCommand(command, userInterface, value);
+  }
+
+  bool _execCommand(command, userInterface, value) native "Document_execCommand_Callback";
+
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
+    return _getCSSCanvasContext(contextId, name, width, height);
+  }
+
+  CanvasRenderingContext _getCSSCanvasContext(contextId, name, width, height) native "Document_getCSSCanvasContext_Callback";
+
+  Element $dom_getElementById(String elementId) {
+    return _getElementById(elementId);
+  }
+
+  Element _getElementById(elementId) native "Document_getElementById_Callback";
+
+  NodeList $dom_getElementsByClassName(String tagname) {
+    return _getElementsByClassName(tagname);
+  }
+
+  NodeList _getElementsByClassName(tagname) native "Document_getElementsByClassName_Callback";
+
+  NodeList $dom_getElementsByName(String elementName) {
+    return _getElementsByName(elementName);
+  }
+
+  NodeList _getElementsByName(elementName) native "Document_getElementsByName_Callback";
+
+  NodeList $dom_getElementsByTagName(String tagname) {
+    return _getElementsByTagName(tagname);
+  }
+
+  NodeList _getElementsByTagName(tagname) native "Document_getElementsByTagName_Callback";
+
+  bool queryCommandEnabled(String command) {
+    return _queryCommandEnabled(command);
+  }
+
+  bool _queryCommandEnabled(command) native "Document_queryCommandEnabled_Callback";
+
+  bool queryCommandIndeterm(String command) {
+    return _queryCommandIndeterm(command);
+  }
+
+  bool _queryCommandIndeterm(command) native "Document_queryCommandIndeterm_Callback";
+
+  bool queryCommandState(String command) {
+    return _queryCommandState(command);
+  }
+
+  bool _queryCommandState(command) native "Document_queryCommandState_Callback";
+
+  bool queryCommandSupported(String command) {
+    return _queryCommandSupported(command);
+  }
+
+  bool _queryCommandSupported(command) native "Document_queryCommandSupported_Callback";
+
+  String queryCommandValue(String command) {
+    return _queryCommandValue(command);
+  }
+
+  String _queryCommandValue(command) native "Document_queryCommandValue_Callback";
+
+  Element query(String selectors) {
+    return _querySelector(selectors);
+  }
+
+  Element _querySelector(selectors) native "Document_querySelector_Callback";
+
+  NodeList $dom_querySelectorAll(String selectors) {
+    return _querySelectorAll(selectors);
+  }
+
+  NodeList _querySelectorAll(selectors) native "Document_querySelectorAll_Callback";
+
+  void webkitCancelFullScreen() {
+    _webkitCancelFullScreen();
+    return;
+  }
+
+  void _webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
+
+  void webkitExitFullscreen() {
+    _webkitExitFullscreen();
+    return;
+  }
+
+  void _webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
+
+  WebKitNamedFlow webkitGetFlowByName(String name) {
+    return _webkitGetFlowByName(name);
+  }
+
+  WebKitNamedFlow _webkitGetFlowByName(name) native "Document_webkitGetFlowByName_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DocumentTypeDOMImpl extends _NodeDOMImpl implements DocumentType {
+  _DocumentTypeDOMImpl();
+  String get typeName() => "DocumentType";
+
+  NamedNodeMap get entities() native "DocumentType_entities_Getter";
+
+  String get internalSubset() native "DocumentType_internalSubset_Getter";
+
+  String get name() native "DocumentType_name_Getter";
+
+  NamedNodeMap get notations() native "DocumentType_notations_Getter";
+
+  String get publicId() native "DocumentType_publicId_Getter";
+
+  String get systemId() native "DocumentType_systemId_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _DynamicsCompressorNodeDOMImpl extends _AudioNodeDOMImpl implements DynamicsCompressorNode {
+  _DynamicsCompressorNodeDOMImpl();
+  String get typeName() => "DynamicsCompressorNode";
+
+  AudioParam get attack() native "DynamicsCompressorNode_attack_Getter";
+
+  AudioParam get knee() native "DynamicsCompressorNode_knee_Getter";
+
+  AudioParam get ratio() native "DynamicsCompressorNode_ratio_Getter";
+
+  AudioParam get reduction() native "DynamicsCompressorNode_reduction_Getter";
+
+  AudioParam get release() native "DynamicsCompressorNode_release_Getter";
+
+  AudioParam get threshold() native "DynamicsCompressorNode_threshold_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EXTTextureFilterAnisotropicDOMImpl extends _DOMWrapperBase implements EXTTextureFilterAnisotropic {
+  _EXTTextureFilterAnisotropicDOMImpl();
+  String get typeName() => "EXTTextureFilterAnisotropic";
+
+}
+
+class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
+  _ElementEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get beforeCopy() => _get('beforecopy');
+  EventListenerList get beforeCut() => _get('beforecut');
+  EventListenerList get beforePaste() => _get('beforepaste');
+  EventListenerList get blur() => _get('blur');
+  EventListenerList get change() => _get('change');
+  EventListenerList get click() => _get('click');
+  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get copy() => _get('copy');
+  EventListenerList get cut() => _get('cut');
+  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get drag() => _get('drag');
+  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get drop() => _get('drop');
+  EventListenerList get error() => _get('error');
+  EventListenerList get focus() => _get('focus');
+  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
+  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
+  EventListenerList get input() => _get('input');
+  EventListenerList get invalid() => _get('invalid');
+  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get load() => _get('load');
+  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get paste() => _get('paste');
+  EventListenerList get reset() => _get('reset');
+  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get search() => _get('search');
+  EventListenerList get select() => _get('select');
+  EventListenerList get selectStart() => _get('selectstart');
+  EventListenerList get submit() => _get('submit');
+  EventListenerList get touchCancel() => _get('touchcancel');
+  EventListenerList get touchEnd() => _get('touchend');
+  EventListenerList get touchEnter() => _get('touchenter');
+  EventListenerList get touchLeave() => _get('touchleave');
+  EventListenerList get touchMove() => _get('touchmove');
+  EventListenerList get touchStart() => _get('touchstart');
+  EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ElementDOMImpl extends _NodeDOMImpl implements Element {
+  _ElementDOMImpl();
+  String get typeName() => "Element";
+
+  _ElementEventsImpl get on() {
+    if (_on === null) _on = new _ElementEventsImpl(this);
+    return _on;
+  }
+
+  int get $dom_childElementCount() native "Element_childElementCount_Getter";
+
+  int get $dom_clientHeight() native "Element_clientHeight_Getter";
+
+  int get $dom_clientLeft() native "Element_clientLeft_Getter";
+
+  int get $dom_clientTop() native "Element_clientTop_Getter";
+
+  int get $dom_clientWidth() native "Element_clientWidth_Getter";
+
+  Map<String, String> get dataset() native "Element_dataset_Getter";
+
+  Element get $dom_firstElementChild() native "Element_firstElementChild_Getter";
+
+  Element get $dom_lastElementChild() native "Element_lastElementChild_Getter";
+
+  Element get nextElementSibling() native "Element_nextElementSibling_Getter";
+
+  int get $dom_offsetHeight() native "Element_offsetHeight_Getter";
+
+  int get $dom_offsetLeft() native "Element_offsetLeft_Getter";
+
+  Element get offsetParent() native "Element_offsetParent_Getter";
+
+  int get $dom_offsetTop() native "Element_offsetTop_Getter";
+
+  int get $dom_offsetWidth() native "Element_offsetWidth_Getter";
+
+  Element get previousElementSibling() native "Element_previousElementSibling_Getter";
+
+  int get $dom_scrollHeight() native "Element_scrollHeight_Getter";
+
+  int get $dom_scrollLeft() native "Element_scrollLeft_Getter";
+
+  void set $dom_scrollLeft(int) native "Element_scrollLeft_Setter";
+
+  int get $dom_scrollTop() native "Element_scrollTop_Getter";
+
+  void set $dom_scrollTop(int) native "Element_scrollTop_Setter";
+
+  int get $dom_scrollWidth() native "Element_scrollWidth_Getter";
+
+  CSSStyleDeclaration get style() native "Element_style_Getter";
+
+  String get tagName() native "Element_tagName_Getter";
+
+  String get webkitRegionOverflow() native "Element_webkitRegionOverflow_Getter";
+
+  void blur() {
+    _blur();
+    return;
+  }
+
+  void _blur() native "Element_blur_Callback";
+
+  void focus() {
+    _focus();
+    return;
+  }
+
+  void _focus() native "Element_focus_Callback";
+
+  String $dom_getAttribute(String name) {
+    return _getAttribute(name);
+  }
+
+  String _getAttribute(name) native "Element_getAttribute_Callback";
+
+  ClientRect $dom_getBoundingClientRect() {
+    return _getBoundingClientRect();
+  }
+
+  ClientRect _getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
+
+  ClientRectList $dom_getClientRects() {
+    return _getClientRects();
+  }
+
+  ClientRectList _getClientRects() native "Element_getClientRects_Callback";
+
+  NodeList $dom_getElementsByClassName(String name) {
+    return _getElementsByClassName(name);
+  }
+
+  NodeList _getElementsByClassName(name) native "Element_getElementsByClassName_Callback";
+
+  NodeList $dom_getElementsByTagName(String name) {
+    return _getElementsByTagName(name);
+  }
+
+  NodeList _getElementsByTagName(name) native "Element_getElementsByTagName_Callback";
+
+  bool $dom_hasAttribute(String name) {
+    return _hasAttribute(name);
+  }
+
+  bool _hasAttribute(name) native "Element_hasAttribute_Callback";
+
+  Element query(String selectors) {
+    return _querySelector(selectors);
+  }
+
+  Element _querySelector(selectors) native "Element_querySelector_Callback";
+
+  NodeList $dom_querySelectorAll(String selectors) {
+    return _querySelectorAll(selectors);
+  }
+
+  NodeList _querySelectorAll(selectors) native "Element_querySelectorAll_Callback";
+
+  void $dom_removeAttribute(String name) {
+    _removeAttribute(name);
+    return;
+  }
+
+  void _removeAttribute(name) native "Element_removeAttribute_Callback";
+
+  void scrollByLines(int lines) {
+    _scrollByLines(lines);
+    return;
+  }
+
+  void _scrollByLines(lines) native "Element_scrollByLines_Callback";
+
+  void scrollByPages(int pages) {
+    _scrollByPages(pages);
+    return;
+  }
+
+  void _scrollByPages(pages) native "Element_scrollByPages_Callback";
+
+  void scrollIntoView([bool centerIfNeeded = null]) {
+    //
+    // scrollIntoViewIfNeeded()
+    // scrollIntoViewIfNeeded([Optional] bool centerIfNeeded)
+    //
+    // -- reduced:
+    // scrollIntoViewIfNeeded([Optional] bool centerIfNeeded)
+    //
+    _scrollIntoViewIfNeeded(centerIfNeeded);
+    return;
+  }
+
+  void _scrollIntoViewIfNeeded(centerIfNeeded) native "Element_scrollIntoViewIfNeeded_Callback";
+
+  void $dom_setAttribute(String name, String value) {
+    _setAttribute(name, value);
+    return;
+  }
+
+  void _setAttribute(name, value) native "Element_setAttribute_Callback";
+
+  bool matchesSelector(String selectors) {
+    return _webkitMatchesSelector(selectors);
+  }
+
+  bool _webkitMatchesSelector(selectors) native "Element_webkitMatchesSelector_Callback";
+
+  void webkitRequestFullScreen(int flags) {
+    _webkitRequestFullScreen(flags);
+    return;
+  }
+
+  void _webkitRequestFullScreen(flags) native "Element_webkitRequestFullScreen_Callback";
+
+  void webkitRequestFullscreen() {
+    _webkitRequestFullscreen();
+    return;
+  }
+
+  void _webkitRequestFullscreen() native "Element_webkitRequestFullscreen_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EntityDOMImpl extends _NodeDOMImpl implements Entity {
+  _EntityDOMImpl();
+  String get typeName() => "Entity";
+
+  String get notationName() native "Entity_notationName_Getter";
+
+  String get publicId() native "Entity_publicId_Getter";
+
+  String get systemId() native "Entity_systemId_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EntityReferenceDOMImpl extends _NodeDOMImpl implements EntityReference {
+  _EntityReferenceDOMImpl();
+  String get typeName() => "EntityReference";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EntryArrayDOMImpl extends _DOMWrapperBase implements EntryArray {
+  _EntryArrayDOMImpl();
+  String get typeName() => "EntryArray";
+
+  int get length() native "EntryArray_length_Getter";
+
+  Entry item(int index) {
+    return _item(index);
+  }
+
+  Entry _item(index) native "EntryArray_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EntryArraySyncDOMImpl extends _DOMWrapperBase implements EntryArraySync {
+  _EntryArraySyncDOMImpl();
+  String get typeName() => "EntryArraySync";
+
+  int get length() native "EntryArraySync_length_Getter";
+
+  EntrySync item(int index) {
+    return _item(index);
+  }
+
+  EntrySync _item(index) native "EntryArraySync_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EntryDOMImpl extends _DOMWrapperBase implements Entry {
+  _EntryDOMImpl();
+  String get typeName() => "Entry";
+
+  DOMFileSystem get filesystem() native "Entry_filesystem_Getter";
+
+  String get fullPath() native "Entry_fullPath_Getter";
+
+  bool get isDirectory() native "Entry_isDirectory_Getter";
+
+  bool get isFile() native "Entry_isFile_Getter";
+
+  String get name() native "Entry_name_Getter";
+
+  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    _copyTo(parent, name, successCallback, errorCallback);
+    return;
+  }
+
+  void _copyTo(parent, name, successCallback, errorCallback) native "Entry_copyTo_Callback";
+
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _getMetadata(successCallback, errorCallback);
+    return;
+  }
+
+  void _getMetadata(successCallback, errorCallback) native "Entry_getMetadata_Callback";
+
+  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    _getParent(successCallback, errorCallback);
+    return;
+  }
+
+  void _getParent(successCallback, errorCallback) native "Entry_getParent_Callback";
+
+  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    _moveTo(parent, name, successCallback, errorCallback);
+    return;
+  }
+
+  void _moveTo(parent, name, successCallback, errorCallback) native "Entry_moveTo_Callback";
+
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _remove(successCallback, errorCallback);
+    return;
+  }
+
+  void _remove(successCallback, errorCallback) native "Entry_remove_Callback";
+
+  String toURL() {
+    return _toURL();
+  }
+
+  String _toURL() native "Entry_toURL_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EntrySyncDOMImpl extends _DOMWrapperBase implements EntrySync {
+  _EntrySyncDOMImpl();
+  String get typeName() => "EntrySync";
+
+  DOMFileSystemSync get filesystem() native "EntrySync_filesystem_Getter";
+
+  String get fullPath() native "EntrySync_fullPath_Getter";
+
+  bool get isDirectory() native "EntrySync_isDirectory_Getter";
+
+  bool get isFile() native "EntrySync_isFile_Getter";
+
+  String get name() native "EntrySync_name_Getter";
+
+  EntrySync copyTo(DirectoryEntrySync parent, String name) {
+    return _copyTo(parent, name);
+  }
+
+  EntrySync _copyTo(parent, name) native "EntrySync_copyTo_Callback";
+
+  Metadata getMetadata() {
+    return _getMetadata();
+  }
+
+  Metadata _getMetadata() native "EntrySync_getMetadata_Callback";
+
+  EntrySync getParent() {
+    return _getParent();
+  }
+
+  EntrySync _getParent() native "EntrySync_getParent_Callback";
+
+  EntrySync moveTo(DirectoryEntrySync parent, String name) {
+    return _moveTo(parent, name);
+  }
+
+  EntrySync _moveTo(parent, name) native "EntrySync_moveTo_Callback";
+
+  void remove() {
+    _remove();
+    return;
+  }
+
+  void _remove() native "EntrySync_remove_Callback";
+
+  String toURL() {
+    return _toURL();
+  }
+
+  String _toURL() native "EntrySync_toURL_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ErrorEventDOMImpl extends _EventDOMImpl implements ErrorEvent {
+  _ErrorEventDOMImpl();
+  String get typeName() => "ErrorEvent";
+
+  String get filename() native "ErrorEvent_filename_Getter";
+
+  int get lineno() native "ErrorEvent_lineno_Getter";
+
+  String get message() native "ErrorEvent_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EventExceptionDOMImpl extends _DOMWrapperBase implements EventException {
+  _EventExceptionDOMImpl();
+  String get typeName() => "EventException";
+
+  int get code() native "EventException_code_Getter";
+
+  String get message() native "EventException_message_Getter";
+
+  String get name() native "EventException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "EventException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EventDOMImpl extends _DOMWrapperBase implements Event {
+  _EventDOMImpl();
+  String get typeName() => "Event";
+
+  bool get bubbles() native "Event_bubbles_Getter";
+
+  bool get cancelBubble() native "Event_cancelBubble_Getter";
+
+  void set cancelBubble(bool) native "Event_cancelBubble_Setter";
+
+  bool get cancelable() native "Event_cancelable_Getter";
+
+  Clipboard get clipboardData() native "Event_clipboardData_Getter";
+
+  EventTarget get currentTarget() native "Event_currentTarget_Getter";
+
+  bool get defaultPrevented() native "Event_defaultPrevented_Getter";
+
+  int get eventPhase() native "Event_eventPhase_Getter";
+
+  bool get returnValue() native "Event_returnValue_Getter";
+
+  void set returnValue(bool) native "Event_returnValue_Setter";
+
+  EventTarget get srcElement() native "Event_srcElement_Getter";
+
+  EventTarget get target() native "Event_target_Getter";
+
+  int get timeStamp() native "Event_timeStamp_Getter";
+
+  String get type() native "Event_type_Getter";
+
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
+    _initEvent(eventTypeArg, canBubbleArg, cancelableArg);
+    return;
+  }
+
+  void _initEvent(eventTypeArg, canBubbleArg, cancelableArg) native "Event_initEvent_Callback";
+
+  void preventDefault() {
+    _preventDefault();
+    return;
+  }
+
+  void _preventDefault() native "Event_preventDefault_Callback";
+
+  void stopImmediatePropagation() {
+    _stopImmediatePropagation();
+    return;
+  }
+
+  void _stopImmediatePropagation() native "Event_stopImmediatePropagation_Callback";
+
+  void stopPropagation() {
+    _stopPropagation();
+    return;
+  }
+
+  void _stopPropagation() native "Event_stopPropagation_Callback";
+
+}
+class _EventSourceFactoryProviderImpl {
+  static _EventSourceDOMImpl createEventSource(String scriptUrl)
+      native "EventSource_constructor_Callback";
+}
+class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
+  _EventSourceEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get error() => _get('error');
+  EventListenerList get message() => _get('message');
+  EventListenerList get open() => _get('open');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EventSourceDOMImpl extends _DOMWrapperBase implements EventSource {
+  _EventSourceDOMImpl();
+  String get typeName() => "EventSource";
+  _EventsImpl _on;
+
+  _EventSourceEventsImpl get on() {
+    if (_on === null) _on = new _EventSourceEventsImpl(this);
+    return _on;
+  }
+
+  String get URL() native "EventSource_URL_Getter";
+
+  int get readyState() native "EventSource_readyState_Getter";
+
+  String get url() native "EventSource_url_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "EventSource_addEventListener_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "EventSource_close_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "EventSource_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "EventSource_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _EventTargetDOMImpl extends _DOMWrapperBase implements EventTarget {
+  _EventTargetDOMImpl();
+  String get typeName() => "EventTarget";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "EventTarget_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "EventTarget_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "EventTarget_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileEntryDOMImpl extends _EntryDOMImpl implements FileEntry {
+  _FileEntryDOMImpl();
+  String get typeName() => "FileEntry";
+
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _createWriter(successCallback, errorCallback);
+    return;
+  }
+
+  void _createWriter(successCallback, errorCallback) native "FileEntry_createWriter_Callback";
+
+  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
+    _file(successCallback, errorCallback);
+    return;
+  }
+
+  void _file(successCallback, errorCallback) native "FileEntry_file_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileEntrySyncDOMImpl extends _EntrySyncDOMImpl implements FileEntrySync {
+  _FileEntrySyncDOMImpl();
+  String get typeName() => "FileEntrySync";
+
+  FileWriterSync createWriter() {
+    return _createWriter();
+  }
+
+  FileWriterSync _createWriter() native "FileEntrySync_createWriter_Callback";
+
+  File file() {
+    return _file();
+  }
+
+  File _file() native "FileEntrySync_file_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileErrorDOMImpl extends _DOMWrapperBase implements FileError {
+  _FileErrorDOMImpl();
+  String get typeName() => "FileError";
+
+  int get code() native "FileError_code_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileExceptionDOMImpl extends _DOMWrapperBase implements FileException {
+  _FileExceptionDOMImpl();
+  String get typeName() => "FileException";
+
+  int get code() native "FileException_code_Getter";
+
+  String get message() native "FileException_message_Getter";
+
+  String get name() native "FileException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "FileException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileDOMImpl extends _BlobDOMImpl implements File {
+  _FileDOMImpl();
+  String get typeName() => "File";
+
+  Date get lastModifiedDate() native "File_lastModifiedDate_Getter";
+
+  String get name() native "File_name_Getter";
+
+  String get webkitRelativePath() native "File_webkitRelativePath_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileListDOMImpl extends _DOMWrapperBase implements FileList {
+  _FileListDOMImpl();
+  String get typeName() => "FileList";
+
+  int get length() native "FileList_length_Getter";
+
+  File operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, File value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(File a, File b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(File element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(File element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  File removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  File last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(File element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(File element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<File> filter(bool f(File element)) {
+    return _Collections.filter(this, new List<File>(), f);
+  }
+
+  bool every(bool f(File element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(File element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<File> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [File initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<File> iterator() {
+    return new _FixedSizeListIterator<File>(this);
+  }
+
+  File item(int index) {
+    return _item(index);
+  }
+
+  File _item(index) native "FileList_item_Callback";
+
+}
+class _FileReaderFactoryProviderImpl {
+  static _FileReaderDOMImpl createFileReader()
+      native "FileReader_constructor_Callback";
+}
+class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
+  _FileReaderEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get error() => _get('error');
+  EventListenerList get load() => _get('load');
+  EventListenerList get loadEnd() => _get('loadend');
+  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get progress() => _get('progress');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileReaderDOMImpl extends _DOMWrapperBase implements FileReader {
+  _FileReaderDOMImpl();
+  String get typeName() => "FileReader";
+  _EventsImpl _on;
+
+  _FileReaderEventsImpl get on() {
+    if (_on === null) _on = new _FileReaderEventsImpl(this);
+    return _on;
+  }
+
+  FileError get error() native "FileReader_error_Getter";
+
+  int get readyState() native "FileReader_readyState_Getter";
+
+  Object get result() native "FileReader_result_Getter";
+
+  void abort() {
+    _abort();
+    return;
+  }
+
+  void _abort() native "FileReader_abort_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "FileReader_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "FileReader_dispatchEvent_Callback";
+
+  void readAsArrayBuffer(Blob blob) {
+    _readAsArrayBuffer(blob);
+    return;
+  }
+
+  void _readAsArrayBuffer(blob) native "FileReader_readAsArrayBuffer_Callback";
+
+  void readAsBinaryString(Blob blob) {
+    _readAsBinaryString(blob);
+    return;
+  }
+
+  void _readAsBinaryString(blob) native "FileReader_readAsBinaryString_Callback";
+
+  void readAsDataURL(Blob blob) {
+    _readAsDataURL(blob);
+    return;
+  }
+
+  void _readAsDataURL(blob) native "FileReader_readAsDataURL_Callback";
+
+  void readAsText(Blob blob, [String encoding = null]) {
+    //
+    // readAsText(Blob blob)
+    // readAsText(Blob blob, [Optional] String encoding)
+    //
+    // -- reduced:
+    // readAsText(Blob blob, [Optional] String encoding)
+    //
+    _readAsText(blob, encoding);
+    return;
+  }
+
+  void _readAsText(blob, encoding) native "FileReader_readAsText_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "FileReader_removeEventListener_Callback";
+
+}
+class _FileReaderSyncFactoryProviderImpl {
+  static _FileReaderSyncDOMImpl createFileReaderSync()
+      native "FileReaderSync_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileReaderSyncDOMImpl extends _DOMWrapperBase implements FileReaderSync {
+  _FileReaderSyncDOMImpl();
+  String get typeName() => "FileReaderSync";
+
+  ArrayBuffer readAsArrayBuffer(Blob blob) {
+    return _readAsArrayBuffer(blob);
+  }
+
+  ArrayBuffer _readAsArrayBuffer(blob) native "FileReaderSync_readAsArrayBuffer_Callback";
+
+  String readAsBinaryString(Blob blob) {
+    return _readAsBinaryString(blob);
+  }
+
+  String _readAsBinaryString(blob) native "FileReaderSync_readAsBinaryString_Callback";
+
+  String readAsDataURL(Blob blob) {
+    return _readAsDataURL(blob);
+  }
+
+  String _readAsDataURL(blob) native "FileReaderSync_readAsDataURL_Callback";
+
+  String readAsText(Blob blob, [String encoding = null]) {
+    //
+    // readAsText(Blob blob)
+    // readAsText(Blob blob, [Optional] String encoding)
+    //
+    // -- reduced:
+    // readAsText(Blob blob, [Optional] String encoding)
+    //
+    return _readAsText(blob, encoding);
+  }
+
+  String _readAsText(blob, encoding) native "FileReaderSync_readAsText_Callback";
+
+}
+
+class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
+  _FileWriterEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get error() => _get('error');
+  EventListenerList get progress() => _get('progress');
+  EventListenerList get write() => _get('write');
+  EventListenerList get writeEnd() => _get('writeend');
+  EventListenerList get writeStart() => _get('writestart');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileWriterDOMImpl extends _DOMWrapperBase implements FileWriter {
+  _FileWriterDOMImpl();
+  String get typeName() => "FileWriter";
+  _EventsImpl _on;
+
+  _FileWriterEventsImpl get on() {
+    if (_on === null) _on = new _FileWriterEventsImpl(this);
+    return _on;
+  }
+
+  FileError get error() native "FileWriter_error_Getter";
+
+  int get length() native "FileWriter_length_Getter";
+
+  int get position() native "FileWriter_position_Getter";
+
+  int get readyState() native "FileWriter_readyState_Getter";
+
+  void abort() {
+    _abort();
+    return;
+  }
+
+  void _abort() native "FileWriter_abort_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "FileWriter_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "FileWriter_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "FileWriter_removeEventListener_Callback";
+
+  void seek(int position) {
+    _seek(position);
+    return;
+  }
+
+  void _seek(position) native "FileWriter_seek_Callback";
+
+  void truncate(int size) {
+    _truncate(size);
+    return;
+  }
+
+  void _truncate(size) native "FileWriter_truncate_Callback";
+
+  void write(Blob data) {
+    _write(data);
+    return;
+  }
+
+  void _write(data) native "FileWriter_write_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FileWriterSyncDOMImpl extends _DOMWrapperBase implements FileWriterSync {
+  _FileWriterSyncDOMImpl();
+  String get typeName() => "FileWriterSync";
+
+  int get length() native "FileWriterSync_length_Getter";
+
+  int get position() native "FileWriterSync_position_Getter";
+
+  void seek(int position) {
+    _seek(position);
+    return;
+  }
+
+  void _seek(position) native "FileWriterSync_seek_Callback";
+
+  void truncate(int size) {
+    _truncate(size);
+    return;
+  }
+
+  void _truncate(size) native "FileWriterSync_truncate_Callback";
+
+  void write(Blob data) {
+    _write(data);
+    return;
+  }
+
+  void _write(data) native "FileWriterSync_write_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Float32ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Float32Array {
+  _Float32ArrayDOMImpl();
+  String get typeName() => "Float32Array";
+
+  int get length() native "Float32Array_length_Getter";
+
+  num operator[](int index) native "Float32Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, num value) native "Float32Array_numericIndexSetter_Callback";
+
+  void add(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<num> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(num a, num b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(num element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(num element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  num removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  num last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(num element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(num element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<num> filter(bool f(num element)) {
+    return _Collections.filter(this, new List<num>(), f);
+  }
+
+  bool every(bool f(num element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(num element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<num> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [num initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<num> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<num> iterator() {
+    return new _FixedSizeListIterator<num>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Float32Array_setElements_Callback";
+
+  Float32Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Float32Array _subarray(start, end) native "Float32Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Float64ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Float64Array {
+  _Float64ArrayDOMImpl();
+  String get typeName() => "Float64Array";
+
+  int get length() native "Float64Array_length_Getter";
+
+  num operator[](int index) native "Float64Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, num value) native "Float64Array_numericIndexSetter_Callback";
+
+  void add(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<num> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(num a, num b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(num element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(num element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  num removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  num last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(num element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(num element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<num> filter(bool f(num element)) {
+    return _Collections.filter(this, new List<num>(), f);
+  }
+
+  bool every(bool f(num element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(num element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<num> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [num initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<num> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<num> iterator() {
+    return new _FixedSizeListIterator<num>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Float64Array_setElements_Callback";
+
+  Float64Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Float64Array _subarray(start, end) native "Float64Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _GeolocationDOMImpl extends _DOMWrapperBase implements Geolocation {
+  _GeolocationDOMImpl();
+  String get typeName() => "Geolocation";
+
+  void clearWatch(int watchId) {
+    _clearWatch(watchId);
+    return;
+  }
+
+  void _clearWatch(watchId) native "Geolocation_clearWatch_Callback";
+
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native "Geolocation_getCurrentPosition_Callback";
+
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native "Geolocation_watchPosition_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _GeopositionDOMImpl extends _DOMWrapperBase implements Geoposition {
+  _GeopositionDOMImpl();
+  String get typeName() => "Geoposition";
+
+  Coordinates get coords() native "Geoposition_coords_Getter";
+
+  int get timestamp() native "Geoposition_timestamp_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLAllCollectionDOMImpl extends _DOMWrapperBase implements HTMLAllCollection {
+  _HTMLAllCollectionDOMImpl();
+  String get typeName() => "HTMLAllCollection";
+
+  int get length() native "HTMLAllCollection_length_Getter";
+
+  Node item(int index) native "HTMLAllCollection_item_Callback";
+
+  Node namedItem(String name) native "HTMLAllCollection_namedItem_Callback";
+
+  NodeList tags(String name) {
+    return _tags(name);
+  }
+
+  NodeList _tags(name) native "HTMLAllCollection_tags_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLAnchorElementDOMImpl extends _HTMLElementDOMImpl implements AnchorElement {
+  _HTMLAnchorElementDOMImpl();
+  String get typeName() => "HTMLAnchorElement";
+
+  String get charset() native "HTMLAnchorElement_charset_Getter";
+
+  void set charset(String) native "HTMLAnchorElement_charset_Setter";
+
+  String get coords() native "HTMLAnchorElement_coords_Getter";
+
+  void set coords(String) native "HTMLAnchorElement_coords_Setter";
+
+  String get download() native "HTMLAnchorElement_download_Getter";
+
+  void set download(String) native "HTMLAnchorElement_download_Setter";
+
+  String get hash() native "HTMLAnchorElement_hash_Getter";
+
+  void set hash(String) native "HTMLAnchorElement_hash_Setter";
+
+  String get host() native "HTMLAnchorElement_host_Getter";
+
+  void set host(String) native "HTMLAnchorElement_host_Setter";
+
+  String get hostname() native "HTMLAnchorElement_hostname_Getter";
+
+  void set hostname(String) native "HTMLAnchorElement_hostname_Setter";
+
+  String get href() native "HTMLAnchorElement_href_Getter";
+
+  void set href(String) native "HTMLAnchorElement_href_Setter";
+
+  String get hreflang() native "HTMLAnchorElement_hreflang_Getter";
+
+  void set hreflang(String) native "HTMLAnchorElement_hreflang_Setter";
+
+  String get name() native "HTMLAnchorElement_name_Getter";
+
+  void set name(String) native "HTMLAnchorElement_name_Setter";
+
+  String get origin() native "HTMLAnchorElement_origin_Getter";
+
+  String get pathname() native "HTMLAnchorElement_pathname_Getter";
+
+  void set pathname(String) native "HTMLAnchorElement_pathname_Setter";
+
+  String get ping() native "HTMLAnchorElement_ping_Getter";
+
+  void set ping(String) native "HTMLAnchorElement_ping_Setter";
+
+  String get port() native "HTMLAnchorElement_port_Getter";
+
+  void set port(String) native "HTMLAnchorElement_port_Setter";
+
+  String get protocol() native "HTMLAnchorElement_protocol_Getter";
+
+  void set protocol(String) native "HTMLAnchorElement_protocol_Setter";
+
+  String get rel() native "HTMLAnchorElement_rel_Getter";
+
+  void set rel(String) native "HTMLAnchorElement_rel_Setter";
+
+  String get rev() native "HTMLAnchorElement_rev_Getter";
+
+  void set rev(String) native "HTMLAnchorElement_rev_Setter";
+
+  String get search() native "HTMLAnchorElement_search_Getter";
+
+  void set search(String) native "HTMLAnchorElement_search_Setter";
+
+  String get shape() native "HTMLAnchorElement_shape_Getter";
+
+  void set shape(String) native "HTMLAnchorElement_shape_Setter";
+
+  String get target() native "HTMLAnchorElement_target_Getter";
+
+  void set target(String) native "HTMLAnchorElement_target_Setter";
+
+  String get type() native "HTMLAnchorElement_type_Getter";
+
+  void set type(String) native "HTMLAnchorElement_type_Setter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "HTMLAnchorElement_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLAppletElementDOMImpl extends _HTMLElementDOMImpl implements AppletElement {
+  _HTMLAppletElementDOMImpl();
+  String get typeName() => "HTMLAppletElement";
+
+  String get align() native "HTMLAppletElement_align_Getter";
+
+  void set align(String) native "HTMLAppletElement_align_Setter";
+
+  String get alt() native "HTMLAppletElement_alt_Getter";
+
+  void set alt(String) native "HTMLAppletElement_alt_Setter";
+
+  String get archive() native "HTMLAppletElement_archive_Getter";
+
+  void set archive(String) native "HTMLAppletElement_archive_Setter";
+
+  String get code() native "HTMLAppletElement_code_Getter";
+
+  void set code(String) native "HTMLAppletElement_code_Setter";
+
+  String get codeBase() native "HTMLAppletElement_codeBase_Getter";
+
+  void set codeBase(String) native "HTMLAppletElement_codeBase_Setter";
+
+  String get height() native "HTMLAppletElement_height_Getter";
+
+  void set height(String) native "HTMLAppletElement_height_Setter";
+
+  String get hspace() native "HTMLAppletElement_hspace_Getter";
+
+  void set hspace(String) native "HTMLAppletElement_hspace_Setter";
+
+  String get name() native "HTMLAppletElement_name_Getter";
+
+  void set name(String) native "HTMLAppletElement_name_Setter";
+
+  String get object() native "HTMLAppletElement_object_Getter";
+
+  void set object(String) native "HTMLAppletElement_object_Setter";
+
+  String get vspace() native "HTMLAppletElement_vspace_Getter";
+
+  void set vspace(String) native "HTMLAppletElement_vspace_Setter";
+
+  String get width() native "HTMLAppletElement_width_Getter";
+
+  void set width(String) native "HTMLAppletElement_width_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLAreaElementDOMImpl extends _HTMLElementDOMImpl implements AreaElement {
+  _HTMLAreaElementDOMImpl();
+  String get typeName() => "HTMLAreaElement";
+
+  String get alt() native "HTMLAreaElement_alt_Getter";
+
+  void set alt(String) native "HTMLAreaElement_alt_Setter";
+
+  String get coords() native "HTMLAreaElement_coords_Getter";
+
+  void set coords(String) native "HTMLAreaElement_coords_Setter";
+
+  String get hash() native "HTMLAreaElement_hash_Getter";
+
+  String get host() native "HTMLAreaElement_host_Getter";
+
+  String get hostname() native "HTMLAreaElement_hostname_Getter";
+
+  String get href() native "HTMLAreaElement_href_Getter";
+
+  void set href(String) native "HTMLAreaElement_href_Setter";
+
+  bool get noHref() native "HTMLAreaElement_noHref_Getter";
+
+  void set noHref(bool) native "HTMLAreaElement_noHref_Setter";
+
+  String get pathname() native "HTMLAreaElement_pathname_Getter";
+
+  String get ping() native "HTMLAreaElement_ping_Getter";
+
+  void set ping(String) native "HTMLAreaElement_ping_Setter";
+
+  String get port() native "HTMLAreaElement_port_Getter";
+
+  String get protocol() native "HTMLAreaElement_protocol_Getter";
+
+  String get search() native "HTMLAreaElement_search_Getter";
+
+  String get shape() native "HTMLAreaElement_shape_Getter";
+
+  void set shape(String) native "HTMLAreaElement_shape_Setter";
+
+  String get target() native "HTMLAreaElement_target_Getter";
+
+  void set target(String) native "HTMLAreaElement_target_Setter";
+
+}
+class _HTMLAudioElementFactoryProviderImpl {
+  static _HTMLAudioElementDOMImpl createHTMLAudioElement([String src = null])
+      native "HTMLAudioElement_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLAudioElementDOMImpl extends _HTMLMediaElementDOMImpl implements AudioElement {
+  _HTMLAudioElementDOMImpl();
+  String get typeName() => "HTMLAudioElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLBRElementDOMImpl extends _HTMLElementDOMImpl implements BRElement {
+  _HTMLBRElementDOMImpl();
+  String get typeName() => "HTMLBRElement";
+
+  String get clear() native "HTMLBRElement_clear_Getter";
+
+  void set clear(String) native "HTMLBRElement_clear_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLBaseElementDOMImpl extends _HTMLElementDOMImpl implements BaseElement {
+  _HTMLBaseElementDOMImpl();
+  String get typeName() => "HTMLBaseElement";
+
+  String get href() native "HTMLBaseElement_href_Getter";
+
+  void set href(String) native "HTMLBaseElement_href_Setter";
+
+  String get target() native "HTMLBaseElement_target_Getter";
+
+  void set target(String) native "HTMLBaseElement_target_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLBaseFontElementDOMImpl extends _HTMLElementDOMImpl implements BaseFontElement {
+  _HTMLBaseFontElementDOMImpl();
+  String get typeName() => "HTMLBaseFontElement";
+
+  String get color() native "HTMLBaseFontElement_color_Getter";
+
+  void set color(String) native "HTMLBaseFontElement_color_Setter";
+
+  String get face() native "HTMLBaseFontElement_face_Getter";
+
+  void set face(String) native "HTMLBaseFontElement_face_Setter";
+
+  int get size() native "HTMLBaseFontElement_size_Getter";
+
+  void set size(int) native "HTMLBaseFontElement_size_Setter";
+
+}
+
+class _HTMLBodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
+  _HTMLBodyElementEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get blur() => _get('blur');
+  EventListenerList get error() => _get('error');
+  EventListenerList get focus() => _get('focus');
+  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get load() => _get('load');
+  EventListenerList get message() => _get('message');
+  EventListenerList get offline() => _get('offline');
+  EventListenerList get online() => _get('online');
+  EventListenerList get popState() => _get('popstate');
+  EventListenerList get resize() => _get('resize');
+  EventListenerList get storage() => _get('storage');
+  EventListenerList get unload() => _get('unload');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLBodyElementDOMImpl extends _HTMLElementDOMImpl implements BodyElement {
+  _HTMLBodyElementDOMImpl();
+  String get typeName() => "HTMLBodyElement";
+
+  _HTMLBodyElementEventsImpl get on() {
+    if (_on === null) _on = new _HTMLBodyElementEventsImpl(this);
+    return _on;
+  }
+
+  String get aLink() native "HTMLBodyElement_aLink_Getter";
+
+  void set aLink(String) native "HTMLBodyElement_aLink_Setter";
+
+  String get background() native "HTMLBodyElement_background_Getter";
+
+  void set background(String) native "HTMLBodyElement_background_Setter";
+
+  String get bgColor() native "HTMLBodyElement_bgColor_Getter";
+
+  void set bgColor(String) native "HTMLBodyElement_bgColor_Setter";
+
+  String get link() native "HTMLBodyElement_link_Getter";
+
+  void set link(String) native "HTMLBodyElement_link_Setter";
+
+  String get vLink() native "HTMLBodyElement_vLink_Getter";
+
+  void set vLink(String) native "HTMLBodyElement_vLink_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLButtonElementDOMImpl extends _HTMLElementDOMImpl implements ButtonElement {
+  _HTMLButtonElementDOMImpl();
+  String get typeName() => "HTMLButtonElement";
+
+  bool get autofocus() native "HTMLButtonElement_autofocus_Getter";
+
+  void set autofocus(bool) native "HTMLButtonElement_autofocus_Setter";
+
+  bool get disabled() native "HTMLButtonElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLButtonElement_disabled_Setter";
+
+  FormElement get form() native "HTMLButtonElement_form_Getter";
+
+  String get formAction() native "HTMLButtonElement_formAction_Getter";
+
+  void set formAction(String) native "HTMLButtonElement_formAction_Setter";
+
+  String get formEnctype() native "HTMLButtonElement_formEnctype_Getter";
+
+  void set formEnctype(String) native "HTMLButtonElement_formEnctype_Setter";
+
+  String get formMethod() native "HTMLButtonElement_formMethod_Getter";
+
+  void set formMethod(String) native "HTMLButtonElement_formMethod_Setter";
+
+  bool get formNoValidate() native "HTMLButtonElement_formNoValidate_Getter";
+
+  void set formNoValidate(bool) native "HTMLButtonElement_formNoValidate_Setter";
+
+  String get formTarget() native "HTMLButtonElement_formTarget_Getter";
+
+  void set formTarget(String) native "HTMLButtonElement_formTarget_Setter";
+
+  NodeList get labels() native "HTMLButtonElement_labels_Getter";
+
+  String get name() native "HTMLButtonElement_name_Getter";
+
+  void set name(String) native "HTMLButtonElement_name_Setter";
+
+  String get type() native "HTMLButtonElement_type_Getter";
+
+  String get validationMessage() native "HTMLButtonElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLButtonElement_validity_Getter";
+
+  String get value() native "HTMLButtonElement_value_Getter";
+
+  void set value(String) native "HTMLButtonElement_value_Setter";
+
+  bool get willValidate() native "HTMLButtonElement_willValidate_Getter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLButtonElement_checkValidity_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLButtonElement_setCustomValidity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLCanvasElementDOMImpl extends _HTMLElementDOMImpl implements CanvasElement {
+  _HTMLCanvasElementDOMImpl();
+  String get typeName() => "HTMLCanvasElement";
+
+  int get height() native "HTMLCanvasElement_height_Getter";
+
+  void set height(int) native "HTMLCanvasElement_height_Setter";
+
+  int get width() native "HTMLCanvasElement_width_Getter";
+
+  void set width(int) native "HTMLCanvasElement_width_Setter";
+
+  Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
+
+  String toDataURL(String type) native "HTMLCanvasElement_toDataURL_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLCollectionDOMImpl extends _DOMWrapperBase implements HTMLCollection {
+  _HTMLCollectionDOMImpl();
+  String get typeName() => "HTMLCollection";
+
+  int get length() native "HTMLCollection_length_Getter";
+
+  Node operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(Node element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(Node element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  Node last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(Node element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(Node element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<Node> filter(bool f(Node element)) {
+    return _Collections.filter(this, new List<Node>(), f);
+  }
+
+  bool every(bool f(Node element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(Node element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<Node> iterator() {
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  Node item(int index) {
+    return _item(index);
+  }
+
+  Node _item(index) native "HTMLCollection_item_Callback";
+
+  Node namedItem(String name) native "HTMLCollection_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLContentElementDOMImpl extends _HTMLElementDOMImpl implements ContentElement {
+  _HTMLContentElementDOMImpl();
+  String get typeName() => "HTMLContentElement";
+
+  String get select() native "HTMLContentElement_select_Getter";
+
+  void set select(String) native "HTMLContentElement_select_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLDListElementDOMImpl extends _HTMLElementDOMImpl implements DListElement {
+  _HTMLDListElementDOMImpl();
+  String get typeName() => "HTMLDListElement";
+
+  bool get compact() native "HTMLDListElement_compact_Getter";
+
+  void set compact(bool) native "HTMLDListElement_compact_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLDetailsElementDOMImpl extends _HTMLElementDOMImpl implements DetailsElement {
+  _HTMLDetailsElementDOMImpl();
+  String get typeName() => "HTMLDetailsElement";
+
+  bool get open() native "HTMLDetailsElement_open_Getter";
+
+  void set open(bool) native "HTMLDetailsElement_open_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLDirectoryElementDOMImpl extends _HTMLElementDOMImpl implements DirectoryElement {
+  _HTMLDirectoryElementDOMImpl();
+  String get typeName() => "HTMLDirectoryElement";
+
+  bool get compact() native "HTMLDirectoryElement_compact_Getter";
+
+  void set compact(bool) native "HTMLDirectoryElement_compact_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLDivElementDOMImpl extends _HTMLElementDOMImpl implements DivElement {
+  _HTMLDivElementDOMImpl();
+  String get typeName() => "HTMLDivElement";
+
+  String get align() native "HTMLDivElement_align_Getter";
+
+  void set align(String) native "HTMLDivElement_align_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLDocumentDOMImpl extends _DocumentDOMImpl implements Document {
+  _HTMLDocumentDOMImpl();
+  String get typeName() => "HTMLDocument";
+
+  Element get activeElement() native "HTMLDocument_activeElement_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLElementDOMImpl extends _ElementDOMImpl implements Element {
+  _HTMLElementDOMImpl();
+  String get typeName() => "HTMLElement";
+
+  HTMLCollection get $dom_children() native "HTMLElement_children_Getter";
+
+  String get $dom_className() native "HTMLElement_className_Getter";
+
+  void set $dom_className(String) native "HTMLElement_className_Setter";
+
+  String get contentEditable() native "HTMLElement_contentEditable_Getter";
+
+  void set contentEditable(String) native "HTMLElement_contentEditable_Setter";
+
+  String get dir() native "HTMLElement_dir_Getter";
+
+  void set dir(String) native "HTMLElement_dir_Setter";
+
+  bool get draggable() native "HTMLElement_draggable_Getter";
+
+  void set draggable(bool) native "HTMLElement_draggable_Setter";
+
+  bool get hidden() native "HTMLElement_hidden_Getter";
+
+  void set hidden(bool) native "HTMLElement_hidden_Setter";
+
+  String get id() native "HTMLElement_id_Getter";
+
+  void set id(String) native "HTMLElement_id_Setter";
+
+  String get innerHTML() native "HTMLElement_innerHTML_Getter";
+
+  void set innerHTML(String) native "HTMLElement_innerHTML_Setter";
+
+  bool get isContentEditable() native "HTMLElement_isContentEditable_Getter";
+
+  String get lang() native "HTMLElement_lang_Getter";
+
+  void set lang(String) native "HTMLElement_lang_Setter";
+
+  String get outerHTML() native "HTMLElement_outerHTML_Getter";
+
+  bool get spellcheck() native "HTMLElement_spellcheck_Getter";
+
+  void set spellcheck(bool) native "HTMLElement_spellcheck_Setter";
+
+  int get tabIndex() native "HTMLElement_tabIndex_Getter";
+
+  void set tabIndex(int) native "HTMLElement_tabIndex_Setter";
+
+  String get title() native "HTMLElement_title_Getter";
+
+  void set title(String) native "HTMLElement_title_Setter";
+
+  bool get translate() native "HTMLElement_translate_Getter";
+
+  void set translate(bool) native "HTMLElement_translate_Setter";
+
+  String get webkitdropzone() native "HTMLElement_webkitdropzone_Getter";
+
+  void set webkitdropzone(String) native "HTMLElement_webkitdropzone_Setter";
+
+  void click() {
+    _click();
+    return;
+  }
+
+  void _click() native "HTMLElement_click_Callback";
+
+  Element insertAdjacentElement(String where, Element element) {
+    return _insertAdjacentElement(where, element);
+  }
+
+  Element _insertAdjacentElement(where, element) native "HTMLElement_insertAdjacentElement_Callback";
+
+  void insertAdjacentHTML(String where, String html) {
+    _insertAdjacentHTML(where, html);
+    return;
+  }
+
+  void _insertAdjacentHTML(where, html) native "HTMLElement_insertAdjacentHTML_Callback";
+
+  void insertAdjacentText(String where, String text) {
+    _insertAdjacentText(where, text);
+    return;
+  }
+
+  void _insertAdjacentText(where, text) native "HTMLElement_insertAdjacentText_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLEmbedElementDOMImpl extends _HTMLElementDOMImpl implements EmbedElement {
+  _HTMLEmbedElementDOMImpl();
+  String get typeName() => "HTMLEmbedElement";
+
+  String get align() native "HTMLEmbedElement_align_Getter";
+
+  void set align(String) native "HTMLEmbedElement_align_Setter";
+
+  String get height() native "HTMLEmbedElement_height_Getter";
+
+  void set height(String) native "HTMLEmbedElement_height_Setter";
+
+  String get name() native "HTMLEmbedElement_name_Getter";
+
+  void set name(String) native "HTMLEmbedElement_name_Setter";
+
+  String get src() native "HTMLEmbedElement_src_Getter";
+
+  void set src(String) native "HTMLEmbedElement_src_Setter";
+
+  String get type() native "HTMLEmbedElement_type_Getter";
+
+  void set type(String) native "HTMLEmbedElement_type_Setter";
+
+  String get width() native "HTMLEmbedElement_width_Getter";
+
+  void set width(String) native "HTMLEmbedElement_width_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFieldSetElementDOMImpl extends _HTMLElementDOMImpl implements FieldSetElement {
+  _HTMLFieldSetElementDOMImpl();
+  String get typeName() => "HTMLFieldSetElement";
+
+  bool get disabled() native "HTMLFieldSetElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLFieldSetElement_disabled_Setter";
+
+  FormElement get form() native "HTMLFieldSetElement_form_Getter";
+
+  String get name() native "HTMLFieldSetElement_name_Getter";
+
+  void set name(String) native "HTMLFieldSetElement_name_Setter";
+
+  String get type() native "HTMLFieldSetElement_type_Getter";
+
+  String get validationMessage() native "HTMLFieldSetElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLFieldSetElement_validity_Getter";
+
+  bool get willValidate() native "HTMLFieldSetElement_willValidate_Getter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLFieldSetElement_checkValidity_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLFieldSetElement_setCustomValidity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFontElementDOMImpl extends _HTMLElementDOMImpl implements FontElement {
+  _HTMLFontElementDOMImpl();
+  String get typeName() => "HTMLFontElement";
+
+  String get color() native "HTMLFontElement_color_Getter";
+
+  void set color(String) native "HTMLFontElement_color_Setter";
+
+  String get face() native "HTMLFontElement_face_Getter";
+
+  void set face(String) native "HTMLFontElement_face_Setter";
+
+  String get size() native "HTMLFontElement_size_Getter";
+
+  void set size(String) native "HTMLFontElement_size_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFormElementDOMImpl extends _HTMLElementDOMImpl implements FormElement {
+  _HTMLFormElementDOMImpl();
+  String get typeName() => "HTMLFormElement";
+
+  String get acceptCharset() native "HTMLFormElement_acceptCharset_Getter";
+
+  void set acceptCharset(String) native "HTMLFormElement_acceptCharset_Setter";
+
+  String get action() native "HTMLFormElement_action_Getter";
+
+  void set action(String) native "HTMLFormElement_action_Setter";
+
+  String get autocomplete() native "HTMLFormElement_autocomplete_Getter";
+
+  void set autocomplete(String) native "HTMLFormElement_autocomplete_Setter";
+
+  String get encoding() native "HTMLFormElement_encoding_Getter";
+
+  void set encoding(String) native "HTMLFormElement_encoding_Setter";
+
+  String get enctype() native "HTMLFormElement_enctype_Getter";
+
+  void set enctype(String) native "HTMLFormElement_enctype_Setter";
+
+  int get length() native "HTMLFormElement_length_Getter";
+
+  String get method() native "HTMLFormElement_method_Getter";
+
+  void set method(String) native "HTMLFormElement_method_Setter";
+
+  String get name() native "HTMLFormElement_name_Getter";
+
+  void set name(String) native "HTMLFormElement_name_Setter";
+
+  bool get noValidate() native "HTMLFormElement_noValidate_Getter";
+
+  void set noValidate(bool) native "HTMLFormElement_noValidate_Setter";
+
+  String get target() native "HTMLFormElement_target_Getter";
+
+  void set target(String) native "HTMLFormElement_target_Setter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLFormElement_checkValidity_Callback";
+
+  void reset() {
+    _reset();
+    return;
+  }
+
+  void _reset() native "HTMLFormElement_reset_Callback";
+
+  void submit() {
+    _submit();
+    return;
+  }
+
+  void _submit() native "HTMLFormElement_submit_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFrameElementDOMImpl extends _HTMLElementDOMImpl implements FrameElement {
+  _HTMLFrameElementDOMImpl();
+  String get typeName() => "HTMLFrameElement";
+
+  Window get contentWindow() native "HTMLFrameElement_contentWindow_Getter";
+
+  String get frameBorder() native "HTMLFrameElement_frameBorder_Getter";
+
+  void set frameBorder(String) native "HTMLFrameElement_frameBorder_Setter";
+
+  int get height() native "HTMLFrameElement_height_Getter";
+
+  String get location() native "HTMLFrameElement_location_Getter";
+
+  void set location(String) native "HTMLFrameElement_location_Setter";
+
+  String get longDesc() native "HTMLFrameElement_longDesc_Getter";
+
+  void set longDesc(String) native "HTMLFrameElement_longDesc_Setter";
+
+  String get marginHeight() native "HTMLFrameElement_marginHeight_Getter";
+
+  void set marginHeight(String) native "HTMLFrameElement_marginHeight_Setter";
+
+  String get marginWidth() native "HTMLFrameElement_marginWidth_Getter";
+
+  void set marginWidth(String) native "HTMLFrameElement_marginWidth_Setter";
+
+  String get name() native "HTMLFrameElement_name_Getter";
+
+  void set name(String) native "HTMLFrameElement_name_Setter";
+
+  bool get noResize() native "HTMLFrameElement_noResize_Getter";
+
+  void set noResize(bool) native "HTMLFrameElement_noResize_Setter";
+
+  String get scrolling() native "HTMLFrameElement_scrolling_Getter";
+
+  void set scrolling(String) native "HTMLFrameElement_scrolling_Setter";
+
+  String get src() native "HTMLFrameElement_src_Getter";
+
+  void set src(String) native "HTMLFrameElement_src_Setter";
+
+  int get width() native "HTMLFrameElement_width_Getter";
+
+}
+
+class _HTMLFrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
+  _HTMLFrameSetElementEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get blur() => _get('blur');
+  EventListenerList get error() => _get('error');
+  EventListenerList get focus() => _get('focus');
+  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get load() => _get('load');
+  EventListenerList get message() => _get('message');
+  EventListenerList get offline() => _get('offline');
+  EventListenerList get online() => _get('online');
+  EventListenerList get popState() => _get('popstate');
+  EventListenerList get resize() => _get('resize');
+  EventListenerList get storage() => _get('storage');
+  EventListenerList get unload() => _get('unload');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFrameSetElementDOMImpl extends _HTMLElementDOMImpl implements FrameSetElement {
+  _HTMLFrameSetElementDOMImpl();
+  String get typeName() => "HTMLFrameSetElement";
+
+  _HTMLFrameSetElementEventsImpl get on() {
+    if (_on === null) _on = new _HTMLFrameSetElementEventsImpl(this);
+    return _on;
+  }
+
+  String get cols() native "HTMLFrameSetElement_cols_Getter";
+
+  void set cols(String) native "HTMLFrameSetElement_cols_Setter";
+
+  String get rows() native "HTMLFrameSetElement_rows_Getter";
+
+  void set rows(String) native "HTMLFrameSetElement_rows_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLHRElementDOMImpl extends _HTMLElementDOMImpl implements HRElement {
+  _HTMLHRElementDOMImpl();
+  String get typeName() => "HTMLHRElement";
+
+  String get align() native "HTMLHRElement_align_Getter";
+
+  void set align(String) native "HTMLHRElement_align_Setter";
+
+  bool get noShade() native "HTMLHRElement_noShade_Getter";
+
+  void set noShade(bool) native "HTMLHRElement_noShade_Setter";
+
+  String get size() native "HTMLHRElement_size_Getter";
+
+  void set size(String) native "HTMLHRElement_size_Setter";
+
+  String get width() native "HTMLHRElement_width_Getter";
+
+  void set width(String) native "HTMLHRElement_width_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLHeadElementDOMImpl extends _HTMLElementDOMImpl implements HeadElement {
+  _HTMLHeadElementDOMImpl();
+  String get typeName() => "HTMLHeadElement";
+
+  String get profile() native "HTMLHeadElement_profile_Getter";
+
+  void set profile(String) native "HTMLHeadElement_profile_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLHeadingElementDOMImpl extends _HTMLElementDOMImpl implements HeadingElement {
+  _HTMLHeadingElementDOMImpl();
+  String get typeName() => "HTMLHeadingElement";
+
+  String get align() native "HTMLHeadingElement_align_Getter";
+
+  void set align(String) native "HTMLHeadingElement_align_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLHtmlElementDOMImpl extends _HTMLElementDOMImpl implements HtmlElement {
+  _HTMLHtmlElementDOMImpl();
+  String get typeName() => "HTMLHtmlElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLIFrameElementDOMImpl extends _HTMLElementDOMImpl implements IFrameElement {
+  _HTMLIFrameElementDOMImpl();
+  String get typeName() => "HTMLIFrameElement";
+
+  String get align() native "HTMLIFrameElement_align_Getter";
+
+  void set align(String) native "HTMLIFrameElement_align_Setter";
+
+  Window get contentWindow() native "HTMLIFrameElement_contentWindow_Getter";
+
+  String get frameBorder() native "HTMLIFrameElement_frameBorder_Getter";
+
+  void set frameBorder(String) native "HTMLIFrameElement_frameBorder_Setter";
+
+  String get height() native "HTMLIFrameElement_height_Getter";
+
+  void set height(String) native "HTMLIFrameElement_height_Setter";
+
+  String get longDesc() native "HTMLIFrameElement_longDesc_Getter";
+
+  void set longDesc(String) native "HTMLIFrameElement_longDesc_Setter";
+
+  String get marginHeight() native "HTMLIFrameElement_marginHeight_Getter";
+
+  void set marginHeight(String) native "HTMLIFrameElement_marginHeight_Setter";
+
+  String get marginWidth() native "HTMLIFrameElement_marginWidth_Getter";
+
+  void set marginWidth(String) native "HTMLIFrameElement_marginWidth_Setter";
+
+  String get name() native "HTMLIFrameElement_name_Getter";
+
+  void set name(String) native "HTMLIFrameElement_name_Setter";
+
+  String get sandbox() native "HTMLIFrameElement_sandbox_Getter";
+
+  void set sandbox(String) native "HTMLIFrameElement_sandbox_Setter";
+
+  String get scrolling() native "HTMLIFrameElement_scrolling_Getter";
+
+  void set scrolling(String) native "HTMLIFrameElement_scrolling_Setter";
+
+  String get src() native "HTMLIFrameElement_src_Getter";
+
+  void set src(String) native "HTMLIFrameElement_src_Setter";
+
+  String get srcdoc() native "HTMLIFrameElement_srcdoc_Getter";
+
+  void set srcdoc(String) native "HTMLIFrameElement_srcdoc_Setter";
+
+  String get width() native "HTMLIFrameElement_width_Getter";
+
+  void set width(String) native "HTMLIFrameElement_width_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLImageElementDOMImpl extends _HTMLElementDOMImpl implements ImageElement {
+  _HTMLImageElementDOMImpl();
+  String get typeName() => "HTMLImageElement";
+
+  String get align() native "HTMLImageElement_align_Getter";
+
+  void set align(String) native "HTMLImageElement_align_Setter";
+
+  String get alt() native "HTMLImageElement_alt_Getter";
+
+  void set alt(String) native "HTMLImageElement_alt_Setter";
+
+  String get border() native "HTMLImageElement_border_Getter";
+
+  void set border(String) native "HTMLImageElement_border_Setter";
+
+  bool get complete() native "HTMLImageElement_complete_Getter";
+
+  String get crossOrigin() native "HTMLImageElement_crossOrigin_Getter";
+
+  void set crossOrigin(String) native "HTMLImageElement_crossOrigin_Setter";
+
+  int get height() native "HTMLImageElement_height_Getter";
+
+  void set height(int) native "HTMLImageElement_height_Setter";
+
+  int get hspace() native "HTMLImageElement_hspace_Getter";
+
+  void set hspace(int) native "HTMLImageElement_hspace_Setter";
+
+  bool get isMap() native "HTMLImageElement_isMap_Getter";
+
+  void set isMap(bool) native "HTMLImageElement_isMap_Setter";
+
+  String get longDesc() native "HTMLImageElement_longDesc_Getter";
+
+  void set longDesc(String) native "HTMLImageElement_longDesc_Setter";
+
+  String get lowsrc() native "HTMLImageElement_lowsrc_Getter";
+
+  void set lowsrc(String) native "HTMLImageElement_lowsrc_Setter";
+
+  String get name() native "HTMLImageElement_name_Getter";
+
+  void set name(String) native "HTMLImageElement_name_Setter";
+
+  int get naturalHeight() native "HTMLImageElement_naturalHeight_Getter";
+
+  int get naturalWidth() native "HTMLImageElement_naturalWidth_Getter";
+
+  String get src() native "HTMLImageElement_src_Getter";
+
+  void set src(String) native "HTMLImageElement_src_Setter";
+
+  String get useMap() native "HTMLImageElement_useMap_Getter";
+
+  void set useMap(String) native "HTMLImageElement_useMap_Setter";
+
+  int get vspace() native "HTMLImageElement_vspace_Getter";
+
+  void set vspace(int) native "HTMLImageElement_vspace_Setter";
+
+  int get width() native "HTMLImageElement_width_Getter";
+
+  void set width(int) native "HTMLImageElement_width_Setter";
+
+  int get x() native "HTMLImageElement_x_Getter";
+
+  int get y() native "HTMLImageElement_y_Getter";
+
+}
+
+class _HTMLInputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
+  _HTMLInputElementEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get speechChange() => _get('webkitSpeechChange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLInputElementDOMImpl extends _HTMLElementDOMImpl implements InputElement {
+  _HTMLInputElementDOMImpl();
+  String get typeName() => "HTMLInputElement";
+
+  _HTMLInputElementEventsImpl get on() {
+    if (_on === null) _on = new _HTMLInputElementEventsImpl(this);
+    return _on;
+  }
+
+  String get accept() native "HTMLInputElement_accept_Getter";
+
+  void set accept(String) native "HTMLInputElement_accept_Setter";
+
+  String get align() native "HTMLInputElement_align_Getter";
+
+  void set align(String) native "HTMLInputElement_align_Setter";
+
+  String get alt() native "HTMLInputElement_alt_Getter";
+
+  void set alt(String) native "HTMLInputElement_alt_Setter";
+
+  String get autocomplete() native "HTMLInputElement_autocomplete_Getter";
+
+  void set autocomplete(String) native "HTMLInputElement_autocomplete_Setter";
+
+  bool get autofocus() native "HTMLInputElement_autofocus_Getter";
+
+  void set autofocus(bool) native "HTMLInputElement_autofocus_Setter";
+
+  bool get checked() native "HTMLInputElement_checked_Getter";
+
+  void set checked(bool) native "HTMLInputElement_checked_Setter";
+
+  bool get defaultChecked() native "HTMLInputElement_defaultChecked_Getter";
+
+  void set defaultChecked(bool) native "HTMLInputElement_defaultChecked_Setter";
+
+  String get defaultValue() native "HTMLInputElement_defaultValue_Getter";
+
+  void set defaultValue(String) native "HTMLInputElement_defaultValue_Setter";
+
+  bool get disabled() native "HTMLInputElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLInputElement_disabled_Setter";
+
+  FileList get files() native "HTMLInputElement_files_Getter";
+
+  FormElement get form() native "HTMLInputElement_form_Getter";
+
+  String get formAction() native "HTMLInputElement_formAction_Getter";
+
+  void set formAction(String) native "HTMLInputElement_formAction_Setter";
+
+  String get formEnctype() native "HTMLInputElement_formEnctype_Getter";
+
+  void set formEnctype(String) native "HTMLInputElement_formEnctype_Setter";
+
+  String get formMethod() native "HTMLInputElement_formMethod_Getter";
+
+  void set formMethod(String) native "HTMLInputElement_formMethod_Setter";
+
+  bool get formNoValidate() native "HTMLInputElement_formNoValidate_Getter";
+
+  void set formNoValidate(bool) native "HTMLInputElement_formNoValidate_Setter";
+
+  String get formTarget() native "HTMLInputElement_formTarget_Getter";
+
+  void set formTarget(String) native "HTMLInputElement_formTarget_Setter";
+
+  int get height() native "HTMLInputElement_height_Getter";
+
+  void set height(int) native "HTMLInputElement_height_Setter";
+
+  bool get incremental() native "HTMLInputElement_incremental_Getter";
+
+  void set incremental(bool) native "HTMLInputElement_incremental_Setter";
+
+  bool get indeterminate() native "HTMLInputElement_indeterminate_Getter";
+
+  void set indeterminate(bool) native "HTMLInputElement_indeterminate_Setter";
+
+  NodeList get labels() native "HTMLInputElement_labels_Getter";
+
+  String get max() native "HTMLInputElement_max_Getter";
+
+  void set max(String) native "HTMLInputElement_max_Setter";
+
+  int get maxLength() native "HTMLInputElement_maxLength_Getter";
+
+  void set maxLength(int) native "HTMLInputElement_maxLength_Setter";
+
+  String get min() native "HTMLInputElement_min_Getter";
+
+  void set min(String) native "HTMLInputElement_min_Setter";
+
+  bool get multiple() native "HTMLInputElement_multiple_Getter";
+
+  void set multiple(bool) native "HTMLInputElement_multiple_Setter";
+
+  String get name() native "HTMLInputElement_name_Getter";
+
+  void set name(String) native "HTMLInputElement_name_Setter";
+
+  String get pattern() native "HTMLInputElement_pattern_Getter";
+
+  void set pattern(String) native "HTMLInputElement_pattern_Setter";
+
+  String get placeholder() native "HTMLInputElement_placeholder_Getter";
+
+  void set placeholder(String) native "HTMLInputElement_placeholder_Setter";
+
+  bool get readOnly() native "HTMLInputElement_readOnly_Getter";
+
+  void set readOnly(bool) native "HTMLInputElement_readOnly_Setter";
+
+  bool get required() native "HTMLInputElement_required_Getter";
+
+  void set required(bool) native "HTMLInputElement_required_Setter";
+
+  String get selectionDirection() native "HTMLInputElement_selectionDirection_Getter";
+
+  void set selectionDirection(String) native "HTMLInputElement_selectionDirection_Setter";
+
+  int get selectionEnd() native "HTMLInputElement_selectionEnd_Getter";
+
+  void set selectionEnd(int) native "HTMLInputElement_selectionEnd_Setter";
+
+  int get selectionStart() native "HTMLInputElement_selectionStart_Getter";
+
+  void set selectionStart(int) native "HTMLInputElement_selectionStart_Setter";
+
+  int get size() native "HTMLInputElement_size_Getter";
+
+  void set size(int) native "HTMLInputElement_size_Setter";
+
+  String get src() native "HTMLInputElement_src_Getter";
+
+  void set src(String) native "HTMLInputElement_src_Setter";
+
+  String get step() native "HTMLInputElement_step_Getter";
+
+  void set step(String) native "HTMLInputElement_step_Setter";
+
+  String get type() native "HTMLInputElement_type_Getter";
+
+  void set type(String) native "HTMLInputElement_type_Setter";
+
+  String get useMap() native "HTMLInputElement_useMap_Getter";
+
+  void set useMap(String) native "HTMLInputElement_useMap_Setter";
+
+  String get validationMessage() native "HTMLInputElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLInputElement_validity_Getter";
+
+  String get value() native "HTMLInputElement_value_Getter";
+
+  void set value(String) native "HTMLInputElement_value_Setter";
+
+  Date get valueAsDate() native "HTMLInputElement_valueAsDate_Getter";
+
+  void set valueAsDate(Date) native "HTMLInputElement_valueAsDate_Setter";
+
+  num get valueAsNumber() native "HTMLInputElement_valueAsNumber_Getter";
+
+  void set valueAsNumber(num) native "HTMLInputElement_valueAsNumber_Setter";
+
+  bool get webkitGrammar() native "HTMLInputElement_webkitGrammar_Getter";
+
+  void set webkitGrammar(bool) native "HTMLInputElement_webkitGrammar_Setter";
+
+  bool get webkitSpeech() native "HTMLInputElement_webkitSpeech_Getter";
+
+  void set webkitSpeech(bool) native "HTMLInputElement_webkitSpeech_Setter";
+
+  bool get webkitdirectory() native "HTMLInputElement_webkitdirectory_Getter";
+
+  void set webkitdirectory(bool) native "HTMLInputElement_webkitdirectory_Setter";
+
+  int get width() native "HTMLInputElement_width_Getter";
+
+  void set width(int) native "HTMLInputElement_width_Setter";
+
+  bool get willValidate() native "HTMLInputElement_willValidate_Getter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLInputElement_checkValidity_Callback";
+
+  void select() {
+    _select();
+    return;
+  }
+
+  void _select() native "HTMLInputElement_select_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLInputElement_setCustomValidity_Callback";
+
+  void setSelectionRange(int start, int end, [String direction = null]) native "HTMLInputElement_setSelectionRange_Callback";
+
+  void stepDown([int n = null]) {
+    //
+    // stepDown()
+    // stepDown([Optional] int n)
+    //
+    // -- reduced:
+    // stepDown([Optional] int n)
+    //
+    _stepDown(n);
+    return;
+  }
+
+  void _stepDown(n) native "HTMLInputElement_stepDown_Callback";
+
+  void stepUp([int n = null]) {
+    //
+    // stepUp()
+    // stepUp([Optional] int n)
+    //
+    // -- reduced:
+    // stepUp([Optional] int n)
+    //
+    _stepUp(n);
+    return;
+  }
+
+  void _stepUp(n) native "HTMLInputElement_stepUp_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLKeygenElementDOMImpl extends _HTMLElementDOMImpl implements KeygenElement {
+  _HTMLKeygenElementDOMImpl();
+  String get typeName() => "HTMLKeygenElement";
+
+  bool get autofocus() native "HTMLKeygenElement_autofocus_Getter";
+
+  void set autofocus(bool) native "HTMLKeygenElement_autofocus_Setter";
+
+  String get challenge() native "HTMLKeygenElement_challenge_Getter";
+
+  void set challenge(String) native "HTMLKeygenElement_challenge_Setter";
+
+  bool get disabled() native "HTMLKeygenElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLKeygenElement_disabled_Setter";
+
+  FormElement get form() native "HTMLKeygenElement_form_Getter";
+
+  String get keytype() native "HTMLKeygenElement_keytype_Getter";
+
+  void set keytype(String) native "HTMLKeygenElement_keytype_Setter";
+
+  NodeList get labels() native "HTMLKeygenElement_labels_Getter";
+
+  String get name() native "HTMLKeygenElement_name_Getter";
+
+  void set name(String) native "HTMLKeygenElement_name_Setter";
+
+  String get type() native "HTMLKeygenElement_type_Getter";
+
+  String get validationMessage() native "HTMLKeygenElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLKeygenElement_validity_Getter";
+
+  bool get willValidate() native "HTMLKeygenElement_willValidate_Getter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLKeygenElement_checkValidity_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLKeygenElement_setCustomValidity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLLIElementDOMImpl extends _HTMLElementDOMImpl implements LIElement {
+  _HTMLLIElementDOMImpl();
+  String get typeName() => "HTMLLIElement";
+
+  String get type() native "HTMLLIElement_type_Getter";
+
+  void set type(String) native "HTMLLIElement_type_Setter";
+
+  int get value() native "HTMLLIElement_value_Getter";
+
+  void set value(int) native "HTMLLIElement_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLLabelElementDOMImpl extends _HTMLElementDOMImpl implements LabelElement {
+  _HTMLLabelElementDOMImpl();
+  String get typeName() => "HTMLLabelElement";
+
+  Element get control() native "HTMLLabelElement_control_Getter";
+
+  FormElement get form() native "HTMLLabelElement_form_Getter";
+
+  String get htmlFor() native "HTMLLabelElement_htmlFor_Getter";
+
+  void set htmlFor(String) native "HTMLLabelElement_htmlFor_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLLegendElementDOMImpl extends _HTMLElementDOMImpl implements LegendElement {
+  _HTMLLegendElementDOMImpl();
+  String get typeName() => "HTMLLegendElement";
+
+  String get align() native "HTMLLegendElement_align_Getter";
+
+  void set align(String) native "HTMLLegendElement_align_Setter";
+
+  FormElement get form() native "HTMLLegendElement_form_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLLinkElementDOMImpl extends _HTMLElementDOMImpl implements LinkElement {
+  _HTMLLinkElementDOMImpl();
+  String get typeName() => "HTMLLinkElement";
+
+  String get charset() native "HTMLLinkElement_charset_Getter";
+
+  void set charset(String) native "HTMLLinkElement_charset_Setter";
+
+  bool get disabled() native "HTMLLinkElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLLinkElement_disabled_Setter";
+
+  String get href() native "HTMLLinkElement_href_Getter";
+
+  void set href(String) native "HTMLLinkElement_href_Setter";
+
+  String get hreflang() native "HTMLLinkElement_hreflang_Getter";
+
+  void set hreflang(String) native "HTMLLinkElement_hreflang_Setter";
+
+  String get media() native "HTMLLinkElement_media_Getter";
+
+  void set media(String) native "HTMLLinkElement_media_Setter";
+
+  String get rel() native "HTMLLinkElement_rel_Getter";
+
+  void set rel(String) native "HTMLLinkElement_rel_Setter";
+
+  String get rev() native "HTMLLinkElement_rev_Getter";
+
+  void set rev(String) native "HTMLLinkElement_rev_Setter";
+
+  StyleSheet get sheet() native "HTMLLinkElement_sheet_Getter";
+
+  DOMSettableTokenList get sizes() native "HTMLLinkElement_sizes_Getter";
+
+  void set sizes(DOMSettableTokenList) native "HTMLLinkElement_sizes_Setter";
+
+  String get target() native "HTMLLinkElement_target_Getter";
+
+  void set target(String) native "HTMLLinkElement_target_Setter";
+
+  String get type() native "HTMLLinkElement_type_Getter";
+
+  void set type(String) native "HTMLLinkElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLMapElementDOMImpl extends _HTMLElementDOMImpl implements MapElement {
+  _HTMLMapElementDOMImpl();
+  String get typeName() => "HTMLMapElement";
+
+  HTMLCollection get areas() native "HTMLMapElement_areas_Getter";
+
+  String get name() native "HTMLMapElement_name_Getter";
+
+  void set name(String) native "HTMLMapElement_name_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLMarqueeElementDOMImpl extends _HTMLElementDOMImpl implements MarqueeElement {
+  _HTMLMarqueeElementDOMImpl();
+  String get typeName() => "HTMLMarqueeElement";
+
+  String get behavior() native "HTMLMarqueeElement_behavior_Getter";
+
+  void set behavior(String) native "HTMLMarqueeElement_behavior_Setter";
+
+  String get bgColor() native "HTMLMarqueeElement_bgColor_Getter";
+
+  void set bgColor(String) native "HTMLMarqueeElement_bgColor_Setter";
+
+  String get direction() native "HTMLMarqueeElement_direction_Getter";
+
+  void set direction(String) native "HTMLMarqueeElement_direction_Setter";
+
+  String get height() native "HTMLMarqueeElement_height_Getter";
+
+  void set height(String) native "HTMLMarqueeElement_height_Setter";
+
+  int get hspace() native "HTMLMarqueeElement_hspace_Getter";
+
+  void set hspace(int) native "HTMLMarqueeElement_hspace_Setter";
+
+  int get loop() native "HTMLMarqueeElement_loop_Getter";
+
+  void set loop(int) native "HTMLMarqueeElement_loop_Setter";
+
+  int get scrollAmount() native "HTMLMarqueeElement_scrollAmount_Getter";
+
+  void set scrollAmount(int) native "HTMLMarqueeElement_scrollAmount_Setter";
+
+  int get scrollDelay() native "HTMLMarqueeElement_scrollDelay_Getter";
+
+  void set scrollDelay(int) native "HTMLMarqueeElement_scrollDelay_Setter";
+
+  bool get trueSpeed() native "HTMLMarqueeElement_trueSpeed_Getter";
+
+  void set trueSpeed(bool) native "HTMLMarqueeElement_trueSpeed_Setter";
+
+  int get vspace() native "HTMLMarqueeElement_vspace_Getter";
+
+  void set vspace(int) native "HTMLMarqueeElement_vspace_Setter";
+
+  String get width() native "HTMLMarqueeElement_width_Getter";
+
+  void set width(String) native "HTMLMarqueeElement_width_Setter";
+
+  void start() {
+    _start();
+    return;
+  }
+
+  void _start() native "HTMLMarqueeElement_start_Callback";
+
+  void stop() {
+    _stop();
+    return;
+  }
+
+  void _stop() native "HTMLMarqueeElement_stop_Callback";
+
+}
+
+class _HTMLMediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
+  _HTMLMediaElementEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get keyAdded() => _get('webkitkeyadded');
+  EventListenerList get keyError() => _get('webkitkeyerror');
+  EventListenerList get keyMessage() => _get('webkitkeymessage');
+  EventListenerList get needKey() => _get('webkitneedkey');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLMediaElementDOMImpl extends _HTMLElementDOMImpl implements MediaElement {
+  _HTMLMediaElementDOMImpl();
+  String get typeName() => "HTMLMediaElement";
+
+  _HTMLMediaElementEventsImpl get on() {
+    if (_on === null) _on = new _HTMLMediaElementEventsImpl(this);
+    return _on;
+  }
+
+  bool get autoplay() native "HTMLMediaElement_autoplay_Getter";
+
+  void set autoplay(bool) native "HTMLMediaElement_autoplay_Setter";
+
+  TimeRanges get buffered() native "HTMLMediaElement_buffered_Getter";
+
+  MediaController get controller() native "HTMLMediaElement_controller_Getter";
+
+  void set controller(MediaController) native "HTMLMediaElement_controller_Setter";
+
+  bool get controls() native "HTMLMediaElement_controls_Getter";
+
+  void set controls(bool) native "HTMLMediaElement_controls_Setter";
+
+  String get currentSrc() native "HTMLMediaElement_currentSrc_Getter";
+
+  num get currentTime() native "HTMLMediaElement_currentTime_Getter";
+
+  void set currentTime(num) native "HTMLMediaElement_currentTime_Setter";
+
+  bool get defaultMuted() native "HTMLMediaElement_defaultMuted_Getter";
+
+  void set defaultMuted(bool) native "HTMLMediaElement_defaultMuted_Setter";
+
+  num get defaultPlaybackRate() native "HTMLMediaElement_defaultPlaybackRate_Getter";
+
+  void set defaultPlaybackRate(num) native "HTMLMediaElement_defaultPlaybackRate_Setter";
+
+  num get duration() native "HTMLMediaElement_duration_Getter";
+
+  bool get ended() native "HTMLMediaElement_ended_Getter";
+
+  MediaError get error() native "HTMLMediaElement_error_Getter";
+
+  num get initialTime() native "HTMLMediaElement_initialTime_Getter";
+
+  bool get loop() native "HTMLMediaElement_loop_Getter";
+
+  void set loop(bool) native "HTMLMediaElement_loop_Setter";
+
+  String get mediaGroup() native "HTMLMediaElement_mediaGroup_Getter";
+
+  void set mediaGroup(String) native "HTMLMediaElement_mediaGroup_Setter";
+
+  bool get muted() native "HTMLMediaElement_muted_Getter";
+
+  void set muted(bool) native "HTMLMediaElement_muted_Setter";
+
+  int get networkState() native "HTMLMediaElement_networkState_Getter";
+
+  bool get paused() native "HTMLMediaElement_paused_Getter";
+
+  num get playbackRate() native "HTMLMediaElement_playbackRate_Getter";
+
+  void set playbackRate(num) native "HTMLMediaElement_playbackRate_Setter";
+
+  TimeRanges get played() native "HTMLMediaElement_played_Getter";
+
+  String get preload() native "HTMLMediaElement_preload_Getter";
+
+  void set preload(String) native "HTMLMediaElement_preload_Setter";
+
+  int get readyState() native "HTMLMediaElement_readyState_Getter";
+
+  TimeRanges get seekable() native "HTMLMediaElement_seekable_Getter";
+
+  bool get seeking() native "HTMLMediaElement_seeking_Getter";
+
+  String get src() native "HTMLMediaElement_src_Getter";
+
+  void set src(String) native "HTMLMediaElement_src_Setter";
+
+  num get startTime() native "HTMLMediaElement_startTime_Getter";
+
+  TextTrackList get textTracks() native "HTMLMediaElement_textTracks_Getter";
+
+  num get volume() native "HTMLMediaElement_volume_Getter";
+
+  void set volume(num) native "HTMLMediaElement_volume_Setter";
+
+  int get webkitAudioDecodedByteCount() native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
+
+  bool get webkitClosedCaptionsVisible() native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
+
+  void set webkitClosedCaptionsVisible(bool) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
+
+  bool get webkitHasClosedCaptions() native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
+
+  String get webkitMediaSourceURL() native "HTMLMediaElement_webkitMediaSourceURL_Getter";
+
+  bool get webkitPreservesPitch() native "HTMLMediaElement_webkitPreservesPitch_Getter";
+
+  void set webkitPreservesPitch(bool) native "HTMLMediaElement_webkitPreservesPitch_Setter";
+
+  int get webkitSourceState() native "HTMLMediaElement_webkitSourceState_Getter";
+
+  int get webkitVideoDecodedByteCount() native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
+
+  TextTrack addTextTrack(String kind, [String label = null, String language = null]) {
+    //
+    // addTextTrack(String kind)
+    // addTextTrack(String kind, [Optional] String label)
+    // addTextTrack(String kind, [Optional] String label, [Optional] String language)
+    //
+    // -- reduced:
+    // addTextTrack(String kind, [Optional] String label, [Optional] String language)
+    //
+    return _addTextTrack(kind, label, language);
+  }
+
+  TextTrack _addTextTrack(kind, label, language) native "HTMLMediaElement_addTextTrack_Callback";
+
+  String canPlayType(String type, String keySystem) {
+    return _canPlayType(type, keySystem);
+  }
+
+  String _canPlayType(type, keySystem) native "HTMLMediaElement_canPlayType_Callback";
+
+  void load() {
+    _load();
+    return;
+  }
+
+  void _load() native "HTMLMediaElement_load_Callback";
+
+  void pause() {
+    _pause();
+    return;
+  }
+
+  void _pause() native "HTMLMediaElement_pause_Callback";
+
+  void play() {
+    _play();
+    return;
+  }
+
+  void _play() native "HTMLMediaElement_play_Callback";
+
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData = null, String sessionId = null]) {
+    //
+    // webkitAddKey(String keySystem, Uint8Array key)
+    // webkitAddKey(String keySystem, Uint8Array key, [Optional] Uint8Array initData, String sessionId)
+    //
+    if (initData === null && sessionId === null) {
+      _webkitAddKey(keySystem, key);
+      return;
+    }
+    _webkitAddKey_2(keySystem, key, initData, sessionId);
+    return;
+  }
+
+  void _webkitAddKey(keySystem, key) native "HTMLMediaElement_webkitAddKey_Callback";
+
+  void _webkitAddKey_2(keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_2_Callback";
+
+  void webkitCancelKeyRequest(String keySystem, String sessionId) {
+    _webkitCancelKeyRequest(keySystem, sessionId);
+    return;
+  }
+
+  void _webkitCancelKeyRequest(keySystem, sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
+
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData = null]) {
+    //
+    // webkitGenerateKeyRequest(String keySystem)
+    // webkitGenerateKeyRequest(String keySystem, [Optional] Uint8Array initData)
+    //
+    if (initData === null) {
+      _webkitGenerateKeyRequest(keySystem);
+      return;
+    }
+    _webkitGenerateKeyRequest_2(keySystem, initData);
+    return;
+  }
+
+  void _webkitGenerateKeyRequest(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_Callback";
+
+  void _webkitGenerateKeyRequest_2(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
+
+  void webkitSourceAppend(Uint8Array data) {
+    _webkitSourceAppend(data);
+    return;
+  }
+
+  void _webkitSourceAppend(data) native "HTMLMediaElement_webkitSourceAppend_Callback";
+
+  void webkitSourceEndOfStream(int status) {
+    _webkitSourceEndOfStream(status);
+    return;
+  }
+
+  void _webkitSourceEndOfStream(status) native "HTMLMediaElement_webkitSourceEndOfStream_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLMenuElementDOMImpl extends _HTMLElementDOMImpl implements MenuElement {
+  _HTMLMenuElementDOMImpl();
+  String get typeName() => "HTMLMenuElement";
+
+  bool get compact() native "HTMLMenuElement_compact_Getter";
+
+  void set compact(bool) native "HTMLMenuElement_compact_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLMetaElementDOMImpl extends _HTMLElementDOMImpl implements MetaElement {
+  _HTMLMetaElementDOMImpl();
+  String get typeName() => "HTMLMetaElement";
+
+  String get content() native "HTMLMetaElement_content_Getter";
+
+  void set content(String) native "HTMLMetaElement_content_Setter";
+
+  String get httpEquiv() native "HTMLMetaElement_httpEquiv_Getter";
+
+  void set httpEquiv(String) native "HTMLMetaElement_httpEquiv_Setter";
+
+  String get name() native "HTMLMetaElement_name_Getter";
+
+  void set name(String) native "HTMLMetaElement_name_Setter";
+
+  String get scheme() native "HTMLMetaElement_scheme_Getter";
+
+  void set scheme(String) native "HTMLMetaElement_scheme_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLMeterElementDOMImpl extends _HTMLElementDOMImpl implements MeterElement {
+  _HTMLMeterElementDOMImpl();
+  String get typeName() => "HTMLMeterElement";
+
+  num get high() native "HTMLMeterElement_high_Getter";
+
+  void set high(num) native "HTMLMeterElement_high_Setter";
+
+  NodeList get labels() native "HTMLMeterElement_labels_Getter";
+
+  num get low() native "HTMLMeterElement_low_Getter";
+
+  void set low(num) native "HTMLMeterElement_low_Setter";
+
+  num get max() native "HTMLMeterElement_max_Getter";
+
+  void set max(num) native "HTMLMeterElement_max_Setter";
+
+  num get min() native "HTMLMeterElement_min_Getter";
+
+  void set min(num) native "HTMLMeterElement_min_Setter";
+
+  num get optimum() native "HTMLMeterElement_optimum_Getter";
+
+  void set optimum(num) native "HTMLMeterElement_optimum_Setter";
+
+  num get value() native "HTMLMeterElement_value_Getter";
+
+  void set value(num) native "HTMLMeterElement_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLModElementDOMImpl extends _HTMLElementDOMImpl implements ModElement {
+  _HTMLModElementDOMImpl();
+  String get typeName() => "HTMLModElement";
+
+  String get cite() native "HTMLModElement_cite_Getter";
+
+  void set cite(String) native "HTMLModElement_cite_Setter";
+
+  String get dateTime() native "HTMLModElement_dateTime_Getter";
+
+  void set dateTime(String) native "HTMLModElement_dateTime_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLOListElementDOMImpl extends _HTMLElementDOMImpl implements OListElement {
+  _HTMLOListElementDOMImpl();
+  String get typeName() => "HTMLOListElement";
+
+  bool get compact() native "HTMLOListElement_compact_Getter";
+
+  void set compact(bool) native "HTMLOListElement_compact_Setter";
+
+  bool get reversed() native "HTMLOListElement_reversed_Getter";
+
+  void set reversed(bool) native "HTMLOListElement_reversed_Setter";
+
+  int get start() native "HTMLOListElement_start_Getter";
+
+  void set start(int) native "HTMLOListElement_start_Setter";
+
+  String get type() native "HTMLOListElement_type_Getter";
+
+  void set type(String) native "HTMLOListElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLObjectElementDOMImpl extends _HTMLElementDOMImpl implements ObjectElement {
+  _HTMLObjectElementDOMImpl();
+  String get typeName() => "HTMLObjectElement";
+
+  String get align() native "HTMLObjectElement_align_Getter";
+
+  void set align(String) native "HTMLObjectElement_align_Setter";
+
+  String get archive() native "HTMLObjectElement_archive_Getter";
+
+  void set archive(String) native "HTMLObjectElement_archive_Setter";
+
+  String get border() native "HTMLObjectElement_border_Getter";
+
+  void set border(String) native "HTMLObjectElement_border_Setter";
+
+  String get code() native "HTMLObjectElement_code_Getter";
+
+  void set code(String) native "HTMLObjectElement_code_Setter";
+
+  String get codeBase() native "HTMLObjectElement_codeBase_Getter";
+
+  void set codeBase(String) native "HTMLObjectElement_codeBase_Setter";
+
+  String get codeType() native "HTMLObjectElement_codeType_Getter";
+
+  void set codeType(String) native "HTMLObjectElement_codeType_Setter";
+
+  String get data() native "HTMLObjectElement_data_Getter";
+
+  void set data(String) native "HTMLObjectElement_data_Setter";
+
+  bool get declare() native "HTMLObjectElement_declare_Getter";
+
+  void set declare(bool) native "HTMLObjectElement_declare_Setter";
+
+  FormElement get form() native "HTMLObjectElement_form_Getter";
+
+  String get height() native "HTMLObjectElement_height_Getter";
+
+  void set height(String) native "HTMLObjectElement_height_Setter";
+
+  int get hspace() native "HTMLObjectElement_hspace_Getter";
+
+  void set hspace(int) native "HTMLObjectElement_hspace_Setter";
+
+  String get name() native "HTMLObjectElement_name_Getter";
+
+  void set name(String) native "HTMLObjectElement_name_Setter";
+
+  String get standby() native "HTMLObjectElement_standby_Getter";
+
+  void set standby(String) native "HTMLObjectElement_standby_Setter";
+
+  String get type() native "HTMLObjectElement_type_Getter";
+
+  void set type(String) native "HTMLObjectElement_type_Setter";
+
+  String get useMap() native "HTMLObjectElement_useMap_Getter";
+
+  void set useMap(String) native "HTMLObjectElement_useMap_Setter";
+
+  String get validationMessage() native "HTMLObjectElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLObjectElement_validity_Getter";
+
+  int get vspace() native "HTMLObjectElement_vspace_Getter";
+
+  void set vspace(int) native "HTMLObjectElement_vspace_Setter";
+
+  String get width() native "HTMLObjectElement_width_Getter";
+
+  void set width(String) native "HTMLObjectElement_width_Setter";
+
+  bool get willValidate() native "HTMLObjectElement_willValidate_Getter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLObjectElement_checkValidity_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLObjectElement_setCustomValidity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLOptGroupElementDOMImpl extends _HTMLElementDOMImpl implements OptGroupElement {
+  _HTMLOptGroupElementDOMImpl();
+  String get typeName() => "HTMLOptGroupElement";
+
+  bool get disabled() native "HTMLOptGroupElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLOptGroupElement_disabled_Setter";
+
+  String get label() native "HTMLOptGroupElement_label_Getter";
+
+  void set label(String) native "HTMLOptGroupElement_label_Setter";
+
+}
+class _HTMLOptionElementFactoryProviderImpl {
+  static _HTMLOptionElementDOMImpl createHTMLOptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null])
+      native "HTMLOptionElement_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLOptionElementDOMImpl extends _HTMLElementDOMImpl implements OptionElement {
+  _HTMLOptionElementDOMImpl();
+  String get typeName() => "HTMLOptionElement";
+
+  bool get defaultSelected() native "HTMLOptionElement_defaultSelected_Getter";
+
+  void set defaultSelected(bool) native "HTMLOptionElement_defaultSelected_Setter";
+
+  bool get disabled() native "HTMLOptionElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLOptionElement_disabled_Setter";
+
+  FormElement get form() native "HTMLOptionElement_form_Getter";
+
+  int get index() native "HTMLOptionElement_index_Getter";
+
+  String get label() native "HTMLOptionElement_label_Getter";
+
+  void set label(String) native "HTMLOptionElement_label_Setter";
+
+  bool get selected() native "HTMLOptionElement_selected_Getter";
+
+  void set selected(bool) native "HTMLOptionElement_selected_Setter";
+
+  String get value() native "HTMLOptionElement_value_Getter";
+
+  void set value(String) native "HTMLOptionElement_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLOptionsCollectionDOMImpl extends _HTMLCollectionDOMImpl implements HTMLOptionsCollection {
+  _HTMLOptionsCollectionDOMImpl();
+  String get typeName() => "HTMLOptionsCollection";
+
+  int get length() native "HTMLOptionsCollection_length_Getter";
+
+  void set length(int) native "HTMLOptionsCollection_length_Setter";
+
+  int get selectedIndex() native "HTMLOptionsCollection_selectedIndex_Getter";
+
+  void set selectedIndex(int) native "HTMLOptionsCollection_selectedIndex_Setter";
+
+  void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
+
+  void remove(int index) native "HTMLOptionsCollection_remove_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLOutputElementDOMImpl extends _HTMLElementDOMImpl implements OutputElement {
+  _HTMLOutputElementDOMImpl();
+  String get typeName() => "HTMLOutputElement";
+
+  String get defaultValue() native "HTMLOutputElement_defaultValue_Getter";
+
+  void set defaultValue(String) native "HTMLOutputElement_defaultValue_Setter";
+
+  FormElement get form() native "HTMLOutputElement_form_Getter";
+
+  DOMSettableTokenList get htmlFor() native "HTMLOutputElement_htmlFor_Getter";
+
+  void set htmlFor(DOMSettableTokenList) native "HTMLOutputElement_htmlFor_Setter";
+
+  NodeList get labels() native "HTMLOutputElement_labels_Getter";
+
+  String get name() native "HTMLOutputElement_name_Getter";
+
+  void set name(String) native "HTMLOutputElement_name_Setter";
+
+  String get type() native "HTMLOutputElement_type_Getter";
+
+  String get validationMessage() native "HTMLOutputElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLOutputElement_validity_Getter";
+
+  String get value() native "HTMLOutputElement_value_Getter";
+
+  void set value(String) native "HTMLOutputElement_value_Setter";
+
+  bool get willValidate() native "HTMLOutputElement_willValidate_Getter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLOutputElement_checkValidity_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLOutputElement_setCustomValidity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLParagraphElementDOMImpl extends _HTMLElementDOMImpl implements ParagraphElement {
+  _HTMLParagraphElementDOMImpl();
+  String get typeName() => "HTMLParagraphElement";
+
+  String get align() native "HTMLParagraphElement_align_Getter";
+
+  void set align(String) native "HTMLParagraphElement_align_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLParamElementDOMImpl extends _HTMLElementDOMImpl implements ParamElement {
+  _HTMLParamElementDOMImpl();
+  String get typeName() => "HTMLParamElement";
+
+  String get name() native "HTMLParamElement_name_Getter";
+
+  void set name(String) native "HTMLParamElement_name_Setter";
+
+  String get type() native "HTMLParamElement_type_Getter";
+
+  void set type(String) native "HTMLParamElement_type_Setter";
+
+  String get value() native "HTMLParamElement_value_Getter";
+
+  void set value(String) native "HTMLParamElement_value_Setter";
+
+  String get valueType() native "HTMLParamElement_valueType_Getter";
+
+  void set valueType(String) native "HTMLParamElement_valueType_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLPreElementDOMImpl extends _HTMLElementDOMImpl implements PreElement {
+  _HTMLPreElementDOMImpl();
+  String get typeName() => "HTMLPreElement";
+
+  int get width() native "HTMLPreElement_width_Getter";
+
+  void set width(int) native "HTMLPreElement_width_Setter";
+
+  bool get wrap() native "HTMLPreElement_wrap_Getter";
+
+  void set wrap(bool) native "HTMLPreElement_wrap_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLProgressElementDOMImpl extends _HTMLElementDOMImpl implements ProgressElement {
+  _HTMLProgressElementDOMImpl();
+  String get typeName() => "HTMLProgressElement";
+
+  NodeList get labels() native "HTMLProgressElement_labels_Getter";
+
+  num get max() native "HTMLProgressElement_max_Getter";
+
+  void set max(num) native "HTMLProgressElement_max_Setter";
+
+  num get position() native "HTMLProgressElement_position_Getter";
+
+  num get value() native "HTMLProgressElement_value_Getter";
+
+  void set value(num) native "HTMLProgressElement_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLQuoteElementDOMImpl extends _HTMLElementDOMImpl implements QuoteElement {
+  _HTMLQuoteElementDOMImpl();
+  String get typeName() => "HTMLQuoteElement";
+
+  String get cite() native "HTMLQuoteElement_cite_Getter";
+
+  void set cite(String) native "HTMLQuoteElement_cite_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLScriptElementDOMImpl extends _HTMLElementDOMImpl implements ScriptElement {
+  _HTMLScriptElementDOMImpl();
+  String get typeName() => "HTMLScriptElement";
+
+  bool get async() native "HTMLScriptElement_async_Getter";
+
+  void set async(bool) native "HTMLScriptElement_async_Setter";
+
+  String get charset() native "HTMLScriptElement_charset_Getter";
+
+  void set charset(String) native "HTMLScriptElement_charset_Setter";
+
+  String get crossOrigin() native "HTMLScriptElement_crossOrigin_Getter";
+
+  void set crossOrigin(String) native "HTMLScriptElement_crossOrigin_Setter";
+
+  bool get defer() native "HTMLScriptElement_defer_Getter";
+
+  void set defer(bool) native "HTMLScriptElement_defer_Setter";
+
+  String get event() native "HTMLScriptElement_event_Getter";
+
+  void set event(String) native "HTMLScriptElement_event_Setter";
+
+  String get htmlFor() native "HTMLScriptElement_htmlFor_Getter";
+
+  void set htmlFor(String) native "HTMLScriptElement_htmlFor_Setter";
+
+  String get src() native "HTMLScriptElement_src_Getter";
+
+  void set src(String) native "HTMLScriptElement_src_Setter";
+
+  String get type() native "HTMLScriptElement_type_Getter";
+
+  void set type(String) native "HTMLScriptElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLSelectElementDOMImpl extends _HTMLElementDOMImpl implements SelectElement {
+  _HTMLSelectElementDOMImpl();
+  String get typeName() => "HTMLSelectElement";
+
+  bool get autofocus() native "HTMLSelectElement_autofocus_Getter";
+
+  void set autofocus(bool) native "HTMLSelectElement_autofocus_Setter";
+
+  bool get disabled() native "HTMLSelectElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLSelectElement_disabled_Setter";
+
+  FormElement get form() native "HTMLSelectElement_form_Getter";
+
+  NodeList get labels() native "HTMLSelectElement_labels_Getter";
+
+  int get length() native "HTMLSelectElement_length_Getter";
+
+  void set length(int) native "HTMLSelectElement_length_Setter";
+
+  bool get multiple() native "HTMLSelectElement_multiple_Getter";
+
+  void set multiple(bool) native "HTMLSelectElement_multiple_Setter";
+
+  String get name() native "HTMLSelectElement_name_Getter";
+
+  void set name(String) native "HTMLSelectElement_name_Setter";
+
+  HTMLOptionsCollection get options() native "HTMLSelectElement_options_Getter";
+
+  bool get required() native "HTMLSelectElement_required_Getter";
+
+  void set required(bool) native "HTMLSelectElement_required_Setter";
+
+  int get selectedIndex() native "HTMLSelectElement_selectedIndex_Getter";
+
+  void set selectedIndex(int) native "HTMLSelectElement_selectedIndex_Setter";
+
+  HTMLCollection get selectedOptions() native "HTMLSelectElement_selectedOptions_Getter";
+
+  int get size() native "HTMLSelectElement_size_Getter";
+
+  void set size(int) native "HTMLSelectElement_size_Setter";
+
+  String get type() native "HTMLSelectElement_type_Getter";
+
+  String get validationMessage() native "HTMLSelectElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLSelectElement_validity_Getter";
+
+  String get value() native "HTMLSelectElement_value_Getter";
+
+  void set value(String) native "HTMLSelectElement_value_Setter";
+
+  bool get willValidate() native "HTMLSelectElement_willValidate_Getter";
+
+  void add(Element element, Element before) {
+    if ((element === null || element is Element) &&
+        (before === null || before is Element)) {
+      _add(element, before);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _add(element, before) native "HTMLSelectElement_add_Callback";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLSelectElement_checkValidity_Callback";
+
+  Node item(int index) {
+    return _item(index);
+  }
+
+  Node _item(index) native "HTMLSelectElement_item_Callback";
+
+  Node namedItem(String name) {
+    return _namedItem(name);
+  }
+
+  Node _namedItem(name) native "HTMLSelectElement_namedItem_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLSelectElement_setCustomValidity_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLShadowElementDOMImpl extends _HTMLElementDOMImpl implements ShadowElement {
+  _HTMLShadowElementDOMImpl();
+  String get typeName() => "HTMLShadowElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLSourceElementDOMImpl extends _HTMLElementDOMImpl implements SourceElement {
+  _HTMLSourceElementDOMImpl();
+  String get typeName() => "HTMLSourceElement";
+
+  String get media() native "HTMLSourceElement_media_Getter";
+
+  void set media(String) native "HTMLSourceElement_media_Setter";
+
+  String get src() native "HTMLSourceElement_src_Getter";
+
+  void set src(String) native "HTMLSourceElement_src_Setter";
+
+  String get type() native "HTMLSourceElement_type_Getter";
+
+  void set type(String) native "HTMLSourceElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLSpanElementDOMImpl extends _HTMLElementDOMImpl implements SpanElement {
+  _HTMLSpanElementDOMImpl();
+  String get typeName() => "HTMLSpanElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLStyleElementDOMImpl extends _HTMLElementDOMImpl implements StyleElement {
+  _HTMLStyleElementDOMImpl();
+  String get typeName() => "HTMLStyleElement";
+
+  bool get disabled() native "HTMLStyleElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLStyleElement_disabled_Setter";
+
+  String get media() native "HTMLStyleElement_media_Getter";
+
+  void set media(String) native "HTMLStyleElement_media_Setter";
+
+  bool get scoped() native "HTMLStyleElement_scoped_Getter";
+
+  void set scoped(bool) native "HTMLStyleElement_scoped_Setter";
+
+  StyleSheet get sheet() native "HTMLStyleElement_sheet_Getter";
+
+  String get type() native "HTMLStyleElement_type_Getter";
+
+  void set type(String) native "HTMLStyleElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTableCaptionElementDOMImpl extends _HTMLElementDOMImpl implements TableCaptionElement {
+  _HTMLTableCaptionElementDOMImpl();
+  String get typeName() => "HTMLTableCaptionElement";
+
+  String get align() native "HTMLTableCaptionElement_align_Getter";
+
+  void set align(String) native "HTMLTableCaptionElement_align_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTableCellElementDOMImpl extends _HTMLElementDOMImpl implements TableCellElement {
+  _HTMLTableCellElementDOMImpl();
+  String get typeName() => "HTMLTableCellElement";
+
+  String get abbr() native "HTMLTableCellElement_abbr_Getter";
+
+  void set abbr(String) native "HTMLTableCellElement_abbr_Setter";
+
+  String get align() native "HTMLTableCellElement_align_Getter";
+
+  void set align(String) native "HTMLTableCellElement_align_Setter";
+
+  String get axis() native "HTMLTableCellElement_axis_Getter";
+
+  void set axis(String) native "HTMLTableCellElement_axis_Setter";
+
+  String get bgColor() native "HTMLTableCellElement_bgColor_Getter";
+
+  void set bgColor(String) native "HTMLTableCellElement_bgColor_Setter";
+
+  int get cellIndex() native "HTMLTableCellElement_cellIndex_Getter";
+
+  String get ch() native "HTMLTableCellElement_ch_Getter";
+
+  void set ch(String) native "HTMLTableCellElement_ch_Setter";
+
+  String get chOff() native "HTMLTableCellElement_chOff_Getter";
+
+  void set chOff(String) native "HTMLTableCellElement_chOff_Setter";
+
+  int get colSpan() native "HTMLTableCellElement_colSpan_Getter";
+
+  void set colSpan(int) native "HTMLTableCellElement_colSpan_Setter";
+
+  String get headers() native "HTMLTableCellElement_headers_Getter";
+
+  void set headers(String) native "HTMLTableCellElement_headers_Setter";
+
+  String get height() native "HTMLTableCellElement_height_Getter";
+
+  void set height(String) native "HTMLTableCellElement_height_Setter";
+
+  bool get noWrap() native "HTMLTableCellElement_noWrap_Getter";
+
+  void set noWrap(bool) native "HTMLTableCellElement_noWrap_Setter";
+
+  int get rowSpan() native "HTMLTableCellElement_rowSpan_Getter";
+
+  void set rowSpan(int) native "HTMLTableCellElement_rowSpan_Setter";
+
+  String get scope() native "HTMLTableCellElement_scope_Getter";
+
+  void set scope(String) native "HTMLTableCellElement_scope_Setter";
+
+  String get vAlign() native "HTMLTableCellElement_vAlign_Getter";
+
+  void set vAlign(String) native "HTMLTableCellElement_vAlign_Setter";
+
+  String get width() native "HTMLTableCellElement_width_Getter";
+
+  void set width(String) native "HTMLTableCellElement_width_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTableColElementDOMImpl extends _HTMLElementDOMImpl implements TableColElement {
+  _HTMLTableColElementDOMImpl();
+  String get typeName() => "HTMLTableColElement";
+
+  String get align() native "HTMLTableColElement_align_Getter";
+
+  void set align(String) native "HTMLTableColElement_align_Setter";
+
+  String get ch() native "HTMLTableColElement_ch_Getter";
+
+  void set ch(String) native "HTMLTableColElement_ch_Setter";
+
+  String get chOff() native "HTMLTableColElement_chOff_Getter";
+
+  void set chOff(String) native "HTMLTableColElement_chOff_Setter";
+
+  int get span() native "HTMLTableColElement_span_Getter";
+
+  void set span(int) native "HTMLTableColElement_span_Setter";
+
+  String get vAlign() native "HTMLTableColElement_vAlign_Getter";
+
+  void set vAlign(String) native "HTMLTableColElement_vAlign_Setter";
+
+  String get width() native "HTMLTableColElement_width_Getter";
+
+  void set width(String) native "HTMLTableColElement_width_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTableElementDOMImpl extends _HTMLElementDOMImpl implements TableElement {
+  _HTMLTableElementDOMImpl();
+  String get typeName() => "HTMLTableElement";
+
+  String get align() native "HTMLTableElement_align_Getter";
+
+  void set align(String) native "HTMLTableElement_align_Setter";
+
+  String get bgColor() native "HTMLTableElement_bgColor_Getter";
+
+  void set bgColor(String) native "HTMLTableElement_bgColor_Setter";
+
+  String get border() native "HTMLTableElement_border_Getter";
+
+  void set border(String) native "HTMLTableElement_border_Setter";
+
+  TableCaptionElement get caption() native "HTMLTableElement_caption_Getter";
+
+  void set caption(TableCaptionElement) native "HTMLTableElement_caption_Setter";
+
+  String get cellPadding() native "HTMLTableElement_cellPadding_Getter";
+
+  void set cellPadding(String) native "HTMLTableElement_cellPadding_Setter";
+
+  String get cellSpacing() native "HTMLTableElement_cellSpacing_Getter";
+
+  void set cellSpacing(String) native "HTMLTableElement_cellSpacing_Setter";
+
+  String get frame() native "HTMLTableElement_frame_Getter";
+
+  void set frame(String) native "HTMLTableElement_frame_Setter";
+
+  HTMLCollection get rows() native "HTMLTableElement_rows_Getter";
+
+  String get rules() native "HTMLTableElement_rules_Getter";
+
+  void set rules(String) native "HTMLTableElement_rules_Setter";
+
+  String get summary() native "HTMLTableElement_summary_Getter";
+
+  void set summary(String) native "HTMLTableElement_summary_Setter";
+
+  HTMLCollection get tBodies() native "HTMLTableElement_tBodies_Getter";
+
+  TableSectionElement get tFoot() native "HTMLTableElement_tFoot_Getter";
+
+  void set tFoot(TableSectionElement) native "HTMLTableElement_tFoot_Setter";
+
+  TableSectionElement get tHead() native "HTMLTableElement_tHead_Getter";
+
+  void set tHead(TableSectionElement) native "HTMLTableElement_tHead_Setter";
+
+  String get width() native "HTMLTableElement_width_Getter";
+
+  void set width(String) native "HTMLTableElement_width_Setter";
+
+  Element createCaption() {
+    return _createCaption();
+  }
+
+  Element _createCaption() native "HTMLTableElement_createCaption_Callback";
+
+  Element createTBody() {
+    return _createTBody();
+  }
+
+  Element _createTBody() native "HTMLTableElement_createTBody_Callback";
+
+  Element createTFoot() {
+    return _createTFoot();
+  }
+
+  Element _createTFoot() native "HTMLTableElement_createTFoot_Callback";
+
+  Element createTHead() {
+    return _createTHead();
+  }
+
+  Element _createTHead() native "HTMLTableElement_createTHead_Callback";
+
+  void deleteCaption() {
+    _deleteCaption();
+    return;
+  }
+
+  void _deleteCaption() native "HTMLTableElement_deleteCaption_Callback";
+
+  void deleteRow(int index) {
+    _deleteRow(index);
+    return;
+  }
+
+  void _deleteRow(index) native "HTMLTableElement_deleteRow_Callback";
+
+  void deleteTFoot() {
+    _deleteTFoot();
+    return;
+  }
+
+  void _deleteTFoot() native "HTMLTableElement_deleteTFoot_Callback";
+
+  void deleteTHead() {
+    _deleteTHead();
+    return;
+  }
+
+  void _deleteTHead() native "HTMLTableElement_deleteTHead_Callback";
+
+  Element insertRow(int index) {
+    return _insertRow(index);
+  }
+
+  Element _insertRow(index) native "HTMLTableElement_insertRow_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTableRowElementDOMImpl extends _HTMLElementDOMImpl implements TableRowElement {
+  _HTMLTableRowElementDOMImpl();
+  String get typeName() => "HTMLTableRowElement";
+
+  String get align() native "HTMLTableRowElement_align_Getter";
+
+  void set align(String) native "HTMLTableRowElement_align_Setter";
+
+  String get bgColor() native "HTMLTableRowElement_bgColor_Getter";
+
+  void set bgColor(String) native "HTMLTableRowElement_bgColor_Setter";
+
+  HTMLCollection get cells() native "HTMLTableRowElement_cells_Getter";
+
+  String get ch() native "HTMLTableRowElement_ch_Getter";
+
+  void set ch(String) native "HTMLTableRowElement_ch_Setter";
+
+  String get chOff() native "HTMLTableRowElement_chOff_Getter";
+
+  void set chOff(String) native "HTMLTableRowElement_chOff_Setter";
+
+  int get rowIndex() native "HTMLTableRowElement_rowIndex_Getter";
+
+  int get sectionRowIndex() native "HTMLTableRowElement_sectionRowIndex_Getter";
+
+  String get vAlign() native "HTMLTableRowElement_vAlign_Getter";
+
+  void set vAlign(String) native "HTMLTableRowElement_vAlign_Setter";
+
+  void deleteCell(int index) {
+    _deleteCell(index);
+    return;
+  }
+
+  void _deleteCell(index) native "HTMLTableRowElement_deleteCell_Callback";
+
+  Element insertCell(int index) {
+    return _insertCell(index);
+  }
+
+  Element _insertCell(index) native "HTMLTableRowElement_insertCell_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTableSectionElementDOMImpl extends _HTMLElementDOMImpl implements TableSectionElement {
+  _HTMLTableSectionElementDOMImpl();
+  String get typeName() => "HTMLTableSectionElement";
+
+  String get align() native "HTMLTableSectionElement_align_Getter";
+
+  void set align(String) native "HTMLTableSectionElement_align_Setter";
+
+  String get ch() native "HTMLTableSectionElement_ch_Getter";
+
+  void set ch(String) native "HTMLTableSectionElement_ch_Setter";
+
+  String get chOff() native "HTMLTableSectionElement_chOff_Getter";
+
+  void set chOff(String) native "HTMLTableSectionElement_chOff_Setter";
+
+  HTMLCollection get rows() native "HTMLTableSectionElement_rows_Getter";
+
+  String get vAlign() native "HTMLTableSectionElement_vAlign_Getter";
+
+  void set vAlign(String) native "HTMLTableSectionElement_vAlign_Setter";
+
+  void deleteRow(int index) {
+    _deleteRow(index);
+    return;
+  }
+
+  void _deleteRow(index) native "HTMLTableSectionElement_deleteRow_Callback";
+
+  Element insertRow(int index) {
+    return _insertRow(index);
+  }
+
+  Element _insertRow(index) native "HTMLTableSectionElement_insertRow_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTextAreaElementDOMImpl extends _HTMLElementDOMImpl implements TextAreaElement {
+  _HTMLTextAreaElementDOMImpl();
+  String get typeName() => "HTMLTextAreaElement";
+
+  bool get autofocus() native "HTMLTextAreaElement_autofocus_Getter";
+
+  void set autofocus(bool) native "HTMLTextAreaElement_autofocus_Setter";
+
+  int get cols() native "HTMLTextAreaElement_cols_Getter";
+
+  void set cols(int) native "HTMLTextAreaElement_cols_Setter";
+
+  String get defaultValue() native "HTMLTextAreaElement_defaultValue_Getter";
+
+  void set defaultValue(String) native "HTMLTextAreaElement_defaultValue_Setter";
+
+  bool get disabled() native "HTMLTextAreaElement_disabled_Getter";
+
+  void set disabled(bool) native "HTMLTextAreaElement_disabled_Setter";
+
+  FormElement get form() native "HTMLTextAreaElement_form_Getter";
+
+  NodeList get labels() native "HTMLTextAreaElement_labels_Getter";
+
+  int get maxLength() native "HTMLTextAreaElement_maxLength_Getter";
+
+  void set maxLength(int) native "HTMLTextAreaElement_maxLength_Setter";
+
+  String get name() native "HTMLTextAreaElement_name_Getter";
+
+  void set name(String) native "HTMLTextAreaElement_name_Setter";
+
+  String get placeholder() native "HTMLTextAreaElement_placeholder_Getter";
+
+  void set placeholder(String) native "HTMLTextAreaElement_placeholder_Setter";
+
+  bool get readOnly() native "HTMLTextAreaElement_readOnly_Getter";
+
+  void set readOnly(bool) native "HTMLTextAreaElement_readOnly_Setter";
+
+  bool get required() native "HTMLTextAreaElement_required_Getter";
+
+  void set required(bool) native "HTMLTextAreaElement_required_Setter";
+
+  int get rows() native "HTMLTextAreaElement_rows_Getter";
+
+  void set rows(int) native "HTMLTextAreaElement_rows_Setter";
+
+  String get selectionDirection() native "HTMLTextAreaElement_selectionDirection_Getter";
+
+  void set selectionDirection(String) native "HTMLTextAreaElement_selectionDirection_Setter";
+
+  int get selectionEnd() native "HTMLTextAreaElement_selectionEnd_Getter";
+
+  void set selectionEnd(int) native "HTMLTextAreaElement_selectionEnd_Setter";
+
+  int get selectionStart() native "HTMLTextAreaElement_selectionStart_Getter";
+
+  void set selectionStart(int) native "HTMLTextAreaElement_selectionStart_Setter";
+
+  int get textLength() native "HTMLTextAreaElement_textLength_Getter";
+
+  String get type() native "HTMLTextAreaElement_type_Getter";
+
+  String get validationMessage() native "HTMLTextAreaElement_validationMessage_Getter";
+
+  ValidityState get validity() native "HTMLTextAreaElement_validity_Getter";
+
+  String get value() native "HTMLTextAreaElement_value_Getter";
+
+  void set value(String) native "HTMLTextAreaElement_value_Setter";
+
+  bool get willValidate() native "HTMLTextAreaElement_willValidate_Getter";
+
+  String get wrap() native "HTMLTextAreaElement_wrap_Getter";
+
+  void set wrap(String) native "HTMLTextAreaElement_wrap_Setter";
+
+  bool checkValidity() {
+    return _checkValidity();
+  }
+
+  bool _checkValidity() native "HTMLTextAreaElement_checkValidity_Callback";
+
+  void select() {
+    _select();
+    return;
+  }
+
+  void _select() native "HTMLTextAreaElement_select_Callback";
+
+  void setCustomValidity(String error) {
+    _setCustomValidity(error);
+    return;
+  }
+
+  void _setCustomValidity(error) native "HTMLTextAreaElement_setCustomValidity_Callback";
+
+  void setSelectionRange(int start, int end, [String direction = null]) {
+    //
+    // setSelectionRange(int start, int end)
+    // setSelectionRange(int start, int end, [Optional] String direction)
+    //
+    // -- reduced:
+    // setSelectionRange(int start, int end, [Optional] String direction)
+    //
+    _setSelectionRange(start, end, direction);
+    return;
+  }
+
+  void _setSelectionRange(start, end, direction) native "HTMLTextAreaElement_setSelectionRange_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTitleElementDOMImpl extends _HTMLElementDOMImpl implements TitleElement {
+  _HTMLTitleElementDOMImpl();
+  String get typeName() => "HTMLTitleElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLTrackElementDOMImpl extends _HTMLElementDOMImpl implements TrackElement {
+  _HTMLTrackElementDOMImpl();
+  String get typeName() => "HTMLTrackElement";
+
+  bool get defaultValue() native "HTMLTrackElement_default_Getter";
+
+  void set defaultValue(bool) native "HTMLTrackElement_default_Setter";
+
+  String get kind() native "HTMLTrackElement_kind_Getter";
+
+  void set kind(String) native "HTMLTrackElement_kind_Setter";
+
+  String get label() native "HTMLTrackElement_label_Getter";
+
+  void set label(String) native "HTMLTrackElement_label_Setter";
+
+  int get readyState() native "HTMLTrackElement_readyState_Getter";
+
+  String get src() native "HTMLTrackElement_src_Getter";
+
+  void set src(String) native "HTMLTrackElement_src_Setter";
+
+  String get srclang() native "HTMLTrackElement_srclang_Getter";
+
+  void set srclang(String) native "HTMLTrackElement_srclang_Setter";
+
+  TextTrack get track() native "HTMLTrackElement_track_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLUListElementDOMImpl extends _HTMLElementDOMImpl implements UListElement {
+  _HTMLUListElementDOMImpl();
+  String get typeName() => "HTMLUListElement";
+
+  bool get compact() native "HTMLUListElement_compact_Getter";
+
+  void set compact(bool) native "HTMLUListElement_compact_Setter";
+
+  String get type() native "HTMLUListElement_type_Getter";
+
+  void set type(String) native "HTMLUListElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLUnknownElementDOMImpl extends _HTMLElementDOMImpl implements UnknownElement {
+  _HTMLUnknownElementDOMImpl();
+  String get typeName() => "HTMLUnknownElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLVideoElementDOMImpl extends _HTMLMediaElementDOMImpl implements VideoElement {
+  _HTMLVideoElementDOMImpl();
+  String get typeName() => "HTMLVideoElement";
+
+  int get height() native "HTMLVideoElement_height_Getter";
+
+  void set height(int) native "HTMLVideoElement_height_Setter";
+
+  String get poster() native "HTMLVideoElement_poster_Getter";
+
+  void set poster(String) native "HTMLVideoElement_poster_Setter";
+
+  int get videoHeight() native "HTMLVideoElement_videoHeight_Getter";
+
+  int get videoWidth() native "HTMLVideoElement_videoWidth_Getter";
+
+  int get webkitDecodedFrameCount() native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
+
+  bool get webkitDisplayingFullscreen() native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
+
+  int get webkitDroppedFrameCount() native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
+
+  bool get webkitSupportsFullscreen() native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
+
+  int get width() native "HTMLVideoElement_width_Getter";
+
+  void set width(int) native "HTMLVideoElement_width_Setter";
+
+  void webkitEnterFullScreen() {
+    _webkitEnterFullScreen();
+    return;
+  }
+
+  void _webkitEnterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
+
+  void webkitEnterFullscreen() {
+    _webkitEnterFullscreen();
+    return;
+  }
+
+  void _webkitEnterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
+
+  void webkitExitFullScreen() {
+    _webkitExitFullScreen();
+    return;
+  }
+
+  void _webkitExitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
+
+  void webkitExitFullscreen() {
+    _webkitExitFullscreen();
+    return;
+  }
+
+  void _webkitExitFullscreen() native "HTMLVideoElement_webkitExitFullscreen_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HashChangeEventDOMImpl extends _EventDOMImpl implements HashChangeEvent {
+  _HashChangeEventDOMImpl();
+  String get typeName() => "HashChangeEvent";
+
+  String get newURL() native "HashChangeEvent_newURL_Getter";
+
+  String get oldURL() native "HashChangeEvent_oldURL_Getter";
+
+  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) {
+    _initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
+    return;
+  }
+
+  void _initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HistoryDOMImpl extends _DOMWrapperBase implements History {
+  _HistoryDOMImpl();
+  String get typeName() => "History";
+
+  int get length() native "History_length_Getter";
+
+  Dynamic get state() native "History_state_Getter";
+
+  void back() {
+    _back();
+    return;
+  }
+
+  void _back() native "History_back_Callback";
+
+  void forward() {
+    _forward();
+    return;
+  }
+
+  void _forward() native "History_forward_Callback";
+
+  void go(int distance) {
+    _go(distance);
+    return;
+  }
+
+  void _go(distance) native "History_go_Callback";
+
+  void pushState(Object data, String title, [String url = null]) native "History_pushState_Callback";
+
+  void replaceState(Object data, String title, [String url = null]) native "History_replaceState_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBAnyDOMImpl extends _DOMWrapperBase implements IDBAny {
+  _IDBAnyDOMImpl();
+  String get typeName() => "IDBAny";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBCursorDOMImpl extends _DOMWrapperBase implements IDBCursor {
+  _IDBCursorDOMImpl();
+  String get typeName() => "IDBCursor";
+
+  String get direction() native "IDBCursor_direction_Getter";
+
+  Dynamic get key() native "IDBCursor_key_Getter";
+
+  Dynamic get primaryKey() native "IDBCursor_primaryKey_Getter";
+
+  Dynamic get source() native "IDBCursor_source_Getter";
+
+  void advance(int count) {
+    _advance(count);
+    return;
+  }
+
+  void _advance(count) native "IDBCursor_advance_Callback";
+
+  void continueFunction([key = null]) {
+    //
+    // continueFunction()
+    // continueFunction([Optional] Dynamic key)
+    //
+    if (key === null) {
+      _continueFunction();
+      return;
+    }
+    _continueFunction_2(key);
+    return;
+  }
+
+  void _continueFunction() native "IDBCursor_continueFunction_Callback";
+
+  void _continueFunction_2(key) native "IDBCursor_continueFunction_2_Callback";
+
+  IDBRequest delete() {
+    return _delete();
+  }
+
+  IDBRequest _delete() native "IDBCursor_delete_Callback";
+
+  IDBRequest update(value) {
+    return _update(value);
+  }
+
+  IDBRequest _update(value) native "IDBCursor_update_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBCursorWithValueDOMImpl extends _IDBCursorDOMImpl implements IDBCursorWithValue {
+  _IDBCursorWithValueDOMImpl();
+  String get typeName() => "IDBCursorWithValue";
+
+  Dynamic get value() native "IDBCursorWithValue_value_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBDatabaseExceptionDOMImpl extends _DOMWrapperBase implements IDBDatabaseException {
+  _IDBDatabaseExceptionDOMImpl();
+  String get typeName() => "IDBDatabaseException";
+
+  int get code() native "IDBDatabaseException_code_Getter";
+
+  String get message() native "IDBDatabaseException_message_Getter";
+
+  String get name() native "IDBDatabaseException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "IDBDatabaseException_toString_Callback";
+
+}
+
+class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
+  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get error() => _get('error');
+  EventListenerList get versionChange() => _get('versionchange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBDatabaseDOMImpl extends _DOMWrapperBase implements IDBDatabase {
+  _IDBDatabaseDOMImpl();
+  String get typeName() => "IDBDatabase";
+  _EventsImpl _on;
+
+  _IDBDatabaseEventsImpl get on() {
+    if (_on === null) _on = new _IDBDatabaseEventsImpl(this);
+    return _on;
+  }
+
+  String get name() native "IDBDatabase_name_Getter";
+
+  List<String> get objectStoreNames() native "IDBDatabase_objectStoreNames_Getter";
+
+  String get version() native "IDBDatabase_version_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "IDBDatabase_addEventListener_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "IDBDatabase_close_Callback";
+
+  IDBObjectStore createObjectStore(String name, [Map options = null]) {
+    //
+    // createObjectStore(String name)
+    // createObjectStore(String name, [Optional] Map options)
+    //
+    if (options === null) {
+      return _createObjectStore(name);
+    }
+    return _createObjectStore_2(name, options);
+  }
+
+  IDBObjectStore _createObjectStore(name) native "IDBDatabase_createObjectStore_Callback";
+
+  IDBObjectStore _createObjectStore_2(name, options) native "IDBDatabase_createObjectStore_2_Callback";
+
+  void deleteObjectStore(String name) {
+    _deleteObjectStore(name);
+    return;
+  }
+
+  void _deleteObjectStore(name) native "IDBDatabase_deleteObjectStore_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "IDBDatabase_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "IDBDatabase_removeEventListener_Callback";
+
+  IDBVersionChangeRequest setVersion(String version) {
+    return _setVersion(version);
+  }
+
+  IDBVersionChangeRequest _setVersion(version) native "IDBDatabase_setVersion_Callback";
+
+  IDBTransaction transaction(storeName_OR_storeNames, mode) {
+    //
+    // transaction(List<String> storeNames, String mode)
+    // transaction(String storeName, String mode)
+    // transaction(List<String> storeNames, int mode)
+    // transaction(String storeName, int mode)
+    //
+    if ((storeName_OR_storeNames === null || storeName_OR_storeNames is List<String>) &&
+        (mode === null || mode is String)) {
+      return _transaction(storeName_OR_storeNames, mode);
+    }
+    if ((storeName_OR_storeNames === null || storeName_OR_storeNames is String) &&
+        (mode === null || mode is String)) {
+      return _transaction_2(storeName_OR_storeNames, mode);
+    }
+    if ((storeName_OR_storeNames === null || storeName_OR_storeNames is List<String>) &&
+        (mode === null || mode is int)) {
+      return _transaction_3(storeName_OR_storeNames, mode);
+    }
+    if ((storeName_OR_storeNames === null || storeName_OR_storeNames is String) &&
+        (mode === null || mode is int)) {
+      return _transaction_4(storeName_OR_storeNames, mode);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  IDBTransaction _transaction(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback";
+
+  IDBTransaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_2_Callback";
+
+  IDBTransaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
+
+  IDBTransaction _transaction_4(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_4_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBFactoryDOMImpl extends _DOMWrapperBase implements IDBFactory {
+  _IDBFactoryDOMImpl();
+  String get typeName() => "IDBFactory";
+
+  int cmp(first, second) {
+    return _cmp(first, second);
+  }
+
+  int _cmp(first, second) native "IDBFactory_cmp_Callback";
+
+  IDBVersionChangeRequest deleteDatabase(String name) {
+    return _deleteDatabase(name);
+  }
+
+  IDBVersionChangeRequest _deleteDatabase(name) native "IDBFactory_deleteDatabase_Callback";
+
+  IDBRequest getDatabaseNames() {
+    return _getDatabaseNames();
+  }
+
+  IDBRequest _getDatabaseNames() native "IDBFactory_getDatabaseNames_Callback";
+
+  IDBRequest open(String name) {
+    return _open(name);
+  }
+
+  IDBRequest _open(name) native "IDBFactory_open_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBIndexDOMImpl extends _DOMWrapperBase implements IDBIndex {
+  _IDBIndexDOMImpl();
+  String get typeName() => "IDBIndex";
+
+  String get keyPath() native "IDBIndex_keyPath_Getter";
+
+  bool get multiEntry() native "IDBIndex_multiEntry_Getter";
+
+  String get name() native "IDBIndex_name_Getter";
+
+  IDBObjectStore get objectStore() native "IDBIndex_objectStore_Getter";
+
+  bool get unique() native "IDBIndex_unique_Getter";
+
+  IDBRequest count([key_OR_range = null]) {
+    //
+    // count()
+    // count([Optional] IDBKeyRange range)
+    // count(Dynamic key)
+    //
+    // -- reduced:
+    // count([Optional] IDBKeyRange range)
+    // count(Dynamic key)
+    //
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange)) {
+      return _count(key_OR_range);
+    }
+    return _count_2(key_OR_range);
+  }
+
+  IDBRequest _count(key_OR_range) native "IDBIndex_count_Callback";
+
+  IDBRequest _count_2(key_OR_range) native "IDBIndex_count_2_Callback";
+
+  IDBRequest get(key) {
+    //
+    // get(IDBKeyRange key)
+    // get(Dynamic key)
+    //
+    if ((key === null || key is IDBKeyRange)) {
+      return _get(key);
+    }
+    return _get_2(key);
+  }
+
+  IDBRequest _get(key) native "IDBIndex_get_Callback";
+
+  IDBRequest _get_2(key) native "IDBIndex_get_2_Callback";
+
+  IDBRequest getKey(key) {
+    //
+    // getKey(IDBKeyRange key)
+    // getKey(Dynamic key)
+    //
+    if ((key === null || key is IDBKeyRange)) {
+      return _getKey(key);
+    }
+    return _getKey_2(key);
+  }
+
+  IDBRequest _getKey(key) native "IDBIndex_getKey_Callback";
+
+  IDBRequest _getKey_2(key) native "IDBIndex_getKey_2_Callback";
+
+  IDBRequest openCursor([key_OR_range = null, direction = null]) {
+    //
+    // openCursor()
+    // openCursor([Optional] IDBKeyRange range)
+    // openCursor([Optional] IDBKeyRange range, [Optional] String direction)
+    // openCursor(Dynamic key)
+    // openCursor(Dynamic key, [Optional] String direction)
+    // openCursor(IDBKeyRange range, int direction)
+    // openCursor(Dynamic key, int direction)
+    //
+    // -- reduced:
+    // openCursor([Optional] IDBKeyRange range, [Optional] String direction)
+    // openCursor(Dynamic key, [Optional] String direction)
+    // openCursor(IDBKeyRange range, int direction)
+    // openCursor(Dynamic key, int direction)
+    //
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        (direction === null || direction is String)) {
+      return _openCursor(key_OR_range, direction);
+    }
+    if ((direction === null || direction is String)) {
+      return _openCursor_2(key_OR_range, direction);
+    }
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        (direction === null || direction is int)) {
+      return _openCursor_3(key_OR_range, direction);
+    }
+    if ((direction === null || direction is int)) {
+      return _openCursor_4(key_OR_range, direction);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  IDBRequest _openCursor(key_OR_range, direction) native "IDBIndex_openCursor_Callback";
+
+  IDBRequest _openCursor_2(key_OR_range, direction) native "IDBIndex_openCursor_2_Callback";
+
+  IDBRequest _openCursor_3(key_OR_range, direction) native "IDBIndex_openCursor_3_Callback";
+
+  IDBRequest _openCursor_4(key_OR_range, direction) native "IDBIndex_openCursor_4_Callback";
+
+  IDBRequest openKeyCursor([key_OR_range = null, direction = null]) {
+    //
+    // openKeyCursor()
+    // openKeyCursor([Optional] IDBKeyRange range)
+    // openKeyCursor([Optional] IDBKeyRange range, [Optional] String direction)
+    // openKeyCursor(Dynamic key)
+    // openKeyCursor(Dynamic key, [Optional] String direction)
+    // openKeyCursor(IDBKeyRange range, int direction)
+    // openKeyCursor(Dynamic key, int direction)
+    //
+    // -- reduced:
+    // openKeyCursor([Optional] IDBKeyRange range, [Optional] String direction)
+    // openKeyCursor(Dynamic key, [Optional] String direction)
+    // openKeyCursor(IDBKeyRange range, int direction)
+    // openKeyCursor(Dynamic key, int direction)
+    //
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        (direction === null || direction is String)) {
+      return _openKeyCursor(key_OR_range, direction);
+    }
+    if ((direction === null || direction is String)) {
+      return _openKeyCursor_2(key_OR_range, direction);
+    }
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        (direction === null || direction is int)) {
+      return _openKeyCursor_3(key_OR_range, direction);
+    }
+    if ((direction === null || direction is int)) {
+      return _openKeyCursor_4(key_OR_range, direction);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  IDBRequest _openKeyCursor(key_OR_range, direction) native "IDBIndex_openKeyCursor_Callback";
+
+  IDBRequest _openKeyCursor_2(key_OR_range, direction) native "IDBIndex_openKeyCursor_2_Callback";
+
+  IDBRequest _openKeyCursor_3(key_OR_range, direction) native "IDBIndex_openKeyCursor_3_Callback";
+
+  IDBRequest _openKeyCursor_4(key_OR_range, direction) native "IDBIndex_openKeyCursor_4_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBKeyDOMImpl extends _DOMWrapperBase implements IDBKey {
+  _IDBKeyDOMImpl();
+  String get typeName() => "IDBKey";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBKeyRangeDOMImpl extends _DOMWrapperBase implements IDBKeyRange {
+  _IDBKeyRangeDOMImpl();
+  String get typeName() => "IDBKeyRange";
+
+  Dynamic get lower() native "IDBKeyRange_lower_Getter";
+
+  bool get lowerOpen() native "IDBKeyRange_lowerOpen_Getter";
+
+  Dynamic get upper() native "IDBKeyRange_upper_Getter";
+
+  bool get upperOpen() native "IDBKeyRange_upperOpen_Getter";
+
+  static IDBKeyRange bound(lower, upper, [bool lowerOpen = null, bool upperOpen = null]) {
+    //
+    // bound(Dynamic lower, Dynamic upper)
+    // bound(Dynamic lower, Dynamic upper, [Optional] bool lowerOpen)
+    // bound(Dynamic lower, Dynamic upper, [Optional] bool lowerOpen, [Optional] bool upperOpen)
+    //
+    // -- reduced:
+    // bound(Dynamic lower, Dynamic upper, [Optional] bool lowerOpen, [Optional] bool upperOpen)
+    //
+    return _bound(lower, upper, lowerOpen, upperOpen);
+  }
+
+  static IDBKeyRange _bound(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_Callback";
+
+  static IDBKeyRange lowerBound(bound, [bool open = null]) {
+    //
+    // lowerBound(Dynamic bound)
+    // lowerBound(Dynamic bound, [Optional] bool open)
+    //
+    // -- reduced:
+    // lowerBound(Dynamic bound, [Optional] bool open)
+    //
+    return _lowerBound(bound, open);
+  }
+
+  static IDBKeyRange _lowerBound(bound, open) native "IDBKeyRange_lowerBound_Callback";
+
+  static IDBKeyRange only(value) {
+    return _only(value);
+  }
+
+  static IDBKeyRange _only(value) native "IDBKeyRange_only_Callback";
+
+  static IDBKeyRange upperBound(bound, [bool open = null]) {
+    //
+    // upperBound(Dynamic bound)
+    // upperBound(Dynamic bound, [Optional] bool open)
+    //
+    // -- reduced:
+    // upperBound(Dynamic bound, [Optional] bool open)
+    //
+    return _upperBound(bound, open);
+  }
+
+  static IDBKeyRange _upperBound(bound, open) native "IDBKeyRange_upperBound_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBObjectStoreDOMImpl extends _DOMWrapperBase implements IDBObjectStore {
+  _IDBObjectStoreDOMImpl();
+  String get typeName() => "IDBObjectStore";
+
+  List<String> get indexNames() native "IDBObjectStore_indexNames_Getter";
+
+  String get keyPath() native "IDBObjectStore_keyPath_Getter";
+
+  String get name() native "IDBObjectStore_name_Getter";
+
+  IDBTransaction get transaction() native "IDBObjectStore_transaction_Getter";
+
+  IDBRequest add(value, [key = null]) {
+    //
+    // add(Dynamic value)
+    // add(Dynamic value, [Optional] Dynamic key)
+    //
+    if (key === null) {
+      return _add(value);
+    }
+    return _add_2(value, key);
+  }
+
+  IDBRequest _add(value) native "IDBObjectStore_add_Callback";
+
+  IDBRequest _add_2(value, key) native "IDBObjectStore_add_2_Callback";
+
+  IDBRequest clear() {
+    return _clear();
+  }
+
+  IDBRequest _clear() native "IDBObjectStore_clear_Callback";
+
+  IDBRequest count([key_OR_range = null]) {
+    //
+    // count()
+    // count([Optional] IDBKeyRange range)
+    // count(Dynamic key)
+    //
+    // -- reduced:
+    // count([Optional] IDBKeyRange range)
+    // count(Dynamic key)
+    //
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange)) {
+      return _count(key_OR_range);
+    }
+    return _count_2(key_OR_range);
+  }
+
+  IDBRequest _count(key_OR_range) native "IDBObjectStore_count_Callback";
+
+  IDBRequest _count_2(key_OR_range) native "IDBObjectStore_count_2_Callback";
+
+  IDBIndex createIndex(String name, String keyPath, [Map options = null]) {
+    //
+    // createIndex(String name, String keyPath)
+    // createIndex(String name, String keyPath, [Optional] Map options)
+    //
+    if (options === null) {
+      return _createIndex(name, keyPath);
+    }
+    return _createIndex_2(name, keyPath, options);
+  }
+
+  IDBIndex _createIndex(name, keyPath) native "IDBObjectStore_createIndex_Callback";
+
+  IDBIndex _createIndex_2(name, keyPath, options) native "IDBObjectStore_createIndex_2_Callback";
+
+  IDBRequest delete(key_OR_keyRange) {
+    //
+    // delete(IDBKeyRange keyRange)
+    // delete(Dynamic key)
+    //
+    if ((key_OR_keyRange === null || key_OR_keyRange is IDBKeyRange)) {
+      return _delete(key_OR_keyRange);
+    }
+    return _delete_2(key_OR_keyRange);
+  }
+
+  IDBRequest _delete(key_OR_keyRange) native "IDBObjectStore_delete_Callback";
+
+  IDBRequest _delete_2(key_OR_keyRange) native "IDBObjectStore_delete_2_Callback";
+
+  void deleteIndex(String name) {
+    _deleteIndex(name);
+    return;
+  }
+
+  void _deleteIndex(name) native "IDBObjectStore_deleteIndex_Callback";
+
+  IDBRequest getObject(key) {
+    //
+    // getObject(IDBKeyRange key)
+    // getObject(Dynamic key)
+    //
+    if ((key === null || key is IDBKeyRange)) {
+      return _getObject(key);
+    }
+    return _getObject_2(key);
+  }
+
+  IDBRequest _getObject(key) native "IDBObjectStore_getObject_Callback";
+
+  IDBRequest _getObject_2(key) native "IDBObjectStore_getObject_2_Callback";
+
+  IDBIndex index(String name) {
+    return _index(name);
+  }
+
+  IDBIndex _index(name) native "IDBObjectStore_index_Callback";
+
+  IDBRequest openCursor([key_OR_range = null, direction = null]) {
+    //
+    // openCursor([Optional] IDBKeyRange range)
+    // openCursor([Optional] IDBKeyRange range, [Optional] String direction)
+    // openCursor(Dynamic key)
+    // openCursor(Dynamic key, [Optional] String direction)
+    // openCursor(IDBKeyRange range, int direction)
+    // openCursor(Dynamic key, int direction)
+    //
+    // -- reduced:
+    // openCursor([Optional] IDBKeyRange range)
+    // openCursor([Optional] IDBKeyRange range, [Optional] String direction)
+    // openCursor(Dynamic key, [Optional] String direction)
+    // openCursor(IDBKeyRange range, int direction)
+    // openCursor(Dynamic key, int direction)
+    //
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        direction === null) {
+      return _openCursor(key_OR_range);
+    }
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        (direction === null || direction is String)) {
+      return _openCursor_2(key_OR_range, direction);
+    }
+    if ((direction === null || direction is String)) {
+      return _openCursor_3(key_OR_range, direction);
+    }
+    if ((key_OR_range === null || key_OR_range is IDBKeyRange) &&
+        (direction === null || direction is int)) {
+      return _openCursor_4(key_OR_range, direction);
+    }
+    if ((direction === null || direction is int)) {
+      return _openCursor_5(key_OR_range, direction);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  IDBRequest _openCursor(key_OR_range) native "IDBObjectStore_openCursor_Callback";
+
+  IDBRequest _openCursor_2(key_OR_range, direction) native "IDBObjectStore_openCursor_2_Callback";
+
+  IDBRequest _openCursor_3(key_OR_range, direction) native "IDBObjectStore_openCursor_3_Callback";
+
+  IDBRequest _openCursor_4(key_OR_range, direction) native "IDBObjectStore_openCursor_4_Callback";
+
+  IDBRequest _openCursor_5(key_OR_range, direction) native "IDBObjectStore_openCursor_5_Callback";
+
+  IDBRequest put(value, [key = null]) {
+    //
+    // put(Dynamic value)
+    // put(Dynamic value, [Optional] Dynamic key)
+    //
+    if (key === null) {
+      return _put(value);
+    }
+    return _put_2(value, key);
+  }
+
+  IDBRequest _put(value) native "IDBObjectStore_put_Callback";
+
+  IDBRequest _put_2(value, key) native "IDBObjectStore_put_2_Callback";
+
+}
+
+class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
+  _IDBRequestEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get error() => _get('error');
+  EventListenerList get success() => _get('success');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBRequestDOMImpl extends _DOMWrapperBase implements IDBRequest {
+  _IDBRequestDOMImpl();
+  String get typeName() => "IDBRequest";
+  _EventsImpl _on;
+
+  _IDBRequestEventsImpl get on() {
+    if (_on === null) _on = new _IDBRequestEventsImpl(this);
+    return _on;
+  }
+
+  int get errorCode() native "IDBRequest_errorCode_Getter";
+
+  String get readyState() native "IDBRequest_readyState_Getter";
+
+  Dynamic get result() native "IDBRequest_result_Getter";
+
+  Dynamic get source() native "IDBRequest_source_Getter";
+
+  IDBTransaction get transaction() native "IDBRequest_transaction_Getter";
+
+  String get webkitErrorMessage() native "IDBRequest_webkitErrorMessage_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "IDBRequest_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "IDBRequest_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "IDBRequest_removeEventListener_Callback";
+
+}
+
+class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
+  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get complete() => _get('complete');
+  EventListenerList get error() => _get('error');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBTransactionDOMImpl extends _DOMWrapperBase implements IDBTransaction {
+  _IDBTransactionDOMImpl();
+  String get typeName() => "IDBTransaction";
+  _EventsImpl _on;
+
+  _IDBTransactionEventsImpl get on() {
+    if (_on === null) _on = new _IDBTransactionEventsImpl(this);
+    return _on;
+  }
+
+  IDBDatabase get db() native "IDBTransaction_db_Getter";
+
+  String get mode() native "IDBTransaction_mode_Getter";
+
+  void abort() {
+    _abort();
+    return;
+  }
+
+  void _abort() native "IDBTransaction_abort_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "IDBTransaction_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "IDBTransaction_dispatchEvent_Callback";
+
+  IDBObjectStore objectStore(String name) {
+    return _objectStore(name);
+  }
+
+  IDBObjectStore _objectStore(name) native "IDBTransaction_objectStore_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "IDBTransaction_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBVersionChangeEventDOMImpl extends _EventDOMImpl implements IDBVersionChangeEvent {
+  _IDBVersionChangeEventDOMImpl();
+  String get typeName() => "IDBVersionChangeEvent";
+
+  String get version() native "IDBVersionChangeEvent_version_Getter";
+
+}
+
+class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
+  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get blocked() => _get('blocked');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IDBVersionChangeRequestDOMImpl extends _IDBRequestDOMImpl implements IDBVersionChangeRequest {
+  _IDBVersionChangeRequestDOMImpl();
+  String get typeName() => "IDBVersionChangeRequest";
+
+  _IDBVersionChangeRequestEventsImpl get on() {
+    if (_on === null) _on = new _IDBVersionChangeRequestEventsImpl(this);
+    return _on;
+  }
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "IDBVersionChangeRequest_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "IDBVersionChangeRequest_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "IDBVersionChangeRequest_removeEventListener_Callback";
+
+}
+class _IceCandidateFactoryProviderImpl {
+  static _IceCandidateDOMImpl createIceCandidate(String label, String candidateLine)
+      native "IceCandidate_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _IceCandidateDOMImpl extends _DOMWrapperBase implements IceCandidate {
+  _IceCandidateDOMImpl();
+  String get typeName() => "IceCandidate";
+
+  String get label() native "IceCandidate_label_Getter";
+
+  String toSdp() {
+    return _toSdp();
+  }
+
+  String _toSdp() native "IceCandidate_toSdp_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ImageDataDOMImpl extends _DOMWrapperBase implements ImageData {
+  _ImageDataDOMImpl();
+  String get typeName() => "ImageData";
+
+  Uint8ClampedArray get data() native "ImageData_data_Getter";
+
+  int get height() native "ImageData_height_Getter";
+
+  int get width() native "ImageData_width_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Int16ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Int16Array {
+  _Int16ArrayDOMImpl();
+  String get typeName() => "Int16Array";
+
+  int get length() native "Int16Array_length_Getter";
+
+  int operator[](int index) native "Int16Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Int16Array_numericIndexSetter_Callback";
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  int last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(int element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<int> filter(bool f(int element)) {
+    return _Collections.filter(this, new List<int>(), f);
+  }
+
+  bool every(bool f(int element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(int element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<int> iterator() {
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Int16Array_setElements_Callback";
+
+  Int16Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Int16Array _subarray(start, end) native "Int16Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Int32ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Int32Array {
+  _Int32ArrayDOMImpl();
+  String get typeName() => "Int32Array";
+
+  int get length() native "Int32Array_length_Getter";
+
+  int operator[](int index) native "Int32Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Int32Array_numericIndexSetter_Callback";
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  int last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(int element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<int> filter(bool f(int element)) {
+    return _Collections.filter(this, new List<int>(), f);
+  }
+
+  bool every(bool f(int element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(int element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<int> iterator() {
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Int32Array_setElements_Callback";
+
+  Int32Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Int32Array _subarray(start, end) native "Int32Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Int8ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Int8Array {
+  _Int8ArrayDOMImpl();
+  String get typeName() => "Int8Array";
+
+  int get length() native "Int8Array_length_Getter";
+
+  int operator[](int index) native "Int8Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Int8Array_numericIndexSetter_Callback";
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  int last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(int element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<int> filter(bool f(int element)) {
+    return _Collections.filter(this, new List<int>(), f);
+  }
+
+  bool every(bool f(int element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(int element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<int> iterator() {
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Int8Array_setElements_Callback";
+
+  Int8Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Int8Array _subarray(start, end) native "Int8Array_subarray_Callback";
+
+}
+
+class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
+  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get audioProcess() => _get('audioprocess');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _JavaScriptAudioNodeDOMImpl extends _AudioNodeDOMImpl implements JavaScriptAudioNode {
+  _JavaScriptAudioNodeDOMImpl();
+  String get typeName() => "JavaScriptAudioNode";
+  _EventsImpl _on;
+
+  _JavaScriptAudioNodeEventsImpl get on() {
+    if (_on === null) _on = new _JavaScriptAudioNodeEventsImpl(this);
+    return _on;
+  }
+
+  int get bufferSize() native "JavaScriptAudioNode_bufferSize_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "JavaScriptAudioNode_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "JavaScriptAudioNode_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "JavaScriptAudioNode_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _JavaScriptCallFrameDOMImpl extends _DOMWrapperBase implements JavaScriptCallFrame {
+  _JavaScriptCallFrameDOMImpl();
+  String get typeName() => "JavaScriptCallFrame";
+
+  JavaScriptCallFrame get caller() native "JavaScriptCallFrame_caller_Getter";
+
+  int get column() native "JavaScriptCallFrame_column_Getter";
+
+  String get functionName() native "JavaScriptCallFrame_functionName_Getter";
+
+  int get line() native "JavaScriptCallFrame_line_Getter";
+
+  List get scopeChain() native "JavaScriptCallFrame_scopeChain_Getter";
+
+  int get sourceID() native "JavaScriptCallFrame_sourceID_Getter";
+
+  Object get thisObject() native "JavaScriptCallFrame_thisObject_Getter";
+
+  String get type() native "JavaScriptCallFrame_type_Getter";
+
+  void evaluate(String script) native "JavaScriptCallFrame_evaluate_Callback";
+
+  int scopeType(int scopeIndex) native "JavaScriptCallFrame_scopeType_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _KeyboardEventDOMImpl extends _UIEventDOMImpl implements KeyboardEvent {
+  _KeyboardEventDOMImpl();
+  String get typeName() => "KeyboardEvent";
+
+  bool get altGraphKey() native "KeyboardEvent_altGraphKey_Getter";
+
+  bool get altKey() native "KeyboardEvent_altKey_Getter";
+
+  bool get ctrlKey() native "KeyboardEvent_ctrlKey_Getter";
+
+  String get keyIdentifier() native "KeyboardEvent_keyIdentifier_Getter";
+
+  int get keyLocation() native "KeyboardEvent_keyLocation_Getter";
+
+  bool get metaKey() native "KeyboardEvent_metaKey_Getter";
+
+  bool get shiftKey() native "KeyboardEvent_shiftKey_Getter";
+
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
+    if ((view === null || view is Window)) {
+      _initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _LocalMediaStreamDOMImpl extends _MediaStreamDOMImpl implements LocalMediaStream {
+  _LocalMediaStreamDOMImpl();
+  String get typeName() => "LocalMediaStream";
+
+  void stop() {
+    _stop();
+    return;
+  }
+
+  void _stop() native "LocalMediaStream_stop_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _LocationDOMImpl extends _DOMWrapperBase implements Location {
+  _LocationDOMImpl();
+  String get typeName() => "Location";
+
+  List<String> get ancestorOrigins() native "Location_ancestorOrigins_Getter";
+
+  String get hash() native "Location_hash_Getter";
+
+  void set hash(String) native "Location_hash_Setter";
+
+  String get host() native "Location_host_Getter";
+
+  void set host(String) native "Location_host_Setter";
+
+  String get hostname() native "Location_hostname_Getter";
+
+  void set hostname(String) native "Location_hostname_Setter";
+
+  String get href() native "Location_href_Getter";
+
+  void set href(String) native "Location_href_Setter";
+
+  String get origin() native "Location_origin_Getter";
+
+  String get pathname() native "Location_pathname_Getter";
+
+  void set pathname(String) native "Location_pathname_Setter";
+
+  String get port() native "Location_port_Getter";
+
+  void set port(String) native "Location_port_Setter";
+
+  String get protocol() native "Location_protocol_Getter";
+
+  void set protocol(String) native "Location_protocol_Setter";
+
+  String get search() native "Location_search_Getter";
+
+  void set search(String) native "Location_search_Setter";
+
+  void assign(String url) native "Location_assign_Callback";
+
+  void reload() native "Location_reload_Callback";
+
+  void replace(String url) native "Location_replace_Callback";
+
+  String toString() native "Location_toString_Callback";
+
+}
+class _MediaControllerFactoryProviderImpl {
+  static _MediaControllerDOMImpl createMediaController()
+      native "MediaController_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaControllerDOMImpl extends _DOMWrapperBase implements MediaController {
+  _MediaControllerDOMImpl();
+  String get typeName() => "MediaController";
+  _EventsImpl _on;
+
+  _EventsImpl get on() {
+    if (_on === null) _on = new _EventsImpl(this);
+    return _on;
+  }
+
+  TimeRanges get buffered() native "MediaController_buffered_Getter";
+
+  num get currentTime() native "MediaController_currentTime_Getter";
+
+  void set currentTime(num) native "MediaController_currentTime_Setter";
+
+  num get defaultPlaybackRate() native "MediaController_defaultPlaybackRate_Getter";
+
+  void set defaultPlaybackRate(num) native "MediaController_defaultPlaybackRate_Setter";
+
+  num get duration() native "MediaController_duration_Getter";
+
+  bool get muted() native "MediaController_muted_Getter";
+
+  void set muted(bool) native "MediaController_muted_Setter";
+
+  bool get paused() native "MediaController_paused_Getter";
+
+  num get playbackRate() native "MediaController_playbackRate_Getter";
+
+  void set playbackRate(num) native "MediaController_playbackRate_Setter";
+
+  TimeRanges get played() native "MediaController_played_Getter";
+
+  TimeRanges get seekable() native "MediaController_seekable_Getter";
+
+  num get volume() native "MediaController_volume_Getter";
+
+  void set volume(num) native "MediaController_volume_Setter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "MediaController_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "MediaController_dispatchEvent_Callback";
+
+  void pause() {
+    _pause();
+    return;
+  }
+
+  void _pause() native "MediaController_pause_Callback";
+
+  void play() {
+    _play();
+    return;
+  }
+
+  void _play() native "MediaController_play_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "MediaController_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaElementAudioSourceNodeDOMImpl extends _AudioSourceNodeDOMImpl implements MediaElementAudioSourceNode {
+  _MediaElementAudioSourceNodeDOMImpl();
+  String get typeName() => "MediaElementAudioSourceNode";
+
+  MediaElement get mediaElement() native "MediaElementAudioSourceNode_mediaElement_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaErrorDOMImpl extends _DOMWrapperBase implements MediaError {
+  _MediaErrorDOMImpl();
+  String get typeName() => "MediaError";
+
+  int get code() native "MediaError_code_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaKeyErrorDOMImpl extends _DOMWrapperBase implements MediaKeyError {
+  _MediaKeyErrorDOMImpl();
+  String get typeName() => "MediaKeyError";
+
+  int get code() native "MediaKeyError_code_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaKeyEventDOMImpl extends _EventDOMImpl implements MediaKeyEvent {
+  _MediaKeyEventDOMImpl();
+  String get typeName() => "MediaKeyEvent";
+
+  String get defaultURL() native "MediaKeyEvent_defaultURL_Getter";
+
+  MediaKeyError get errorCode() native "MediaKeyEvent_errorCode_Getter";
+
+  Uint8Array get initData() native "MediaKeyEvent_initData_Getter";
+
+  String get keySystem() native "MediaKeyEvent_keySystem_Getter";
+
+  Uint8Array get message() native "MediaKeyEvent_message_Getter";
+
+  String get sessionId() native "MediaKeyEvent_sessionId_Getter";
+
+  int get systemCode() native "MediaKeyEvent_systemCode_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaListDOMImpl extends _DOMWrapperBase implements MediaList {
+  _MediaListDOMImpl();
+  String get typeName() => "MediaList";
+
+  int get length() native "MediaList_length_Getter";
+
+  String get mediaText() native "MediaList_mediaText_Getter";
+
+  void set mediaText(String) native "MediaList_mediaText_Setter";
+
+  String operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(String a, String b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(String element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(String element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  String removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  String last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(String element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(String element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<String> filter(bool f(String element)) {
+    return _Collections.filter(this, new List<String>(), f);
+  }
+
+  bool every(bool f(String element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(String element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<String> iterator() {
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  void appendMedium(String newMedium) {
+    _appendMedium(newMedium);
+    return;
+  }
+
+  void _appendMedium(newMedium) native "MediaList_appendMedium_Callback";
+
+  void deleteMedium(String oldMedium) {
+    _deleteMedium(oldMedium);
+    return;
+  }
+
+  void _deleteMedium(oldMedium) native "MediaList_deleteMedium_Callback";
+
+  String item(int index) {
+    return _item(index);
+  }
+
+  String _item(index) native "MediaList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaQueryListDOMImpl extends _DOMWrapperBase implements MediaQueryList {
+  _MediaQueryListDOMImpl();
+  String get typeName() => "MediaQueryList";
+
+  bool get matches() native "MediaQueryList_matches_Getter";
+
+  String get media() native "MediaQueryList_media_Getter";
+
+  void addListener(MediaQueryListListener listener) {
+    _addListener(listener);
+    return;
+  }
+
+  void _addListener(listener) native "MediaQueryList_addListener_Callback";
+
+  void removeListener(MediaQueryListListener listener) {
+    _removeListener(listener);
+    return;
+  }
+
+  void _removeListener(listener) native "MediaQueryList_removeListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamEventDOMImpl extends _EventDOMImpl implements MediaStreamEvent {
+  _MediaStreamEventDOMImpl();
+  String get typeName() => "MediaStreamEvent";
+
+  MediaStream get stream() native "MediaStreamEvent_stream_Getter";
+
+}
+class _MediaStreamFactoryProviderImpl {
+  static _MediaStreamDOMImpl createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks)
+      native "MediaStream_constructor_Callback";
+}
+class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
+  _MediaStreamEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get ended() => _get('ended');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamDOMImpl extends _DOMWrapperBase implements MediaStream {
+  _MediaStreamDOMImpl();
+  String get typeName() => "MediaStream";
+  _EventsImpl _on;
+
+  _MediaStreamEventsImpl get on() {
+    if (_on === null) _on = new _MediaStreamEventsImpl(this);
+    return _on;
+  }
+
+  MediaStreamTrackList get audioTracks() native "MediaStream_audioTracks_Getter";
+
+  String get label() native "MediaStream_label_Getter";
+
+  int get readyState() native "MediaStream_readyState_Getter";
+
+  MediaStreamTrackList get videoTracks() native "MediaStream_videoTracks_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "MediaStream_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "MediaStream_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "MediaStream_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamListDOMImpl extends _DOMWrapperBase implements MediaStreamList {
+  _MediaStreamListDOMImpl();
+  String get typeName() => "MediaStreamList";
+
+  int get length() native "MediaStreamList_length_Getter";
+
+  MediaStream item(int index) {
+    return _item(index);
+  }
+
+  MediaStream _item(index) native "MediaStreamList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamTrackDOMImpl extends _DOMWrapperBase implements MediaStreamTrack {
+  _MediaStreamTrackDOMImpl();
+  String get typeName() => "MediaStreamTrack";
+
+  bool get enabled() native "MediaStreamTrack_enabled_Getter";
+
+  void set enabled(bool) native "MediaStreamTrack_enabled_Setter";
+
+  String get kind() native "MediaStreamTrack_kind_Getter";
+
+  String get label() native "MediaStreamTrack_label_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamTrackListDOMImpl extends _DOMWrapperBase implements MediaStreamTrackList {
+  _MediaStreamTrackListDOMImpl();
+  String get typeName() => "MediaStreamTrackList";
+
+  int get length() native "MediaStreamTrackList_length_Getter";
+
+  MediaStreamTrack item(int index) {
+    return _item(index);
+  }
+
+  MediaStreamTrack _item(index) native "MediaStreamTrackList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MemoryInfoDOMImpl extends _DOMWrapperBase implements MemoryInfo {
+  _MemoryInfoDOMImpl();
+  String get typeName() => "MemoryInfo";
+
+  int get jsHeapSizeLimit() native "MemoryInfo_jsHeapSizeLimit_Getter";
+
+  int get totalJSHeapSize() native "MemoryInfo_totalJSHeapSize_Getter";
+
+  int get usedJSHeapSize() native "MemoryInfo_usedJSHeapSize_Getter";
+
+}
+class _MessageChannelFactoryProviderImpl {
+  static _MessageChannelDOMImpl createMessageChannel()
+      native "MessageChannel_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MessageChannelDOMImpl extends _DOMWrapperBase implements MessageChannel {
+  _MessageChannelDOMImpl();
+  String get typeName() => "MessageChannel";
+
+  MessagePort get port1() native "MessageChannel_port1_Getter";
+
+  MessagePort get port2() native "MessageChannel_port2_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MessageEventDOMImpl extends _EventDOMImpl implements MessageEvent {
+  _MessageEventDOMImpl();
+  String get typeName() => "MessageEvent";
+
+  Object get data() native "MessageEvent_data_Getter";
+
+  String get lastEventId() native "MessageEvent_lastEventId_Getter";
+
+  String get origin() native "MessageEvent_origin_Getter";
+
+  List get ports() native "MessageEvent_ports_Getter";
+
+  Window get source() native "MessageEvent_source_Getter";
+
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
+
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
+
+}
+
+class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
+  _MessagePortEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get message() => _get('message');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MessagePortDOMImpl extends _DOMWrapperBase implements MessagePort {
+  _MessagePortDOMImpl();
+  String get typeName() => "MessagePort";
+  _EventsImpl _on;
+
+  _MessagePortEventsImpl get on() {
+    if (_on === null) _on = new _MessagePortEventsImpl(this);
+    return _on;
+  }
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "MessagePort_addEventListener_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "MessagePort_close_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "MessagePort_dispatchEvent_Callback";
+
+  void postMessage(String message, [List messagePorts = null]) native "MessagePort_postMessage_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "MessagePort_removeEventListener_Callback";
+
+  void start() {
+    _start();
+    return;
+  }
+
+  void _start() native "MessagePort_start_Callback";
+
+  void webkitPostMessage(String message, [List transfer = null]) native "MessagePort_webkitPostMessage_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MetadataDOMImpl extends _DOMWrapperBase implements Metadata {
+  _MetadataDOMImpl();
+  String get typeName() => "Metadata";
+
+  Date get modificationTime() native "Metadata_modificationTime_Getter";
+
+  int get size() native "Metadata_size_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MouseEventDOMImpl extends _UIEventDOMImpl implements MouseEvent {
+  _MouseEventDOMImpl();
+  String get typeName() => "MouseEvent";
+
+  bool get altKey() native "MouseEvent_altKey_Getter";
+
+  int get button() native "MouseEvent_button_Getter";
+
+  int get clientX() native "MouseEvent_clientX_Getter";
+
+  int get clientY() native "MouseEvent_clientY_Getter";
+
+  bool get ctrlKey() native "MouseEvent_ctrlKey_Getter";
+
+  Clipboard get dataTransfer() native "MouseEvent_dataTransfer_Getter";
+
+  Node get fromElement() native "MouseEvent_fromElement_Getter";
+
+  bool get metaKey() native "MouseEvent_metaKey_Getter";
+
+  int get offsetX() native "MouseEvent_offsetX_Getter";
+
+  int get offsetY() native "MouseEvent_offsetY_Getter";
+
+  EventTarget get relatedTarget() native "MouseEvent_relatedTarget_Getter";
+
+  int get screenX() native "MouseEvent_screenX_Getter";
+
+  int get screenY() native "MouseEvent_screenY_Getter";
+
+  bool get shiftKey() native "MouseEvent_shiftKey_Getter";
+
+  Node get toElement() native "MouseEvent_toElement_Getter";
+
+  int get webkitMovementX() native "MouseEvent_webkitMovementX_Getter";
+
+  int get webkitMovementY() native "MouseEvent_webkitMovementY_Getter";
+
+  int get x() native "MouseEvent_x_Getter";
+
+  int get y() native "MouseEvent_y_Getter";
+
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
+    if ((view === null || view is Window)) {
+      _initMouseEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initMouseEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native "MouseEvent_initMouseEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MutationCallbackDOMImpl extends _DOMWrapperBase implements MutationCallback {
+  _MutationCallbackDOMImpl();
+  String get typeName() => "MutationCallback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MutationEventDOMImpl extends _EventDOMImpl implements MutationEvent {
+  _MutationEventDOMImpl();
+  String get typeName() => "MutationEvent";
+
+  int get attrChange() native "MutationEvent_attrChange_Getter";
+
+  String get attrName() native "MutationEvent_attrName_Getter";
+
+  String get newValue() native "MutationEvent_newValue_Getter";
+
+  String get prevValue() native "MutationEvent_prevValue_Getter";
+
+  Node get relatedNode() native "MutationEvent_relatedNode_Getter";
+
+  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) {
+    _initMutationEvent(type, canBubble, cancelable, relatedNode, prevValue, newValue, attrName, attrChange);
+    return;
+  }
+
+  void _initMutationEvent(type, canBubble, cancelable, relatedNode, prevValue, newValue, attrName, attrChange) native "MutationEvent_initMutationEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MutationRecordDOMImpl extends _DOMWrapperBase implements MutationRecord {
+  _MutationRecordDOMImpl();
+  String get typeName() => "MutationRecord";
+
+  NodeList get addedNodes() native "MutationRecord_addedNodes_Getter";
+
+  String get attributeName() native "MutationRecord_attributeName_Getter";
+
+  String get attributeNamespace() native "MutationRecord_attributeNamespace_Getter";
+
+  Node get nextSibling() native "MutationRecord_nextSibling_Getter";
+
+  String get oldValue() native "MutationRecord_oldValue_Getter";
+
+  Node get previousSibling() native "MutationRecord_previousSibling_Getter";
+
+  NodeList get removedNodes() native "MutationRecord_removedNodes_Getter";
+
+  Node get target() native "MutationRecord_target_Getter";
+
+  String get type() native "MutationRecord_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NamedNodeMapDOMImpl extends _DOMWrapperBase implements NamedNodeMap {
+  _NamedNodeMapDOMImpl();
+  String get typeName() => "NamedNodeMap";
+
+  int get length() native "NamedNodeMap_length_Getter";
+
+  Node operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(Node element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(Node element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  Node last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(Node element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(Node element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<Node> filter(bool f(Node element)) {
+    return _Collections.filter(this, new List<Node>(), f);
+  }
+
+  bool every(bool f(Node element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(Node element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<Node> iterator() {
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  Node getNamedItem(String name) {
+    return _getNamedItem(name);
+  }
+
+  Node _getNamedItem(name) native "NamedNodeMap_getNamedItem_Callback";
+
+  Node getNamedItemNS(String namespaceURI, String localName) {
+    return _getNamedItemNS(namespaceURI, localName);
+  }
+
+  Node _getNamedItemNS(namespaceURI, localName) native "NamedNodeMap_getNamedItemNS_Callback";
+
+  Node item(int index) {
+    return _item(index);
+  }
+
+  Node _item(index) native "NamedNodeMap_item_Callback";
+
+  Node removeNamedItem(String name) {
+    return _removeNamedItem(name);
+  }
+
+  Node _removeNamedItem(name) native "NamedNodeMap_removeNamedItem_Callback";
+
+  Node removeNamedItemNS(String namespaceURI, String localName) {
+    return _removeNamedItemNS(namespaceURI, localName);
+  }
+
+  Node _removeNamedItemNS(namespaceURI, localName) native "NamedNodeMap_removeNamedItemNS_Callback";
+
+  Node setNamedItem(Node node) {
+    return _setNamedItem(node);
+  }
+
+  Node _setNamedItem(node) native "NamedNodeMap_setNamedItem_Callback";
+
+  Node setNamedItemNS(Node node) {
+    return _setNamedItemNS(node);
+  }
+
+  Node _setNamedItemNS(node) native "NamedNodeMap_setNamedItemNS_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NavigatorDOMImpl extends _DOMWrapperBase implements Navigator {
+  _NavigatorDOMImpl();
+  String get typeName() => "Navigator";
+
+  String get appCodeName() native "Navigator_appCodeName_Getter";
+
+  String get appName() native "Navigator_appName_Getter";
+
+  String get appVersion() native "Navigator_appVersion_Getter";
+
+  bool get cookieEnabled() native "Navigator_cookieEnabled_Getter";
+
+  Geolocation get geolocation() native "Navigator_geolocation_Getter";
+
+  String get language() native "Navigator_language_Getter";
+
+  DOMMimeTypeArray get mimeTypes() native "Navigator_mimeTypes_Getter";
+
+  bool get onLine() native "Navigator_onLine_Getter";
+
+  String get platform() native "Navigator_platform_Getter";
+
+  DOMPluginArray get plugins() native "Navigator_plugins_Getter";
+
+  String get product() native "Navigator_product_Getter";
+
+  String get productSub() native "Navigator_productSub_Getter";
+
+  String get userAgent() native "Navigator_userAgent_Getter";
+
+  String get vendor() native "Navigator_vendor_Getter";
+
+  String get vendorSub() native "Navigator_vendorSub_Getter";
+
+  BatteryManager get webkitBattery() native "Navigator_webkitBattery_Getter";
+
+  PointerLock get webkitPointer() native "Navigator_webkitPointer_Getter";
+
+  void getStorageUpdates() {
+    _getStorageUpdates();
+    return;
+  }
+
+  void _getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
+
+  bool javaEnabled() {
+    return _javaEnabled();
+  }
+
+  bool _javaEnabled() native "Navigator_javaEnabled_Callback";
+
+  void registerProtocolHandler(String scheme, String url, String title) {
+    _registerProtocolHandler(scheme, url, title);
+    return;
+  }
+
+  void _registerProtocolHandler(scheme, url, title) native "Navigator_registerProtocolHandler_Callback";
+
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
+    _webkitGetUserMedia(options, successCallback, errorCallback);
+    return;
+  }
+
+  void _webkitGetUserMedia(options, successCallback, errorCallback) native "Navigator_webkitGetUserMedia_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NavigatorUserMediaErrorDOMImpl extends _DOMWrapperBase implements NavigatorUserMediaError {
+  _NavigatorUserMediaErrorDOMImpl();
+  String get typeName() => "NavigatorUserMediaError";
+
+  int get code() native "NavigatorUserMediaError_code_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NodeFilterDOMImpl extends _DOMWrapperBase implements NodeFilter {
+  _NodeFilterDOMImpl();
+  String get typeName() => "NodeFilter";
+
+  int acceptNode(Node n) {
+    return _acceptNode(n);
+  }
+
+  int _acceptNode(n) native "NodeFilter_acceptNode_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NodeDOMImpl extends _DOMWrapperBase implements Node {
+  _NodeDOMImpl();
+  String get typeName() => "Node";
+  _EventsImpl _on;
+
+  _EventsImpl get on() {
+    if (_on === null) _on = new _EventsImpl(this);
+    return _on;
+  }
+
+  NamedNodeMap get $dom_attributes() native "Node_attributes_Getter";
+
+  NodeList get $dom_childNodes() native "Node_childNodes_Getter";
+
+  Node get $dom_firstChild() native "Node_firstChild_Getter";
+
+  Node get $dom_lastChild() native "Node_lastChild_Getter";
+
+  Node get nextNode() native "Node_nextSibling_Getter";
+
+  int get $dom_nodeType() native "Node_nodeType_Getter";
+
+  Document get document() native "Node_ownerDocument_Getter";
+
+  Node get parent() native "Node_parentNode_Getter";
+
+  Node get previousNode() native "Node_previousSibling_Getter";
+
+  String get text() native "Node_textContent_Getter";
+
+  void set text(String) native "Node_textContent_Setter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "Node_addEventListener_Callback";
+
+  Node $dom_appendChild(Node newChild) native "Node_appendChild_Callback";
+
+  Node clone(bool deep) {
+    return _cloneNode(deep);
+  }
+
+  Node _cloneNode(deep) native "Node_cloneNode_Callback";
+
+  bool contains(Node other) {
+    return _contains(other);
+  }
+
+  bool _contains(other) native "Node_contains_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "Node_dispatchEvent_Callback";
+
+  bool hasChildNodes() {
+    return _hasChildNodes();
+  }
+
+  bool _hasChildNodes() native "Node_hasChildNodes_Callback";
+
+  Node insertBefore(Node newChild, Node refChild) native "Node_insertBefore_Callback";
+
+  Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "Node_removeEventListener_Callback";
+
+  Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NodeIteratorDOMImpl extends _DOMWrapperBase implements NodeIterator {
+  _NodeIteratorDOMImpl();
+  String get typeName() => "NodeIterator";
+
+  bool get expandEntityReferences() native "NodeIterator_expandEntityReferences_Getter";
+
+  NodeFilter get filter() native "NodeIterator_filter_Getter";
+
+  bool get pointerBeforeReferenceNode() native "NodeIterator_pointerBeforeReferenceNode_Getter";
+
+  Node get referenceNode() native "NodeIterator_referenceNode_Getter";
+
+  Node get root() native "NodeIterator_root_Getter";
+
+  int get whatToShow() native "NodeIterator_whatToShow_Getter";
+
+  void detach() {
+    _detach();
+    return;
+  }
+
+  void _detach() native "NodeIterator_detach_Callback";
+
+  Node nextNode() {
+    return _nextNode();
+  }
+
+  Node _nextNode() native "NodeIterator_nextNode_Callback";
+
+  Node previousNode() {
+    return _previousNode();
+  }
+
+  Node _previousNode() native "NodeIterator_previousNode_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NodeListDOMImpl extends _DOMWrapperBase implements NodeList {
+  _NodeListDOMImpl();
+  String get typeName() => "NodeList";
+
+  int get length() native "NodeList_length_Getter";
+
+  Node operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(Node element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(Node element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  Node last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(Node element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(Node element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<Node> filter(bool f(Node element)) {
+    return _Collections.filter(this, new List<Node>(), f);
+  }
+
+  bool every(bool f(Node element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(Node element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<Node> iterator() {
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  Node item(int index) {
+    return _item(index);
+  }
+
+  Node _item(index) native "NodeList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NotationDOMImpl extends _NodeDOMImpl implements Notation {
+  _NotationDOMImpl();
+  String get typeName() => "Notation";
+
+  String get publicId() native "Notation_publicId_Getter";
+
+  String get systemId() native "Notation_systemId_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NotificationCenterDOMImpl extends _DOMWrapperBase implements NotificationCenter {
+  _NotificationCenterDOMImpl();
+  String get typeName() => "NotificationCenter";
+
+  int checkPermission() {
+    return _checkPermission();
+  }
+
+  int _checkPermission() native "NotificationCenter_checkPermission_Callback";
+
+  Notification createHTMLNotification(String url) {
+    return _createHTMLNotification(url);
+  }
+
+  Notification _createHTMLNotification(url) native "NotificationCenter_createHTMLNotification_Callback";
+
+  Notification createNotification(String iconUrl, String title, String body) {
+    return _createNotification(iconUrl, title, body);
+  }
+
+  Notification _createNotification(iconUrl, title, body) native "NotificationCenter_createNotification_Callback";
+
+  void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
+
+}
+class _NotificationFactoryProviderImpl {
+  static _NotificationDOMImpl createNotification(String title, [Map options = null])
+      native "Notification_constructor_Callback";
+}
+class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
+  _NotificationEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get click() => _get('click');
+  EventListenerList get close() => _get('close');
+  EventListenerList get display() => _get('display');
+  EventListenerList get error() => _get('error');
+  EventListenerList get show() => _get('show');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _NotificationDOMImpl extends _DOMWrapperBase implements Notification {
+  _NotificationDOMImpl();
+  String get typeName() => "Notification";
+  _EventsImpl _on;
+
+  _NotificationEventsImpl get on() {
+    if (_on === null) _on = new _NotificationEventsImpl(this);
+    return _on;
+  }
+
+  String get dir() native "Notification_dir_Getter";
+
+  void set dir(String) native "Notification_dir_Setter";
+
+  String get replaceId() native "Notification_replaceId_Getter";
+
+  void set replaceId(String) native "Notification_replaceId_Setter";
+
+  String get tag() native "Notification_tag_Getter";
+
+  void set tag(String) native "Notification_tag_Setter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "Notification_addEventListener_Callback";
+
+  void cancel() {
+    _cancel();
+    return;
+  }
+
+  void _cancel() native "Notification_cancel_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "Notification_close_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "Notification_dispatchEvent_Callback";
+
+  static String permissionLevel() {
+    return _permissionLevel();
+  }
+
+  static String _permissionLevel() native "Notification_permissionLevel_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "Notification_removeEventListener_Callback";
+
+  static void requestPermission(NotificationPermissionCallback callback) native "Notification_requestPermission_Callback";
+
+  void show() {
+    _show();
+    return;
+  }
+
+  void _show() native "Notification_show_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OESStandardDerivativesDOMImpl extends _DOMWrapperBase implements OESStandardDerivatives {
+  _OESStandardDerivativesDOMImpl();
+  String get typeName() => "OESStandardDerivatives";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OESTextureFloatDOMImpl extends _DOMWrapperBase implements OESTextureFloat {
+  _OESTextureFloatDOMImpl();
+  String get typeName() => "OESTextureFloat";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OESVertexArrayObjectDOMImpl extends _DOMWrapperBase implements OESVertexArrayObject {
+  _OESVertexArrayObjectDOMImpl();
+  String get typeName() => "OESVertexArrayObject";
+
+  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
+    _bindVertexArrayOES(arrayObject);
+    return;
+  }
+
+  void _bindVertexArrayOES(arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
+
+  WebGLVertexArrayObjectOES createVertexArrayOES() {
+    return _createVertexArrayOES();
+  }
+
+  WebGLVertexArrayObjectOES _createVertexArrayOES() native "OESVertexArrayObject_createVertexArrayOES_Callback";
+
+  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
+    _deleteVertexArrayOES(arrayObject);
+    return;
+  }
+
+  void _deleteVertexArrayOES(arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
+
+  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
+    return _isVertexArrayOES(arrayObject);
+  }
+
+  bool _isVertexArrayOES(arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OfflineAudioCompletionEventDOMImpl extends _EventDOMImpl implements OfflineAudioCompletionEvent {
+  _OfflineAudioCompletionEventDOMImpl();
+  String get typeName() => "OfflineAudioCompletionEvent";
+
+  AudioBuffer get renderedBuffer() native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OperationNotAllowedExceptionDOMImpl extends _DOMWrapperBase implements OperationNotAllowedException {
+  _OperationNotAllowedExceptionDOMImpl();
+  String get typeName() => "OperationNotAllowedException";
+
+  int get code() native "OperationNotAllowedException_code_Getter";
+
+  String get message() native "OperationNotAllowedException_message_Getter";
+
+  String get name() native "OperationNotAllowedException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "OperationNotAllowedException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OscillatorDOMImpl extends _AudioSourceNodeDOMImpl implements Oscillator {
+  _OscillatorDOMImpl();
+  String get typeName() => "Oscillator";
+
+  AudioParam get detune() native "Oscillator_detune_Getter";
+
+  AudioParam get frequency() native "Oscillator_frequency_Getter";
+
+  int get playbackState() native "Oscillator_playbackState_Getter";
+
+  int get type() native "Oscillator_type_Getter";
+
+  void set type(int) native "Oscillator_type_Setter";
+
+  void noteOff(num when) {
+    _noteOff(when);
+    return;
+  }
+
+  void _noteOff(when) native "Oscillator_noteOff_Callback";
+
+  void noteOn(num when) {
+    _noteOn(when);
+    return;
+  }
+
+  void _noteOn(when) native "Oscillator_noteOn_Callback";
+
+  void setWaveTable(WaveTable waveTable) {
+    _setWaveTable(waveTable);
+    return;
+  }
+
+  void _setWaveTable(waveTable) native "Oscillator_setWaveTable_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _OverflowEventDOMImpl extends _EventDOMImpl implements OverflowEvent {
+  _OverflowEventDOMImpl();
+  String get typeName() => "OverflowEvent";
+
+  bool get horizontalOverflow() native "OverflowEvent_horizontalOverflow_Getter";
+
+  int get orient() native "OverflowEvent_orient_Getter";
+
+  bool get verticalOverflow() native "OverflowEvent_verticalOverflow_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PageTransitionEventDOMImpl extends _EventDOMImpl implements PageTransitionEvent {
+  _PageTransitionEventDOMImpl();
+  String get typeName() => "PageTransitionEvent";
+
+  bool get persisted() native "PageTransitionEvent_persisted_Getter";
+
+}
+class _PeerConnection00FactoryProviderImpl {
+  static _PeerConnection00DOMImpl createPeerConnection00(String serverConfiguration, IceCallback iceCallback)
+      native "PeerConnection00_constructor_Callback";
+}
+class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
+  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
+  EventListenerList get addStream() => _get('addstream');
+  EventListenerList get connecting() => _get('connecting');
+  EventListenerList get open() => _get('open');
+  EventListenerList get removeStream() => _get('removestream');
+  EventListenerList get stateChange() => _get('statechange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PeerConnection00DOMImpl extends _DOMWrapperBase implements PeerConnection00 {
+  _PeerConnection00DOMImpl();
+  String get typeName() => "PeerConnection00";
+  _EventsImpl _on;
+
+  _PeerConnection00EventsImpl get on() {
+    if (_on === null) _on = new _PeerConnection00EventsImpl(this);
+    return _on;
+  }
+
+  int get iceState() native "PeerConnection00_iceState_Getter";
+
+  SessionDescription get localDescription() native "PeerConnection00_localDescription_Getter";
+
+  MediaStreamList get localStreams() native "PeerConnection00_localStreams_Getter";
+
+  int get readyState() native "PeerConnection00_readyState_Getter";
+
+  SessionDescription get remoteDescription() native "PeerConnection00_remoteDescription_Getter";
+
+  MediaStreamList get remoteStreams() native "PeerConnection00_remoteStreams_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "PeerConnection00_addEventListener_Callback";
+
+  void addStream(MediaStream stream, [Map mediaStreamHints = null]) {
+    //
+    // addStream(MediaStream stream)
+    // addStream(MediaStream stream, [Optional] Map mediaStreamHints)
+    //
+    if (mediaStreamHints === null) {
+      _addStream(stream);
+      return;
+    }
+    _addStream_2(stream, mediaStreamHints);
+    return;
+  }
+
+  void _addStream(stream) native "PeerConnection00_addStream_Callback";
+
+  void _addStream_2(stream, mediaStreamHints) native "PeerConnection00_addStream_2_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "PeerConnection00_close_Callback";
+
+  SessionDescription createAnswer(String offer, [Map mediaHints = null]) {
+    //
+    // createAnswer(String offer)
+    // createAnswer(String offer, [Optional] Map mediaHints)
+    //
+    if (mediaHints === null) {
+      return _createAnswer(offer);
+    }
+    return _createAnswer_2(offer, mediaHints);
+  }
+
+  SessionDescription _createAnswer(offer) native "PeerConnection00_createAnswer_Callback";
+
+  SessionDescription _createAnswer_2(offer, mediaHints) native "PeerConnection00_createAnswer_2_Callback";
+
+  SessionDescription createOffer([Map mediaHints = null]) {
+    //
+    // createOffer()
+    // createOffer([Optional] Map mediaHints)
+    //
+    if (mediaHints === null) {
+      return _createOffer();
+    }
+    return _createOffer_2(mediaHints);
+  }
+
+  SessionDescription _createOffer() native "PeerConnection00_createOffer_Callback";
+
+  SessionDescription _createOffer_2(mediaHints) native "PeerConnection00_createOffer_2_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "PeerConnection00_dispatchEvent_Callback";
+
+  void processIceMessage(IceCandidate candidate) {
+    _processIceMessage(candidate);
+    return;
+  }
+
+  void _processIceMessage(candidate) native "PeerConnection00_processIceMessage_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "PeerConnection00_removeEventListener_Callback";
+
+  void removeStream(MediaStream stream) {
+    _removeStream(stream);
+    return;
+  }
+
+  void _removeStream(stream) native "PeerConnection00_removeStream_Callback";
+
+  void setLocalDescription(int action, SessionDescription desc) {
+    _setLocalDescription(action, desc);
+    return;
+  }
+
+  void _setLocalDescription(action, desc) native "PeerConnection00_setLocalDescription_Callback";
+
+  void setRemoteDescription(int action, SessionDescription desc) {
+    _setRemoteDescription(action, desc);
+    return;
+  }
+
+  void _setRemoteDescription(action, desc) native "PeerConnection00_setRemoteDescription_Callback";
+
+  void startIce([Map iceOptions = null]) {
+    //
+    // startIce()
+    // startIce([Optional] Map iceOptions)
+    //
+    if (iceOptions === null) {
+      _startIce();
+      return;
+    }
+    _startIce_2(iceOptions);
+    return;
+  }
+
+  void _startIce() native "PeerConnection00_startIce_Callback";
+
+  void _startIce_2(iceOptions) native "PeerConnection00_startIce_2_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PerformanceDOMImpl extends _DOMWrapperBase implements Performance {
+  _PerformanceDOMImpl();
+  String get typeName() => "Performance";
+
+  MemoryInfo get memory() native "Performance_memory_Getter";
+
+  PerformanceNavigation get navigation() native "Performance_navigation_Getter";
+
+  PerformanceTiming get timing() native "Performance_timing_Getter";
+
+  num webkitNow() {
+    return _webkitNow();
+  }
+
+  num _webkitNow() native "Performance_webkitNow_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PerformanceNavigationDOMImpl extends _DOMWrapperBase implements PerformanceNavigation {
+  _PerformanceNavigationDOMImpl();
+  String get typeName() => "PerformanceNavigation";
+
+  int get redirectCount() native "PerformanceNavigation_redirectCount_Getter";
+
+  int get type() native "PerformanceNavigation_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PerformanceTimingDOMImpl extends _DOMWrapperBase implements PerformanceTiming {
+  _PerformanceTimingDOMImpl();
+  String get typeName() => "PerformanceTiming";
+
+  int get connectEnd() native "PerformanceTiming_connectEnd_Getter";
+
+  int get connectStart() native "PerformanceTiming_connectStart_Getter";
+
+  int get domComplete() native "PerformanceTiming_domComplete_Getter";
+
+  int get domContentLoadedEventEnd() native "PerformanceTiming_domContentLoadedEventEnd_Getter";
+
+  int get domContentLoadedEventStart() native "PerformanceTiming_domContentLoadedEventStart_Getter";
+
+  int get domInteractive() native "PerformanceTiming_domInteractive_Getter";
+
+  int get domLoading() native "PerformanceTiming_domLoading_Getter";
+
+  int get domainLookupEnd() native "PerformanceTiming_domainLookupEnd_Getter";
+
+  int get domainLookupStart() native "PerformanceTiming_domainLookupStart_Getter";
+
+  int get fetchStart() native "PerformanceTiming_fetchStart_Getter";
+
+  int get loadEventEnd() native "PerformanceTiming_loadEventEnd_Getter";
+
+  int get loadEventStart() native "PerformanceTiming_loadEventStart_Getter";
+
+  int get navigationStart() native "PerformanceTiming_navigationStart_Getter";
+
+  int get redirectEnd() native "PerformanceTiming_redirectEnd_Getter";
+
+  int get redirectStart() native "PerformanceTiming_redirectStart_Getter";
+
+  int get requestStart() native "PerformanceTiming_requestStart_Getter";
+
+  int get responseEnd() native "PerformanceTiming_responseEnd_Getter";
+
+  int get responseStart() native "PerformanceTiming_responseStart_Getter";
+
+  int get secureConnectionStart() native "PerformanceTiming_secureConnectionStart_Getter";
+
+  int get unloadEventEnd() native "PerformanceTiming_unloadEventEnd_Getter";
+
+  int get unloadEventStart() native "PerformanceTiming_unloadEventStart_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PointerLockDOMImpl extends _DOMWrapperBase implements PointerLock {
+  _PointerLockDOMImpl();
+  String get typeName() => "PointerLock";
+
+  bool get isLocked() native "PointerLock_isLocked_Getter";
+
+  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) {
+    _lock(target, successCallback, failureCallback);
+    return;
+  }
+
+  void _lock(target, successCallback, failureCallback) native "PointerLock_lock_Callback";
+
+  void unlock() {
+    _unlock();
+    return;
+  }
+
+  void _unlock() native "PointerLock_unlock_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PopStateEventDOMImpl extends _EventDOMImpl implements PopStateEvent {
+  _PopStateEventDOMImpl();
+  String get typeName() => "PopStateEvent";
+
+  Object get state() native "PopStateEvent_state_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PositionErrorDOMImpl extends _DOMWrapperBase implements PositionError {
+  _PositionErrorDOMImpl();
+  String get typeName() => "PositionError";
+
+  int get code() native "PositionError_code_Getter";
+
+  String get message() native "PositionError_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ProcessingInstructionDOMImpl extends _NodeDOMImpl implements ProcessingInstruction {
+  _ProcessingInstructionDOMImpl();
+  String get typeName() => "ProcessingInstruction";
+
+  String get data() native "ProcessingInstruction_data_Getter";
+
+  void set data(String) native "ProcessingInstruction_data_Setter";
+
+  StyleSheet get sheet() native "ProcessingInstruction_sheet_Getter";
+
+  String get target() native "ProcessingInstruction_target_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ProgressEventDOMImpl extends _EventDOMImpl implements ProgressEvent {
+  _ProgressEventDOMImpl();
+  String get typeName() => "ProgressEvent";
+
+  bool get lengthComputable() native "ProgressEvent_lengthComputable_Getter";
+
+  int get loaded() native "ProgressEvent_loaded_Getter";
+
+  int get total() native "ProgressEvent_total_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RGBColorDOMImpl extends _DOMWrapperBase implements RGBColor {
+  _RGBColorDOMImpl();
+  String get typeName() => "RGBColor";
+
+  CSSPrimitiveValue get blue() native "RGBColor_blue_Getter";
+
+  CSSPrimitiveValue get green() native "RGBColor_green_Getter";
+
+  CSSPrimitiveValue get red() native "RGBColor_red_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RadioNodeListDOMImpl extends _NodeListDOMImpl implements RadioNodeList {
+  _RadioNodeListDOMImpl();
+  String get typeName() => "RadioNodeList";
+
+  String get value() native "RadioNodeList_value_Getter";
+
+  void set value(String) native "RadioNodeList_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RangeExceptionDOMImpl extends _DOMWrapperBase implements RangeException {
+  _RangeExceptionDOMImpl();
+  String get typeName() => "RangeException";
+
+  int get code() native "RangeException_code_Getter";
+
+  String get message() native "RangeException_message_Getter";
+
+  String get name() native "RangeException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "RangeException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RangeDOMImpl extends _DOMWrapperBase implements Range {
+  _RangeDOMImpl();
+  String get typeName() => "Range";
+
+  bool get collapsed() native "Range_collapsed_Getter";
+
+  Node get commonAncestorContainer() native "Range_commonAncestorContainer_Getter";
+
+  Node get endContainer() native "Range_endContainer_Getter";
+
+  int get endOffset() native "Range_endOffset_Getter";
+
+  Node get startContainer() native "Range_startContainer_Getter";
+
+  int get startOffset() native "Range_startOffset_Getter";
+
+  DocumentFragment cloneContents() {
+    return _cloneContents();
+  }
+
+  DocumentFragment _cloneContents() native "Range_cloneContents_Callback";
+
+  Range cloneRange() {
+    return _cloneRange();
+  }
+
+  Range _cloneRange() native "Range_cloneRange_Callback";
+
+  void collapse(bool toStart) {
+    _collapse(toStart);
+    return;
+  }
+
+  void _collapse(toStart) native "Range_collapse_Callback";
+
+  int compareNode(Node refNode) {
+    return _compareNode(refNode);
+  }
+
+  int _compareNode(refNode) native "Range_compareNode_Callback";
+
+  int comparePoint(Node refNode, int offset) {
+    return _comparePoint(refNode, offset);
+  }
+
+  int _comparePoint(refNode, offset) native "Range_comparePoint_Callback";
+
+  DocumentFragment createContextualFragment(String html) {
+    return _createContextualFragment(html);
+  }
+
+  DocumentFragment _createContextualFragment(html) native "Range_createContextualFragment_Callback";
+
+  void deleteContents() {
+    _deleteContents();
+    return;
+  }
+
+  void _deleteContents() native "Range_deleteContents_Callback";
+
+  void detach() {
+    _detach();
+    return;
+  }
+
+  void _detach() native "Range_detach_Callback";
+
+  void expand(String unit) {
+    _expand(unit);
+    return;
+  }
+
+  void _expand(unit) native "Range_expand_Callback";
+
+  DocumentFragment extractContents() {
+    return _extractContents();
+  }
+
+  DocumentFragment _extractContents() native "Range_extractContents_Callback";
+
+  ClientRect getBoundingClientRect() {
+    return _getBoundingClientRect();
+  }
+
+  ClientRect _getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
+
+  ClientRectList getClientRects() {
+    return _getClientRects();
+  }
+
+  ClientRectList _getClientRects() native "Range_getClientRects_Callback";
+
+  void insertNode(Node newNode) {
+    _insertNode(newNode);
+    return;
+  }
+
+  void _insertNode(newNode) native "Range_insertNode_Callback";
+
+  bool intersectsNode(Node refNode) {
+    return _intersectsNode(refNode);
+  }
+
+  bool _intersectsNode(refNode) native "Range_intersectsNode_Callback";
+
+  bool isPointInRange(Node refNode, int offset) {
+    return _isPointInRange(refNode, offset);
+  }
+
+  bool _isPointInRange(refNode, offset) native "Range_isPointInRange_Callback";
+
+  void selectNode(Node refNode) {
+    _selectNode(refNode);
+    return;
+  }
+
+  void _selectNode(refNode) native "Range_selectNode_Callback";
+
+  void selectNodeContents(Node refNode) {
+    _selectNodeContents(refNode);
+    return;
+  }
+
+  void _selectNodeContents(refNode) native "Range_selectNodeContents_Callback";
+
+  void setEnd(Node refNode, int offset) {
+    _setEnd(refNode, offset);
+    return;
+  }
+
+  void _setEnd(refNode, offset) native "Range_setEnd_Callback";
+
+  void setEndAfter(Node refNode) {
+    _setEndAfter(refNode);
+    return;
+  }
+
+  void _setEndAfter(refNode) native "Range_setEndAfter_Callback";
+
+  void setEndBefore(Node refNode) {
+    _setEndBefore(refNode);
+    return;
+  }
+
+  void _setEndBefore(refNode) native "Range_setEndBefore_Callback";
+
+  void setStart(Node refNode, int offset) {
+    _setStart(refNode, offset);
+    return;
+  }
+
+  void _setStart(refNode, offset) native "Range_setStart_Callback";
+
+  void setStartAfter(Node refNode) {
+    _setStartAfter(refNode);
+    return;
+  }
+
+  void _setStartAfter(refNode) native "Range_setStartAfter_Callback";
+
+  void setStartBefore(Node refNode) {
+    _setStartBefore(refNode);
+    return;
+  }
+
+  void _setStartBefore(refNode) native "Range_setStartBefore_Callback";
+
+  void surroundContents(Node newParent) {
+    _surroundContents(newParent);
+    return;
+  }
+
+  void _surroundContents(newParent) native "Range_surroundContents_Callback";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "Range_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RealtimeAnalyserNodeDOMImpl extends _AudioNodeDOMImpl implements RealtimeAnalyserNode {
+  _RealtimeAnalyserNodeDOMImpl();
+  String get typeName() => "RealtimeAnalyserNode";
+
+  int get fftSize() native "RealtimeAnalyserNode_fftSize_Getter";
+
+  void set fftSize(int) native "RealtimeAnalyserNode_fftSize_Setter";
+
+  int get frequencyBinCount() native "RealtimeAnalyserNode_frequencyBinCount_Getter";
+
+  num get maxDecibels() native "RealtimeAnalyserNode_maxDecibels_Getter";
+
+  void set maxDecibels(num) native "RealtimeAnalyserNode_maxDecibels_Setter";
+
+  num get minDecibels() native "RealtimeAnalyserNode_minDecibels_Getter";
+
+  void set minDecibels(num) native "RealtimeAnalyserNode_minDecibels_Setter";
+
+  num get smoothingTimeConstant() native "RealtimeAnalyserNode_smoothingTimeConstant_Getter";
+
+  void set smoothingTimeConstant(num) native "RealtimeAnalyserNode_smoothingTimeConstant_Setter";
+
+  void getByteFrequencyData(Uint8Array array) {
+    _getByteFrequencyData(array);
+    return;
+  }
+
+  void _getByteFrequencyData(array) native "RealtimeAnalyserNode_getByteFrequencyData_Callback";
+
+  void getByteTimeDomainData(Uint8Array array) {
+    _getByteTimeDomainData(array);
+    return;
+  }
+
+  void _getByteTimeDomainData(array) native "RealtimeAnalyserNode_getByteTimeDomainData_Callback";
+
+  void getFloatFrequencyData(Float32Array array) {
+    _getFloatFrequencyData(array);
+    return;
+  }
+
+  void _getFloatFrequencyData(array) native "RealtimeAnalyserNode_getFloatFrequencyData_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RectDOMImpl extends _DOMWrapperBase implements Rect {
+  _RectDOMImpl();
+  String get typeName() => "Rect";
+
+  CSSPrimitiveValue get bottom() native "Rect_bottom_Getter";
+
+  CSSPrimitiveValue get left() native "Rect_left_Getter";
+
+  CSSPrimitiveValue get right() native "Rect_right_Getter";
+
+  CSSPrimitiveValue get top() native "Rect_top_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SQLErrorDOMImpl extends _DOMWrapperBase implements SQLError {
+  _SQLErrorDOMImpl();
+  String get typeName() => "SQLError";
+
+  int get code() native "SQLError_code_Getter";
+
+  String get message() native "SQLError_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SQLExceptionDOMImpl extends _DOMWrapperBase implements SQLException {
+  _SQLExceptionDOMImpl();
+  String get typeName() => "SQLException";
+
+  int get code() native "SQLException_code_Getter";
+
+  String get message() native "SQLException_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SQLResultSetDOMImpl extends _DOMWrapperBase implements SQLResultSet {
+  _SQLResultSetDOMImpl();
+  String get typeName() => "SQLResultSet";
+
+  int get insertId() native "SQLResultSet_insertId_Getter";
+
+  SQLResultSetRowList get rows() native "SQLResultSet_rows_Getter";
+
+  int get rowsAffected() native "SQLResultSet_rowsAffected_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SQLResultSetRowListDOMImpl extends _DOMWrapperBase implements SQLResultSetRowList {
+  _SQLResultSetRowListDOMImpl();
+  String get typeName() => "SQLResultSetRowList";
+
+  int get length() native "SQLResultSetRowList_length_Getter";
+
+  Object item(int index) native "SQLResultSetRowList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SQLTransactionDOMImpl extends _DOMWrapperBase implements SQLTransaction {
+  _SQLTransactionDOMImpl();
+  String get typeName() => "SQLTransaction";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SQLTransactionSyncDOMImpl extends _DOMWrapperBase implements SQLTransactionSync {
+  _SQLTransactionSyncDOMImpl();
+  String get typeName() => "SQLTransactionSync";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAElementDOMImpl extends _SVGElementDOMImpl implements SVGAElement {
+  _SVGAElementDOMImpl();
+  String get typeName() => "SVGAElement";
+
+  SVGAnimatedString get target() native "SVGAElement_target_Getter";
+
+  SVGAnimatedString get href() native "SVGAElement_href_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGAElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGAElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGAElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGAElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGAElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGAElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGAElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGAElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGAElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGAElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGAElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGAElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGAElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGAElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGAElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGAElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGAElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGAElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGAElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAltGlyphDefElementDOMImpl extends _SVGElementDOMImpl implements SVGAltGlyphDefElement {
+  _SVGAltGlyphDefElementDOMImpl();
+  String get typeName() => "SVGAltGlyphDefElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAltGlyphElementDOMImpl extends _SVGTextPositioningElementDOMImpl implements SVGAltGlyphElement {
+  _SVGAltGlyphElementDOMImpl();
+  String get typeName() => "SVGAltGlyphElement";
+
+  String get format() native "SVGAltGlyphElement_format_Getter";
+
+  void set format(String) native "SVGAltGlyphElement_format_Setter";
+
+  String get glyphRef() native "SVGAltGlyphElement_glyphRef_Getter";
+
+  void set glyphRef(String) native "SVGAltGlyphElement_glyphRef_Setter";
+
+  SVGAnimatedString get href() native "SVGAltGlyphElement_href_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAltGlyphItemElementDOMImpl extends _SVGElementDOMImpl implements SVGAltGlyphItemElement {
+  _SVGAltGlyphItemElementDOMImpl();
+  String get typeName() => "SVGAltGlyphItemElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAngleDOMImpl extends _DOMWrapperBase implements SVGAngle {
+  _SVGAngleDOMImpl();
+  String get typeName() => "SVGAngle";
+
+  int get unitType() native "SVGAngle_unitType_Getter";
+
+  num get value() native "SVGAngle_value_Getter";
+
+  void set value(num) native "SVGAngle_value_Setter";
+
+  String get valueAsString() native "SVGAngle_valueAsString_Getter";
+
+  void set valueAsString(String) native "SVGAngle_valueAsString_Setter";
+
+  num get valueInSpecifiedUnits() native "SVGAngle_valueInSpecifiedUnits_Getter";
+
+  void set valueInSpecifiedUnits(num) native "SVGAngle_valueInSpecifiedUnits_Setter";
+
+  void convertToSpecifiedUnits(int unitType) {
+    _convertToSpecifiedUnits(unitType);
+    return;
+  }
+
+  void _convertToSpecifiedUnits(unitType) native "SVGAngle_convertToSpecifiedUnits_Callback";
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) {
+    _newValueSpecifiedUnits(unitType, valueInSpecifiedUnits);
+    return;
+  }
+
+  void _newValueSpecifiedUnits(unitType, valueInSpecifiedUnits) native "SVGAngle_newValueSpecifiedUnits_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimateColorElementDOMImpl extends _SVGAnimationElementDOMImpl implements SVGAnimateColorElement {
+  _SVGAnimateColorElementDOMImpl();
+  String get typeName() => "SVGAnimateColorElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimateElementDOMImpl extends _SVGAnimationElementDOMImpl implements SVGAnimateElement {
+  _SVGAnimateElementDOMImpl();
+  String get typeName() => "SVGAnimateElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimateMotionElementDOMImpl extends _SVGAnimationElementDOMImpl implements SVGAnimateMotionElement {
+  _SVGAnimateMotionElementDOMImpl();
+  String get typeName() => "SVGAnimateMotionElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimateTransformElementDOMImpl extends _SVGAnimationElementDOMImpl implements SVGAnimateTransformElement {
+  _SVGAnimateTransformElementDOMImpl();
+  String get typeName() => "SVGAnimateTransformElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedAngleDOMImpl extends _DOMWrapperBase implements SVGAnimatedAngle {
+  _SVGAnimatedAngleDOMImpl();
+  String get typeName() => "SVGAnimatedAngle";
+
+  SVGAngle get animVal() native "SVGAnimatedAngle_animVal_Getter";
+
+  SVGAngle get baseVal() native "SVGAnimatedAngle_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedBooleanDOMImpl extends _DOMWrapperBase implements SVGAnimatedBoolean {
+  _SVGAnimatedBooleanDOMImpl();
+  String get typeName() => "SVGAnimatedBoolean";
+
+  bool get animVal() native "SVGAnimatedBoolean_animVal_Getter";
+
+  bool get baseVal() native "SVGAnimatedBoolean_baseVal_Getter";
+
+  void set baseVal(bool) native "SVGAnimatedBoolean_baseVal_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedEnumerationDOMImpl extends _DOMWrapperBase implements SVGAnimatedEnumeration {
+  _SVGAnimatedEnumerationDOMImpl();
+  String get typeName() => "SVGAnimatedEnumeration";
+
+  int get animVal() native "SVGAnimatedEnumeration_animVal_Getter";
+
+  int get baseVal() native "SVGAnimatedEnumeration_baseVal_Getter";
+
+  void set baseVal(int) native "SVGAnimatedEnumeration_baseVal_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedIntegerDOMImpl extends _DOMWrapperBase implements SVGAnimatedInteger {
+  _SVGAnimatedIntegerDOMImpl();
+  String get typeName() => "SVGAnimatedInteger";
+
+  int get animVal() native "SVGAnimatedInteger_animVal_Getter";
+
+  int get baseVal() native "SVGAnimatedInteger_baseVal_Getter";
+
+  void set baseVal(int) native "SVGAnimatedInteger_baseVal_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedLengthDOMImpl extends _DOMWrapperBase implements SVGAnimatedLength {
+  _SVGAnimatedLengthDOMImpl();
+  String get typeName() => "SVGAnimatedLength";
+
+  SVGLength get animVal() native "SVGAnimatedLength_animVal_Getter";
+
+  SVGLength get baseVal() native "SVGAnimatedLength_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedLengthListDOMImpl extends _DOMWrapperBase implements SVGAnimatedLengthList {
+  _SVGAnimatedLengthListDOMImpl();
+  String get typeName() => "SVGAnimatedLengthList";
+
+  SVGLengthList get animVal() native "SVGAnimatedLengthList_animVal_Getter";
+
+  SVGLengthList get baseVal() native "SVGAnimatedLengthList_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedNumberDOMImpl extends _DOMWrapperBase implements SVGAnimatedNumber {
+  _SVGAnimatedNumberDOMImpl();
+  String get typeName() => "SVGAnimatedNumber";
+
+  num get animVal() native "SVGAnimatedNumber_animVal_Getter";
+
+  num get baseVal() native "SVGAnimatedNumber_baseVal_Getter";
+
+  void set baseVal(num) native "SVGAnimatedNumber_baseVal_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedNumberListDOMImpl extends _DOMWrapperBase implements SVGAnimatedNumberList {
+  _SVGAnimatedNumberListDOMImpl();
+  String get typeName() => "SVGAnimatedNumberList";
+
+  SVGNumberList get animVal() native "SVGAnimatedNumberList_animVal_Getter";
+
+  SVGNumberList get baseVal() native "SVGAnimatedNumberList_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedPreserveAspectRatioDOMImpl extends _DOMWrapperBase implements SVGAnimatedPreserveAspectRatio {
+  _SVGAnimatedPreserveAspectRatioDOMImpl();
+  String get typeName() => "SVGAnimatedPreserveAspectRatio";
+
+  SVGPreserveAspectRatio get animVal() native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
+
+  SVGPreserveAspectRatio get baseVal() native "SVGAnimatedPreserveAspectRatio_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedRectDOMImpl extends _DOMWrapperBase implements SVGAnimatedRect {
+  _SVGAnimatedRectDOMImpl();
+  String get typeName() => "SVGAnimatedRect";
+
+  SVGRect get animVal() native "SVGAnimatedRect_animVal_Getter";
+
+  SVGRect get baseVal() native "SVGAnimatedRect_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedStringDOMImpl extends _DOMWrapperBase implements SVGAnimatedString {
+  _SVGAnimatedStringDOMImpl();
+  String get typeName() => "SVGAnimatedString";
+
+  String get animVal() native "SVGAnimatedString_animVal_Getter";
+
+  String get baseVal() native "SVGAnimatedString_baseVal_Getter";
+
+  void set baseVal(String) native "SVGAnimatedString_baseVal_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimatedTransformListDOMImpl extends _DOMWrapperBase implements SVGAnimatedTransformList {
+  _SVGAnimatedTransformListDOMImpl();
+  String get typeName() => "SVGAnimatedTransformList";
+
+  SVGTransformList get animVal() native "SVGAnimatedTransformList_animVal_Getter";
+
+  SVGTransformList get baseVal() native "SVGAnimatedTransformList_baseVal_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGAnimationElementDOMImpl extends _SVGElementDOMImpl implements SVGAnimationElement {
+  _SVGAnimationElementDOMImpl();
+  String get typeName() => "SVGAnimationElement";
+
+  SVGElement get targetElement() native "SVGAnimationElement_targetElement_Getter";
+
+  num getCurrentTime() {
+    return _getCurrentTime();
+  }
+
+  num _getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
+
+  num getSimpleDuration() {
+    return _getSimpleDuration();
+  }
+
+  num _getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
+
+  num getStartTime() {
+    return _getStartTime();
+  }
+
+  num _getStartTime() native "SVGAnimationElement_getStartTime_Callback";
+
+  SVGStringList get requiredExtensions() native "SVGAnimationElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGAnimationElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGAnimationElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGAnimationElement_hasExtension_Callback";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGAnimationElement_externalResourcesRequired_Getter";
+
+  void beginElement() {
+    _beginElement();
+    return;
+  }
+
+  void _beginElement() native "SVGAnimationElement_beginElement_Callback";
+
+  void beginElementAt(num offset) {
+    _beginElementAt(offset);
+    return;
+  }
+
+  void _beginElementAt(offset) native "SVGAnimationElement_beginElementAt_Callback";
+
+  void endElement() {
+    _endElement();
+    return;
+  }
+
+  void _endElement() native "SVGAnimationElement_endElement_Callback";
+
+  void endElementAt(num offset) {
+    _endElementAt(offset);
+    return;
+  }
+
+  void _endElementAt(offset) native "SVGAnimationElement_endElementAt_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGCircleElementDOMImpl extends _SVGElementDOMImpl implements SVGCircleElement {
+  _SVGCircleElementDOMImpl();
+  String get typeName() => "SVGCircleElement";
+
+  SVGAnimatedLength get cx() native "SVGCircleElement_cx_Getter";
+
+  SVGAnimatedLength get cy() native "SVGCircleElement_cy_Getter";
+
+  SVGAnimatedLength get r() native "SVGCircleElement_r_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGCircleElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGCircleElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGCircleElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGCircleElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGCircleElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGCircleElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGCircleElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGCircleElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGCircleElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGCircleElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGCircleElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGCircleElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGCircleElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGCircleElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGCircleElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGCircleElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGCircleElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGCircleElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGCircleElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGClipPathElementDOMImpl extends _SVGElementDOMImpl implements SVGClipPathElement {
+  _SVGClipPathElementDOMImpl();
+  String get typeName() => "SVGClipPathElement";
+
+  SVGAnimatedEnumeration get clipPathUnits() native "SVGClipPathElement_clipPathUnits_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGClipPathElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGClipPathElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGClipPathElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGClipPathElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGClipPathElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGClipPathElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGClipPathElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGClipPathElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGClipPathElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGClipPathElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGClipPathElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGClipPathElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGClipPathElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGClipPathElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGClipPathElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGClipPathElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGClipPathElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGClipPathElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGClipPathElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGColorDOMImpl extends _CSSValueDOMImpl implements SVGColor {
+  _SVGColorDOMImpl();
+  String get typeName() => "SVGColor";
+
+  int get colorType() native "SVGColor_colorType_Getter";
+
+  RGBColor get rgbColor() native "SVGColor_rgbColor_Getter";
+
+  void setColor(int colorType, String rgbColor, String iccColor) {
+    _setColor(colorType, rgbColor, iccColor);
+    return;
+  }
+
+  void _setColor(colorType, rgbColor, iccColor) native "SVGColor_setColor_Callback";
+
+  void setRGBColor(String rgbColor) {
+    _setRGBColor(rgbColor);
+    return;
+  }
+
+  void _setRGBColor(rgbColor) native "SVGColor_setRGBColor_Callback";
+
+  void setRGBColorICCColor(String rgbColor, String iccColor) {
+    _setRGBColorICCColor(rgbColor, iccColor);
+    return;
+  }
+
+  void _setRGBColorICCColor(rgbColor, iccColor) native "SVGColor_setRGBColorICCColor_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGComponentTransferFunctionElementDOMImpl extends _SVGElementDOMImpl implements SVGComponentTransferFunctionElement {
+  _SVGComponentTransferFunctionElementDOMImpl();
+  String get typeName() => "SVGComponentTransferFunctionElement";
+
+  SVGAnimatedNumber get amplitude() native "SVGComponentTransferFunctionElement_amplitude_Getter";
+
+  SVGAnimatedNumber get exponent() native "SVGComponentTransferFunctionElement_exponent_Getter";
+
+  SVGAnimatedNumber get intercept() native "SVGComponentTransferFunctionElement_intercept_Getter";
+
+  SVGAnimatedNumber get offset() native "SVGComponentTransferFunctionElement_offset_Getter";
+
+  SVGAnimatedNumber get slope() native "SVGComponentTransferFunctionElement_slope_Getter";
+
+  SVGAnimatedNumberList get tableValues() native "SVGComponentTransferFunctionElement_tableValues_Getter";
+
+  SVGAnimatedEnumeration get type() native "SVGComponentTransferFunctionElement_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGCursorElementDOMImpl extends _SVGElementDOMImpl implements SVGCursorElement {
+  _SVGCursorElementDOMImpl();
+  String get typeName() => "SVGCursorElement";
+
+  SVGAnimatedLength get x() native "SVGCursorElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGCursorElement_y_Getter";
+
+  SVGAnimatedString get href() native "SVGCursorElement_href_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGCursorElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGCursorElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGCursorElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGCursorElement_hasExtension_Callback";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGCursorElement_externalResourcesRequired_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGDefsElementDOMImpl extends _SVGElementDOMImpl implements SVGDefsElement {
+  _SVGDefsElementDOMImpl();
+  String get typeName() => "SVGDefsElement";
+
+  SVGStringList get requiredExtensions() native "SVGDefsElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGDefsElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGDefsElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGDefsElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGDefsElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGDefsElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGDefsElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGDefsElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGDefsElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGDefsElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGDefsElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGDefsElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGDefsElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGDefsElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGDefsElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGDefsElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGDefsElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGDefsElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGDefsElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGDescElementDOMImpl extends _SVGElementDOMImpl implements SVGDescElement {
+  _SVGDescElementDOMImpl();
+  String get typeName() => "SVGDescElement";
+
+  String get xmllang() native "SVGDescElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGDescElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGDescElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGDescElement_xmlspace_Setter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGDescElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGDescElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGDescElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGDocumentDOMImpl extends _DocumentDOMImpl implements SVGDocument {
+  _SVGDocumentDOMImpl();
+  String get typeName() => "SVGDocument";
+
+  SVGSVGElement get rootElement() native "SVGDocument_rootElement_Getter";
+
+  Event $dom_createEvent(String eventType) {
+    return _createEvent(eventType);
+  }
+
+  Event _createEvent(eventType) native "SVGDocument_createEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGElementDOMImpl extends _ElementDOMImpl implements SVGElement {
+  _SVGElementDOMImpl();
+  String get typeName() => "SVGElement";
+
+  String get id() native "SVGElement_id_Getter";
+
+  void set id(String) native "SVGElement_id_Setter";
+
+  SVGSVGElement get ownerSVGElement() native "SVGElement_ownerSVGElement_Getter";
+
+  SVGElement get viewportElement() native "SVGElement_viewportElement_Getter";
+
+  String get xmlbase() native "SVGElement_xmlbase_Getter";
+
+  void set xmlbase(String) native "SVGElement_xmlbase_Setter";
+
+}
+
+class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
+  _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get beforeCopy() => _get('beforecopy');
+  EventListenerList get beforeCut() => _get('beforecut');
+  EventListenerList get beforePaste() => _get('beforepaste');
+  EventListenerList get blur() => _get('blur');
+  EventListenerList get change() => _get('change');
+  EventListenerList get click() => _get('click');
+  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get copy() => _get('copy');
+  EventListenerList get cut() => _get('cut');
+  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get drag() => _get('drag');
+  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get drop() => _get('drop');
+  EventListenerList get error() => _get('error');
+  EventListenerList get focus() => _get('focus');
+  EventListenerList get input() => _get('input');
+  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get load() => _get('load');
+  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get paste() => _get('paste');
+  EventListenerList get reset() => _get('reset');
+  EventListenerList get resize() => _get('resize');
+  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get search() => _get('search');
+  EventListenerList get select() => _get('select');
+  EventListenerList get selectStart() => _get('selectstart');
+  EventListenerList get submit() => _get('submit');
+  EventListenerList get unload() => _get('unload');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGElementInstanceDOMImpl extends _DOMWrapperBase implements SVGElementInstance {
+  _SVGElementInstanceDOMImpl();
+  String get typeName() => "SVGElementInstance";
+  _EventsImpl _on;
+
+  _SVGElementInstanceEventsImpl get on() {
+    if (_on === null) _on = new _SVGElementInstanceEventsImpl(this);
+    return _on;
+  }
+
+  SVGElementInstanceList get childNodes() native "SVGElementInstance_childNodes_Getter";
+
+  SVGElement get correspondingElement() native "SVGElementInstance_correspondingElement_Getter";
+
+  SVGUseElement get correspondingUseElement() native "SVGElementInstance_correspondingUseElement_Getter";
+
+  SVGElementInstance get firstChild() native "SVGElementInstance_firstChild_Getter";
+
+  SVGElementInstance get lastChild() native "SVGElementInstance_lastChild_Getter";
+
+  SVGElementInstance get nextSibling() native "SVGElementInstance_nextSibling_Getter";
+
+  SVGElementInstance get parentNode() native "SVGElementInstance_parentNode_Getter";
+
+  SVGElementInstance get previousSibling() native "SVGElementInstance_previousSibling_Getter";
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "SVGElementInstance_addEventListener_Callback";
+
+  bool dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "SVGElementInstance_dispatchEvent_Callback";
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "SVGElementInstance_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGElementInstanceListDOMImpl extends _DOMWrapperBase implements SVGElementInstanceList {
+  _SVGElementInstanceListDOMImpl();
+  String get typeName() => "SVGElementInstanceList";
+
+  int get length() native "SVGElementInstanceList_length_Getter";
+
+  SVGElementInstance item(int index) {
+    return _item(index);
+  }
+
+  SVGElementInstance _item(index) native "SVGElementInstanceList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGEllipseElementDOMImpl extends _SVGElementDOMImpl implements SVGEllipseElement {
+  _SVGEllipseElementDOMImpl();
+  String get typeName() => "SVGEllipseElement";
+
+  SVGAnimatedLength get cx() native "SVGEllipseElement_cx_Getter";
+
+  SVGAnimatedLength get cy() native "SVGEllipseElement_cy_Getter";
+
+  SVGAnimatedLength get rx() native "SVGEllipseElement_rx_Getter";
+
+  SVGAnimatedLength get ry() native "SVGEllipseElement_ry_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGEllipseElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGEllipseElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGEllipseElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGEllipseElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGEllipseElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGEllipseElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGEllipseElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGEllipseElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGEllipseElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGEllipseElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGEllipseElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGEllipseElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGEllipseElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGEllipseElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGEllipseElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGEllipseElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGEllipseElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGEllipseElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGEllipseElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGExceptionDOMImpl extends _DOMWrapperBase implements SVGException {
+  _SVGExceptionDOMImpl();
+  String get typeName() => "SVGException";
+
+  int get code() native "SVGException_code_Getter";
+
+  String get message() native "SVGException_message_Getter";
+
+  String get name() native "SVGException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "SVGException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEBlendElementDOMImpl extends _SVGElementDOMImpl implements SVGFEBlendElement {
+  _SVGFEBlendElementDOMImpl();
+  String get typeName() => "SVGFEBlendElement";
+
+  SVGAnimatedString get in1() native "SVGFEBlendElement_in1_Getter";
+
+  SVGAnimatedString get in2() native "SVGFEBlendElement_in2_Getter";
+
+  SVGAnimatedEnumeration get mode() native "SVGFEBlendElement_mode_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEBlendElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEBlendElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEBlendElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEBlendElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEBlendElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEBlendElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEBlendElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEBlendElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEColorMatrixElementDOMImpl extends _SVGElementDOMImpl implements SVGFEColorMatrixElement {
+  _SVGFEColorMatrixElementDOMImpl();
+  String get typeName() => "SVGFEColorMatrixElement";
+
+  SVGAnimatedString get in1() native "SVGFEColorMatrixElement_in1_Getter";
+
+  SVGAnimatedEnumeration get type() native "SVGFEColorMatrixElement_type_Getter";
+
+  SVGAnimatedNumberList get values() native "SVGFEColorMatrixElement_values_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEColorMatrixElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEColorMatrixElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEColorMatrixElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEColorMatrixElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEColorMatrixElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEColorMatrixElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEColorMatrixElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEColorMatrixElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEComponentTransferElementDOMImpl extends _SVGElementDOMImpl implements SVGFEComponentTransferElement {
+  _SVGFEComponentTransferElementDOMImpl();
+  String get typeName() => "SVGFEComponentTransferElement";
+
+  SVGAnimatedString get in1() native "SVGFEComponentTransferElement_in1_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEComponentTransferElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEComponentTransferElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEComponentTransferElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEComponentTransferElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEComponentTransferElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEComponentTransferElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEComponentTransferElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEComponentTransferElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFECompositeElementDOMImpl extends _SVGElementDOMImpl implements SVGFECompositeElement {
+  _SVGFECompositeElementDOMImpl();
+  String get typeName() => "SVGFECompositeElement";
+
+  SVGAnimatedString get in1() native "SVGFECompositeElement_in1_Getter";
+
+  SVGAnimatedString get in2() native "SVGFECompositeElement_in2_Getter";
+
+  SVGAnimatedNumber get k1() native "SVGFECompositeElement_k1_Getter";
+
+  SVGAnimatedNumber get k2() native "SVGFECompositeElement_k2_Getter";
+
+  SVGAnimatedNumber get k3() native "SVGFECompositeElement_k3_Getter";
+
+  SVGAnimatedNumber get k4() native "SVGFECompositeElement_k4_Getter";
+
+  SVGAnimatedEnumeration get operator() native "SVGFECompositeElement_operator_Getter";
+
+  SVGAnimatedLength get height() native "SVGFECompositeElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFECompositeElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFECompositeElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFECompositeElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFECompositeElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFECompositeElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFECompositeElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFECompositeElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEConvolveMatrixElementDOMImpl extends _SVGElementDOMImpl implements SVGFEConvolveMatrixElement {
+  _SVGFEConvolveMatrixElementDOMImpl();
+  String get typeName() => "SVGFEConvolveMatrixElement";
+
+  SVGAnimatedNumber get bias() native "SVGFEConvolveMatrixElement_bias_Getter";
+
+  SVGAnimatedNumber get divisor() native "SVGFEConvolveMatrixElement_divisor_Getter";
+
+  SVGAnimatedEnumeration get edgeMode() native "SVGFEConvolveMatrixElement_edgeMode_Getter";
+
+  SVGAnimatedString get in1() native "SVGFEConvolveMatrixElement_in1_Getter";
+
+  SVGAnimatedNumberList get kernelMatrix() native "SVGFEConvolveMatrixElement_kernelMatrix_Getter";
+
+  SVGAnimatedNumber get kernelUnitLengthX() native "SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter";
+
+  SVGAnimatedNumber get kernelUnitLengthY() native "SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter";
+
+  SVGAnimatedInteger get orderX() native "SVGFEConvolveMatrixElement_orderX_Getter";
+
+  SVGAnimatedInteger get orderY() native "SVGFEConvolveMatrixElement_orderY_Getter";
+
+  SVGAnimatedBoolean get preserveAlpha() native "SVGFEConvolveMatrixElement_preserveAlpha_Getter";
+
+  SVGAnimatedInteger get targetX() native "SVGFEConvolveMatrixElement_targetX_Getter";
+
+  SVGAnimatedInteger get targetY() native "SVGFEConvolveMatrixElement_targetY_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEConvolveMatrixElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEConvolveMatrixElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEConvolveMatrixElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEConvolveMatrixElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEConvolveMatrixElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEConvolveMatrixElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEConvolveMatrixElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEConvolveMatrixElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEDiffuseLightingElementDOMImpl extends _SVGElementDOMImpl implements SVGFEDiffuseLightingElement {
+  _SVGFEDiffuseLightingElementDOMImpl();
+  String get typeName() => "SVGFEDiffuseLightingElement";
+
+  SVGAnimatedNumber get diffuseConstant() native "SVGFEDiffuseLightingElement_diffuseConstant_Getter";
+
+  SVGAnimatedString get in1() native "SVGFEDiffuseLightingElement_in1_Getter";
+
+  SVGAnimatedNumber get kernelUnitLengthX() native "SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter";
+
+  SVGAnimatedNumber get kernelUnitLengthY() native "SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter";
+
+  SVGAnimatedNumber get surfaceScale() native "SVGFEDiffuseLightingElement_surfaceScale_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEDiffuseLightingElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEDiffuseLightingElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEDiffuseLightingElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEDiffuseLightingElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEDiffuseLightingElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEDiffuseLightingElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEDiffuseLightingElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEDiffuseLightingElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEDisplacementMapElementDOMImpl extends _SVGElementDOMImpl implements SVGFEDisplacementMapElement {
+  _SVGFEDisplacementMapElementDOMImpl();
+  String get typeName() => "SVGFEDisplacementMapElement";
+
+  SVGAnimatedString get in1() native "SVGFEDisplacementMapElement_in1_Getter";
+
+  SVGAnimatedString get in2() native "SVGFEDisplacementMapElement_in2_Getter";
+
+  SVGAnimatedNumber get scale() native "SVGFEDisplacementMapElement_scale_Getter";
+
+  SVGAnimatedEnumeration get xChannelSelector() native "SVGFEDisplacementMapElement_xChannelSelector_Getter";
+
+  SVGAnimatedEnumeration get yChannelSelector() native "SVGFEDisplacementMapElement_yChannelSelector_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEDisplacementMapElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEDisplacementMapElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEDisplacementMapElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEDisplacementMapElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEDisplacementMapElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEDisplacementMapElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEDisplacementMapElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEDisplacementMapElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEDistantLightElementDOMImpl extends _SVGElementDOMImpl implements SVGFEDistantLightElement {
+  _SVGFEDistantLightElementDOMImpl();
+  String get typeName() => "SVGFEDistantLightElement";
+
+  SVGAnimatedNumber get azimuth() native "SVGFEDistantLightElement_azimuth_Getter";
+
+  SVGAnimatedNumber get elevation() native "SVGFEDistantLightElement_elevation_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEDropShadowElementDOMImpl extends _SVGElementDOMImpl implements SVGFEDropShadowElement {
+  _SVGFEDropShadowElementDOMImpl();
+  String get typeName() => "SVGFEDropShadowElement";
+
+  SVGAnimatedNumber get dx() native "SVGFEDropShadowElement_dx_Getter";
+
+  SVGAnimatedNumber get dy() native "SVGFEDropShadowElement_dy_Getter";
+
+  SVGAnimatedString get in1() native "SVGFEDropShadowElement_in1_Getter";
+
+  SVGAnimatedNumber get stdDeviationX() native "SVGFEDropShadowElement_stdDeviationX_Getter";
+
+  SVGAnimatedNumber get stdDeviationY() native "SVGFEDropShadowElement_stdDeviationY_Getter";
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) {
+    _setStdDeviation(stdDeviationX, stdDeviationY);
+    return;
+  }
+
+  void _setStdDeviation(stdDeviationX, stdDeviationY) native "SVGFEDropShadowElement_setStdDeviation_Callback";
+
+  SVGAnimatedLength get height() native "SVGFEDropShadowElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEDropShadowElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEDropShadowElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEDropShadowElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEDropShadowElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEDropShadowElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEDropShadowElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEDropShadowElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEFloodElementDOMImpl extends _SVGElementDOMImpl implements SVGFEFloodElement {
+  _SVGFEFloodElementDOMImpl();
+  String get typeName() => "SVGFEFloodElement";
+
+  SVGAnimatedLength get height() native "SVGFEFloodElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEFloodElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEFloodElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEFloodElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEFloodElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEFloodElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEFloodElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEFloodElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEFuncAElementDOMImpl extends _SVGComponentTransferFunctionElementDOMImpl implements SVGFEFuncAElement {
+  _SVGFEFuncAElementDOMImpl();
+  String get typeName() => "SVGFEFuncAElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEFuncBElementDOMImpl extends _SVGComponentTransferFunctionElementDOMImpl implements SVGFEFuncBElement {
+  _SVGFEFuncBElementDOMImpl();
+  String get typeName() => "SVGFEFuncBElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEFuncGElementDOMImpl extends _SVGComponentTransferFunctionElementDOMImpl implements SVGFEFuncGElement {
+  _SVGFEFuncGElementDOMImpl();
+  String get typeName() => "SVGFEFuncGElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEFuncRElementDOMImpl extends _SVGComponentTransferFunctionElementDOMImpl implements SVGFEFuncRElement {
+  _SVGFEFuncRElementDOMImpl();
+  String get typeName() => "SVGFEFuncRElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEGaussianBlurElementDOMImpl extends _SVGElementDOMImpl implements SVGFEGaussianBlurElement {
+  _SVGFEGaussianBlurElementDOMImpl();
+  String get typeName() => "SVGFEGaussianBlurElement";
+
+  SVGAnimatedString get in1() native "SVGFEGaussianBlurElement_in1_Getter";
+
+  SVGAnimatedNumber get stdDeviationX() native "SVGFEGaussianBlurElement_stdDeviationX_Getter";
+
+  SVGAnimatedNumber get stdDeviationY() native "SVGFEGaussianBlurElement_stdDeviationY_Getter";
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) {
+    _setStdDeviation(stdDeviationX, stdDeviationY);
+    return;
+  }
+
+  void _setStdDeviation(stdDeviationX, stdDeviationY) native "SVGFEGaussianBlurElement_setStdDeviation_Callback";
+
+  SVGAnimatedLength get height() native "SVGFEGaussianBlurElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEGaussianBlurElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEGaussianBlurElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEGaussianBlurElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEGaussianBlurElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEGaussianBlurElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEGaussianBlurElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEGaussianBlurElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEImageElementDOMImpl extends _SVGElementDOMImpl implements SVGFEImageElement {
+  _SVGFEImageElementDOMImpl();
+  String get typeName() => "SVGFEImageElement";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGFEImageElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedString get href() native "SVGFEImageElement_href_Getter";
+
+  String get xmllang() native "SVGFEImageElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGFEImageElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGFEImageElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGFEImageElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGFEImageElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEImageElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEImageElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEImageElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEImageElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEImageElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEImageElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEImageElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEImageElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEMergeElementDOMImpl extends _SVGElementDOMImpl implements SVGFEMergeElement {
+  _SVGFEMergeElementDOMImpl();
+  String get typeName() => "SVGFEMergeElement";
+
+  SVGAnimatedLength get height() native "SVGFEMergeElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEMergeElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEMergeElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEMergeElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEMergeElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEMergeElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEMergeElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEMergeElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEMergeNodeElementDOMImpl extends _SVGElementDOMImpl implements SVGFEMergeNodeElement {
+  _SVGFEMergeNodeElementDOMImpl();
+  String get typeName() => "SVGFEMergeNodeElement";
+
+  SVGAnimatedString get in1() native "SVGFEMergeNodeElement_in1_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEMorphologyElementDOMImpl extends _SVGElementDOMImpl implements SVGFEMorphologyElement {
+  _SVGFEMorphologyElementDOMImpl();
+  String get typeName() => "SVGFEMorphologyElement";
+
+  SVGAnimatedString get in1() native "SVGFEMorphologyElement_in1_Getter";
+
+  SVGAnimatedEnumeration get operator() native "SVGFEMorphologyElement_operator_Getter";
+
+  SVGAnimatedNumber get radiusX() native "SVGFEMorphologyElement_radiusX_Getter";
+
+  SVGAnimatedNumber get radiusY() native "SVGFEMorphologyElement_radiusY_Getter";
+
+  void setRadius(num radiusX, num radiusY) {
+    _setRadius(radiusX, radiusY);
+    return;
+  }
+
+  void _setRadius(radiusX, radiusY) native "SVGFEMorphologyElement_setRadius_Callback";
+
+  SVGAnimatedLength get height() native "SVGFEMorphologyElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEMorphologyElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEMorphologyElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEMorphologyElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEMorphologyElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEMorphologyElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEMorphologyElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEMorphologyElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEOffsetElementDOMImpl extends _SVGElementDOMImpl implements SVGFEOffsetElement {
+  _SVGFEOffsetElementDOMImpl();
+  String get typeName() => "SVGFEOffsetElement";
+
+  SVGAnimatedNumber get dx() native "SVGFEOffsetElement_dx_Getter";
+
+  SVGAnimatedNumber get dy() native "SVGFEOffsetElement_dy_Getter";
+
+  SVGAnimatedString get in1() native "SVGFEOffsetElement_in1_Getter";
+
+  SVGAnimatedLength get height() native "SVGFEOffsetElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFEOffsetElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFEOffsetElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFEOffsetElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFEOffsetElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFEOffsetElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFEOffsetElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFEOffsetElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFEPointLightElementDOMImpl extends _SVGElementDOMImpl implements SVGFEPointLightElement {
+  _SVGFEPointLightElementDOMImpl();
+  String get typeName() => "SVGFEPointLightElement";
+
+  SVGAnimatedNumber get x() native "SVGFEPointLightElement_x_Getter";
+
+  SVGAnimatedNumber get y() native "SVGFEPointLightElement_y_Getter";
+
+  SVGAnimatedNumber get z() native "SVGFEPointLightElement_z_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFESpecularLightingElementDOMImpl extends _SVGElementDOMImpl implements SVGFESpecularLightingElement {
+  _SVGFESpecularLightingElementDOMImpl();
+  String get typeName() => "SVGFESpecularLightingElement";
+
+  SVGAnimatedString get in1() native "SVGFESpecularLightingElement_in1_Getter";
+
+  SVGAnimatedNumber get specularConstant() native "SVGFESpecularLightingElement_specularConstant_Getter";
+
+  SVGAnimatedNumber get specularExponent() native "SVGFESpecularLightingElement_specularExponent_Getter";
+
+  SVGAnimatedNumber get surfaceScale() native "SVGFESpecularLightingElement_surfaceScale_Getter";
+
+  SVGAnimatedLength get height() native "SVGFESpecularLightingElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFESpecularLightingElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFESpecularLightingElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFESpecularLightingElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFESpecularLightingElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFESpecularLightingElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFESpecularLightingElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFESpecularLightingElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFESpotLightElementDOMImpl extends _SVGElementDOMImpl implements SVGFESpotLightElement {
+  _SVGFESpotLightElementDOMImpl();
+  String get typeName() => "SVGFESpotLightElement";
+
+  SVGAnimatedNumber get limitingConeAngle() native "SVGFESpotLightElement_limitingConeAngle_Getter";
+
+  SVGAnimatedNumber get pointsAtX() native "SVGFESpotLightElement_pointsAtX_Getter";
+
+  SVGAnimatedNumber get pointsAtY() native "SVGFESpotLightElement_pointsAtY_Getter";
+
+  SVGAnimatedNumber get pointsAtZ() native "SVGFESpotLightElement_pointsAtZ_Getter";
+
+  SVGAnimatedNumber get specularExponent() native "SVGFESpotLightElement_specularExponent_Getter";
+
+  SVGAnimatedNumber get x() native "SVGFESpotLightElement_x_Getter";
+
+  SVGAnimatedNumber get y() native "SVGFESpotLightElement_y_Getter";
+
+  SVGAnimatedNumber get z() native "SVGFESpotLightElement_z_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFETileElementDOMImpl extends _SVGElementDOMImpl implements SVGFETileElement {
+  _SVGFETileElementDOMImpl();
+  String get typeName() => "SVGFETileElement";
+
+  SVGAnimatedString get in1() native "SVGFETileElement_in1_Getter";
+
+  SVGAnimatedLength get height() native "SVGFETileElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFETileElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFETileElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFETileElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFETileElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFETileElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFETileElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFETileElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFETurbulenceElementDOMImpl extends _SVGElementDOMImpl implements SVGFETurbulenceElement {
+  _SVGFETurbulenceElementDOMImpl();
+  String get typeName() => "SVGFETurbulenceElement";
+
+  SVGAnimatedNumber get baseFrequencyX() native "SVGFETurbulenceElement_baseFrequencyX_Getter";
+
+  SVGAnimatedNumber get baseFrequencyY() native "SVGFETurbulenceElement_baseFrequencyY_Getter";
+
+  SVGAnimatedInteger get numOctaves() native "SVGFETurbulenceElement_numOctaves_Getter";
+
+  SVGAnimatedNumber get seed() native "SVGFETurbulenceElement_seed_Getter";
+
+  SVGAnimatedEnumeration get stitchTiles() native "SVGFETurbulenceElement_stitchTiles_Getter";
+
+  SVGAnimatedEnumeration get type() native "SVGFETurbulenceElement_type_Getter";
+
+  SVGAnimatedLength get height() native "SVGFETurbulenceElement_height_Getter";
+
+  SVGAnimatedString get result() native "SVGFETurbulenceElement_result_Getter";
+
+  SVGAnimatedLength get width() native "SVGFETurbulenceElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFETurbulenceElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFETurbulenceElement_y_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFETurbulenceElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFETurbulenceElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFETurbulenceElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFilterElementDOMImpl extends _SVGElementDOMImpl implements SVGFilterElement {
+  _SVGFilterElementDOMImpl();
+  String get typeName() => "SVGFilterElement";
+
+  SVGAnimatedInteger get filterResX() native "SVGFilterElement_filterResX_Getter";
+
+  SVGAnimatedInteger get filterResY() native "SVGFilterElement_filterResY_Getter";
+
+  SVGAnimatedEnumeration get filterUnits() native "SVGFilterElement_filterUnits_Getter";
+
+  SVGAnimatedLength get height() native "SVGFilterElement_height_Getter";
+
+  SVGAnimatedEnumeration get primitiveUnits() native "SVGFilterElement_primitiveUnits_Getter";
+
+  SVGAnimatedLength get width() native "SVGFilterElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGFilterElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGFilterElement_y_Getter";
+
+  void setFilterRes(int filterResX, int filterResY) {
+    _setFilterRes(filterResX, filterResY);
+    return;
+  }
+
+  void _setFilterRes(filterResX, filterResY) native "SVGFilterElement_setFilterRes_Callback";
+
+  SVGAnimatedString get href() native "SVGFilterElement_href_Getter";
+
+  String get xmllang() native "SVGFilterElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGFilterElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGFilterElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGFilterElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGFilterElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGFilterElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGFilterElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGFilterElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFontElementDOMImpl extends _SVGElementDOMImpl implements SVGFontElement {
+  _SVGFontElementDOMImpl();
+  String get typeName() => "SVGFontElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFontFaceElementDOMImpl extends _SVGElementDOMImpl implements SVGFontFaceElement {
+  _SVGFontFaceElementDOMImpl();
+  String get typeName() => "SVGFontFaceElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFontFaceFormatElementDOMImpl extends _SVGElementDOMImpl implements SVGFontFaceFormatElement {
+  _SVGFontFaceFormatElementDOMImpl();
+  String get typeName() => "SVGFontFaceFormatElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFontFaceNameElementDOMImpl extends _SVGElementDOMImpl implements SVGFontFaceNameElement {
+  _SVGFontFaceNameElementDOMImpl();
+  String get typeName() => "SVGFontFaceNameElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFontFaceSrcElementDOMImpl extends _SVGElementDOMImpl implements SVGFontFaceSrcElement {
+  _SVGFontFaceSrcElementDOMImpl();
+  String get typeName() => "SVGFontFaceSrcElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGFontFaceUriElementDOMImpl extends _SVGElementDOMImpl implements SVGFontFaceUriElement {
+  _SVGFontFaceUriElementDOMImpl();
+  String get typeName() => "SVGFontFaceUriElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGForeignObjectElementDOMImpl extends _SVGElementDOMImpl implements SVGForeignObjectElement {
+  _SVGForeignObjectElementDOMImpl();
+  String get typeName() => "SVGForeignObjectElement";
+
+  SVGAnimatedLength get height() native "SVGForeignObjectElement_height_Getter";
+
+  SVGAnimatedLength get width() native "SVGForeignObjectElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGForeignObjectElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGForeignObjectElement_y_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGForeignObjectElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGForeignObjectElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGForeignObjectElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGForeignObjectElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGForeignObjectElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGForeignObjectElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGForeignObjectElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGForeignObjectElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGForeignObjectElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGForeignObjectElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGForeignObjectElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGForeignObjectElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGForeignObjectElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGForeignObjectElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGForeignObjectElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGForeignObjectElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGForeignObjectElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGForeignObjectElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGGElementDOMImpl extends _SVGElementDOMImpl implements SVGGElement {
+  _SVGGElementDOMImpl();
+  String get typeName() => "SVGGElement";
+
+  SVGStringList get requiredExtensions() native "SVGGElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGGElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGGElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGGElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGGElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGGElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGGElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGGElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGGElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGGElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGGElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGGElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGGElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGGElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGGElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGGElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGGElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGGElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGGElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGGlyphElementDOMImpl extends _SVGElementDOMImpl implements SVGGlyphElement {
+  _SVGGlyphElementDOMImpl();
+  String get typeName() => "SVGGlyphElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGGlyphRefElementDOMImpl extends _SVGElementDOMImpl implements SVGGlyphRefElement {
+  _SVGGlyphRefElementDOMImpl();
+  String get typeName() => "SVGGlyphRefElement";
+
+  num get dx() native "SVGGlyphRefElement_dx_Getter";
+
+  void set dx(num) native "SVGGlyphRefElement_dx_Setter";
+
+  num get dy() native "SVGGlyphRefElement_dy_Getter";
+
+  void set dy(num) native "SVGGlyphRefElement_dy_Setter";
+
+  String get format() native "SVGGlyphRefElement_format_Getter";
+
+  void set format(String) native "SVGGlyphRefElement_format_Setter";
+
+  String get glyphRef() native "SVGGlyphRefElement_glyphRef_Getter";
+
+  void set glyphRef(String) native "SVGGlyphRefElement_glyphRef_Setter";
+
+  num get x() native "SVGGlyphRefElement_x_Getter";
+
+  void set x(num) native "SVGGlyphRefElement_x_Setter";
+
+  num get y() native "SVGGlyphRefElement_y_Getter";
+
+  void set y(num) native "SVGGlyphRefElement_y_Setter";
+
+  SVGAnimatedString get href() native "SVGGlyphRefElement_href_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGGlyphRefElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGGlyphRefElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGGradientElementDOMImpl extends _SVGElementDOMImpl implements SVGGradientElement {
+  _SVGGradientElementDOMImpl();
+  String get typeName() => "SVGGradientElement";
+
+  SVGAnimatedTransformList get gradientTransform() native "SVGGradientElement_gradientTransform_Getter";
+
+  SVGAnimatedEnumeration get gradientUnits() native "SVGGradientElement_gradientUnits_Getter";
+
+  SVGAnimatedEnumeration get spreadMethod() native "SVGGradientElement_spreadMethod_Getter";
+
+  SVGAnimatedString get href() native "SVGGradientElement_href_Getter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGGradientElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGGradientElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGGradientElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGGradientElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGHKernElementDOMImpl extends _SVGElementDOMImpl implements SVGHKernElement {
+  _SVGHKernElementDOMImpl();
+  String get typeName() => "SVGHKernElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGImageElementDOMImpl extends _SVGElementDOMImpl implements SVGImageElement {
+  _SVGImageElementDOMImpl();
+  String get typeName() => "SVGImageElement";
+
+  SVGAnimatedLength get height() native "SVGImageElement_height_Getter";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGImageElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedLength get width() native "SVGImageElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGImageElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGImageElement_y_Getter";
+
+  SVGAnimatedString get href() native "SVGImageElement_href_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGImageElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGImageElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGImageElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGImageElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGImageElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGImageElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGImageElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGImageElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGImageElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGImageElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGImageElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGImageElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGImageElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGImageElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGImageElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGImageElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGImageElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGImageElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGImageElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGLengthDOMImpl extends _DOMWrapperBase implements SVGLength {
+  _SVGLengthDOMImpl();
+  String get typeName() => "SVGLength";
+
+  int get unitType() native "SVGLength_unitType_Getter";
+
+  num get value() native "SVGLength_value_Getter";
+
+  void set value(num) native "SVGLength_value_Setter";
+
+  String get valueAsString() native "SVGLength_valueAsString_Getter";
+
+  void set valueAsString(String) native "SVGLength_valueAsString_Setter";
+
+  num get valueInSpecifiedUnits() native "SVGLength_valueInSpecifiedUnits_Getter";
+
+  void set valueInSpecifiedUnits(num) native "SVGLength_valueInSpecifiedUnits_Setter";
+
+  void convertToSpecifiedUnits(int unitType) native "SVGLength_convertToSpecifiedUnits_Callback";
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) {
+    _newValueSpecifiedUnits(unitType, valueInSpecifiedUnits);
+    return;
+  }
+
+  void _newValueSpecifiedUnits(unitType, valueInSpecifiedUnits) native "SVGLength_newValueSpecifiedUnits_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGLengthListDOMImpl extends _DOMWrapperBase implements SVGLengthList {
+  _SVGLengthListDOMImpl();
+  String get typeName() => "SVGLengthList";
+
+  int get numberOfItems() native "SVGLengthList_numberOfItems_Getter";
+
+  SVGLength appendItem(SVGLength item) {
+    return _appendItem(item);
+  }
+
+  SVGLength _appendItem(item) native "SVGLengthList_appendItem_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "SVGLengthList_clear_Callback";
+
+  SVGLength getItem(int index) {
+    return _getItem(index);
+  }
+
+  SVGLength _getItem(index) native "SVGLengthList_getItem_Callback";
+
+  SVGLength initialize(SVGLength item) {
+    return _initialize(item);
+  }
+
+  SVGLength _initialize(item) native "SVGLengthList_initialize_Callback";
+
+  SVGLength insertItemBefore(SVGLength item, int index) {
+    return _insertItemBefore(item, index);
+  }
+
+  SVGLength _insertItemBefore(item, index) native "SVGLengthList_insertItemBefore_Callback";
+
+  SVGLength removeItem(int index) {
+    return _removeItem(index);
+  }
+
+  SVGLength _removeItem(index) native "SVGLengthList_removeItem_Callback";
+
+  SVGLength replaceItem(SVGLength item, int index) {
+    return _replaceItem(item, index);
+  }
+
+  SVGLength _replaceItem(item, index) native "SVGLengthList_replaceItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGLineElementDOMImpl extends _SVGElementDOMImpl implements SVGLineElement {
+  _SVGLineElementDOMImpl();
+  String get typeName() => "SVGLineElement";
+
+  SVGAnimatedLength get x1() native "SVGLineElement_x1_Getter";
+
+  SVGAnimatedLength get x2() native "SVGLineElement_x2_Getter";
+
+  SVGAnimatedLength get y1() native "SVGLineElement_y1_Getter";
+
+  SVGAnimatedLength get y2() native "SVGLineElement_y2_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGLineElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGLineElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGLineElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGLineElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGLineElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGLineElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGLineElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGLineElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGLineElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGLineElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGLineElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGLineElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGLineElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGLineElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGLineElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGLineElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGLineElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGLineElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGLineElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGLinearGradientElementDOMImpl extends _SVGGradientElementDOMImpl implements SVGLinearGradientElement {
+  _SVGLinearGradientElementDOMImpl();
+  String get typeName() => "SVGLinearGradientElement";
+
+  SVGAnimatedLength get x1() native "SVGLinearGradientElement_x1_Getter";
+
+  SVGAnimatedLength get x2() native "SVGLinearGradientElement_x2_Getter";
+
+  SVGAnimatedLength get y1() native "SVGLinearGradientElement_y1_Getter";
+
+  SVGAnimatedLength get y2() native "SVGLinearGradientElement_y2_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGMPathElementDOMImpl extends _SVGElementDOMImpl implements SVGMPathElement {
+  _SVGMPathElementDOMImpl();
+  String get typeName() => "SVGMPathElement";
+
+  SVGAnimatedString get href() native "SVGMPathElement_href_Getter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGMPathElement_externalResourcesRequired_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGMarkerElementDOMImpl extends _SVGElementDOMImpl implements SVGMarkerElement {
+  _SVGMarkerElementDOMImpl();
+  String get typeName() => "SVGMarkerElement";
+
+  SVGAnimatedLength get markerHeight() native "SVGMarkerElement_markerHeight_Getter";
+
+  SVGAnimatedEnumeration get markerUnits() native "SVGMarkerElement_markerUnits_Getter";
+
+  SVGAnimatedLength get markerWidth() native "SVGMarkerElement_markerWidth_Getter";
+
+  SVGAnimatedAngle get orientAngle() native "SVGMarkerElement_orientAngle_Getter";
+
+  SVGAnimatedEnumeration get orientType() native "SVGMarkerElement_orientType_Getter";
+
+  SVGAnimatedLength get refX() native "SVGMarkerElement_refX_Getter";
+
+  SVGAnimatedLength get refY() native "SVGMarkerElement_refY_Getter";
+
+  void setOrientToAngle(SVGAngle angle) {
+    _setOrientToAngle(angle);
+    return;
+  }
+
+  void _setOrientToAngle(angle) native "SVGMarkerElement_setOrientToAngle_Callback";
+
+  void setOrientToAuto() {
+    _setOrientToAuto();
+    return;
+  }
+
+  void _setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
+
+  String get xmllang() native "SVGMarkerElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGMarkerElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGMarkerElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGMarkerElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGMarkerElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGMarkerElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGMarkerElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGMarkerElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGMarkerElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGMarkerElement_viewBox_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGMaskElementDOMImpl extends _SVGElementDOMImpl implements SVGMaskElement {
+  _SVGMaskElementDOMImpl();
+  String get typeName() => "SVGMaskElement";
+
+  SVGAnimatedLength get height() native "SVGMaskElement_height_Getter";
+
+  SVGAnimatedEnumeration get maskContentUnits() native "SVGMaskElement_maskContentUnits_Getter";
+
+  SVGAnimatedEnumeration get maskUnits() native "SVGMaskElement_maskUnits_Getter";
+
+  SVGAnimatedLength get width() native "SVGMaskElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGMaskElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGMaskElement_y_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGMaskElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGMaskElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGMaskElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGMaskElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGMaskElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGMaskElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGMaskElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGMaskElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGMaskElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGMaskElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGMaskElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGMaskElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGMatrixDOMImpl extends _DOMWrapperBase implements SVGMatrix {
+  _SVGMatrixDOMImpl();
+  String get typeName() => "SVGMatrix";
+
+  num get a() native "SVGMatrix_a_Getter";
+
+  void set a(num) native "SVGMatrix_a_Setter";
+
+  num get b() native "SVGMatrix_b_Getter";
+
+  void set b(num) native "SVGMatrix_b_Setter";
+
+  num get c() native "SVGMatrix_c_Getter";
+
+  void set c(num) native "SVGMatrix_c_Setter";
+
+  num get d() native "SVGMatrix_d_Getter";
+
+  void set d(num) native "SVGMatrix_d_Setter";
+
+  num get e() native "SVGMatrix_e_Getter";
+
+  void set e(num) native "SVGMatrix_e_Setter";
+
+  num get f() native "SVGMatrix_f_Getter";
+
+  void set f(num) native "SVGMatrix_f_Setter";
+
+  SVGMatrix flipX() {
+    return _flipX();
+  }
+
+  SVGMatrix _flipX() native "SVGMatrix_flipX_Callback";
+
+  SVGMatrix flipY() {
+    return _flipY();
+  }
+
+  SVGMatrix _flipY() native "SVGMatrix_flipY_Callback";
+
+  SVGMatrix inverse() {
+    return _inverse();
+  }
+
+  SVGMatrix _inverse() native "SVGMatrix_inverse_Callback";
+
+  SVGMatrix multiply(SVGMatrix secondMatrix) {
+    return _multiply(secondMatrix);
+  }
+
+  SVGMatrix _multiply(secondMatrix) native "SVGMatrix_multiply_Callback";
+
+  SVGMatrix rotate(num angle) {
+    return _rotate(angle);
+  }
+
+  SVGMatrix _rotate(angle) native "SVGMatrix_rotate_Callback";
+
+  SVGMatrix rotateFromVector(num x, num y) {
+    return _rotateFromVector(x, y);
+  }
+
+  SVGMatrix _rotateFromVector(x, y) native "SVGMatrix_rotateFromVector_Callback";
+
+  SVGMatrix scale(num scaleFactor) {
+    return _scale(scaleFactor);
+  }
+
+  SVGMatrix _scale(scaleFactor) native "SVGMatrix_scale_Callback";
+
+  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) {
+    return _scaleNonUniform(scaleFactorX, scaleFactorY);
+  }
+
+  SVGMatrix _scaleNonUniform(scaleFactorX, scaleFactorY) native "SVGMatrix_scaleNonUniform_Callback";
+
+  SVGMatrix skewX(num angle) {
+    return _skewX(angle);
+  }
+
+  SVGMatrix _skewX(angle) native "SVGMatrix_skewX_Callback";
+
+  SVGMatrix skewY(num angle) {
+    return _skewY(angle);
+  }
+
+  SVGMatrix _skewY(angle) native "SVGMatrix_skewY_Callback";
+
+  SVGMatrix translate(num x, num y) {
+    return _translate(x, y);
+  }
+
+  SVGMatrix _translate(x, y) native "SVGMatrix_translate_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGMetadataElementDOMImpl extends _SVGElementDOMImpl implements SVGMetadataElement {
+  _SVGMetadataElementDOMImpl();
+  String get typeName() => "SVGMetadataElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGMissingGlyphElementDOMImpl extends _SVGElementDOMImpl implements SVGMissingGlyphElement {
+  _SVGMissingGlyphElementDOMImpl();
+  String get typeName() => "SVGMissingGlyphElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGNumberDOMImpl extends _DOMWrapperBase implements SVGNumber {
+  _SVGNumberDOMImpl();
+  String get typeName() => "SVGNumber";
+
+  num get value() native "SVGNumber_value_Getter";
+
+  void set value(num) native "SVGNumber_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGNumberListDOMImpl extends _DOMWrapperBase implements SVGNumberList {
+  _SVGNumberListDOMImpl();
+  String get typeName() => "SVGNumberList";
+
+  int get numberOfItems() native "SVGNumberList_numberOfItems_Getter";
+
+  SVGNumber appendItem(SVGNumber item) {
+    return _appendItem(item);
+  }
+
+  SVGNumber _appendItem(item) native "SVGNumberList_appendItem_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "SVGNumberList_clear_Callback";
+
+  SVGNumber getItem(int index) {
+    return _getItem(index);
+  }
+
+  SVGNumber _getItem(index) native "SVGNumberList_getItem_Callback";
+
+  SVGNumber initialize(SVGNumber item) {
+    return _initialize(item);
+  }
+
+  SVGNumber _initialize(item) native "SVGNumberList_initialize_Callback";
+
+  SVGNumber insertItemBefore(SVGNumber item, int index) {
+    return _insertItemBefore(item, index);
+  }
+
+  SVGNumber _insertItemBefore(item, index) native "SVGNumberList_insertItemBefore_Callback";
+
+  SVGNumber removeItem(int index) {
+    return _removeItem(index);
+  }
+
+  SVGNumber _removeItem(index) native "SVGNumberList_removeItem_Callback";
+
+  SVGNumber replaceItem(SVGNumber item, int index) {
+    return _replaceItem(item, index);
+  }
+
+  SVGNumber _replaceItem(item, index) native "SVGNumberList_replaceItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPaintDOMImpl extends _SVGColorDOMImpl implements SVGPaint {
+  _SVGPaintDOMImpl();
+  String get typeName() => "SVGPaint";
+
+  int get paintType() native "SVGPaint_paintType_Getter";
+
+  String get uri() native "SVGPaint_uri_Getter";
+
+  void setPaint(int paintType, String uri, String rgbColor, String iccColor) {
+    _setPaint(paintType, uri, rgbColor, iccColor);
+    return;
+  }
+
+  void _setPaint(paintType, uri, rgbColor, iccColor) native "SVGPaint_setPaint_Callback";
+
+  void setUri(String uri) {
+    _setUri(uri);
+    return;
+  }
+
+  void _setUri(uri) native "SVGPaint_setUri_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathElementDOMImpl extends _SVGElementDOMImpl implements SVGPathElement {
+  _SVGPathElementDOMImpl();
+  String get typeName() => "SVGPathElement";
+
+  SVGPathSegList get animatedNormalizedPathSegList() native "SVGPathElement_animatedNormalizedPathSegList_Getter";
+
+  SVGPathSegList get animatedPathSegList() native "SVGPathElement_animatedPathSegList_Getter";
+
+  SVGPathSegList get normalizedPathSegList() native "SVGPathElement_normalizedPathSegList_Getter";
+
+  SVGAnimatedNumber get pathLength() native "SVGPathElement_pathLength_Getter";
+
+  SVGPathSegList get pathSegList() native "SVGPathElement_pathSegList_Getter";
+
+  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) {
+    return _createSVGPathSegArcAbs(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+  }
+
+  SVGPathSegArcAbs _createSVGPathSegArcAbs(x, y, r1, r2, angle, largeArcFlag, sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
+
+  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) {
+    return _createSVGPathSegArcRel(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+  }
+
+  SVGPathSegArcRel _createSVGPathSegArcRel(x, y, r1, r2, angle, largeArcFlag, sweepFlag) native "SVGPathElement_createSVGPathSegArcRel_Callback";
+
+  SVGPathSegClosePath createSVGPathSegClosePath() {
+    return _createSVGPathSegClosePath();
+  }
+
+  SVGPathSegClosePath _createSVGPathSegClosePath() native "SVGPathElement_createSVGPathSegClosePath_Callback";
+
+  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) {
+    return _createSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2);
+  }
+
+  SVGPathSegCurvetoCubicAbs _createSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2) native "SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback";
+
+  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) {
+    return _createSVGPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2);
+  }
+
+  SVGPathSegCurvetoCubicRel _createSVGPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2) native "SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback";
+
+  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) {
+    return _createSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2);
+  }
+
+  SVGPathSegCurvetoCubicSmoothAbs _createSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback";
+
+  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) {
+    return _createSVGPathSegCurvetoCubicSmoothRel(x, y, x2, y2);
+  }
+
+  SVGPathSegCurvetoCubicSmoothRel _createSVGPathSegCurvetoCubicSmoothRel(x, y, x2, y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback";
+
+  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) {
+    return _createSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1);
+  }
+
+  SVGPathSegCurvetoQuadraticAbs _createSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback";
+
+  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) {
+    return _createSVGPathSegCurvetoQuadraticRel(x, y, x1, y1);
+  }
+
+  SVGPathSegCurvetoQuadraticRel _createSVGPathSegCurvetoQuadraticRel(x, y, x1, y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback";
+
+  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) {
+    return _createSVGPathSegCurvetoQuadraticSmoothAbs(x, y);
+  }
+
+  SVGPathSegCurvetoQuadraticSmoothAbs _createSVGPathSegCurvetoQuadraticSmoothAbs(x, y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback";
+
+  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) {
+    return _createSVGPathSegCurvetoQuadraticSmoothRel(x, y);
+  }
+
+  SVGPathSegCurvetoQuadraticSmoothRel _createSVGPathSegCurvetoQuadraticSmoothRel(x, y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback";
+
+  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) {
+    return _createSVGPathSegLinetoAbs(x, y);
+  }
+
+  SVGPathSegLinetoAbs _createSVGPathSegLinetoAbs(x, y) native "SVGPathElement_createSVGPathSegLinetoAbs_Callback";
+
+  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) {
+    return _createSVGPathSegLinetoHorizontalAbs(x);
+  }
+
+  SVGPathSegLinetoHorizontalAbs _createSVGPathSegLinetoHorizontalAbs(x) native "SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback";
+
+  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) {
+    return _createSVGPathSegLinetoHorizontalRel(x);
+  }
+
+  SVGPathSegLinetoHorizontalRel _createSVGPathSegLinetoHorizontalRel(x) native "SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback";
+
+  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) {
+    return _createSVGPathSegLinetoRel(x, y);
+  }
+
+  SVGPathSegLinetoRel _createSVGPathSegLinetoRel(x, y) native "SVGPathElement_createSVGPathSegLinetoRel_Callback";
+
+  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) {
+    return _createSVGPathSegLinetoVerticalAbs(y);
+  }
+
+  SVGPathSegLinetoVerticalAbs _createSVGPathSegLinetoVerticalAbs(y) native "SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback";
+
+  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) {
+    return _createSVGPathSegLinetoVerticalRel(y);
+  }
+
+  SVGPathSegLinetoVerticalRel _createSVGPathSegLinetoVerticalRel(y) native "SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback";
+
+  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) {
+    return _createSVGPathSegMovetoAbs(x, y);
+  }
+
+  SVGPathSegMovetoAbs _createSVGPathSegMovetoAbs(x, y) native "SVGPathElement_createSVGPathSegMovetoAbs_Callback";
+
+  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) {
+    return _createSVGPathSegMovetoRel(x, y);
+  }
+
+  SVGPathSegMovetoRel _createSVGPathSegMovetoRel(x, y) native "SVGPathElement_createSVGPathSegMovetoRel_Callback";
+
+  int getPathSegAtLength(num distance) {
+    return _getPathSegAtLength(distance);
+  }
+
+  int _getPathSegAtLength(distance) native "SVGPathElement_getPathSegAtLength_Callback";
+
+  SVGPoint getPointAtLength(num distance) {
+    return _getPointAtLength(distance);
+  }
+
+  SVGPoint _getPointAtLength(distance) native "SVGPathElement_getPointAtLength_Callback";
+
+  num getTotalLength() {
+    return _getTotalLength();
+  }
+
+  num _getTotalLength() native "SVGPathElement_getTotalLength_Callback";
+
+  SVGStringList get requiredExtensions() native "SVGPathElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGPathElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGPathElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGPathElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGPathElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGPathElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGPathElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGPathElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPathElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGPathElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGPathElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGPathElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGPathElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGPathElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGPathElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGPathElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGPathElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGPathElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGPathElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegArcAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegArcAbs {
+  _SVGPathSegArcAbsDOMImpl();
+  String get typeName() => "SVGPathSegArcAbs";
+
+  num get angle() native "SVGPathSegArcAbs_angle_Getter";
+
+  void set angle(num) native "SVGPathSegArcAbs_angle_Setter";
+
+  bool get largeArcFlag() native "SVGPathSegArcAbs_largeArcFlag_Getter";
+
+  void set largeArcFlag(bool) native "SVGPathSegArcAbs_largeArcFlag_Setter";
+
+  num get r1() native "SVGPathSegArcAbs_r1_Getter";
+
+  void set r1(num) native "SVGPathSegArcAbs_r1_Setter";
+
+  num get r2() native "SVGPathSegArcAbs_r2_Getter";
+
+  void set r2(num) native "SVGPathSegArcAbs_r2_Setter";
+
+  bool get sweepFlag() native "SVGPathSegArcAbs_sweepFlag_Getter";
+
+  void set sweepFlag(bool) native "SVGPathSegArcAbs_sweepFlag_Setter";
+
+  num get x() native "SVGPathSegArcAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegArcAbs_x_Setter";
+
+  num get y() native "SVGPathSegArcAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegArcAbs_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegArcRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegArcRel {
+  _SVGPathSegArcRelDOMImpl();
+  String get typeName() => "SVGPathSegArcRel";
+
+  num get angle() native "SVGPathSegArcRel_angle_Getter";
+
+  void set angle(num) native "SVGPathSegArcRel_angle_Setter";
+
+  bool get largeArcFlag() native "SVGPathSegArcRel_largeArcFlag_Getter";
+
+  void set largeArcFlag(bool) native "SVGPathSegArcRel_largeArcFlag_Setter";
+
+  num get r1() native "SVGPathSegArcRel_r1_Getter";
+
+  void set r1(num) native "SVGPathSegArcRel_r1_Setter";
+
+  num get r2() native "SVGPathSegArcRel_r2_Getter";
+
+  void set r2(num) native "SVGPathSegArcRel_r2_Setter";
+
+  bool get sweepFlag() native "SVGPathSegArcRel_sweepFlag_Getter";
+
+  void set sweepFlag(bool) native "SVGPathSegArcRel_sweepFlag_Setter";
+
+  num get x() native "SVGPathSegArcRel_x_Getter";
+
+  void set x(num) native "SVGPathSegArcRel_x_Setter";
+
+  num get y() native "SVGPathSegArcRel_y_Getter";
+
+  void set y(num) native "SVGPathSegArcRel_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegClosePathDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegClosePath {
+  _SVGPathSegClosePathDOMImpl();
+  String get typeName() => "SVGPathSegClosePath";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoCubicAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoCubicAbs {
+  _SVGPathSegCurvetoCubicAbsDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoCubicAbs";
+
+  num get x() native "SVGPathSegCurvetoCubicAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoCubicAbs_x_Setter";
+
+  num get x1() native "SVGPathSegCurvetoCubicAbs_x1_Getter";
+
+  void set x1(num) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
+
+  num get x2() native "SVGPathSegCurvetoCubicAbs_x2_Getter";
+
+  void set x2(num) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
+
+  num get y() native "SVGPathSegCurvetoCubicAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoCubicAbs_y_Setter";
+
+  num get y1() native "SVGPathSegCurvetoCubicAbs_y1_Getter";
+
+  void set y1(num) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
+
+  num get y2() native "SVGPathSegCurvetoCubicAbs_y2_Getter";
+
+  void set y2(num) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoCubicRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoCubicRel {
+  _SVGPathSegCurvetoCubicRelDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoCubicRel";
+
+  num get x() native "SVGPathSegCurvetoCubicRel_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoCubicRel_x_Setter";
+
+  num get x1() native "SVGPathSegCurvetoCubicRel_x1_Getter";
+
+  void set x1(num) native "SVGPathSegCurvetoCubicRel_x1_Setter";
+
+  num get x2() native "SVGPathSegCurvetoCubicRel_x2_Getter";
+
+  void set x2(num) native "SVGPathSegCurvetoCubicRel_x2_Setter";
+
+  num get y() native "SVGPathSegCurvetoCubicRel_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoCubicRel_y_Setter";
+
+  num get y1() native "SVGPathSegCurvetoCubicRel_y1_Getter";
+
+  void set y1(num) native "SVGPathSegCurvetoCubicRel_y1_Setter";
+
+  num get y2() native "SVGPathSegCurvetoCubicRel_y2_Getter";
+
+  void set y2(num) native "SVGPathSegCurvetoCubicRel_y2_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoCubicSmoothAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoCubicSmoothAbs {
+  _SVGPathSegCurvetoCubicSmoothAbsDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoCubicSmoothAbs";
+
+  num get x() native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
+
+  num get x2() native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
+
+  void set x2(num) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
+
+  num get y() native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
+
+  num get y2() native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
+
+  void set y2(num) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoCubicSmoothRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoCubicSmoothRel {
+  _SVGPathSegCurvetoCubicSmoothRelDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoCubicSmoothRel";
+
+  num get x() native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
+
+  num get x2() native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
+
+  void set x2(num) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
+
+  num get y() native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
+
+  num get y2() native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
+
+  void set y2(num) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoQuadraticAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoQuadraticAbs {
+  _SVGPathSegCurvetoQuadraticAbsDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoQuadraticAbs";
+
+  num get x() native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
+
+  num get x1() native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
+
+  void set x1(num) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
+
+  num get y() native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
+
+  num get y1() native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
+
+  void set y1(num) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoQuadraticRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoQuadraticRel {
+  _SVGPathSegCurvetoQuadraticRelDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoQuadraticRel";
+
+  num get x() native "SVGPathSegCurvetoQuadraticRel_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
+
+  num get x1() native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
+
+  void set x1(num) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
+
+  num get y() native "SVGPathSegCurvetoQuadraticRel_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
+
+  num get y1() native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
+
+  void set y1(num) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoQuadraticSmoothAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoQuadraticSmoothAbs {
+  _SVGPathSegCurvetoQuadraticSmoothAbsDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoQuadraticSmoothAbs";
+
+  num get x() native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
+
+  num get y() native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegCurvetoQuadraticSmoothRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegCurvetoQuadraticSmoothRel {
+  _SVGPathSegCurvetoQuadraticSmoothRelDOMImpl();
+  String get typeName() => "SVGPathSegCurvetoQuadraticSmoothRel";
+
+  num get x() native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
+
+  void set x(num) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
+
+  num get y() native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
+
+  void set y(num) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegDOMImpl extends _DOMWrapperBase implements SVGPathSeg {
+  _SVGPathSegDOMImpl();
+  String get typeName() => "SVGPathSeg";
+
+  int get pathSegType() native "SVGPathSeg_pathSegType_Getter";
+
+  String get pathSegTypeAsLetter() native "SVGPathSeg_pathSegTypeAsLetter_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegLinetoAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegLinetoAbs {
+  _SVGPathSegLinetoAbsDOMImpl();
+  String get typeName() => "SVGPathSegLinetoAbs";
+
+  num get x() native "SVGPathSegLinetoAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegLinetoAbs_x_Setter";
+
+  num get y() native "SVGPathSegLinetoAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegLinetoAbs_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegLinetoHorizontalAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegLinetoHorizontalAbs {
+  _SVGPathSegLinetoHorizontalAbsDOMImpl();
+  String get typeName() => "SVGPathSegLinetoHorizontalAbs";
+
+  num get x() native "SVGPathSegLinetoHorizontalAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegLinetoHorizontalRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegLinetoHorizontalRel {
+  _SVGPathSegLinetoHorizontalRelDOMImpl();
+  String get typeName() => "SVGPathSegLinetoHorizontalRel";
+
+  num get x() native "SVGPathSegLinetoHorizontalRel_x_Getter";
+
+  void set x(num) native "SVGPathSegLinetoHorizontalRel_x_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegLinetoRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegLinetoRel {
+  _SVGPathSegLinetoRelDOMImpl();
+  String get typeName() => "SVGPathSegLinetoRel";
+
+  num get x() native "SVGPathSegLinetoRel_x_Getter";
+
+  void set x(num) native "SVGPathSegLinetoRel_x_Setter";
+
+  num get y() native "SVGPathSegLinetoRel_y_Getter";
+
+  void set y(num) native "SVGPathSegLinetoRel_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegLinetoVerticalAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegLinetoVerticalAbs {
+  _SVGPathSegLinetoVerticalAbsDOMImpl();
+  String get typeName() => "SVGPathSegLinetoVerticalAbs";
+
+  num get y() native "SVGPathSegLinetoVerticalAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegLinetoVerticalAbs_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegLinetoVerticalRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegLinetoVerticalRel {
+  _SVGPathSegLinetoVerticalRelDOMImpl();
+  String get typeName() => "SVGPathSegLinetoVerticalRel";
+
+  num get y() native "SVGPathSegLinetoVerticalRel_y_Getter";
+
+  void set y(num) native "SVGPathSegLinetoVerticalRel_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegListDOMImpl extends _DOMWrapperBase implements SVGPathSegList {
+  _SVGPathSegListDOMImpl();
+  String get typeName() => "SVGPathSegList";
+
+  int get numberOfItems() native "SVGPathSegList_numberOfItems_Getter";
+
+  SVGPathSeg appendItem(SVGPathSeg newItem) {
+    return _appendItem(newItem);
+  }
+
+  SVGPathSeg _appendItem(newItem) native "SVGPathSegList_appendItem_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "SVGPathSegList_clear_Callback";
+
+  SVGPathSeg getItem(int index) {
+    return _getItem(index);
+  }
+
+  SVGPathSeg _getItem(index) native "SVGPathSegList_getItem_Callback";
+
+  SVGPathSeg initialize(SVGPathSeg newItem) {
+    return _initialize(newItem);
+  }
+
+  SVGPathSeg _initialize(newItem) native "SVGPathSegList_initialize_Callback";
+
+  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) {
+    return _insertItemBefore(newItem, index);
+  }
+
+  SVGPathSeg _insertItemBefore(newItem, index) native "SVGPathSegList_insertItemBefore_Callback";
+
+  SVGPathSeg removeItem(int index) {
+    return _removeItem(index);
+  }
+
+  SVGPathSeg _removeItem(index) native "SVGPathSegList_removeItem_Callback";
+
+  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) {
+    return _replaceItem(newItem, index);
+  }
+
+  SVGPathSeg _replaceItem(newItem, index) native "SVGPathSegList_replaceItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegMovetoAbsDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegMovetoAbs {
+  _SVGPathSegMovetoAbsDOMImpl();
+  String get typeName() => "SVGPathSegMovetoAbs";
+
+  num get x() native "SVGPathSegMovetoAbs_x_Getter";
+
+  void set x(num) native "SVGPathSegMovetoAbs_x_Setter";
+
+  num get y() native "SVGPathSegMovetoAbs_y_Getter";
+
+  void set y(num) native "SVGPathSegMovetoAbs_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPathSegMovetoRelDOMImpl extends _SVGPathSegDOMImpl implements SVGPathSegMovetoRel {
+  _SVGPathSegMovetoRelDOMImpl();
+  String get typeName() => "SVGPathSegMovetoRel";
+
+  num get x() native "SVGPathSegMovetoRel_x_Getter";
+
+  void set x(num) native "SVGPathSegMovetoRel_x_Setter";
+
+  num get y() native "SVGPathSegMovetoRel_y_Getter";
+
+  void set y(num) native "SVGPathSegMovetoRel_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPatternElementDOMImpl extends _SVGElementDOMImpl implements SVGPatternElement {
+  _SVGPatternElementDOMImpl();
+  String get typeName() => "SVGPatternElement";
+
+  SVGAnimatedLength get height() native "SVGPatternElement_height_Getter";
+
+  SVGAnimatedEnumeration get patternContentUnits() native "SVGPatternElement_patternContentUnits_Getter";
+
+  SVGAnimatedTransformList get patternTransform() native "SVGPatternElement_patternTransform_Getter";
+
+  SVGAnimatedEnumeration get patternUnits() native "SVGPatternElement_patternUnits_Getter";
+
+  SVGAnimatedLength get width() native "SVGPatternElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGPatternElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGPatternElement_y_Getter";
+
+  SVGAnimatedString get href() native "SVGPatternElement_href_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGPatternElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGPatternElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGPatternElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGPatternElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGPatternElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGPatternElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGPatternElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGPatternElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPatternElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGPatternElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGPatternElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGPatternElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGPatternElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGPatternElement_viewBox_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPointDOMImpl extends _DOMWrapperBase implements SVGPoint {
+  _SVGPointDOMImpl();
+  String get typeName() => "SVGPoint";
+
+  num get x() native "SVGPoint_x_Getter";
+
+  void set x(num) native "SVGPoint_x_Setter";
+
+  num get y() native "SVGPoint_y_Getter";
+
+  void set y(num) native "SVGPoint_y_Setter";
+
+  SVGPoint matrixTransform(SVGMatrix matrix) {
+    return _matrixTransform(matrix);
+  }
+
+  SVGPoint _matrixTransform(matrix) native "SVGPoint_matrixTransform_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPointListDOMImpl extends _DOMWrapperBase implements SVGPointList {
+  _SVGPointListDOMImpl();
+  String get typeName() => "SVGPointList";
+
+  int get numberOfItems() native "SVGPointList_numberOfItems_Getter";
+
+  SVGPoint appendItem(SVGPoint item) {
+    return _appendItem(item);
+  }
+
+  SVGPoint _appendItem(item) native "SVGPointList_appendItem_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "SVGPointList_clear_Callback";
+
+  SVGPoint getItem(int index) {
+    return _getItem(index);
+  }
+
+  SVGPoint _getItem(index) native "SVGPointList_getItem_Callback";
+
+  SVGPoint initialize(SVGPoint item) {
+    return _initialize(item);
+  }
+
+  SVGPoint _initialize(item) native "SVGPointList_initialize_Callback";
+
+  SVGPoint insertItemBefore(SVGPoint item, int index) {
+    return _insertItemBefore(item, index);
+  }
+
+  SVGPoint _insertItemBefore(item, index) native "SVGPointList_insertItemBefore_Callback";
+
+  SVGPoint removeItem(int index) {
+    return _removeItem(index);
+  }
+
+  SVGPoint _removeItem(index) native "SVGPointList_removeItem_Callback";
+
+  SVGPoint replaceItem(SVGPoint item, int index) {
+    return _replaceItem(item, index);
+  }
+
+  SVGPoint _replaceItem(item, index) native "SVGPointList_replaceItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPolygonElementDOMImpl extends _SVGElementDOMImpl implements SVGPolygonElement {
+  _SVGPolygonElementDOMImpl();
+  String get typeName() => "SVGPolygonElement";
+
+  SVGPointList get animatedPoints() native "SVGPolygonElement_animatedPoints_Getter";
+
+  SVGPointList get points() native "SVGPolygonElement_points_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGPolygonElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGPolygonElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGPolygonElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGPolygonElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGPolygonElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGPolygonElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGPolygonElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGPolygonElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPolygonElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGPolygonElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGPolygonElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGPolygonElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGPolygonElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGPolygonElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGPolygonElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGPolygonElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGPolygonElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGPolygonElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGPolygonElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPolylineElementDOMImpl extends _SVGElementDOMImpl implements SVGPolylineElement {
+  _SVGPolylineElementDOMImpl();
+  String get typeName() => "SVGPolylineElement";
+
+  SVGPointList get animatedPoints() native "SVGPolylineElement_animatedPoints_Getter";
+
+  SVGPointList get points() native "SVGPolylineElement_points_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGPolylineElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGPolylineElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGPolylineElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGPolylineElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGPolylineElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGPolylineElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGPolylineElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGPolylineElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPolylineElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGPolylineElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGPolylineElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGPolylineElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGPolylineElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGPolylineElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGPolylineElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGPolylineElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGPolylineElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGPolylineElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGPolylineElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGPreserveAspectRatioDOMImpl extends _DOMWrapperBase implements SVGPreserveAspectRatio {
+  _SVGPreserveAspectRatioDOMImpl();
+  String get typeName() => "SVGPreserveAspectRatio";
+
+  int get align() native "SVGPreserveAspectRatio_align_Getter";
+
+  void set align(int) native "SVGPreserveAspectRatio_align_Setter";
+
+  int get meetOrSlice() native "SVGPreserveAspectRatio_meetOrSlice_Getter";
+
+  void set meetOrSlice(int) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGRadialGradientElementDOMImpl extends _SVGGradientElementDOMImpl implements SVGRadialGradientElement {
+  _SVGRadialGradientElementDOMImpl();
+  String get typeName() => "SVGRadialGradientElement";
+
+  SVGAnimatedLength get cx() native "SVGRadialGradientElement_cx_Getter";
+
+  SVGAnimatedLength get cy() native "SVGRadialGradientElement_cy_Getter";
+
+  SVGAnimatedLength get fx() native "SVGRadialGradientElement_fx_Getter";
+
+  SVGAnimatedLength get fy() native "SVGRadialGradientElement_fy_Getter";
+
+  SVGAnimatedLength get r() native "SVGRadialGradientElement_r_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGRectElementDOMImpl extends _SVGElementDOMImpl implements SVGRectElement {
+  _SVGRectElementDOMImpl();
+  String get typeName() => "SVGRectElement";
+
+  SVGAnimatedLength get height() native "SVGRectElement_height_Getter";
+
+  SVGAnimatedLength get rx() native "SVGRectElement_rx_Getter";
+
+  SVGAnimatedLength get ry() native "SVGRectElement_ry_Getter";
+
+  SVGAnimatedLength get width() native "SVGRectElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGRectElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGRectElement_y_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGRectElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGRectElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGRectElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGRectElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGRectElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGRectElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGRectElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGRectElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGRectElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGRectElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGRectElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGRectElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGRectElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGRectElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGRectElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGRectElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGRectElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGRectElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGRectElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGRectDOMImpl extends _DOMWrapperBase implements SVGRect {
+  _SVGRectDOMImpl();
+  String get typeName() => "SVGRect";
+
+  num get height() native "SVGRect_height_Getter";
+
+  void set height(num) native "SVGRect_height_Setter";
+
+  num get width() native "SVGRect_width_Getter";
+
+  void set width(num) native "SVGRect_width_Setter";
+
+  num get x() native "SVGRect_x_Getter";
+
+  void set x(num) native "SVGRect_x_Setter";
+
+  num get y() native "SVGRect_y_Getter";
+
+  void set y(num) native "SVGRect_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGRenderingIntentDOMImpl extends _DOMWrapperBase implements SVGRenderingIntent {
+  _SVGRenderingIntentDOMImpl();
+  String get typeName() => "SVGRenderingIntent";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGSVGElementDOMImpl extends _SVGElementDOMImpl implements SVGSVGElement {
+  _SVGSVGElementDOMImpl();
+  String get typeName() => "SVGSVGElement";
+
+  String get contentScriptType() native "SVGSVGElement_contentScriptType_Getter";
+
+  void set contentScriptType(String) native "SVGSVGElement_contentScriptType_Setter";
+
+  String get contentStyleType() native "SVGSVGElement_contentStyleType_Getter";
+
+  void set contentStyleType(String) native "SVGSVGElement_contentStyleType_Setter";
+
+  num get currentScale() native "SVGSVGElement_currentScale_Getter";
+
+  void set currentScale(num) native "SVGSVGElement_currentScale_Setter";
+
+  SVGPoint get currentTranslate() native "SVGSVGElement_currentTranslate_Getter";
+
+  SVGAnimatedLength get height() native "SVGSVGElement_height_Getter";
+
+  num get pixelUnitToMillimeterX() native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
+
+  num get pixelUnitToMillimeterY() native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
+
+  num get screenPixelToMillimeterX() native "SVGSVGElement_screenPixelToMillimeterX_Getter";
+
+  num get screenPixelToMillimeterY() native "SVGSVGElement_screenPixelToMillimeterY_Getter";
+
+  bool get useCurrentView() native "SVGSVGElement_useCurrentView_Getter";
+
+  void set useCurrentView(bool) native "SVGSVGElement_useCurrentView_Setter";
+
+  SVGRect get viewport() native "SVGSVGElement_viewport_Getter";
+
+  SVGAnimatedLength get width() native "SVGSVGElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGSVGElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGSVGElement_y_Getter";
+
+  bool animationsPaused() {
+    return _animationsPaused();
+  }
+
+  bool _animationsPaused() native "SVGSVGElement_animationsPaused_Callback";
+
+  bool checkEnclosure(SVGElement element, SVGRect rect) {
+    return _checkEnclosure(element, rect);
+  }
+
+  bool _checkEnclosure(element, rect) native "SVGSVGElement_checkEnclosure_Callback";
+
+  bool checkIntersection(SVGElement element, SVGRect rect) {
+    return _checkIntersection(element, rect);
+  }
+
+  bool _checkIntersection(element, rect) native "SVGSVGElement_checkIntersection_Callback";
+
+  SVGAngle createSVGAngle() {
+    return _createSVGAngle();
+  }
+
+  SVGAngle _createSVGAngle() native "SVGSVGElement_createSVGAngle_Callback";
+
+  SVGLength createSVGLength() {
+    return _createSVGLength();
+  }
+
+  SVGLength _createSVGLength() native "SVGSVGElement_createSVGLength_Callback";
+
+  SVGMatrix createSVGMatrix() {
+    return _createSVGMatrix();
+  }
+
+  SVGMatrix _createSVGMatrix() native "SVGSVGElement_createSVGMatrix_Callback";
+
+  SVGNumber createSVGNumber() {
+    return _createSVGNumber();
+  }
+
+  SVGNumber _createSVGNumber() native "SVGSVGElement_createSVGNumber_Callback";
+
+  SVGPoint createSVGPoint() {
+    return _createSVGPoint();
+  }
+
+  SVGPoint _createSVGPoint() native "SVGSVGElement_createSVGPoint_Callback";
+
+  SVGRect createSVGRect() {
+    return _createSVGRect();
+  }
+
+  SVGRect _createSVGRect() native "SVGSVGElement_createSVGRect_Callback";
+
+  SVGTransform createSVGTransform() {
+    return _createSVGTransform();
+  }
+
+  SVGTransform _createSVGTransform() native "SVGSVGElement_createSVGTransform_Callback";
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) {
+    return _createSVGTransformFromMatrix(matrix);
+  }
+
+  SVGTransform _createSVGTransformFromMatrix(matrix) native "SVGSVGElement_createSVGTransformFromMatrix_Callback";
+
+  void deselectAll() {
+    _deselectAll();
+    return;
+  }
+
+  void _deselectAll() native "SVGSVGElement_deselectAll_Callback";
+
+  void forceRedraw() {
+    _forceRedraw();
+    return;
+  }
+
+  void _forceRedraw() native "SVGSVGElement_forceRedraw_Callback";
+
+  num getCurrentTime() {
+    return _getCurrentTime();
+  }
+
+  num _getCurrentTime() native "SVGSVGElement_getCurrentTime_Callback";
+
+  Element getElementById(String elementId) {
+    return _getElementById(elementId);
+  }
+
+  Element _getElementById(elementId) native "SVGSVGElement_getElementById_Callback";
+
+  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement) {
+    return _getEnclosureList(rect, referenceElement);
+  }
+
+  NodeList _getEnclosureList(rect, referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
+
+  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement) {
+    return _getIntersectionList(rect, referenceElement);
+  }
+
+  NodeList _getIntersectionList(rect, referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
+
+  void pauseAnimations() {
+    _pauseAnimations();
+    return;
+  }
+
+  void _pauseAnimations() native "SVGSVGElement_pauseAnimations_Callback";
+
+  void setCurrentTime(num seconds) {
+    _setCurrentTime(seconds);
+    return;
+  }
+
+  void _setCurrentTime(seconds) native "SVGSVGElement_setCurrentTime_Callback";
+
+  int suspendRedraw(int maxWaitMilliseconds) {
+    return _suspendRedraw(maxWaitMilliseconds);
+  }
+
+  int _suspendRedraw(maxWaitMilliseconds) native "SVGSVGElement_suspendRedraw_Callback";
+
+  void unpauseAnimations() {
+    _unpauseAnimations();
+    return;
+  }
+
+  void _unpauseAnimations() native "SVGSVGElement_unpauseAnimations_Callback";
+
+  void unsuspendRedraw(int suspendHandleId) {
+    _unsuspendRedraw(suspendHandleId);
+    return;
+  }
+
+  void _unsuspendRedraw(suspendHandleId) native "SVGSVGElement_unsuspendRedraw_Callback";
+
+  void unsuspendRedrawAll() {
+    _unsuspendRedrawAll();
+    return;
+  }
+
+  void _unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
+
+  SVGStringList get requiredExtensions() native "SVGSVGElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGSVGElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGSVGElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGSVGElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGSVGElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGSVGElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGSVGElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGSVGElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGSVGElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGSVGElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGSVGElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGSVGElement_getPresentationAttribute_Callback";
+
+  SVGElement get farthestViewportElement() native "SVGSVGElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGSVGElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGSVGElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGSVGElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGSVGElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGSVGElement_getTransformToElement_Callback";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGSVGElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGSVGElement_viewBox_Getter";
+
+  int get zoomAndPan() native "SVGSVGElement_zoomAndPan_Getter";
+
+  void set zoomAndPan(int) native "SVGSVGElement_zoomAndPan_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGScriptElementDOMImpl extends _SVGElementDOMImpl implements SVGScriptElement {
+  _SVGScriptElementDOMImpl();
+  String get typeName() => "SVGScriptElement";
+
+  String get type() native "SVGScriptElement_type_Getter";
+
+  void set type(String) native "SVGScriptElement_type_Setter";
+
+  SVGAnimatedString get href() native "SVGScriptElement_href_Getter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGScriptElement_externalResourcesRequired_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGSetElementDOMImpl extends _SVGAnimationElementDOMImpl implements SVGSetElement {
+  _SVGSetElementDOMImpl();
+  String get typeName() => "SVGSetElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGStopElementDOMImpl extends _SVGElementDOMImpl implements SVGStopElement {
+  _SVGStopElementDOMImpl();
+  String get typeName() => "SVGStopElement";
+
+  SVGAnimatedNumber get offset() native "SVGStopElement_offset_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGStopElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGStopElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGStopElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGStringListDOMImpl extends _DOMWrapperBase implements SVGStringList {
+  _SVGStringListDOMImpl();
+  String get typeName() => "SVGStringList";
+
+  int get numberOfItems() native "SVGStringList_numberOfItems_Getter";
+
+  String appendItem(String item) {
+    return _appendItem(item);
+  }
+
+  String _appendItem(item) native "SVGStringList_appendItem_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "SVGStringList_clear_Callback";
+
+  String getItem(int index) {
+    return _getItem(index);
+  }
+
+  String _getItem(index) native "SVGStringList_getItem_Callback";
+
+  String initialize(String item) {
+    return _initialize(item);
+  }
+
+  String _initialize(item) native "SVGStringList_initialize_Callback";
+
+  String insertItemBefore(String item, int index) {
+    return _insertItemBefore(item, index);
+  }
+
+  String _insertItemBefore(item, index) native "SVGStringList_insertItemBefore_Callback";
+
+  String removeItem(int index) {
+    return _removeItem(index);
+  }
+
+  String _removeItem(index) native "SVGStringList_removeItem_Callback";
+
+  String replaceItem(String item, int index) {
+    return _replaceItem(item, index);
+  }
+
+  String _replaceItem(item, index) native "SVGStringList_replaceItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGStyleElementDOMImpl extends _SVGElementDOMImpl implements SVGStyleElement {
+  _SVGStyleElementDOMImpl();
+  String get typeName() => "SVGStyleElement";
+
+  bool get disabled() native "SVGStyleElement_disabled_Getter";
+
+  void set disabled(bool) native "SVGStyleElement_disabled_Setter";
+
+  String get media() native "SVGStyleElement_media_Getter";
+
+  void set media(String) native "SVGStyleElement_media_Setter";
+
+  String get title() native "SVGStyleElement_title_Getter";
+
+  void set title(String) native "SVGStyleElement_title_Setter";
+
+  String get type() native "SVGStyleElement_type_Getter";
+
+  void set type(String) native "SVGStyleElement_type_Setter";
+
+  String get xmllang() native "SVGStyleElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGStyleElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGStyleElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGStyleElement_xmlspace_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGSwitchElementDOMImpl extends _SVGElementDOMImpl implements SVGSwitchElement {
+  _SVGSwitchElementDOMImpl();
+  String get typeName() => "SVGSwitchElement";
+
+  SVGStringList get requiredExtensions() native "SVGSwitchElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGSwitchElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGSwitchElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGSwitchElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGSwitchElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGSwitchElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGSwitchElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGSwitchElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGSwitchElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGSwitchElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGSwitchElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGSwitchElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGSwitchElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGSwitchElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGSwitchElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGSwitchElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGSwitchElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGSwitchElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGSwitchElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGSymbolElementDOMImpl extends _SVGElementDOMImpl implements SVGSymbolElement {
+  _SVGSymbolElementDOMImpl();
+  String get typeName() => "SVGSymbolElement";
+
+  String get xmllang() native "SVGSymbolElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGSymbolElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGSymbolElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGSymbolElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGSymbolElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGSymbolElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGSymbolElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGSymbolElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGSymbolElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGSymbolElement_viewBox_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTRefElementDOMImpl extends _SVGTextPositioningElementDOMImpl implements SVGTRefElement {
+  _SVGTRefElementDOMImpl();
+  String get typeName() => "SVGTRefElement";
+
+  SVGAnimatedString get href() native "SVGTRefElement_href_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTSpanElementDOMImpl extends _SVGTextPositioningElementDOMImpl implements SVGTSpanElement {
+  _SVGTSpanElementDOMImpl();
+  String get typeName() => "SVGTSpanElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTextContentElementDOMImpl extends _SVGElementDOMImpl implements SVGTextContentElement {
+  _SVGTextContentElementDOMImpl();
+  String get typeName() => "SVGTextContentElement";
+
+  SVGAnimatedEnumeration get lengthAdjust() native "SVGTextContentElement_lengthAdjust_Getter";
+
+  SVGAnimatedLength get textLength() native "SVGTextContentElement_textLength_Getter";
+
+  int getCharNumAtPosition(SVGPoint point) {
+    return _getCharNumAtPosition(point);
+  }
+
+  int _getCharNumAtPosition(point) native "SVGTextContentElement_getCharNumAtPosition_Callback";
+
+  num getComputedTextLength() {
+    return _getComputedTextLength();
+  }
+
+  num _getComputedTextLength() native "SVGTextContentElement_getComputedTextLength_Callback";
+
+  SVGPoint getEndPositionOfChar(int offset) {
+    return _getEndPositionOfChar(offset);
+  }
+
+  SVGPoint _getEndPositionOfChar(offset) native "SVGTextContentElement_getEndPositionOfChar_Callback";
+
+  SVGRect getExtentOfChar(int offset) {
+    return _getExtentOfChar(offset);
+  }
+
+  SVGRect _getExtentOfChar(offset) native "SVGTextContentElement_getExtentOfChar_Callback";
+
+  int getNumberOfChars() {
+    return _getNumberOfChars();
+  }
+
+  int _getNumberOfChars() native "SVGTextContentElement_getNumberOfChars_Callback";
+
+  num getRotationOfChar(int offset) {
+    return _getRotationOfChar(offset);
+  }
+
+  num _getRotationOfChar(offset) native "SVGTextContentElement_getRotationOfChar_Callback";
+
+  SVGPoint getStartPositionOfChar(int offset) {
+    return _getStartPositionOfChar(offset);
+  }
+
+  SVGPoint _getStartPositionOfChar(offset) native "SVGTextContentElement_getStartPositionOfChar_Callback";
+
+  num getSubStringLength(int offset, int length) {
+    return _getSubStringLength(offset, length);
+  }
+
+  num _getSubStringLength(offset, length) native "SVGTextContentElement_getSubStringLength_Callback";
+
+  void selectSubString(int offset, int length) {
+    _selectSubString(offset, length);
+    return;
+  }
+
+  void _selectSubString(offset, length) native "SVGTextContentElement_selectSubString_Callback";
+
+  SVGStringList get requiredExtensions() native "SVGTextContentElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGTextContentElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGTextContentElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGTextContentElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGTextContentElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGTextContentElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGTextContentElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGTextContentElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGTextContentElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGTextContentElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGTextContentElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGTextContentElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTextElementDOMImpl extends _SVGTextPositioningElementDOMImpl implements SVGTextElement {
+  _SVGTextElementDOMImpl();
+  String get typeName() => "SVGTextElement";
+
+  SVGAnimatedTransformList get transform() native "SVGTextElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGTextElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGTextElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGTextElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGTextElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGTextElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGTextElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTextPathElementDOMImpl extends _SVGTextContentElementDOMImpl implements SVGTextPathElement {
+  _SVGTextPathElementDOMImpl();
+  String get typeName() => "SVGTextPathElement";
+
+  SVGAnimatedEnumeration get method() native "SVGTextPathElement_method_Getter";
+
+  SVGAnimatedEnumeration get spacing() native "SVGTextPathElement_spacing_Getter";
+
+  SVGAnimatedLength get startOffset() native "SVGTextPathElement_startOffset_Getter";
+
+  SVGAnimatedString get href() native "SVGTextPathElement_href_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTextPositioningElementDOMImpl extends _SVGTextContentElementDOMImpl implements SVGTextPositioningElement {
+  _SVGTextPositioningElementDOMImpl();
+  String get typeName() => "SVGTextPositioningElement";
+
+  SVGAnimatedLengthList get dx() native "SVGTextPositioningElement_dx_Getter";
+
+  SVGAnimatedLengthList get dy() native "SVGTextPositioningElement_dy_Getter";
+
+  SVGAnimatedNumberList get rotate() native "SVGTextPositioningElement_rotate_Getter";
+
+  SVGAnimatedLengthList get x() native "SVGTextPositioningElement_x_Getter";
+
+  SVGAnimatedLengthList get y() native "SVGTextPositioningElement_y_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTitleElementDOMImpl extends _SVGElementDOMImpl implements SVGTitleElement {
+  _SVGTitleElementDOMImpl();
+  String get typeName() => "SVGTitleElement";
+
+  String get xmllang() native "SVGTitleElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGTitleElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGTitleElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGTitleElement_xmlspace_Setter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGTitleElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGTitleElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGTitleElement_getPresentationAttribute_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTransformDOMImpl extends _DOMWrapperBase implements SVGTransform {
+  _SVGTransformDOMImpl();
+  String get typeName() => "SVGTransform";
+
+  num get angle() native "SVGTransform_angle_Getter";
+
+  SVGMatrix get matrix() native "SVGTransform_matrix_Getter";
+
+  int get type() native "SVGTransform_type_Getter";
+
+  void setMatrix(SVGMatrix matrix) {
+    _setMatrix(matrix);
+    return;
+  }
+
+  void _setMatrix(matrix) native "SVGTransform_setMatrix_Callback";
+
+  void setRotate(num angle, num cx, num cy) {
+    _setRotate(angle, cx, cy);
+    return;
+  }
+
+  void _setRotate(angle, cx, cy) native "SVGTransform_setRotate_Callback";
+
+  void setScale(num sx, num sy) {
+    _setScale(sx, sy);
+    return;
+  }
+
+  void _setScale(sx, sy) native "SVGTransform_setScale_Callback";
+
+  void setSkewX(num angle) {
+    _setSkewX(angle);
+    return;
+  }
+
+  void _setSkewX(angle) native "SVGTransform_setSkewX_Callback";
+
+  void setSkewY(num angle) {
+    _setSkewY(angle);
+    return;
+  }
+
+  void _setSkewY(angle) native "SVGTransform_setSkewY_Callback";
+
+  void setTranslate(num tx, num ty) {
+    _setTranslate(tx, ty);
+    return;
+  }
+
+  void _setTranslate(tx, ty) native "SVGTransform_setTranslate_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGTransformListDOMImpl extends _DOMWrapperBase implements SVGTransformList {
+  _SVGTransformListDOMImpl();
+  String get typeName() => "SVGTransformList";
+
+  int get numberOfItems() native "SVGTransformList_numberOfItems_Getter";
+
+  SVGTransform appendItem(SVGTransform item) {
+    return _appendItem(item);
+  }
+
+  SVGTransform _appendItem(item) native "SVGTransformList_appendItem_Callback";
+
+  void clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "SVGTransformList_clear_Callback";
+
+  SVGTransform consolidate() {
+    return _consolidate();
+  }
+
+  SVGTransform _consolidate() native "SVGTransformList_consolidate_Callback";
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) {
+    return _createSVGTransformFromMatrix(matrix);
+  }
+
+  SVGTransform _createSVGTransformFromMatrix(matrix) native "SVGTransformList_createSVGTransformFromMatrix_Callback";
+
+  SVGTransform getItem(int index) {
+    return _getItem(index);
+  }
+
+  SVGTransform _getItem(index) native "SVGTransformList_getItem_Callback";
+
+  SVGTransform initialize(SVGTransform item) {
+    return _initialize(item);
+  }
+
+  SVGTransform _initialize(item) native "SVGTransformList_initialize_Callback";
+
+  SVGTransform insertItemBefore(SVGTransform item, int index) {
+    return _insertItemBefore(item, index);
+  }
+
+  SVGTransform _insertItemBefore(item, index) native "SVGTransformList_insertItemBefore_Callback";
+
+  SVGTransform removeItem(int index) {
+    return _removeItem(index);
+  }
+
+  SVGTransform _removeItem(index) native "SVGTransformList_removeItem_Callback";
+
+  SVGTransform replaceItem(SVGTransform item, int index) {
+    return _replaceItem(item, index);
+  }
+
+  SVGTransform _replaceItem(item, index) native "SVGTransformList_replaceItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGUnitTypesDOMImpl extends _DOMWrapperBase implements SVGUnitTypes {
+  _SVGUnitTypesDOMImpl();
+  String get typeName() => "SVGUnitTypes";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGUseElementDOMImpl extends _SVGElementDOMImpl implements SVGUseElement {
+  _SVGUseElementDOMImpl();
+  String get typeName() => "SVGUseElement";
+
+  SVGElementInstance get animatedInstanceRoot() native "SVGUseElement_animatedInstanceRoot_Getter";
+
+  SVGAnimatedLength get height() native "SVGUseElement_height_Getter";
+
+  SVGElementInstance get instanceRoot() native "SVGUseElement_instanceRoot_Getter";
+
+  SVGAnimatedLength get width() native "SVGUseElement_width_Getter";
+
+  SVGAnimatedLength get x() native "SVGUseElement_x_Getter";
+
+  SVGAnimatedLength get y() native "SVGUseElement_y_Getter";
+
+  SVGAnimatedString get href() native "SVGUseElement_href_Getter";
+
+  SVGStringList get requiredExtensions() native "SVGUseElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures() native "SVGUseElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage() native "SVGUseElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) {
+    return _hasExtension(extension);
+  }
+
+  bool _hasExtension(extension) native "SVGUseElement_hasExtension_Callback";
+
+  String get xmllang() native "SVGUseElement_xmllang_Getter";
+
+  void set xmllang(String) native "SVGUseElement_xmllang_Setter";
+
+  String get xmlspace() native "SVGUseElement_xmlspace_Getter";
+
+  void set xmlspace(String) native "SVGUseElement_xmlspace_Setter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGUseElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get $dom_svgClassName() native "SVGUseElement_className_Getter";
+
+  CSSStyleDeclaration get style() native "SVGUseElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) {
+    return _getPresentationAttribute(name);
+  }
+
+  CSSValue _getPresentationAttribute(name) native "SVGUseElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedTransformList get transform() native "SVGUseElement_transform_Getter";
+
+  SVGElement get farthestViewportElement() native "SVGUseElement_farthestViewportElement_Getter";
+
+  SVGElement get nearestViewportElement() native "SVGUseElement_nearestViewportElement_Getter";
+
+  SVGRect getBBox() {
+    return _getBBox();
+  }
+
+  SVGRect _getBBox() native "SVGUseElement_getBBox_Callback";
+
+  SVGMatrix getCTM() {
+    return _getCTM();
+  }
+
+  SVGMatrix _getCTM() native "SVGUseElement_getCTM_Callback";
+
+  SVGMatrix getScreenCTM() {
+    return _getScreenCTM();
+  }
+
+  SVGMatrix _getScreenCTM() native "SVGUseElement_getScreenCTM_Callback";
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return _getTransformToElement(element);
+  }
+
+  SVGMatrix _getTransformToElement(element) native "SVGUseElement_getTransformToElement_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGVKernElementDOMImpl extends _SVGElementDOMImpl implements SVGVKernElement {
+  _SVGVKernElementDOMImpl();
+  String get typeName() => "SVGVKernElement";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGViewElementDOMImpl extends _SVGElementDOMImpl implements SVGViewElement {
+  _SVGViewElementDOMImpl();
+  String get typeName() => "SVGViewElement";
+
+  SVGStringList get viewTarget() native "SVGViewElement_viewTarget_Getter";
+
+  SVGAnimatedBoolean get externalResourcesRequired() native "SVGViewElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGViewElement_viewBox_Getter";
+
+  int get zoomAndPan() native "SVGViewElement_zoomAndPan_Getter";
+
+  void set zoomAndPan(int) native "SVGViewElement_zoomAndPan_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGZoomEventDOMImpl extends _UIEventDOMImpl implements SVGZoomEvent {
+  _SVGZoomEventDOMImpl();
+  String get typeName() => "SVGZoomEvent";
+
+  num get newScale() native "SVGZoomEvent_newScale_Getter";
+
+  SVGPoint get newTranslate() native "SVGZoomEvent_newTranslate_Getter";
+
+  num get previousScale() native "SVGZoomEvent_previousScale_Getter";
+
+  SVGPoint get previousTranslate() native "SVGZoomEvent_previousTranslate_Getter";
+
+  SVGRect get zoomRectScreen() native "SVGZoomEvent_zoomRectScreen_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ScreenDOMImpl extends _DOMWrapperBase implements Screen {
+  _ScreenDOMImpl();
+  String get typeName() => "Screen";
+
+  int get availHeight() native "Screen_availHeight_Getter";
+
+  int get availLeft() native "Screen_availLeft_Getter";
+
+  int get availTop() native "Screen_availTop_Getter";
+
+  int get availWidth() native "Screen_availWidth_Getter";
+
+  int get colorDepth() native "Screen_colorDepth_Getter";
+
+  int get height() native "Screen_height_Getter";
+
+  int get pixelDepth() native "Screen_pixelDepth_Getter";
+
+  int get width() native "Screen_width_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ScriptProfileDOMImpl extends _DOMWrapperBase implements ScriptProfile {
+  _ScriptProfileDOMImpl();
+  String get typeName() => "ScriptProfile";
+
+  ScriptProfileNode get head() native "ScriptProfile_head_Getter";
+
+  String get title() native "ScriptProfile_title_Getter";
+
+  int get uid() native "ScriptProfile_uid_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ScriptProfileNodeDOMImpl extends _DOMWrapperBase implements ScriptProfileNode {
+  _ScriptProfileNodeDOMImpl();
+  String get typeName() => "ScriptProfileNode";
+
+  int get callUID() native "ScriptProfileNode_callUID_Getter";
+
+  List<ScriptProfileNode> get children() native "ScriptProfileNode_children_Getter";
+
+  String get functionName() native "ScriptProfileNode_functionName_Getter";
+
+  int get lineNumber() native "ScriptProfileNode_lineNumber_Getter";
+
+  int get numberOfCalls() native "ScriptProfileNode_numberOfCalls_Getter";
+
+  num get selfTime() native "ScriptProfileNode_selfTime_Getter";
+
+  num get totalTime() native "ScriptProfileNode_totalTime_Getter";
+
+  String get url() native "ScriptProfileNode_url_Getter";
+
+  bool get visible() native "ScriptProfileNode_visible_Getter";
+
+}
+class _SessionDescriptionFactoryProviderImpl {
+  static _SessionDescriptionDOMImpl createSessionDescription(String sdp)
+      native "SessionDescription_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SessionDescriptionDOMImpl extends _DOMWrapperBase implements SessionDescription {
+  _SessionDescriptionDOMImpl();
+  String get typeName() => "SessionDescription";
+
+  void addCandidate(IceCandidate candidate) {
+    _addCandidate(candidate);
+    return;
+  }
+
+  void _addCandidate(candidate) native "SessionDescription_addCandidate_Callback";
+
+  String toSdp() {
+    return _toSdp();
+  }
+
+  String _toSdp() native "SessionDescription_toSdp_Callback";
+
+}
+class _ShadowRootFactoryProviderImpl {
+  static _ShadowRootDOMImpl createShadowRoot(Element host)
+      native "ShadowRoot_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ShadowRootDOMImpl extends _DocumentFragmentDOMImpl implements ShadowRoot {
+  _ShadowRootDOMImpl();
+  String get typeName() => "ShadowRoot";
+
+  Element get activeElement() native "ShadowRoot_activeElement_Getter";
+
+  bool get applyAuthorStyles() native "ShadowRoot_applyAuthorStyles_Getter";
+
+  void set applyAuthorStyles(bool) native "ShadowRoot_applyAuthorStyles_Setter";
+
+  Element get host() native "ShadowRoot_host_Getter";
+
+  String get innerHTML() native "ShadowRoot_innerHTML_Getter";
+
+  void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
+
+  DOMSelection get selection() native "ShadowRoot_selection_Getter";
+
+  Element getElementById(String elementId) {
+    return _getElementById(elementId);
+  }
+
+  Element _getElementById(elementId) native "ShadowRoot_getElementById_Callback";
+
+  NodeList getElementsByClassName(String className) {
+    return _getElementsByClassName(className);
+  }
+
+  NodeList _getElementsByClassName(className) native "ShadowRoot_getElementsByClassName_Callback";
+
+  NodeList getElementsByTagName(String tagName) {
+    return _getElementsByTagName(tagName);
+  }
+
+  NodeList _getElementsByTagName(tagName) native "ShadowRoot_getElementsByTagName_Callback";
+
+  NodeList getElementsByTagNameNS(String namespaceURI, String localName) {
+    return _getElementsByTagNameNS(namespaceURI, localName);
+  }
+
+  NodeList _getElementsByTagNameNS(namespaceURI, localName) native "ShadowRoot_getElementsByTagNameNS_Callback";
+
+}
+
+class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
+  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get connect() => _get('connect');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SharedWorkerContextDOMImpl extends _WorkerContextDOMImpl implements SharedWorkerContext {
+  _SharedWorkerContextDOMImpl();
+  String get typeName() => "SharedWorkerContext";
+
+  _SharedWorkerContextEventsImpl get on() {
+    if (_on === null) _on = new _SharedWorkerContextEventsImpl(this);
+    return _on;
+  }
+
+  String get name() native "SharedWorkerContext_name_Getter";
+
+}
+class _SharedWorkerFactoryProviderImpl {
+  static _SharedWorkerDOMImpl createSharedWorker(String scriptURL, [String name = null])
+      native "SharedWorker_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SharedWorkerDOMImpl extends _AbstractWorkerDOMImpl implements SharedWorker {
+  _SharedWorkerDOMImpl();
+  String get typeName() => "SharedWorker";
+
+  MessagePort get port() native "SharedWorker_port_Getter";
+
+}
+class _SpeechGrammarFactoryProviderImpl {
+  static _SpeechGrammarDOMImpl createSpeechGrammar()
+      native "SpeechGrammar_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechGrammarDOMImpl extends _DOMWrapperBase implements SpeechGrammar {
+  _SpeechGrammarDOMImpl();
+  String get typeName() => "SpeechGrammar";
+
+  String get src() native "SpeechGrammar_src_Getter";
+
+  void set src(String) native "SpeechGrammar_src_Setter";
+
+  num get weight() native "SpeechGrammar_weight_Getter";
+
+  void set weight(num) native "SpeechGrammar_weight_Setter";
+
+}
+class _SpeechGrammarListFactoryProviderImpl {
+  static _SpeechGrammarListDOMImpl createSpeechGrammarList()
+      native "SpeechGrammarList_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechGrammarListDOMImpl extends _DOMWrapperBase implements SpeechGrammarList {
+  _SpeechGrammarListDOMImpl();
+  String get typeName() => "SpeechGrammarList";
+
+  int get length() native "SpeechGrammarList_length_Getter";
+
+  void addFromString(String string, [num weight = null]) {
+    //
+    // addFromString(String string)
+    // addFromString(String string, [Optional] num weight)
+    //
+    // -- reduced:
+    // addFromString(String string, [Optional] num weight)
+    //
+    _addFromString(string, weight);
+    return;
+  }
+
+  void _addFromString(string, weight) native "SpeechGrammarList_addFromString_Callback";
+
+  void addFromUri(String src, [num weight = null]) {
+    //
+    // addFromUri(String src)
+    // addFromUri(String src, [Optional] num weight)
+    //
+    // -- reduced:
+    // addFromUri(String src, [Optional] num weight)
+    //
+    _addFromUri(src, weight);
+    return;
+  }
+
+  void _addFromUri(src, weight) native "SpeechGrammarList_addFromUri_Callback";
+
+  SpeechGrammar item(int index) {
+    return _item(index);
+  }
+
+  SpeechGrammar _item(index) native "SpeechGrammarList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechInputEventDOMImpl extends _EventDOMImpl implements SpeechInputEvent {
+  _SpeechInputEventDOMImpl();
+  String get typeName() => "SpeechInputEvent";
+
+  SpeechInputResultList get results() native "SpeechInputEvent_results_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechInputResultDOMImpl extends _DOMWrapperBase implements SpeechInputResult {
+  _SpeechInputResultDOMImpl();
+  String get typeName() => "SpeechInputResult";
+
+  num get confidence() native "SpeechInputResult_confidence_Getter";
+
+  String get utterance() native "SpeechInputResult_utterance_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechInputResultListDOMImpl extends _DOMWrapperBase implements SpeechInputResultList {
+  _SpeechInputResultListDOMImpl();
+  String get typeName() => "SpeechInputResultList";
+
+  int get length() native "SpeechInputResultList_length_Getter";
+
+  SpeechInputResult item(int index) {
+    return _item(index);
+  }
+
+  SpeechInputResult _item(index) native "SpeechInputResultList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechRecognitionAlternativeDOMImpl extends _DOMWrapperBase implements SpeechRecognitionAlternative {
+  _SpeechRecognitionAlternativeDOMImpl();
+  String get typeName() => "SpeechRecognitionAlternative";
+
+  num get confidence() native "SpeechRecognitionAlternative_confidence_Getter";
+
+  String get transcript() native "SpeechRecognitionAlternative_transcript_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechRecognitionErrorDOMImpl extends _DOMWrapperBase implements SpeechRecognitionError {
+  _SpeechRecognitionErrorDOMImpl();
+  String get typeName() => "SpeechRecognitionError";
+
+  int get code() native "SpeechRecognitionError_code_Getter";
+
+  String get message() native "SpeechRecognitionError_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechRecognitionEventDOMImpl extends _EventDOMImpl implements SpeechRecognitionEvent {
+  _SpeechRecognitionEventDOMImpl();
+  String get typeName() => "SpeechRecognitionEvent";
+
+  SpeechRecognitionError get error() native "SpeechRecognitionEvent_error_Getter";
+
+  SpeechRecognitionResult get result() native "SpeechRecognitionEvent_result_Getter";
+
+  SpeechRecognitionResultList get resultHistory() native "SpeechRecognitionEvent_resultHistory_Getter";
+
+  int get resultIndex() native "SpeechRecognitionEvent_resultIndex_Getter";
+
+}
+class _SpeechRecognitionFactoryProviderImpl {
+  static _SpeechRecognitionDOMImpl createSpeechRecognition()
+      native "SpeechRecognition_constructor_Callback";
+}
+class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
+  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get audioEnd() => _get('audioend');
+  EventListenerList get audioStart() => _get('audiostart');
+  EventListenerList get end() => _get('end');
+  EventListenerList get error() => _get('error');
+  EventListenerList get noMatch() => _get('nomatch');
+  EventListenerList get result() => _get('result');
+  EventListenerList get resultDeleted() => _get('resultdeleted');
+  EventListenerList get soundEnd() => _get('soundend');
+  EventListenerList get soundStart() => _get('soundstart');
+  EventListenerList get speechEnd() => _get('speechend');
+  EventListenerList get speechStart() => _get('speechstart');
+  EventListenerList get start() => _get('start');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechRecognitionDOMImpl extends _DOMWrapperBase implements SpeechRecognition {
+  _SpeechRecognitionDOMImpl();
+  String get typeName() => "SpeechRecognition";
+  _EventsImpl _on;
+
+  _SpeechRecognitionEventsImpl get on() {
+    if (_on === null) _on = new _SpeechRecognitionEventsImpl(this);
+    return _on;
+  }
+
+  bool get continuous() native "SpeechRecognition_continuous_Getter";
+
+  void set continuous(bool) native "SpeechRecognition_continuous_Setter";
+
+  SpeechGrammarList get grammars() native "SpeechRecognition_grammars_Getter";
+
+  void set grammars(SpeechGrammarList) native "SpeechRecognition_grammars_Setter";
+
+  String get lang() native "SpeechRecognition_lang_Getter";
+
+  void set lang(String) native "SpeechRecognition_lang_Setter";
+
+  void abort() {
+    _abort();
+    return;
+  }
+
+  void _abort() native "SpeechRecognition_abort_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "SpeechRecognition_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "SpeechRecognition_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "SpeechRecognition_removeEventListener_Callback";
+
+  void start() {
+    _start();
+    return;
+  }
+
+  void _start() native "SpeechRecognition_start_Callback";
+
+  void stop() {
+    _stop();
+    return;
+  }
+
+  void _stop() native "SpeechRecognition_stop_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechRecognitionResultDOMImpl extends _DOMWrapperBase implements SpeechRecognitionResult {
+  _SpeechRecognitionResultDOMImpl();
+  String get typeName() => "SpeechRecognitionResult";
+
+  bool get finalValue() native "SpeechRecognitionResult_final_Getter";
+
+  int get length() native "SpeechRecognitionResult_length_Getter";
+
+  SpeechRecognitionAlternative item(int index) {
+    return _item(index);
+  }
+
+  SpeechRecognitionAlternative _item(index) native "SpeechRecognitionResult_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SpeechRecognitionResultListDOMImpl extends _DOMWrapperBase implements SpeechRecognitionResultList {
+  _SpeechRecognitionResultListDOMImpl();
+  String get typeName() => "SpeechRecognitionResultList";
+
+  int get length() native "SpeechRecognitionResultList_length_Getter";
+
+  SpeechRecognitionResult item(int index) {
+    return _item(index);
+  }
+
+  SpeechRecognitionResult _item(index) native "SpeechRecognitionResultList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _StorageEventDOMImpl extends _EventDOMImpl implements StorageEvent {
+  _StorageEventDOMImpl();
+  String get typeName() => "StorageEvent";
+
+  String get key() native "StorageEvent_key_Getter";
+
+  String get newValue() native "StorageEvent_newValue_Getter";
+
+  String get oldValue() native "StorageEvent_oldValue_Getter";
+
+  Storage get storageArea() native "StorageEvent_storageArea_Getter";
+
+  String get url() native "StorageEvent_url_Getter";
+
+  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) {
+    _initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg);
+    return;
+  }
+
+  void _initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _StorageDOMImpl extends _DOMWrapperBase implements Storage {
+  _StorageDOMImpl();
+  String get typeName() => "Storage";
+
+  int get $dom_length() native "Storage_length_Getter";
+
+  void $dom_clear() {
+    _clear();
+    return;
+  }
+
+  void _clear() native "Storage_clear_Callback";
+
+  String $dom_getItem(String key) {
+    return _getItem(key);
+  }
+
+  String _getItem(key) native "Storage_getItem_Callback";
+
+  String $dom_key(int index) {
+    return _key(index);
+  }
+
+  String _key(index) native "Storage_key_Callback";
+
+  void $dom_removeItem(String key) {
+    _removeItem(key);
+    return;
+  }
+
+  void _removeItem(key) native "Storage_removeItem_Callback";
+
+  void $dom_setItem(String key, String data) {
+    _setItem(key, data);
+    return;
+  }
+
+  void _setItem(key, data) native "Storage_setItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _StorageInfoDOMImpl extends _DOMWrapperBase implements StorageInfo {
+  _StorageInfoDOMImpl();
+  String get typeName() => "StorageInfo";
+
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) {
+    _queryUsageAndQuota(storageType, usageCallback, errorCallback);
+    return;
+  }
+
+  void _queryUsageAndQuota(storageType, usageCallback, errorCallback) native "StorageInfo_queryUsageAndQuota_Callback";
+
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) {
+    _requestQuota(storageType, newQuotaInBytes, quotaCallback, errorCallback);
+    return;
+  }
+
+  void _requestQuota(storageType, newQuotaInBytes, quotaCallback, errorCallback) native "StorageInfo_requestQuota_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _StyleMediaDOMImpl extends _DOMWrapperBase implements StyleMedia {
+  _StyleMediaDOMImpl();
+  String get typeName() => "StyleMedia";
+
+  String get type() native "StyleMedia_type_Getter";
+
+  bool matchMedium(String mediaquery) {
+    return _matchMedium(mediaquery);
+  }
+
+  bool _matchMedium(mediaquery) native "StyleMedia_matchMedium_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _StyleSheetDOMImpl extends _DOMWrapperBase implements StyleSheet {
+  _StyleSheetDOMImpl();
+  String get typeName() => "StyleSheet";
+
+  bool get disabled() native "StyleSheet_disabled_Getter";
+
+  void set disabled(bool) native "StyleSheet_disabled_Setter";
+
+  String get href() native "StyleSheet_href_Getter";
+
+  MediaList get media() native "StyleSheet_media_Getter";
+
+  Node get ownerNode() native "StyleSheet_ownerNode_Getter";
+
+  StyleSheet get parentStyleSheet() native "StyleSheet_parentStyleSheet_Getter";
+
+  String get title() native "StyleSheet_title_Getter";
+
+  String get type() native "StyleSheet_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _StyleSheetListDOMImpl extends _DOMWrapperBase implements StyleSheetList {
+  _StyleSheetListDOMImpl();
+  String get typeName() => "StyleSheetList";
+
+  int get length() native "StyleSheetList_length_Getter";
+
+  StyleSheet operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<StyleSheet> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(StyleSheet a, StyleSheet b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(StyleSheet element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(StyleSheet element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  StyleSheet removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  StyleSheet last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(StyleSheet element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(StyleSheet element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<StyleSheet> filter(bool f(StyleSheet element)) {
+    return _Collections.filter(this, new List<StyleSheet>(), f);
+  }
+
+  bool every(bool f(StyleSheet element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(StyleSheet element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [StyleSheet initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<StyleSheet> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<StyleSheet> iterator() {
+    return new _FixedSizeListIterator<StyleSheet>(this);
+  }
+
+  StyleSheet item(int index) {
+    return _item(index);
+  }
+
+  StyleSheet _item(index) native "StyleSheetList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextEventDOMImpl extends _UIEventDOMImpl implements TextEvent {
+  _TextEventDOMImpl();
+  String get typeName() => "TextEvent";
+
+  String get data() native "TextEvent_data_Getter";
+
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
+    if ((viewArg === null || viewArg is Window)) {
+      _initTextEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initTextEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) native "TextEvent_initTextEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextDOMImpl extends _CharacterDataDOMImpl implements Text {
+  _TextDOMImpl();
+  String get typeName() => "Text";
+
+  String get wholeText() native "Text_wholeText_Getter";
+
+  Text replaceWholeText(String content) {
+    return _replaceWholeText(content);
+  }
+
+  Text _replaceWholeText(content) native "Text_replaceWholeText_Callback";
+
+  Text splitText(int offset) {
+    return _splitText(offset);
+  }
+
+  Text _splitText(offset) native "Text_splitText_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextMetricsDOMImpl extends _DOMWrapperBase implements TextMetrics {
+  _TextMetricsDOMImpl();
+  String get typeName() => "TextMetrics";
+
+  num get width() native "TextMetrics_width_Getter";
+
+}
+class _TextTrackCueFactoryProviderImpl {
+  static _TextTrackCueDOMImpl createTextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null])
+      native "TextTrackCue_constructor_Callback";
+}
+class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
+  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get enter() => _get('enter');
+  EventListenerList get exit() => _get('exit');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextTrackCueDOMImpl extends _DOMWrapperBase implements TextTrackCue {
+  _TextTrackCueDOMImpl();
+  String get typeName() => "TextTrackCue";
+  _EventsImpl _on;
+
+  _TextTrackCueEventsImpl get on() {
+    if (_on === null) _on = new _TextTrackCueEventsImpl(this);
+    return _on;
+  }
+
+  String get align() native "TextTrackCue_align_Getter";
+
+  void set align(String) native "TextTrackCue_align_Setter";
+
+  num get endTime() native "TextTrackCue_endTime_Getter";
+
+  void set endTime(num) native "TextTrackCue_endTime_Setter";
+
+  String get id() native "TextTrackCue_id_Getter";
+
+  void set id(String) native "TextTrackCue_id_Setter";
+
+  int get line() native "TextTrackCue_line_Getter";
+
+  void set line(int) native "TextTrackCue_line_Setter";
+
+  bool get pauseOnExit() native "TextTrackCue_pauseOnExit_Getter";
+
+  void set pauseOnExit(bool) native "TextTrackCue_pauseOnExit_Setter";
+
+  int get position() native "TextTrackCue_position_Getter";
+
+  void set position(int) native "TextTrackCue_position_Setter";
+
+  int get size() native "TextTrackCue_size_Getter";
+
+  void set size(int) native "TextTrackCue_size_Setter";
+
+  bool get snapToLines() native "TextTrackCue_snapToLines_Getter";
+
+  void set snapToLines(bool) native "TextTrackCue_snapToLines_Setter";
+
+  num get startTime() native "TextTrackCue_startTime_Getter";
+
+  void set startTime(num) native "TextTrackCue_startTime_Setter";
+
+  String get text() native "TextTrackCue_text_Getter";
+
+  void set text(String) native "TextTrackCue_text_Setter";
+
+  TextTrack get track() native "TextTrackCue_track_Getter";
+
+  String get vertical() native "TextTrackCue_vertical_Getter";
+
+  void set vertical(String) native "TextTrackCue_vertical_Setter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "TextTrackCue_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "TextTrackCue_dispatchEvent_Callback";
+
+  DocumentFragment getCueAsHTML() {
+    return _getCueAsHTML();
+  }
+
+  DocumentFragment _getCueAsHTML() native "TextTrackCue_getCueAsHTML_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "TextTrackCue_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextTrackCueListDOMImpl extends _DOMWrapperBase implements TextTrackCueList {
+  _TextTrackCueListDOMImpl();
+  String get typeName() => "TextTrackCueList";
+
+  int get length() native "TextTrackCueList_length_Getter";
+
+  TextTrackCue getCueById(String id) {
+    return _getCueById(id);
+  }
+
+  TextTrackCue _getCueById(id) native "TextTrackCueList_getCueById_Callback";
+
+  TextTrackCue item(int index) {
+    return _item(index);
+  }
+
+  TextTrackCue _item(index) native "TextTrackCueList_item_Callback";
+
+}
+
+class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
+  _TextTrackEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get cueChange() => _get('cuechange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextTrackDOMImpl extends _DOMWrapperBase implements TextTrack {
+  _TextTrackDOMImpl();
+  String get typeName() => "TextTrack";
+  _EventsImpl _on;
+
+  _TextTrackEventsImpl get on() {
+    if (_on === null) _on = new _TextTrackEventsImpl(this);
+    return _on;
+  }
+
+  TextTrackCueList get activeCues() native "TextTrack_activeCues_Getter";
+
+  TextTrackCueList get cues() native "TextTrack_cues_Getter";
+
+  String get kind() native "TextTrack_kind_Getter";
+
+  String get label() native "TextTrack_label_Getter";
+
+  String get language() native "TextTrack_language_Getter";
+
+  int get mode() native "TextTrack_mode_Getter";
+
+  void set mode(int) native "TextTrack_mode_Setter";
+
+  void addCue(TextTrackCue cue) {
+    _addCue(cue);
+    return;
+  }
+
+  void _addCue(cue) native "TextTrack_addCue_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "TextTrack_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "TextTrack_dispatchEvent_Callback";
+
+  void removeCue(TextTrackCue cue) {
+    _removeCue(cue);
+    return;
+  }
+
+  void _removeCue(cue) native "TextTrack_removeCue_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "TextTrack_removeEventListener_Callback";
+
+}
+
+class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
+  _TextTrackListEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get addTrack() => _get('addtrack');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TextTrackListDOMImpl extends _DOMWrapperBase implements TextTrackList {
+  _TextTrackListDOMImpl();
+  String get typeName() => "TextTrackList";
+  _EventsImpl _on;
+
+  _TextTrackListEventsImpl get on() {
+    if (_on === null) _on = new _TextTrackListEventsImpl(this);
+    return _on;
+  }
+
+  int get length() native "TextTrackList_length_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "TextTrackList_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "TextTrackList_dispatchEvent_Callback";
+
+  TextTrack item(int index) {
+    return _item(index);
+  }
+
+  TextTrack _item(index) native "TextTrackList_item_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "TextTrackList_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TimeRangesDOMImpl extends _DOMWrapperBase implements TimeRanges {
+  _TimeRangesDOMImpl();
+  String get typeName() => "TimeRanges";
+
+  int get length() native "TimeRanges_length_Getter";
+
+  num end(int index) {
+    return _end(index);
+  }
+
+  num _end(index) native "TimeRanges_end_Callback";
+
+  num start(int index) {
+    return _start(index);
+  }
+
+  num _start(index) native "TimeRanges_start_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TouchEventDOMImpl extends _UIEventDOMImpl implements TouchEvent {
+  _TouchEventDOMImpl();
+  String get typeName() => "TouchEvent";
+
+  bool get altKey() native "TouchEvent_altKey_Getter";
+
+  TouchList get changedTouches() native "TouchEvent_changedTouches_Getter";
+
+  bool get ctrlKey() native "TouchEvent_ctrlKey_Getter";
+
+  bool get metaKey() native "TouchEvent_metaKey_Getter";
+
+  bool get shiftKey() native "TouchEvent_shiftKey_Getter";
+
+  TouchList get targetTouches() native "TouchEvent_targetTouches_Getter";
+
+  TouchList get touches() native "TouchEvent_touches_Getter";
+
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
+    if ((view === null || view is Window)) {
+      _initTouchEvent(touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initTouchEvent(touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) native "TouchEvent_initTouchEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TouchDOMImpl extends _DOMWrapperBase implements Touch {
+  _TouchDOMImpl();
+  String get typeName() => "Touch";
+
+  int get clientX() native "Touch_clientX_Getter";
+
+  int get clientY() native "Touch_clientY_Getter";
+
+  int get identifier() native "Touch_identifier_Getter";
+
+  int get pageX() native "Touch_pageX_Getter";
+
+  int get pageY() native "Touch_pageY_Getter";
+
+  int get screenX() native "Touch_screenX_Getter";
+
+  int get screenY() native "Touch_screenY_Getter";
+
+  EventTarget get target() native "Touch_target_Getter";
+
+  num get webkitForce() native "Touch_webkitForce_Getter";
+
+  int get webkitRadiusX() native "Touch_webkitRadiusX_Getter";
+
+  int get webkitRadiusY() native "Touch_webkitRadiusY_Getter";
+
+  num get webkitRotationAngle() native "Touch_webkitRotationAngle_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TouchListDOMImpl extends _DOMWrapperBase implements TouchList {
+  _TouchListDOMImpl();
+  String get typeName() => "TouchList";
+
+  int get length() native "TouchList_length_Getter";
+
+  Touch operator[](int index) {
+    return item(index);
+  }
+
+  void operator[]=(int index, Touch value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
+  void add(Touch value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Touch value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Touch> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(Touch a, Touch b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(Touch element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(Touch element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  Touch removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  Touch last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(Touch element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(Touch element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<Touch> filter(bool f(Touch element)) {
+    return _Collections.filter(this, new List<Touch>(), f);
+  }
+
+  bool every(bool f(Touch element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(Touch element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Touch initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Touch> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<Touch> iterator() {
+    return new _FixedSizeListIterator<Touch>(this);
+  }
+
+  Touch item(int index) {
+    return _item(index);
+  }
+
+  Touch _item(index) native "TouchList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TrackEventDOMImpl extends _EventDOMImpl implements TrackEvent {
+  _TrackEventDOMImpl();
+  String get typeName() => "TrackEvent";
+
+  Object get track() native "TrackEvent_track_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _TreeWalkerDOMImpl extends _DOMWrapperBase implements TreeWalker {
+  _TreeWalkerDOMImpl();
+  String get typeName() => "TreeWalker";
+
+  Node get currentNode() native "TreeWalker_currentNode_Getter";
+
+  void set currentNode(Node) native "TreeWalker_currentNode_Setter";
+
+  bool get expandEntityReferences() native "TreeWalker_expandEntityReferences_Getter";
+
+  NodeFilter get filter() native "TreeWalker_filter_Getter";
+
+  Node get root() native "TreeWalker_root_Getter";
+
+  int get whatToShow() native "TreeWalker_whatToShow_Getter";
+
+  Node firstChild() {
+    return _firstChild();
+  }
+
+  Node _firstChild() native "TreeWalker_firstChild_Callback";
+
+  Node lastChild() {
+    return _lastChild();
+  }
+
+  Node _lastChild() native "TreeWalker_lastChild_Callback";
+
+  Node nextNode() {
+    return _nextNode();
+  }
+
+  Node _nextNode() native "TreeWalker_nextNode_Callback";
+
+  Node nextSibling() {
+    return _nextSibling();
+  }
+
+  Node _nextSibling() native "TreeWalker_nextSibling_Callback";
+
+  Node parentNode() {
+    return _parentNode();
+  }
+
+  Node _parentNode() native "TreeWalker_parentNode_Callback";
+
+  Node previousNode() {
+    return _previousNode();
+  }
+
+  Node _previousNode() native "TreeWalker_previousNode_Callback";
+
+  Node previousSibling() {
+    return _previousSibling();
+  }
+
+  Node _previousSibling() native "TreeWalker_previousSibling_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _UIEventDOMImpl extends _EventDOMImpl implements UIEvent {
+  _UIEventDOMImpl();
+  String get typeName() => "UIEvent";
+
+  int get charCode() native "UIEvent_charCode_Getter";
+
+  int get detail() native "UIEvent_detail_Getter";
+
+  int get keyCode() native "UIEvent_keyCode_Getter";
+
+  int get layerX() native "UIEvent_layerX_Getter";
+
+  int get layerY() native "UIEvent_layerY_Getter";
+
+  int get pageX() native "UIEvent_pageX_Getter";
+
+  int get pageY() native "UIEvent_pageY_Getter";
+
+  Window get view() native "UIEvent_view_Getter";
+
+  int get which() native "UIEvent_which_Getter";
+
+  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) {
+    if ((view === null || view is Window)) {
+      _initUIEvent(type, canBubble, cancelable, view, detail);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initUIEvent(type, canBubble, cancelable, view, detail) native "UIEvent_initUIEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Uint16ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Uint16Array {
+  _Uint16ArrayDOMImpl();
+  String get typeName() => "Uint16Array";
+
+  int get length() native "Uint16Array_length_Getter";
+
+  int operator[](int index) native "Uint16Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Uint16Array_numericIndexSetter_Callback";
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  int last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(int element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<int> filter(bool f(int element)) {
+    return _Collections.filter(this, new List<int>(), f);
+  }
+
+  bool every(bool f(int element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(int element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<int> iterator() {
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Uint16Array_setElements_Callback";
+
+  Uint16Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Uint16Array _subarray(start, end) native "Uint16Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Uint32ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Uint32Array {
+  _Uint32ArrayDOMImpl();
+  String get typeName() => "Uint32Array";
+
+  int get length() native "Uint32Array_length_Getter";
+
+  int operator[](int index) native "Uint32Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Uint32Array_numericIndexSetter_Callback";
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  int last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(int element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<int> filter(bool f(int element)) {
+    return _Collections.filter(this, new List<int>(), f);
+  }
+
+  bool every(bool f(int element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(int element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<int> iterator() {
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Uint32Array_setElements_Callback";
+
+  Uint32Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Uint32Array _subarray(start, end) native "Uint32Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Uint8ArrayDOMImpl extends _ArrayBufferViewDOMImpl implements Uint8Array {
+  _Uint8ArrayDOMImpl();
+  String get typeName() => "Uint8Array";
+
+  int get length() native "Uint8Array_length_Getter";
+
+  int operator[](int index) native "Uint8Array_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Uint8Array_numericIndexSetter_Callback";
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw new UnsupportedOperationException("This object is immutable.");
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  int clear() {
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  int last() {
+    return this[length - 1];
+  }
+
+  void forEach(void f(int element)) {
+    _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
+  Collection<int> filter(bool f(int element)) {
+    return _Collections.filter(this, new List<int>(), f);
+  }
+
+  bool every(bool f(int element)) {
+    return _Collections.every(this, f);
+  }
+
+  bool some(bool f(int element)) {
+    return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
+  bool isEmpty() {
+    return length == 0;
+  }
+
+  Iterator<int> iterator() {
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  void setElements(Object array, [int offset = null]) native "Uint8Array_setElements_Callback";
+
+  Uint8Array subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Uint8Array _subarray(start, end) native "Uint8Array_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _Uint8ClampedArrayDOMImpl extends _Uint8ArrayDOMImpl implements Uint8ClampedArray {
+  _Uint8ClampedArrayDOMImpl();
+  String get typeName() => "Uint8ClampedArray";
+
+  int get length() native "Uint8ClampedArray_length_Getter";
+
+  int operator[](int index) native "Uint8ClampedArray_numericIndexGetter_Callback";
+
+  void operator[]=(int index, int value) native "Uint8ClampedArray_numericIndexSetter_Callback";
+
+  void setElements(Object array, [int offset = null]) native "Uint8ClampedArray_setElements_Callback";
+
+  Uint8ClampedArray subarray(int start, [int end = null]) {
+    //
+    // subarray(int start)
+    // subarray(int start, [Optional] int end)
+    //
+    // -- reduced:
+    // subarray(int start, [Optional] int end)
+    //
+    return _subarray(start, end);
+  }
+
+  Uint8ClampedArray _subarray(start, end) native "Uint8ClampedArray_subarray_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _ValidityStateDOMImpl extends _DOMWrapperBase implements ValidityState {
+  _ValidityStateDOMImpl();
+  String get typeName() => "ValidityState";
+
+  bool get customError() native "ValidityState_customError_Getter";
+
+  bool get patternMismatch() native "ValidityState_patternMismatch_Getter";
+
+  bool get rangeOverflow() native "ValidityState_rangeOverflow_Getter";
+
+  bool get rangeUnderflow() native "ValidityState_rangeUnderflow_Getter";
+
+  bool get stepMismatch() native "ValidityState_stepMismatch_Getter";
+
+  bool get tooLong() native "ValidityState_tooLong_Getter";
+
+  bool get typeMismatch() native "ValidityState_typeMismatch_Getter";
+
+  bool get valid() native "ValidityState_valid_Getter";
+
+  bool get valueMissing() native "ValidityState_valueMissing_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WaveShaperNodeDOMImpl extends _AudioNodeDOMImpl implements WaveShaperNode {
+  _WaveShaperNodeDOMImpl();
+  String get typeName() => "WaveShaperNode";
+
+  Float32Array get curve() native "WaveShaperNode_curve_Getter";
+
+  void set curve(Float32Array) native "WaveShaperNode_curve_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WaveTableDOMImpl extends _DOMWrapperBase implements WaveTable {
+  _WaveTableDOMImpl();
+  String get typeName() => "WaveTable";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLActiveInfoDOMImpl extends _DOMWrapperBase implements WebGLActiveInfo {
+  _WebGLActiveInfoDOMImpl();
+  String get typeName() => "WebGLActiveInfo";
+
+  String get name() native "WebGLActiveInfo_name_Getter";
+
+  int get size() native "WebGLActiveInfo_size_Getter";
+
+  int get type() native "WebGLActiveInfo_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLBufferDOMImpl extends _DOMWrapperBase implements WebGLBuffer {
+  _WebGLBufferDOMImpl();
+  String get typeName() => "WebGLBuffer";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLCompressedTextureS3TCDOMImpl extends _DOMWrapperBase implements WebGLCompressedTextureS3TC {
+  _WebGLCompressedTextureS3TCDOMImpl();
+  String get typeName() => "WebGLCompressedTextureS3TC";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLContextAttributesDOMImpl extends _DOMWrapperBase implements WebGLContextAttributes {
+  _WebGLContextAttributesDOMImpl();
+  String get typeName() => "WebGLContextAttributes";
+
+  bool get alpha() native "WebGLContextAttributes_alpha_Getter";
+
+  void set alpha(bool) native "WebGLContextAttributes_alpha_Setter";
+
+  bool get antialias() native "WebGLContextAttributes_antialias_Getter";
+
+  void set antialias(bool) native "WebGLContextAttributes_antialias_Setter";
+
+  bool get depth() native "WebGLContextAttributes_depth_Getter";
+
+  void set depth(bool) native "WebGLContextAttributes_depth_Setter";
+
+  bool get premultipliedAlpha() native "WebGLContextAttributes_premultipliedAlpha_Getter";
+
+  void set premultipliedAlpha(bool) native "WebGLContextAttributes_premultipliedAlpha_Setter";
+
+  bool get preserveDrawingBuffer() native "WebGLContextAttributes_preserveDrawingBuffer_Getter";
+
+  void set preserveDrawingBuffer(bool) native "WebGLContextAttributes_preserveDrawingBuffer_Setter";
+
+  bool get stencil() native "WebGLContextAttributes_stencil_Getter";
+
+  void set stencil(bool) native "WebGLContextAttributes_stencil_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLContextEventDOMImpl extends _EventDOMImpl implements WebGLContextEvent {
+  _WebGLContextEventDOMImpl();
+  String get typeName() => "WebGLContextEvent";
+
+  String get statusMessage() native "WebGLContextEvent_statusMessage_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLDebugRendererInfoDOMImpl extends _DOMWrapperBase implements WebGLDebugRendererInfo {
+  _WebGLDebugRendererInfoDOMImpl();
+  String get typeName() => "WebGLDebugRendererInfo";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLDebugShadersDOMImpl extends _DOMWrapperBase implements WebGLDebugShaders {
+  _WebGLDebugShadersDOMImpl();
+  String get typeName() => "WebGLDebugShaders";
+
+  String getTranslatedShaderSource(WebGLShader shader) {
+    return _getTranslatedShaderSource(shader);
+  }
+
+  String _getTranslatedShaderSource(shader) native "WebGLDebugShaders_getTranslatedShaderSource_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLFramebufferDOMImpl extends _DOMWrapperBase implements WebGLFramebuffer {
+  _WebGLFramebufferDOMImpl();
+  String get typeName() => "WebGLFramebuffer";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLLoseContextDOMImpl extends _DOMWrapperBase implements WebGLLoseContext {
+  _WebGLLoseContextDOMImpl();
+  String get typeName() => "WebGLLoseContext";
+
+  void loseContext() {
+    _loseContext();
+    return;
+  }
+
+  void _loseContext() native "WebGLLoseContext_loseContext_Callback";
+
+  void restoreContext() {
+    _restoreContext();
+    return;
+  }
+
+  void _restoreContext() native "WebGLLoseContext_restoreContext_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLProgramDOMImpl extends _DOMWrapperBase implements WebGLProgram {
+  _WebGLProgramDOMImpl();
+  String get typeName() => "WebGLProgram";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLRenderbufferDOMImpl extends _DOMWrapperBase implements WebGLRenderbuffer {
+  _WebGLRenderbufferDOMImpl();
+  String get typeName() => "WebGLRenderbuffer";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLRenderingContextDOMImpl extends _CanvasRenderingContextDOMImpl implements WebGLRenderingContext {
+  _WebGLRenderingContextDOMImpl();
+  String get typeName() => "WebGLRenderingContext";
+
+  int get drawingBufferHeight() native "WebGLRenderingContext_drawingBufferHeight_Getter";
+
+  int get drawingBufferWidth() native "WebGLRenderingContext_drawingBufferWidth_Getter";
+
+  void activeTexture(int texture) {
+    _activeTexture(texture);
+    return;
+  }
+
+  void _activeTexture(texture) native "WebGLRenderingContext_activeTexture_Callback";
+
+  void attachShader(WebGLProgram program, WebGLShader shader) {
+    _attachShader(program, shader);
+    return;
+  }
+
+  void _attachShader(program, shader) native "WebGLRenderingContext_attachShader_Callback";
+
+  void bindAttribLocation(WebGLProgram program, int index, String name) {
+    _bindAttribLocation(program, index, name);
+    return;
+  }
+
+  void _bindAttribLocation(program, index, name) native "WebGLRenderingContext_bindAttribLocation_Callback";
+
+  void bindBuffer(int target, WebGLBuffer buffer) {
+    _bindBuffer(target, buffer);
+    return;
+  }
+
+  void _bindBuffer(target, buffer) native "WebGLRenderingContext_bindBuffer_Callback";
+
+  void bindFramebuffer(int target, WebGLFramebuffer framebuffer) {
+    _bindFramebuffer(target, framebuffer);
+    return;
+  }
+
+  void _bindFramebuffer(target, framebuffer) native "WebGLRenderingContext_bindFramebuffer_Callback";
+
+  void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) {
+    _bindRenderbuffer(target, renderbuffer);
+    return;
+  }
+
+  void _bindRenderbuffer(target, renderbuffer) native "WebGLRenderingContext_bindRenderbuffer_Callback";
+
+  void bindTexture(int target, WebGLTexture texture) {
+    _bindTexture(target, texture);
+    return;
+  }
+
+  void _bindTexture(target, texture) native "WebGLRenderingContext_bindTexture_Callback";
+
+  void blendColor(num red, num green, num blue, num alpha) {
+    _blendColor(red, green, blue, alpha);
+    return;
+  }
+
+  void _blendColor(red, green, blue, alpha) native "WebGLRenderingContext_blendColor_Callback";
+
+  void blendEquation(int mode) {
+    _blendEquation(mode);
+    return;
+  }
+
+  void _blendEquation(mode) native "WebGLRenderingContext_blendEquation_Callback";
+
+  void blendEquationSeparate(int modeRGB, int modeAlpha) {
+    _blendEquationSeparate(modeRGB, modeAlpha);
+    return;
+  }
+
+  void _blendEquationSeparate(modeRGB, modeAlpha) native "WebGLRenderingContext_blendEquationSeparate_Callback";
+
+  void blendFunc(int sfactor, int dfactor) {
+    _blendFunc(sfactor, dfactor);
+    return;
+  }
+
+  void _blendFunc(sfactor, dfactor) native "WebGLRenderingContext_blendFunc_Callback";
+
+  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) {
+    _blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+    return;
+  }
+
+  void _blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
+
+  void bufferData(int target, data_OR_size, int usage) {
+    //
+    // bufferData(int target, ArrayBuffer data, int usage)
+    // bufferData(int target, ArrayBufferView data, int usage)
+    // bufferData(int target, int size, int usage)
+    //
+    if ((data_OR_size === null || data_OR_size is ArrayBuffer)) {
+      _bufferData(target, data_OR_size, usage);
+      return;
+    }
+    if ((data_OR_size === null || data_OR_size is ArrayBufferView)) {
+      _bufferData_2(target, data_OR_size, usage);
+      return;
+    }
+    if ((data_OR_size === null || data_OR_size is int)) {
+      _bufferData_3(target, data_OR_size, usage);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _bufferData(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_Callback";
+
+  void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_2_Callback";
+
+  void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
+
+  void bufferSubData(int target, int offset, data) {
+    //
+    // bufferSubData(int target, int offset, ArrayBuffer data)
+    // bufferSubData(int target, int offset, ArrayBufferView data)
+    //
+    if ((data === null || data is ArrayBuffer)) {
+      _bufferSubData(target, offset, data);
+      return;
+    }
+    if ((data === null || data is ArrayBufferView)) {
+      _bufferSubData_2(target, offset, data);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _bufferSubData(target, offset, data) native "WebGLRenderingContext_bufferSubData_Callback";
+
+  void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext_bufferSubData_2_Callback";
+
+  int checkFramebufferStatus(int target) {
+    return _checkFramebufferStatus(target);
+  }
+
+  int _checkFramebufferStatus(target) native "WebGLRenderingContext_checkFramebufferStatus_Callback";
+
+  void clear(int mask) {
+    _clear(mask);
+    return;
+  }
+
+  void _clear(mask) native "WebGLRenderingContext_clear_Callback";
+
+  void clearColor(num red, num green, num blue, num alpha) {
+    _clearColor(red, green, blue, alpha);
+    return;
+  }
+
+  void _clearColor(red, green, blue, alpha) native "WebGLRenderingContext_clearColor_Callback";
+
+  void clearDepth(num depth) {
+    _clearDepth(depth);
+    return;
+  }
+
+  void _clearDepth(depth) native "WebGLRenderingContext_clearDepth_Callback";
+
+  void clearStencil(int s) {
+    _clearStencil(s);
+    return;
+  }
+
+  void _clearStencil(s) native "WebGLRenderingContext_clearStencil_Callback";
+
+  void colorMask(bool red, bool green, bool blue, bool alpha) {
+    _colorMask(red, green, blue, alpha);
+    return;
+  }
+
+  void _colorMask(red, green, blue, alpha) native "WebGLRenderingContext_colorMask_Callback";
+
+  void compileShader(WebGLShader shader) {
+    _compileShader(shader);
+    return;
+  }
+
+  void _compileShader(shader) native "WebGLRenderingContext_compileShader_Callback";
+
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) {
+    _compressedTexImage2D(target, level, internalformat, width, height, border, data);
+    return;
+  }
+
+  void _compressedTexImage2D(target, level, internalformat, width, height, border, data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) {
+    _compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, data);
+    return;
+  }
+
+  void _compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
+
+  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) {
+    _copyTexImage2D(target, level, internalformat, x, y, width, height, border);
+    return;
+  }
+
+  void _copyTexImage2D(target, level, internalformat, x, y, width, height, border) native "WebGLRenderingContext_copyTexImage2D_Callback";
+
+  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) {
+    _copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+    return;
+  }
+
+  void _copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height) native "WebGLRenderingContext_copyTexSubImage2D_Callback";
+
+  WebGLBuffer createBuffer() {
+    return _createBuffer();
+  }
+
+  WebGLBuffer _createBuffer() native "WebGLRenderingContext_createBuffer_Callback";
+
+  WebGLFramebuffer createFramebuffer() {
+    return _createFramebuffer();
+  }
+
+  WebGLFramebuffer _createFramebuffer() native "WebGLRenderingContext_createFramebuffer_Callback";
+
+  WebGLProgram createProgram() {
+    return _createProgram();
+  }
+
+  WebGLProgram _createProgram() native "WebGLRenderingContext_createProgram_Callback";
+
+  WebGLRenderbuffer createRenderbuffer() {
+    return _createRenderbuffer();
+  }
+
+  WebGLRenderbuffer _createRenderbuffer() native "WebGLRenderingContext_createRenderbuffer_Callback";
+
+  WebGLShader createShader(int type) {
+    return _createShader(type);
+  }
+
+  WebGLShader _createShader(type) native "WebGLRenderingContext_createShader_Callback";
+
+  WebGLTexture createTexture() {
+    return _createTexture();
+  }
+
+  WebGLTexture _createTexture() native "WebGLRenderingContext_createTexture_Callback";
+
+  void cullFace(int mode) {
+    _cullFace(mode);
+    return;
+  }
+
+  void _cullFace(mode) native "WebGLRenderingContext_cullFace_Callback";
+
+  void deleteBuffer(WebGLBuffer buffer) {
+    _deleteBuffer(buffer);
+    return;
+  }
+
+  void _deleteBuffer(buffer) native "WebGLRenderingContext_deleteBuffer_Callback";
+
+  void deleteFramebuffer(WebGLFramebuffer framebuffer) {
+    _deleteFramebuffer(framebuffer);
+    return;
+  }
+
+  void _deleteFramebuffer(framebuffer) native "WebGLRenderingContext_deleteFramebuffer_Callback";
+
+  void deleteProgram(WebGLProgram program) {
+    _deleteProgram(program);
+    return;
+  }
+
+  void _deleteProgram(program) native "WebGLRenderingContext_deleteProgram_Callback";
+
+  void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) {
+    _deleteRenderbuffer(renderbuffer);
+    return;
+  }
+
+  void _deleteRenderbuffer(renderbuffer) native "WebGLRenderingContext_deleteRenderbuffer_Callback";
+
+  void deleteShader(WebGLShader shader) {
+    _deleteShader(shader);
+    return;
+  }
+
+  void _deleteShader(shader) native "WebGLRenderingContext_deleteShader_Callback";
+
+  void deleteTexture(WebGLTexture texture) {
+    _deleteTexture(texture);
+    return;
+  }
+
+  void _deleteTexture(texture) native "WebGLRenderingContext_deleteTexture_Callback";
+
+  void depthFunc(int func) {
+    _depthFunc(func);
+    return;
+  }
+
+  void _depthFunc(func) native "WebGLRenderingContext_depthFunc_Callback";
+
+  void depthMask(bool flag) {
+    _depthMask(flag);
+    return;
+  }
+
+  void _depthMask(flag) native "WebGLRenderingContext_depthMask_Callback";
+
+  void depthRange(num zNear, num zFar) {
+    _depthRange(zNear, zFar);
+    return;
+  }
+
+  void _depthRange(zNear, zFar) native "WebGLRenderingContext_depthRange_Callback";
+
+  void detachShader(WebGLProgram program, WebGLShader shader) {
+    _detachShader(program, shader);
+    return;
+  }
+
+  void _detachShader(program, shader) native "WebGLRenderingContext_detachShader_Callback";
+
+  void disable(int cap) {
+    _disable(cap);
+    return;
+  }
+
+  void _disable(cap) native "WebGLRenderingContext_disable_Callback";
+
+  void disableVertexAttribArray(int index) {
+    _disableVertexAttribArray(index);
+    return;
+  }
+
+  void _disableVertexAttribArray(index) native "WebGLRenderingContext_disableVertexAttribArray_Callback";
+
+  void drawArrays(int mode, int first, int count) {
+    _drawArrays(mode, first, count);
+    return;
+  }
+
+  void _drawArrays(mode, first, count) native "WebGLRenderingContext_drawArrays_Callback";
+
+  void drawElements(int mode, int count, int type, int offset) {
+    _drawElements(mode, count, type, offset);
+    return;
+  }
+
+  void _drawElements(mode, count, type, offset) native "WebGLRenderingContext_drawElements_Callback";
+
+  void enable(int cap) {
+    _enable(cap);
+    return;
+  }
+
+  void _enable(cap) native "WebGLRenderingContext_enable_Callback";
+
+  void enableVertexAttribArray(int index) {
+    _enableVertexAttribArray(index);
+    return;
+  }
+
+  void _enableVertexAttribArray(index) native "WebGLRenderingContext_enableVertexAttribArray_Callback";
+
+  void finish() {
+    _finish();
+    return;
+  }
+
+  void _finish() native "WebGLRenderingContext_finish_Callback";
+
+  void flush() {
+    _flush();
+    return;
+  }
+
+  void _flush() native "WebGLRenderingContext_flush_Callback";
+
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) {
+    _framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+    return;
+  }
+
+  void _framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer) native "WebGLRenderingContext_framebufferRenderbuffer_Callback";
+
+  void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) {
+    _framebufferTexture2D(target, attachment, textarget, texture, level);
+    return;
+  }
+
+  void _framebufferTexture2D(target, attachment, textarget, texture, level) native "WebGLRenderingContext_framebufferTexture2D_Callback";
+
+  void frontFace(int mode) {
+    _frontFace(mode);
+    return;
+  }
+
+  void _frontFace(mode) native "WebGLRenderingContext_frontFace_Callback";
+
+  void generateMipmap(int target) {
+    _generateMipmap(target);
+    return;
+  }
+
+  void _generateMipmap(target) native "WebGLRenderingContext_generateMipmap_Callback";
+
+  WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) {
+    return _getActiveAttrib(program, index);
+  }
+
+  WebGLActiveInfo _getActiveAttrib(program, index) native "WebGLRenderingContext_getActiveAttrib_Callback";
+
+  WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) {
+    return _getActiveUniform(program, index);
+  }
+
+  WebGLActiveInfo _getActiveUniform(program, index) native "WebGLRenderingContext_getActiveUniform_Callback";
+
+  List getAttachedShaders(WebGLProgram program) native "WebGLRenderingContext_getAttachedShaders_Callback";
+
+  int getAttribLocation(WebGLProgram program, String name) {
+    return _getAttribLocation(program, name);
+  }
+
+  int _getAttribLocation(program, name) native "WebGLRenderingContext_getAttribLocation_Callback";
+
+  Object getBufferParameter(int target, int pname) native "WebGLRenderingContext_getBufferParameter_Callback";
+
+  WebGLContextAttributes getContextAttributes() {
+    return _getContextAttributes();
+  }
+
+  WebGLContextAttributes _getContextAttributes() native "WebGLRenderingContext_getContextAttributes_Callback";
+
+  int getError() {
+    return _getError();
+  }
+
+  int _getError() native "WebGLRenderingContext_getError_Callback";
+
+  Object getExtension(String name) native "WebGLRenderingContext_getExtension_Callback";
+
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native "WebGLRenderingContext_getFramebufferAttachmentParameter_Callback";
+
+  Object getParameter(int pname) native "WebGLRenderingContext_getParameter_Callback";
+
+  String getProgramInfoLog(WebGLProgram program) {
+    return _getProgramInfoLog(program);
+  }
+
+  String _getProgramInfoLog(program) native "WebGLRenderingContext_getProgramInfoLog_Callback";
+
+  Object getProgramParameter(WebGLProgram program, int pname) native "WebGLRenderingContext_getProgramParameter_Callback";
+
+  Object getRenderbufferParameter(int target, int pname) native "WebGLRenderingContext_getRenderbufferParameter_Callback";
+
+  String getShaderInfoLog(WebGLShader shader) {
+    return _getShaderInfoLog(shader);
+  }
+
+  String _getShaderInfoLog(shader) native "WebGLRenderingContext_getShaderInfoLog_Callback";
+
+  Object getShaderParameter(WebGLShader shader, int pname) native "WebGLRenderingContext_getShaderParameter_Callback";
+
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) {
+    return _getShaderPrecisionFormat(shadertype, precisiontype);
+  }
+
+  WebGLShaderPrecisionFormat _getShaderPrecisionFormat(shadertype, precisiontype) native "WebGLRenderingContext_getShaderPrecisionFormat_Callback";
+
+  String getShaderSource(WebGLShader shader) {
+    return _getShaderSource(shader);
+  }
+
+  String _getShaderSource(shader) native "WebGLRenderingContext_getShaderSource_Callback";
+
+  Object getTexParameter(int target, int pname) native "WebGLRenderingContext_getTexParameter_Callback";
+
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) native "WebGLRenderingContext_getUniform_Callback";
+
+  WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) {
+    return _getUniformLocation(program, name);
+  }
+
+  WebGLUniformLocation _getUniformLocation(program, name) native "WebGLRenderingContext_getUniformLocation_Callback";
+
+  Object getVertexAttrib(int index, int pname) native "WebGLRenderingContext_getVertexAttrib_Callback";
+
+  int getVertexAttribOffset(int index, int pname) {
+    return _getVertexAttribOffset(index, pname);
+  }
+
+  int _getVertexAttribOffset(index, pname) native "WebGLRenderingContext_getVertexAttribOffset_Callback";
+
+  void hint(int target, int mode) {
+    _hint(target, mode);
+    return;
+  }
+
+  void _hint(target, mode) native "WebGLRenderingContext_hint_Callback";
+
+  bool isBuffer(WebGLBuffer buffer) {
+    return _isBuffer(buffer);
+  }
+
+  bool _isBuffer(buffer) native "WebGLRenderingContext_isBuffer_Callback";
+
+  bool isContextLost() {
+    return _isContextLost();
+  }
+
+  bool _isContextLost() native "WebGLRenderingContext_isContextLost_Callback";
+
+  bool isEnabled(int cap) {
+    return _isEnabled(cap);
+  }
+
+  bool _isEnabled(cap) native "WebGLRenderingContext_isEnabled_Callback";
+
+  bool isFramebuffer(WebGLFramebuffer framebuffer) {
+    return _isFramebuffer(framebuffer);
+  }
+
+  bool _isFramebuffer(framebuffer) native "WebGLRenderingContext_isFramebuffer_Callback";
+
+  bool isProgram(WebGLProgram program) {
+    return _isProgram(program);
+  }
+
+  bool _isProgram(program) native "WebGLRenderingContext_isProgram_Callback";
+
+  bool isRenderbuffer(WebGLRenderbuffer renderbuffer) {
+    return _isRenderbuffer(renderbuffer);
+  }
+
+  bool _isRenderbuffer(renderbuffer) native "WebGLRenderingContext_isRenderbuffer_Callback";
+
+  bool isShader(WebGLShader shader) {
+    return _isShader(shader);
+  }
+
+  bool _isShader(shader) native "WebGLRenderingContext_isShader_Callback";
+
+  bool isTexture(WebGLTexture texture) {
+    return _isTexture(texture);
+  }
+
+  bool _isTexture(texture) native "WebGLRenderingContext_isTexture_Callback";
+
+  void lineWidth(num width) {
+    _lineWidth(width);
+    return;
+  }
+
+  void _lineWidth(width) native "WebGLRenderingContext_lineWidth_Callback";
+
+  void linkProgram(WebGLProgram program) {
+    _linkProgram(program);
+    return;
+  }
+
+  void _linkProgram(program) native "WebGLRenderingContext_linkProgram_Callback";
+
+  void pixelStorei(int pname, int param) {
+    _pixelStorei(pname, param);
+    return;
+  }
+
+  void _pixelStorei(pname, param) native "WebGLRenderingContext_pixelStorei_Callback";
+
+  void polygonOffset(num factor, num units) {
+    _polygonOffset(factor, units);
+    return;
+  }
+
+  void _polygonOffset(factor, units) native "WebGLRenderingContext_polygonOffset_Callback";
+
+  void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) {
+    _readPixels(x, y, width, height, format, type, pixels);
+    return;
+  }
+
+  void _readPixels(x, y, width, height, format, type, pixels) native "WebGLRenderingContext_readPixels_Callback";
+
+  void releaseShaderCompiler() {
+    _releaseShaderCompiler();
+    return;
+  }
+
+  void _releaseShaderCompiler() native "WebGLRenderingContext_releaseShaderCompiler_Callback";
+
+  void renderbufferStorage(int target, int internalformat, int width, int height) {
+    _renderbufferStorage(target, internalformat, width, height);
+    return;
+  }
+
+  void _renderbufferStorage(target, internalformat, width, height) native "WebGLRenderingContext_renderbufferStorage_Callback";
+
+  void sampleCoverage(num value, bool invert) {
+    _sampleCoverage(value, invert);
+    return;
+  }
+
+  void _sampleCoverage(value, invert) native "WebGLRenderingContext_sampleCoverage_Callback";
+
+  void scissor(int x, int y, int width, int height) {
+    _scissor(x, y, width, height);
+    return;
+  }
+
+  void _scissor(x, y, width, height) native "WebGLRenderingContext_scissor_Callback";
+
+  void shaderSource(WebGLShader shader, String string) {
+    _shaderSource(shader, string);
+    return;
+  }
+
+  void _shaderSource(shader, string) native "WebGLRenderingContext_shaderSource_Callback";
+
+  void stencilFunc(int func, int ref, int mask) {
+    _stencilFunc(func, ref, mask);
+    return;
+  }
+
+  void _stencilFunc(func, ref, mask) native "WebGLRenderingContext_stencilFunc_Callback";
+
+  void stencilFuncSeparate(int face, int func, int ref, int mask) {
+    _stencilFuncSeparate(face, func, ref, mask);
+    return;
+  }
+
+  void _stencilFuncSeparate(face, func, ref, mask) native "WebGLRenderingContext_stencilFuncSeparate_Callback";
+
+  void stencilMask(int mask) {
+    _stencilMask(mask);
+    return;
+  }
+
+  void _stencilMask(mask) native "WebGLRenderingContext_stencilMask_Callback";
+
+  void stencilMaskSeparate(int face, int mask) {
+    _stencilMaskSeparate(face, mask);
+    return;
+  }
+
+  void _stencilMaskSeparate(face, mask) native "WebGLRenderingContext_stencilMaskSeparate_Callback";
+
+  void stencilOp(int fail, int zfail, int zpass) {
+    _stencilOp(fail, zfail, zpass);
+    return;
+  }
+
+  void _stencilOp(fail, zfail, zpass) native "WebGLRenderingContext_stencilOp_Callback";
+
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) {
+    _stencilOpSeparate(face, fail, zfail, zpass);
+    return;
+  }
+
+  void _stencilOpSeparate(face, fail, zfail, zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
+
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, ArrayBufferView pixels = null]) {
+    //
+    // texImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, ArrayBufferView pixels)
+    // texImage2D(int target, int level, int internalformat, int format, int type, ImageData pixels)
+    // texImage2D(int target, int level, int internalformat, int format, int type, HTMLImageElement image)
+    // texImage2D(int target, int level, int internalformat, int format, int type, HTMLCanvasElement canvas)
+    // texImage2D(int target, int level, int internalformat, int format, int type, HTMLVideoElement video)
+    //
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video === null || border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+      _texImage2D(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video === null || border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData) &&
+        format === null &&
+        type === null &&
+        pixels === null) {
+      _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video === null || border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) &&
+        format === null &&
+        type === null &&
+        pixels === null) {
+      _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video === null || border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) &&
+        format === null &&
+        type === null &&
+        pixels === null) {
+      _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video === null || border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) &&
+        format === null &&
+        type === null &&
+        pixels === null) {
+      _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _texImage2D(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext_texImage2D_Callback";
+
+  void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_2_Callback";
+
+  void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_3_Callback";
+
+  void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_4_Callback";
+
+  void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_5_Callback";
+
+  void texParameterf(int target, int pname, num param) {
+    _texParameterf(target, pname, param);
+    return;
+  }
+
+  void _texParameterf(target, pname, param) native "WebGLRenderingContext_texParameterf_Callback";
+
+  void texParameteri(int target, int pname, int param) {
+    _texParameteri(target, pname, param);
+    return;
+  }
+
+  void _texParameteri(target, pname, param) native "WebGLRenderingContext_texParameteri_Callback";
+
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, ArrayBufferView pixels = null]) {
+    //
+    // texSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int type, ArrayBufferView pixels)
+    // texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels)
+    // texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, HTMLImageElement image)
+    // texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, HTMLCanvasElement canvas)
+    // texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, HTMLVideoElement video)
+    //
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video === null || canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+      _texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video === null || canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData) &&
+        type === null &&
+        pixels === null) {
+      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video === null || canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) &&
+        type === null &&
+        pixels === null) {
+      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video === null || canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) &&
+        type === null &&
+        pixels === null) {
+      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video === null || canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) &&
+        type === null &&
+        pixels === null) {
+      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext_texSubImage2D_Callback";
+
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_2_Callback";
+
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_3_Callback";
+
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_4_Callback";
+
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_5_Callback";
+
+  void uniform1f(WebGLUniformLocation location, num x) {
+    _uniform1f(location, x);
+    return;
+  }
+
+  void _uniform1f(location, x) native "WebGLRenderingContext_uniform1f_Callback";
+
+  void uniform1fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform1fv_Callback";
+
+  void uniform1i(WebGLUniformLocation location, int x) {
+    _uniform1i(location, x);
+    return;
+  }
+
+  void _uniform1i(location, x) native "WebGLRenderingContext_uniform1i_Callback";
+
+  void uniform1iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform1iv_Callback";
+
+  void uniform2f(WebGLUniformLocation location, num x, num y) {
+    _uniform2f(location, x, y);
+    return;
+  }
+
+  void _uniform2f(location, x, y) native "WebGLRenderingContext_uniform2f_Callback";
+
+  void uniform2fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform2fv_Callback";
+
+  void uniform2i(WebGLUniformLocation location, int x, int y) {
+    _uniform2i(location, x, y);
+    return;
+  }
+
+  void _uniform2i(location, x, y) native "WebGLRenderingContext_uniform2i_Callback";
+
+  void uniform2iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform2iv_Callback";
+
+  void uniform3f(WebGLUniformLocation location, num x, num y, num z) {
+    _uniform3f(location, x, y, z);
+    return;
+  }
+
+  void _uniform3f(location, x, y, z) native "WebGLRenderingContext_uniform3f_Callback";
+
+  void uniform3fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform3fv_Callback";
+
+  void uniform3i(WebGLUniformLocation location, int x, int y, int z) {
+    _uniform3i(location, x, y, z);
+    return;
+  }
+
+  void _uniform3i(location, x, y, z) native "WebGLRenderingContext_uniform3i_Callback";
+
+  void uniform3iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform3iv_Callback";
+
+  void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) {
+    _uniform4f(location, x, y, z, w);
+    return;
+  }
+
+  void _uniform4f(location, x, y, z, w) native "WebGLRenderingContext_uniform4f_Callback";
+
+  void uniform4fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform4fv_Callback";
+
+  void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) {
+    _uniform4i(location, x, y, z, w);
+    return;
+  }
+
+  void _uniform4i(location, x, y, z, w) native "WebGLRenderingContext_uniform4i_Callback";
+
+  void uniform4iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform4iv_Callback";
+
+  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
+
+  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
+
+  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
+
+  void useProgram(WebGLProgram program) {
+    _useProgram(program);
+    return;
+  }
+
+  void _useProgram(program) native "WebGLRenderingContext_useProgram_Callback";
+
+  void validateProgram(WebGLProgram program) {
+    _validateProgram(program);
+    return;
+  }
+
+  void _validateProgram(program) native "WebGLRenderingContext_validateProgram_Callback";
+
+  void vertexAttrib1f(int indx, num x) {
+    _vertexAttrib1f(indx, x);
+    return;
+  }
+
+  void _vertexAttrib1f(indx, x) native "WebGLRenderingContext_vertexAttrib1f_Callback";
+
+  void vertexAttrib1fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
+
+  void vertexAttrib2f(int indx, num x, num y) {
+    _vertexAttrib2f(indx, x, y);
+    return;
+  }
+
+  void _vertexAttrib2f(indx, x, y) native "WebGLRenderingContext_vertexAttrib2f_Callback";
+
+  void vertexAttrib2fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
+
+  void vertexAttrib3f(int indx, num x, num y, num z) {
+    _vertexAttrib3f(indx, x, y, z);
+    return;
+  }
+
+  void _vertexAttrib3f(indx, x, y, z) native "WebGLRenderingContext_vertexAttrib3f_Callback";
+
+  void vertexAttrib3fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
+
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) {
+    _vertexAttrib4f(indx, x, y, z, w);
+    return;
+  }
+
+  void _vertexAttrib4f(indx, x, y, z, w) native "WebGLRenderingContext_vertexAttrib4f_Callback";
+
+  void vertexAttrib4fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
+
+  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) {
+    _vertexAttribPointer(indx, size, type, normalized, stride, offset);
+    return;
+  }
+
+  void _vertexAttribPointer(indx, size, type, normalized, stride, offset) native "WebGLRenderingContext_vertexAttribPointer_Callback";
+
+  void viewport(int x, int y, int width, int height) {
+    _viewport(x, y, width, height);
+    return;
+  }
+
+  void _viewport(x, y, width, height) native "WebGLRenderingContext_viewport_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLShaderDOMImpl extends _DOMWrapperBase implements WebGLShader {
+  _WebGLShaderDOMImpl();
+  String get typeName() => "WebGLShader";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLShaderPrecisionFormatDOMImpl extends _DOMWrapperBase implements WebGLShaderPrecisionFormat {
+  _WebGLShaderPrecisionFormatDOMImpl();
+  String get typeName() => "WebGLShaderPrecisionFormat";
+
+  int get precision() native "WebGLShaderPrecisionFormat_precision_Getter";
+
+  int get rangeMax() native "WebGLShaderPrecisionFormat_rangeMax_Getter";
+
+  int get rangeMin() native "WebGLShaderPrecisionFormat_rangeMin_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLTextureDOMImpl extends _DOMWrapperBase implements WebGLTexture {
+  _WebGLTextureDOMImpl();
+  String get typeName() => "WebGLTexture";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLUniformLocationDOMImpl extends _DOMWrapperBase implements WebGLUniformLocation {
+  _WebGLUniformLocationDOMImpl();
+  String get typeName() => "WebGLUniformLocation";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebGLVertexArrayObjectOESDOMImpl extends _DOMWrapperBase implements WebGLVertexArrayObjectOES {
+  _WebGLVertexArrayObjectOESDOMImpl();
+  String get typeName() => "WebGLVertexArrayObjectOES";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitAnimationEventDOMImpl extends _EventDOMImpl implements AnimationEvent {
+  _WebKitAnimationEventDOMImpl();
+  String get typeName() => "WebKitAnimationEvent";
+
+  String get animationName() native "WebKitAnimationEvent_animationName_Getter";
+
+  num get elapsedTime() native "WebKitAnimationEvent_elapsedTime_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitAnimationDOMImpl extends _DOMWrapperBase implements Animation {
+  _WebKitAnimationDOMImpl();
+  String get typeName() => "WebKitAnimation";
+
+  num get delay() native "WebKitAnimation_delay_Getter";
+
+  int get direction() native "WebKitAnimation_direction_Getter";
+
+  num get duration() native "WebKitAnimation_duration_Getter";
+
+  num get elapsedTime() native "WebKitAnimation_elapsedTime_Getter";
+
+  void set elapsedTime(num) native "WebKitAnimation_elapsedTime_Setter";
+
+  bool get ended() native "WebKitAnimation_ended_Getter";
+
+  int get fillMode() native "WebKitAnimation_fillMode_Getter";
+
+  int get iterationCount() native "WebKitAnimation_iterationCount_Getter";
+
+  String get name() native "WebKitAnimation_name_Getter";
+
+  bool get paused() native "WebKitAnimation_paused_Getter";
+
+  void pause() {
+    _pause();
+    return;
+  }
+
+  void _pause() native "WebKitAnimation_pause_Callback";
+
+  void play() {
+    _play();
+    return;
+  }
+
+  void _play() native "WebKitAnimation_play_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitAnimationListDOMImpl extends _DOMWrapperBase implements AnimationList {
+  _WebKitAnimationListDOMImpl();
+  String get typeName() => "WebKitAnimationList";
+
+  int get length() native "WebKitAnimationList_length_Getter";
+
+  Animation item(int index) {
+    return _item(index);
+  }
+
+  Animation _item(index) native "WebKitAnimationList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitCSSFilterValueDOMImpl extends _CSSValueListDOMImpl implements WebKitCSSFilterValue {
+  _WebKitCSSFilterValueDOMImpl();
+  String get typeName() => "WebKitCSSFilterValue";
+
+  int get operationType() native "WebKitCSSFilterValue_operationType_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitCSSKeyframeRuleDOMImpl extends _CSSRuleDOMImpl implements CSSKeyframeRule {
+  _WebKitCSSKeyframeRuleDOMImpl();
+  String get typeName() => "WebKitCSSKeyframeRule";
+
+  String get keyText() native "WebKitCSSKeyframeRule_keyText_Getter";
+
+  void set keyText(String) native "WebKitCSSKeyframeRule_keyText_Setter";
+
+  CSSStyleDeclaration get style() native "WebKitCSSKeyframeRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitCSSKeyframesRuleDOMImpl extends _CSSRuleDOMImpl implements CSSKeyframesRule {
+  _WebKitCSSKeyframesRuleDOMImpl();
+  String get typeName() => "WebKitCSSKeyframesRule";
+
+  CSSRuleList get cssRules() native "WebKitCSSKeyframesRule_cssRules_Getter";
+
+  String get name() native "WebKitCSSKeyframesRule_name_Getter";
+
+  void set name(String) native "WebKitCSSKeyframesRule_name_Setter";
+
+  void deleteRule(String key) {
+    _deleteRule(key);
+    return;
+  }
+
+  void _deleteRule(key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
+
+  CSSKeyframeRule findRule(String key) {
+    return _findRule(key);
+  }
+
+  CSSKeyframeRule _findRule(key) native "WebKitCSSKeyframesRule_findRule_Callback";
+
+  void insertRule(String rule) {
+    _insertRule(rule);
+    return;
+  }
+
+  void _insertRule(rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
+
+}
+class _WebKitCSSMatrixFactoryProviderImpl {
+  static _WebKitCSSMatrixDOMImpl createWebKitCSSMatrix([String cssValue = null])
+      native "WebKitCSSMatrix_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitCSSMatrixDOMImpl extends _DOMWrapperBase implements CSSMatrix {
+  _WebKitCSSMatrixDOMImpl();
+  String get typeName() => "WebKitCSSMatrix";
+
+  num get a() native "WebKitCSSMatrix_a_Getter";
+
+  void set a(num) native "WebKitCSSMatrix_a_Setter";
+
+  num get b() native "WebKitCSSMatrix_b_Getter";
+
+  void set b(num) native "WebKitCSSMatrix_b_Setter";
+
+  num get c() native "WebKitCSSMatrix_c_Getter";
+
+  void set c(num) native "WebKitCSSMatrix_c_Setter";
+
+  num get d() native "WebKitCSSMatrix_d_Getter";
+
+  void set d(num) native "WebKitCSSMatrix_d_Setter";
+
+  num get e() native "WebKitCSSMatrix_e_Getter";
+
+  void set e(num) native "WebKitCSSMatrix_e_Setter";
+
+  num get f() native "WebKitCSSMatrix_f_Getter";
+
+  void set f(num) native "WebKitCSSMatrix_f_Setter";
+
+  num get m11() native "WebKitCSSMatrix_m11_Getter";
+
+  void set m11(num) native "WebKitCSSMatrix_m11_Setter";
+
+  num get m12() native "WebKitCSSMatrix_m12_Getter";
+
+  void set m12(num) native "WebKitCSSMatrix_m12_Setter";
+
+  num get m13() native "WebKitCSSMatrix_m13_Getter";
+
+  void set m13(num) native "WebKitCSSMatrix_m13_Setter";
+
+  num get m14() native "WebKitCSSMatrix_m14_Getter";
+
+  void set m14(num) native "WebKitCSSMatrix_m14_Setter";
+
+  num get m21() native "WebKitCSSMatrix_m21_Getter";
+
+  void set m21(num) native "WebKitCSSMatrix_m21_Setter";
+
+  num get m22() native "WebKitCSSMatrix_m22_Getter";
+
+  void set m22(num) native "WebKitCSSMatrix_m22_Setter";
+
+  num get m23() native "WebKitCSSMatrix_m23_Getter";
+
+  void set m23(num) native "WebKitCSSMatrix_m23_Setter";
+
+  num get m24() native "WebKitCSSMatrix_m24_Getter";
+
+  void set m24(num) native "WebKitCSSMatrix_m24_Setter";
+
+  num get m31() native "WebKitCSSMatrix_m31_Getter";
+
+  void set m31(num) native "WebKitCSSMatrix_m31_Setter";
+
+  num get m32() native "WebKitCSSMatrix_m32_Getter";
+
+  void set m32(num) native "WebKitCSSMatrix_m32_Setter";
+
+  num get m33() native "WebKitCSSMatrix_m33_Getter";
+
+  void set m33(num) native "WebKitCSSMatrix_m33_Setter";
+
+  num get m34() native "WebKitCSSMatrix_m34_Getter";
+
+  void set m34(num) native "WebKitCSSMatrix_m34_Setter";
+
+  num get m41() native "WebKitCSSMatrix_m41_Getter";
+
+  void set m41(num) native "WebKitCSSMatrix_m41_Setter";
+
+  num get m42() native "WebKitCSSMatrix_m42_Getter";
+
+  void set m42(num) native "WebKitCSSMatrix_m42_Setter";
+
+  num get m43() native "WebKitCSSMatrix_m43_Getter";
+
+  void set m43(num) native "WebKitCSSMatrix_m43_Setter";
+
+  num get m44() native "WebKitCSSMatrix_m44_Getter";
+
+  void set m44(num) native "WebKitCSSMatrix_m44_Setter";
+
+  CSSMatrix inverse() {
+    return _inverse();
+  }
+
+  CSSMatrix _inverse() native "WebKitCSSMatrix_inverse_Callback";
+
+  CSSMatrix multiply(CSSMatrix secondMatrix) {
+    if ((secondMatrix === null || secondMatrix is CSSMatrix)) {
+      return _multiply(secondMatrix);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  CSSMatrix _multiply(secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
+
+  CSSMatrix rotate(num rotX, num rotY, num rotZ) {
+    return _rotate(rotX, rotY, rotZ);
+  }
+
+  CSSMatrix _rotate(rotX, rotY, rotZ) native "WebKitCSSMatrix_rotate_Callback";
+
+  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) {
+    return _rotateAxisAngle(x, y, z, angle);
+  }
+
+  CSSMatrix _rotateAxisAngle(x, y, z, angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
+
+  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) {
+    return _scale(scaleX, scaleY, scaleZ);
+  }
+
+  CSSMatrix _scale(scaleX, scaleY, scaleZ) native "WebKitCSSMatrix_scale_Callback";
+
+  void setMatrixValue(String string) {
+    _setMatrixValue(string);
+    return;
+  }
+
+  void _setMatrixValue(string) native "WebKitCSSMatrix_setMatrixValue_Callback";
+
+  CSSMatrix skewX(num angle) {
+    return _skewX(angle);
+  }
+
+  CSSMatrix _skewX(angle) native "WebKitCSSMatrix_skewX_Callback";
+
+  CSSMatrix skewY(num angle) {
+    return _skewY(angle);
+  }
+
+  CSSMatrix _skewY(angle) native "WebKitCSSMatrix_skewY_Callback";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "WebKitCSSMatrix_toString_Callback";
+
+  CSSMatrix translate(num x, num y, num z) {
+    return _translate(x, y, z);
+  }
+
+  CSSMatrix _translate(x, y, z) native "WebKitCSSMatrix_translate_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitCSSRegionRuleDOMImpl extends _CSSRuleDOMImpl implements WebKitCSSRegionRule {
+  _WebKitCSSRegionRuleDOMImpl();
+  String get typeName() => "WebKitCSSRegionRule";
+
+  CSSRuleList get cssRules() native "WebKitCSSRegionRule_cssRules_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitCSSTransformValueDOMImpl extends _CSSValueListDOMImpl implements CSSTransformValue {
+  _WebKitCSSTransformValueDOMImpl();
+  String get typeName() => "WebKitCSSTransformValue";
+
+  int get operationType() native "WebKitCSSTransformValue_operationType_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitMutationObserverDOMImpl extends _DOMWrapperBase implements WebKitMutationObserver {
+  _WebKitMutationObserverDOMImpl();
+  String get typeName() => "WebKitMutationObserver";
+
+  void disconnect() {
+    _disconnect();
+    return;
+  }
+
+  void _disconnect() native "WebKitMutationObserver_disconnect_Callback";
+
+  List<MutationRecord> takeRecords() {
+    return _takeRecords();
+  }
+
+  List<MutationRecord> _takeRecords() native "WebKitMutationObserver_takeRecords_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitNamedFlowDOMImpl extends _DOMWrapperBase implements WebKitNamedFlow {
+  _WebKitNamedFlowDOMImpl();
+  String get typeName() => "WebKitNamedFlow";
+
+  NodeList get contentNodes() native "WebKitNamedFlow_contentNodes_Getter";
+
+  bool get overflow() native "WebKitNamedFlow_overflow_Getter";
+
+  NodeList getRegionsByContentNode(Node contentNode) {
+    return _getRegionsByContentNode(contentNode);
+  }
+
+  NodeList _getRegionsByContentNode(contentNode) native "WebKitNamedFlow_getRegionsByContentNode_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitPointDOMImpl extends _DOMWrapperBase implements Point {
+  _WebKitPointDOMImpl();
+  String get typeName() => "WebKitPoint";
+
+  num get x() native "WebKitPoint_x_Getter";
+
+  void set x(num) native "WebKitPoint_x_Setter";
+
+  num get y() native "WebKitPoint_y_Getter";
+
+  void set y(num) native "WebKitPoint_y_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitTransitionEventDOMImpl extends _EventDOMImpl implements TransitionEvent {
+  _WebKitTransitionEventDOMImpl();
+  String get typeName() => "WebKitTransitionEvent";
+
+  num get elapsedTime() native "WebKitTransitionEvent_elapsedTime_Getter";
+
+  String get propertyName() native "WebKitTransitionEvent_propertyName_Getter";
+
+}
+
+class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
+  _WebSocketEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get close() => _get('close');
+  EventListenerList get error() => _get('error');
+  EventListenerList get message() => _get('message');
+  EventListenerList get open() => _get('open');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebSocketDOMImpl extends _DOMWrapperBase implements WebSocket {
+  _WebSocketDOMImpl();
+  String get typeName() => "WebSocket";
+  _EventsImpl _on;
+
+  _WebSocketEventsImpl get on() {
+    if (_on === null) _on = new _WebSocketEventsImpl(this);
+    return _on;
+  }
+
+  String get URL() native "WebSocket_URL_Getter";
+
+  String get binaryType() native "WebSocket_binaryType_Getter";
+
+  void set binaryType(String) native "WebSocket_binaryType_Setter";
+
+  int get bufferedAmount() native "WebSocket_bufferedAmount_Getter";
+
+  String get extensions() native "WebSocket_extensions_Getter";
+
+  String get protocol() native "WebSocket_protocol_Getter";
+
+  int get readyState() native "WebSocket_readyState_Getter";
+
+  String get url() native "WebSocket_url_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "WebSocket_addEventListener_Callback";
+
+  void close([int code = null, String reason = null]) native "WebSocket_close_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "WebSocket_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "WebSocket_removeEventListener_Callback";
+
+  bool send(String data) native "WebSocket_send_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WheelEventDOMImpl extends _UIEventDOMImpl implements WheelEvent {
+  _WheelEventDOMImpl();
+  String get typeName() => "WheelEvent";
+
+  bool get altKey() native "WheelEvent_altKey_Getter";
+
+  int get clientX() native "WheelEvent_clientX_Getter";
+
+  int get clientY() native "WheelEvent_clientY_Getter";
+
+  bool get ctrlKey() native "WheelEvent_ctrlKey_Getter";
+
+  bool get metaKey() native "WheelEvent_metaKey_Getter";
+
+  int get offsetX() native "WheelEvent_offsetX_Getter";
+
+  int get offsetY() native "WheelEvent_offsetY_Getter";
+
+  int get screenX() native "WheelEvent_screenX_Getter";
+
+  int get screenY() native "WheelEvent_screenY_Getter";
+
+  bool get shiftKey() native "WheelEvent_shiftKey_Getter";
+
+  bool get webkitDirectionInvertedFromDevice() native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
+
+  int get wheelDelta() native "WheelEvent_wheelDelta_Getter";
+
+  int get wheelDeltaX() native "WheelEvent_wheelDeltaX_Getter";
+
+  int get wheelDeltaY() native "WheelEvent_wheelDeltaY_Getter";
+
+  int get x() native "WheelEvent_x_Getter";
+
+  int get y() native "WheelEvent_y_Getter";
+
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
+    if ((view === null || view is Window)) {
+      _initWebKitWheelEvent(wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void _initWebKitWheelEvent(wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+
+}
+
+class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
+  _WorkerContextEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get error() => _get('error');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WorkerContextDOMImpl extends _DOMWrapperBase implements WorkerContext {
+  _WorkerContextDOMImpl();
+  String get typeName() => "WorkerContext";
+  _EventsImpl _on;
+
+  _WorkerContextEventsImpl get on() {
+    if (_on === null) _on = new _WorkerContextEventsImpl(this);
+    return _on;
+  }
+
+  WorkerLocation get location() native "WorkerContext_location_Getter";
+
+  WorkerNavigator get navigator() native "WorkerContext_navigator_Getter";
+
+  WorkerContext get self() native "WorkerContext_self_Getter";
+
+  IDBFactory get webkitIndexedDB() native "WorkerContext_webkitIndexedDB_Getter";
+
+  NotificationCenter get webkitNotifications() native "WorkerContext_webkitNotifications_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "WorkerContext_addEventListener_Callback";
+
+  void clearInterval(int handle) {
+    _clearInterval(handle);
+    return;
+  }
+
+  void _clearInterval(handle) native "WorkerContext_clearInterval_Callback";
+
+  void clearTimeout(int handle) {
+    _clearTimeout(handle);
+    return;
+  }
+
+  void _clearTimeout(handle) native "WorkerContext_clearTimeout_Callback";
+
+  void close() {
+    _close();
+    return;
+  }
+
+  void _close() native "WorkerContext_close_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "WorkerContext_dispatchEvent_Callback";
+
+  void importScripts() native "WorkerContext_importScripts_Callback";
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    return _openDatabase(name, version, displayName, estimatedSize, creationCallback);
+  }
+
+  Database _openDatabase(name, version, displayName, estimatedSize, creationCallback) native "WorkerContext_openDatabase_Callback";
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    return _openDatabaseSync(name, version, displayName, estimatedSize, creationCallback);
+  }
+
+  DatabaseSync _openDatabaseSync(name, version, displayName, estimatedSize, creationCallback) native "WorkerContext_openDatabaseSync_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "WorkerContext_removeEventListener_Callback";
+
+  int setInterval(TimeoutHandler handler, int timeout) native "WorkerContext_setInterval_Callback";
+
+  int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    _webkitRequestFileSystem(type, size, successCallback, errorCallback);
+    return;
+  }
+
+  void _webkitRequestFileSystem(type, size, successCallback, errorCallback) native "WorkerContext_webkitRequestFileSystem_Callback";
+
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) {
+    return _webkitRequestFileSystemSync(type, size);
+  }
+
+  DOMFileSystemSync _webkitRequestFileSystemSync(type, size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
+
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url) {
+    return _webkitResolveLocalFileSystemSyncURL(url);
+  }
+
+  EntrySync _webkitResolveLocalFileSystemSyncURL(url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    _webkitResolveLocalFileSystemURL(url, successCallback, errorCallback);
+    return;
+  }
+
+  void _webkitResolveLocalFileSystemURL(url, successCallback, errorCallback) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+
+}
+class _WorkerFactoryProviderImpl {
+  static _WorkerDOMImpl createWorker(String scriptUrl)
+      native "Worker_constructor_Callback";
+}
+class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
+  _WorkerEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get message() => _get('message');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WorkerDOMImpl extends _AbstractWorkerDOMImpl implements Worker {
+  _WorkerDOMImpl();
+  String get typeName() => "Worker";
+
+  _WorkerEventsImpl get on() {
+    if (_on === null) _on = new _WorkerEventsImpl(this);
+    return _on;
+  }
+
+  void postMessage(message, [List messagePorts = null]) native "Worker_postMessage_Callback";
+
+  void terminate() {
+    _terminate();
+    return;
+  }
+
+  void _terminate() native "Worker_terminate_Callback";
+
+  void webkitPostMessage(message, [List messagePorts = null]) native "Worker_webkitPostMessage_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WorkerLocationDOMImpl extends _DOMWrapperBase implements WorkerLocation {
+  _WorkerLocationDOMImpl();
+  String get typeName() => "WorkerLocation";
+
+  String get hash() native "WorkerLocation_hash_Getter";
+
+  String get host() native "WorkerLocation_host_Getter";
+
+  String get hostname() native "WorkerLocation_hostname_Getter";
+
+  String get href() native "WorkerLocation_href_Getter";
+
+  String get pathname() native "WorkerLocation_pathname_Getter";
+
+  String get port() native "WorkerLocation_port_Getter";
+
+  String get protocol() native "WorkerLocation_protocol_Getter";
+
+  String get search() native "WorkerLocation_search_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "WorkerLocation_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WorkerNavigatorDOMImpl extends _DOMWrapperBase implements WorkerNavigator {
+  _WorkerNavigatorDOMImpl();
+  String get typeName() => "WorkerNavigator";
+
+  String get appName() native "WorkerNavigator_appName_Getter";
+
+  String get appVersion() native "WorkerNavigator_appVersion_Getter";
+
+  bool get onLine() native "WorkerNavigator_onLine_Getter";
+
+  String get platform() native "WorkerNavigator_platform_Getter";
+
+  String get userAgent() native "WorkerNavigator_userAgent_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XMLHttpRequestExceptionDOMImpl extends _DOMWrapperBase implements XMLHttpRequestException {
+  _XMLHttpRequestExceptionDOMImpl();
+  String get typeName() => "XMLHttpRequestException";
+
+  int get code() native "XMLHttpRequestException_code_Getter";
+
+  String get message() native "XMLHttpRequestException_message_Getter";
+
+  String get name() native "XMLHttpRequestException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "XMLHttpRequestException_toString_Callback";
+
+}
+class _XMLHttpRequestFactoryProviderImpl {
+  static _XMLHttpRequestDOMImpl createXMLHttpRequest()
+      native "XMLHttpRequest_constructor_Callback";
+}
+class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEvents {
+  _XMLHttpRequestEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get error() => _get('error');
+  EventListenerList get load() => _get('load');
+  EventListenerList get loadEnd() => _get('loadend');
+  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get progress() => _get('progress');
+  EventListenerList get readyStateChange() => _get('readystatechange');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XMLHttpRequestDOMImpl extends _DOMWrapperBase implements XMLHttpRequest {
+  _XMLHttpRequestDOMImpl();
+  String get typeName() => "XMLHttpRequest";
+  _EventsImpl _on;
+
+  _XMLHttpRequestEventsImpl get on() {
+    if (_on === null) _on = new _XMLHttpRequestEventsImpl(this);
+    return _on;
+  }
+
+  bool get asBlob() native "XMLHttpRequest_asBlob_Getter";
+
+  void set asBlob(bool) native "XMLHttpRequest_asBlob_Setter";
+
+  int get readyState() native "XMLHttpRequest_readyState_Getter";
+
+  Object get response() native "XMLHttpRequest_response_Getter";
+
+  Blob get responseBlob() native "XMLHttpRequest_responseBlob_Getter";
+
+  String get responseText() native "XMLHttpRequest_responseText_Getter";
+
+  String get responseType() native "XMLHttpRequest_responseType_Getter";
+
+  void set responseType(String) native "XMLHttpRequest_responseType_Setter";
+
+  Document get responseXML() native "XMLHttpRequest_responseXML_Getter";
+
+  int get status() native "XMLHttpRequest_status_Getter";
+
+  String get statusText() native "XMLHttpRequest_statusText_Getter";
+
+  XMLHttpRequestUpload get upload() native "XMLHttpRequest_upload_Getter";
+
+  bool get withCredentials() native "XMLHttpRequest_withCredentials_Getter";
+
+  void set withCredentials(bool) native "XMLHttpRequest_withCredentials_Setter";
+
+  void abort() {
+    _abort();
+    return;
+  }
+
+  void _abort() native "XMLHttpRequest_abort_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "XMLHttpRequest_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "XMLHttpRequest_dispatchEvent_Callback";
+
+  String getAllResponseHeaders() {
+    return _getAllResponseHeaders();
+  }
+
+  String _getAllResponseHeaders() native "XMLHttpRequest_getAllResponseHeaders_Callback";
+
+  String getResponseHeader(String header) {
+    return _getResponseHeader(header);
+  }
+
+  String _getResponseHeader(header) native "XMLHttpRequest_getResponseHeader_Callback";
+
+  void open(String method, String url, [bool async = null, String user = null, String password = null]) native "XMLHttpRequest_open_Callback";
+
+  void overrideMimeType(String override) {
+    _overrideMimeType(override);
+    return;
+  }
+
+  void _overrideMimeType(override) native "XMLHttpRequest_overrideMimeType_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "XMLHttpRequest_removeEventListener_Callback";
+
+  void send([data = null]) native "XMLHttpRequest_send_Callback";
+
+  void setRequestHeader(String header, String value) {
+    _setRequestHeader(header, value);
+    return;
+  }
+
+  void _setRequestHeader(header, value) native "XMLHttpRequest_setRequestHeader_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XMLHttpRequestProgressEventDOMImpl extends _ProgressEventDOMImpl implements XMLHttpRequestProgressEvent {
+  _XMLHttpRequestProgressEventDOMImpl();
+  String get typeName() => "XMLHttpRequestProgressEvent";
+
+  int get position() native "XMLHttpRequestProgressEvent_position_Getter";
+
+  int get totalSize() native "XMLHttpRequestProgressEvent_totalSize_Getter";
+
+}
+
+class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {
+  _XMLHttpRequestUploadEventsImpl(_ptr) : super(_ptr);
+  EventListenerList get abort() => _get('abort');
+  EventListenerList get error() => _get('error');
+  EventListenerList get load() => _get('load');
+  EventListenerList get loadEnd() => _get('loadend');
+  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get progress() => _get('progress');
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XMLHttpRequestUploadDOMImpl extends _DOMWrapperBase implements XMLHttpRequestUpload {
+  _XMLHttpRequestUploadDOMImpl();
+  String get typeName() => "XMLHttpRequestUpload";
+  _EventsImpl _on;
+
+  _XMLHttpRequestUploadEventsImpl get on() {
+    if (_on === null) _on = new _XMLHttpRequestUploadEventsImpl(this);
+    return _on;
+  }
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "XMLHttpRequestUpload_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _dispatchEvent(evt);
+  }
+
+  bool _dispatchEvent(evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "XMLHttpRequestUpload_removeEventListener_Callback";
+
+}
+class _XMLSerializerFactoryProviderImpl {
+  static _XMLSerializerDOMImpl createXMLSerializer()
+      native "XMLSerializer_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XMLSerializerDOMImpl extends _DOMWrapperBase implements XMLSerializer {
+  _XMLSerializerDOMImpl();
+  String get typeName() => "XMLSerializer";
+
+  String serializeToString(Node node) {
+    return _serializeToString(node);
+  }
+
+  String _serializeToString(node) native "XMLSerializer_serializeToString_Callback";
+
+}
+class _XPathEvaluatorFactoryProviderImpl {
+  static _XPathEvaluatorDOMImpl createXPathEvaluator()
+      native "XPathEvaluator_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XPathEvaluatorDOMImpl extends _DOMWrapperBase implements XPathEvaluator {
+  _XPathEvaluatorDOMImpl();
+  String get typeName() => "XPathEvaluator";
+
+  XPathExpression createExpression(String expression, XPathNSResolver resolver) {
+    return _createExpression(expression, resolver);
+  }
+
+  XPathExpression _createExpression(expression, resolver) native "XPathEvaluator_createExpression_Callback";
+
+  XPathNSResolver createNSResolver(Node nodeResolver) {
+    return _createNSResolver(nodeResolver);
+  }
+
+  XPathNSResolver _createNSResolver(nodeResolver) native "XPathEvaluator_createNSResolver_Callback";
+
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) {
+    return _evaluate(expression, contextNode, resolver, type, inResult);
+  }
+
+  XPathResult _evaluate(expression, contextNode, resolver, type, inResult) native "XPathEvaluator_evaluate_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XPathExceptionDOMImpl extends _DOMWrapperBase implements XPathException {
+  _XPathExceptionDOMImpl();
+  String get typeName() => "XPathException";
+
+  int get code() native "XPathException_code_Getter";
+
+  String get message() native "XPathException_message_Getter";
+
+  String get name() native "XPathException_name_Getter";
+
+  String toString() {
+    return _toString();
+  }
+
+  String _toString() native "XPathException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XPathExpressionDOMImpl extends _DOMWrapperBase implements XPathExpression {
+  _XPathExpressionDOMImpl();
+  String get typeName() => "XPathExpression";
+
+  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) {
+    return _evaluate(contextNode, type, inResult);
+  }
+
+  XPathResult _evaluate(contextNode, type, inResult) native "XPathExpression_evaluate_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XPathNSResolverDOMImpl extends _DOMWrapperBase implements XPathNSResolver {
+  _XPathNSResolverDOMImpl();
+  String get typeName() => "XPathNSResolver";
+
+  String lookupNamespaceURI(String prefix) {
+    return _lookupNamespaceURI(prefix);
+  }
+
+  String _lookupNamespaceURI(prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XPathResultDOMImpl extends _DOMWrapperBase implements XPathResult {
+  _XPathResultDOMImpl();
+  String get typeName() => "XPathResult";
+
+  bool get booleanValue() native "XPathResult_booleanValue_Getter";
+
+  bool get invalidIteratorState() native "XPathResult_invalidIteratorState_Getter";
+
+  num get numberValue() native "XPathResult_numberValue_Getter";
+
+  int get resultType() native "XPathResult_resultType_Getter";
+
+  Node get singleNodeValue() native "XPathResult_singleNodeValue_Getter";
+
+  int get snapshotLength() native "XPathResult_snapshotLength_Getter";
+
+  String get stringValue() native "XPathResult_stringValue_Getter";
+
+  Node iterateNext() {
+    return _iterateNext();
+  }
+
+  Node _iterateNext() native "XPathResult_iterateNext_Callback";
+
+  Node snapshotItem(int index) {
+    return _snapshotItem(index);
+  }
+
+  Node _snapshotItem(index) native "XPathResult_snapshotItem_Callback";
+
+}
+class _XSLTProcessorFactoryProviderImpl {
+  static _XSLTProcessorDOMImpl createXSLTProcessor()
+      native "XSLTProcessor_constructor_Callback";
+}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _XSLTProcessorDOMImpl extends _DOMWrapperBase implements XSLTProcessor {
+  _XSLTProcessorDOMImpl();
+  String get typeName() => "XSLTProcessor";
+
+  void clearParameters() {
+    _clearParameters();
+    return;
+  }
+
+  void _clearParameters() native "XSLTProcessor_clearParameters_Callback";
+
+  String getParameter(String namespaceURI, String localName) native "XSLTProcessor_getParameter_Callback";
+
+  void importStylesheet(Node stylesheet) native "XSLTProcessor_importStylesheet_Callback";
+
+  void removeParameter(String namespaceURI, String localName) native "XSLTProcessor_removeParameter_Callback";
+
+  void reset() {
+    _reset();
+    return;
+  }
+
+  void _reset() native "XSLTProcessor_reset_Callback";
+
+  void setParameter(String namespaceURI, String localName, String value) native "XSLTProcessor_setParameter_Callback";
+
+  Document transformToDocument(Node source) native "XSLTProcessor_transformToDocument_Callback";
+
+  DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
+
+}
 
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
   _AbstractWorkerImpl._wrap(ptr) : super._wrap(ptr);
 
   Events get on() => _ptr.on;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _AnchorElementImpl extends _ElementImpl implements AnchorElement {
@@ -1170,11 +23480,11 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
   num get level() => _wrap(_ptr.level);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent {
@@ -4803,11 +27113,11 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void swapCache() => _ptr.swapCache();
 
@@ -5074,6 +27384,10 @@ class _DOMStringListImpl extends _DOMTypeBase implements DOMStringList {
   String item(int index) => _wrap(_ptr.item(_unwrap(index)));
 }
 
+class _DOMStringMapImpl extends _DOMTypeBase implements DOMStringMap {
+  _DOMStringMapImpl._wrap(ptr) : super._wrap(ptr);
+}
+
 class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
   _DOMTokenListImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -5211,17 +27525,17 @@ class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements Deprecat
 
   MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void addStream(MediaStream stream) => _ptr.addStream(_unwrap(stream));
 
   void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
   void processSignalingMessage(String message) => _ptr.processSignalingMessage(_unwrap(message));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void removeStream(MediaStream stream) => _ptr.removeStream(_unwrap(stream));
 
@@ -5333,7 +27647,7 @@ class _DocumentImpl extends _NodeImpl
 
   void set cookie(String value) { _ptr.cookie = _unwrap(value); }
 
-  Window get window() => _wrap(_ptr.defaultView);
+  Window get window() => _wrap(_ptr.window);
 
   Element get documentElement() => _wrap(_ptr.documentElement);
 
@@ -5379,19 +27693,19 @@ class _DocumentImpl extends _NodeImpl
 
   DocumentFragment createDocumentFragment() => _wrap(_ptr.createDocumentFragment());
 
-  Element $dom_createElement(String tagName) => _wrap(_ptr.createElement(_unwrap(tagName)));
+  Element $dom_createElement(String tagName) => _wrap(_ptr.$dom_createElement(_unwrap(tagName)));
 
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName) => _wrap(_ptr.createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName) => _wrap(_ptr.$dom_createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
 
-  Event $dom_createEvent(String eventType) => _wrap(_ptr.createEvent(_unwrap(eventType)));
+  Event $dom_createEvent(String eventType) => _wrap(_ptr.$dom_createEvent(_unwrap(eventType)));
 
   Range createRange() => _wrap(_ptr.createRange());
 
-  Text $dom_createTextNode(String data) => _wrap(_ptr.createTextNode(_unwrap(data)));
+  Text $dom_createTextNode(String data) => _wrap(_ptr.$dom_createTextNode(_unwrap(data)));
 
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => _wrap(_ptr.createTouch(_unwrap(window), _unwrap(target), _unwrap(identifier), _unwrap(pageX), _unwrap(pageY), _unwrap(screenX), _unwrap(screenY), _unwrap(webkitRadiusX), _unwrap(webkitRadiusY), _unwrap(webkitRotationAngle), _unwrap(webkitForce)));
 
-  TouchList $dom_createTouchList() => _wrap(_ptr.createTouchList());
+  TouchList $dom_createTouchList() => _wrap(_ptr.$dom_createTouchList());
 
   Element elementFromPoint(int x, int y) => _wrap(_ptr.elementFromPoint(_unwrap(x), _unwrap(y)));
 
@@ -5399,13 +27713,13 @@ class _DocumentImpl extends _NodeImpl
 
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) => _wrap(_ptr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
 
-  Element $dom_getElementById(String elementId) => _wrap(_ptr.getElementById(_unwrap(elementId)));
+  Element $dom_getElementById(String elementId) => _wrap(_ptr.$dom_getElementById(_unwrap(elementId)));
 
-  NodeList $dom_getElementsByClassName(String tagname) => _wrap(_ptr.getElementsByClassName(_unwrap(tagname)));
+  NodeList $dom_getElementsByClassName(String tagname) => _wrap(_ptr.$dom_getElementsByClassName(_unwrap(tagname)));
 
-  NodeList $dom_getElementsByName(String elementName) => _wrap(_ptr.getElementsByName(_unwrap(elementName)));
+  NodeList $dom_getElementsByName(String elementName) => _wrap(_ptr.$dom_getElementsByName(_unwrap(elementName)));
 
-  NodeList $dom_getElementsByTagName(String tagname) => _wrap(_ptr.getElementsByTagName(_unwrap(tagname)));
+  NodeList $dom_getElementsByTagName(String tagname) => _wrap(_ptr.$dom_getElementsByTagName(_unwrap(tagname)));
 
   bool queryCommandEnabled(String command) => _wrap(_ptr.queryCommandEnabled(_unwrap(command)));
 
@@ -5417,7 +27731,7 @@ class _DocumentImpl extends _NodeImpl
 
   String queryCommandValue(String command) => _wrap(_ptr.queryCommandValue(_unwrap(command)));
 
-  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.$dom_querySelectorAll(_unwrap(selectors)));
 
   void webkitCancelFullScreen() => _ptr.webkitCancelFullScreen();
 
@@ -5438,7 +27752,7 @@ class _DocumentImpl extends _NodeImpl
 
 // TODO(jacobr): autogenerate this method.
   _ElementImpl $dom_querySelector(String selectors) =>
-      _wrap(_ptr.querySelector(selectors));
+      _wrap(_ptr.query(selectors));
 
   ElementList queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
@@ -5809,9 +28123,9 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 
   Events get on() => _ptr.on;
 
-  Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
+  Element query(String selectors) => _wrap(_ptr.query(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.$dom_querySelectorAll(_unwrap(selectors)));
 
 }
 
@@ -6573,21 +28887,21 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   Events get on() => _ptr.on;
 
-  int get $dom_childElementCount() => _wrap(_ptr.childElementCount);
+  int get $dom_childElementCount() => _wrap(_ptr.$dom_childElementCount);
 
-  HTMLCollection get $dom_children() => _wrap(_ptr.children);
+  HTMLCollection get $dom_children() => _wrap(_ptr.$dom_children);
 
-  String get $dom_className() => _wrap(_ptr.className);
+  String get $dom_className() => _wrap(_ptr.$dom_className);
 
-  void set $dom_className(String value) { _ptr.className = _unwrap(value); }
+  void set $dom_className(String value) { _ptr.$dom_className = _unwrap(value); }
 
-  int get $dom_clientHeight() => _wrap(_ptr.clientHeight);
+  int get $dom_clientHeight() => _wrap(_ptr.$dom_clientHeight);
 
-  int get $dom_clientLeft() => _wrap(_ptr.clientLeft);
+  int get $dom_clientLeft() => _wrap(_ptr.$dom_clientLeft);
 
-  int get $dom_clientTop() => _wrap(_ptr.clientTop);
+  int get $dom_clientTop() => _wrap(_ptr.$dom_clientTop);
 
-  int get $dom_clientWidth() => _wrap(_ptr.clientWidth);
+  int get $dom_clientWidth() => _wrap(_ptr.$dom_clientWidth);
 
   String get contentEditable() => _wrap(_ptr.contentEditable);
 
@@ -6603,7 +28917,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set draggable(bool value) { _ptr.draggable = _unwrap(value); }
 
-  Element get $dom_firstElementChild() => _wrap(_ptr.firstElementChild);
+  Element get $dom_firstElementChild() => _wrap(_ptr.$dom_firstElementChild);
 
   bool get hidden() => _wrap(_ptr.hidden);
 
@@ -6623,35 +28937,35 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set lang(String value) { _ptr.lang = _unwrap(value); }
 
-  Element get $dom_lastElementChild() => _wrap(_ptr.lastElementChild);
+  Element get $dom_lastElementChild() => _wrap(_ptr.$dom_lastElementChild);
 
   Element get nextElementSibling() => _wrap(_ptr.nextElementSibling);
 
-  int get $dom_offsetHeight() => _wrap(_ptr.offsetHeight);
+  int get $dom_offsetHeight() => _wrap(_ptr.$dom_offsetHeight);
 
-  int get $dom_offsetLeft() => _wrap(_ptr.offsetLeft);
+  int get $dom_offsetLeft() => _wrap(_ptr.$dom_offsetLeft);
 
   Element get offsetParent() => _wrap(_ptr.offsetParent);
 
-  int get $dom_offsetTop() => _wrap(_ptr.offsetTop);
+  int get $dom_offsetTop() => _wrap(_ptr.$dom_offsetTop);
 
-  int get $dom_offsetWidth() => _wrap(_ptr.offsetWidth);
+  int get $dom_offsetWidth() => _wrap(_ptr.$dom_offsetWidth);
 
   String get outerHTML() => _wrap(_ptr.outerHTML);
 
   Element get previousElementSibling() => _wrap(_ptr.previousElementSibling);
 
-  int get $dom_scrollHeight() => _wrap(_ptr.scrollHeight);
+  int get $dom_scrollHeight() => _wrap(_ptr.$dom_scrollHeight);
 
-  int get $dom_scrollLeft() => _wrap(_ptr.scrollLeft);
+  int get $dom_scrollLeft() => _wrap(_ptr.$dom_scrollLeft);
 
-  void set $dom_scrollLeft(int value) { _ptr.scrollLeft = _unwrap(value); }
+  void set $dom_scrollLeft(int value) { _ptr.$dom_scrollLeft = _unwrap(value); }
 
-  int get $dom_scrollTop() => _wrap(_ptr.scrollTop);
+  int get $dom_scrollTop() => _wrap(_ptr.$dom_scrollTop);
 
-  void set $dom_scrollTop(int value) { _ptr.scrollTop = _unwrap(value); }
+  void set $dom_scrollTop(int value) { _ptr.$dom_scrollTop = _unwrap(value); }
 
-  int get $dom_scrollWidth() => _wrap(_ptr.scrollWidth);
+  int get $dom_scrollWidth() => _wrap(_ptr.$dom_scrollWidth);
 
   bool get spellcheck() => _wrap(_ptr.spellcheck);
 
@@ -6685,17 +28999,17 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void focus() => _ptr.focus();
 
-  String $dom_getAttribute(String name) => _wrap(_ptr.getAttribute(_unwrap(name)));
+  String $dom_getAttribute(String name) => _wrap(_ptr.$dom_getAttribute(_unwrap(name)));
 
-  ClientRect $dom_getBoundingClientRect() => _wrap(_ptr.getBoundingClientRect());
+  ClientRect $dom_getBoundingClientRect() => _wrap(_ptr.$dom_getBoundingClientRect());
 
-  ClientRectList $dom_getClientRects() => _wrap(_ptr.getClientRects());
+  ClientRectList $dom_getClientRects() => _wrap(_ptr.$dom_getClientRects());
 
-  NodeList $dom_getElementsByClassName(String name) => _wrap(_ptr.getElementsByClassName(_unwrap(name)));
+  NodeList $dom_getElementsByClassName(String name) => _wrap(_ptr.$dom_getElementsByClassName(_unwrap(name)));
 
-  NodeList $dom_getElementsByTagName(String name) => _wrap(_ptr.getElementsByTagName(_unwrap(name)));
+  NodeList $dom_getElementsByTagName(String name) => _wrap(_ptr.$dom_getElementsByTagName(_unwrap(name)));
 
-  bool $dom_hasAttribute(String name) => _wrap(_ptr.hasAttribute(_unwrap(name)));
+  bool $dom_hasAttribute(String name) => _wrap(_ptr.$dom_hasAttribute(_unwrap(name)));
 
   Element insertAdjacentElement(String where, Element element) => _wrap(_ptr.insertAdjacentElement(_unwrap(where), _unwrap(element)));
 
@@ -6703,21 +29017,21 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void insertAdjacentText(String where, String text) => _ptr.insertAdjacentText(_unwrap(where), _unwrap(text));
 
-  Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
+  Element query(String selectors) => _wrap(_ptr.query(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.$dom_querySelectorAll(_unwrap(selectors)));
 
-  void $dom_removeAttribute(String name) => _ptr.removeAttribute(_unwrap(name));
+  void $dom_removeAttribute(String name) => _ptr.$dom_removeAttribute(_unwrap(name));
 
   void scrollByLines(int lines) => _ptr.scrollByLines(_unwrap(lines));
 
   void scrollByPages(int pages) => _ptr.scrollByPages(_unwrap(pages));
 
-  void scrollIntoView([bool centerIfNeeded = null]) => _ptr.scrollIntoViewIfNeeded(_unwrap(centerIfNeeded));
+  void scrollIntoView([bool centerIfNeeded = null]) => _ptr.scrollIntoView(_unwrap(centerIfNeeded));
 
-  void $dom_setAttribute(String name, String value) => _ptr.setAttribute(_unwrap(name), _unwrap(value));
+  void $dom_setAttribute(String name, String value) => _ptr.$dom_setAttribute(_unwrap(name), _unwrap(value));
 
-  bool matchesSelector(String selectors) => _wrap(_ptr.webkitMatchesSelector(_unwrap(selectors)));
+  bool matchesSelector(String selectors) => _wrap(_ptr.matchesSelector(_unwrap(selectors)));
 
   void webkitRequestFullScreen(int flags) => _ptr.webkitRequestFullScreen(_unwrap(flags));
 
@@ -6958,7 +29272,7 @@ class _EventImpl extends _DOMTypeBase implements Event {
 
   String get type() => _wrap(_ptr.type);
 
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) => _ptr.initEvent(_unwrap(eventTypeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg));
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) => _ptr.$dom_initEvent(_unwrap(eventTypeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg));
 
   void preventDefault() => _ptr.preventDefault();
 
@@ -6990,21 +29304,21 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
   String get url() => _wrap(_ptr.url);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _EventsImpl implements Events {
-
-  final _EventTargetImpl _ptr;
+  // TODO(podivilov): add type.
+  final _ptr;
 
   final Map<String, EventListenerList> _listenerMap;
 
@@ -7013,7 +29327,7 @@ class _EventsImpl implements Events {
   EventListenerList operator [](String type) {
     return _get(type.toLowerCase());
   }
-  
+
   EventListenerList _get(String type) {
     return _listenerMap.putIfAbsent(type,
       () => new _EventListenerListImpl(_ptr, type));
@@ -7028,7 +29342,8 @@ class _EventListenerWrapper {
 }
 
 class _EventListenerListImpl implements EventListenerList {
-  final _EventTargetImpl _ptr;
+  // TODO(podivilov): add type.
+  final _ptr;
   final String _type;
   List<_EventListenerWrapper> _wrappers;
 
@@ -7050,7 +29365,7 @@ class _EventListenerListImpl implements EventListenerList {
     // TODO(jacobr): what is the correct behavior here. We could alternately
     // force the event to have the expected type.
     assert(evt.type == _type);
-    return _ptr.$dom_dispatchEvent(evt);
+    return _ptr.$dom_dispatchEvent(_unwrap(evt));
   }
 
   void _add(EventListener listener, bool useCapture) {
@@ -7113,11 +29428,11 @@ class _EventTargetImpl extends _DOMTypeBase implements EventTarget {
 
   _EventTargetImpl._wrap(ptr) : super._wrap(ptr);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
 }
 
@@ -7294,9 +29609,9 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   void readAsArrayBuffer(Blob blob) => _ptr.readAsArrayBuffer(_unwrap(blob));
 
@@ -7306,7 +29621,7 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void readAsText(Blob blob, [String encoding = null]) => _ptr.readAsText(_unwrap(blob), _unwrap(encoding));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _FileReaderSyncImpl extends _DOMTypeBase implements FileReaderSync {
@@ -7336,11 +29651,11 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
   void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void seek(int position) => _ptr.seek(_unwrap(position));
 
@@ -7920,7 +30235,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   String get version() => _wrap(_ptr.version);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void close() => _ptr.close();
 
@@ -7928,9 +30243,9 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   void deleteObjectStore(String name) => _ptr.deleteObjectStore(_unwrap(name));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   IDBVersionChangeRequest setVersion(String version) => _wrap(_ptr.setVersion(_unwrap(version)));
 
@@ -8050,11 +30365,11 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   String get webkitErrorMessage() => _wrap(_ptr.webkitErrorMessage);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
@@ -8068,13 +30383,13 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
   void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   IDBObjectStore objectStore(String name) => _wrap(_ptr.objectStore(_unwrap(name)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent {
@@ -8090,11 +30405,11 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8725,11 +31040,11 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _JavaScriptCallFrameImpl extends _DOMTypeBase implements JavaScriptCallFrame {
@@ -9045,15 +31360,15 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
   void set volume(num value) { _ptr.volume = _unwrap(value); }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   void pause() => _ptr.pause();
 
   void play() => _ptr.play();
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement {
@@ -9345,11 +31660,11 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
   MediaStreamTrackList get videoTracks() => _wrap(_ptr.videoTracks);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
@@ -9435,15 +31750,15 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
   Events get on() => _ptr.on;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   void postMessage(String message, [List messagePorts = null]) => _ptr.postMessage(_unwrap(message), _unwrap(messagePorts));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void start() => _ptr.start();
 
@@ -9561,7 +31876,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
   int get y() => _wrap(_ptr.y);
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) => _ptr.initMouseEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(button), _unwrap(relatedTarget));
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) => _ptr.$dom_initMouseEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(button), _unwrap(relatedTarget));
 }
 
 class _MutationCallbackImpl extends _DOMTypeBase implements MutationCallback {
@@ -9900,47 +32215,47 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   _NodeImpl._wrap(ptr) : super._wrap(ptr);
 
-  NamedNodeMap get $dom_attributes() => _wrap(_ptr.attributes);
+  NamedNodeMap get $dom_attributes() => _wrap(_ptr.$dom_attributes);
 
-  NodeList get $dom_childNodes() => _wrap(_ptr.childNodes);
+  NodeList get $dom_childNodes() => _wrap(_ptr.$dom_childNodes);
 
-  Node get $dom_firstChild() => _wrap(_ptr.firstChild);
+  Node get $dom_firstChild() => _wrap(_ptr.$dom_firstChild);
 
-  Node get $dom_lastChild() => _wrap(_ptr.lastChild);
+  Node get $dom_lastChild() => _wrap(_ptr.$dom_lastChild);
 
-  Node get nextNode() => _wrap(_ptr.nextSibling);
+  Node get nextNode() => _wrap(_ptr.nextNode);
 
-  int get $dom_nodeType() => _wrap(_ptr.nodeType);
+  int get $dom_nodeType() => _wrap(_ptr.$dom_nodeType);
 
-  Document get document() => _wrap(_ptr.ownerDocument);
+  Document get document() => _wrap(_ptr.document);
 
-  Node get parent() => _wrap(_ptr.parentNode);
+  Node get parent() => _wrap(_ptr.parent);
 
-  Node get previousNode() => _wrap(_ptr.previousSibling);
+  Node get previousNode() => _wrap(_ptr.previousNode);
 
-  String get text() => _wrap(_ptr.textContent);
+  String get text() => _wrap(_ptr.text);
 
-  void set text(String value) { _ptr.textContent = _unwrap(value); }
+  void set text(String value) { _ptr.text = _unwrap(value); }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  Node $dom_appendChild(Node newChild) => _wrap(_ptr.appendChild(_unwrap(newChild)));
+  Node $dom_appendChild(Node newChild) => _wrap(_ptr.$dom_appendChild(_unwrap(newChild)));
 
-  Node clone(bool deep) => _wrap(_ptr.cloneNode(_unwrap(deep)));
+  Node clone(bool deep) => _wrap(_ptr.clone(_unwrap(deep)));
 
   bool contains(Node other) => _wrap(_ptr.contains(_unwrap(other)));
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
   bool hasChildNodes() => _wrap(_ptr.hasChildNodes());
 
   Node insertBefore(Node newChild, Node refChild) => _wrap(_ptr.insertBefore(_unwrap(newChild), _unwrap(refChild)));
 
-  Node $dom_removeChild(Node oldChild) => _wrap(_ptr.removeChild(_unwrap(oldChild)));
+  Node $dom_removeChild(Node oldChild) => _wrap(_ptr.$dom_removeChild(_unwrap(oldChild)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  Node $dom_replaceChild(Node newChild, Node oldChild) => _wrap(_ptr.replaceChild(_unwrap(newChild), _unwrap(oldChild)));
+  Node $dom_replaceChild(Node newChild, Node oldChild) => _wrap(_ptr.$dom_replaceChild(_unwrap(newChild), _unwrap(oldChild)));
 
 }
 
@@ -10153,9 +32468,9 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
 class _NodeSelectorImpl extends _DOMTypeBase implements NodeSelector {
   _NodeSelectorImpl._wrap(ptr) : super._wrap(ptr);
 
-  Element query(String selectors) => _wrap(_ptr.querySelector(_unwrap(selectors)));
+  Element query(String selectors) => _wrap(_ptr.query(_unwrap(selectors)));
 
-  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
+  NodeList $dom_querySelectorAll(String selectors) => _wrap(_ptr.$dom_querySelectorAll(_unwrap(selectors)));
 }
 
 class _NotationImpl extends _NodeImpl implements Notation {
@@ -10183,15 +32498,15 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set tag(String value) { _ptr.tag = _unwrap(value); }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void cancel() => _ptr.cancel();
 
   void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void show() => _ptr.show();
 }
@@ -10505,7 +32820,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void addStream(MediaStream stream, [Map mediaStreamHints = null]) => _ptr.addStream(_unwrap(stream), _unwrap(mediaStreamHints));
 
@@ -10515,11 +32830,11 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   SessionDescription createOffer([Map mediaHints = null]) => _wrap(_ptr.createOffer(_unwrap(mediaHints)));
 
-  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  bool $dom_dispatchEvent(Event event) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(event)));
 
   void processIceMessage(IceCandidate candidate) => _ptr.processIceMessage(_unwrap(candidate));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void removeStream(MediaStream stream) => _ptr.removeStream(_unwrap(stream));
 
@@ -10903,7 +33218,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11167,7 +33482,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11223,7 +33538,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11335,7 +33650,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11375,7 +33690,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11387,7 +33702,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 
   SVGSVGElement get rootElement() => _wrap(_ptr.rootElement);
 
-  Event $dom_createEvent(String eventType) => _wrap(_ptr.createEvent(_unwrap(eventType)));
+  Event $dom_createEvent(String eventType) => _wrap(_ptr.$dom_createEvent(_unwrap(eventType)));
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11530,7 +33845,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11596,7 +33911,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11626,7 +33941,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11652,7 +33967,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11690,7 +34005,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11738,7 +34053,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11772,7 +34087,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11806,7 +34121,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11850,7 +34165,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11874,7 +34189,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11922,7 +34237,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11966,7 +34281,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -11990,7 +34305,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12030,7 +34345,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12060,7 +34375,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12102,7 +34417,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12148,7 +34463,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12184,7 +34499,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12232,7 +34547,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12322,7 +34637,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12376,7 +34691,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12438,7 +34753,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12464,7 +34779,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12518,7 +34833,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12634,7 +34949,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12736,7 +35051,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12790,7 +35105,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -12978,7 +35293,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13386,7 +35701,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13466,7 +35781,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13524,7 +35839,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13636,7 +35951,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13776,7 +36091,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13836,7 +36151,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13866,7 +36181,7 @@ class _SVGStringListImpl extends _DOMTypeBase implements SVGStringList {
 class _SVGStylableImpl extends _DOMTypeBase implements SVGStylable {
   _SVGStylableImpl._wrap(ptr) : super._wrap(ptr);
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13932,7 +36247,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13976,7 +36291,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14064,7 +36379,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14136,7 +36451,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14250,7 +36565,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.$dom_svgClassName);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14636,11 +36951,11 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void start() => _ptr.start();
 
@@ -14746,17 +37061,17 @@ class _StorageImpl extends _DOMTypeBase implements Storage {
   bool isEmpty() => $dom_key(0) == null;
   _StorageImpl._wrap(ptr) : super._wrap(ptr);
 
-  int get $dom_length() => _wrap(_ptr.length);
+  int get $dom_length() => _wrap(_ptr.$dom_length);
 
-  void $dom_clear() => _ptr.clear();
+  void $dom_clear() => _ptr.$dom_clear();
 
-  String $dom_getItem(String key) => _wrap(_ptr.getItem(_unwrap(key)));
+  String $dom_getItem(String key) => _wrap(_ptr.$dom_getItem(_unwrap(key)));
 
-  String $dom_key(int index) => _wrap(_ptr.key(_unwrap(index)));
+  String $dom_key(int index) => _wrap(_ptr.$dom_key(_unwrap(index)));
 
-  void $dom_removeItem(String key) => _ptr.removeItem(_unwrap(key));
+  void $dom_removeItem(String key) => _ptr.$dom_removeItem(_unwrap(key));
 
-  void $dom_setItem(String key, String data) => _ptr.setItem(_unwrap(key), _unwrap(data));
+  void $dom_setItem(String key, String data) => _ptr.$dom_setItem(_unwrap(key), _unwrap(data));
 
 }
 
@@ -15287,13 +37602,13 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 
   void addCue(TextTrackCue cue) => _ptr.addCue(_unwrap(cue));
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   void removeCue(TextTrackCue cue) => _ptr.removeCue(_unwrap(cue));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
@@ -15347,13 +37662,13 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
   void set vertical(String value) { _ptr.vertical = _unwrap(value); }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   DocumentFragment getCueAsHTML() => _wrap(_ptr.getCueAsHTML());
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _TextTrackCueListImpl extends _DOMTypeBase implements TextTrackCueList {
@@ -15373,13 +37688,13 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 
   int get length() => _wrap(_ptr.length);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   TextTrack item(int index) => _wrap(_ptr.item(_unwrap(index)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _TimeRangesImpl extends _DOMTypeBase implements TimeRanges {
@@ -16441,13 +38756,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   String get url() => _wrap(_ptr.url);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void close([int code = null, String reason = null]) => _ptr.close(_unwrap(code), _unwrap(reason));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   bool send(String data) => _wrap(_ptr.send(_unwrap(data)));
 }
@@ -16503,6 +38818,8 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
       webkitRequestAnimationFrame(callback);
+
+  void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
 
   Window get top() => _wrap(_ptr.top);
 
@@ -16614,7 +38931,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   Window get window() => _wrap(_ptr.window);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void alert(String message) => _ptr.alert(_unwrap(message));
 
@@ -16634,13 +38951,13 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   bool confirm(String message) => _wrap(_ptr.confirm(_unwrap(message)));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) => _wrap(_ptr.find(_unwrap(string), _unwrap(caseSensitive), _unwrap(backwards), _unwrap(wrap), _unwrap(wholeWord), _unwrap(searchInFrames), _unwrap(showDialog)));
 
   void focus() => _ptr.focus();
 
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) => _wrap(_ptr.getComputedStyle(_unwrap(element), _unwrap(pseudoElement)));
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) => _wrap(_ptr.$dom_getComputedStyle(_unwrap(element), _unwrap(pseudoElement)));
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) => _wrap(_ptr.getMatchedCSSRules(_unwrap(element), _unwrap(pseudoElement)));
 
@@ -16664,7 +38981,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   void releaseEvents() => _ptr.releaseEvents();
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void resizeBy(num x, num y) => _ptr.resizeBy(_unwrap(x), _unwrap(y));
 
@@ -16729,7 +39046,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   NotificationCenter get webkitNotifications() => _wrap(_ptr.webkitNotifications);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void clearInterval(int handle) => _ptr.clearInterval(_unwrap(handle));
 
@@ -16737,7 +39054,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   void close() => _ptr.close();
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   void importScripts() => _ptr.importScripts();
 
@@ -16745,7 +39062,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) => _wrap(_ptr.openDatabaseSync(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   int setInterval(TimeoutHandler handler, int timeout) => _wrap(_ptr.setInterval(_unwrap(handler), _unwrap(timeout)));
 
@@ -16831,9 +39148,9 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
 
   void abort() => _ptr.abort();
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
   String getAllResponseHeaders() => _wrap(_ptr.getAllResponseHeaders());
 
@@ -16843,7 +39160,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
 
   void overrideMimeType(String override) => _ptr.overrideMimeType(_unwrap(override));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
   void send([data = null]) => _ptr.send(_unwrap(data));
 
@@ -16875,11 +39192,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
 
   Events get on() => _ptr.on;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 
-  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  bool $dom_dispatchEvent(Event evt) => _wrap(_ptr.$dom_dispatchEvent(_unwrap(evt)));
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) => _ptr.$dom_removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
 }
 
 class _XMLSerializerImpl extends _DOMTypeBase implements XMLSerializer {
@@ -16969,15 +39286,15 @@ class _XSLTProcessorImpl extends _DOMTypeBase implements XSLTProcessor {
 
 class _AudioElementFactoryProvider {
   factory AudioElement([String src = null]) =>
-      _wrap(new dom.HTMLAudioElement(_unwrap(src)));
+      _wrap(_HTMLAudioElementFactoryProviderImpl.createHTMLAudioElement(_unwrap(src)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _CSSMatrixFactoryProvider {
-  factory CSSMatrix([String cssValue = '']) =>
-      _wrap(new dom.WebKitCSSMatrix(cssValue));
+  factory CSSMatrix([String cssValue = null]) =>
+      _wrap(_WebKitCSSMatrixFactoryProviderImpl.createWebKitCSSMatrix(_unwrap(cssValue)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16985,7 +39302,7 @@ class _CSSMatrixFactoryProvider {
 
 class _DOMParserFactoryProvider {
   factory DOMParser() =>
-      _wrap(new dom.DOMParser());
+      _wrap(_DOMParserFactoryProviderImpl.createDOMParser());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16993,7 +39310,7 @@ class _DOMParserFactoryProvider {
 
 class _DOMURLFactoryProvider {
   factory DOMURL() =>
-      _wrap(new dom.DOMURL());
+      _wrap(_DOMURLFactoryProviderImpl.createDOMURL());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17001,7 +39318,7 @@ class _DOMURLFactoryProvider {
 
 class _DeprecatedPeerConnectionFactoryProvider {
   factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) =>
-      _wrap(new dom.DeprecatedPeerConnection(_unwrap(serverConfiguration), _unwrap(signalingCallback)));
+      _wrap(_DeprecatedPeerConnectionFactoryProviderImpl.createDeprecatedPeerConnection(_unwrap(serverConfiguration), _unwrap(signalingCallback)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17009,7 +39326,7 @@ class _DeprecatedPeerConnectionFactoryProvider {
 
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) =>
-      _wrap(new dom.EventSource(_unwrap(scriptUrl)));
+      _wrap(_EventSourceFactoryProviderImpl.createEventSource(_unwrap(scriptUrl)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17017,7 +39334,7 @@ class _EventSourceFactoryProvider {
 
 class _FileReaderFactoryProvider {
   factory FileReader() =>
-      _wrap(new dom.FileReader());
+      _wrap(_FileReaderFactoryProviderImpl.createFileReader());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17025,7 +39342,7 @@ class _FileReaderFactoryProvider {
 
 class _FileReaderSyncFactoryProvider {
   factory FileReaderSync() =>
-      _wrap(new dom.FileReaderSync());
+      _wrap(_FileReaderSyncFactoryProviderImpl.createFileReaderSync());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17033,7 +39350,7 @@ class _FileReaderSyncFactoryProvider {
 
 class _IceCandidateFactoryProvider {
   factory IceCandidate(String label, String candidateLine) =>
-      _wrap(new dom.IceCandidate(_unwrap(label), _unwrap(candidateLine)));
+      _wrap(_IceCandidateFactoryProviderImpl.createIceCandidate(_unwrap(label), _unwrap(candidateLine)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17041,7 +39358,7 @@ class _IceCandidateFactoryProvider {
 
 class _MediaControllerFactoryProvider {
   factory MediaController() =>
-      _wrap(new dom.MediaController());
+      _wrap(_MediaControllerFactoryProviderImpl.createMediaController());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17049,7 +39366,7 @@ class _MediaControllerFactoryProvider {
 
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
-      _wrap(new dom.MediaStream(_unwrap(audioTracks), _unwrap(videoTracks)));
+      _wrap(_MediaStreamFactoryProviderImpl.createMediaStream(_unwrap(audioTracks), _unwrap(videoTracks)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17057,7 +39374,7 @@ class _MediaStreamFactoryProvider {
 
 class _MessageChannelFactoryProvider {
   factory MessageChannel() =>
-      _wrap(new dom.MessageChannel());
+      _wrap(_MessageChannelFactoryProviderImpl.createMessageChannel());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17065,7 +39382,7 @@ class _MessageChannelFactoryProvider {
 
 class _NotificationFactoryProvider {
   factory Notification(String title, [Map options = null]) =>
-      _wrap(new dom.Notification(_unwrap(title), _unwrap(options)));
+      _wrap(_NotificationFactoryProviderImpl.createNotification(_unwrap(title), _unwrap(options)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17073,7 +39390,7 @@ class _NotificationFactoryProvider {
 
 class _OptionElementFactoryProvider {
   factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) =>
-      _wrap(new dom.HTMLOptionElement(_unwrap(data), _unwrap(value), _unwrap(defaultSelected), _unwrap(selected)));
+      _wrap(_HTMLOptionElementFactoryProviderImpl.createHTMLOptionElement(_unwrap(data), _unwrap(value), _unwrap(defaultSelected), _unwrap(selected)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17081,7 +39398,7 @@ class _OptionElementFactoryProvider {
 
 class _PeerConnection00FactoryProvider {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
-      _wrap(new dom.PeerConnection00(_unwrap(serverConfiguration), _unwrap(iceCallback)));
+      _wrap(_PeerConnection00FactoryProviderImpl.createPeerConnection00(_unwrap(serverConfiguration), _unwrap(iceCallback)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17089,7 +39406,7 @@ class _PeerConnection00FactoryProvider {
 
 class _SessionDescriptionFactoryProvider {
   factory SessionDescription(String sdp) =>
-      _wrap(new dom.SessionDescription(_unwrap(sdp)));
+      _wrap(_SessionDescriptionFactoryProviderImpl.createSessionDescription(_unwrap(sdp)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17097,7 +39414,7 @@ class _SessionDescriptionFactoryProvider {
 
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) =>
-      _wrap(new dom.ShadowRoot(_unwrap(host)));
+      _wrap(_ShadowRootFactoryProviderImpl.createShadowRoot(_unwrap(host)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17105,7 +39422,7 @@ class _ShadowRootFactoryProvider {
 
 class _SharedWorkerFactoryProvider {
   factory SharedWorker(String scriptURL, [String name = null]) =>
-      _wrap(new dom.SharedWorker(_unwrap(scriptURL), _unwrap(name)));
+      _wrap(_SharedWorkerFactoryProviderImpl.createSharedWorker(_unwrap(scriptURL), _unwrap(name)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17113,7 +39430,7 @@ class _SharedWorkerFactoryProvider {
 
 class _SpeechGrammarFactoryProvider {
   factory SpeechGrammar() =>
-      _wrap(new dom.SpeechGrammar());
+      _wrap(_SpeechGrammarFactoryProviderImpl.createSpeechGrammar());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17121,7 +39438,7 @@ class _SpeechGrammarFactoryProvider {
 
 class _SpeechGrammarListFactoryProvider {
   factory SpeechGrammarList() =>
-      _wrap(new dom.SpeechGrammarList());
+      _wrap(_SpeechGrammarListFactoryProviderImpl.createSpeechGrammarList());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17129,7 +39446,7 @@ class _SpeechGrammarListFactoryProvider {
 
 class _SpeechRecognitionFactoryProvider {
   factory SpeechRecognition() =>
-      _wrap(new dom.SpeechRecognition());
+      _wrap(_SpeechRecognitionFactoryProviderImpl.createSpeechRecognition());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17137,7 +39454,7 @@ class _SpeechRecognitionFactoryProvider {
 
 class _TextTrackCueFactoryProvider {
   factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) =>
-      _wrap(new dom.TextTrackCue(_unwrap(id), _unwrap(startTime), _unwrap(endTime), _unwrap(text), _unwrap(settings), _unwrap(pauseOnExit)));
+      _wrap(_TextTrackCueFactoryProviderImpl.createTextTrackCue(_unwrap(id), _unwrap(startTime), _unwrap(endTime), _unwrap(text), _unwrap(settings), _unwrap(pauseOnExit)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17145,14 +39462,14 @@ class _TextTrackCueFactoryProvider {
 
 class _WorkerFactoryProvider {
   factory Worker(String scriptUrl) =>
-      _wrap(new dom.Worker(_unwrap(scriptUrl)));
+      _wrap(_WorkerFactoryProviderImpl.createWorker(_unwrap(scriptUrl)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _XMLHttpRequestFactoryProvider {
-  factory XMLHttpRequest() => _wrap(new dom.XMLHttpRequest());
+  factory XMLHttpRequest() => _wrap(_XMLHttpRequestFactoryProviderImpl.createXMLHttpRequest());
 
   factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>
@@ -17164,7 +39481,7 @@ class _XMLHttpRequestFactoryProvider {
 
 class _XMLSerializerFactoryProvider {
   factory XMLSerializer() =>
-      _wrap(new dom.XMLSerializer());
+      _wrap(_XMLSerializerFactoryProviderImpl.createXMLSerializer());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17172,7 +39489,7 @@ class _XMLSerializerFactoryProvider {
 
 class _XPathEvaluatorFactoryProvider {
   factory XPathEvaluator() =>
-      _wrap(new dom.XPathEvaluator());
+      _wrap(_XPathEvaluatorFactoryProviderImpl.createXPathEvaluator());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17180,7 +39497,7 @@ class _XPathEvaluatorFactoryProvider {
 
 class _XSLTProcessorFactoryProvider {
   factory XSLTProcessor() =>
-      _wrap(new dom.XSLTProcessor());
+      _wrap(_XSLTProcessorFactoryProviderImpl.createXSLTProcessor());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21661,6 +43978,15 @@ interface DOMStringList extends List<String> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMStringMap
+interface DOMStringMap {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMTokenList
 interface DOMTokenList {
 
@@ -24578,6 +46904,9 @@ interface IFrameElement extends Element default _Elements {
 
   /** @domName HTMLIFrameElement.align */
   String align;
+
+  /** @domName HTMLIFrameElement.contentWindow */
+  final Window contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -34509,6 +56838,8 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.webkitRequestAnimationFrame */
   int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
+  void cancelAnimationFrame(int id);
+
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -36494,151 +58825,102 @@ class _SVGSVGElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioContextFactoryProvider {
-  factory AudioContext() => _wrap(new dom.AudioContext());
+  factory AudioContext() => _wrap(_createAudioContext());
+  static _createAudioContext() native "AudioContext_constructor_Callback";
 }
 
 class _IDBKeyRangeFactoryProvider {
 
   factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _wrap(new dom.IDBKeyRange.only(_unwrap(value)));
+      _wrap(_IDBKeyRangeDOMImpl.only(_unwrap(value)));
 
   factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(new dom.IDBKeyRange.lowerBound(_unwrap(bound), open));
+      _wrap(_IDBKeyRangeDOMImpl.lowerBound(_unwrap(bound), open));
 
   factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(new dom.IDBKeyRange.upperBound(_unwrap(bound), open));
+      _wrap(_IDBKeyRangeDOMImpl.upperBound(_unwrap(bound), open));
 
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
-      _wrap(new dom.IDBKeyRange.bound(_unwrap(lower), _unwrap(upper),
+      _wrap(_IDBKeyRangeDOMImpl.bound(_unwrap(lower), _unwrap(upper),
                                       lowerOpen, upperOpen));
 }
 
 class _TypedArrayFactoryProvider {
-
-  factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32_1(ensureNative(list));
+  factory Float32Array(int length) => _wrap(_F32(length));
+  factory Float32Array.fromList(List<num> list) => _wrap(_F32(ensureNative(list)));
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
-                                  [int byteOffset = 0, int length]) {
-    if (length == null) return _F32_2(buffer, byteOffset);
-    return _F32_3(buffer, byteOffset, length);
-  }
+                                  [int byteOffset = 0, int length]) =>
+      _wrap(_F32(_unwrap(buffer), byteOffset, length));
+  static _F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";
 
-  factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64_1(ensureNative(list));
+  factory Float64Array(int length) => _wrap(_F64(length));
+  factory Float64Array.fromList(List<num> list) => _wrap(_F64(ensureNative(list)));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
-                                  [int byteOffset = 0, int length]) {
-    if (length == null) return _F64_2(buffer, byteOffset);
-    return _F64_3(buffer, byteOffset, length);
-  }
+                                  [int byteOffset = 0, int length]) =>
+      _wrap(_F64(_unwrap(buffer), byteOffset, length));
+  static _F64(_arg0, [_arg1, _arg2]) native "Float64Array_constructor_Callback";
 
-  factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8_1(ensureNative(list));
+  factory Int8Array(int length) => _wrap(_I8(length));
+  factory Int8Array.fromList(List<num> list) => _wrap(_I8(ensureNative(list)));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
-                               [int byteOffset = 0, int length]) {
-    if (length == null) return _I8_2(buffer, byteOffset);
-    return _I8_3(buffer, byteOffset, length);
-  }
+                               [int byteOffset = 0, int length]) =>
+      _wrap(_I8(_unwrap(buffer), byteOffset, length));
+  static _I8(_arg0, [_arg1, _arg2]) native "Int8Array_constructor_Callback";
 
-  factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16_1(ensureNative(list));
+  factory Int16Array(int length) => _wrap(_I16(length));
+  factory Int16Array.fromList(List<num> list) => _wrap(_I16(ensureNative(list)));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) {
-    if (length == null) return _I16_2(buffer, byteOffset);
-    return _I16_3(buffer, byteOffset, length);
-  }
+                                [int byteOffset = 0, int length]) =>
+      _wrap(_I16(_unwrap(buffer), byteOffset, length));
+  static _I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
 
-  factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32_1(ensureNative(list));
+  factory Int32Array(int length) => _wrap(_I32(length));
+  factory Int32Array.fromList(List<num> list) => _wrap(_I32(ensureNative(list)));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) {
-    if (length == null) return _I32_2(buffer, byteOffset);
-    return _I32_3(buffer, byteOffset, length);
-  }
+                                [int byteOffset = 0, int length]) =>
+      _wrap(_I32(_unwrap(buffer), byteOffset, length));
+  static _I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
 
-  factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8_1(ensureNative(list));
+  factory Uint8Array(int length) => _wrap(_U8(length));
+  factory Uint8Array.fromList(List<num> list) => _wrap(_U8(ensureNative(list)));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) {
-    if (length == null) return _U8_2(buffer, byteOffset);
-    return _U8_3(buffer, byteOffset, length);
-  }
+                                [int byteOffset = 0, int length]) =>
+      _wrap(_U8(_unwrap(buffer), byteOffset, length));
+  static _U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
 
-  factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16_1(ensureNative(list));
+  factory Uint16Array(int length) => _wrap(_U16(length));
+  factory Uint16Array.fromList(List<num> list) => _wrap(_U16(ensureNative(list)));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
-                                 [int byteOffset = 0, int length]) {
-    if (length == null) return _U16_2(buffer, byteOffset);
-    return _U16_3(buffer, byteOffset, length);
-  }
+                                 [int byteOffset = 0, int length]) =>
+      _wrap(_U16(_unwrap(buffer), byteOffset, length));
+  static _U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
 
-  factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32_1(ensureNative(list));
+  factory Uint32Array(int length) => _wrap(_U32(length));
+  factory Uint32Array.fromList(List<num> list) => _wrap(_U32(ensureNative(list)));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
-                                 [int byteOffset = 0, int length]) {
-    if (length == null) return _U32_2(buffer, byteOffset);
-    return _U32_3(buffer, byteOffset, length);
-  }
+                                 [int byteOffset = 0, int length]) =>
+      _wrap(_U32(_unwrap(buffer), byteOffset, length));
+  static _U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
 
-  factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C_1(ensureNative(list));
+  factory Uint8ClampedArray(int length) => _wrap(_U8C(length));
+  factory Uint8ClampedArray.fromList(List<num> list) => _wrap(_U8C(ensureNative(list)));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
-                                       [int byteOffset = 0, int length]) {
-    if (length == null) return _U8C_2(buffer, byteOffset);
-    return _U8C_3(buffer, byteOffset, length);
-  }
-
-  static Float32Array _F32(arg) => _wrap(new dom.Float32Array(arg));
-  static Float64Array _F64(arg) => _wrap(new dom.Float64Array(arg));
-  static Int8Array _I8(arg) => _wrap(new dom.Int8Array(arg));
-  static Int16Array _I16(arg) => _wrap(new dom.Int16Array(arg));
-  static Int32Array _I32(arg) => _wrap(new dom.Int32Array(arg));
-  static Uint8Array _U8(arg) => _wrap(new dom.Uint8Array(arg));
-  static Uint16Array _U16(arg) => _wrap(new dom.Uint16Array(arg));
-  static Uint32Array _U32(arg) => _wrap(new dom.Uint32Array(arg));
-  static Uint8ClampedArray _U8C(arg) => _wrap(new dom.Uint8ClampedArray(arg));
-
-  static Float32Array _F32_1(arg) => _wrap(new dom.Float32Array.fromList(arg));
-  static Float64Array _F64_1(arg) => _wrap(new dom.Float64Array.fromList(arg));
-  static Int8Array _I8_1(arg) => _wrap(new dom.Int8Array.fromList(arg));
-  static Int16Array _I16_1(arg) => _wrap(new dom.Int16Array.fromList(arg));
-  static Int32Array _I32_1(arg) => _wrap(new dom.Int32Array.fromList(arg));
-  static Uint8Array _U8_1(arg) => _wrap(new dom.Uint8Array.fromList(arg));
-  static Uint16Array _U16_1(arg) => _wrap(new dom.Uint16Array.fromList(arg));
-  static Uint32Array _U32_1(arg) => _wrap(new dom.Uint32Array.fromList(arg));
-  static Uint8ClampedArray _U8C_1(arg) => _wrap(new dom.Uint8ClampedArray.fromList(arg));
-
-  static Float32Array _F32_2(buffer, byteOffset) => _wrap(new dom.Float32Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Float64Array _F64_2(buffer, byteOffset) => _wrap(new dom.Float64Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Int8Array _I8_2(buffer, byteOffset) => _wrap(new dom.Int8Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Int16Array _I16_2(buffer, byteOffset) => _wrap(new dom.Int16Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Int32Array _I32_2(buffer, byteOffset) => _wrap(new dom.Int32Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Uint8Array _U8_2(buffer, byteOffset) => _wrap(new dom.Uint8Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Uint16Array _U16_2(buffer, byteOffset) => _wrap(new dom.Uint16Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Uint32Array _U32_2(buffer, byteOffset) => _wrap(new dom.Uint32Array.fromBuffer(_unwrap(buffer), byteOffset));
-  static Uint8ClampedArray _U8C_2(buffer, byteOffset) => _wrap(new dom.Uint8ClampedArray.fromBuffer(_unwrap(buffer), byteOffset));
-
-  static Float32Array _F32_3(buffer, byteOffset, length) => _wrap(new dom.Float32Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Float64Array _F64_3(buffer, byteOffset, length) => _wrap(new dom.Float64Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Int8Array _I8_3(buffer, byteOffset, length) => _wrap(new dom.Int8Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Int16Array _I16_3(buffer, byteOffset, length) => _wrap(new dom.Int16Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Int32Array _I32_3(buffer, byteOffset, length) => _wrap(new dom.Int32Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Uint8Array _U8_3(buffer, byteOffset, length) => _wrap(new dom.Uint8Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Uint16Array _U16_3(buffer, byteOffset, length) => _wrap(new dom.Uint16Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Uint32Array _U32_3(buffer, byteOffset, length) => _wrap(new dom.Uint32Array.fromBuffer(_unwrap(buffer), byteOffset, length));
-  static Uint8ClampedArray _U8C_3(buffer, byteOffset, length) => _wrap(new dom.Uint8ClampedArray.fromBuffer(_unwrap(buffer), byteOffset, length));
+                                       [int byteOffset = 0, int length]) =>
+      _wrap(_U8C(_unwrap(buffer), byteOffset, length));
+  static _U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
 class _PointFactoryProvider {
-
-  factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
+  factory Point(num x, num y) => _wrap(_createWebKitPoint(x, y));
+  static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
 }
 
 class _WebSocketFactoryProvider {
-
-  factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
+  factory WebSocket(String url) => _wrap(_createWebSocket(url));
+  static _createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 
 class _TextFactoryProvider {
@@ -36925,4 +59207,140 @@ class _Lists {
     }
     return accumulator;
   }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DOMWrapperBase extends NativeFieldWrapperClass1 {
+  var dartObjectLocalStorage;
+
+  abstract String get typeName();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// This API is exploratory.
+spawnDomIsolate(Window targetWindowWrapped, String entryPoint) {
+  final targetWindow = _unwrap(targetWindowWrapped);
+  if (targetWindow is! _DOMWindowDOMImpl && targetWindow is! _DOMWindowCrossFrameDOMImpl) {
+    throw 'Bad window argument: $targetWindow';
+  }
+  final result = new Completer<SendPort>();
+  final port = _Utils.spawnDomIsolateImpl(targetWindow, entryPoint);
+  window.setTimeout(() { result.complete(port); }, 0);
+  return result.future;
+}
+
+// layoutTestController implementation.
+// FIXME: provide a separate lib for layoutTestController.
+
+var _layoutTestController;
+
+LayoutTestController get layoutTestController() {
+  if (_layoutTestController === null)
+    _layoutTestController = new LayoutTestController._(_NPObject.retrieve("layoutTestController"));
+  return _layoutTestController;
+}
+
+class LayoutTestController {
+  final _NPObject _npObject;
+
+  LayoutTestController._(this._npObject);
+
+  display() => _npObject.invoke('display');
+  dumpAsText() => _npObject.invoke('dumpAsText');
+  notifyDone() => _npObject.invoke('notifyDone');
+  setCanOpenWindows() => _npObject.invoke('setCanOpenWindows');
+  waitUntilDone() => _npObject.invoke('waitUntilDone');
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _Utils {
+  static List convertToList(List list) {
+    // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
+    final length = list.length;
+    List result = new List(length);
+    result.copyFrom(list, 0, 0, length);
+    return result;
+  }
+
+  static List convertMapToList(Map map) {
+    List result = [];
+    map.forEach((k, v) => result.addAll([k, v]));
+    return result;
+  }
+
+  static void populateMap(Map result, List list) {
+    for (int i = 0; i < list.length; i += 2) {
+      result[list[i]] = list[i + 1];
+    }
+  }
+
+  static bool isMap(obj) => obj is Map;
+
+  static Map createMap() => {};
+
+  static makeNotImplementedException(String fileName, int lineNo) {
+    return new UnsupportedOperationException('[info: $fileName:$lineNo]');
+  }
+
+  static window() native "Utils_window";
+  static SendPort spawnDomIsolateImpl(Window window, String entryPoint) native "Utils_spawnDomIsolate";
+}
+
+Utils_print(String message) native "Utils_print";
+
+class _NPObject extends _DOMWrapperBase {
+  _NPObject();
+  static _NPObject retrieve(String key) native "NPObject_retrieve";
+  property(String propertyName) native "NPObject_property";
+  invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
+}
+
+class _DOMWindowCrossFrameDOMImpl extends _DOMWrapperBase implements Window {
+  _DOMWindowCrossFrameDOMImpl();
+
+  // Fields.
+  History get history() native "DOMWindow_history_cross_frame_Getter";
+  Location get location() native "DOMWindow_location_cross_frame_Getter";
+  bool get closed() native "DOMWindow_closed_Getter";
+  int get length() native "DOMWindow_length_Getter";
+  DOMWindow get opener() native "DOMWindow_opener_Getter";
+  DOMWindow get parent() native "DOMWindow_parent_Getter";
+  DOMWindow get top() native "DOMWindow_top_Getter";
+
+  // Methods.
+  void focus() native "DOMWindow_focus_Callback";
+  void blur() native "DOMWindow_blur_Callback";
+  void close() native "DOMWindow_close_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+
+  // Implementation support.
+  String get typeName() => "DOMWindow";
+}
+
+class _HistoryCrossFrameDOMImpl extends _DOMWrapperBase implements History {
+  _HistoryCrossFrameDOMImpl();
+
+  // Methods.
+  void back() native "History_back_Callback";
+  void forward() native "History_forward_Callback";
+  void go(int distance) native "History_go_Callback";
+
+  // Implementation support.
+  String get typeName() => "History";
+}
+
+class _LocationCrossFrameDOMImpl extends _DOMWrapperBase implements Location {
+  _LocationCrossFrameDOMImpl();
+
+  // Fields.
+  void set href(String) native "Location_href_Setter";
+
+  // Implementation support.
+  String get typeName() => "Location";
 }
