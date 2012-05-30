@@ -240,17 +240,6 @@ call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instan
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
 double_to_string_as_exponential_test: Fail
-local_function3_test: Fail # Uncaught error: Instance of 'TypeError'
-savannah_test: Fail # Uncaught error: Instance of 'TypeError'
-implied_interface_test: Fail # Uncaught error: Instance of 'TypeError'
-bad_named_parameters_test: Fail # Uncaught error: Instance of 'TypeError'
-bad_named_parameters2_test: Fail # Uncaught error: Instance of 'TypeError'
-arithmetic2_test: Fail # Uncaught error: Instance of 'TypeError'
-null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
-string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-closure3_test: Fail # Uncaught error: Instance of 'TypeError'
-private3_test: Fail # Uncaught error: Instance of 'TypeError'
-method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 label_test: Skip # Timeout
 
 
@@ -321,22 +310,15 @@ type_checks_in_factory_method_test: Skip # BUG(3304): Times out.
 typed_message_test: Skip # BUG(3304): Times out.
 unbound_getter_test: Skip # BUG(3304): Times out.
 unhandled_exception_negative_test: Skip # BUG(3304): Times out.
-stack_overflow_test: Fail
 double_to_string_as_fixed_test: Fail
 
 [ $compiler == dart2js && $runtime == safari ]
 arithmetic2_test: Fail # Uncaught error: Instance of 'TypeError'
-bad_named_parameters2_test: Fail # Uncaught error: Instance of 'TypeError'
-bad_named_parameters_test: Fail # Uncaught error: Instance of 'TypeError'
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
-implied_interface_test: Fail # Uncaught error: Instance of 'TypeError'
-local_function3_test: Fail # Uncaught error: Instance of 'TypeError'
 arithmetic_test: Skip # Timeout
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
-private3_test: Fail # Uncaught error: Instance of 'TypeError'
-savannah_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 label_test: Skip # Timeout

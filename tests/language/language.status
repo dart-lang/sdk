@@ -380,13 +380,13 @@ execute_finally6_test: Skip
 [ $runtime == opera ]
 *: Skip
 
-[ $runtime == ff ]
+[ $compiler == frog && $runtime == ff ]
 naming_test: Fail
 stack_overflow_test: Fail
 execute_finally7_test: Skip
 static_final_field2_negative_test: Skip
 
-[ $runtime == ff && $system == windows ]
+[ $compiler == frog && $runtime == ff && $system == windows ]
 ct_const2_test: Pass,Fail  # Issue 2101
 
 [ $compiler == frog && $runtime == ie ]

@@ -829,7 +829,9 @@ unwrapException(ex) {
   }
 
   // Check for the Firefox specific stack overflow signal.
-  if (JS('bool', @'InternalError && # instanceof InternalError', ex)) {
+  if (JS('bool',
+         @"typeof InternalError == 'object' && # instanceof InternalError",
+         ex)) {
     if (message is String && message == 'too much recursion') {
       return new StackOverflowException();
     }
