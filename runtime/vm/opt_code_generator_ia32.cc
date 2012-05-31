@@ -968,7 +968,6 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
 void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
                                                    bool allow_smi) {
   const char* kOptMessage = "Inline Mint binop.";
-  ObjectStore* object_store = Isolate::Current()->object_store();
   const Token::Kind kind = node->kind();
   if (kind == Token::kBIT_AND) {
     TraceOpt(node, kOptMessage);
@@ -985,9 +984,7 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, &is_smi);
 
-    __ CompareClassOfObject(EAX,
-                            Class::Handle(object_store->mint_class()),
-                            EBX);
+    __ CompareClassId(EAX, kMint, EBX);
     __ j(NOT_EQUAL, deopt_blob->label());
 
     // Load lower Mint word, convert to Smi. It is OK to loose bits.
@@ -1052,7 +1049,7 @@ void OptimizingCodeGenerator::CheckIfDoubleOrSmi(Register reg,
                                                  Label* not_double_or_smi) {
   __ testl(reg, Immediate(kSmiTagMask));
   __ j(ZERO, is_smi);
-  __ CompareClassOfObject(reg, double_class_, temp);
+  __ CompareClassId(reg, kDouble, temp);
   __ j(NOT_EQUAL, not_double_or_smi);
 }
 
@@ -1419,7 +1416,7 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     __ j(ZERO, deopt_blob->label());
   }
 
-  __ LoadClassIndexOfObject(EAX, EBX);
+  __ LoadClassId(EAX, EBX);
   const ICData& ic_data = node->ic_data();
   Function& target = Function::Handle();
   Label load_field;
@@ -1629,7 +1626,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
     __ testl(recv_reg, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
   }
-  __ LoadClassIndexOfObject(EBX, recv_reg);
+  __ LoadClassId(EBX, recv_reg);
   // Initialize setter arguments, but leave the class and target fields NULL.
   InstanceSetterArgs setter_args =
       {NULL, NULL, &field_name, recv_reg, value_reg,
@@ -1992,7 +1989,7 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
     // Smi causes deoptimization.
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
-    __ LoadClassIndexOfObject(EBX, EAX);
+    __ LoadClassId(EBX, EAX);
     for (intptr_t i = 0; i < num_classes; i++) {
       const Class& cls = *(*classes)[i];
       __ cmpl(EBX, Immediate(cls.id()));
@@ -2173,7 +2170,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     if (!array_info.IsClass(test_class)) {
       __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
       __ j(ZERO, deopt_blob->label());
-      __ CompareClassOfObject(EBX, test_class, EAX);
+      __ CompareClassId(EBX, test_class.id(), EAX);
       __ j(NOT_EQUAL, deopt_blob->label());
       PropagateBackLocalClass(node->array(), test_class);
     }
@@ -2210,7 +2207,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     if (!array_info.IsClass(growable_object_array_class_)) {
       __ testl(EDX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is Smi.
-      __ CompareClassOfObject(EDX, growable_object_array_class_, EBX);
+      __ CompareClassId(EDX, kGrowableObjectArray, EBX);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
       PropagateBackLocalClass(node->array(), growable_object_array_class_);
     }
@@ -2277,7 +2274,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     if (class_of_this_array.raw() != object_array_class.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
-      __ CompareClassOfObject(EAX, object_array_class, EDX);
+      __ CompareClassId(EAX, kArray, EDX);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not ObjectArray -> deopt.
       PropagateBackLocalClass(node->array(), object_array_class);
     }
@@ -2317,7 +2314,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     if (class_of_this_array.raw() != growable_object_array_class_.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
-      __ CompareClassOfObject(EAX, growable_object_array_class_, EDX);
+      __ CompareClassId(EAX, kGrowableObjectArray, EDX);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
       PropagateBackLocalClass(node->array(), growable_object_array_class_);
     }
@@ -2645,7 +2642,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
   } else {
     // Receiver cannot be Smi, no need to test it.
   }
-  __ LoadClassIndexOfObject(EAX, EAX);  // Receiver's class.
+  __ LoadClassId(EAX, EAX);  // Receiver's class id.
   for (intptr_t i = start_ix; i < classes.length(); i++) {
     const Class& cls = *classes[i];
     const Function& target = *targets[i];

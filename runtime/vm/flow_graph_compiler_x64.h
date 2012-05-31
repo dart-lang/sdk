@@ -133,7 +133,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                             intptr_t try_index);
 
   // Type checking helper methods.
-  void CheckClasses(const GrowableArray<const Class*>& classes,
+  void CheckClassIds(const GrowableArray<intptr_t>& class_ids,
                     Label* is_instance_lbl,
                     Label* is_not_instance_lbl);
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,

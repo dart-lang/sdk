@@ -137,15 +137,6 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 }
 
 
-static const Class* CoreClass(const char* c_name) {
-  const String& class_name = String::Handle(String::NewSymbol(c_name));
-  const Class& cls = Class::ZoneHandle(Library::Handle(
-      Library::CoreImplLibrary()).LookupClass(class_name));
-  ASSERT(!cls.IsNull());
-  return &cls;
-}
-
-
 #define __ assembler_->
 
 
@@ -173,18 +164,18 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (is_raw_type) {
     // Dynamic type argument, check only classes.
     // List is a very common case.
-    __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+    __ LoadClassId(R10, RAX);
     if (!type_class.is_interface()) {
-      __ CompareObject(R10, type_class);
+      __ cmpl(R10, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
     if (type.IsListInterface()) {
       Label unknown;
-      GrowableArray<const Class*> args;
-      args.Add(CoreClass("ObjectArray"));
-      args.Add(CoreClass("GrowableObjectArray"));
-      args.Add(CoreClass("ImmutableArray"));
-      CheckClasses(args, is_instance_lbl, &unknown);
+      GrowableArray<intptr_t> args;
+      args.Add(kArray);
+      args.Add(kGrowableObjectArray);
+      args.Add(kImmutableArray);
+      CheckClassIds(args, is_instance_lbl, &unknown);
       __ Bind(&unknown);
     }
     return GenerateSubtype1TestCacheLookup(
@@ -236,12 +227,12 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
 }
 
 
-// R10: instance class to check.
-void FlowGraphCompiler::CheckClasses(const GrowableArray<const Class*>& classes,
+// R10: instance class id to check.
+void FlowGraphCompiler::CheckClassIds(const GrowableArray<intptr_t>& class_ids,
                                      Label* is_instance_lbl,
                                      Label* is_not_instance_lbl) {
-  for (intptr_t i = 0; i < classes.length(); i++) {
-    __ CompareObject(R10, *classes[i]);
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ cmpl(R10, Immediate(class_ids[i]));
     __ j(EQUAL, is_instance_lbl);
   }
   __ jmp(is_not_instance_lbl);
@@ -278,21 +269,19 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
   }
 
-  ObjectStore* object_store = Isolate::Current()->object_store();
   // Compare if the classes are equal. Instance is not Smi.
   __ Bind(&compare_classes);
-  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClassId(R10, RAX);
   // If type is an interface, we can skip the class equality check.
   if (!type_class.is_interface()) {
-    __ CompareObject(R10, type_class);
+    __ cmpl(R10, Immediate(type_class.id()));
     __ j(EQUAL, is_instance_lbl);
   }
   // Check for interfaces that cannot be implemented by user.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolInterface()) {
-    const Class& bool_class = Class::ZoneHandle(object_store->bool_class());
-    __ CompareObject(R10, bool_class);
+    __ cmpl(R10, Immediate(kBool));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -301,8 +290,9 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ movq(R10, FieldAddress(R10, Class::signature_function_offset()));
-    __ cmpq(R10, raw_null);
+    __ LoadClassById(R13, R10);
+    __ movq(R13, FieldAddress(R13, Class::signature_function_offset()));
+    __ cmpq(R13, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -311,44 +301,29 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Note that instance is not Smi(checked above).
   if (type.IsSubtypeOf(
           Type::Handle(Type::NumberInterface()), &malformed_error)) {
-    const Class& mint_class = Class::ZoneHandle(object_store->mint_class());
-    const Class& bigint_class = Class::ZoneHandle(object_store->bigint_class());
-    const Class& double_class = Class::ZoneHandle(object_store->double_class());
-    GrowableArray<const Class*> args;
+    GrowableArray<intptr_t> args;
     if (type.IsNumberInterface()) {
-      args.Add(&double_class);
-      args.Add(&mint_class);
-      args.Add(&bigint_class);
+      args.Add(kDouble);
+      args.Add(kMint);
+      args.Add(kBigint);
     } else if (type.IsIntInterface()) {
-      args.Add(&mint_class);
-      args.Add(&bigint_class);
+      args.Add(kMint);
+      args.Add(kBigint);
     } else if (type.IsDoubleInterface()) {
-      args.Add(&double_class);
+      args.Add(kDouble);
     }
-    CheckClasses(args, is_instance_lbl, is_not_instance_lbl);
+    CheckClassIds(args, is_instance_lbl, is_not_instance_lbl);
     return;
   }
   if (type.IsStringInterface()) {
-    const Class& one_byte_string_class =
-        Class::ZoneHandle(object_store->one_byte_string_class());
-    const Class& two_byte_string_class =
-        Class::ZoneHandle(object_store->two_byte_string_class());
-    const Class& four_byte_string_class =
-        Class::ZoneHandle(object_store->four_byte_string_class());
-    const Class& external_one_byte_string_class =
-        Class::ZoneHandle(object_store->external_one_byte_string_class());
-    const Class& external_two_byte_string_class =
-        Class::ZoneHandle(object_store->external_two_byte_string_class());
-    const Class& external_four_byte_string_class =
-        Class::ZoneHandle(object_store->external_four_byte_string_class());
-    GrowableArray<const Class*> args;
-    args.Add(&one_byte_string_class);
-    args.Add(&two_byte_string_class);
-    args.Add(&four_byte_string_class);
-    args.Add(&external_one_byte_string_class);
-    args.Add(&external_two_byte_string_class);
-    args.Add(&external_four_byte_string_class);
-    CheckClasses(args, is_instance_lbl, is_not_instance_lbl);
+    GrowableArray<intptr_t> args;
+    args.Add(kOneByteString);
+    args.Add(kTwoByteString);
+    args.Add(kFourByteString);
+    args.Add(kExternalOneByteString);
+    args.Add(kExternalTwoByteString);
+    args.Add(kExternalFourByteString);
+    CheckClassIds(args, is_instance_lbl, is_not_instance_lbl);
     return;
   }
   // Otherwise fallthrough.
@@ -369,7 +344,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClass(R10, RAX);
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
   __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
@@ -418,8 +393,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
     Label fall_through;
-    __ movq(R10, FieldAddress(RDX, Object::class_offset()));
-    __ CompareObject(R10, Object::ZoneHandle(Object::type_arguments_class()));
+    __ CompareClassId(RDX, kTypeArguments);
     __ j(NOT_EQUAL, &fall_through);
     __ movq(RDI,
         FieldAddress(RDX, TypeArguments::type_at_offset(type.Index())));

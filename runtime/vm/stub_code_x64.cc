@@ -294,7 +294,7 @@ static void MegamorphicLookup(Assembler* assembler) {
   __ j(EQUAL, &null_receiver, Assembler::kNearJump);
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(ZERO, &smi_receiver, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClass(RAX, RAX);
   __ jmp(&class_in_rax, Assembler::kNearJump);
   __ Bind(&smi_receiver);
   // For Smis we need to get the class from the isolate.
@@ -749,12 +749,12 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   Label not_closure;
   __ cmpq(R13, raw_null);
   // Not a closure, but null object.
-  __ j(EQUAL, &not_closure, Assembler::kNearJump);
+  __ j(EQUAL, &not_closure);
   __ testq(R13, Immediate(kSmiTagMask));
-  __ j(ZERO, &not_closure, Assembler::kNearJump);  // Not a closure, but a smi.
+  __ j(ZERO, &not_closure);  // Not a closure, but a smi.
   // Verify that the class of the object is a closure class by checking that
   // class.signature_function() is not null.
-  __ movq(RAX, FieldAddress(R13, Object::class_offset()));
+  __ LoadClass(RAX, R13);
   __ movq(RAX, FieldAddress(RAX, Class::signature_function_offset()));
   __ cmpq(RAX, raw_null);
   // Actual class is not a closure class.
@@ -1545,8 +1545,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
 
   Label get_class, ic_miss;
-  __ call(&get_class);
-  // RAX: receiver's class
   // RBX: IC data array.
 
 #if defined(DEBUG)
@@ -1562,7 +1560,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 #endif  // DEBUG
 
   // Loop that checks if there is an IC data match.
-  // RAX: receiver's class.
   // RBX: IC data object (preserved).
   __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
   // R12: ic_data_array with check entries: classes and target functions.
@@ -1572,6 +1569,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label loop, found;
   if (num_args == 1) {
+    __ call(&get_class);
+    // RAX: receiver's class.
     __ Bind(&loop);
     __ movq(R13, Address(R12, 0));  // Get class to check.
     __ cmpq(RAX, R13);  // Match?
@@ -1582,19 +1581,20 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   } else if (num_args == 2) {
     Label no_match;
     __ Bind(&loop);
-    __ movq(R13, Address(R12, 0));  // Get class from IC data to check.
     // Get receiver.
     __ movq(RAX, FieldAddress(R10, Array::data_offset()));
     __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
     __ call(&get_class);
+    // TODO(vegorov): switch IC data to store class index instead of class.
+    __ movq(R13, Address(R12, 0));  // Get class from IC data to check.
     __ cmpq(RAX, R13);  // Match?
     __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
     // Check second.
-    __ movq(R13, Address(R12, kWordSize));  // Get class from IC data to check.
     // Get next argument.
     __ movq(RAX, FieldAddress(R10, Array::data_offset()));
     __ movq(RAX, Address(RSP, RAX, TIMES_4, -kWordSize));  // RAX is Smi.
     __ call(&get_class);
+    __ movq(R13, Address(R12, kWordSize));  // Get class from IC data to check.
     __ cmpq(RAX, R13);  // Match?
     __ j(EQUAL, &found);
     __ Bind(&no_match);
@@ -1660,7 +1660,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_smi);
-  __ movq(RAX, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClass(RAX, RAX);
   __ ret();
 }
 
@@ -1758,7 +1758,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
-  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClass(R10, RAX);
   // RAX: instance, R10: instance class.
   if (n > 1) {
     // Compute instance type arguments into R13.

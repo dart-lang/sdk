@@ -705,10 +705,9 @@ void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
   return locs;
 }
@@ -716,7 +715,6 @@ LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
 
 void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
-  Register temp_reg = locs()->temp(0).reg();
   Register result_reg = locs()->out().reg();
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
@@ -740,8 +738,7 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     // No need to check the instantiator ('instantiator_reg') for null here,
     // because a null instantiator will have the wrong class (Null instead of
     // TypeArguments).
-    __ LoadObject(temp_reg, Class::ZoneHandle(Object::type_arguments_class()));
-    __ cmpq(temp_reg, FieldAddress(instantiator_reg, Object::class_offset()));
+    __ CompareClassId(instantiator_reg, kTypeArguments);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
     Immediate arguments_length =
         Immediate(Smi::RawValue(type_arguments().Length()));
@@ -758,8 +755,7 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 token_index(),
                                 try_index(),
                                 kInstantiateTypeArgumentsRuntimeEntry);
-  __ popq(temp_reg);  // Pop instantiator type arguments.
-  __ popq(temp_reg);  // Pop uninstantiated type arguments.
+  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
   __ popq(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
@@ -770,10 +766,9 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ExtractConstructorTypeArgumentsComp::
     MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
   return locs;
 }
@@ -782,7 +777,6 @@ LocationSummary* ExtractConstructorTypeArgumentsComp::
 void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
-  Register temp_reg = locs()->temp(0).reg();
   Register result_reg = locs()->out().reg();
   ASSERT(instantiator_reg == result_reg);
 
@@ -806,8 +800,7 @@ void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
     // No need to check instantiator_reg for null here, because a null
     // instantiator will have the wrong class (Null instead of TypeArguments).
     Label type_arguments_uninstantiated;
-    __ LoadObject(temp_reg, Class::ZoneHandle(Object::type_arguments_class()));
-    __ cmpq(temp_reg, FieldAddress(instantiator_reg, Object::class_offset()));
+    __ CompareClassId(instantiator_reg, kTypeArguments);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
     Immediate arguments_length =
         Immediate(Smi::RawValue(type_arguments().Length()));
@@ -828,10 +821,9 @@ void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
 LocationSummary* ExtractConstructorInstantiatorComp::
     MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
   return locs;
 }
@@ -841,7 +833,6 @@ void ExtractConstructorInstantiatorComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   ASSERT(instantiator()->IsUse());
   Register instantiator_reg = locs()->in(0).reg();
-  Register temp_reg = locs()->temp(0).reg();
   ASSERT(locs()->out().reg() == instantiator_reg);
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
@@ -875,8 +866,7 @@ void ExtractConstructorInstantiatorComp::EmitNativeCode(
     // matching length and, if so, use it as the instantiated type_arguments.
     // No need to check the instantiator (RAX) for null here, because a null
     // instantiator will have the wrong class (Null instead of TypeArguments).
-    __ LoadObject(temp_reg, Class::ZoneHandle(Object::type_arguments_class()));
-    __ cmpq(temp_reg, FieldAddress(instantiator_reg, Object::class_offset()));
+    __ CompareClassId(instantiator_reg, kTypeArguments);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     Immediate arguments_length =
         Immediate(Smi::RawValue(type_arguments().Length()));

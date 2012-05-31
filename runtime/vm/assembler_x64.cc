@@ -1542,6 +1542,37 @@ void Assembler::EmitGenericShift(bool wide,
 }
 
 
+void Assembler::LoadClassId(Register result, Register object) {
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagBit / kBitsPerByte;
+  movzxw(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(result != class_id);
+  movq(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  movq(result, Address(result, table_offset_in_isolate));
+  movq(result, Address(result, class_id, TIMES_8, 0));
+}
+
+
+void Assembler::LoadClass(Register result, Register object) {
+  LoadClassId(TMP, object);
+  LoadClassById(result, TMP);
+}
+
+
+void Assembler::CompareClassId(Register object, intptr_t class_id) {
+  LoadClassId(TMP, object);
+  cmpl(TMP, Immediate(class_id));
+}
+
+
 void Assembler::Comment(const char* format, ...) {
   if (FLAG_code_comments) {
     char buffer[1024];

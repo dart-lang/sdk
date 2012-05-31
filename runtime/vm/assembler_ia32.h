@@ -529,15 +529,15 @@ class Assembler : public ValueObject {
   void CallRuntime(const RuntimeEntry& entry);
 
   /*
-   * Loading and comparing classes of objects
+   * Loading and comparing classes of objects.
    */
-  void LoadClassOfObject(Register result, Register object, Register scratch);
+  void LoadClassId(Register result, Register object);
 
-  void LoadClassIndexOfObject(Register result, Register object);
+  void LoadClass(Register result, Register object, Register scratch);
 
-  void CompareClassOfObject(Register object,
-                            const Class& clazz,
-                            Register scratch);
+  void CompareClassId(Register object,
+                      intptr_t class_id,
+                      Register scratch);
 
   /*
    * Misc. functionality

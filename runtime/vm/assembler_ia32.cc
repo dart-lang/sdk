@@ -1562,11 +1562,20 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 
-void Assembler::LoadClassOfObject(Register result,
-                                  Register object,
-                                  Register scratch) {
+void Assembler::LoadClassId(Register result, Register object) {
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagBit / kBitsPerByte;
+  movzxw(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::LoadClass(Register result,
+                          Register object,
+                          Register scratch) {
   ASSERT(scratch != result);
-  LoadClassIndexOfObject(scratch, object);
+  LoadClassId(scratch, object);
 
   movl(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
@@ -1576,20 +1585,11 @@ void Assembler::LoadClassOfObject(Register result,
 }
 
 
-void Assembler::LoadClassIndexOfObject(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagBit == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagBit / kBitsPerByte;
-  movzxw(result, FieldAddress(object, class_id_offset));
-}
-
-
-void Assembler::CompareClassOfObject(Register object,
-                                     const Class& clazz,
-                                     Register scratch) {
-  LoadClassIndexOfObject(scratch, object);
-  cmpl(scratch, Immediate(clazz.id()));
+void Assembler::CompareClassId(Register object,
+                               intptr_t class_id,
+                               Register scratch) {
+  LoadClassId(scratch, object);
+  cmpl(scratch, Immediate(class_id));
 }
 
 

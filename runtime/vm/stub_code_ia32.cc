@@ -295,7 +295,7 @@ static void MegamorphicLookup(Assembler* assembler) {
   __ j(EQUAL, &null_receiver, Assembler::kNearJump);
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, &smi_receiver, Assembler::kNearJump);
-  __ LoadClassOfObject(EAX, EAX, EDI);
+  __ LoadClass(EAX, EAX, EDI);
   __ jmp(&class_in_eax, Assembler::kNearJump);
   __ Bind(&smi_receiver);
   // For Smis we need to get the class from the isolate.
@@ -772,7 +772,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(ZERO, &not_closure, Assembler::kNearJump);  // Not a closure, but a smi.
   // Verify that the class of the object is a closure class by checking that
   // class.signature_function() is not null.
-  __ LoadClassOfObject(EAX, EDI, ECX);
+  __ LoadClass(EAX, EDI, ECX);
   __ movl(EAX, FieldAddress(EAX, Class::signature_function_offset()));
   __ cmpl(EAX, raw_null);
   // Actual class is not a closure class.
@@ -1582,7 +1582,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 #endif  // DEBUG
 
   // Loop that checks if there is an IC data match.
-  // EAX: receiver's class.
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
@@ -1688,7 +1687,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_smi);
-  __ LoadClassOfObject(EAX, EAX, EDI);
+  __ LoadClass(EAX, EAX, EDI);
   __ ret();
 }
 
@@ -1794,7 +1793,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
-  __ LoadClassOfObject(ECX, EAX, EBX);
+  __ LoadClass(ECX, EAX, EBX);
   // EAX: instance, ECX: instance-class.
   // Get instance type arguments
   if (n > 1) {
