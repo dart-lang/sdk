@@ -3122,7 +3122,7 @@ class SsaBuilder implements Visitor {
     // must not reuse the existing locals handler. None of the variables
     // that have been defined in the body-block will be used, but for
     // loops we will add (unnecessary) phis that will reference the body
-    // variables. This will make it look as if the variables were used
+    // variables. This makes it look as if the variables were used
     // in a non-dominated block.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();

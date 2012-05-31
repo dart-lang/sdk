@@ -100,7 +100,7 @@ class ClosureTranslator extends AbstractVisitor {
   final SsaBuilder builder;
   final TreeElements elements;
   int closureFieldCounter = 0;
-  bool inTryCatchOrFinally = false;
+  bool inTryStatement = false;
   final Map<Node, ClosureData> closureDataCache;
 
   // Map of captured variables. Initially they will map to themselves. If
@@ -208,7 +208,7 @@ class ClosureTranslator extends AbstractVisitor {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
-    } else if (inTryCatchOrFinally) {
+    } else if (inTryStatement) {
       // Don't mark the this-element. This would complicate things in the
       // builder.
       if (element != closureData.thisElement) {
@@ -436,9 +436,9 @@ class ClosureTranslator extends AbstractVisitor {
 
   visitTryStatement(TryStatement node) {
     // TODO(ngeoffray): implement finer grain state.
-    bool oldInTryCatchOrFinally = inTryCatchOrFinally;
-    inTryCatchOrFinally = true;
+    bool oldInTryStatement = inTryStatement;
+    inTryStatement = true;
     node.visitChildren(this);
-    inTryCatchOrFinally = oldInTryCatchOrFinally;
+    inTryStatement = oldInTryStatement;
   }
 }
