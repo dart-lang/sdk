@@ -10,6 +10,17 @@
 #include "bin/dartutils.h"
 
 
+Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
+  /*      url_                 source_          has_natives_  */
+  { DartUtils::kBuiltinLibURL, NULL,            true  },
+  { DartUtils::kJsonLibURL,    NULL,            false },
+  { DartUtils::kUriLibURL,     NULL,            false },
+  { DartUtils::kCryptoLibURL,  NULL,            false },
+  { DartUtils::kIOLibURL,      NULL,            true  },
+  { DartUtils::kUtfLibURL,     NULL,            false }
+};
+
+
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   UNREACHABLE();
   return Dart_Null();
@@ -22,32 +33,17 @@ void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
 
 
 Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
-  Dart_Handle url;
-  switch (id) {
-    case kBuiltinLibrary:
-      url = Dart_NewString(DartUtils::kBuiltinLibURL);
-      break;
-    case kCryptoLibrary:
-      url = Dart_NewString(DartUtils::kCryptoLibURL);
-      break;
-    case kIOLibrary:
-      url = Dart_NewString(DartUtils::kIOLibURL);
-      break;
-    case kJsonLibrary:
-      url = Dart_NewString(DartUtils::kJsonLibURL);
-      break;
-    case kUriLibrary:
-      url = Dart_NewString(DartUtils::kUriLibURL);
-      break;
-    case kUtfLibrary:
-      url = Dart_NewString(DartUtils::kUtfLibURL);
-      break;
-    default:
-      return Dart_Error("Unknown builtin library requested.");
-  }
+  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
+         kInvalidLibrary);
+  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  Dart_Handle url = Dart_NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {
-    UNREACHABLE();
+    ASSERT(id >= kCryptoLibrary && id < kInvalidLibrary);
+    library = Dart_LoadLibrary(url, Source(id));
+    if (!Dart_IsError(library)) {
+      SetupLibrary(library, id);
+    }
   }
   DART_CHECK_VALID(library);
   return library;
