@@ -1131,44 +1131,21 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
 
 
 void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
-  ASSERT(instr->exception()->IsUse());
-  GenerateCallRuntime(instr->cid(),
-                      instr->token_index(),
-                      instr->try_index(),
-                      kThrowRuntimeEntry);
-  __ int3();
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
-  ASSERT(instr->exception()->IsUse());
-  ASSERT(instr->stack_trace()->IsUse());
-  GenerateCallRuntime(instr->cid(),
-                      instr->token_index(),
-                      instr->try_index(),
-                      kReThrowRuntimeEntry);
-  __ int3();
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
-  // Determine if the true branch is fall through (!negated) or the false
-  // branch is.  They cannot both be backwards branches.
-  intptr_t index = reverse_index(current_block()->postorder_number());
-  bool negated = (block_order_[index + 1] == instr->false_successor());
-  ASSERT(!negated == (block_order_[index + 1] == instr->true_successor()));
-
-  LoadValue(RAX, instr->value());
-  __ LoadObject(RDX, Bool::ZoneHandle(Bool::True()));
-  __ cmpq(RAX, RDX);
-  if (negated) {
-    intptr_t target_index = instr->true_successor()->postorder_number();
-    __ j(EQUAL, &block_info_[target_index]->label);
-  } else {
-    intptr_t target_index = instr->false_successor()->postorder_number();
-    __ j(NOT_EQUAL, &block_info_[target_index]->label);
-  }
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

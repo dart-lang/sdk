@@ -1429,7 +1429,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
-  virtual LocationSummary* locs() const {
+  virtual LocationSummary* locs() {
     // TODO(vegorov): This should be pure virtual method.
     // However we are temporary using NULL for instructions that
     // were not converted to the location based code generation yet.
@@ -1444,6 +1444,25 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   intptr_t cid_;
   ICData* ic_data_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
+};
+
+
+class InstructionWithInputs : public Instruction {
+ public:
+  InstructionWithInputs() : locs_(NULL) {
+  }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  virtual LocationSummary* MakeLocationSummary() const = 0;
+
+ private:
+  LocationSummary* locs_;
 };
 
 
@@ -1649,7 +1668,7 @@ class DoInstr : public Instruction {
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
 
-  virtual LocationSummary* locs() const {
+  virtual LocationSummary* locs() {
     return computation()->locs();
   }
 
@@ -1700,7 +1719,7 @@ class BindInstr : public Instruction {
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
 
-  virtual LocationSummary* locs() const {
+  virtual LocationSummary* locs() {
     return computation()->locs();
   }
 
@@ -1738,7 +1757,7 @@ class ReturnInstr : public Instruction {
 };
 
 
-class ThrowInstr : public Instruction {
+class ThrowInstr : public InstructionWithInputs {
  public:
   ThrowInstr(intptr_t token_index,
              intptr_t try_index,
@@ -1763,6 +1782,10 @@ class ThrowInstr : public Instruction {
     ASSERT(successor_ == NULL);
   }
 
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -1773,7 +1796,7 @@ class ThrowInstr : public Instruction {
 };
 
 
-class ReThrowInstr : public Instruction {
+class ReThrowInstr : public InstructionWithInputs {
  public:
   ReThrowInstr(intptr_t token_index,
                intptr_t try_index,
@@ -1804,6 +1827,10 @@ class ReThrowInstr : public Instruction {
     ASSERT(successor_ == NULL);
   }
 
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -1815,7 +1842,7 @@ class ReThrowInstr : public Instruction {
 };
 
 
-class BranchInstr : public Instruction {
+class BranchInstr : public InstructionWithInputs {
  public:
   explicit BranchInstr(Value* value)
       : value_(value),
@@ -1841,6 +1868,10 @@ class BranchInstr : public Instruction {
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
       intptr_t variable_count);
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
   Value* value_;
@@ -1883,7 +1914,7 @@ class FlowGraphVisitor : public ValueObject {
   // Map a block number in a forward iteration into the block number in the
   // corresponding reverse iteration.  Used to obtain an index into
   // block_order for reverse iterations.
-  intptr_t reverse_index(intptr_t index) {
+  intptr_t reverse_index(intptr_t index) const {
     return block_order_.length() - index - 1;
   }
 

@@ -17,6 +17,17 @@
 namespace dart {
 
 
+static LocationSummary* MakeSimpleLocationSummary(
+    intptr_t input_count, Location out) {
+  LocationSummary* summary = new LocationSummary(input_count, 0);
+  for (intptr_t i = 0; i < input_count; i++) {
+    summary->set_in(i, Location::RequiresRegister());
+  }
+  summary->set_out(out);
+  return summary;
+}
+
+
 // True iff. the arguments to a call will be properly pushed and can
 // be popped after the call.
 template <typename T> static bool VerifyCallComputation(T* comp) {
@@ -52,14 +63,66 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static LocationSummary* MakeSimpleLocationSummary(
-    intptr_t input_count, Location out) {
-  LocationSummary* summary = new LocationSummary(input_count, 0);
-  for (intptr_t i = 0; i < input_count; i++) {
-    summary->set_in(i, Location::RequiresRegister());
+LocationSummary* ThrowInstr::MakeLocationSummary() const {
+  const int kNumInputs = 0;
+  const int kNumTemps = 0;
+  return new LocationSummary(kNumInputs, kNumTemps);
+}
+
+
+void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(exception()->IsUse());
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kThrowRuntimeEntry);
+  __ int3();
+}
+
+
+LocationSummary* ReThrowInstr::MakeLocationSummary() const {
+  const int kNumInputs = 0;
+  const int kNumTemps = 0;
+  return new LocationSummary(kNumInputs, kNumTemps);
+}
+
+
+void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(exception()->IsUse());
+  ASSERT(stack_trace()->IsUse());
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kReThrowRuntimeEntry);
+  __ int3();
+}
+
+
+LocationSummary* BranchInstr::MakeLocationSummary() const {
+  const int kNumInputs = 1;
+  const int kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+
+  __ LoadObject(temp, Bool::ZoneHandle(Bool::True()));
+  __ cmpq(value, temp);
+  if (compiler->IsNextBlock(false_successor())) {
+    // If the next block is the false sucessor we will fall through to it if
+    // comparison with true fails.
+    __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
+  } else {
+    // If the next block is the true sucessor we negate comparison and fall
+    // through to it.
+    __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
   }
-  summary->set_out(out);
-  return summary;
 }
 
 

@@ -12,7 +12,38 @@
 
 namespace dart {
 
+
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ThrowInstr::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ReThrowInstr::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BranchInstr::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

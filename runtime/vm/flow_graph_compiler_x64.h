@@ -50,6 +50,25 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                       Register reg1,
                       Register reg2);
 
+
+  void GenerateCallRuntime(intptr_t cid,
+                           intptr_t token_index,
+                           intptr_t try_index,
+                           const RuntimeEntry& entry);
+
+  // Returns true if the next block after current in the current block order
+  // is the given block.
+  bool IsNextBlock(TargetEntryInstr* block_entry) const {
+    intptr_t current_index = reverse_index(current_block()->postorder_number());
+    return block_order_[current_index + 1] == block_entry;
+  }
+
+  // Returns assembler label associated with the given block entry.
+  Label* GetBlockLabel(TargetEntryInstr* block_entry) const {
+    intptr_t block_index = block_entry->postorder_number();
+    return &block_info_[block_index]->label;
+  }
+
  private:
   friend class DeoptimizationStub;
 
@@ -123,10 +142,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                     intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
-  void GenerateCallRuntime(intptr_t cid,
-                           intptr_t token_index,
-                           intptr_t try_index,
-                           const RuntimeEntry& entry);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t cid,
                             intptr_t token_index,
