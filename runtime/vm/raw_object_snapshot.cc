@@ -1217,9 +1217,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   intptr_t len = reader->ReadIntptrValue();
   char* str = reinterpret_cast<char*>(ZoneAllocator(len + 1));
   str[len] = '\0';
-  for (intptr_t i = 0; i < len; i++) {
-    str[i] = reader->Read<uint8_t>();
-  }
+  reader->ReadBytes(reinterpret_cast<uint8_t*>(str), len);
 
   // Create a Bigint object from HexCString.
   Bigint& obj = Bigint::ZoneHandle(
@@ -1388,11 +1386,9 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
     str_obj = obj;
     str_obj.set_tags(tags);
     obj->ptr()->hash_ = Smi::New(hash);
-    uint8_t* raw_ptr = (len > 0) ? str_obj.CharAddr(0) : NULL;
-    for (intptr_t i = 0; i < len; i++) {
-      ASSERT(str_obj.CharAddr(i) == raw_ptr);  // Will trigger assertions.
-      *raw_ptr = reader->Read<uint8_t>();
-      raw_ptr += 1;
+    if (len > 0) {
+      uint8_t* raw_ptr = str_obj.CharAddr(0);
+      reader->ReadBytes(raw_ptr, len);
     }
     ASSERT((hash == 0) || (String::Hash(str_obj, 0, str_obj.Length()) == hash));
   } else {
