@@ -5,6 +5,8 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
+#include "vm/intermediate_language.h"
+
 #include "lib/error.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
@@ -16,7 +18,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, optimization_counter_threshold);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
 
 

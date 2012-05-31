@@ -5,6 +5,8 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32)
 
+#include "vm/intermediate_language.h"
+
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/stub_code.h"
@@ -13,7 +15,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, optimization_counter_threshold);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
 
 // True iff. the arguments to a call will be properly pushed and can
@@ -74,7 +76,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Function::ZoneHandle(compiler->parsed_function().function().raw());
     __ LoadObject(temp, function);
     __ incl(FieldAddress(temp, Function::usage_counter_offset()));
-    /*if (CodeGenerator::CanOptimize()) {
+    if (CodeGenerator::CanOptimize()) {
       // Do not optimize if usage count must be reported.
       __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
@@ -86,7 +88,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ popl(temp);  // Remove argument.
       __ popl(result);  // Restore result.
       __ Bind(&not_yet_hot);
-    } */
+    }
   }
   if (FLAG_trace_functions) {
     const Function& function =

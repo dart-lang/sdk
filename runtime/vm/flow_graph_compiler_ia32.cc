@@ -22,7 +22,7 @@ DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, optimization_counter_threshold);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, report_usage_count);
