@@ -631,7 +631,12 @@ void Scanner::Scan() {
         ReadChar();
         current_token_.kind =
             IsNumberStart(c0_) ? Token::kTIGHTADD : Token::kADD;
-        if (c0_ == '+') {
+        // Unary + is not allowed for hexadecimal integers, so treat the
+        // + as a binary operator.
+        if ((c0_ == '0') &&
+            ((LookaheadChar(1) == 'x') || (LookaheadChar(1) == 'X'))) {
+          current_token_.kind = Token::kADD;
+        } else if (c0_ == '+') {
           Recognize(Token::kINCR);
         } else if (c0_ == '=') {
           Recognize(Token::kASSIGN_ADD);
