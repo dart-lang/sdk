@@ -21,6 +21,11 @@ Window get _window() => _Utils.window();
 Document get document() => window.document;
 Document get _document() => window.document;
 
+// FIXME: get rid of _uwrap and _wrap.
+_unwrap(raw) => raw;
+
+_wrap(raw) => raw;
+
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
   _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
   EventListenerList get error() => _get('error');
@@ -8911,7 +8916,7 @@ class _EventListenerListImpl implements EventListenerList {
     // TODO(jacobr): what is the correct behavior here. We could alternately
     // force the event to have the expected type.
     assert(evt.type == _type);
-    return _ptr.$dom_dispatchEvent(evt);
+    return _ptr.$dom_dispatchEvent(_unwrap(evt));
   }
 
   void _add(EventListener listener, bool useCapture) {
@@ -8957,7 +8962,7 @@ class _EventListenerListImpl implements EventListenerList {
         }
       }
     }
-    final wrapped = (e) { listener(e); };
+    final wrapped = (e) { listener(_wrap(e)); };
     _wrappers.add(new _EventListenerWrapper(listener, wrapped, useCapture));
     return wrapped;
   }
@@ -21509,31 +21514,6 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
   int get zoomAndPan() native "SVGViewElement_zoomAndPan_Getter";
 
   void set zoomAndPan(int) native "SVGViewElement_zoomAndPan_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _SVGViewSpecImpl extends _SVGZoomAndPanImpl implements SVGViewSpec {
-
-  String get preserveAspectRatioString() native "SVGViewSpec_preserveAspectRatioString_Getter";
-
-  SVGTransformList get transform() native "SVGViewSpec_transform_Getter";
-
-  String get transformString() native "SVGViewSpec_transformString_Getter";
-
-  String get viewBoxString() native "SVGViewSpec_viewBoxString_Getter";
-
-  SVGElement get viewTarget() native "SVGViewSpec_viewTarget_Getter";
-
-  String get viewTargetString() native "SVGViewSpec_viewTargetString_Getter";
-
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewSpec_preserveAspectRatio_Getter";
-
-  SVGAnimatedRect get viewBox() native "SVGViewSpec_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -44993,20 +44973,20 @@ class _SVGSVGElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioContextFactoryProvider {
-  factory AudioContext() => _createAudioContext();
+  factory AudioContext() => _wrap(_createAudioContext());
   static _createAudioContext() native "AudioContext_constructor_Callback";
 }
 
 class _IDBKeyRangeFactoryProvider {
 
   factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _IDBKeyRangeImpl.only(_unwrap(value));
+      _wrap(_IDBKeyRangeImpl.only(_unwrap(value)));
 
   factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.lowerBound(_unwrap(bound), open);
+      _wrap(_IDBKeyRangeImpl.lowerBound(_unwrap(bound), open));
 
   factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.upperBound(_unwrap(bound), open);
+      _wrap(_IDBKeyRangeImpl.upperBound(_unwrap(bound), open));
 
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
@@ -45015,79 +44995,79 @@ class _IDBKeyRangeFactoryProvider {
 }
 
 class _TypedArrayFactoryProvider {
-  factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
+  factory Float32Array(int length) => _wrap(_F32(length));
+  factory Float32Array.fromList(List<num> list) => _wrap(_F32(ensureNative(list)));
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
-      _F32(_unwrap(buffer), byteOffset, length);
+      _wrap(_F32(_unwrap(buffer), byteOffset, length));
   static _F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";
 
-  factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
+  factory Float64Array(int length) => _wrap(_F64(length));
+  factory Float64Array.fromList(List<num> list) => _wrap(_F64(ensureNative(list)));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
-      _F64(_unwrap(buffer), byteOffset, length);
+      _wrap(_F64(_unwrap(buffer), byteOffset, length));
   static _F64(_arg0, [_arg1, _arg2]) native "Float64Array_constructor_Callback";
 
-  factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
+  factory Int8Array(int length) => _wrap(_I8(length));
+  factory Int8Array.fromList(List<num> list) => _wrap(_I8(ensureNative(list)));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) =>
-      _I8(_unwrap(buffer), byteOffset, length);
+      _wrap(_I8(_unwrap(buffer), byteOffset, length));
   static _I8(_arg0, [_arg1, _arg2]) native "Int8Array_constructor_Callback";
 
-  factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
+  factory Int16Array(int length) => _wrap(_I16(length));
+  factory Int16Array.fromList(List<num> list) => _wrap(_I16(ensureNative(list)));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _I16(_unwrap(buffer), byteOffset, length);
+      _wrap(_I16(_unwrap(buffer), byteOffset, length));
   static _I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
 
-  factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
+  factory Int32Array(int length) => _wrap(_I32(length));
+  factory Int32Array.fromList(List<num> list) => _wrap(_I32(ensureNative(list)));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _I32(_unwrap(buffer), byteOffset, length);
+      _wrap(_I32(_unwrap(buffer), byteOffset, length));
   static _I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
 
-  factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
+  factory Uint8Array(int length) => _wrap(_U8(length));
+  factory Uint8Array.fromList(List<num> list) => _wrap(_U8(ensureNative(list)));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _U8(_unwrap(buffer), byteOffset, length);
+      _wrap(_U8(_unwrap(buffer), byteOffset, length));
   static _U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
 
-  factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
+  factory Uint16Array(int length) => _wrap(_U16(length));
+  factory Uint16Array.fromList(List<num> list) => _wrap(_U16(ensureNative(list)));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
-      _U16(_unwrap(buffer), byteOffset, length);
+      _wrap(_U16(_unwrap(buffer), byteOffset, length));
   static _U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
 
-  factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
+  factory Uint32Array(int length) => _wrap(_U32(length));
+  factory Uint32Array.fromList(List<num> list) => _wrap(_U32(ensureNative(list)));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
-      _U32(_unwrap(buffer), byteOffset, length);
+      _wrap(_U32(_unwrap(buffer), byteOffset, length));
   static _U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
 
-  factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
+  factory Uint8ClampedArray(int length) => _wrap(_U8C(length));
+  factory Uint8ClampedArray.fromList(List<num> list) => _wrap(_U8C(ensureNative(list)));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) =>
-      _U8C(_unwrap(buffer), byteOffset, length);
+      _wrap(_U8C(_unwrap(buffer), byteOffset, length));
   static _U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
 class _PointFactoryProvider {
-  factory Point(num x, num y) => _createWebKitPoint(x, y);
+  factory Point(num x, num y) => _wrap(_createWebKitPoint(x, y));
   static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
 }
 
 class _WebSocketFactoryProvider {
-  factory WebSocket(String url) => _createWebSocket(url);
+  factory WebSocket(String url) => _wrap(_createWebSocket(url));
   static _createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 
