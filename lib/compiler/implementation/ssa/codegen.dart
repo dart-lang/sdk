@@ -260,7 +260,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         compiler,
         intervalBuilder.liveInstructions,
         intervalBuilder.liveIntervals,
-        generateAtUseSite);
+        generateAtUseSite,
+        parameterNames);
     allocator.visitGraph(graph);
     variableNames = allocator.names;
   }

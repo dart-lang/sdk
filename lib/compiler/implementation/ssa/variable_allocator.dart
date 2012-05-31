@@ -385,8 +385,9 @@ class VariableNames {
 class VariableNamer {
   final VariableNames names;
   final Set<String> usedNames;
+  final Map<Element, String> parameterNames;
 
-  VariableNamer(LiveEnvironment environment, this.names)
+  VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
     : usedNames = new Set<String>() {
     // [VariableNames.SWAP_TEMP] is being used when there is a cycle
     // in a copy handler. Therefore we make sure no one will use it.
@@ -442,7 +443,10 @@ class VariableNamer {
       if (name == null) return;
     } else if (instruction is HParameterValue) {
       HParameterValue parameter = instruction;
-      name = allocateWithHint(parameter.element.name.slowToString());
+      name = parameterNames[parameter.element];
+      if (name == null) {
+        name = allocateWithHint(parameter.element.name.slowToString());
+      }
     } else if (instruction.sourceElement !== null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
     } else {
@@ -490,13 +494,15 @@ class SsaVariableAllocator extends HBaseVisitor {
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;
   final Set<HInstruction> generateAtUseSite;
+  final Map<Element, String> parameterNames;
 
   final VariableNames names;
 
   SsaVariableAllocator(this.compiler,
                        this.liveInstructions,
                        this.liveIntervals,
-                       this.generateAtUseSite)
+                       this.generateAtUseSite,
+                       this.parameterNames)
     : names = new VariableNames();
 
   void visitGraph(HGraph graph) {
@@ -504,7 +510,8 @@ class SsaVariableAllocator extends HBaseVisitor {
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    VariableNamer namer = new VariableNamer(liveInstructions[block], names);
+    VariableNamer namer = new VariableNamer(
+        liveInstructions[block], names, parameterNames);
 
     block.forEachPhi((HPhi phi) {
       handlePhi(phi, namer);
