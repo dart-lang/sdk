@@ -438,7 +438,10 @@ class LocalsHandler {
 
   HParameterValue getActivationParameter(Element element) {
     // If the element is a parameter, we already have a
-    // HParameterValue for it.
+    // HParameterValue for it. We cannot create another one because
+    // it could then have another name than the real parameter. And
+    // the other one would not not it is just a copy of the real
+    // parameter.
     if (element.isParameter()) return directLocals[element];
 
     return builder.activationVariables.putIfAbsent(element, () {

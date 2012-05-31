@@ -22,13 +22,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     visitDominatorTree(graph);
   }
 
-  bool usedOnlyByPhis(instruction) {
-    for (HInstruction user in instruction.usedBy) {
-      if (user is! HPhi) return false;
-    }
-    return true;
-  }
-
   void visitInstruction(HInstruction instruction) {
     // A code motion invariant instruction is dealt before visiting it.
     assert(!instruction.isCodeMotionInvariant());
@@ -100,25 +93,6 @@ class SsaInstructionMerger extends HBaseVisitor {
         }
       }
       return false;
-    }
-
-    for (HBasicBlock successor in block.successors) {
-      // Only add the input of the first phi. Making inputs of
-      // later phis generate-at-use-site would make them move
-      // accross the assignment of the first phi, and we need
-      // more analysis before we can do that.
-      HPhi phi = successor.phis.first;
-      if (phi != null) {
-        int index = successor.predecessors.indexOf(block);
-        HInstruction input = phi.inputs[index];
-        if (!generateAtUseSite.contains(input)
-            && !input.isCodeMotionInvariant()
-            && input.usedBy.length == 1
-            && input is! HPhi) {
-          expectedInputs.add(input);
-        }
-        break;
-      }
     }
 
     block.last.accept(this);
@@ -426,71 +400,4 @@ class JSBinaryOperatorPrecedence {
   const JSBinaryOperatorPrecedence(this.left, this.right);
   // All binary operators (excluding assignment) are left associative.
   int get precedence() => left;
-}
-
-class PhiEquivalator {
-  final Equivalence<HPhi> equivalence;
-  final Map<HPhi, String> logicalOperations;
-  PhiEquivalator(this.equivalence, this.logicalOperations);
-
-  void analyzeGraph(HGraph graph) {
-    graph.blocks.forEach(analyzeBlock);
-  }
-
-  void analyzeBlock(HBasicBlock block) {
-    for (HPhi phi = block.phis.first; phi !== null; phi = phi.next) {
-      if (!logicalOperations.containsKey(phi) &&
-          phi.usedBy.length == 1 &&
-          phi.usedBy[0] is HPhi &&
-          phi.block.id < phi.usedBy[0].block.id) {
-        equivalence.makeEquivalent(phi, phi.usedBy[0]);
-      }
-    }
-  }
-}
-
-
-/**
- * Try to figure out which phis can be represented by the same temporary
- * variable, to avoid creating a new variable for each phi.
- */
-class Equivalence<T extends Hashable> {
-  // Represent equivalence classes of HPhi nodes as a forest of trees,
-  // where each tree is one equivalence class, and the root is the
-  // canonical representative for the equivalence class.
-  // Implement the forest by having each phi point to its parent in the tree,
-  // transitively linking it to the root, which itself doesn't have a parent.
-  final Map<T,T> representative;
-
-  Equivalence() : representative = new Map<T,T>();
-
-  T makeEquivalent(T a, T b) {
-    T root1 = getRepresentative(a);
-    T root2 = getRepresentative(b);
-    if (root1 !== root2) {
-      // Merge the trees for the two classes into one.
-      representative[root1] = root2;
-    }
-  }
-
-  /**
-   * Get the canonical representative for an equivalence class of phis.
-   */
-  T getRepresentative(T element) {
-    T parent = representative[element];
-    if (parent === null) {
-      // This is the root of a tree (a previously unseen node is considered
-      // the root of its own tree).
-      return element;
-    }
-    // Shorten the path for all the elements on the way to the root,
-    // improving the performance of future lookups.
-    T root = getRepresentative(parent);
-    if (root !== parent) representative[element] = root;
-    return root;
-  }
-
-  bool areEquivalent(T a, T b) {
-    return getRepresentative(a) === getRepresentative(b);
-  }
 }

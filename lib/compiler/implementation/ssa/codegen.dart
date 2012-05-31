@@ -141,23 +141,33 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   static final int TYPE_EXPRESSION = 1;
   static final int TYPE_DECLARATION = 2;
 
-  static final String TEMPORARY_PREFIX = 't';
-
   final JavaScriptBackend backend;
   final WorkItem work;
   final StringBuffer buffer;
   final String parameters;
 
-  final Map<Element, String> parameterNames;
-  final Map<int, String> names;
-  final Set<String> usedNames;
-  final Set<HInstruction> declaredInstructions;
-  final Map<String, int> prefixes;
   final Set<HInstruction> generateAtUseSite;
   final Map<HPhi, String> logicalOperations;
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
-  final Equivalence<HPhi> phiEquivalence;
+  final Map<Element, String> parameterNames;
+
+  /**
+   * Contains the names of the instructions, as well as the parallel
+   * copies to perform on block transitioning.
+   */
+  VariableNames variableNames;
+
+  /**
+   * While generating expressions, we can't insert variable declarations.
+   * Instead we declare them at the end of the function
+   */
+  final List<String> delayedVariablesDeclaration;
+
+  /**
+   * Set of variables that have already been declared.
+   */
+  final Set<String> declaredVariables;
 
   Element equalsNullElement;
   Element boolifiedEqualsNullElement;
@@ -170,11 +180,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * instead of a sequence of statements.
    */
   int generationState = STATE_STATEMENT;
-  /**
-   * While generating expressions, we can't insert variable declarations.
-   * Instead we declare them at the end of the function
-   */
-  Link<String> delayedVarDecl = const EmptyLink<String>();
   HBasicBlock currentBlock;
 
   // Records a block-information that is being handled specially.
@@ -197,24 +202,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                    this.work,
                    this.parameters,
                    this.parameterNames)
-    : names = new Map<int, String>(),
-      prefixes = new Map<String, int>(),
-      usedNames = new Set<String>(),
-      declaredInstructions = new Set<HInstruction>(),
+    : declaredVariables = new Set<String>(),
+      delayedVariablesDeclaration = new List<String>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       logicalOperations = new Map<HPhi, String>(),
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>(),
-      phiEquivalence = new Equivalence<HPhi>(),
       unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
-
-    for (final name in parameterNames.getValues()) {
-      prefixes[name] = 0;
-    }
-
-    // Create a namespace for temporaries.
-    prefixes[TEMPORARY_PREFIX] = 0;
 
     Interceptors interceptors = backend.builder.interceptors;
     equalsNullElement = interceptors.getEqualsNullInterceptor();
@@ -258,7 +253,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite,
                            logicalOperations).visitGraph(graph);
-    new PhiEquivalator(phiEquivalence, logicalOperations).analyzeGraph(graph);
+    SsaLiveIntervalBuilder intervalBuilder =
+        new SsaLiveIntervalBuilder(compiler);
+    intervalBuilder.visitGraph(graph);
+    SsaVariableAllocator allocator = new SsaVariableAllocator(
+        compiler,
+        intervalBuilder.liveInstructions,
+        intervalBuilder.liveIntervals,
+        generateAtUseSite);
+    allocator.visitGraph(graph);
+    variableNames = allocator.names;
   }
 
   visitGraph(HGraph graph) {
@@ -268,14 +272,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = new SubGraph(graph.entry, graph.exit);
     beginGraph(graph);
     visitBasicBlock(graph.entry);
-    if (!delayedVarDecl.isEmpty()) {
+    if (!delayedVariablesDeclaration.isEmpty()) {
       addIndented("var ");
-      while (true) {
-        buffer.add(delayedVarDecl.head);
-        delayedVarDecl = delayedVarDecl.tail;
-        if (delayedVarDecl.isEmpty()) break;
-        buffer.add(", ");
-      }
+      buffer.add(Strings.join(delayedVariablesDeclaration, ', '));
       buffer.add(";\n");
     }
     endGraph(graph);
@@ -413,60 +412,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateExpression(condition);
   }
 
-  String temporary(HInstruction instruction) {
-    int id = instruction.id;
-    String name = names[id];
-    if (name !== null) return name;
-
-    String prefix = TEMPORARY_PREFIX;
-    if (instruction.sourceElement !== null) {
-      Element element = instruction.sourceElement;
-      if (element !== null && !element.name.isEmpty()) {
-        prefix = element.name.slowToString();
-        // Special case the variable named [TEMPORARY_PREFIX] to allow
-        // keeping its name.
-        if (prefix == TEMPORARY_PREFIX && !usedNames.contains(prefix)) {
-          return newName(id, prefix);
-        }
-        // If we've never seen that prefix before, try to use it
-        // directly.
-        if (!prefixes.containsKey(prefix)) {
-          // Make sure the variable name does not conflict with our mangling.
-          while (usedNames.contains(prefix)) {
-            prefix = '${prefix}_';
-          }
-          prefixes[prefix] = 0;
-          return newName(id, prefix);
-        }
-      }
-    }
-
-    name = '${prefix}${prefixes[prefix]++}';
-    while (usedNames.contains(name)) {
-      name = '${prefix}${prefixes[prefix]++}';
-    }
-    return newName(id, name);
-  }
-
-  // TODO(floitsch): share more code with [temporary].
-  String freshTemporary() {
-    String prefix = TEMPORARY_PREFIX;
-    String name = '${prefix}${prefixes[prefix]++}';
-    while (usedNames.contains(name)) {
-      name = '${prefix}${prefixes[prefix]++}';
-    }
-    String result = JsNames.getValid(name);
-    usedNames.add(result);
-    return result;
-  }
-
-  String newName(int id, String name) {
-    String result = JsNames.getValid(name);
-    names[id] = result;
-    usedNames.add(result);
-    return result;
-  }
-
   /**
     * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
     */
@@ -501,69 +446,44 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * Ensures that expressions are comma spearated.
    */
   void addExpressionSeparator() {
-    if (generationState == STATE_FIRST_DECLARATION) {
-      buffer.add("var ");
-      generationState = STATE_DECLARATION;
-    } else if (generationState == STATE_FIRST_EXPRESSION) {
+    if (generationState == STATE_FIRST_EXPRESSION) {
       generationState = STATE_EXPRESSION;
-    } else {
+    } else if (generationState != STATE_FIRST_DECLARATION) {
       buffer.add(", ");
     }
+    // If the state is [STATE_FIRST_DECLARATION] the potential
+    // declaration of the variable will be done by the instruction.
+  }
+
+  bool isVariableDeclared(String variableName) {
+    return declaredVariables.contains(variableName);
   }
 
   void declareVariable(String variableName) {
     if (isGeneratingExpression()) {
-      buffer.add(variableName);
-      if (!isGeneratingDeclaration()) {
-        delayedVarDecl = delayedVarDecl.prepend(variableName);
+      if (generationState == STATE_FIRST_DECLARATION) {
+        generationState = STATE_DECLARATION;
+        if (!isVariableDeclared(variableName)) {
+          declaredVariables.add(variableName);
+          buffer.add("var ");
+        }
+      } else if (!isGeneratingDeclaration()
+                 && !isVariableDeclared(variableName)) {
+        delayedVariablesDeclaration.add(variableName);
       }
-    } else {
+    } else if (!isVariableDeclared(variableName)) {
+      declaredVariables.add(variableName);
       buffer.add("var ");
-      buffer.add(variableName);
     }
+    buffer.add(variableName);
   }
 
   void declareInstruction(HInstruction instruction) {
-    declaredInstructions.add(instruction);
-    String name = temporary(instruction);
-    declareVariable(name);
-  }
-
-  bool needsNewVariable(HInstruction instruction) {
-    bool needsVar = !instruction.usedBy.isEmpty();
-    if (needsVar && instruction is HCheck) {
-      HCheck check = instruction;
-      HInstruction input = check.checkedInput;
-      // We only need a new var if [input] is generated at use site
-      // but is not a trivial code motion invariant instruction like
-      // for parameters or this.
-      //
-      // For example:
-      // Foo a = this;
-      // print(a);
-      // print(a);
-      //
-      // In checked mode no new variable is needed.
-      // FooTypeCheck(this);
-      // print(this);
-      // print(this);
-      //
-      // But for this example:
-      // Foo a = foo();
-      // print(a);
-      // print(a);
-      //
-      // We need a new variable:
-      // var a = FooTypeCheck(foo());
-      // print(a);
-      // print(a);
-      needsVar = isGenerateAtUseSite(input) && !input.isCodeMotionInvariant();
-    }
-    return needsVar;
+    declareVariable(variableNames.getName(instruction));
   }
 
   void define(HInstruction instruction) {
-    if (needsNewVariable(instruction)) {
+    if (instruction is !HCheck && variableNames.hasName(instruction)) {
       declareInstruction(instruction);
       buffer.add(" = ");
       visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -573,70 +493,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void use(HInstruction argument, int expectedPrecedenceForArgument) {
-    if (argument is HCheck) {
-      HCheck instruction  = argument;
-      HInstruction input = instruction.checkedInput;
-      if (isGenerateAtUseSite(argument) && isGenerateAtUseSite(input)) {
-        // If both instructions can be generated at use site, we can
-        // just visit [argument].
-        //
-        // For example:
-        // Foo a = foo();
-        // print(a);
-        //
-        // In checked mode will turn into:
-        // print(FooTypeCheck(foo()));
-        visit(argument, expectedPrecedenceForArgument);
-      } else if (isGenerateAtUseSite(input)) {
-        // Get the real input of that checked instruction.
-        while (input is HCheck) {
-          HCheck check = input;
-          input = check.checkedInput;
-        }
-
-        // If [argument] cannot be generated at use site, but [input]
-        // can, use the temporary of [argument]. A code motion
-        // invariant instruction does not have a temporary, so we just
-        //
-        // For example:
-        // Foo a = foo();
-        // print(a);
-        // print(a);
-        //
-        // In checked mode will turn into:
-        // var a = FooTypeCheck(foo());
-        // print(a);
-        // print(a);
-        //
-        // Note that in case the input is code motion invariant, like
-        // for parameters or this, we just need to visit it, since
-        // there is no temporary for such instruction.
-        if (input.isCodeMotionInvariant()) {
-          visit(input, expectedPrecedenceForArgument);
-        } else {
-          buffer.add(temporary(argument));
-        }
-      } else {
-        // Otherwise we just use [input]. [argument] has already been
-        // emitted, and we just need the temporary of [input].
-        //
-        // For example:
-        // var a = foo();
-        // print(a);
-        // Foo b = a;
-        // print(b);
-        //
-        // In checked mode will turn into:
-        // var a = foo();
-        // print(a);
-        // FooTypeCheck(a);
-        // print(a);
-        use(input, expectedPrecedenceForArgument);
-      }
-    } else if (isGenerateAtUseSite(argument)) {
+    if (isGenerateAtUseSite(argument)) {
       visit(argument, expectedPrecedenceForArgument);
+    } else if (argument is HCheck) {
+      HCheck check = argument;
+      use(argument.checkedInput, expectedPrecedenceForArgument);
     } else {
-      buffer.add(temporary(argument));
+      buffer.add(variableNames.getName(argument));
     }
   }
 
@@ -724,7 +587,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (info.catchBlock !== null) {
       // Printing the catch part.
       HParameterValue exception = info.catchVariable;
-      String name = temporary(exception);
+      String name = variableNames.getName(exception);
       parameterNames[exception.element] = name;
       buffer.add(' catch ($name) {\n');
       indent++;
@@ -1025,135 +888,119 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     iterateBasicBlock(node);
   }
 
-  /** Generates the assignments for all phis of successors blocks. */
-  void assignPhisOfAllSuccessors(HBasicBlock node) {
-    Map<HInstruction, String> temporaryNamesOfPhis = null;
+  void emitAssignment(String destination, String source) {
+    if (isGeneratingExpression()) { 
+      addExpressionSeparator();
+    } else {
+      addIndentation();
+    }
+    declareVariable(destination);
+    buffer.add(' = $source');
+    if (!isGeneratingExpression()) {
+      buffer.add(';\n');
+    }
+  }
 
-    /**
-     * Generates the assignment [canonicalPhi] = [value].
-     *
-     * If the [canonicalPhi] has a temporary name (in [temporaryNamesOfPhis])
-     * then the temporary is assigned instead of the [canonicalPhi]. However,
-     * when the left and right-hand side are equal ([:canonicalPhi === value:])
-     * then the [canonicalPhi] is assigned with the temporary.
-     */
-    void generateAssignment(HPhi canonicalPhi, HInstruction value) {
+  /**
+   * Sequentialize a list of conceptually parallel copies. Parallel
+   * copies may contain cycles, that this method breaks.
+   */
+  void sequentializeCopies(List<Copy> copies) {
+    // Map to keep track of the current location (ie the variable that
+    // holds the initial value) of a variable.
+    Map<String, String> currentLocation = new Map<String, String>();
+
+    // Map to keep track of the initial value of a variable.
+    Map<String, String> initialValue = new Map<String, String>();
+
+    // List of variables to assign a value.
+    List<String> worklist = <String>[];
+
+    // List of variables that we can assign a value to (ie are not
+    // being used anymore).
+    List<String> ready = <String>[];
+
+    // Prune [copies] by removing self-copies.
+    List<Copy> prunedCopies = <Copy>[];
+    for (Copy copy in copies) {
+      String sourceName = variableNames.getName(copy.source);
+      String destinationName = variableNames.getName(copy.destination);
+      if (sourceName != destinationName) {
+        prunedCopies.add(new Copy(sourceName, destinationName));
+      }
+    }
+    copies = prunedCopies;
+
+
+    // For each copy, set the current location of the source to
+    // itself, and the initial value of the destination to the source.
+    // Add the destination to the list of copies to make.
+    for (Copy copy in copies) {
+      currentLocation[copy.source] = copy.source;
+      initialValue[copy.destination] = copy.source;
+      worklist.add(copy.destination);
+    }
+
+    // For each copy, if the destination does not have a current
+    // location, then we can safely assign to it.
+    for (Copy copy in copies) {
+      if (currentLocation[copy.destination] === null) {
+        ready.add(copy.destination);
+      }
+    }
+
+    while (!worklist.isEmpty()) {
+      while (!ready.isEmpty()) {
+        String destination = ready.removeLast();
+        String source = initialValue[destination];
+        // Since [source] might have been updated, use the current
+        // location of [source]
+        String copy = currentLocation[source];
+        emitAssignment(destination, copy);
+        // Now [destination] is the current location of [source].
+        currentLocation[source] = destination;
+        // If [source] hasn't been updated and needs to have a value,
+        // add it to the list of variables that can be updated. Copies
+        // of [source] will now use [destination].
+        if (source == copy && initialValue[source] !== null) {
+          ready.add(source);
+        }
+      }
+
+      // Check if we have a cycle.
+      String current = worklist.removeLast();
+      // If [current] is used as a source, and the assignment has been
+      // done, we are done with this variable. Otherwise there is a
+      // cycle that we break by using a temporary name.
+      if (currentLocation[current] !== null
+          && current != currentLocation[initialValue[current]]) {
+        String tempName = VariableNames.SWAP_TEMP;
+        emitAssignment(tempName, current);
+        currentLocation[current] = tempName;
+        // [current] can now be safely updated. Copies of [current]
+        // will now use [tempName].
+        ready.add(current);
+      }
+    }
+  }
+
+  void assignPhisOfSuccessors(HBasicBlock node) {
+    CopyHandler handler = variableNames.getCopyHandler(node);
+    if (handler == null) return;
+
+    sequentializeCopies(handler.copies);
+
+    for (Copy copy in handler.assignments) {
       if (isGeneratingExpression()) {
         addExpressionSeparator();
       } else {
         addIndentation();
       }
-      if (temporaryNamesOfPhis !== null &&
-          canonicalPhi !== value &&
-          temporaryNamesOfPhis.containsKey(canonicalPhi)) {
-        // This is the assignment to the temporary.
-        declareVariable(temporaryNamesOfPhis[canonicalPhi]);
-      } else if (!declaredInstructions.contains(canonicalPhi)) {
-        declareInstruction(canonicalPhi);
-      } else {
-        buffer.add(temporary(canonicalPhi));
-      }
-      buffer.add(" = ");
-      bool isLogicalOperation = logicalOperations.containsKey(canonicalPhi);
-      if (isLogicalOperation) {
-        emitLogicalOperation(canonicalPhi, logicalOperations[canonicalPhi]);
-      } else if (canonicalPhi === value) {
-        buffer.add(temporaryNamesOfPhis[value]);
-      } else {
-        use(value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      }
+      declareVariable(variableNames.getName(copy.destination));
+      buffer.add(' = ');
+      use(copy.source, JSPrecedence.ASSIGNMENT_PRECEDENCE);
       if (!isGeneratingExpression()) {
         buffer.add(';\n');
-      }
-    }
-
-    // Assignments are delayed so that we don't overwrite phis that might
-    // be used as inputs.
-    // TODO(floitsch): improve phi assignments. Currently we introduce
-    // way too many temporary variables.
-    Map<HPhi, HInstruction> phiAssignments = new Map<HPhi, HInstruction>();
-
-    for (HBasicBlock successor in node.successors) {
-      int index = successor.predecessors.indexOf(node);
-      successor.forEachPhi((HPhi phi) {
-        bool isLogicalOperation = logicalOperations.containsKey(phi);
-        // In case the phi is being generated by another
-        // instruction.
-        if (isLogicalOperation && isGenerateAtUseSite(phi)) return;
-        HPhi canonicalPhi = phiEquivalence.getRepresentative(phi);
-        assert(!isLogicalOperation || canonicalPhi === phi);
-        HInstruction input = phi.inputs[index];
-        if (input is HPhi) {
-          input = phiEquivalence.getRepresentative(input);
-          // If we use the same variable, we don't need to create an
-          // assignment.
-          if (input === canonicalPhi) {
-            assert(!isLogicalOperation);
-            return;
-          }
-        }
-        phiAssignments[canonicalPhi] = input;
-      });
-    }
-
-    Set<HPhi> inputPhis = new Set<HPhi>();
-    List<HPhi> phis = <HPhi>[];
-
-    /**
-     * Transitively collects the phis that are used when emitting the [input]
-     * and adds them to [inputPhis]. Does not add phis that are equal to the
-     * [targetPhi] or are not in the [phiAssignments] map.
-     */
-    void collectInputPhis(HInstruction input, HPhi targetPhi) {
-      if (input is HPhi) {
-        HPhi canonicalPhi = phiEquivalence.getRepresentative(input);
-        // Self-updates are ok.
-        if (canonicalPhi !== targetPhi &&
-            phiAssignments.containsKey(canonicalPhi)) {
-          inputPhis.add(canonicalPhi);
-        }
-      } else if (isGenerateAtUseSite(input)) {
-        for (HInstruction inputOfInput in input.inputs) {
-          collectInputPhis(inputOfInput, targetPhi);
-        }
-      }
-    }
-
-    phiAssignments.forEach((HPhi targetPhi, HInstruction input) {
-      phis.add(targetPhi);
-      collectInputPhis(input, targetPhi);
-    });
-
-    if (inputPhis.isEmpty()) {
-      phiAssignments.forEach(generateAssignment);
-    } else {
-      // Emit the phiX=phiY assignments, taking care to break cycles.
-      // Example program:
-      //   var x = 499;
-      //   var y = 99;
-      //   while (x != 99) {
-      //     var tmp = x;  // <=== The tmp variable is removed in Ssa-form.
-      //     x = y;
-      //     y = tmp;
-      //   }
-      //
-      temporaryNamesOfPhis = new HashMap<HInstruction, String>();
-      // For phis that are used as inputs simply *always* allocate a
-      // temporary.
-      for (HPhi phi in phis) {
-        if (inputPhis.contains(phi)) {
-          String temporaryPhi = freshTemporary();
-          temporaryNamesOfPhis[phi] = temporaryPhi;
-        }
-        // The assignPhi uses temporary variables for the left-hand side if
-        // they exist.
-        generateAssignment(phi, phiAssignments[phi]);
-      }
-      // Finally assign the input phis.
-      for (HPhi phi in inputPhis) {
-        // The assignPhi special-cases phi assignments to itself and recognizes
-        // it as assignment from the temporary variable to the actual phi.
-        generateAssignment(phi, phi);
       }
     }
   }
@@ -1162,7 +1009,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction === node.last) {
-        assignPhisOfAllSuccessors(node);
+        assignPhisOfSuccessors(node);
       }
 
       if (isGenerateAtUseSite(instruction)) {
@@ -1591,11 +1438,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('.');
       buffer.add(name);
     } else {
-      // TODO(ngeoffray): Remove the 'var' once we don't globally box
-      // variables used in a try/catch.
-      if (!isGeneratingExpression()) {
-        buffer.add('var ');
-      }
       use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
     buffer.add(' = ');
@@ -1744,11 +1586,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitParameterValue(HParameterValue node) {
     assert(isGenerateAtUseSite(node));
-    if (parameterNames[node.element] == null) {
-      buffer.add(temporary(node));
-    } else {
-      buffer.add(parameterNames[node.element]);
-    }
+    buffer.add(variableNames.getName(node));
   }
 
   visitPhi(HPhi node) {
@@ -1756,8 +1594,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (operation !== null) {
       emitLogicalOperation(node, operation);
     } else {
-      HPhi canonicalPhi = phiEquivalence.getRepresentative(node);
-      buffer.add('${temporary(canonicalPhi)}');
+      buffer.add('${variableNames.getName(node)}');
     }
   }
 
@@ -2480,7 +2317,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     int i = 0;
     for (HInstruction input in node.inputs) {
       HInstruction instruction = unwrap(input);
-      setup.add('      ${temporary(instruction)} = env$i;\n');
+      setup.add('      ${variableNames.getName(instruction)} = env$i;\n');
       i++;
     }
     if (i > maxBailoutParameters) maxBailoutParameters = i;
