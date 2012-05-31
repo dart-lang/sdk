@@ -60,6 +60,7 @@ public class TopLevelElementBuilder {
    * @param library a library (that must have an empty scope).
    */
   public void fillInLibraryScope(LibraryUnit library, DartCompilerListener listener) {
+    Scope importScope = library.getElement().getImportScope();
     Scope scope = library.getElement().getScope();
     assert scope.getElements().isEmpty();
 
@@ -82,6 +83,7 @@ public class TopLevelElementBuilder {
       } else {
         // Put the elements of the library in the scope.
         for (DartUnit unit : lib.getUnits()) {
+          //fillInUnitScope(unit, listener, importScope, false);
           fillInUnitScope(unit, listener, scope, false);
         }
       }

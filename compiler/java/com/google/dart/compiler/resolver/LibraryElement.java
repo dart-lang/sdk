@@ -7,6 +7,8 @@ package com.google.dart.compiler.resolver;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 public interface LibraryElement extends EnclosingElement {
+  Scope getImportScope();
+
   Scope getScope();
 
   LibraryUnit getLibraryUnit();
