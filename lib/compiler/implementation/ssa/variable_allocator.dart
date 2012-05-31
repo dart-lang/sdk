@@ -334,6 +334,7 @@ class CopyHandler {
   }
 
   String toString() => 'Copies: $copies, assignments: $assignments';
+  bool isEmpty() => copies.isEmpty() && assignments.isEmpty();
 }
 
 /**

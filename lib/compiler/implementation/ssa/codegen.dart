@@ -550,10 +550,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       generateStatements(info.thenGraph);
       indent--;
       addIndented("}");
-      if (info.elseGraph !== null) {
+      HSubGraphBlockInformation elseGraph = info.elseGraph;
+      if (elseGraph !== null && !isEmptyElse(elseGraph.start, elseGraph.end)) {
         buffer.add(" else {\n");
         indent++;
-        generateStatements(info.elseGraph);
+        generateStatements(elseGraph);
         indent--;
         addIndented("}");
       }
@@ -1252,6 +1253,35 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     compiler.internalError('visitTry should not be called', instruction: node);
   }
 
+  bool isEmptyElse(HBasicBlock start, HBasicBlock end) {
+    if (start !== end) return false;
+    if (start.last is !HGoto
+        || start.last is HBreak
+        || start.last is HContinue) {
+      return false;
+    }
+    HInstruction instruction = start.first;
+    for (HInstruction instruction = start.first;
+         instruction != start.last;
+         instruction = instruction.next) {
+      // Instructions generated at use site are okay because they do
+      // not generate code in this else block.
+      if (!isGenerateAtUseSite(instruction)) return false;
+    }
+    CopyHandler handler = variableNames.getCopyHandler(start);
+    if (handler == null || handler.isEmpty()) return true;
+    if (!handler.assignments.isEmpty()) return false;
+    // If the block has a copy where the destination and source are
+    // different, we will emit that copy, and therefore the block is
+    // not empty.
+    for (Copy copy in handler.copies) {
+      String sourceName = variableNames.getName(copy.source);
+      String destinationName = variableNames.getName(copy.destination);
+      if (sourceName != destinationName) return false;
+    }
+    return true;
+  }
+
   visitIf(HIf node) {
     if (subGraph !== null && node.block === subGraph.end) {
       if (isGeneratingExpression()) {
@@ -1263,6 +1293,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
     HIfBlockInformation info = node.blockInformation.body;
+    HBasicBlock joinBlock = node.joinBlock;
     if (condition.isConstant()) {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
@@ -1280,7 +1311,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       generateStatements(info.thenGraph);
       preVisitedBlocks++;
       endThen(node);
-      if (node.hasElse) {
+      HBasicBlock endBlock =
+          (joinBlock == null || joinBlock.predecessors.length != 2)
+              ? null
+              : joinBlock.predecessors[1];
+      if (node.hasElse && !isEmptyElse(node.elseBlock, endBlock)) {
         startElse(node);
         assert(node.elseBlock === dominated[1]);
         generateStatements(info.elseGraph);
@@ -1289,7 +1324,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       endIf(node);
     }
-    HBasicBlock joinBlock = node.joinBlock;
     if (joinBlock !== null && joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
