@@ -1281,10 +1281,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
 // Called for inline allocation of closures.
 // Input parameters:
-//   If the signature class is not parameterized, the receiver, if any, will be
-//   at RSP + 8 instead of RSP + 16, since no type arguments are passed.
-//   RSP + 16 (or RSP + 8): receiver (only if implicit instance closure).
-//   RSP + 8 : type arguments object (only if signature class is parameterized).
+//   RSP + 16 : receiver (null if not an implicit instance closure).
+//   RSP + 8 : type arguments object (null if class is not parameterized).
 //   RSP : points to return address.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
@@ -1298,7 +1296,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const Class& cls = Class::ZoneHandle(func.signature_class());
   const bool has_type_arguments = cls.HasTypeArguments();
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kReceiverOffset = (has_type_arguments ? 2 : 1) * kWordSize;
+  const intptr_t kReceiverOffset = 2 * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
@@ -1390,15 +1388,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     }
 
     // Set the type arguments field in the newly allocated closure.
-    if (has_type_arguments) {
-      ASSERT(!is_implicit_static_closure);
-      // Use the passed-in type arguments.
-      __ movq(R10, Address(RSP, kTypeArgumentsOffset));
-      __ movq(Address(RAX, Closure::type_arguments_offset()), R10);
-    } else {
-      // Set to null.
-      __ movq(Address(RAX, Closure::type_arguments_offset()), raw_null);
-    }
+    __ movq(R10, Address(RSP, kTypeArgumentsOffset));
+    __ movq(Address(RAX, Closure::type_arguments_offset()), R10);
 
     __ movq(Address(RAX, Closure::smrck_offset()), raw_null);
 

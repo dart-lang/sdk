@@ -1308,6 +1308,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
+  Value* receiver = NULL;
   if (function.IsNonImplicitClosureFunction()) {
     // The context scope may have already been set by the non-optimizing
     // compiler.  If it was not, set it here.
@@ -1318,15 +1319,19 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       ASSERT(function.context_scope() == ContextScope::null());
       function.set_context_scope(context_scope);
     }
+    receiver = BuildNullValue();
   } else if (function.IsImplicitInstanceClosureFunction()) {
     ValueGraphVisitor for_receiver(owner(), temp_index());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
+    receiver = for_receiver.value();
+  } else {
+    receiver = BuildNullValue();
   }
   ASSERT(function.context_scope() != ContextScope::null());
 
   // The function type of a closure may have type arguments. In that case, pass
-  // the type arguments of the instantiator.
+  // the type arguments of the instantiator. Otherwise, pass null object.
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(!cls.IsNull());
   const bool requires_type_arguments = cls.HasTypeArguments();
@@ -1334,10 +1339,12 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     type_arguments = BuildInstantiatorTypeArguments(node->token_index(), NULL);
+  } else {
+    type_arguments = BuildNullValue();
   }
 
-  CreateClosureComp* create =
-      new CreateClosureComp(node, owner()->try_index(), type_arguments);
+  CreateClosureComp* create = new CreateClosureComp(
+      node, owner()->try_index(), type_arguments, receiver);
   ReturnComputation(create);
 }
 

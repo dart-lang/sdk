@@ -1006,34 +1006,33 @@ class CreateArrayComp : public TemplateComputation<1> {
 };
 
 
-class CreateClosureComp : public Computation {
+class CreateClosureComp : public TemplateComputation<2> {
  public:
-  // 'type_arguments' is null if function() does not require type arguments.
   CreateClosureComp(ClosureNode* node,
                     intptr_t try_index,
-                    Value* type_arguments)
+                    Value* type_arguments,
+                    Value* receiver)
       : ast_node_(*node),
-        try_index_(try_index),
-        type_arguments_(type_arguments) {}
+        try_index_(try_index) {
+    ASSERT(type_arguments != NULL);
+    ASSERT(receiver != NULL);
+    inputs_[0] = type_arguments;
+    inputs_[1] = receiver;
+  }
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
-  Value* type_arguments() const { return type_arguments_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    return i == 0 ? type_arguments() : NULL;
-  }
+  Value* type_arguments() const { return inputs_[0]; }
+  Value* receiver() const { return inputs_[1]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureNode& ast_node_;
   const intptr_t try_index_;
-  Value* type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };

@@ -591,25 +591,23 @@ LocationSummary* CreateArrayComp::MakeLocationSummary() const {
 
 
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->in(0).reg() == RBX);
-  ASSERT(locs()->temp(0).reg() == R10);
+  Register temp_reg = locs()->temp(0).reg();
+  Register result_reg = locs()->out().reg();
 
   // 1. Allocate the array.  R10 = length, RBX = element type.
-  __ movq(R10, Immediate(Smi::RawValue(ElementCount())));
+  ASSERT(temp_reg == R10);
+  ASSERT(locs()->in(0).reg() == RBX);
+  __ movq(temp_reg, Immediate(Smi::RawValue(ElementCount())));
   compiler->GenerateCall(token_index(),
                          try_index(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther);
 
-  // 2. Initialize the array in RAX with the element values.
-  __ leaq(R10, FieldAddress(RAX, Array::data_offset()));
+  // 2. Initialize the array in result_reg with the element values.
+  __ leaq(temp_reg, FieldAddress(result_reg, Array::data_offset()));
   for (int i = ElementCount() - 1; i >= 0; --i) {
-    if (ElementAt(i)->IsUse()) {
-      __ popq(Address(R10, i * kWordSize));
-    } else {
-      compiler->LoadValue(RBX, ElementAt(i));
-      __ movq(Address(R10, i * kWordSize), RBX);
-    }
+    ASSERT(ElementAt(i)->IsUse());
+    __ popq(Address(temp_reg, i * kWordSize));
   }
 }
 
@@ -626,14 +624,7 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_index(), try_index(), &label,
                          PcDescriptors::kOther);
-
-  const Class& cls = Class::Handle(closure_function.signature_class());
-  if (cls.HasTypeArguments()) {
-    __ Drop(1);  // Discard type arguments.
-  }
-  if (closure_function.IsImplicitInstanceClosureFunction()) {
-    __ Drop(1);  // Discard receiver.
-  }
+  __ Drop(2);  // Discard type arguments and receiver.
 }
 
 

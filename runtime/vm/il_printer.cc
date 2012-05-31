@@ -234,10 +234,10 @@ void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void CreateClosureComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function().ToCString());
-  if (type_arguments() != NULL) {
-    f->Print(", ");
-    type_arguments()->PrintTo(f);
-  }
+  f->Print(", ");
+  type_arguments()->PrintTo(f);
+  f->Print(", ");
+  receiver()->PrintTo(f);
 }
 
 

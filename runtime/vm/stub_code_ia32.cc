@@ -1296,10 +1296,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
 // Called for inline allocation of closures.
 // Input parameters:
-//   If the signature class is not parameterized, the receiver, if any, will be
-//   at ESP + 4 instead of ESP + 8, since no type arguments are passed.
-//   ESP + 8 (or ESP + 4): receiver (only if implicit instance closure).
-//   ESP + 4 : type arguments object (only if signature class is parameterized).
+//   ESP + 8 : receiver (null if not an implicit instance closure).
+//   ESP + 4 : type arguments object (null if class is no parameterized).
 //   ESP : points to return address.
 // Uses EAX, EBX, ECX, EDX as temporary registers.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
@@ -1314,7 +1312,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const Class& cls = Class::ZoneHandle(func.signature_class());
   const bool has_type_arguments = cls.HasTypeArguments();
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kReceiverOffset = (has_type_arguments ? 2 : 1) * kWordSize;
+  const intptr_t kReceiverOffset = 2 * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
@@ -1403,15 +1401,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     }
 
     // Set the type arguments field in the newly allocated closure.
-    if (has_type_arguments) {
-      ASSERT(!is_implicit_static_closure);
-      // Use the passed-in type arguments.
-      __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
-      __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
-    } else {
-      // Set to null.
-      __ movl(Address(EAX, Closure::type_arguments_offset()), raw_null);
-    }
+    __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
+    __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
 
     __ movl(Address(EAX, Closure::smrck_offset()), raw_null);
 

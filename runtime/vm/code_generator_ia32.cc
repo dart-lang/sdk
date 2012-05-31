@@ -792,6 +792,8 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
 
 
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   const Function& function = node->function();
   if (function.IsNonImplicitClosureFunction()) {
     // The context scope may have already been set by the new non-optimizing
@@ -803,8 +805,11 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
       ASSERT(!function.HasCode());
       function.set_context_scope(context_scope);
     }
+    __ pushl(raw_null);  // No receiver.
   } else if (function.IsImplicitInstanceClosureFunction()) {
     node->receiver()->Visit(this);
+  } else {
+    __ pushl(raw_null);  // No receiver.
   }
   ASSERT(function.context_scope() != ContextScope::null());
 
@@ -817,17 +822,15 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     const bool kPushInstantiator = false;
     GenerateInstantiatorTypeArguments(node->token_index(), kPushInstantiator);
+  } else {
+    __ pushl(raw_null);  // No type arguments.
   }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
-  if (requires_type_arguments) {
-    __ popl(ECX);  // Pop type arguments.
-  }
-  if (function.IsImplicitInstanceClosureFunction()) {
-    __ popl(ECX);  // Pop receiver.
-  }
+  __ popl(ECX);  // Pop type arguments.
+  __ popl(ECX);  // Pop receiver.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }

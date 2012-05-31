@@ -45,16 +45,6 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-intptr_t CreateClosureComp::InputCount() const {
-  intptr_t input_count = 0;
-  // Optional type arguments.
-  if (type_arguments() != NULL) input_count++;
-  // Optional receiver.
-  if (function().IsImplicitInstanceClosureFunction()) input_count++;
-  return input_count;
-}
-
-
 intptr_t InstanceCallComp::InputCount() const {
   return ArgumentCount();
 }
