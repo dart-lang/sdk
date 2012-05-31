@@ -535,4 +535,15 @@ RawAbstractType* BinaryOpComp::StaticType() const {
 }
 
 
+RawAbstractType* UnarySmiOpComp::StaticType() const {
+  return Type::IntInterface();
+}
+
+
+RawAbstractType* NumberNegateComp::StaticType() const {
+  return Type::NumberInterface();
+}
+
+
+
 }  // namespace dart

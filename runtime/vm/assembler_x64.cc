@@ -535,6 +535,17 @@ void Assembler::comisd(XmmRegister a, XmmRegister b) {
 }
 
 
+void Assembler::xorpd(XmmRegister dst, const Address& src) {
+  ASSERT(dst <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitOperandREX(0, src, REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0x57);
+  EmitOperand(dst & 7, src);
+}
+
+
 void Assembler::xchgl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1063,6 +1074,14 @@ void Assembler::negq(Register reg) {
 }
 
 
+void Assembler::notq(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_W);
+  EmitUint8(0xF7);
+  EmitUint8(0xD0 | (reg & 7));
+}
+
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);
@@ -1340,6 +1359,17 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value) {
   // TODO(iposva): Add write barrier.
   movq(dest, value);
+}
+
+
+void Assembler::DoubleNegate(XmmRegister d) {
+  static const struct ALIGN16 {
+    uint64_t a;
+    uint64_t b;
+  } double_negate_constant =
+      {0x8000000000000000LL, 0x8000000000000000LL};
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
+  xorpd(d, Address(TMP, 0));
 }
 
 

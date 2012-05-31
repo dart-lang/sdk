@@ -588,6 +588,26 @@ void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* UnarySmiOpComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compile) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* NumberNegateComp::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compile) {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #undef __

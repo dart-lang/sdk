@@ -68,7 +68,9 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   __ Comment("Deopt stub for id %d", deopt_id_);
   __ Bind(entry_label());
   for (intptr_t i = 0; i < registers_.length(); i++) {
-    __ pushq(registers_[i]);
+    if (registers_[i] != kNoRegister) {
+      __ pushq(registers_[i]);
+    }
   }
   __ movq(RAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
@@ -979,6 +981,16 @@ void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
 
 
 void FlowGraphCompiler::VisitBinaryOp(BinaryOpComp* comp) {
+  UNIMPLEMENTED();
+}
+
+
+void FlowGraphCompiler::VisitUnarySmiOp(UnarySmiOpComp* comp) {
+  UNIMPLEMENTED();
+}
+
+
+void FlowGraphCompiler::VisitNumberNegate(NumberNegateComp* comp) {
   UNIMPLEMENTED();
 }
 

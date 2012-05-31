@@ -457,10 +457,13 @@ class Assembler : public ValueObject {
 
   void negl(Register reg);
   void negq(Register reg);
+  void notq(Register reg);
 
   void enter(const Immediate& imm);
   void leave();
   void ret();
+
+  void xorpd(XmmRegister dst, const Address& src);
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);

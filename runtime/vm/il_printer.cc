@@ -77,7 +77,6 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
     if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
-    f->Print(")");
   }
 }
 
@@ -286,6 +285,12 @@ void BinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
+}
+
+
+void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  value()->PrintTo(f);
 }
 
 

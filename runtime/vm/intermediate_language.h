@@ -65,6 +65,8 @@ class LocationSummary;
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
   M(BinaryOp, BinaryOpComp)                                                    \
+  M(UnarySmiOp, UnarySmiOpComp)                                                \
+  M(NumberNegate, NumberNegateComp)                                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -1282,6 +1284,8 @@ class BinaryOpComp : public TemplateComputation<2> {
                Value* left,
                Value* right)
       : op_kind_(op_kind), instance_call_(instance_call) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
   }
@@ -1302,6 +1306,56 @@ class BinaryOpComp : public TemplateComputation<2> {
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+};
+
+
+// Handles both Smi operations: BIT_OR and NEGATE.
+class UnarySmiOpComp : public TemplateComputation<1> {
+ public:
+  UnarySmiOpComp(Token::Kind op_kind,
+                 InstanceCallComp* instance_call,
+                Value* value)
+      : op_kind_(op_kind), instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(UnarySmiOp)
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnarySmiOpComp);
+};
+
+
+// Handles non-Smi NEGATE operations
+class NumberNegateComp : public TemplateComputation<1> {
+ public:
+  NumberNegateComp(InstanceCallComp* instance_call,
+                   Value* value) : instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  DECLARE_COMPUTATION(NumberNegate)
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(NumberNegateComp);
 };
 
 #undef DECLARE_COMPUTATION

@@ -1300,6 +1300,116 @@ void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+
+LocationSummary* UnarySmiOpComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const ICData& ic_data = *instance_call()->ic_data();
+  ASSERT(!ic_data.IsNull());
+  ASSERT(ic_data.num_args_tested() == 1);
+  // TODO(srdjan): Implement for more checks.
+  ASSERT(ic_data.NumberOfChecks() == 1);
+  Class& test_class = Class::Handle();
+  Function& target = Function::Handle();
+  ic_data.GetOneClassCheckAt(0, &test_class, &target);
+
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(value == result);
+  Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
+                                        instance_call()->token_index(),
+                                        instance_call()->try_index(),
+                                        kDeoptSmiBinaryOp,
+                                        value,
+                                        kNoRegister);
+  if (test_class.id() == kSmi) {
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt);
+    switch (op_kind()) {
+      case Token::kNEGATE:
+        __ negq(value);
+        __ j(OVERFLOW, deopt);
+        break;
+      case Token::kBIT_NOT:
+        __ notq(value);
+        __ andq(value, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    UNREACHABLE();
+  }
+}
+
+
+LocationSummary* NumberNegateComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;  // Needed for doubles.
+  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const ICData& ic_data = *instance_call()->ic_data();
+  ASSERT(!ic_data.IsNull());
+  ASSERT(ic_data.num_args_tested() == 1);
+
+  // TODO(srdjan): Implement for more checks.
+  ASSERT(ic_data.NumberOfChecks() == 1);
+  Class& test_class = Class::Handle();
+  Function& target = Function::Handle();
+  ic_data.GetOneClassCheckAt(0, &test_class, &target);
+
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(value == result);
+  Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
+                                        instance_call()->token_index(),
+                                        instance_call()->try_index(),
+                                        kDeoptSmiBinaryOp,
+                                        value,
+                                        kNoRegister);
+  if (test_class.id() == kDouble) {
+    Register temp = locs()->temp(0).reg();
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);  // Smi.
+    __ CompareClassId(value, kDouble);
+    __ j(NOT_EQUAL, deopt);
+    // Allocate result object.
+    const Class& double_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+    const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+    __ pushq(value);
+    compiler->GenerateCall(instance_call()->token_index(),
+                           instance_call()->try_index(),
+                           &label,
+                           PcDescriptors::kOther);
+    // Result is in EAX.
+    __ movq(result, RAX);
+    __ popq(temp);
+    __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
+    __ DoubleNegate(XMM0);
+    __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
+  } else {
+    UNREACHABLE();
+  }
+}
+
 }  // namespace dart
 
 #undef __
