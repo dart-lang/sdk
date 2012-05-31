@@ -47,6 +47,7 @@ const_constructor_syntax_test/05: Fail
 constructor_redirect_test/01: Fail # Issue 2103.
 
 closure_with_super_send_test: Fail # Issue 3197.
+super_closure_test: Fail # Issue 3197.
 
 # DartC or Frog specific tests that should not be run by the VM
 *dartc_test: Skip
