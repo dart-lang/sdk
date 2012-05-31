@@ -4987,6 +4987,23 @@ AstNode* Parser::MakeAssertCall(intptr_t begin, intptr_t end) {
 }
 
 
+AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
+  if (condition->IsClosureNode() ||
+      (condition->IsStoreLocalNode() &&
+       condition->AsStoreLocalNode()->value()->IsClosureNode())) {
+    EnsureExpressionTemp();
+    // Function literal in assert implies a call.
+    const intptr_t pos = condition->token_index();
+    condition = new ClosureCallNode(pos, condition, new ArgumentListNode(pos));
+  } else if (condition->IsConditionalExprNode()) {
+    ConditionalExprNode* cond_expr = condition->AsConditionalExprNode();
+    cond_expr->set_true_expr(InsertClosureCallNodes(cond_expr->true_expr()));
+    cond_expr->set_false_expr(InsertClosureCallNodes(cond_expr->false_expr()));
+  }
+  return condition;
+}
+
+
 AstNode* Parser::ParseAssertStatement() {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
@@ -5000,14 +5017,7 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* condition = ParseExpr(kAllowConst);
   const intptr_t condition_end = token_index_;
   ExpectToken(Token::kRPAREN);
-  if (condition->IsClosureNode()) {
-    EnsureExpressionTemp();
-    // Function literal in assert implies a call.
-    condition =
-        new ClosureCallNode(condition_pos,
-                            condition,
-                            new ArgumentListNode(condition_pos));
-  }
+  condition = InsertClosureCallNodes(condition);
   condition = new UnaryOpNode(condition_pos, Token::kNOT, condition);
   AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
   return new IfNode(condition_pos,

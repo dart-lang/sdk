@@ -658,6 +658,15 @@ class ConditionalExprNode : public AstNode {
   AstNode* true_expr() const { return true_expr_; }
   AstNode* false_expr() const { return false_expr_; }
 
+  void set_true_expr(AstNode* true_expr) {
+    ASSERT(true_expr != NULL);
+    true_expr_ = true_expr;
+  }
+  void set_false_expr(AstNode* false_expr) {
+    ASSERT(false_expr != NULL);
+    false_expr_ = false_expr;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     condition()->Visit(visitor);
     true_expr()->Visit(visitor);
