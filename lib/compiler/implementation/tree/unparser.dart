@@ -157,11 +157,18 @@ class Unparser implements Visitor {
 
   visitModifiers(Modifiers node) => node.visitChildren(this);
 
+  /**
+   * Unparses given NodeList starting from specific node.
+   */
+  unparseNodeListFrom(NodeList node, Link<Node> from) {
+    String delimiter = (node.delimiter === null) ? " " : "${node.delimiter} ";
+    from.printOn(sb, delimiter);
+  }
+
   visitNodeList(NodeList node) {
     if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {
-      String delimiter = (node.delimiter === null) ? " " : "${node.delimiter} ";
-      node.nodes.printOn(sb, delimiter);
+      unparseNodeListFrom(node, node.nodes);
     }
     if (node.endToken !== null) add(node.endToken.value);
   }
@@ -179,7 +186,6 @@ class Unparser implements Visitor {
     if (node.endToken !== null) add(node.endToken.value);
   }
 
-
   unparseSendPart(Send node) {
     if (node.isPrefix) {
       visit(node.selector);
@@ -188,7 +194,7 @@ class Unparser implements Visitor {
       visit(node.receiver);
       if (node.selector is !Operator) sb.add('.');
     }
-    if (!node.isPrefix) {
+    if (!node.isPrefix && !node.isIndex) {
       visit(node.selector);
     }
   }
@@ -198,10 +204,26 @@ class Unparser implements Visitor {
     visit(node.argumentsNode);
   }
 
-  visitSendSet(SendSet node) {
-    unparseSendPart(node);
+  /**
+   * Special case for assignments like "list[0] = 1".
+   */
+  unparseIndexedSet(SendSet node) {
+    visit(node.receiver);
+    sb.add('[');
+    sb.add(node.arguments.head);
+    sb.add(']');
     add(node.assignmentOperator.token.value);
-    visit(node.argumentsNode);
+    unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
+  }
+
+  visitSendSet(SendSet node) {
+    if (node.isIndex) {
+      unparseIndexedSet(node);
+    } else {
+      unparseSendPart(node);
+      add(node.assignmentOperator.token.value);
+      visit(node.argumentsNode);
+    }
   }
 
   visitThrow(Throw node) {
