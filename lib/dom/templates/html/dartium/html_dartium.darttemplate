@@ -36,8 +36,3 @@ Window get _window() => _Utils.window();
 
 Document get document() => window.document;
 Document get _document() => window.document;
-
-// FIXME: get rid of _uwrap and _wrap.
-_unwrap(raw) => raw;
-
-_wrap(raw) => raw;
