@@ -199,7 +199,8 @@ uword PageSpace::TryAllocate(intptr_t size) {
     if (result == 0) {
       result = freelist_.TryAllocate(size);
       if ((result == 0) &&
-          page_space_controller_.CanGrowPageSpace(size) &&
+          (page_space_controller_.CanGrowPageSpace(size) ||
+           (size < (capacity() - in_use()))) &&  // Fragmentation
           CanIncreaseCapacity(kPageSize)) {
         AllocatePage();
         result = TryBumpAllocate(size);
