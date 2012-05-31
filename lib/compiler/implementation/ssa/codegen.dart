@@ -2287,19 +2287,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   // For instructions that reference a guard or a check, we change that
   // reference to the instruction they guard against. Therefore, we must
   // use that instruction when restoring the environment.
-  HInstruction unwrap(HInstruction argument) {
-    if (argument is HIntegerCheck) {
-      HIntegerCheck instruction = argument;
-      return unwrap(instruction.value);
-    } else if (argument is HBoundsCheck) {
-      HBoundsCheck instruction = argument;
-      return unwrap(instruction.index);
-    } else if (argument is HTypeGuard) {
-      HTypeGuard instruction = argument;
-      return unwrap(instruction.guarded);
-    } else {
-      return argument;
-    }
+  HInstruction unwrap(argument) {
+    while (argument is HCheck) argument = argument.checkedInput;
+    return argument;
   }
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
