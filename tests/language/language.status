@@ -421,6 +421,7 @@ assign_static_type_test/01: Fail # Unrecognized option: --no-enable-type-checks.
 assign_static_type_test/02: Fail # Unrecognized option: --no-enable-type-checks.
 assign_static_type_test/03: Fail # Unrecognized option: --no-enable-type-checks.
 assign_static_type_test/04: Fail # Unrecognized option: --no-enable-type-checks.
+default_factory2_test/01: Fail # Issue 1380
 type_variable_bounds_test/01: Fail # Issue 2135
 type_variable_bounds_test/02: Fail # Issue 2135
 type_variable_bounds_test/04: Fail # Issue 2135

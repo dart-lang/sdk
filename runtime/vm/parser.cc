@@ -7904,6 +7904,13 @@ AstNode* Parser::ParseNewOperator() {
     // The type argument vector may have been expanded with the type arguments
     // of the super type when finalizing the temporary type.
     type_arguments = temp_type.arguments();
+    // The type parameter bounds of the factory class may be more specific than
+    // the type parameter bounds of the interface class. Therefore, although
+    // type was not malformed, temp_type may be malformed.
+    if (!type.IsMalformed() && temp_type.IsMalformed()) {
+      const Error& error = Error::Handle(temp_type.malformed_error());
+      type.set_malformed_error(error);
+    }
   }
 
   type_arguments ^= type_arguments.Canonicalize();
