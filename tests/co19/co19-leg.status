@@ -245,7 +245,6 @@ Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # ! cannot be called 
 Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # internal error: super property store not implemented
 Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # internal error: super property store not implemented
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error in parser.
-Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # internal error: super property read not implemented
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 [ $compiler == dart2js && $runtime == d8 ]

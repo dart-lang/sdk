@@ -2290,8 +2290,10 @@ class SsaBuilder implements Visitor {
     HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
-    if (element.kind == ElementKind.FUNCTION ||
-        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (node.isPropertyAccess) {
+      push(new HInvokeSuper(selector, inputs));
+    } else if (element.kind == ElementKind.FUNCTION ||
+               element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     element, inputs);
       if (!succeeded) {
@@ -2398,9 +2400,6 @@ class SsaBuilder implements Visitor {
 
   visitSend(Send node) {
     if (node.isSuperCall) {
-      if (node.isPropertyAccess) {
-        compiler.unimplemented('super property read', node: node);
-      }
       visitSuperSend(node);
     } else if (node.isOperator && methodInterceptionEnabled) {
       visitOperatorSend(node);
