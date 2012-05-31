@@ -284,7 +284,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "}",
             "class F implements I {",
             "}",
@@ -309,7 +309,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "}",
             "class F implements I {",
             "}",
@@ -334,7 +334,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "}",
             "class F implements I {",
             "  F();",
@@ -358,7 +358,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I(int x);",
             "}",
             "class F implements I {",
@@ -394,7 +394,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I(int x);",
             "}",
             "class F implements I {",
@@ -433,7 +433,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I.foo(int x);",
             "}",
             "class F implements I {",
@@ -475,7 +475,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I(int x);",
             "  I.foo(int x);",
             "}",
@@ -540,7 +540,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I(int x);",
             "  I.foo(int x);",
             "}",
@@ -591,7 +591,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I.foo(int x);",
             "}",
             "class F {",
@@ -634,7 +634,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I.foo(int x);",
             "}",
             "class F implements I {",
@@ -683,7 +683,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "Test.dart",
         Joiner.on("\n").join(
-            "interface I factory F {",
+            "interface I default F {",
             "  I.foo(int a, [int b, int c]);",
             "  I.bar(int a, [int b, int c]);",
             "  I.baz(int a, [int b]);",

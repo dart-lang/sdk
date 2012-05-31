@@ -193,7 +193,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         analyzeLibrary(
             "Test.dart",
             Joiner.on("\n").join(
-                "interface I factory F {",
+                "interface I default F {",
                 "  I.foo(int a, [int b, int c]);",
                 "}",
                 "class F implements I {",
@@ -233,7 +233,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         analyzeLibrary(
             "Test.dart",
             Joiner.on("\n").join(
-                "interface I factory F {",
+                "interface I default F {",
                 "  I(int a);",
                 "}",
                 "class F implements I {",
