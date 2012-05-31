@@ -17,7 +17,9 @@
  *    class.
  *  * Configuration: The framework can be adapted by calling [configure] with a
  *    [Configuration].  Common configurations can be found in this package
- *    under: 'dom\_config.dart', 'html\_config.dart', and 'vm\_config.dart'.
+ *    under: 'dom\_config.dart' (deprecated), 'html\_config.dart' (for running
+ *    tests compiled to Javascript in a browser), and 'vm\_config.dart' (for
+ *    running native Dart tests on the VM).
  *
  * ##Examples##
  *
@@ -67,7 +69,11 @@
  *       });
  *     }
  *
- * Asynchronous tests: if callbacks expect between 0 and 2 positional arguments.
+ * Asynchronous tests: if callbacks expect between 0 and 2 positional arguments,
+ * depending on the suffix of expectAsyncX(). expectAsyncX() will wrap a
+ * function into a new callback and will not consider the test complete until
+ * that callback is run. A count argument can be provided to specify the number
+ * of times the callback should be called (the default is 1).
  *
  *     #import('path-to-dart/lib/unittest/unitest.dart');
  *     #import('dart:dom_deprecated');
@@ -90,6 +96,14 @@
  *         window.setTimeout(callback, 0);
  *       });
  *     }
+ *
+ * expectAsyncX() will wrap the callback code in a try/catch handler to handle 
+ * exceptions (treated as test failures). There may be times when the number of 
+ * times a callback should be called is non-deterministic. In this case a dummy
+ * callback can be created with expectAsync0((){}) and this can be called from
+ * the real callback when it is finally complete. In this case the body of the 
+ * callback should be protected within a call to guardAsync(); this will ensure
+ * that exceptions are properly handled.
  *
  * Note: due to some language limitations we have to use different functions
  * depending on the number of positional arguments of the callback. In the
@@ -222,25 +236,6 @@ void test(String spec, TestFunction body) {
 }
 
 /**
- * Creates a new async test case with the given description and body. The
- * description will include the descriptions of any surrounding group()
- * calls.
- */
-// TODO(sigmund): deprecate this API
-void asyncTest(String spec, int callbacks, TestFunction body) {
-  ensureInitialized();
-
-  final testCase = new TestCase(
-      _tests.length + 1, _fullSpec(spec), body, callbacks);
-  _tests.add(testCase);
-
-  if (callbacks < 1) {
-    testCase.error(
-        'Async tests must wait for at least one callback ', '');
-  }
-}
-
-/**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
@@ -308,25 +303,25 @@ class _SpreadArgsHelper {
            '');
         _state = _UNCAUGHT_ERROR;
       }
-    }, () { if (calls == expectedCalls) callbackDone(); });
+    }, () { if (calls == expectedCalls) _callbackDone(); });
   }
 
   invoke0() {
     return guardAsync(
         () => _incrementCall() ? callback() : null,
-        () { if (calls == expectedCalls) callbackDone(); });
+        () { if (calls == expectedCalls) _callbackDone(); });
   }
 
   invoke1(arg1) {
     return guardAsync(
         () => _incrementCall() ? callback(arg1) : null,
-        () { if (calls == expectedCalls) callbackDone(); });
+        () { if (calls == expectedCalls) _callbackDone(); });
   }
 
   invoke2(arg1, arg2) {
     return guardAsync(
         () => _incrementCall() ? callback(arg1, arg2) : null,
-        () { if (calls == expectedCalls) callbackDone(); });
+        () { if (calls == expectedCalls) _callbackDone(); });
   }
 
   /** Returns false if we exceded the number of expected calls. */
@@ -406,7 +401,7 @@ void group(String description, void body()) {
 }
 
 /** Called by subclasses to indicate that an asynchronous test completed. */
-void callbackDone() {
+void _callbackDone() {
   // TODO (gram): we defer this to give the nextBatch recursive
   // stack a chance to unwind. This is a temporary hack but 
   // really a bunch of code here needs to be fixed. We have a 
@@ -420,7 +415,7 @@ void callbackDone() {
       if (_callbacksCalled > testCase.callbacks) {
         final expected = testCase.callbacks;
         testCase.error(
-            'More calls to callbackDone() than expected. '
+            'More calls to _callbackDone() than expected. '
             'Actual: ${_callbacksCalled}, expected: ${expected}', '');
         _state = _UNCAUGHT_ERROR;
       } else if ((_callbacksCalled == testCase.callbacks) &&
@@ -433,7 +428,10 @@ void callbackDone() {
   });
 }
 
-/** Menchanism to notify that an error was caught outside of this library. */
+/**
+ * Utility function that can be used to notify the test framework that an
+ *  error was caught outside of this library.
+ */
 void reportTestError(String msg, String trace) {
  if (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
