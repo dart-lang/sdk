@@ -10,17 +10,17 @@ class _AudioContextFactoryProvider {
 class _IDBKeyRangeFactoryProvider {
 
   factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _IDBKeyRangeImpl.only(_unwrap(value));
+      _IDBKeyRangeImpl.only(value);
 
   factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.lowerBound(_unwrap(bound), open);
+      _IDBKeyRangeImpl.lowerBound(bound, open);
 
   factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.upperBound(_unwrap(bound), open);
+      _IDBKeyRangeImpl.upperBound(bound, open);
 
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
-      _wrap(_IDBKeyRangeImpl.bound(_unwrap(lower), _unwrap(upper),
+      _wrap(_IDBKeyRangeImpl.bound(lower, upper,
                                       lowerOpen, upperOpen));
 }
 
@@ -29,63 +29,63 @@ class _TypedArrayFactoryProvider {
   factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
-      _F32(_unwrap(buffer), byteOffset, length);
+      _F32(buffer, byteOffset, length);
   static _F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";
 
   factory Float64Array(int length) => _F64(length);
   factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
-      _F64(_unwrap(buffer), byteOffset, length);
+      _F64(buffer, byteOffset, length);
   static _F64(_arg0, [_arg1, _arg2]) native "Float64Array_constructor_Callback";
 
   factory Int8Array(int length) => _I8(length);
   factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) =>
-      _I8(_unwrap(buffer), byteOffset, length);
+      _I8(buffer, byteOffset, length);
   static _I8(_arg0, [_arg1, _arg2]) native "Int8Array_constructor_Callback";
 
   factory Int16Array(int length) => _I16(length);
   factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _I16(_unwrap(buffer), byteOffset, length);
+      _I16(buffer, byteOffset, length);
   static _I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
 
   factory Int32Array(int length) => _I32(length);
   factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _I32(_unwrap(buffer), byteOffset, length);
+      _I32(buffer, byteOffset, length);
   static _I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
 
   factory Uint8Array(int length) => _U8(length);
   factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _U8(_unwrap(buffer), byteOffset, length);
+      _U8(buffer, byteOffset, length);
   static _U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
 
   factory Uint16Array(int length) => _U16(length);
   factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
-      _U16(_unwrap(buffer), byteOffset, length);
+      _U16(buffer, byteOffset, length);
   static _U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
 
   factory Uint32Array(int length) => _U32(length);
   factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
-      _U32(_unwrap(buffer), byteOffset, length);
+      _U32(buffer, byteOffset, length);
   static _U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
 
   factory Uint8ClampedArray(int length) => _U8C(length);
   factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) =>
-      _U8C(_unwrap(buffer), byteOffset, length);
+      _U8C(buffer, byteOffset, length);
   static _U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
