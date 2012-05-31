@@ -76,11 +76,6 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # issue 3333
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # issue 3333
-
-
 Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
@@ -101,6 +96,9 @@ LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
 [ $compiler == dart2js && $runtime == d8 ]
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # issue 3333
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # issue 3333
+
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
