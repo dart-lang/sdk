@@ -256,9 +256,8 @@ void Object::InitOnce() {
   {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
-    InitializeObject(address,
-                     kNullClassIndex,
-                     Instance::InstanceSize());  // Using 'null_'.
+    // The call below is using 'null_' to initialize itself.
+    InitializeObject(address, kNullClassId, Instance::InstanceSize());
   }
 
   // Initialize object_store empty array to null_ in order to be able to check
@@ -283,7 +282,7 @@ void Object::InitOnce() {
     cls.set_instance_size(Class::InstanceSize());
     cls.set_next_field_offset(Class::InstanceSize());
     cls.set_instance_kind(Class::kInstanceKind);
-    cls.set_index(Class::kInstanceKind);
+    cls.set_id(Class::kInstanceKind);
     cls.raw_ptr()->is_const_ = false;
     cls.raw_ptr()->is_interface_ = false;
     cls.set_is_finalized();
@@ -295,7 +294,7 @@ void Object::InitOnce() {
   }
 
   // Allocate and initialize the null class.
-  cls = Class::New<Instance>(kNullClassIndex);
+  cls = Class::New<Instance>(kNullClassId);
   cls.set_is_finalized();
   null_class_ = cls.raw();
 
@@ -321,7 +320,7 @@ void Object::InitOnce() {
   // Therefore, it cannot have a heap allocated name (the name is hard coded,
   // see GetSingletonClassIndex) and its array fields cannot be set to the empty
   // array, but remain null.
-  cls = Class::New<Instance>(kDynamicClassIndex);
+  cls = Class::New<Instance>(kDynamicClassId);
   cls.set_is_finalized();
   cls.set_is_interface();
   dynamic_class_ = cls.raw();
@@ -330,7 +329,7 @@ void Object::InitOnce() {
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
 
-  cls = Class::New<Instance>(kVoidClassIndex);
+  cls = Class::New<Instance>(kVoidClassId);
   cls.set_is_finalized();
   void_class_ = cls.raw();
 
@@ -969,7 +968,7 @@ void Object::InitializeObject(uword address, intptr_t index, intptr_t size) {
   }
   uword tags = 0;
   ASSERT(index != kIllegalObjectKind);
-  tags = RawObject::ClassTag::update(index, tags);
+  tags = RawObject::ClassIdTag::update(index, tags);
   tags = RawObject::SizeTag::update(size, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
 }
@@ -992,10 +991,10 @@ RawObject* Object::Allocate(const Class& cls,
     UNREACHABLE();
   }
   NoGCScope no_gc;
-  InitializeObject(address, cls.index(), size);
+  InitializeObject(address, cls.id(), size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
-  ASSERT(cls.index() == RawObject::ClassTag::decode(raw_obj->ptr()->tags_));
+  ASSERT(cls.id() == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
   return raw_obj;
 }
 
@@ -1063,8 +1062,8 @@ RawClass* Class::New() {
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::InstanceSize());
   result.set_instance_kind(FakeObject::kInstanceKind);
-  result.set_index((FakeObject::kInstanceKind != kInstance) ?
-                   FakeObject::kInstanceKind : kIllegalObjectKind);
+  result.set_id((FakeObject::kInstanceKind != kInstance) ?
+                FakeObject::kInstanceKind : kIllegalObjectKind);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
   // VM backed classes are almost ready: run checks and resolve class
@@ -1402,7 +1401,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_instance_kind(FakeInstance::kInstanceKind);
-  result.set_index(index);
+  result.set_id(index);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
   result.raw_ptr()->class_state_ = RawClass::kAllocated;
@@ -2448,13 +2447,6 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
                          Class::Handle(other.type_class()),
                          AbstractTypeArguments::Handle(other.arguments()),
                          malformed_error);
-}
-
-RawAbstractType* AbstractType::NewTypeParameter(const Class& clazz,
-                                                intptr_t index,
-                                                const String& name,
-                                                intptr_t token_index) {
-  return TypeParameter::New(clazz, index, name, token_index);
 }
 
 
@@ -9040,7 +9032,7 @@ void Array::MakeImmutable() const {
     NoGCScope no_gc;
     raw_ptr()->class_ = cls.raw();
     uword tags = raw_ptr()->tags_;
-    tags = RawObject::ClassTag::update(cls.index(), tags);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
     raw_ptr()->tags_ = tags;
   }
 }
@@ -9087,7 +9079,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
-  ASSERT(kArray == RawObject::ClassTag::decode(tags));
+  ASSERT(kArray == RawObject::ClassIdTag::decode(tags));
   tags = RawObject::SizeTag::update(used_size, tags);
   array.raw_ptr()->tags_ = tags;
   array.SetLength(used_len);
@@ -9112,7 +9104,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       raw->ptr()->class_ = cls.raw();
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassTag::update(cls.index(), tags);
+      tags = RawObject::ClassIdTag::update(cls.id(), tags);
       raw->ptr()->tags_ = tags;
       intptr_t leftover_len =
           ((leftover_size - Array::InstanceSize(0)) / kWordSize);
@@ -9126,7 +9118,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       raw->ptr()->class_ = cls.raw();
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassTag::update(cls.index(), tags);
+      tags = RawObject::ClassIdTag::update(cls.id(), tags);
       raw->ptr()->tags_ = tags;
     }
   }

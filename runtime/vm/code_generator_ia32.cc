@@ -1459,14 +1459,14 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
     // Dynamic type argument, check only classes.
     __ LoadClassIndexOfObject(ECX, EAX);
     if (!type_class.is_interface()) {
-      __ cmpl(ECX, Immediate(type_class.index()));
+      __ cmpl(ECX, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
     if (type.IsListInterface()) {
       // TODO(srdjan) also accept List<Object>.
-      __ cmpl(ECX, Immediate(CoreClass("ObjectArray")->index()));
+      __ cmpl(ECX, Immediate(CoreClass("ObjectArray")->id()));
       __ j(EQUAL, is_instance_lbl);
-      __ cmpl(ECX, Immediate(CoreClass("GrowableObjectArray")->index()));
+      __ cmpl(ECX, Immediate(CoreClass("GrowableObjectArray")->id()));
       __ j(EQUAL, is_instance_lbl);
     }
     return

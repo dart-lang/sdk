@@ -372,7 +372,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   RawObject* raw_;  // The raw object reference.
 
  private:
-  static void InitializeObject(uword address, intptr_t index, intptr_t size);
+  static void InitializeObject(uword address, intptr_t id, intptr_t size);
 
   cpp_vtable* vtable_address() const {
     uword vtable_addr = reinterpret_cast<uword>(this);
@@ -464,9 +464,9 @@ class Class : public Object {
     raw_ptr()->instance_kind_ = value;
   }
 
-  intptr_t index() const { return raw_ptr()->index_; }
-  void set_index(intptr_t value) const {
-    raw_ptr()->index_ = value;
+  intptr_t id() const { return raw_ptr()->id_; }
+  void set_id(intptr_t value) const {
+    raw_ptr()->id_ = value;
   }
 
   RawString* Name() const;
@@ -733,7 +733,7 @@ class Class : public Object {
                                       const String& name) const;
 
   // Allocate an instance class which has a VM implementation.
-  template <class FakeInstance> static RawClass* New(intptr_t index);
+  template <class FakeInstance> static RawClass* New(intptr_t id);
   template <class FakeInstance> static RawClass* New(const String& name,
                                                      const Script& script,
                                                      intptr_t token_index);
@@ -870,11 +870,6 @@ class AbstractType : public Object {
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const;
-
-  static RawAbstractType* NewTypeParameter(const Class& parameterized_class,
-                                           intptr_t index,
-                                           const String& name,
-                                           intptr_t token_index);
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
@@ -4887,10 +4882,10 @@ RawClass* Object::clazz() const {
     return Smi::Class();
   }
   RawClass* result = raw_->ptr()->class_;
-  ASSERT(result->ptr()->index_ ==
-      RawObject::ClassTag::decode(raw_->ptr()->tags_));
+  ASSERT(result->ptr()->id_ ==
+      RawObject::ClassIdTag::decode(raw_->ptr()->tags_));
   ASSERT(Isolate::Current()->class_table()->At(
-      RawObject::ClassTag::decode(raw_->ptr()->tags_)) == result);
+      RawObject::ClassIdTag::decode(raw_->ptr()->tags_)) == result);
   return result;
 }
 

@@ -1577,10 +1577,10 @@ void Assembler::LoadClassOfObject(Register result,
 
 
 void Assembler::LoadClassIndexOfObject(Register result, Register object) {
-  ASSERT(RawObject::kClassTagBit == 16);
-  ASSERT(RawObject::kClassTagSize == 16);
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassTagBit / kBitsPerByte;
+      RawObject::kClassIdTagBit / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
@@ -1589,7 +1589,7 @@ void Assembler::CompareClassOfObject(Register object,
                                      const Class& clazz,
                                      Register scratch) {
   LoadClassIndexOfObject(scratch, object);
-  cmpl(scratch, Immediate(clazz.index()));
+  cmpl(scratch, Immediate(clazz.id()));
 }
 
 

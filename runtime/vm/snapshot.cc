@@ -232,7 +232,7 @@ RawClass* SnapshotReader::NewClass(int value) {
     }
     cls_ = obj;
     cls_.set_instance_kind(object_kind);
-    cls_.set_index(kIllegalObjectKind);
+    cls_.set_id(kIllegalObjectKind);
     isolate()->class_table()->Register(cls_);
     return cls_.raw();
   }
@@ -370,9 +370,9 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
   uword tags = 0;
-  intptr_t index = cls.index();
+  intptr_t index = cls.id();
   ASSERT(index != kIllegalObjectKind);
-  tags = RawObject::ClassTag::update(index, tags);
+  tags = RawObject::ClassIdTag::update(index, tags);
   tags = RawObject::SizeTag::update(size, tags);
   raw_obj->ptr()->tags_ = tags;
   return raw_obj;
@@ -527,7 +527,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (RawObject::ClassTag::decode(GetObjectTags(rawobj)) == kCode) {
+  if (RawObject::ClassIdTag::decode(GetObjectTags(rawobj)) == kCode) {
     WriteIndexedObject(Object::kNullObject);
     return;
   }
@@ -612,7 +612,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     return;
   }
 
-  RawClass* cls = class_table_->At(RawObject::ClassTag::decode(tags));
+  RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
 
   // Object is being serialized, add it to the forward ref list and mark
   // it so that future references to this object in the snapshot will use

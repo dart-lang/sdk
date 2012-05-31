@@ -35,7 +35,7 @@ void RawObject::Validate(Isolate* isolate) const {
   // Validate that the tags_ field is sensible.
   uword tags = ptr()->tags_;
   ASSERT((tags & 0x000000f0) == 0);
-  intptr_t cid = ClassTag::decode(tags);
+  intptr_t cid = ClassIdTag::decode(tags);
   RawClass* tag_class = isolate->class_table()->At(cid);
   ASSERT(tag_class == raw_class);
 #endif

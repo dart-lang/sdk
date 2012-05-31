@@ -1426,7 +1426,7 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     Class& cls = Class::Handle();
     ic_data.GetOneClassCheckAt(i, &cls, &target);
-    __ cmpl(EAX, Immediate(cls.index()));
+    __ cmpl(EAX, Immediate(cls.id()));
     if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
     } else {
@@ -1638,7 +1638,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   if (unique_target) {
     Label store_field;
     for (intptr_t i = 0; i < classes.length(); i++) {
-      __ cmpl(EBX, Immediate(classes[i]->index()));
+      __ cmpl(EBX, Immediate(classes[i]->id()));
       if (i == (classes.length() - 1)) {
         __ j(NOT_EQUAL, deopt_blob->label());
       } else {
@@ -1656,7 +1656,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   for (intptr_t i = 0; i < classes.length(); i++) {
     setter_args.cls = classes[i];
     setter_args.target = targets[i];
-    __ cmpl(EBX, Immediate(classes[i]->index()));
+    __ cmpl(EBX, Immediate(classes[i]->id()));
     if (i == (classes.length() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
       GenerateInstanceSetter(setter_args);
@@ -1995,7 +1995,7 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
     __ LoadClassIndexOfObject(EBX, EAX);
     for (intptr_t i = 0; i < num_classes; i++) {
       const Class& cls = *(*classes)[i];
-      __ cmpl(EBX, Immediate(cls.index()));
+      __ cmpl(EBX, Immediate(cls.id()));
       if (i == (num_classes - 1)) {
         __ j(NOT_EQUAL, deopt_blob->label());
       } else {
@@ -2649,7 +2649,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
   for (intptr_t i = start_ix; i < classes.length(); i++) {
     const Class& cls = *classes[i];
     const Function& target = *targets[i];
-    __ cmpl(EAX, Immediate(cls.index()));
+    __ cmpl(EAX, Immediate(cls.id()));
     if (i == (classes.length() - 1)) {
       // Last check.
       DeoptimizationBlob* deopt_blob =

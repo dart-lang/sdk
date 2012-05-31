@@ -114,9 +114,9 @@ CLASS_LIST(DEFINE_OBJECT_KIND)
   // The following entries do not describe a real object, but instead are used
   // to allocate class indexes for pre-allocated instance classes such as the
   // Null, Void, Dynamic and other similar classes.
-  kNullClassIndex,
-  kDynamicClassIndex,
-  kVoidClassIndex,
+  kNullClassId,
+  kDynamicClassId,
+  kVoidClassId,
   kNumPredefinedKinds = 100
 };
 
@@ -185,8 +185,8 @@ class RawObject {
     kReservedBit10M = 7,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
-    kClassTagBit = kSizeTagBit + kSizeTagSize,
-    kClassTagSize = 16
+    kClassIdTagBit = kSizeTagBit + kSizeTagSize,
+    kClassIdTagSize = 16
   };
 
   // Encodes the object size in the tag in units of object alignment.
@@ -220,7 +220,9 @@ class RawObject {
     }
   };
 
-  class ClassTag : public BitField<intptr_t, kClassTagBit, kClassTagSize> {};
+  class ClassIdTag : public BitField<intptr_t,
+                                     kClassIdTagBit,
+                                     kClassIdTagSize> {};  // NOLINT
 
   bool IsHeapObject() const {
     uword value = reinterpret_cast<uword>(this);
@@ -302,15 +304,15 @@ class RawObject {
   }
 
   // ObjectKind predicates.
-  static bool IsErrorClassIndex(intptr_t index);
-  static bool IsNumberClassIndex(intptr_t index);
-  static bool IsIntegerClassIndex(intptr_t index);
-  static bool IsStringClassIndex(intptr_t index);
-  static bool IsOneByteStringClassIndex(intptr_t index);
-  static bool IsTwoByteStringClassIndex(intptr_t index);
-  static bool IsExternalStringClassIndex(intptr_t index);
-  static bool IsBuiltinListClassIndex(intptr_t index);
-  static bool IsByteArrayClassIndex(intptr_t index);
+  static bool IsErrorClassId(intptr_t index);
+  static bool IsNumberClassId(intptr_t index);
+  static bool IsIntegerClassId(intptr_t index);
+  static bool IsStringClassId(intptr_t index);
+  static bool IsOneByteStringClassId(intptr_t index);
+  static bool IsTwoByteStringClassId(intptr_t index);
+  static bool IsExternalStringClassId(intptr_t index);
+  static bool IsBuiltinListClassId(intptr_t index);
+  static bool IsByteArrayClassId(intptr_t index);
 
  protected:
   RawClass* class_;
@@ -333,9 +335,9 @@ class RawObject {
 
   intptr_t SizeFromClass() const;
 
-  intptr_t GetClassIndex() const {
+  intptr_t GetClassId() const {
     uword tags = ptr()->tags_;
-    return ClassTag::decode(tags);
+    return ClassIdTag::decode(tags);
   }
 
   friend class Api;
@@ -387,7 +389,7 @@ class RawClass : public RawObject {
   cpp_vtable handle_vtable_;
   intptr_t instance_size_;
   ObjectKind instance_kind_;
-  intptr_t index_;  // Index in the class table.
+  intptr_t id_;  // Class Id, also index in the class table.
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
   intptr_t next_field_offset_;  // Offset of then next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
@@ -1381,7 +1383,7 @@ class RawJSRegExp : public RawInstance {
 
 // ObjectKind predicates.
 
-inline bool RawObject::IsErrorClassIndex(intptr_t index) {
+inline bool RawObject::IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
   ASSERT(kApiError == kError + 1 &&
          kLanguageError == kError + 2 &&
@@ -1391,7 +1393,7 @@ inline bool RawObject::IsErrorClassIndex(intptr_t index) {
   return (index >= kError && index < kInstance);
 }
 
-inline bool RawObject::IsNumberClassIndex(intptr_t index) {
+inline bool RawObject::IsNumberClassId(intptr_t index) {
   // Make sure this function is updated when new Number types are added.
   ASSERT(kInteger == kNumber + 1 &&
          kSmi == kNumber + 2 &&
@@ -1402,7 +1404,7 @@ inline bool RawObject::IsNumberClassIndex(intptr_t index) {
   return (index >= kNumber && index < kString);
 }
 
-inline bool RawObject::IsIntegerClassIndex(intptr_t index) {
+inline bool RawObject::IsIntegerClassId(intptr_t index) {
   // Make sure this function is updated when new Integer types are added.
   ASSERT(kSmi == kInteger + 1 &&
          kMint == kInteger + 2 &&
@@ -1411,7 +1413,7 @@ inline bool RawObject::IsIntegerClassIndex(intptr_t index) {
   return (index >= kInteger && index < kDouble);
 }
 
-inline bool RawObject::IsStringClassIndex(intptr_t index) {
+inline bool RawObject::IsStringClassId(intptr_t index) {
   // Make sure this function is updated when new String types are added.
   ASSERT(kOneByteString == kString + 1 &&
          kTwoByteString == kString + 2 &&
@@ -1423,7 +1425,7 @@ inline bool RawObject::IsStringClassIndex(intptr_t index) {
   return (index >= kString && index < kBool);
 }
 
-inline bool RawObject::IsOneByteStringClassIndex(intptr_t index) {
+inline bool RawObject::IsOneByteStringClassId(intptr_t index) {
   // Make sure this function is updated when new String types are added.
   ASSERT(kOneByteString == kString + 1 &&
          kTwoByteString == kString + 2 &&
@@ -1436,7 +1438,7 @@ inline bool RawObject::IsOneByteStringClassIndex(intptr_t index) {
           index == kExternalOneByteString);
 }
 
-inline bool RawObject::IsTwoByteStringClassIndex(intptr_t index) {
+inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
   // Make sure this function is updated when new String types are added.
   ASSERT(kOneByteString == kString + 1 &&
          kTwoByteString == kString + 2 &&
@@ -1451,7 +1453,7 @@ inline bool RawObject::IsTwoByteStringClassIndex(intptr_t index) {
           index == kExternalTwoByteString);
 }
 
-inline bool RawObject::IsExternalStringClassIndex(intptr_t index) {
+inline bool RawObject::IsExternalStringClassId(intptr_t index) {
   // Make sure this function is updated when new String types are added.
   ASSERT(kOneByteString == kString + 1 &&
          kTwoByteString == kString + 2 &&
@@ -1465,7 +1467,7 @@ inline bool RawObject::IsExternalStringClassIndex(intptr_t index) {
           index == kExternalFourByteString);
 }
 
-inline bool RawObject::IsBuiltinListClassIndex(intptr_t index) {
+inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
   ASSERT(kImmutableArray == kArray + 1 &&
          kGrowableObjectArray == kArray + 2 &&
@@ -1473,7 +1475,7 @@ inline bool RawObject::IsBuiltinListClassIndex(intptr_t index) {
   return (index >= kArray && index < kByteArray);
 }
 
-inline bool RawObject::IsByteArrayClassIndex(intptr_t index) {
+inline bool RawObject::IsByteArrayClassId(intptr_t index) {
   // Make sure this function is updated when new ByteArray types are added.
   ASSERT(kInt8Array == kByteArray + 1 &&
          kUint8Array == kByteArray + 2 &&

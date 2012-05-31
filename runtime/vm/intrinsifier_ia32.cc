@@ -85,7 +85,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
 
     // Get the class index and insert it into the tags.
     const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orl(EDI, Immediate(RawObject::ClassTag::encode(cls.index())));
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
     __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
 
@@ -295,7 +295,7 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
       isolate->object_store()->growable_object_array_class());
   uword tags = 0;
   tags = RawObject::SizeTag::update(fixed_size, tags);
-  tags = RawObject::ClassTag::update(cls.index(), tags);
+  tags = RawObject::ClassIdTag::update(cls.id(), tags);
   __ movl(FieldAddress(EAX, GrowableObjectArray::tags_offset()),
           Immediate(tags));
 

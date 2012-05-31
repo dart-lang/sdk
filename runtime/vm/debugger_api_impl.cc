@@ -405,7 +405,7 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
   Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   CHECK_NOT_NULL(class_id);
-  *class_id = Class::Handle(obj.clazz()).index();
+  *class_id = Class::Handle(obj.clazz()).id();
   return Api::True(isolate);
 }
 
@@ -443,7 +443,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
     *super_class_id = 0;
     cls = cls.SuperClass();
     if (!cls.IsNull()) {
-      *super_class_id = cls.index();
+      *super_class_id = cls.id();
     }
   }
   if (static_fields != NULL) {

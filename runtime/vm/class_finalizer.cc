@@ -1201,7 +1201,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
   ASSERT(!cls.IsCanonicalSignatureClass());
   ASSERT(!cls.is_finalized());
   ASSERT(visited != NULL);
-  const intptr_t cls_index = cls.index();
+  const intptr_t cls_index = cls.id();
   for (int i = 0; i < visited->length(); i++) {
     if ((*visited)[i] == cls_index) {
       // We have already visited alias 'cls'. We found a cycle.
@@ -1210,7 +1210,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
   }
 
   // Visit the result type and parameter types of this signature type.
-  visited->Add(cls.index());
+  visited->Add(cls.id());
   const Function& function = Function::Handle(cls.signature_function());
   // Check class of result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
@@ -1286,7 +1286,7 @@ bool ClassFinalizer::AddInterfaceIfUnique(
 void ClassFinalizer::ResolveInterfaces(const Class& cls,
                                        GrowableArray<intptr_t>* visited) {
   ASSERT(visited != NULL);
-  const intptr_t cls_index = cls.index();
+  const intptr_t cls_index = cls.id();
   for (int i = 0; i < visited->length(); i++) {
     if ((*visited)[i] == cls_index) {
       // We have already visited interface class 'cls'. We found a cycle.

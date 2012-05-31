@@ -702,7 +702,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      __ orl(ECX, Immediate(RawObject::ClassTag::encode(kArray)));
+      __ orl(ECX, Immediate(RawObject::ClassIdTag::encode(kArray)));
       __ movl(FieldAddress(EAX, Array::tags_offset()), ECX);
     }
 
@@ -1032,7 +1032,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // EDX: number of context variables.
       // EBX: size and bit tags.
       __ orl(EBX,
-             Immediate(RawObject::ClassTag::encode(context_class.index())));
+             Immediate(RawObject::ClassIdTag::encode(context_class.id())));
       __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
@@ -1174,7 +1174,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(type_args_size, tags);
-      tags = RawObject::ClassTag::update(ita_cls.index(), tags);
+      tags = RawObject::ClassIdTag::update(ita_cls.id(), tags);
       __ movl(Address(ECX, Instance::tags_offset()), Immediate(tags));
       // Set the new InstantiatedTypeArguments object (ECX) as the type
       // arguments (EDI) of the new object (EAX).
@@ -1196,8 +1196,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.index() != kIllegalObjectKind);
-    tags = RawObject::ClassTag::update(cls.index(), tags);
+    ASSERT(cls.id() != kIllegalObjectKind);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the remaining words of the object.
@@ -1348,7 +1348,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
-    tags = RawObject::ClassTag::update(cls.index(), tags);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(Address(EAX, Closure::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
@@ -1376,7 +1376,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(context_size, tags);
-      tags = RawObject::ClassTag::update(context_class.index(), tags);
+      tags = RawObject::ClassIdTag::update(context_class.id(), tags);
       __ movl(Address(ECX, Context::tags_offset()), Immediate(tags));
 
       // Set number of variables field to 1 (for captured receiver).

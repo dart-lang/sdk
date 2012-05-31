@@ -259,7 +259,7 @@ void Api::InitOnce() {
 
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
-  return RawObject::IsErrorClassIndex(Api::ClassIndex(handle));
+  return RawObject::IsErrorClassId(Api::ClassId(handle));
 }
 
 
@@ -1047,7 +1047,7 @@ DART_EXPORT Dart_Handle Dart_Null() {
 
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  return Api::ClassIndex(object) == kNullClassIndex;
+  return Api::ClassId(object) == kNullClassId;
 }
 
 
@@ -1117,7 +1117,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 
 // TODO(iposva): The argument should be an instance.
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
-  return RawObject::IsNumberClassIndex(Api::ClassIndex(object));
+  return RawObject::IsNumberClassId(Api::ClassId(object));
 }
 
 
@@ -1125,7 +1125,7 @@ DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
-  return RawObject::IsIntegerClassIndex(Api::ClassIndex(object));
+  return RawObject::IsIntegerClassId(Api::ClassId(object));
 }
 
 
@@ -1134,7 +1134,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   // Fast path for Smis and Mints.
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  intptr_t class_index = Api::ClassIndex(integer);
+  intptr_t class_index = Api::ClassId(integer);
   if (class_index == kSmi || class_index == kMint) {
     *fits = true;
     return Api::Success(isolate);
@@ -1318,7 +1318,7 @@ DART_EXPORT Dart_Handle Dart_False() {
 
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
-  return Api::ClassIndex(object) == kBool;
+  return Api::ClassId(object) == kBool;
 }
 
 
@@ -1346,7 +1346,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
-  return Api::ClassIndex(object) == kDouble;
+  return Api::ClassId(object) == kDouble;
 }
 
 
@@ -1374,17 +1374,17 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
 
 
 DART_EXPORT bool Dart_IsString(Dart_Handle object) {
-  return RawObject::IsStringClassIndex(Api::ClassIndex(object));
+  return RawObject::IsStringClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsString8(Dart_Handle object) {
-  return RawObject::IsOneByteStringClassIndex(Api::ClassIndex(object));
+  return RawObject::IsOneByteStringClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
-  return RawObject::IsTwoByteStringClassIndex(Api::ClassIndex(object));
+  return RawObject::IsTwoByteStringClassId(Api::ClassId(object));
 }
 
 
@@ -1432,7 +1432,7 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 
 
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
-  return RawObject::IsExternalStringClassIndex(Api::ClassIndex(object));
+  return RawObject::IsExternalStringClassId(Api::ClassId(object));
 }
 
 
@@ -1648,7 +1648,7 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
-  if (RawObject::IsBuiltinListClassIndex(Api::ClassIndex(object))) {
+  if (RawObject::IsBuiltinListClassId(Api::ClassId(object))) {
     return true;
   }
 
@@ -2000,7 +2000,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 
 
 DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
-  return RawObject::IsByteArrayClassIndex(Api::ClassIndex(object));
+  return RawObject::IsByteArrayClassId(Api::ClassId(object));
 }
 
 
@@ -3193,7 +3193,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
-  return Api::ClassIndex(object) == kLibrary;
+  return Api::ClassId(object) == kLibrary;
 }
 
 
