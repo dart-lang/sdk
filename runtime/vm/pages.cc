@@ -12,6 +12,13 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, heap_growth_space_ratio, 10,
+            "The desired maximum percentage of free space after GC");
+DEFINE_FLAG(int, heap_growth_time_ratio, 3,
+            "The desired maximum percentage of time spent in GC");
+DEFINE_FLAG(int, heap_growth_rate, 4,
+            "The size the heap is grown, in heap pages");
+
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, bool is_executable) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
   memory->Commit(is_executable);
@@ -76,7 +83,11 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
       in_use_(0),
       count_(0),
       is_executable_(is_executable),
-      sweeping_(false) { }
+      sweeping_(false),
+      page_space_controller_(FLAG_heap_growth_space_ratio,
+                             FLAG_heap_growth_rate,
+                             FLAG_heap_growth_time_ratio) {
+}
 
 
 PageSpace::~PageSpace() {
@@ -187,7 +198,9 @@ uword PageSpace::TryAllocate(intptr_t size) {
     result = TryBumpAllocate(size);
     if (result == 0) {
       result = freelist_.TryAllocate(size);
-      if ((result == 0) && CanIncreaseCapacity(kPageSize)) {
+      if ((result == 0) &&
+          page_space_controller_.CanGrowPageSpace(size) &&
+          CanIncreaseCapacity(kPageSize)) {
         AllocatePage();
         result = TryBumpAllocate(size);
         ASSERT(result != 0);
@@ -286,8 +299,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
-  Timer timer(FLAG_verbose_gc, "MarkSweep");
+  Timer timer(true, "MarkSweep");
   timer.Start();
+  int64_t start = OS::GetCurrentTimeMillis();
 
   // Mark all reachable old-gen objects.
   GCMarker marker(heap_);
@@ -335,6 +349,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   in_use_ = in_use;
 
   timer.Stop();
+
+  // Record signals for growth control.
+  int64_t elapsed = timer.TotalElapsedTime() * kMicrosecondsPerMillisecond;
+  page_space_controller_.EvaluateGarbageCollection(in_use_before, in_use,
+                                                   start, start + elapsed);
+
   if (FLAG_verbose_gc) {
     const intptr_t KB2 = KB / 2;
     OS::PrintErr("Mark-Sweep[%d]: %lldus (%dK -> %dK, %dK)\n",
@@ -355,6 +375,97 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // Done, reset the marker.
   ASSERT(sweeping_);
   sweeping_ = false;
+}
+
+
+PageSpaceController::PageSpaceController(int heap_growth_ratio,
+                                         int heap_growth_rate,
+                                         int garbage_collection_time_ratio)
+    : is_enabled_(false),
+      grow_heap_(heap_growth_rate),
+      heap_growth_ratio_(heap_growth_ratio),
+      heap_growth_rate_(heap_growth_rate),
+      garbage_collection_time_ratio_(garbage_collection_time_ratio) {
+}
+
+
+PageSpaceController::~PageSpaceController() {}
+
+
+bool PageSpaceController::CanGrowPageSpace(intptr_t size_in_bytes) {
+  size_in_bytes = Utils::RoundUp(size_in_bytes, PageSpace::kPageSize);
+  intptr_t size_in_pages =  size_in_bytes / PageSpace::kPageSize;
+  if (!is_enabled_) {
+    return true;
+  }
+  if (heap_growth_ratio_ == 100) {
+    return true;
+  }
+  if (grow_heap_ <= 0) {
+    return false;
+  }
+  grow_heap_ -= size_in_pages;
+  return true;
+}
+
+
+void PageSpaceController::EvaluateGarbageCollection(
+    size_t in_use_before, size_t in_use_after, int64_t start, int64_t end) {
+  ASSERT(in_use_before >= in_use_after);
+  ASSERT(end >= start);
+  history_.AddGarbageCollectionTime(start, end);
+  int collected_garbage_ratio =
+      static_cast<int>((static_cast<double>(in_use_before - in_use_after) /
+                        static_cast<double>(in_use_before)) * 100);
+  if ((collected_garbage_ratio > heap_growth_ratio_) &&
+      (history_.GarbageCollectionTimeFraction() <
+       garbage_collection_time_ratio_)) {
+    grow_heap_ = 0;
+  } else {
+    grow_heap_ = heap_growth_rate_;
+  }
+}
+
+
+PageSpaceGarbageCollectionHistory::PageSpaceGarbageCollectionHistory()
+    : index_(0) {
+  for (uint32_t i = 0; i < kHistoryLength; i++) {
+    start_[i] = 0;
+    end_[i] = 0;
+  }
+}
+
+
+void PageSpaceGarbageCollectionHistory::
+    AddGarbageCollectionTime(uint64_t start, uint64_t end) {
+  int index = index_ % kHistoryLength;
+  start_[index] = start;
+  end_[index] = end;
+  index_++;
+}
+
+
+int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
+  int current;
+  int previous;
+  uint64_t gc_time = 0;
+  uint64_t total_time = 0;
+  for (uint32_t i = 1; i < kHistoryLength; i++) {
+    current = (index_ - i) % kHistoryLength;
+    previous = (index_ - 1 - i) % kHistoryLength;
+    if (end_[previous] == 0) {
+       break;
+    }
+    // iterate over the circular buffer in reverse order
+    gc_time += end_[current] - start_[current];
+    total_time += end_[current] - end_[previous];
+  }
+  if (total_time == 0) {
+    return 0;
+  } else {
+    return static_cast<int>((static_cast<double>(gc_time) /
+                             static_cast<double>(total_time))*100);
+  }
 }
 
 }  // namespace dart

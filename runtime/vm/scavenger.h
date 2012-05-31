@@ -73,6 +73,11 @@ class Scavenger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
+  // Returns true if the last scavenge had a promotion failure.
+  bool HadPromotionFailure() {
+    return had_promotion_failure_;
+  }
+
  private:
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);

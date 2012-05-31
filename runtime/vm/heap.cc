@@ -77,7 +77,6 @@ uword Heap::AllocateOld(intptr_t size) {
     }
     addr = old_space_->TryAllocate(size);
     if (addr == 0) {
-      // TODO(cshapiro): Support possible heap growth and OOM exception.
       OS::PrintErr("Exhausted heap space, trying to allocate %d bytes.\n",
                    size);
     }
@@ -143,6 +142,9 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   switch (space) {
     case kNew:
       new_space_->Scavenge(invoke_api_callbacks);
+      if (new_space_->HadPromotionFailure()) {
+        old_space_->MarkSweep(true);
+      }
       break;
     case kOld:
       old_space_->MarkSweep(invoke_api_callbacks);
@@ -173,6 +175,11 @@ void Heap::CollectAllGarbage() {
   old_space_->MarkSweep(kInvokeApiCallbacks);
   // TODO(iposva): Merge old and code space.
   // code_space_->MarkSweep(kInvokeApiCallbacks);
+}
+
+
+void Heap::EnableGrowthControl() {
+  old_space_->EnableGrowthControl();
 }
 
 

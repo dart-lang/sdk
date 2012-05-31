@@ -100,6 +100,10 @@ class Heap {
   void CollectGarbage(Space space, ApiCallbacks api_callbacks);
   void CollectAllGarbage();
 
+  // Enables growth control on the page space heaps.  This should be
+  // called before any user code is executed.
+  void EnableGrowthControl();
+
   // Accessors for inlined allocation in generated code.
   uword TopAddress();
   uword EndAddress();
@@ -125,7 +129,6 @@ class Heap {
   Scavenger* new_space_;
   PageSpace* old_space_;
   PageSpace* code_space_;
-  PageSpace* stub_code_space_;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
