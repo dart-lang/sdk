@@ -74,7 +74,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Function::ZoneHandle(compiler->parsed_function().function().raw());
     __ LoadObject(temp, function);
     __ incl(FieldAddress(temp, Function::usage_counter_offset()));
-    if (CodeGenerator::CanOptimize()) {
+    /*if (CodeGenerator::CanOptimize()) {
       // Do not optimize if usage count must be reported.
       __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
@@ -86,7 +86,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ popl(temp);  // Remove argument.
       __ popl(result);  // Restore result.
       __ Bind(&not_yet_hot);
-    }
+    } */
   }
   if (FLAG_trace_functions) {
     const Function& function =
