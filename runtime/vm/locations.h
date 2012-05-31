@@ -149,6 +149,8 @@ class LocationSummary : public ZoneAllocated {
   // Perform a greedy local register allocation.  Consider all register free.
   void AllocateRegisters();
 
+  static LocationSummary* Make(intptr_t input_count, Location out);
+
  private:
   // TODO(vegorov): replace with ZoneArray.
   GrowableArray<Location> input_locations_;

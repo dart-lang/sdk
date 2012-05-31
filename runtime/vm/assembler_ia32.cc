@@ -1300,6 +1300,13 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 }
 
 
+void Assembler::Drop(intptr_t stack_elements) {
+  if (stack_elements > 0) {
+    addl(ESP, Immediate(stack_elements * kWordSize));
+  }
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object) {
   if (object.IsSmi()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));

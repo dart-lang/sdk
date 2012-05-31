@@ -1734,10 +1734,10 @@ class BindInstr : public Instruction {
 };
 
 
-class ReturnInstr : public Instruction {
+class ReturnInstr : public InstructionWithInputs {
  public:
   ReturnInstr(intptr_t token_index, Value* value)
-      : token_index_(token_index), value_(value) {
+      : InstructionWithInputs(), token_index_(token_index), value_(value) {
     ASSERT(value_ != NULL);
   }
 
@@ -1748,6 +1748,10 @@ class ReturnInstr : public Instruction {
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
   const intptr_t token_index_;
@@ -1762,7 +1766,8 @@ class ThrowInstr : public InstructionWithInputs {
   ThrowInstr(intptr_t token_index,
              intptr_t try_index,
              Value* exception)
-      : token_index_(token_index),
+      : InstructionWithInputs(),
+        token_index_(token_index),
         try_index_(try_index),
         exception_(exception),
         successor_(NULL) {
@@ -1802,7 +1807,8 @@ class ReThrowInstr : public InstructionWithInputs {
                intptr_t try_index,
                Value* exception,
                Value* stack_trace)
-      : token_index_(token_index),
+      : InstructionWithInputs(),
+        token_index_(token_index),
         try_index_(try_index),
         exception_(exception),
         stack_trace_(stack_trace),
@@ -1845,7 +1851,8 @@ class ReThrowInstr : public InstructionWithInputs {
 class BranchInstr : public InstructionWithInputs {
  public:
   explicit BranchInstr(Value* value)
-      : value_(value),
+      : InstructionWithInputs(),
+        value_(value),
         true_successor_(NULL),
         false_successor_(NULL) { }
 

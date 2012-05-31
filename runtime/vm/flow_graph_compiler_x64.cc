@@ -1063,70 +1063,14 @@ void FlowGraphCompiler::VisitDo(DoInstr* instr) {
 
 
 void FlowGraphCompiler::VisitBind(BindInstr* instr) {
-  ASSERT(instr->locs() == NULL);
-
-  // If instruction does not have special location requirements
-  // then it returns result in register RAX.
-  instr->computation()->Accept(this);
-  __ pushq(RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
-  LoadValue(RAX, instr->value());
-  if (!is_optimizing()) {
-    // Count only in unoptimized code.
-    // TODO(srdjan): Replace the counting code with a type feedback
-    // collection and counting stub.
-    const Function& function =
-          Function::ZoneHandle(parsed_function_.function().raw());
-    __ LoadObject(RCX, function);
-    __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
-    if (CodeGenerator::CanOptimize()) {
-      // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(RCX, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold));
-      Label not_yet_hot;
-      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
-      __ pushq(RAX);  // Preserve result.
-      __ pushq(RCX);  // Argument for runtime: function to optimize.
-      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-      __ popq(RCX);  // Remove argument.
-      __ popq(RAX);  // Restore result.
-      __ Bind(&not_yet_hot);
-    }
-  }
-
-  if (FLAG_trace_functions) {
-    __ pushq(RAX);  // Preserve result.
-    const Function& function =
-        Function::ZoneHandle(parsed_function_.function().raw());
-    __ LoadObject(RBX, function);
-    __ pushq(RBX);
-    GenerateCallRuntime(AstNode::kNoId,
-                        0,
-                        CatchClauseNode::kInvalidTryIndex,
-                        kTraceFunctionExitRuntimeEntry);
-    __ popq(RAX);  // Remove argument.
-    __ popq(RAX);  // Restore result.
-  }
-  __ LeaveFrame();
-  __ ret();
-
-  // Generate 8 bytes of NOPs so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  AddCurrentDescriptor(PcDescriptors::kReturn,
-                       instr->cid(),
-                       instr->token_index(),
-                       CatchClauseNode::kInvalidTryIndex);  // try-index.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 

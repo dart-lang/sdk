@@ -324,6 +324,67 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 
+void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
+                                         intptr_t token_index,
+                                         intptr_t try_index,
+                                         const String& function_name,
+                                         intptr_t argument_count,
+                                         const Array& argument_names,
+                                         intptr_t checked_argument_count) {
+  ICData& ic_data = ICData::ZoneHandle(ICData::New(parsed_function_.function(),
+                                                   function_name,
+                                                   cid,
+                                                   checked_argument_count));
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+  __ LoadObject(ECX, ic_data);
+  __ LoadObject(EDX, arguments_descriptor);
+
+  uword label_address = 0;
+  switch (checked_argument_count) {
+    case 1:
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      break;
+    case 2:
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  ExternalLabel target_label("InlineCache", label_address);
+  __ call(&target_label);
+  AddCurrentDescriptor(PcDescriptors::kIcCall, cid, token_index, try_index);
+  __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
+                                       intptr_t try_index,
+                                       const Function& function,
+                                       intptr_t argument_count,
+                                       const Array& argument_names) {
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+  __ LoadObject(ECX, function);
+  __ LoadObject(EDX, arguments_descriptor);
+
+  GenerateCall(token_index,
+               try_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
+  __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::GenerateCall(intptr_t token_index,
+                                     intptr_t try_index,
+                                     const ExternalLabel* label,
+                                     PcDescriptors::Kind kind) {
+  __ call(label);
+  AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
+}
+
+
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
     deopt_stubs_[i]->GenerateCode(this);

@@ -45,6 +45,34 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeComments(const Code& code);
 
   Assembler* assembler() const { return assembler_; }
+  bool is_optimizing() const { return is_optimizing_; }
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
+
+  void GenerateCallRuntime(intptr_t cid,
+                           intptr_t token_index,
+                           intptr_t try_index,
+                           const RuntimeEntry& entry);
+  void AddCurrentDescriptor(PcDescriptors::Kind kind,
+                            intptr_t cid,
+                            intptr_t token_index,
+                            intptr_t try_index);
+
+  void EmitInstanceCall(intptr_t cid,
+                        intptr_t token_index,
+                        intptr_t try_index,
+                        const String& function_name,
+                        intptr_t argument_count,
+                        const Array& argument_names,
+                        intptr_t checked_argument_count);
+  void EmitStaticCall(intptr_t token_index,
+                      intptr_t try_index,
+                      const Function& function,
+                      intptr_t argument_count,
+                      const Array& argument_names);
+  void GenerateCall(intptr_t token_index,
+                    intptr_t try_index,
+                    const ExternalLabel* label,
+                    PcDescriptors::Kind kind);
 
  private:
   friend class DeoptimizationStub;
@@ -67,14 +95,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
     Label label;
   };
 
-  void GenerateCallRuntime(intptr_t cid,
-                           intptr_t token_index,
-                           intptr_t try_index,
-                           const RuntimeEntry& entry);
-  void AddCurrentDescriptor(PcDescriptors::Kind kind,
-                            intptr_t cid,
-                            intptr_t token_index,
-                            intptr_t try_index);
   void CopyParameters();
   void EmitInstructionPrologue(Instruction* instr);
 

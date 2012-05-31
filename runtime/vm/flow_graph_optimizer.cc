@@ -17,12 +17,7 @@ void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
   if (FLAG_print_flow_graph) {
     OS::Print("After Optimizations:\n");
-    intptr_t length = block_order_.length();
-    GrowableArray<BlockEntryInstr*> reverse_postorder(length);
-    for (intptr_t i = length - 1; i >= 0; --i) {
-      reverse_postorder.Add(block_order_[i]);
-    }
-    FlowGraphPrinter printer(Function::Handle(), reverse_postorder);
+    FlowGraphPrinter printer(Function::Handle(), block_order_);
     printer.PrintBlocks();
   }
 }

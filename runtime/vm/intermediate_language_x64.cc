@@ -16,16 +16,8 @@
 
 namespace dart {
 
-
-static LocationSummary* MakeSimpleLocationSummary(
-    intptr_t input_count, Location out) {
-  LocationSummary* summary = new LocationSummary(input_count, 0);
-  for (intptr_t i = 0; i < input_count; i++) {
-    summary->set_in(i, Location::RequiresRegister());
-  }
-  summary->set_out(out);
-  return summary;
-}
+DECLARE_FLAG(bool, optimization_counter_threshold);
+DECLARE_FLAG(bool, trace_functions);
 
 
 // True iff. the arguments to a call will be properly pushed and can
@@ -126,8 +118,77 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ReturnInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_temp(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(result == RAX);
+  if (!compiler->is_optimizing()) {
+    // Count only in unoptimized code.
+    // TODO(srdjan): Replace the counting code with a type feedback
+    // collection and counting stub.
+    const Function& function =
+          Function::ZoneHandle(compiler->parsed_function().function().raw());
+    __ LoadObject(temp, function);
+    __ incq(FieldAddress(temp, Function::usage_counter_offset()));
+    if (CodeGenerator::CanOptimize()) {
+      // Do not optimize if usage count must be reported.
+      __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      Label not_yet_hot;
+      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+      __ pushq(result);  // Preserve result.
+      __ pushq(temp);  // Argument for runtime: function to optimize.
+      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+      __ popq(temp);  // Remove argument.
+      __ popq(result);  // Restore result.
+      __ Bind(&not_yet_hot);
+    }
+  }
+  if (FLAG_trace_functions) {
+    __ pushq(result);  // Preserve result.
+    const Function& function =
+        Function::ZoneHandle(compiler->parsed_function().function().raw());
+    __ LoadObject(temp, function);
+    __ pushq(temp);
+    compiler->GenerateCallRuntime(AstNode::kNoId,
+                                  0,
+                                  CatchClauseNode::kInvalidTryIndex,
+                                  kTraceFunctionExitRuntimeEntry);
+    __ popq(temp);  // Remove argument.
+    __ popq(result);  // Restore result.
+  }
+  __ LeaveFrame();
+  __ ret();
+
+  // Generate 8 bytes of NOPs so that the debugger can patch the
+  // return pattern with a call to the debug stub.
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
+                                 cid(),
+                                 token_index(),
+                                 CatchClauseNode::kInvalidTryIndex);
+}
+
+
 LocationSummary* CurrentContextComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+  return LocationSummary::Make(0, Location::RequiresRegister());
 }
 
 
@@ -150,7 +211,7 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
 }
 
 
@@ -247,7 +308,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadLocalComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+  return LocationSummary::Make(0, Location::RequiresRegister());
 }
 
 
@@ -258,7 +319,7 @@ void LoadLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreLocalComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(1, Location::SameAsFirstInput());
+  return LocationSummary::Make(1, Location::SameAsFirstInput());
 }
 
 
@@ -271,7 +332,7 @@ void StoreLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ConstantVal::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+  return LocationSummary::Make(0, Location::RequiresRegister());
 }
 
 
@@ -321,7 +382,7 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(1, Location::SameAsFirstInput());
+  return LocationSummary::Make(1, Location::SameAsFirstInput());
 }
 
 
@@ -407,7 +468,7 @@ LocationSummary* NativeCallComp::MakeLocationSummary() const {
   locs->set_temp(0, Location::RegisterLocation(RAX));
   locs->set_temp(1, Location::RegisterLocation(RBX));
   locs->set_temp(2, Location::RegisterLocation(R10));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(Location::RequiresRegister());
   return locs;
 }
 
@@ -416,7 +477,7 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == RAX);
   ASSERT(locs()->temp(1).reg() == RBX);
   ASSERT(locs()->temp(2).reg() == R10);
-  ASSERT(locs()->out().reg() == RAX);
+  Register result = locs()->out().reg();
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
@@ -433,13 +494,13 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &StubCode::CallNativeCFunctionLabel(),
                          PcDescriptors::kOther);
-  __ popq(RAX);
+  __ popq(result);
 }
 
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  return MakeSimpleLocationSummary(kNumInputs, Location::NoLocation());
+  return LocationSummary::Make(kNumInputs, Location::NoLocation());
 }
 
 
@@ -468,7 +529,7 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  return MakeSimpleLocationSummary(kNumInputs, Location::RequiresRegister());
+  return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
   return NULL;
 }
 
@@ -501,7 +562,7 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StaticSetterComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  return MakeSimpleLocationSummary(kNumInputs, Location::RequiresRegister());
+  return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
 }
 
 
@@ -530,7 +591,7 @@ LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
   // reused for the result (but is not required to) because the input
   // is not used after the result is defined.  We should consider adding
   // this information to the input policy.
-  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
@@ -543,7 +604,7 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(2, Location::RequiresRegister());
+  return LocationSummary::Make(2, Location::RequiresRegister());
 }
 
 
@@ -564,7 +625,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadStaticFieldComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(0, Location::RequiresRegister());
+  return LocationSummary::Make(0, Location::RequiresRegister());
 }
 
 
@@ -595,7 +656,7 @@ void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
@@ -710,7 +771,7 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateObjectWithBoundsCheckComp::
     MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(2, Location::RequiresRegister());
+  return LocationSummary::Make(2, Location::RequiresRegister());
 }
 
 
@@ -739,7 +800,7 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
 
 
 LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
@@ -752,7 +813,7 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreVMFieldComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(2, Location::SameAsFirstInput());
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
 }
 
 
@@ -970,7 +1031,7 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ChainContextComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(1, Location::NoLocation());
+  return LocationSummary::Make(1, Location::NoLocation());
 }
 
 
@@ -987,7 +1048,7 @@ void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(1, Location::RequiresRegister());
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
@@ -1007,7 +1068,7 @@ void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CatchEntryComp::MakeLocationSummary() const {
-  return MakeSimpleLocationSummary(0, Location::NoLocation());
+  return LocationSummary::Make(0, Location::NoLocation());
 }
 
 
