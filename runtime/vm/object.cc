@@ -5365,6 +5365,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
+  result.set_debuggable(false);
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.raw_ptr()->index_ = -1;
   result.InitClassDictionary();

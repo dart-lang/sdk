@@ -266,7 +266,7 @@ class Debugger {
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
                                   intptr_t token_index);
   void RemoveInternalBreakpoints();
-  void RemoveCodeBreakpoints(SourceBreakpoint* src_bpt);
+  void UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt);
   void RegisterSourceBreakpoint(SourceBreakpoint* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   SourceBreakpoint* GetSourceBreakpoint(const Function& func,
@@ -280,6 +280,8 @@ class Debugger {
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
   void SignalBpResolved(SourceBreakpoint *bpt);
+
+  bool IsDebuggable(const Function& func);
 
   intptr_t nextId() { return next_id_++; }
 
@@ -301,6 +303,10 @@ class Debugger {
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
+
+  // If >= 0, last_bpt_line contains the line number of the last breakpoint
+  // location for which the breakpoint callback function was called.
+  intptr_t last_bpt_line_;
 
   // Do not call back to breakpoint handler if this flag is set.
   // Effectively this means ignoring breakpoints. Set when Dart code may

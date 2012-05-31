@@ -681,6 +681,7 @@ class RawLibrary : public RawObject {
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   bool corelib_imported_;
+  bool debuggable_;              // True if debugger can stop in library.
   int8_t load_state_;            // Of type LibraryState.
 
   friend class Isolate;

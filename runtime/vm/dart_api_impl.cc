@@ -3114,6 +3114,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                          CURRENT_FUNC, library_url.ToCString());
   }
   library = Library::New(url_str);
+  library.set_debuggable(true);
   library.Register();
   isolate->object_store()->set_root_library(library);
   Dart_Handle result;
@@ -3154,6 +3155,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
                          CURRENT_FUNC);
   }
   library ^= tmp.raw();
+  library.set_debuggable(true);
   isolate->object_store()->set_root_library(library);
   return Api::NewHandle(isolate, library.raw());
 }

@@ -1778,6 +1778,13 @@ class Library : public Object {
 
   void Register() const;
 
+  bool IsDebuggable() const {
+    return raw_ptr()->debuggable_;
+  }
+  void set_debuggable(bool value) const {
+    raw_ptr()->debuggable_ = value;
+  }
+
   RawString* DuplicateDefineErrorString(const String& entry_name,
                                         const Library& conflicting_lib) const;
   static RawLibrary* LookupLibrary(const String& url);
