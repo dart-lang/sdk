@@ -40,7 +40,7 @@ class Test {
 
   writeItems(int index) {
     if (index < 100) {
-      var transaction = db.transaction([STORE_NAME], IDBTransaction.READ_WRITE);
+      var transaction = db.transaction([STORE_NAME], 'readwrite');
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
       request.on.success.add(
@@ -59,19 +59,19 @@ class Test {
   };
 
   testRange(range, expectedFirst, expectedLast) {
-    IDBTransaction txn = db.transaction(STORE_NAME, IDBTransaction.READ_ONLY);
+    IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
     IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
     IDBRequest cursorRequest = objectStore.openCursor(range);
     int itemCount = 0;
-    int firstKey = null;
-    int lastKey = null;
+    num firstKey = null;
+    num lastKey = null;
     cursorRequest.on.success.add(expectAsync1((e) {
       var cursor = e.target.result;
       if (cursor != null) {
         if (firstKey == null) firstKey = cursor.key;
         lastKey = cursor.key;
         itemCount += 1;
-        Expect.equals('Item ${cursor.key}', cursor.value);
+        Expect.equals('Item ${cursor.key.toStringAsFixed(0)}', cursor.value);
         cursor.continueFunction();
       } else {
         // Done
@@ -142,5 +142,4 @@ main() {
   test('bound3', test_.bound3);
   test('bound4', test_.bound4);
   test('bound5', test_.bound5);
-
 }
