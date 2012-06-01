@@ -6,6 +6,7 @@ package com.google.dart.compiler;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -31,7 +32,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
   }
 
   private final LibraryDeps.Source source;
-  private DartClass currentClass;
+  private Element currentClass;
 
   private LibraryDepsVisitor(LibraryDeps.Source source) {
     this.source = source;
@@ -46,7 +47,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
       case FIELD:
       case METHOD: {
         Element enclosing = target.getEnclosingElement();
-        addHoleIfSuper(node, enclosing);
+        addHoleIfUnqualifiedSuper(node, enclosing);
         if (enclosing.getKind().equals(ElementKind.LIBRARY)) {
           addElementDependency(target);
         }
@@ -89,7 +90,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitClass(DartClass node) {
-    currentClass = node;
+    currentClass = node.getElement();
     node.visitChildren(this);
     currentClass = null;
     return null;
@@ -121,8 +122,11 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
    * This situation occurs because names in the library scope bind more strongly than unqualified
    * superclass members.
    */
-  private void addHoleIfSuper(DartIdentifier node, Element holder) {
-    if (ElementKind.of(holder).equals(ElementKind.CLASS) && holder != currentClass.getElement()) {
+  private void addHoleIfUnqualifiedSuper(DartIdentifier node, Element holder) {
+    if (isQualified(node)) {
+      return;
+    }
+    if (ElementKind.of(holder) == ElementKind.CLASS && holder != currentClass) {
       source.addHole(node.getName());
     }
   }
@@ -141,5 +145,19 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
         source.addDep(dep);
       }
     }
+  }
+
+  /**
+   * @return <code>true</code> if given {@link DartIdentifier} is "name" part of qualified property
+   *         access or method invocation.
+   */
+  private static boolean isQualified(DartIdentifier node) {
+    if (node.getParent() instanceof DartPropertyAccess) {
+      return ((DartPropertyAccess) node.getParent()).getName() == node;
+    }
+    if (node.getParent() instanceof DartMethodInvocation) {
+      return ((DartMethodInvocation) node.getParent()).getFunctionName() == node;
+    }
+    return false;
   }
 }

@@ -175,7 +175,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
-    private final Set<VariableElement> propagetedTypeVariables = Sets.newHashSet();
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -339,7 +338,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case ASSIGN: {
           Type rhs = nonVoidTypeOf(rhsNode);
           checkPropagatedTypeCompatible(lhsNode, rhs);
-          if (!isVariableInferredType(lhsNode)) {
+          if (!hasInferredType(lhsNode)) {
             checkAssignable(rhsNode, lhs, rhs);
           }
           return rhs;
@@ -476,31 +475,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void checkPropagatedTypeCompatible(DartExpression lhsNode, Type rhs) {
       if (lhsNode.getElement() instanceof VariableElement) {
         VariableElement variableElement = (VariableElement) lhsNode.getElement();
-        if (propagetedTypeVariables.contains(variableElement)
-            && !types.isAssignable(variableElement.getType(), rhs)) {
+        Type variableType = variableElement.getType();
+        if (variableType.isInferred() && !types.isAssignable(variableType, rhs)) {
           Elements.setType(variableElement, dynamicType);
         }
       }
     }
 
     /**
-     * @return <code>true</code> if given {@link DartNode} has {@link VariableElement} with inferred
-     *         {@link Type}.
+     * @return <code>true</code> if given {@link DartNode} has inferred {@link Type}.
      */
-    private boolean isVariableInferredType(DartNode node) {
-      return node != null && isVariableInferredType(node.getElement());
+    private static boolean hasInferredType(DartNode node) {
+      return node != null && hasInferredType(node.getElement());
     }
 
     /**
-     * @return <code>true</code> if given {@link Element} is {@link VariableElement} with inferred
-     *         {@link Type}.
+     * @return <code>true</code> if given {@link Element} is has inferred {@link Type}.
      */
-    private boolean isVariableInferredType(Element element) {
-      if (element instanceof VariableElement) {
-        VariableElement variableElement = (VariableElement) element;
-        return variableElement.isTypeInferred();
-      }
-      return false;
+    private static boolean hasInferredType(Element element) {
+      return element != null && element.getType() != null && element.getType().isInferred();
     }
     
     /**
@@ -536,7 +529,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                     && arg2 instanceof DartTypeExpression) {
                   VariableElement variableElement = (VariableElement) arg1.getElement();
                   Type isType = arg2.getType();
-                  Type varType = InferredType.Helper.make(isType);
+                  Type varType = Types.makeInferred(isType);
                   variableRestorer.setType(variableElement, varType);
                 }
               }
@@ -560,22 +553,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
      */
     private class VariableElementsRestorer {
       private final Map<VariableElement, Type> typesMap = Maps.newHashMap();
-      private final Map<VariableElement, Boolean> flagsMap = Maps.newHashMap();
       void setType(VariableElement element, Type inferredType) {
         Type currentType = element.getType();
         // remember original if not yet
         if (!typesMap.containsKey(element)) {
           typesMap.put(element, currentType);
-          flagsMap.put(element, element.isTypeInferred());
         }
         // apply inferred type
         if (inferredType != null) {
-          if (TypeKind.of(currentType) == TypeKind.DYNAMIC && element.isTypeInferred()) {
+          if (TypeKind.of(currentType) == TypeKind.DYNAMIC && currentType.isInferred()) {
             // if we fell back to Dynamic, keep it
           } else {
             Type unionType = getUnionType(currentType, inferredType);
             Elements.setType(element, unionType);
-            Elements.setTypeInferred(element, true);
           }
         }
       }
@@ -598,17 +588,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return b;
         }
         // TODO(scheglov) return union of types, but this is not easy
-        return dynamicType;
+        return Types.makeInferred(dynamicType);
       }
 
       void restore() {
-        // restore types
         for (Entry<VariableElement, Type> entry : typesMap.entrySet()) {
           Elements.setType(entry.getKey(), entry.getValue());
-        }
-        // restore "inferred" flags
-        for (Entry<VariableElement, Boolean> entry : flagsMap.entrySet()) {
-          Elements.setTypeInferred(entry.getKey(), entry.getValue().booleanValue());
         }
       }
     }
@@ -617,7 +602,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       // ignore inferred types, treat them as Dynamic
-      if (t instanceof InferredType || s instanceof InferredType) {
+      if (t.isInferred() || s.isInferred()) {
         return true;
       }
       // do check and report error
@@ -631,7 +616,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private boolean checkAssignable(Type targetType, DartExpression node) {
       Type nodeType = nonVoidTypeOf(node);
-      if (isVariableInferredType(node)) {
+      if (hasInferredType(node)) {
         return true;
       }
       return checkAssignable(node, targetType, nodeType);
@@ -1918,10 +1903,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (value != null) {
             Type valueType = value.getType();
             if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
-              Type varType = InferredType.Helper.make(valueType);
+              Type varType = Types.makeInferred(valueType);
               Elements.setType(element, varType);
-              Elements.setTypeInferred(element, true);
-              propagetedTypeVariables.add(element);
             }
           }
         }
@@ -2013,7 +1996,23 @@ public class TypeAnalyzer implements DartCompilationPhase {
         checkAssignable(node, node.getElement().getType(), node.getElement().getConstantType());
         return node.getElement().getType();
       } else {
-        return checkInitializedDeclaration(node, node.getValue());
+        Type result = checkInitializedDeclaration(node, node.getValue());
+        // if no type declared for variables, try to use type of value
+        {
+          Element element = node.getElement();
+          if (element != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
+            DartExpression value = node.getValue();
+            if (value != null) {
+              Type valueType = value.getType();
+              if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
+                Type varType = Types.makeInferred(valueType);
+                Elements.setType(element, varType);
+              }
+            }
+          }
+        }
+        // done
+        return result;
       }
     }
 

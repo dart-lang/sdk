@@ -69,7 +69,9 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.type.TypeVariable;
+import com.google.dart.compiler.type.Types;
 import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.EnumSet;
@@ -642,9 +644,10 @@ public class Resolver {
         resolve(expression);
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getElement();
-        if (expression.getType() != null 
-            && element.getType().equals(typeProvider.getDynamicType())) {
-          Elements.setType(element, expression.getType());
+        Type expressionType = expression.getType();
+        if (expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
+          Type fieldType = Types.makeInferred(expressionType);
+          Elements.setType(element, fieldType);
         }
       } else if (isFinal) {
         if (isStatic) {
@@ -1202,6 +1205,9 @@ public class Resolver {
 
       checkInvocationTarget(x, currentMethod, target);
       visit(x.getArguments());
+      if (x.getFunctionName() != null) {
+        recordElement(x.getFunctionName(), element);
+      }
       return recordElement(x, element);
     }
 

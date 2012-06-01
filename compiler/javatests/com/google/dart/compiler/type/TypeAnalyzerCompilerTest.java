@@ -42,7 +42,6 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-import com.google.dart.compiler.resolver.VariableElement;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -1232,7 +1231,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // check each "v" type
     for (int i = 0; i < expectedList.size(); i++) {
       String expectedTypeString = expectedList.get(i);
-      assertVariableTypeString(libraryResult, "v" + i, expectedTypeString);
+      assertInferredElementTypeString(libraryResult, "v" + i, expectedTypeString);
     }
   }
   
@@ -1243,7 +1242,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  v = false;",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v", "bool");
+    assertInferredElementTypeString(libraryResult, "v", "bool");
   }
   
   public void test_typesPropagation_secondAssign_differentType() throws Exception {
@@ -1253,7 +1252,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  v = 0;",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsType() throws Exception {
@@ -1268,9 +1267,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "List<String>");
-    assertVariableTypeString(libraryResult, "v2", "Map<int, String>");
-    assertVariableTypeString(libraryResult, "v3", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v1", "List<String>");
+    assertInferredElementTypeString(libraryResult, "v2", "Map<int, String>");
+    assertInferredElementTypeString(libraryResult, "v3", "<dynamic>");
   }
 
   /**
@@ -1292,9 +1291,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "a1", "int");
-    assertVariableTypeString(libraryResult, "a2", "int");
-    assertVariableTypeString(libraryResult, "b1", "int");
+    assertInferredElementTypeString(libraryResult, "a1", "int");
+    assertInferredElementTypeString(libraryResult, "a2", "int");
+    assertInferredElementTypeString(libraryResult, "b1", "int");
   }
   
   /**
@@ -1309,7 +1308,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsType_negation() throws Exception {
@@ -1326,9 +1325,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "<dynamic>");
-    assertVariableTypeString(libraryResult, "v2", "<dynamic>");
-    assertVariableTypeString(libraryResult, "v3", "String");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v3", "String");
   }
 
   public void test_typesPropagation_ifIsType_and() throws Exception {
@@ -1340,8 +1339,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "a1", "String");
-    assertVariableTypeString(libraryResult, "b1", "List<String>");
+    assertInferredElementTypeString(libraryResult, "a1", "String");
+    assertInferredElementTypeString(libraryResult, "b1", "List<String>");
   }
   
   public void test_typesPropagation_ifIsType_or() throws Exception {
@@ -1355,8 +1354,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "<dynamic>");
-    assertVariableTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
   
   public void test_typesPropagation_whileIsType() throws Exception {
@@ -1369,8 +1368,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "String");
-    assertVariableTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
 
   public void test_typesPropagation_forIsType() throws Exception {
@@ -1383,11 +1382,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "String");
-    assertVariableTypeString(libraryResult, "v2", "String");
-    assertVariableTypeString(libraryResult, "v3", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(libraryResult, "v2", "String");
+    assertInferredElementTypeString(libraryResult, "v3", "<dynamic>");
   }
-  
+
   public void test_typesPropagation_forEach() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",
@@ -1397,7 +1396,33 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+  }
+
+  public void test_typesPropagation_field_inClass() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var v1 = 123;",
+        "  var v2 = Math.random();",
+        "  var v3 = 1 + 2.0;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "int");
+    assertInferredElementTypeString(libraryResult, "v2", "double");
+    assertInferredElementTypeString(libraryResult, "v3", "double");
+  }
+
+  public void test_typesPropagation_field_topLevel() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v1 = 123;",
+        "var v2 = Math.random();",
+        "var v3 = 1 + 2.0;",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "int");
+    assertInferredElementTypeString(libraryResult, "v2", "double");
+    assertInferredElementTypeString(libraryResult, "v3", "double");
   }
 
   public void test_getType_binaryExpression() throws Exception {
@@ -1421,22 +1446,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v16 = 1.0 ~/ 2;",
         "}",
         "");
-    assertVariableTypeString(libraryResult, "v1", "int");
-    assertVariableTypeString(libraryResult, "v2", "int");
-    assertVariableTypeString(libraryResult, "v3", "int");
-    assertVariableTypeString(libraryResult, "v4", "int");
-    assertVariableTypeString(libraryResult, "v5", "int");
-    assertVariableTypeString(libraryResult, "v6", "double");
-    assertVariableTypeString(libraryResult, "v7", "double");
-    assertVariableTypeString(libraryResult, "v8", "double");
-    assertVariableTypeString(libraryResult, "v9", "double");
-    assertVariableTypeString(libraryResult, "v10", "double");
-    assertVariableTypeString(libraryResult, "v11", "double");
-    assertVariableTypeString(libraryResult, "v12", "double");
-    assertVariableTypeString(libraryResult, "v13", "double");
-    assertVariableTypeString(libraryResult, "v14", "double");
-    assertVariableTypeString(libraryResult, "v15", "double");
-    assertVariableTypeString(libraryResult, "v16", "double");
+    assertInferredElementTypeString(libraryResult, "v1", "int");
+    assertInferredElementTypeString(libraryResult, "v2", "int");
+    assertInferredElementTypeString(libraryResult, "v3", "int");
+    assertInferredElementTypeString(libraryResult, "v4", "int");
+    assertInferredElementTypeString(libraryResult, "v5", "int");
+    assertInferredElementTypeString(libraryResult, "v6", "double");
+    assertInferredElementTypeString(libraryResult, "v7", "double");
+    assertInferredElementTypeString(libraryResult, "v8", "double");
+    assertInferredElementTypeString(libraryResult, "v9", "double");
+    assertInferredElementTypeString(libraryResult, "v10", "double");
+    assertInferredElementTypeString(libraryResult, "v11", "double");
+    assertInferredElementTypeString(libraryResult, "v12", "double");
+    assertInferredElementTypeString(libraryResult, "v13", "double");
+    assertInferredElementTypeString(libraryResult, "v14", "double");
+    assertInferredElementTypeString(libraryResult, "v15", "double");
+    assertInferredElementTypeString(libraryResult, "v16", "double");
   }
 
   /**
@@ -1489,8 +1514,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertVariableTypeString(libraryResult, "v1", "int");
-    assertVariableTypeString(libraryResult, "v2", "bool");
+    assertInferredElementTypeString(libraryResult, "v1", "int");
+    assertInferredElementTypeString(libraryResult, "v2", "bool");
   }
 
   public void test_getType_getterInNegation_generic() throws Exception {
@@ -1514,8 +1539,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertVariableTypeString(libraryResult, "v1", "bool");
-    assertVariableTypeString(libraryResult, "v2", "bool");
+    assertInferredElementTypeString(libraryResult, "v1", "bool");
+    assertInferredElementTypeString(libraryResult, "v2", "bool");
   }
 
   public void test_getType_getterInSwitch() throws Exception {
@@ -1532,31 +1557,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * Asserts that {@link VariableElement} with given name has expected type.
+   * Asserts that {@link Element} with given name has expected type.
    */
-  private void assertVariableTypeString(
+  private void assertInferredElementTypeString(
       AnalyzeLibraryResult libraryResult,
       String variableName,
       String expectedType) {
-    VariableElement variable = getVariableElement(libraryResult, variableName);
-    assertNotNull(variable);
-    assertEquals(variable.getName(), expectedType, variable.getType().toString());
+    // find element
+    Element element = getNamedElement(libraryResult, variableName);
+    assertNotNull(element);
+    // check type
+    Type actualType = element.getType();
+    assertEquals(element.getName(), expectedType, actualType.toString());
+    // should be inferred
+    if (TypeKind.of(actualType) != TypeKind.DYNAMIC) {
+      assertTrue("Should be marked as inferred", actualType.isInferred());
+    }
   }
 
   /**
-   * @return the {@link VariableElement} with given name, may be <code>null</code>.
+   * @return the {@link Element} with given name, may be <code>null</code>.
    */
-  private VariableElement getVariableElement(AnalyzeLibraryResult libraryResult, final String name) {
+  private Element getNamedElement(AnalyzeLibraryResult libraryResult, final String name) {
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
-    final VariableElement[] result = {null};
+    final Element[] result = {null};
     unit.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitIdentifier(DartIdentifier node) {
-        if (node.getElement() instanceof VariableElement) {
-          VariableElement variableElement = (VariableElement) node.getElement();
-          if (variableElement.getName().equals(name)) {
-            result[0] = variableElement;
-          }
+        Element element = node.getElement();
+        if (element.getName().equals(name)) {
+          result[0] = element;
         }
         return super.visitIdentifier(node);
       }

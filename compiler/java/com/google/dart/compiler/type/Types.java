@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -17,6 +18,9 @@ import com.google.dart.compiler.resolver.ResolutionErrorListener;
 import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.resolver.VariableElement;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,6 +35,7 @@ import java.util.Set;
  * Utility class for types.
  */
 public class Types {
+  private static Map<Type, Type> inferredTypes = new MapMaker().weakKeys().weakValues().makeMap();
   private final CoreTypeProvider typeProvider;
 
   private Types(CoreTypeProvider typeProvider) { // Prevent subclassing.
@@ -439,5 +444,37 @@ public class Types {
   public static InterfaceType constructorType(DartNewExpression node) {
     DartTypeNode typeNode = constructorTypeNode(node);
     return (InterfaceType) typeNode.getType();
+  }
+
+  /**
+   * @return the wrapper of the given {@link Type} which returns <code>true</code> from
+   *         {@link Type#isInferred()}.
+   */
+  public static Type makeInferred(Type type) {
+    if (type instanceof DynamicType) {
+      return makeInferred(type, DynamicType.class);
+    }
+    if (type instanceof InterfaceType) {
+      return makeInferred(type, InterfaceType.class);
+    }
+    return type;
+  }
+
+  private static Type makeInferred(final Type type, Class<?> typeInterface) {
+    Type inferred = inferredTypes.get(type);
+    if (inferred == null) {
+      inferred = (Type) Proxy.newProxyInstance(type.getClass().getClassLoader(),
+          new Class<?>[] {typeInterface}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+              if (args == null && method.getName().equals("isInferred")) {
+                return true;
+              }
+              return method.invoke(type, args);
+            }
+          });
+      inferredTypes.put(type, inferred);
+    }
+    return inferred;
   }
 }

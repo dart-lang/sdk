@@ -23,4 +23,10 @@ public interface Type {
   Element getElement();
 
   TypeKind getKind();
+  
+  /**
+   * @return <code>true</code> if this {@link Type} was not declared in {@link Element}, but
+   * instead was inferred from context.
+   */
+  boolean isInferred();
 }

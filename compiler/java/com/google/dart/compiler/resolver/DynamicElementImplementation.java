@@ -82,11 +82,6 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   public DynamicType getType() {
     return Types.newDynamicType();
   }
-  
-  @Override
-  public boolean isTypeInferred() {
-    return false;
-  }
 
   @Override
   public DynamicType getTypeVariable() {
