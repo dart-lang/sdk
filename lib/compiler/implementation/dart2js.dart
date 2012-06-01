@@ -25,8 +25,18 @@ class OptionHandler {
   OptionHandler(this.pattern, this.handle);
 }
 
+/**
+ * Extract the parameter of an option.
+ *
+ * For example, in ['--out=fisk.js'] and ['-ohest.js'], the parameters
+ * are ['fisk.js'] and ['hest.js'], respectively.
+ */
 String extractParameter(String argument) {
-  return argument.substring(argument.indexOf('=') + 1);
+  // m[0] is the entire match (which will be equal to argument). m[1]
+  // is something like "-o" or "--out=", and m[2] is the parameter.
+  Match m = const RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
+  if (m === null) helpAndFail('Error: Unknown option "$argument".');
+  return m[2];
 }
 
 String extractPath(String argument) {
@@ -81,20 +91,41 @@ void compile(List<String> argv) {
     out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
   }
 
+  handleShortOptions(String argument) {
+    var shortOptions = argument.substring(1).splitChars();
+    for (var shortOption in shortOptions) {
+      switch (shortOption) {
+        case 'v':
+          verbose = true;
+          break;
+        case 'h':
+        case '?':
+          wantHelp = true;
+          break;
+        case 'c':
+          passThrough('--enable-checked-mode');
+          break;
+        default:
+          throw 'Internal error: "$shortOption" did not match';
+      }
+    }
+  }
+
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
+    new OptionHandler('-[chv?]+', handleShortOptions),
     new OptionHandler('--throw-on-error', (_) => throwOnError = true),
     new OptionHandler('--suppress-warnings', (_) => showWarnings = false),
     new OptionHandler('--output-type=dart|--output-type=js', passThrough),
-    new OptionHandler('--verbose|-v', (_) => verbose = true),
+    new OptionHandler('--verbose', (_) => verbose = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--unparse-validation', passThrough),
     new OptionHandler('--no-colors', (_) => colors.enabled = false),
-    new OptionHandler('--enable[_-]checked[_-]mode|--checked|-c',
+    new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
-    new OptionHandler(@'--help|-h|/\?|/h', (_) => wantHelp = true),
+    new OptionHandler(@'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler(@'--package-root=.+|-p.+', setPackageRoot),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
