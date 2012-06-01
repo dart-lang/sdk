@@ -1443,9 +1443,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (superMethod.kind == ElementKind.FIELD) {
       buffer.add('this.${compiler.namer.getName(superMethod)}');
     } else {
-      assert(superMethod.kind == ElementKind.GETTER);
-      String methodName =
-          compiler.namer.getterName(currentLibrary, superMethod.name);
+      assert(superMethod.kind == ElementKind.GETTER ||
+             superMethod.kind == ElementKind.SETTER);
+      String methodName;
+      if (superMethod.kind == ElementKind.GETTER) {
+        methodName =
+            compiler.namer.getterName(currentLibrary, superMethod.name);
+      } else {
+        methodName =
+            compiler.namer.setterName(currentLibrary, superMethod.name);
+      }
       buffer.add('$className.prototype.$methodName.call');
       visitArguments(node.inputs);
     }

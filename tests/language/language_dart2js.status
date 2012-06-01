@@ -83,7 +83,6 @@ pseudo_kw_test: Fail # Unexpected token '('
 super_field_access_test: Fail # internal error: super property read not implemented
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
-super_setter_test: Fail # internal error: super property read not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
 
 

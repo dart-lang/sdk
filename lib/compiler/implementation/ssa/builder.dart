@@ -2268,27 +2268,28 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  generateSuperNoSuchMethodSend(Send node) {
+    ClassElement cls = work.element.getEnclosingClass();
+    Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
+    HStatic target = new HStatic(element);
+    add(target);
+    HInstruction self = localsHandler.readThis();
+    Identifier identifier = node.selector.asIdentifier();
+    String name = identifier.source.slowToString();
+    // TODO(ahe): Add the arguments to this list.
+    push(new HLiteralList([]));
+    var inputs = <HInstruction>[
+        target,
+        self,
+        graph.addConstantString(new DartString.literal(name), node),
+        pop()];
+    push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
+  }
+
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element === null) {
-      ClassElement cls = work.element.getEnclosingClass();
-      element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
-      HStatic target = new HStatic(element);
-      add(target);
-      HInstruction self = localsHandler.readThis();
-      Identifier identifier = node.selector.asIdentifier();
-      String name = identifier.source.slowToString();
-      // TODO(ahe): Add the arguments to this list.
-      push(new HLiteralList([]));
-      var inputs = <HInstruction>[
-          target,
-          self,
-          graph.addConstantString(new DartString.literal(name), node),
-          pop()];
-      push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
-      return;
-    }
+    if (element === null) return generateSuperNoSuchMethodSend(node);
     HInstruction target = new HStatic(element);
     HInstruction context = localsHandler.readThis();
     add(target);
@@ -2462,7 +2463,15 @@ class SsaBuilder implements Visitor {
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      compiler.unimplemented('super property store', node: node);
+      Selector selector = elements.getSelector(node);
+      Element element = elements[node];
+      if (element === null) return generateSuperNoSuchMethodSend(node);
+      HInstruction target = new HStatic(element);
+      HInstruction context = localsHandler.readThis();
+      add(target);
+      var inputs = <HInstruction>[target, context];
+      addDynamicSendArgumentsToList(node, inputs);
+      push(new HInvokeSuper(selector, inputs));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(op.source.stringValue === '=');
