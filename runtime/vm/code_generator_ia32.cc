@@ -217,20 +217,6 @@ void CodeGenerator::GenerateDeferredCode() {
 }
 
 
-// Pre entry code is called before the frame has been constructed:
-// - check for stack overflow.
-// - optionally count function invocations.
-// - optionally trigger optimizing compiler if invocation threshold has been
-//   reached.
-// Note that first 5 bytes may be patched with a jump.
-// TODO(srdjan): Add check that no object is inlined in the first
-// 5 bytes (length of a jump instruction).
-void CodeGenerator::GeneratePreEntryCode() {
-  // TODO(srdjan): Still needed?
-  __ nop(5);
-}
-
-
 void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(

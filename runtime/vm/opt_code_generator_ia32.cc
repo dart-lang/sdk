@@ -369,14 +369,6 @@ void OptimizingCodeGenerator::TraceNotOpt(AstNode* node, const char* message) {
 }
 
 
-// Check for stack overflow.
-// Note that first 5 bytes may be patched with a jump.
-// TODO(srdjan): Add check that no object is inlined in the first
-// 5 bytes (length of a jump instruction).
-void OptimizingCodeGenerator::GeneratePreEntryCode() {
-}
-
-
 void OptimizingCodeGenerator::CallDeoptimize(intptr_t node_id,
                                              intptr_t token_index) {
   __ call(&StubCode::DeoptimizeLabel());
