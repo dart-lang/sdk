@@ -532,7 +532,9 @@ class SnapshotWriter : public BaseWriter {
     DISALLOW_COPY_AND_ASSIGN(ForwardObjectNode);
   };
 
-  intptr_t MarkObject(RawObject* raw, RawClass* cls);
+  intptr_t MarkObject(RawObject* raw);
+
+  bool CheckAndWritePredefinedObject(RawObject* raw);
 
   void WriteInlinedObject(RawObject* raw);
 

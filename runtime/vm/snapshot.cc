@@ -474,75 +474,15 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
 
 
 void SnapshotWriter::WriteObject(RawObject* rawobj) {
-  // An object is written in one of the following ways:
-  // - Smi: the Smi value is written as is (last bit is not tagged).
-  // - VM internal class (from VM isolate): (index of class in vm isolate | 0x3)
-  // - Object that has already been written: (negative id in stream | 0x3)
-  // - Object that is seen for the first time (inlined as follows):
+  // First check if object can be written as a simple predefined type.
+  if (CheckAndWritePredefinedObject(rawobj)) {
+    return;
+  }
+  // Now write the object out inline in the stream as follows:
+  // - Object is seen for the first time (inlined as follows):
   //    (object size in multiples of kObjectAlignment | 0x1)
   //    serialized fields of the object
   //    ......
-
-  NoGCScope no_gc;
-  // writing a snap shot.
-
-  // First check if it is a Smi (i.e not a heap object).
-  if (!rawobj->IsHeapObject()) {
-    Write<int64_t>(reinterpret_cast<intptr_t>(rawobj));
-    return;
-  }
-
-  // Check if it is a singleton null object which is shared by all isolates.
-  if (rawobj == Object::null()) {
-    WriteIndexedObject(Object::kNullObject);
-    return;
-  }
-
-  // Check if it is a singleton sentinel object which is shared by all isolates.
-  if (rawobj == Object::sentinel()) {
-    WriteIndexedObject(Object::kSentinelObject);
-    return;
-  }
-
-  // Check if it is a singleton class object which is shared by
-  // all isolates.
-  RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
-  intptr_t index = Object::GetSingletonClassIndex(raw_class);
-  if (index != Object::kInvalidIndex) {
-    WriteIndexedObject(index);
-    return;
-  }
-
-  // Check if it is a singleton boolean true value.
-  if (rawobj == object_store()->true_value()) {
-    WriteIndexedObject(ObjectStore::kTrueValue);
-    return;
-  }
-
-  // Check if it is a singleton boolean false value.
-  if (rawobj == object_store()->false_value()) {
-    WriteIndexedObject(ObjectStore::kFalseValue);
-    return;
-  }
-
-  // Check if it is a code object in that case just write a Null object
-  // as we do not want code objects in the snapshot.
-  if (RawObject::ClassIdTag::decode(GetObjectTags(rawobj)) == kCode) {
-    WriteIndexedObject(Object::kNullObject);
-    return;
-  }
-
-  // Check if classes are not being serialized and it is preinitialized type.
-  if (kind_ != Snapshot::kFull) {
-    RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
-    index = object_store()->GetTypeIndex(raw_type);
-    if (index != ObjectStore::kInvalidIndex) {
-      WriteIndexedObject(index);
-      return;
-    }
-  }
-
-  // Now write the object out inline in the stream.
   WriteInlinedObject(rawobj);
 }
 
@@ -584,7 +524,7 @@ uword SnapshotWriter::GetObjectTags(RawObject* raw) {
 }
 
 
-intptr_t SnapshotWriter::MarkObject(RawObject* raw, RawClass* cls) {
+intptr_t SnapshotWriter::MarkObject(RawObject* raw) {
   NoGCScope no_gc;
   intptr_t object_id = forward_list_.length() + kMaxPredefinedObjectIds;
   ASSERT(object_id <= kMaxObjectId);
@@ -600,24 +540,92 @@ intptr_t SnapshotWriter::MarkObject(RawObject* raw, RawClass* cls) {
 }
 
 
-void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
+bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
+  // Check if object can be written in one of the following ways:
+  // - Smi: the Smi value is written as is (last bit is not tagged).
+  // - VM internal class (from VM isolate): (index of class in vm isolate | 0x3)
+  // - Object that has already been written: (negative id in stream | 0x3)
+
   NoGCScope no_gc;
-  uword tags = raw->ptr()->tags_;
+
+  // First check if it is a Smi (i.e not a heap object).
+  if (!rawobj->IsHeapObject()) {
+    Write<int64_t>(reinterpret_cast<intptr_t>(rawobj));
+    return true;
+  }
+
+  // Check if it is a singleton null object which is shared by all isolates.
+  if (rawobj == Object::null()) {
+    WriteIndexedObject(Object::kNullObject);
+    return true;
+  }
+
+  // Check if it is a singleton sentinel object which is shared by all isolates.
+  if (rawobj == Object::sentinel()) {
+    WriteIndexedObject(Object::kSentinelObject);
+    return true;
+  }
+
+  // Check if it is a singleton class object which is shared by
+  // all isolates.
+  RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
+  intptr_t index = Object::GetSingletonClassIndex(raw_class);
+  if (index != Object::kInvalidIndex) {
+    WriteIndexedObject(index);
+    return true;
+  }
+
+  // Check if it is a singleton boolean true value.
+  if (rawobj == object_store()->true_value()) {
+    WriteIndexedObject(ObjectStore::kTrueValue);
+    return true;
+  }
+
+  // Check if it is a singleton boolean false value.
+  if (rawobj == object_store()->false_value()) {
+    WriteIndexedObject(ObjectStore::kFalseValue);
+    return true;
+  }
+
+  // Check if it is a code object in that case just write a Null object
+  // as we do not want code objects in the snapshot.
+  if (RawObject::ClassIdTag::decode(GetObjectTags(rawobj)) == kCode) {
+    WriteIndexedObject(Object::kNullObject);
+    return true;
+  }
+
+  // Check if classes are not being serialized and it is preinitialized type.
+  if (kind_ != Snapshot::kFull) {
+    RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
+    index = object_store()->GetTypeIndex(raw_type);
+    if (index != ObjectStore::kInvalidIndex) {
+      WriteIndexedObject(index);
+      return true;
+    }
+  }
 
   // Check if object has already been serialized, in that
   // case just write the object id out.
+  uword tags = rawobj->ptr()->tags_;
   if (SerializedHeaderTag::decode(tags) == kObjectId) {
     intptr_t id = SerializedHeaderData::decode(tags);
     WriteIndexedObject(id);
-    return;
+    return true;
   }
 
+  return false;
+}
+
+
+void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
+  NoGCScope no_gc;
+  uword tags = raw->ptr()->tags_;
   RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
 
   // Object is being serialized, add it to the forward ref list and mark
   // it so that future references to this object in the snapshot will use
   // an object id, instead of trying to serialize it again.
-  intptr_t object_id = MarkObject(raw, cls);
+  intptr_t object_id = MarkObject(raw);
 
   ObjectKind kind = cls->ptr()->instance_kind_;
   if (kind == Instance::kInstanceKind) {

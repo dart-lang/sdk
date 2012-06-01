@@ -1815,204 +1815,48 @@ RawT* ByteArray::ReadFromImpl(SnapshotReader* reader,
 }
 
 
-RawInt8Array* Int8Array::ReadFrom(SnapshotReader* reader,
-                                  intptr_t object_id,
-                                  intptr_t tags,
-                                  Snapshot::Kind kind) {
-  return ReadFromImpl<Int8Array, RawInt8Array, int8_t>(reader,
-                                                       object_id,
-                                                       tags,
-                                                       kind);
-}
+#define BYTEARRAY_TYPE_LIST(V)                                                 \
+  V(Int8, int8_t)                                                              \
+  V(Uint8, uint8_t)                                                            \
+  V(Int16, int16_t)                                                            \
+  V(Uint16, uint16_t)                                                          \
+  V(Int32, int32_t)                                                            \
+  V(Uint32, uint32_t)                                                          \
+  V(Int64, int64_t)                                                            \
+  V(Uint64, uint64_t)                                                          \
+  V(Float32, float)                                                            \
+  V(Float64, double)                                                           \
 
 
-RawUint8Array* Uint8Array::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind) {
-  return ReadFromImpl<Uint8Array, RawUint8Array, uint8_t>(reader,
-                                                          object_id,
-                                                          tags,
-                                                          kind);
-}
+#define BYTEARRAY_READ_FROM(name, type)                                        \
+Raw##name##Array* name##Array::ReadFrom(SnapshotReader* reader,                \
+                                          intptr_t object_id,                  \
+                                          intptr_t tags,                       \
+                                          Snapshot::Kind kind) {               \
+  return ReadFromImpl<name##Array, Raw##name##Array, type>(reader,             \
+                                                           object_id,          \
+                                                           tags,               \
+                                                           kind);              \
+}                                                                              \
 
 
-RawInt16Array* Int16Array::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind) {
-  return ReadFromImpl<Int16Array, RawInt16Array, int16_t>(reader,
-                                                          object_id,
-                                                          tags,
-                                                          kind);
-}
+BYTEARRAY_TYPE_LIST(BYTEARRAY_READ_FROM)
+#undef BYTEARRAY_READ_FROM
 
 
-RawUint16Array* Uint16Array::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind) {
-  return ReadFromImpl<Uint16Array, RawUint16Array, uint16_t>(reader,
-                                                             object_id,
-                                                             tags,
-                                                             kind);
-}
+#define EXTERNALARRAY_READ_FROM(name, type)                                    \
+RawExternal##name##Array* External##name##Array::ReadFrom(                     \
+    SnapshotReader* reader,                                                    \
+    intptr_t object_id,                                                        \
+    intptr_t tags,                                                             \
+    Snapshot::Kind kind) {                                                     \
+  UNREACHABLE();                                                               \
+  return External##name##Array::null();                                        \
+}                                                                              \
 
 
-RawInt32Array* Int32Array::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind) {
-  return ReadFromImpl<Int32Array, RawInt32Array, int32_t>(reader,
-                                                          object_id,
-                                                          tags,
-                                                          kind);
-}
-
-
-RawUint32Array* Uint32Array::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind) {
-  return ReadFromImpl<Uint32Array, RawUint32Array, uint32_t>(reader,
-                                                             object_id,
-                                                             tags,
-                                                             kind);
-}
-
-
-RawInt64Array* Int64Array::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind) {
-  return ReadFromImpl<Int64Array, RawInt64Array, int64_t>(reader,
-                                                          object_id,
-                                                          tags,
-                                                          kind);
-}
-
-
-RawUint64Array* Uint64Array::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind) {
-  return ReadFromImpl<Uint64Array, RawUint64Array, uint64_t>(reader,
-                                                             object_id,
-                                                             tags,
-                                                             kind);
-}
-
-
-RawFloat32Array* Float32Array::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind) {
-  return ReadFromImpl<Float32Array, RawFloat32Array, float>(reader,
-                                                            object_id,
-                                                            tags,
-                                                            kind);
-}
-
-
-RawFloat64Array* Float64Array::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind) {
-  return ReadFromImpl<Float64Array, RawFloat64Array, double>(reader,
-                                                             object_id,
-                                                             tags,
-                                                             kind);
-}
-
-
-RawExternalInt8Array* ExternalInt8Array::ReadFrom(SnapshotReader* reader,
-                                                  intptr_t object_id,
-                                                  intptr_t tags,
-                                                  Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalInt8Array::null();
-}
-
-
-RawExternalUint8Array* ExternalUint8Array::ReadFrom(SnapshotReader* reader,
-                                                    intptr_t object_id,
-                                                    intptr_t tags,
-                                                    Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalUint8Array::null();
-}
-
-
-RawExternalInt16Array* ExternalInt16Array::ReadFrom(SnapshotReader* reader,
-                                                    intptr_t object_id,
-                                                    intptr_t tags,
-                                                    Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalInt16Array::null();
-}
-
-
-RawExternalUint16Array* ExternalUint16Array::ReadFrom(SnapshotReader* reader,
-                                                      intptr_t object_id,
-                                                      intptr_t tags,
-                                                      Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalUint16Array::null();
-}
-
-
-RawExternalInt32Array* ExternalInt32Array::ReadFrom(SnapshotReader* reader,
-                                                    intptr_t object_id,
-                                                    intptr_t tags,
-                                                    Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalInt32Array::null();
-}
-
-
-RawExternalUint32Array* ExternalUint32Array::ReadFrom(SnapshotReader* reader,
-                                                      intptr_t object_id,
-                                                      intptr_t tags,
-                                                      Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalUint32Array::null();
-}
-
-
-RawExternalInt64Array* ExternalInt64Array::ReadFrom(SnapshotReader* reader,
-                                                    intptr_t object_id,
-                                                    intptr_t tags,
-                                                    Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalInt64Array::null();
-}
-
-
-RawExternalUint64Array* ExternalUint64Array::ReadFrom(SnapshotReader* reader,
-                                                      intptr_t object_id,
-                                                      intptr_t tags,
-                                                      Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalUint64Array::null();
-}
-
-
-RawExternalFloat32Array* ExternalFloat32Array::ReadFrom(SnapshotReader* reader,
-                                                        intptr_t object_id,
-                                                        intptr_t tags,
-                                                        Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalFloat32Array::null();
-}
-
-
-RawExternalFloat64Array* ExternalFloat64Array::ReadFrom(SnapshotReader* reader,
-                                                        intptr_t object_id,
-                                                        intptr_t tags,
-                                                        Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalFloat64Array::null();
-}
+BYTEARRAY_TYPE_LIST(EXTERNALARRAY_READ_FROM)
+#undef EXTERNALARRAY_READ_FROM
 
 
 static void ByteArrayWriteTo(SnapshotWriter* writer,
@@ -2048,273 +1892,41 @@ void RawByteArray::WriteTo(SnapshotWriter* writer,
 }
 
 
-void RawInt8Array::WriteTo(SnapshotWriter* writer,
-                           intptr_t object_id,
-                           Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt8ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
+#define BYTEARRAY_WRITE_TO(name, type)                                         \
+void Raw##name##Array::WriteTo(SnapshotWriter* writer,                         \
+                               intptr_t object_id,                             \
+                               Snapshot::Kind kind) {                          \
+  ByteArrayWriteTo(writer,                                                     \
+                   object_id,                                                  \
+                   kind,                                                       \
+                   ObjectStore::k##name##ArrayClass,                           \
+                   writer->GetObjectTags(this),                                \
+                   ptr()->length_,                                             \
+                   reinterpret_cast<uint8_t*>(ptr()->data_));                  \
+}                                                                              \
 
 
-void RawUint8Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint8ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
+BYTEARRAY_TYPE_LIST(BYTEARRAY_WRITE_TO)
+#undef BYTEARRAY_WRITE_TO
 
 
-void RawInt16Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt16ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
+#define EXTERNALARRAY_WRITE_TO(name, type)                                     \
+void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
+                                       intptr_t object_id,                     \
+                                       Snapshot::Kind kind) {                  \
+  ByteArrayWriteTo(writer,                                                     \
+                   object_id,                                                  \
+                   kind,                                                       \
+                   ObjectStore::k##name##ArrayClass,                           \
+                   writer->GetObjectTags(this),                                \
+                   ptr()->length_,                                             \
+                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data())); \
+}                                                                              \
 
 
-void RawUint16Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint16ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawInt32Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt32ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawUint32Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint32ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawInt64Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt64ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawUint64Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint64ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawFloat32Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kFloat32ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawFloat64Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kFloat64ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->data_));
-}
-
-
-void RawExternalInt8Array::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind) {
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt8ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalUint8Array::WriteTo(SnapshotWriter* writer,
-                                    intptr_t object_id,
-                                    Snapshot::Kind kind) {
-  // Serialize as a non-external int8 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint8ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalInt16Array::WriteTo(SnapshotWriter* writer,
-                                    intptr_t object_id,
-                                    Snapshot::Kind kind) {
-  // Serialize as a non-external int16 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt16ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalUint16Array::WriteTo(SnapshotWriter* writer,
-                                     intptr_t object_id,
-                                     Snapshot::Kind kind) {
-  // Serialize as a non-external uint16 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint16ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalInt32Array::WriteTo(SnapshotWriter* writer,
-                                    intptr_t object_id,
-                                    Snapshot::Kind kind) {
-  // Serialize as a non-external int32 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt32ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalUint32Array::WriteTo(SnapshotWriter* writer,
-                                     intptr_t object_id,
-                                     Snapshot::Kind kind) {
-  // Serialize as a non-external uint32 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint32ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalInt64Array::WriteTo(SnapshotWriter* writer,
-                                    intptr_t object_id,
-                                    Snapshot::Kind kind) {
-  // Serialize as a non-external int64 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kInt64ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalUint64Array::WriteTo(SnapshotWriter* writer,
-                                     intptr_t object_id,
-                                     Snapshot::Kind kind) {
-  // Serialize as a non-external uint64 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kUint64ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalFloat32Array::WriteTo(SnapshotWriter* writer,
-                                      intptr_t object_id,
-                                      Snapshot::Kind kind) {
-  // Serialize as a non-external float32 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kFloat32ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
-
-
-void RawExternalFloat64Array::WriteTo(SnapshotWriter* writer,
-                                      intptr_t object_id,
-                                      Snapshot::Kind kind) {
-  // Serialize as a non-external float64 array.
-  ByteArrayWriteTo(writer,
-                   object_id,
-                   kind,
-                   ObjectStore::kFloat64ArrayClass,
-                   writer->GetObjectTags(this),
-                   ptr()->length_,
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data()));
-}
+BYTEARRAY_TYPE_LIST(EXTERNALARRAY_WRITE_TO)
+#undef BYTEARRAY_WRITE_TO
+#undef BYTEARRAY_TYPE_LIST
 
 
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,
