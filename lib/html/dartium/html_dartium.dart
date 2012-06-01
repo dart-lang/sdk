@@ -45073,8 +45073,7 @@ class _IDBKeyRangeFactoryProvider {
 
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
-      _wrap(_IDBKeyRangeImpl.bound(lower, upper,
-                                      lowerOpen, upperOpen));
+      _IDBKeyRangeImpl.bound(lower, upper, lowerOpen, upperOpen);
 }
 
 class _TypedArrayFactoryProvider {
