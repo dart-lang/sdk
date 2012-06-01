@@ -13,6 +13,7 @@
 #include "vm/assembler_macros.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
+#include "vm/flow_graph_compiler_shared.h"
 #include "vm/intermediate_language.h"
 
 namespace dart {
@@ -23,57 +24,21 @@ class ExceptionHandlerList;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 
-class FlowGraphCompiler : public FlowGraphVisitor {
+class FlowGraphCompiler : public FlowGraphCompilerShared {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
                     const GrowableArray<BlockEntryInstr*>& block_order,
                     bool is_optimizing);
 
-  virtual ~FlowGraphCompiler();
-
   void CompileGraph();
 
-  // Infrastructure copied from class CodeGenerator or stubbed out.
-  void FinalizePcDescriptors(const Code& code);
-  void FinalizeStackmaps(const Code& code);
-  void FinalizeVarDescriptors(const Code& code);
-  void FinalizeExceptionHandlers(const Code& code);
   void FinalizeComments(const Code& code);
-
-  Assembler* assembler() const { return assembler_; }
-
-  Label* AddDeoptStub(intptr_t deopt_id,
-                      intptr_t deopt_token_index,
-                      intptr_t try_index_,
-                      DeoptReasonId reason,
-                      Register reg1,
-                      Register reg2);
-
-  bool is_optimizing() const { return is_optimizing_; }
-  const ParsedFunction& parsed_function() const { return parsed_function_; }
 
   void GenerateCallRuntime(intptr_t cid,
                            intptr_t token_index,
                            intptr_t try_index,
                            const RuntimeEntry& entry);
-  void AddCurrentDescriptor(PcDescriptors::Kind kind,
-                            intptr_t cid,
-                            intptr_t token_index,
-                            intptr_t try_index);
-
-  // Returns true if the next block after current in the current block order
-  // is the given block.
-  bool IsNextBlock(TargetEntryInstr* block_entry) const {
-    intptr_t current_index = reverse_index(current_block()->postorder_number());
-    return block_order_[current_index + 1] == block_entry;
-  }
-
-  // Returns assembler label associated with the given block entry.
-  Label* GetBlockLabel(TargetEntryInstr* block_entry) const {
-    intptr_t block_index = block_entry->postorder_number();
-    return &block_info_[block_index]->label;
-  }
 
  private:
   friend class DeoptimizationStub;
@@ -86,37 +51,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
-  // Constructor is lighweight, major initialization work should occur here.
-  // This makes it easier to measure time spent in the compiler.
-  void InitCompiler();
-
-  struct BlockInfo : public ZoneAllocated {
-   public:
-    BlockInfo() : label() { }
-
-    Label label;
-  };
-
-  BlockEntryInstr* current_block() const { return current_block_; }
-
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
 
   virtual void VisitBlocks();
-
-  // Emit code to perform a computation, leaving its value in RAX.
-#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp);
-
-  // Each visit function compiles a type of instruction.
-#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
-  virtual void Visit##ShortName(ShortName##Instr* instr);
-
-  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
-
-#undef DECLARE_VISIT_COMPUTATION
-#undef DECLARE_VISIT_INSTRUCTION
 
   void EmitInstructionPrologue(Instruction* instr);
 
@@ -198,28 +136,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   void CopyParameters();
 
-  intptr_t StackSize() const;
-
   bool TryIntrinsify();
   void IntrinsifyGetter();
   void IntrinsifySetter();
   static bool CanOptimize();
-
-  void GenerateDeferredCode();
-
-  Assembler* assembler_;
-  const ParsedFunction& parsed_function_;
-
-  // Compiler specific per-block state.  Indexed by postorder block number
-  // for convenience.  This is not the block's index in the block order,
-  // which is reverse postorder.
-  GrowableArray<BlockInfo*> block_info_;
-  BlockEntryInstr* current_block_;
-  DescriptorList* pc_descriptors_list_;
-  StackmapBuilder* stackmap_builder_;
-  ExceptionHandlerList* exception_handlers_list_;
-  GrowableArray<DeoptimizationStub*> deopt_stubs_;
-  const bool is_optimizing_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

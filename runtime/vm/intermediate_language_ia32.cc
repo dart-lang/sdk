@@ -54,6 +54,25 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  // Nothing to do.
+}
+
+
+void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetBlockLabel(this));
+}
+
+
+void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetBlockLabel(this));
+  if (HasTryIndex()) {
+    compiler->AddExceptionHandler(try_index(),
+                                  compiler->assembler()->CodeSize());
+  }
+}
+
+
 LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;

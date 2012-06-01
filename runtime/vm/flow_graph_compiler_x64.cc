@@ -32,37 +32,8 @@ DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, code_comments);
 
-class DeoptimizationStub : public ZoneAllocated {
- public:
-  DeoptimizationStub(intptr_t deopt_id,
-                     intptr_t deopt_token_index,
-                     intptr_t try_index,
-                     DeoptReasonId reason)
-      : deopt_id_(deopt_id),
-        deopt_token_index_(deopt_token_index),
-        try_index_(try_index),
-        reason_(reason),
-        registers_(2),
-        entry_label_() {}
 
-  void Push(Register reg) { registers_.Add(reg); }
-  Label* entry_label() { return &entry_label_; }
-
-  void GenerateCode(FlowGraphCompiler* compiler);
-
- private:
-  const intptr_t deopt_id_;
-  const intptr_t deopt_token_index_;
-  const intptr_t try_index_;
-  const DeoptReasonId reason_;
-  GrowableArray<Register> registers_;
-  Label entry_label_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
-};
-
-
-void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
+void DeoptimizationStub::GenerateCode(FlowGraphCompilerShared* compiler) {
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -87,48 +58,15 @@ FlowGraphCompiler::FlowGraphCompiler(
     const ParsedFunction& parsed_function,
     const GrowableArray<BlockEntryInstr*>& block_order,
     bool is_optimizing)
-    : FlowGraphVisitor(block_order),
-      assembler_(assembler),
-      parsed_function_(parsed_function),
-      block_info_(block_order.length()),
-      current_block_(NULL),
-      pc_descriptors_list_(NULL),
-      stackmap_builder_(NULL),
-      exception_handlers_list_(NULL),
-      deopt_stubs_(),
-      is_optimizing_(is_optimizing) {
-}
-
-
-void FlowGraphCompiler::InitCompiler() {
-  pc_descriptors_list_ = new DescriptorList();
-  exception_handlers_list_ = new ExceptionHandlerList();
-  block_info_.Clear();
-  for (int i = 0; i < block_order_.length(); ++i) {
-    block_info_.Add(new BlockInfo());
-  }
-}
-
-
-FlowGraphCompiler::~FlowGraphCompiler() {
-  // BlockInfos are zone-allocated, so their destructors are not called.
-  // Verify the labels explicitly here.
-  for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
-    ASSERT(!block_info_[i]->label.HasNear());
-  }
-}
-
-
-intptr_t FlowGraphCompiler::StackSize() const {
-  return parsed_function_.stack_local_count() +
-      parsed_function_.copied_parameter_count();
-}
+    : FlowGraphCompilerShared(assembler,
+                              parsed_function,
+                              block_order,
+                              is_optimizing) {}
 
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
-  const char* function_name = parsed_function_.function().ToCString();
+  const char* function_name = parsed_function().function().ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
@@ -139,7 +77,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 }
 
 
-#define __ assembler_->
+#define __ assembler()->
 
 
 // Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
@@ -622,30 +560,6 @@ void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
 }
 
 
-void FlowGraphCompiler::VisitUse(UseVal* val) {
-  // UseVal is never visited during code generation.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
 void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
                                          intptr_t token_index,
                                          intptr_t try_index,
@@ -654,7 +568,7 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
                                          const Array& argument_names,
                                          intptr_t checked_argument_count) {
   ICData& ic_data =
-      ICData::ZoneHandle(ICData::New(parsed_function_.function(),
+      ICData::ZoneHandle(ICData::New(parsed_function().function(),
                                      function_name,
                                      cid,
                                      checked_argument_count));
@@ -696,115 +610,6 @@ void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   __ Drop(argument_count);
-}
-
-
-void FlowGraphCompiler::VisitCurrentContext(CurrentContextComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStoreContext(StoreContextComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitEqualityCompare(EqualityCompareComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitLoadLocal(LoadLocalComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-
-void FlowGraphCompiler::VisitLoadStaticField(LoadStaticFieldComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStoreStaticField(StoreStaticFieldComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStaticSetter(StaticSetterComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
 }
 
 
@@ -892,109 +697,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
 }
 
 
-void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitAllocateObjectWithBoundsCheck(
-    AllocateObjectWithBoundsCheckComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitLoadVMField(LoadVMFieldComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitStoreVMField(StoreVMFieldComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitInstantiateTypeArguments(
-    InstantiateTypeArgumentsComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
-    ExtractConstructorTypeArgumentsComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitExtractConstructorInstantiator(
-    ExtractConstructorInstantiatorComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitAllocateContext(AllocateContextComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitChainContext(ChainContextComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitCloneContext(CloneContextComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitBinaryOp(BinaryOpComp* comp) {
-  UNIMPLEMENTED();
-}
-
-
-void FlowGraphCompiler::VisitUnarySmiOp(UnarySmiOpComp* comp) {
-  UNIMPLEMENTED();
-}
-
-
-void FlowGraphCompiler::VisitNumberNegate(NumberNegateComp* comp) {
-  UNIMPLEMENTED();
-}
-
-
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
@@ -1011,21 +713,19 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::VisitBlocks() {
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+  for (intptr_t i = 0; i < block_order().length(); ++i) {
     __ Comment("B%d", i);
     // Compile the block entry.
-    current_block_ = block_order_[i];
-    Instruction* instr = current_block()->Accept(this);
+    set_current_block(block_order()[i]);
+    current_block()->PrepareEntry(this);
+    Instruction* instr = current_block()->StraightLineSuccessor();
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       if (FLAG_code_comments) EmitComment(instr);
-      if (instr->locs() != NULL) {
-        EmitInstructionPrologue(instr);
-        instr->EmitNativeCode(this);
-        instr = instr->StraightLineSuccessor();
-      } else {
-        instr = instr->Accept(this);
-      }
+      ASSERT(instr->locs() != NULL);
+      EmitInstructionPrologue(instr);
+      instr->EmitNativeCode(this);
+      instr = instr->StraightLineSuccessor();
     }
 
     BlockEntryInstr* successor =
@@ -1033,9 +733,9 @@ void FlowGraphCompiler::VisitBlocks() {
     if (successor != NULL) {
       // Block ended with a "goto".  We can fall through if it is the
       // next block in the list.  Otherwise, we need a jump.
-      if ((i == block_order_.length() - 1) ||
-          (block_order_[i + 1] != successor)) {
-        __ jmp(&block_info_[successor->postorder_number()]->label);
+      if ((i == block_order().length() - 1) ||
+          (block_order()[i + 1] != successor)) {
+        __ jmp(GetBlockLabel(successor));
       }
     }
   }
@@ -1050,68 +750,13 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
-void FlowGraphCompiler::VisitGraphEntry(GraphEntryInstr* instr) {
-  // Nothing to do.
-}
-
-
-void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
-  __ Bind(&block_info_[instr->postorder_number()]->label);
-}
-
-
-void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
-  __ Bind(&block_info_[instr->postorder_number()]->label);
-  if (instr->HasTryIndex()) {
-    exception_handlers_list_->AddHandler(instr->try_index(),
-                                         assembler_->CodeSize());
-  }
-}
-
-
-void FlowGraphCompiler::VisitDo(DoInstr* instr) {
-  instr->computation()->Accept(this);
-}
-
-
-void FlowGraphCompiler::VisitBind(BindInstr* instr) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
-
-void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
-  // Moved to intermediate_language_x64.cc.
-  UNREACHABLE();
-}
-
-
 // Copied from CodeGenerator::CopyParameters (CodeGenerator will be deprecated).
 void FlowGraphCompiler::CopyParameters() {
-  const Function& function = parsed_function_.function();
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
+  const Function& function = parsed_function().function();
+  LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
-  ASSERT(parsed_function_.first_parameter_index() ==
+  ASSERT(parsed_function().first_parameter_index() ==
          ParsedFunction::kFirstLocalSlotIndex);
   // Copy positional arguments.
   // Check that no fewer than num_fixed_params positional arguments are passed
@@ -1212,7 +857,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ Bind(&load_default_value);
     // Load RAX with default argument at pos.
     const Object& value = Object::ZoneHandle(
-        parsed_function_.default_parameter_values().At(
+        parsed_function().default_parameter_values().At(
             param_pos - num_fixed_params));
     __ LoadObject(RAX, value);
     __ Bind(&assign_optional_parameter);
@@ -1312,7 +957,7 @@ void FlowGraphCompiler::IntrinsifyGetter() {
   // TOS: return address.
   // +1 : receiver.
   // Sequence node has one return node, its input is load field node.
-  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  const SequenceNode& sequence_node = *parsed_function().node_sequence();
   ASSERT(sequence_node.length() == 1);
   ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
   const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
@@ -1330,7 +975,7 @@ void FlowGraphCompiler::IntrinsifySetter() {
   // +1 : value
   // +2 : receiver.
   // Sequence node has one store node and one return NULL node.
-  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  const SequenceNode& sequence_node = *parsed_function().node_sequence();
   ASSERT(sequence_node.length() == 2);
   ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
   ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
@@ -1353,11 +998,11 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
+    if ((parsed_function().function().kind() == RawFunction::kImplicitGetter)) {
       IntrinsifyGetter();
       return true;
     }
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter)) {
+    if ((parsed_function().function().kind() == RawFunction::kImplicitSetter)) {
       IntrinsifySetter();
       return true;
     }
@@ -1365,7 +1010,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // Even if an intrinsified version of the function was successfully
   // generated, it may fall through to the non-intrinsified method body.
   if (!FLAG_trace_functions) {
-    return Intrinsifier::Intrinsify(parsed_function_.function(), assembler_);
+    return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
   }
   return false;
 }
@@ -1382,12 +1027,12 @@ void FlowGraphCompiler::CompileGraph() {
     return;
   }
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
-  const Function& function = parsed_function_.function();
+  const Function& function = parsed_function().function();
 
   const int parameter_count = function.num_fixed_parameters();
-  const int num_copied_params = parsed_function_.copied_parameter_count();
-  const int local_count = parsed_function_.stack_local_count();
-  AssemblerMacros::EnterDartFrame(assembler_, (StackSize() * kWordSize));
+  const int num_copied_params = parsed_function().copied_parameter_count();
+  const int local_count = parsed_function().stack_local_count();
+  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
 
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.
@@ -1423,7 +1068,7 @@ void FlowGraphCompiler::CompileGraph() {
   // Initialize locals to null.
   if (local_count > 0) {
     __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(Object::null())));
-    const int base = parsed_function_.first_stack_local_index();
+    const int base = parsed_function().first_stack_local_index();
     for (int i = 0; i < local_count; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
       __ movq(Address(RBP, (base - i) * kWordSize), RAX);
@@ -1448,7 +1093,7 @@ void FlowGraphCompiler::CompileGraph() {
       // Second printing.
       OS::Print("Annotated ");
     }
-    AstPrinter::PrintFunctionScope(parsed_function_);
+    AstPrinter::PrintFunctionScope(parsed_function());
   }
 
   VisitBlocks();
@@ -1457,19 +1102,12 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 13 bytes
   // at entry point.
-  pc_descriptors_list_->AddDescriptor(PcDescriptors::kPatchCode,
-                                      assembler_->CodeSize(),
-                                      AstNode::kNoId,
-                                      0,
-                                      -1);
+  pc_descriptors_list()->AddDescriptor(PcDescriptors::kPatchCode,
+                                       assembler()->CodeSize(),
+                                       AstNode::kNoId,
+                                       0,
+                                       -1);
   __ jmp(&StubCode::FixCallersTargetLabel());
-}
-
-
-void FlowGraphCompiler::GenerateDeferredCode() {
-  for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
-    deopt_stubs_[i]->GenerateCode(this);
-  }
 }
 
 
@@ -1492,72 +1130,8 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
 }
 
 
-// Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
-                                             intptr_t cid,
-                                             intptr_t token_index,
-                                             intptr_t try_index) {
-  pc_descriptors_list_->AddDescriptor(kind,
-                                      assembler_->CodeSize(),
-                                      cid,
-                                      token_index,
-                                      try_index);
-}
-
-
-Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       intptr_t deopt_token_index,
-                                       intptr_t try_index,
-                                       DeoptReasonId reason,
-                                       Register reg1,
-                                       Register reg2) {
-  DeoptimizationStub* stub =
-      new DeoptimizationStub(deopt_id, deopt_token_index, try_index, reason);
-  stub->Push(reg1);
-  stub->Push(reg2);
-  deopt_stubs_.Add(stub);
-  return stub->entry_label();
-}
-
-
-void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
-  ASSERT(pc_descriptors_list_ != NULL);
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  descriptors.Verify(parsed_function_.function().is_optimizable());
-  code.set_pc_descriptors(descriptors);
-}
-
-
-void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
-  if (stackmap_builder_ == NULL) {
-    // The unoptimizing compiler has no stack maps.
-    code.set_stackmaps(Array::Handle());
-  } else {
-    // Finalize the stack map array and add it to the code object.
-    code.set_stackmaps(
-        Array::Handle(stackmap_builder_->FinalizeStackmaps(code)));
-  }
-}
-
-
-void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
-  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
-          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
-  code.set_var_descriptors(var_descs);
-}
-
-
-void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
-  ASSERT(exception_handlers_list_ != NULL);
-  const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
-      exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
-  code.set_exception_handlers(handlers);
-}
-
-
 void FlowGraphCompiler::FinalizeComments(const Code& code) {
-  code.set_comments(assembler_->GetCodeComments());
+  code.set_comments(assembler()->GetCodeComments());
 }
 
 #undef __
