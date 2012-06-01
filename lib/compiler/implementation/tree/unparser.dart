@@ -187,15 +187,25 @@ class Unparser implements Visitor {
   }
 
   unparseSendPart(Send node) {
+    Operator op = node.selector.asOperator();
+    bool isCheck = op !== null && op.source.stringValue === 'is';
+
     if (node.isPrefix) {
       visit(node.selector);
     }
     if (node.receiver !== null) {
       visit(node.receiver);
-      if (node.selector is !Operator) sb.add('.');
+      if (op === null) {
+        sb.add('.');
+      } else if (isCheck) {
+        sb.add(' ');
+      }
     }
     if (!node.isPrefix && !node.isIndex) {
       visit(node.selector);
+    }
+    if (isCheck) {
+      sb.add(' ');
     }
   }
 
