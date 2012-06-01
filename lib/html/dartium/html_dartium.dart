@@ -15,16 +15,29 @@
 
 
 
-Window get window() => _Utils.window();
-Window get _window() => _Utils.window();
+Window __window;
 
-Document get document() => window.document;
-Document get _document() => window.document;
+Window get window() {
+  if (__window !== null) {
+    return __window;
+  }
+  __window = _Utils.window();
+  return __window;
+}
 
-// FIXME: get rid of _uwrap and _wrap.
-_unwrap(raw) => raw;
+Window get _window() native "Utils_window";
 
-_wrap(raw) => raw;
+Document __document;
+
+Document get document() {
+  if (__document !== null) {
+    return __document;
+  }
+  __document = _document;
+  return __document;
+}
+
+Document get _document() => _window.document;
 
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
   _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
@@ -8916,7 +8929,7 @@ class _EventListenerListImpl implements EventListenerList {
     // TODO(jacobr): what is the correct behavior here. We could alternately
     // force the event to have the expected type.
     assert(evt.type == _type);
-    return _ptr.$dom_dispatchEvent(_unwrap(evt));
+    return _ptr.$dom_dispatchEvent(evt);
   }
 
   void _add(EventListener listener, bool useCapture) {
@@ -8962,7 +8975,7 @@ class _EventListenerListImpl implements EventListenerList {
         }
       }
     }
-    final wrapped = (e) { listener(_wrap(e)); };
+    final wrapped = (e) { listener(e); };
     _wrappers.add(new _EventListenerWrapper(listener, wrapped, useCapture));
     return wrapped;
   }
@@ -21522,6 +21535,35 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 
 // WARNING: Do not edit - generated code.
 
+class _SVGViewSpecImpl extends _DOMWrapperBase implements SVGViewSpec {
+
+  String get preserveAspectRatioString() native "SVGViewSpec_preserveAspectRatioString_Getter";
+
+  SVGTransformList get transform() native "SVGViewSpec_transform_Getter";
+
+  String get transformString() native "SVGViewSpec_transformString_Getter";
+
+  String get viewBoxString() native "SVGViewSpec_viewBoxString_Getter";
+
+  SVGElement get viewTarget() native "SVGViewSpec_viewTarget_Getter";
+
+  String get viewTargetString() native "SVGViewSpec_viewTargetString_Getter";
+
+  int get zoomAndPan() native "SVGViewSpec_zoomAndPan_Getter";
+
+  void set zoomAndPan(int) native "SVGViewSpec_zoomAndPan_Setter";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewSpec_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGViewSpec_viewBox_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent {
 
   num get newScale() native "SVGZoomEvent_newScale_Getter";
@@ -25646,6 +25688,290 @@ class _XSLTProcessorImpl extends _DOMWrapperBase implements XSLTProcessor {
 
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _Elements {
+
+
+  factory AnchorElement([String href]) {
+    AnchorElement _e = _document.$dom_createElement("a");
+    if (href != null) _e.href = href;
+    return _e;
+  }
+
+  factory AreaElement() {
+    AreaElement _e = _document.$dom_createElement("area");
+    return _e;
+  }
+
+  factory BRElement() {
+    BRElement _e = _document.$dom_createElement("br");
+    return _e;
+  }
+
+  factory BaseElement() {
+    BaseElement _e = _document.$dom_createElement("base");
+    return _e;
+  }
+
+  factory BodyElement() {
+    BodyElement _e = _document.$dom_createElement("body");
+    return _e;
+  }
+
+  factory ButtonElement() {
+    ButtonElement _e = _document.$dom_createElement("button");
+    return _e;
+  }
+
+  factory CanvasElement([int height, int width]) {
+    CanvasElement _e = _document.$dom_createElement("canvas");
+    if (height != null) _e.height = height;
+    if (width != null) _e.width = width;
+    return _e;
+  }
+
+  factory DListElement() {
+    DListElement _e = _document.$dom_createElement("dl");
+    return _e;
+  }
+
+  factory DetailsElement() {
+    DetailsElement _e = _document.$dom_createElement("details");
+    return _e;
+  }
+
+  factory DivElement() {
+    DivElement _e = _document.$dom_createElement("div");
+    return _e;
+  }
+
+  factory EmbedElement() {
+    EmbedElement _e = _document.$dom_createElement("embed");
+    return _e;
+  }
+
+  factory FieldSetElement() {
+    FieldSetElement _e = _document.$dom_createElement("fieldset");
+    return _e;
+  }
+
+  factory HRElement() {
+    HRElement _e = _document.$dom_createElement("hr");
+    return _e;
+  }
+
+  factory HeadElement() {
+    HeadElement _e = _document.$dom_createElement("head");
+    return _e;
+  }
+
+  factory HeadingElement.h1() {
+    HeadingElement _e = _document.$dom_createElement("h1");
+    return _e;
+  }
+
+  factory HeadingElement.h2() {
+    HeadingElement _e = _document.$dom_createElement("h2");
+    return _e;
+  }
+
+  factory HeadingElement.h3() {
+    HeadingElement _e = _document.$dom_createElement("h3");
+    return _e;
+  }
+
+  factory HeadingElement.h4() {
+    HeadingElement _e = _document.$dom_createElement("h4");
+    return _e;
+  }
+
+  factory HeadingElement.h5() {
+    HeadingElement _e = _document.$dom_createElement("h5");
+    return _e;
+  }
+
+  factory HeadingElement.h6() {
+    HeadingElement _e = _document.$dom_createElement("h6");
+    return _e;
+  }
+
+  factory HtmlElement() {
+    HtmlElement _e = _document.$dom_createElement("html");
+    return _e;
+  }
+
+  factory IFrameElement() {
+    IFrameElement _e = _document.$dom_createElement("iframe");
+    return _e;
+  }
+
+  factory ImageElement([String src, int height, int width]) {
+    ImageElement _e = _document.$dom_createElement("img");
+    if (src != null) _e.src = src;
+    if (height != null) _e.height = height;
+    if (width != null) _e.width = width;
+    return _e;
+  }
+
+  factory InputElement([String type]) {
+    InputElement _e = _document.$dom_createElement("input");
+    if (type != null) _e.type = type;
+    return _e;
+  }
+
+  factory KeygenElement() {
+    KeygenElement _e = _document.$dom_createElement("keygen");
+    return _e;
+  }
+
+  factory LIElement() {
+    LIElement _e = _document.$dom_createElement("li");
+    return _e;
+  }
+
+  factory LabelElement() {
+    LabelElement _e = _document.$dom_createElement("label");
+    return _e;
+  }
+
+  factory LegendElement() {
+    LegendElement _e = _document.$dom_createElement("legend");
+    return _e;
+  }
+
+  factory LinkElement() {
+    LinkElement _e = _document.$dom_createElement("link");
+    return _e;
+  }
+
+  factory MapElement() {
+    MapElement _e = _document.$dom_createElement("map");
+    return _e;
+  }
+
+  factory MenuElement() {
+    MenuElement _e = _document.$dom_createElement("menu");
+    return _e;
+  }
+
+  factory MeterElement() {
+    MeterElement _e = _document.$dom_createElement("meter");
+    return _e;
+  }
+
+  factory OListElement() {
+    OListElement _e = _document.$dom_createElement("ol");
+    return _e;
+  }
+
+  factory ObjectElement() {
+    ObjectElement _e = _document.$dom_createElement("object");
+    return _e;
+  }
+
+  factory OptGroupElement() {
+    OptGroupElement _e = _document.$dom_createElement("optgroup");
+    return _e;
+  }
+
+  factory OutputElement() {
+    OutputElement _e = _document.$dom_createElement("output");
+    return _e;
+  }
+
+  factory ParagraphElement() {
+    ParagraphElement _e = _document.$dom_createElement("p");
+    return _e;
+  }
+
+  factory ParamElement() {
+    ParamElement _e = _document.$dom_createElement("param");
+    return _e;
+  }
+
+  factory PreElement() {
+    PreElement _e = _document.$dom_createElement("pre");
+    return _e;
+  }
+
+  factory ProgressElement() {
+    ProgressElement _e = _document.$dom_createElement("progress");
+    return _e;
+  }
+
+  factory ScriptElement() {
+    ScriptElement _e = _document.$dom_createElement("script");
+    return _e;
+  }
+
+  factory SourceElement() {
+    SourceElement _e = _document.$dom_createElement("source");
+    return _e;
+  }
+
+  factory SpanElement() {
+    SpanElement _e = _document.$dom_createElement("span");
+    return _e;
+  }
+
+  factory StyleElement() {
+    StyleElement _e = _document.$dom_createElement("style");
+    return _e;
+  }
+
+  factory TableCaptionElement() {
+    TableCaptionElement _e = _document.$dom_createElement("caption");
+    return _e;
+  }
+
+  factory TableCellElement() {
+    TableCellElement _e = _document.$dom_createElement("td");
+    return _e;
+  }
+
+  factory TableColElement() {
+    TableColElement _e = _document.$dom_createElement("col");
+    return _e;
+  }
+
+  factory TableElement() {
+    TableElement _e = _document.$dom_createElement("table");
+    return _e;
+  }
+
+  factory TableRowElement() {
+    TableRowElement _e = _document.$dom_createElement("tr");
+    return _e;
+  }
+
+  factory TextAreaElement() {
+    TextAreaElement _e = _document.$dom_createElement("textarea");
+    return _e;
+  }
+
+  factory TitleElement() {
+    TitleElement _e = _document.$dom_createElement("title");
+    return _e;
+  }
+
+  factory TrackElement() {
+    TrackElement _e = _document.$dom_createElement("track");
+    return _e;
+  }
+
+  factory UListElement() {
+    UListElement _e = _document.$dom_createElement("ul");
+    return _e;
+  }
+
+  factory VideoElement() {
+    VideoElement _e = _document.$dom_createElement("video");
+    return _e;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32536,7 +32862,19 @@ interface HeadElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadingElement
-interface HeadingElement extends Element {
+interface HeadingElement extends Element default _Elements {
+
+  HeadingElement.h1();
+
+  HeadingElement.h2();
+
+  HeadingElement.h3();
+
+  HeadingElement.h4();
+
+  HeadingElement.h5();
+
+  HeadingElement.h6();
 
   /** @domName HTMLHeadingElement.align */
   String align;
@@ -43960,261 +44298,6 @@ interface XSLTProcessor default _XSLTProcessorFactoryProvider {
   /** @domName XSLTProcessor.transformToFragment */
   DocumentFragment transformToFragment(Node source, Document docVal);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _Elements {
-
-  // helper code goes here
-
-  factory AnchorElement([String href]) {
-    AnchorElement _e = _document.$dom_createElement("a");
-    if (href != null) _e.href = href;
-    return _e;
-  }
-
-  factory AreaElement() {
-    AreaElement _e = _document.$dom_createElement("area");
-    return _e;
-  }
-
-  factory BRElement() {
-    BRElement _e = _document.$dom_createElement("br");
-    return _e;
-  }
-
-  factory BaseElement() {
-    BaseElement _e = _document.$dom_createElement("base");
-    return _e;
-  }
-
-  factory BodyElement() {
-    BodyElement _e = _document.$dom_createElement("body");
-    return _e;
-  }
-
-  factory ButtonElement() {
-    ButtonElement _e = _document.$dom_createElement("button");
-    return _e;
-  }
-
-  factory CanvasElement([int height, int width]) {
-    CanvasElement _e = _document.$dom_createElement("canvas");
-    if (height != null) _e.height = height;
-    if (width != null) _e.width = width;
-    return _e;
-  }
-
-  factory DListElement() {
-    DListElement _e = _document.$dom_createElement("dl");
-    return _e;
-  }
-
-  factory DetailsElement() {
-    DetailsElement _e = _document.$dom_createElement("details");
-    return _e;
-  }
-
-  factory DivElement() {
-    DivElement _e = _document.$dom_createElement("div");
-    return _e;
-  }
-
-  factory EmbedElement() {
-    EmbedElement _e = _document.$dom_createElement("embed");
-    return _e;
-  }
-
-  factory FieldSetElement() {
-    FieldSetElement _e = _document.$dom_createElement("fieldset");
-    return _e;
-  }
-
-  factory HRElement() {
-    HRElement _e = _document.$dom_createElement("hr");
-    return _e;
-  }
-
-  factory HeadElement() {
-    HeadElement _e = _document.$dom_createElement("head");
-    return _e;
-  }
-
-  factory HtmlElement() {
-    HtmlElement _e = _document.$dom_createElement("html");
-    return _e;
-  }
-
-  factory IFrameElement() {
-    IFrameElement _e = _document.$dom_createElement("iframe");
-    return _e;
-  }
-
-  factory ImageElement([String src, int height, int width]) {
-    ImageElement _e = _document.$dom_createElement("img");
-    if (src != null) _e.src = src;
-    if (height != null) _e.height = height;
-    if (width != null) _e.width = width;
-    return _e;
-  }
-
-  factory InputElement([String type]) {
-    InputElement _e = _document.$dom_createElement("input");
-    if (type != null) _e.type = type;
-    return _e;
-  }
-
-  factory KeygenElement() {
-    KeygenElement _e = _document.$dom_createElement("keygen");
-    return _e;
-  }
-
-  factory LIElement() {
-    LIElement _e = _document.$dom_createElement("li");
-    return _e;
-  }
-
-  factory LabelElement() {
-    LabelElement _e = _document.$dom_createElement("label");
-    return _e;
-  }
-
-  factory LegendElement() {
-    LegendElement _e = _document.$dom_createElement("legend");
-    return _e;
-  }
-
-  factory LinkElement() {
-    LinkElement _e = _document.$dom_createElement("link");
-    return _e;
-  }
-
-  factory MapElement() {
-    MapElement _e = _document.$dom_createElement("map");
-    return _e;
-  }
-
-  factory MenuElement() {
-    MenuElement _e = _document.$dom_createElement("menu");
-    return _e;
-  }
-
-  factory MeterElement() {
-    MeterElement _e = _document.$dom_createElement("meter");
-    return _e;
-  }
-
-  factory OListElement() {
-    OListElement _e = _document.$dom_createElement("ol");
-    return _e;
-  }
-
-  factory ObjectElement() {
-    ObjectElement _e = _document.$dom_createElement("object");
-    return _e;
-  }
-
-  factory OptGroupElement() {
-    OptGroupElement _e = _document.$dom_createElement("optgroup");
-    return _e;
-  }
-
-  factory OutputElement() {
-    OutputElement _e = _document.$dom_createElement("output");
-    return _e;
-  }
-
-  factory ParagraphElement() {
-    ParagraphElement _e = _document.$dom_createElement("p");
-    return _e;
-  }
-
-  factory ParamElement() {
-    ParamElement _e = _document.$dom_createElement("param");
-    return _e;
-  }
-
-  factory PreElement() {
-    PreElement _e = _document.$dom_createElement("pre");
-    return _e;
-  }
-
-  factory ProgressElement() {
-    ProgressElement _e = _document.$dom_createElement("progress");
-    return _e;
-  }
-
-  factory ScriptElement() {
-    ScriptElement _e = _document.$dom_createElement("script");
-    return _e;
-  }
-
-  factory SourceElement() {
-    SourceElement _e = _document.$dom_createElement("source");
-    return _e;
-  }
-
-  factory SpanElement() {
-    SpanElement _e = _document.$dom_createElement("span");
-    return _e;
-  }
-
-  factory StyleElement() {
-    StyleElement _e = _document.$dom_createElement("style");
-    return _e;
-  }
-
-  factory TableCaptionElement() {
-    TableCaptionElement _e = _document.$dom_createElement("caption");
-    return _e;
-  }
-
-  factory TableCellElement() {
-    TableCellElement _e = _document.$dom_createElement("td");
-    return _e;
-  }
-
-  factory TableColElement() {
-    TableColElement _e = _document.$dom_createElement("col");
-    return _e;
-  }
-
-  factory TableElement() {
-    TableElement _e = _document.$dom_createElement("table");
-    return _e;
-  }
-
-  factory TableRowElement() {
-    TableRowElement _e = _document.$dom_createElement("tr");
-    return _e;
-  }
-
-  factory TextAreaElement() {
-    TextAreaElement _e = _document.$dom_createElement("textarea");
-    return _e;
-  }
-
-  factory TitleElement() {
-    TitleElement _e = _document.$dom_createElement("title");
-    return _e;
-  }
-
-  factory TrackElement() {
-    TrackElement _e = _document.$dom_createElement("track");
-    return _e;
-  }
-
-  factory UListElement() {
-    UListElement _e = _document.$dom_createElement("ul");
-    return _e;
-  }
-
-  factory VideoElement() {
-    VideoElement _e = _document.$dom_createElement("video");
-    return _e;
-  }
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -44973,101 +45056,101 @@ class _SVGSVGElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioContextFactoryProvider {
-  factory AudioContext() => _wrap(_createAudioContext());
+  factory AudioContext() => _createAudioContext();
   static _createAudioContext() native "AudioContext_constructor_Callback";
 }
 
 class _IDBKeyRangeFactoryProvider {
 
   factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _wrap(_IDBKeyRangeImpl.only(_unwrap(value)));
+      _IDBKeyRangeImpl.only(value);
 
   factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(_IDBKeyRangeImpl.lowerBound(_unwrap(bound), open));
+      _IDBKeyRangeImpl.lowerBound(bound, open);
 
   factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _wrap(_IDBKeyRangeImpl.upperBound(_unwrap(bound), open));
+      _IDBKeyRangeImpl.upperBound(bound, open);
 
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
-      _wrap(_IDBKeyRangeImpl.bound(_unwrap(lower), _unwrap(upper),
+      _wrap(_IDBKeyRangeImpl.bound(lower, upper,
                                       lowerOpen, upperOpen));
 }
 
 class _TypedArrayFactoryProvider {
-  factory Float32Array(int length) => _wrap(_F32(length));
-  factory Float32Array.fromList(List<num> list) => _wrap(_F32(ensureNative(list)));
+  factory Float32Array(int length) => _F32(length);
+  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
-      _wrap(_F32(_unwrap(buffer), byteOffset, length));
+      _F32(buffer, byteOffset, length);
   static _F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";
 
-  factory Float64Array(int length) => _wrap(_F64(length));
-  factory Float64Array.fromList(List<num> list) => _wrap(_F64(ensureNative(list)));
+  factory Float64Array(int length) => _F64(length);
+  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
-      _wrap(_F64(_unwrap(buffer), byteOffset, length));
+      _F64(buffer, byteOffset, length);
   static _F64(_arg0, [_arg1, _arg2]) native "Float64Array_constructor_Callback";
 
-  factory Int8Array(int length) => _wrap(_I8(length));
-  factory Int8Array.fromList(List<num> list) => _wrap(_I8(ensureNative(list)));
+  factory Int8Array(int length) => _I8(length);
+  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) =>
-      _wrap(_I8(_unwrap(buffer), byteOffset, length));
+      _I8(buffer, byteOffset, length);
   static _I8(_arg0, [_arg1, _arg2]) native "Int8Array_constructor_Callback";
 
-  factory Int16Array(int length) => _wrap(_I16(length));
-  factory Int16Array.fromList(List<num> list) => _wrap(_I16(ensureNative(list)));
+  factory Int16Array(int length) => _I16(length);
+  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _wrap(_I16(_unwrap(buffer), byteOffset, length));
+      _I16(buffer, byteOffset, length);
   static _I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
 
-  factory Int32Array(int length) => _wrap(_I32(length));
-  factory Int32Array.fromList(List<num> list) => _wrap(_I32(ensureNative(list)));
+  factory Int32Array(int length) => _I32(length);
+  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _wrap(_I32(_unwrap(buffer), byteOffset, length));
+      _I32(buffer, byteOffset, length);
   static _I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
 
-  factory Uint8Array(int length) => _wrap(_U8(length));
-  factory Uint8Array.fromList(List<num> list) => _wrap(_U8(ensureNative(list)));
+  factory Uint8Array(int length) => _U8(length);
+  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
-      _wrap(_U8(_unwrap(buffer), byteOffset, length));
+      _U8(buffer, byteOffset, length);
   static _U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
 
-  factory Uint16Array(int length) => _wrap(_U16(length));
-  factory Uint16Array.fromList(List<num> list) => _wrap(_U16(ensureNative(list)));
+  factory Uint16Array(int length) => _U16(length);
+  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
-      _wrap(_U16(_unwrap(buffer), byteOffset, length));
+      _U16(buffer, byteOffset, length);
   static _U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
 
-  factory Uint32Array(int length) => _wrap(_U32(length));
-  factory Uint32Array.fromList(List<num> list) => _wrap(_U32(ensureNative(list)));
+  factory Uint32Array(int length) => _U32(length);
+  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
-      _wrap(_U32(_unwrap(buffer), byteOffset, length));
+      _U32(buffer, byteOffset, length);
   static _U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
 
-  factory Uint8ClampedArray(int length) => _wrap(_U8C(length));
-  factory Uint8ClampedArray.fromList(List<num> list) => _wrap(_U8C(ensureNative(list)));
+  factory Uint8ClampedArray(int length) => _U8C(length);
+  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) =>
-      _wrap(_U8C(_unwrap(buffer), byteOffset, length));
+      _U8C(buffer, byteOffset, length);
   static _U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
 class _PointFactoryProvider {
-  factory Point(num x, num y) => _wrap(_createWebKitPoint(x, y));
+  factory Point(num x, num y) => _createWebKitPoint(x, y);
   static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
 }
 
 class _WebSocketFactoryProvider {
-  factory WebSocket(String url) => _wrap(_createWebSocket(url));
+  factory WebSocket(String url) => _createWebSocket(url);
   static _createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 
@@ -45366,8 +45449,7 @@ class _DOMWrapperBase extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // This API is exploratory.
-spawnDomIsolate(Window targetWindowWrapped, String entryPoint) {
-  final targetWindow = _unwrap(targetWindowWrapped);
+spawnDomIsolate(Window targetWindow, String entryPoint) {
   if (targetWindow is! _DOMWindowImpl && targetWindow is! _DOMWindowCrossFrameImpl) {
     throw 'Bad window argument: $targetWindow';
   }

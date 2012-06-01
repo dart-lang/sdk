@@ -6352,30 +6352,6 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
 }
 
-class _ElementTimeControlImpl implements ElementTimeControl native "*ElementTimeControl" {
-
-  void beginElement() native;
-
-  void beginElementAt(num offset) native;
-
-  void endElement() native;
-
-  void endElementAt(num offset) native;
-}
-
-class _ElementTraversalImpl implements ElementTraversal native "*ElementTraversal" {
-
-  final int childElementCount;
-
-  final _ElementImpl firstElementChild;
-
-  final _ElementImpl lastElementChild;
-
-  final _ElementImpl nextElementSibling;
-
-  final _ElementImpl previousElementSibling;
-}
-
 class _EmbedElementImpl extends _ElementImpl implements EmbedElement native "*HTMLEmbedElement" {
 
   String align;
@@ -8780,14 +8756,9 @@ class _MediaQueryListImpl implements MediaQueryList native "*MediaQueryList" {
 
   final String media;
 
-  void addListener(_MediaQueryListListenerImpl listener) native;
+  void addListener(MediaQueryListListener listener) native;
 
-  void removeListener(_MediaQueryListListenerImpl listener) native;
-}
-
-class _MediaQueryListListenerImpl implements MediaQueryListListener native "*MediaQueryListListener" {
-
-  void queryChanged(_MediaQueryListImpl list) native;
+  void removeListener(MediaQueryListListener listener) native;
 }
 
 class _MediaStreamImpl extends _EventTargetImpl implements MediaStream native "*MediaStream" {
@@ -9647,13 +9618,6 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
   _NodeImpl operator[](int index) native "return this[index];";
 
-}
-
-class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
-
-  _ElementImpl query(String selectors) native "querySelector";
-
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -11117,11 +11081,6 @@ class _SVGExceptionImpl implements SVGException native "*SVGException" {
   String toString() native;
 }
 
-class _SVGExternalResourcesRequiredImpl implements SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-}
-
 class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_DARKEN = 4;
@@ -11844,26 +11803,6 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
   _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFilterPrimitiveStandardAttributesImpl extends _SVGStylableImpl implements SVGFilterPrimitiveStandardAttributes native "*SVGFilterPrimitiveStandardAttributes" {
-
-  final _SVGAnimatedLengthImpl height;
-
-  final _SVGAnimatedStringImpl result;
-
-  final _SVGAnimatedLengthImpl width;
-
-  final _SVGAnimatedLengthImpl x;
-
-  final _SVGAnimatedLengthImpl y;
-}
-
-class _SVGFitToViewBoxImpl implements SVGFitToViewBox native "*SVGFitToViewBox" {
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
-}
-
 class _SVGFontElementImpl extends _SVGElementImpl implements SVGFontElement native "*SVGFontElement" {
 }
 
@@ -12122,13 +12061,6 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGLangSpaceImpl implements SVGLangSpace native "*SVGLangSpace" {
-
-  String xmllang;
-
-  String xmlspace;
-}
-
 class _SVGLengthImpl implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_CM = 6;
@@ -12252,21 +12184,6 @@ class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements S
   final _SVGAnimatedLengthImpl y1;
 
   final _SVGAnimatedLengthImpl y2;
-}
-
-class _SVGLocatableImpl implements SVGLocatable native "*SVGLocatable" {
-
-  final _SVGElementImpl farthestViewportElement;
-
-  final _SVGElementImpl nearestViewportElement;
-
-  _SVGRectImpl getBBox() native;
-
-  _SVGMatrixImpl getCTM() native;
-
-  _SVGMatrixImpl getScreenCTM() native;
-
-  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
 class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement native "*SVGMPathElement" {
@@ -13330,15 +13247,6 @@ class _SVGStringListImpl implements SVGStringList native "*SVGStringList" {
   String replaceItem(String item, int index) native;
 }
 
-class _SVGStylableImpl implements SVGStylable native "*SVGStylable" {
-
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
-
-  final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-}
-
 class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement native "*SVGStyleElement" {
 
   bool disabled;
@@ -13445,17 +13353,6 @@ class _SVGTRefElementImpl extends _SVGTextPositioningElementImpl implements SVGT
 }
 
 class _SVGTSpanElementImpl extends _SVGTextPositioningElementImpl implements SVGTSpanElement native "*SVGTSpanElement" {
-}
-
-class _SVGTestsImpl implements SVGTests native "*SVGTests" {
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
 }
 
 class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextContentElement native "*SVGTextContentElement" {
@@ -13653,16 +13550,6 @@ class _SVGTransformListImpl implements SVGTransformList native "*SVGTransformLis
   _SVGTransformImpl replaceItem(_SVGTransformImpl item, int index) native;
 }
 
-class _SVGTransformableImpl extends _SVGLocatableImpl implements SVGTransformable native "*SVGTransformable" {
-
-  final _SVGAnimatedTransformListImpl transform;
-}
-
-class _SVGURIReferenceImpl implements SVGURIReference native "*SVGURIReference" {
-
-  final _SVGAnimatedStringImpl href;
-}
-
 class _SVGUnitTypesImpl implements SVGUnitTypes native "*SVGUnitTypes" {
 
   static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
@@ -13760,7 +13647,7 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement nati
   int zoomAndPan;
 }
 
-class _SVGViewSpecImpl extends _SVGZoomAndPanImpl implements SVGViewSpec native "*SVGViewSpec" {
+class _SVGViewSpecImpl implements SVGViewSpec native "*SVGViewSpec" {
 
   final String preserveAspectRatioString;
 
@@ -13774,22 +13661,15 @@ class _SVGViewSpecImpl extends _SVGZoomAndPanImpl implements SVGViewSpec native 
 
   final String viewTargetString;
 
+  // From SVGZoomAndPan
+
+  int zoomAndPan;
+
   // From SVGFitToViewBox
 
   final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
   final _SVGAnimatedRectImpl viewBox;
-}
-
-class _SVGZoomAndPanImpl implements SVGZoomAndPan native "*SVGZoomAndPan" {
-
-  static final int SVG_ZOOMANDPAN_DISABLE = 1;
-
-  static final int SVG_ZOOMANDPAN_MAGNIFY = 2;
-
-  static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
-
-  int zoomAndPan;
 }
 
 class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent native "*SVGZoomEvent" {
@@ -17132,6 +17012,290 @@ class _DOMURLFactoryProvider {
 class _DeprecatedPeerConnectionFactoryProvider {
   factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
       '''return new DeprecatedPeerConnection(serverConfiguration, signalingCallback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _Elements {
+
+
+  factory AnchorElement([String href]) {
+    _AnchorElementImpl _e = _document.$dom_createElement("a");
+    if (href != null) _e.href = href;
+    return _e;
+  }
+
+  factory AreaElement() {
+    _AreaElementImpl _e = _document.$dom_createElement("area");
+    return _e;
+  }
+
+  factory BRElement() {
+    _BRElementImpl _e = _document.$dom_createElement("br");
+    return _e;
+  }
+
+  factory BaseElement() {
+    _BaseElementImpl _e = _document.$dom_createElement("base");
+    return _e;
+  }
+
+  factory BodyElement() {
+    _BodyElementImpl _e = _document.$dom_createElement("body");
+    return _e;
+  }
+
+  factory ButtonElement() {
+    _ButtonElementImpl _e = _document.$dom_createElement("button");
+    return _e;
+  }
+
+  factory CanvasElement([int height, int width]) {
+    _CanvasElementImpl _e = _document.$dom_createElement("canvas");
+    if (height != null) _e.height = height;
+    if (width != null) _e.width = width;
+    return _e;
+  }
+
+  factory DListElement() {
+    _DListElementImpl _e = _document.$dom_createElement("dl");
+    return _e;
+  }
+
+  factory DetailsElement() {
+    _DetailsElementImpl _e = _document.$dom_createElement("details");
+    return _e;
+  }
+
+  factory DivElement() {
+    _DivElementImpl _e = _document.$dom_createElement("div");
+    return _e;
+  }
+
+  factory EmbedElement() {
+    _EmbedElementImpl _e = _document.$dom_createElement("embed");
+    return _e;
+  }
+
+  factory FieldSetElement() {
+    _FieldSetElementImpl _e = _document.$dom_createElement("fieldset");
+    return _e;
+  }
+
+  factory HRElement() {
+    _HRElementImpl _e = _document.$dom_createElement("hr");
+    return _e;
+  }
+
+  factory HeadElement() {
+    _HeadElementImpl _e = _document.$dom_createElement("head");
+    return _e;
+  }
+
+  factory HeadingElement.h1() {
+    _HeadingElementImpl _e = _document.$dom_createElement("h1");
+    return _e;
+  }
+
+  factory HeadingElement.h2() {
+    _HeadingElementImpl _e = _document.$dom_createElement("h2");
+    return _e;
+  }
+
+  factory HeadingElement.h3() {
+    _HeadingElementImpl _e = _document.$dom_createElement("h3");
+    return _e;
+  }
+
+  factory HeadingElement.h4() {
+    _HeadingElementImpl _e = _document.$dom_createElement("h4");
+    return _e;
+  }
+
+  factory HeadingElement.h5() {
+    _HeadingElementImpl _e = _document.$dom_createElement("h5");
+    return _e;
+  }
+
+  factory HeadingElement.h6() {
+    _HeadingElementImpl _e = _document.$dom_createElement("h6");
+    return _e;
+  }
+
+  factory HtmlElement() {
+    _HtmlElementImpl _e = _document.$dom_createElement("html");
+    return _e;
+  }
+
+  factory IFrameElement() {
+    _IFrameElementImpl _e = _document.$dom_createElement("iframe");
+    return _e;
+  }
+
+  factory ImageElement([String src, int height, int width]) {
+    _ImageElementImpl _e = _document.$dom_createElement("img");
+    if (src != null) _e.src = src;
+    if (height != null) _e.height = height;
+    if (width != null) _e.width = width;
+    return _e;
+  }
+
+  factory InputElement([String type]) {
+    _InputElementImpl _e = _document.$dom_createElement("input");
+    if (type != null) _e.type = type;
+    return _e;
+  }
+
+  factory KeygenElement() {
+    _KeygenElementImpl _e = _document.$dom_createElement("keygen");
+    return _e;
+  }
+
+  factory LIElement() {
+    _LIElementImpl _e = _document.$dom_createElement("li");
+    return _e;
+  }
+
+  factory LabelElement() {
+    _LabelElementImpl _e = _document.$dom_createElement("label");
+    return _e;
+  }
+
+  factory LegendElement() {
+    _LegendElementImpl _e = _document.$dom_createElement("legend");
+    return _e;
+  }
+
+  factory LinkElement() {
+    _LinkElementImpl _e = _document.$dom_createElement("link");
+    return _e;
+  }
+
+  factory MapElement() {
+    _MapElementImpl _e = _document.$dom_createElement("map");
+    return _e;
+  }
+
+  factory MenuElement() {
+    _MenuElementImpl _e = _document.$dom_createElement("menu");
+    return _e;
+  }
+
+  factory MeterElement() {
+    _MeterElementImpl _e = _document.$dom_createElement("meter");
+    return _e;
+  }
+
+  factory OListElement() {
+    _OListElementImpl _e = _document.$dom_createElement("ol");
+    return _e;
+  }
+
+  factory ObjectElement() {
+    _ObjectElementImpl _e = _document.$dom_createElement("object");
+    return _e;
+  }
+
+  factory OptGroupElement() {
+    _OptGroupElementImpl _e = _document.$dom_createElement("optgroup");
+    return _e;
+  }
+
+  factory OutputElement() {
+    _OutputElementImpl _e = _document.$dom_createElement("output");
+    return _e;
+  }
+
+  factory ParagraphElement() {
+    _ParagraphElementImpl _e = _document.$dom_createElement("p");
+    return _e;
+  }
+
+  factory ParamElement() {
+    _ParamElementImpl _e = _document.$dom_createElement("param");
+    return _e;
+  }
+
+  factory PreElement() {
+    _PreElementImpl _e = _document.$dom_createElement("pre");
+    return _e;
+  }
+
+  factory ProgressElement() {
+    _ProgressElementImpl _e = _document.$dom_createElement("progress");
+    return _e;
+  }
+
+  factory ScriptElement() {
+    _ScriptElementImpl _e = _document.$dom_createElement("script");
+    return _e;
+  }
+
+  factory SourceElement() {
+    _SourceElementImpl _e = _document.$dom_createElement("source");
+    return _e;
+  }
+
+  factory SpanElement() {
+    _SpanElementImpl _e = _document.$dom_createElement("span");
+    return _e;
+  }
+
+  factory StyleElement() {
+    _StyleElementImpl _e = _document.$dom_createElement("style");
+    return _e;
+  }
+
+  factory TableCaptionElement() {
+    _TableCaptionElementImpl _e = _document.$dom_createElement("caption");
+    return _e;
+  }
+
+  factory TableCellElement() {
+    _TableCellElementImpl _e = _document.$dom_createElement("td");
+    return _e;
+  }
+
+  factory TableColElement() {
+    _TableColElementImpl _e = _document.$dom_createElement("col");
+    return _e;
+  }
+
+  factory TableElement() {
+    _TableElementImpl _e = _document.$dom_createElement("table");
+    return _e;
+  }
+
+  factory TableRowElement() {
+    _TableRowElementImpl _e = _document.$dom_createElement("tr");
+    return _e;
+  }
+
+  factory TextAreaElement() {
+    _TextAreaElementImpl _e = _document.$dom_createElement("textarea");
+    return _e;
+  }
+
+  factory TitleElement() {
+    _TitleElementImpl _e = _document.$dom_createElement("title");
+    return _e;
+  }
+
+  factory TrackElement() {
+    _TrackElementImpl _e = _document.$dom_createElement("track");
+    return _e;
+  }
+
+  factory UListElement() {
+    _UListElementImpl _e = _document.$dom_createElement("ul");
+    return _e;
+  }
+
+  factory VideoElement() {
+    _VideoElementImpl _e = _document.$dom_createElement("video");
+    return _e;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21806,6 +21970,15 @@ interface DOMStringList extends List<String> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMStringMap
+interface DOMStringMap {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMTokenList
 interface DOMTokenList {
 
@@ -24207,7 +24380,19 @@ interface HeadElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadingElement
-interface HeadingElement extends Element {
+interface HeadingElement extends Element default _Elements {
+
+  HeadingElement.h1();
+
+  HeadingElement.h2();
+
+  HeadingElement.h3();
+
+  HeadingElement.h4();
+
+  HeadingElement.h5();
+
+  HeadingElement.h6();
 
   /** @domName HTMLHeadingElement.align */
   String align;
@@ -35631,261 +35816,6 @@ interface XSLTProcessor default _XSLTProcessorFactoryProvider {
   /** @domName XSLTProcessor.transformToFragment */
   DocumentFragment transformToFragment(Node source, Document docVal);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _Elements {
-
-  // helper code goes here
-
-  factory AnchorElement([String href]) {
-    _AnchorElementImpl _e = _document.$dom_createElement("a");
-    if (href != null) _e.href = href;
-    return _e;
-  }
-
-  factory AreaElement() {
-    _AreaElementImpl _e = _document.$dom_createElement("area");
-    return _e;
-  }
-
-  factory BRElement() {
-    _BRElementImpl _e = _document.$dom_createElement("br");
-    return _e;
-  }
-
-  factory BaseElement() {
-    _BaseElementImpl _e = _document.$dom_createElement("base");
-    return _e;
-  }
-
-  factory BodyElement() {
-    _BodyElementImpl _e = _document.$dom_createElement("body");
-    return _e;
-  }
-
-  factory ButtonElement() {
-    _ButtonElementImpl _e = _document.$dom_createElement("button");
-    return _e;
-  }
-
-  factory CanvasElement([int height, int width]) {
-    _CanvasElementImpl _e = _document.$dom_createElement("canvas");
-    if (height != null) _e.height = height;
-    if (width != null) _e.width = width;
-    return _e;
-  }
-
-  factory DListElement() {
-    _DListElementImpl _e = _document.$dom_createElement("dl");
-    return _e;
-  }
-
-  factory DetailsElement() {
-    _DetailsElementImpl _e = _document.$dom_createElement("details");
-    return _e;
-  }
-
-  factory DivElement() {
-    _DivElementImpl _e = _document.$dom_createElement("div");
-    return _e;
-  }
-
-  factory EmbedElement() {
-    _EmbedElementImpl _e = _document.$dom_createElement("embed");
-    return _e;
-  }
-
-  factory FieldSetElement() {
-    _FieldSetElementImpl _e = _document.$dom_createElement("fieldset");
-    return _e;
-  }
-
-  factory HRElement() {
-    _HRElementImpl _e = _document.$dom_createElement("hr");
-    return _e;
-  }
-
-  factory HeadElement() {
-    _HeadElementImpl _e = _document.$dom_createElement("head");
-    return _e;
-  }
-
-  factory HtmlElement() {
-    _HtmlElementImpl _e = _document.$dom_createElement("html");
-    return _e;
-  }
-
-  factory IFrameElement() {
-    _IFrameElementImpl _e = _document.$dom_createElement("iframe");
-    return _e;
-  }
-
-  factory ImageElement([String src, int height, int width]) {
-    _ImageElementImpl _e = _document.$dom_createElement("img");
-    if (src != null) _e.src = src;
-    if (height != null) _e.height = height;
-    if (width != null) _e.width = width;
-    return _e;
-  }
-
-  factory InputElement([String type]) {
-    _InputElementImpl _e = _document.$dom_createElement("input");
-    if (type != null) _e.type = type;
-    return _e;
-  }
-
-  factory KeygenElement() {
-    _KeygenElementImpl _e = _document.$dom_createElement("keygen");
-    return _e;
-  }
-
-  factory LIElement() {
-    _LIElementImpl _e = _document.$dom_createElement("li");
-    return _e;
-  }
-
-  factory LabelElement() {
-    _LabelElementImpl _e = _document.$dom_createElement("label");
-    return _e;
-  }
-
-  factory LegendElement() {
-    _LegendElementImpl _e = _document.$dom_createElement("legend");
-    return _e;
-  }
-
-  factory LinkElement() {
-    _LinkElementImpl _e = _document.$dom_createElement("link");
-    return _e;
-  }
-
-  factory MapElement() {
-    _MapElementImpl _e = _document.$dom_createElement("map");
-    return _e;
-  }
-
-  factory MenuElement() {
-    _MenuElementImpl _e = _document.$dom_createElement("menu");
-    return _e;
-  }
-
-  factory MeterElement() {
-    _MeterElementImpl _e = _document.$dom_createElement("meter");
-    return _e;
-  }
-
-  factory OListElement() {
-    _OListElementImpl _e = _document.$dom_createElement("ol");
-    return _e;
-  }
-
-  factory ObjectElement() {
-    _ObjectElementImpl _e = _document.$dom_createElement("object");
-    return _e;
-  }
-
-  factory OptGroupElement() {
-    _OptGroupElementImpl _e = _document.$dom_createElement("optgroup");
-    return _e;
-  }
-
-  factory OutputElement() {
-    _OutputElementImpl _e = _document.$dom_createElement("output");
-    return _e;
-  }
-
-  factory ParagraphElement() {
-    _ParagraphElementImpl _e = _document.$dom_createElement("p");
-    return _e;
-  }
-
-  factory ParamElement() {
-    _ParamElementImpl _e = _document.$dom_createElement("param");
-    return _e;
-  }
-
-  factory PreElement() {
-    _PreElementImpl _e = _document.$dom_createElement("pre");
-    return _e;
-  }
-
-  factory ProgressElement() {
-    _ProgressElementImpl _e = _document.$dom_createElement("progress");
-    return _e;
-  }
-
-  factory ScriptElement() {
-    _ScriptElementImpl _e = _document.$dom_createElement("script");
-    return _e;
-  }
-
-  factory SourceElement() {
-    _SourceElementImpl _e = _document.$dom_createElement("source");
-    return _e;
-  }
-
-  factory SpanElement() {
-    _SpanElementImpl _e = _document.$dom_createElement("span");
-    return _e;
-  }
-
-  factory StyleElement() {
-    _StyleElementImpl _e = _document.$dom_createElement("style");
-    return _e;
-  }
-
-  factory TableCaptionElement() {
-    _TableCaptionElementImpl _e = _document.$dom_createElement("caption");
-    return _e;
-  }
-
-  factory TableCellElement() {
-    _TableCellElementImpl _e = _document.$dom_createElement("td");
-    return _e;
-  }
-
-  factory TableColElement() {
-    _TableColElementImpl _e = _document.$dom_createElement("col");
-    return _e;
-  }
-
-  factory TableElement() {
-    _TableElementImpl _e = _document.$dom_createElement("table");
-    return _e;
-  }
-
-  factory TableRowElement() {
-    _TableRowElementImpl _e = _document.$dom_createElement("tr");
-    return _e;
-  }
-
-  factory TextAreaElement() {
-    _TextAreaElementImpl _e = _document.$dom_createElement("textarea");
-    return _e;
-  }
-
-  factory TitleElement() {
-    _TitleElementImpl _e = _document.$dom_createElement("title");
-    return _e;
-  }
-
-  factory TrackElement() {
-    _TrackElementImpl _e = _document.$dom_createElement("track");
-    return _e;
-  }
-
-  factory UListElement() {
-    _UListElementImpl _e = _document.$dom_createElement("ul");
-    return _e;
-  }
-
-  factory VideoElement() {
-    _VideoElementImpl _e = _document.$dom_createElement("video");
-    return _e;
-  }
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -37003,12 +36933,10 @@ class _TypedArrayFactoryProvider {
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    final _EventTargetImpl targetImpl = target;
-    targetImpl.$dom_addEventListener(type, listener, useCapture);
+    target.$dom_addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    final _EventTargetImpl targetImpl = target;
-    targetImpl.$dom_removeEventListener(type, listener, useCapture);
+    target.$dom_removeEventListener(type, listener, useCapture);
   }
 
 }// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

@@ -11,6 +11,8 @@ import os
 from generator import *
 from systembase import *
 from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
+from systemhtml import HtmlElementConstructorInfos
+from systemhtml import EmitHtmlElementFactoryConstructors
 
 class NativeImplementationSystem(System):
 
@@ -24,6 +26,7 @@ class NativeImplementationSystem(System):
     self._cpp_header_files = []
     self._cpp_impl_files = []
     self._html_system = HtmlSystemShared(html_database)
+    self._factory_provider_emitters = {}
 
   def InterfaceGenerator(self,
                          interface,
@@ -176,6 +179,15 @@ class NativeImplementationSystem(System):
   def _FilePathForCppImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
 
+  def _EmitterForFactoryProviderBody(self, name):
+    if name not in self._factory_provider_emitters:
+      file_name = self._FilePathForDartFactoryProviderImplementation(name)
+      self._dom_impl_files.append(file_name)
+      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
+      file_emitter = self._emitters.FileEmitter(file_name)
+      self._factory_provider_emitters[name] = file_emitter.Emit(template)
+    return self._factory_provider_emitters[name]
+
   def DartImplementationFiles(self):
     return self._dom_impl_files
 
@@ -223,6 +235,11 @@ class NativeImplementationGenerator(object):
     self._GenerateEvents()
 
   def _GenerateConstructors(self):
+    html_interface_name = self._HTMLInterfaceName(self._interface.id)
+    infos = HtmlElementConstructorInfos(html_interface_name)
+    if infos:
+      self._EmitHtmlElementFactoryConstructors(infos, html_interface_name)
+
     if not self._IsConstructable():
       return
 
@@ -289,6 +306,14 @@ class NativeImplementationGenerator(object):
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, invocation=invocation,
         raises_exceptions=raises_exceptions)
+
+  def _EmitHtmlElementFactoryConstructors(self, infos, html_interface_name):
+    EmitHtmlElementFactoryConstructors(
+        self._system._EmitterForFactoryProviderBody(
+            infos[0].factory_provider_name),
+        infos,
+        html_interface_name,
+        html_interface_name)
 
   def _GenerateEvents(self):
     if self._interface.id == 'DocumentFragment':
@@ -364,6 +389,9 @@ class NativeImplementationGenerator(object):
       return '_DOMWrapperBase'
 
     supertype = self._interface.parents[0].type.id
+
+    if IsPureInterface(supertype):    # The class is a root.
+      return '_DOMWrapperBase'
 
     # FIXME: We're currently injecting List<..> and EventTarget as
     # supertypes in dart.idl. We should annotate/preserve as

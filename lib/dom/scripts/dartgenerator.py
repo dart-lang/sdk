@@ -352,7 +352,12 @@ class DartGenerator(object):
           walk(parent_interface.parents)
 
     result = []
-    walk(interface.parents[1:])
+    if interface.parents:
+      parent = interface.parents[0]
+      if IsPureInterface(parent.type.id):
+        walk(interface.parents)
+      else:
+        walk(interface.parents[1:])
     return result;
 
 
