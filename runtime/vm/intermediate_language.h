@@ -1517,6 +1517,7 @@ class InstructionWithInputs : public Instruction {
 
  private:
   LocationSummary* locs_;
+  DISALLOW_COPY_AND_ASSIGN(InstructionWithInputs);
 };
 
 
