@@ -234,7 +234,6 @@ def AnalyzeOperation(interface, operations):
   info.overloads = operations
   info.declared_name = operations[0].id
   info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
-  info.constructor_name = None
   info.js_name = info.declared_name
   info.type_name = DartType(operations[0].type.id)   # TODO: widen.
   info.param_infos = args
@@ -273,7 +272,6 @@ def AnalyzeConstructor(interface):
   info.idl_args = idl_args
   info.declared_name = name
   info.name = name
-  info.constructor_name = None
   info.js_name = name
   info.type_name = interface.id
   info.param_infos = args
@@ -353,8 +351,6 @@ class OperationInfo(object):
   Attributes:
     overloads: A list of IDL operation overloads with the same name.
     name: A string, the simple name of the operation.
-    constructor_name: A string, the name of the constructor iff the constructor
-       is named, e.g. 'fromList' in  Int8Array.fromList(list).
     type_name: A string, the name of the return type of the operation.
     param_infos: A list of ParamInfo.
   """
@@ -425,12 +421,6 @@ class OperationInfo(object):
     is_static = self.overloads[0].is_static
     assert any([is_static == o.is_static for o in self.overloads])
     return is_static
-
-  def ConstructorFullName(self):
-    if self.constructor_name:
-      return self.type_name + '.' + self.constructor_name
-    else:
-      return self.type_name
 
 
 def AttributeOutputOrder(a, b):
