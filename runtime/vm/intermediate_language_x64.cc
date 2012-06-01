@@ -1418,7 +1418,8 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                            instance_call()->try_index(),
                            &label,
                            PcDescriptors::kOther);
-    // Result is in EAX.
+    // Result is in RAX.
+    ASSERT(result != temp);
     __ movq(result, RAX);
     __ popq(temp);
     __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
