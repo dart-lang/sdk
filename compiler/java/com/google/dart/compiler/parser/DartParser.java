@@ -1961,6 +1961,9 @@ public class DartParser extends CompletionHooksParserBase {
       switch(peek(0)) {
         // Must keep in sync with @Terminals above
         case COMMA:
+          if (peek(-1) == Token.COMMA) {
+            reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_EXPRESSION_AFTER_COMMA);
+          }
           consume(Token.COMMA);
           break;
           // Must keep in sync with @Terminals above
@@ -1981,6 +1984,9 @@ public class DartParser extends CompletionHooksParserBase {
               ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, actual);
           break;
       }
+    }
+    if (peek(-1) == Token.COMMA) {
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_EXPRESSION_AFTER_COMMA);
     }
     expectCloseParen();
     return arguments;

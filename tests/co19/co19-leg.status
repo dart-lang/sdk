@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -96,6 +96,9 @@ LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
 [ $compiler == dart2js && $runtime == d8 ]
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
+
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
@@ -242,15 +245,11 @@ Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
 Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
 Language/10_Expressions/20_Equality_A08_t01: Fail # !== cannot be called on super
 Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
-Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # internal error: super property store not implemented
 Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # internal error: super property store not implemented
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error in parser.
-Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # internal error: super property read not implemented
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 [ $compiler == dart2js && $runtime == d8 ]
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 Language/03_Overview/2_Privacy_A01_t16: Fail # Expect.equals(expected: <1>, actual: <54>) fails.
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.

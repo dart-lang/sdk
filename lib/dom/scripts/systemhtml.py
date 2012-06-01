@@ -436,27 +436,31 @@ _html_event_names = {
 #   var c = new CanvasElement(width: 100, height: 70);
 #   var c = new CanvasElement()..width = 100..height = 70;
 #
-class ElementCtorInfo(object):
-  def __init__(self, tag=None, params=[], opt_params=[],
+class ElementConstructorInfo(object):
+  def __init__(self, name=None, tag=None,
+               params=[], opt_params=[],
                factory_provider_name='_Elements'):
-    self.tag = tag
+    self.name = name          # The constructor name 'h1' in 'HeadingElement.h1'
+    self.tag = tag or name    # The HTML tag
     self.params = params
     self.opt_params = opt_params
     self.factory_provider_name = factory_provider_name
 
-  def ConstructorInfo(self, interface):
+  def ConstructorInfo(self, interface_name):
     info = OperationInfo()
     info.overloads = None
-    info.declared_name = interface.id
-    info.name = interface.id
+    info.declared_name = interface_name
+    info.name = interface_name
+    info.constructor_name = self.name
     info.js_name = None
-    info.type_name = interface.id
+    info.type_name = interface_name
     info.param_infos = map(lambda tXn: ParamInfo(tXn[1], None, tXn[0], 'null'),
                            self.opt_params)
     return info
 
 _html_element_constructors = {
-  'AnchorElement' : ElementCtorInfo(tag='a', opt_params=[('String', 'href')]),
+  'AnchorElement' :
+    ElementConstructorInfo(tag='a', opt_params=[('String', 'href')]),
   'AreaElement': 'area',
   'ButtonElement': 'button',
   'BRElement': 'br',
@@ -464,8 +468,8 @@ _html_element_constructors = {
   'BodyElement': 'body',
   'ButtonElement': 'button',
   'CanvasElement':
-    ElementCtorInfo(tag='canvas',
-                    opt_params=[('int', 'height'), ('int', 'width')]),
+    ElementConstructorInfo(tag='canvas',
+                           opt_params=[('int', 'height'), ('int', 'width')]),
   'DListElement': 'dl',
   'DetailsElement': 'details',
   'DivElement': 'div',
@@ -474,14 +478,20 @@ _html_element_constructors = {
   'Form': 'form',
   'HRElement': 'hr',
   'HeadElement': 'head',
+  'HeadingElement': [ElementConstructorInfo('h1'),
+                     ElementConstructorInfo('h2'),
+                     ElementConstructorInfo('h3'),
+                     ElementConstructorInfo('h4'),
+                     ElementConstructorInfo('h5'),
+                     ElementConstructorInfo('h6')],
   'HtmlElement': 'html',
   'IFrameElement': 'iframe',
   'ImageElement':
-    ElementCtorInfo(tag='img',
-                    opt_params=[('String', 'src'),
-                                ('int', 'height'), ('int', 'width')]),
+    ElementConstructorInfo(tag='img',
+                           opt_params=[('String', 'src'),
+                                       ('int', 'height'), ('int', 'width')]),
   'InputElement':
-    ElementCtorInfo(tag='input', opt_params=[('String', 'type')]),
+    ElementConstructorInfo(tag='input', opt_params=[('String', 'type')]),
   'KeygenElement': 'keygen',
   'LIElement': 'li',
   'LabelElement': 'label',
@@ -514,6 +524,37 @@ _html_element_constructors = {
   'UListElement': 'ul',
   'VideoElement': 'video'
 }
+
+def HtmlElementConstructorInfos(typename):
+  """Returns list of ElementConstructorInfos about the convenience constructors
+  for an Element."""
+  # TODO(sra): Handle multiple and named constructors.
+  if typename not in _html_element_constructors:
+    return []
+  infos = _html_element_constructors[typename]
+  if isinstance(infos, str):
+    infos = ElementConstructorInfo(tag=infos)
+  if not isinstance(infos, list):
+    infos = [infos]
+  return infos
+
+def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name):
+  for info in infos:
+    constructor_info = info.ConstructorInfo(typename)
+    inits = emitter.Emit(
+        '\n'
+        '  factory $CONSTRUCTOR($PARAMS) {\n'
+        '    $CLASS _e = _document.$dom_createElement("$TAG");\n'
+        '$!INITS'
+        '    return _e;\n'
+        '  }\n',
+        CONSTRUCTOR=constructor_info.ConstructorFullName(),
+        CLASS=class_name,
+        TAG=info.tag,
+        PARAMS=constructor_info.ParametersInterfaceDeclaration())
+    for param in constructor_info.param_infos:
+      inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
+
 
 # These classes require an explicit declaration for the "on" method even though
 # they don't declare any unique events, because the concrete class hierarchy
@@ -697,15 +738,6 @@ class HtmlInterfacesSystem(HtmlSystem):
     return os.path.join(self._output_dir, 'html', 'interface',
                         '%s.dart' % interface_name)
 
-  def _EmitterForFactoryProviderBody(self, name):
-    if name not in self._factory_provider_emitters:
-      path = self._FilePathForDartInterface(name)
-      self._dart_interface_file_paths.append(path)
-      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
-      file_emitter = self._emitters.FileEmitter(path)
-      self._factory_provider_emitters[name] = file_emitter.Emit(template)
-    return self._factory_provider_emitters[name]
-
 # ------------------------------------------------------------------------------
 
 # TODO(jmesserly): inheritance is probably not the right way to factor this long
@@ -747,15 +779,22 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       extends_str += ' /*%s %s */' % (comment, ', '.join(suppressed_extends))
 
     factory_provider = None
-    constructor_info = AnalyzeConstructor(self._interface)
-    if constructor_info:
-      factory_provider = '_' + typename + 'FactoryProvider';
-
-    if not constructor_info:
-      (constructor_info, factory_provider) = self._EmitElementFactory(typename)
-
     if typename in interface_factories:
       factory_provider = interface_factories[typename]
+
+    constructors = []
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      constructors.append(constructor_info)
+      factory_provider = '_' + typename + 'FactoryProvider';
+
+    infos = HtmlElementConstructorInfos(typename)
+    for info in infos:
+      constructors.append(info.ConstructorInfo(typename))
+      if factory_provider:
+        assert factory_provider == info.factory_provider_name
+      else:
+        factory_provider = info.factory_provider_name
 
     if factory_provider:
       extends_str += ' default ' + factory_provider
@@ -771,11 +810,11 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     self._type_comment_emitter.Emit("/// @domName $DOMNAME",
         DOMNAME=self._interface.doc_js_name)
 
-    if constructor_info:
+    for constructor_info in constructors:
       self._members_emitter.Emit(
           '\n'
           '  $CTOR($PARAMS);\n',
-          CTOR=typename,
+          CTOR=constructor_info.ConstructorFullName(),
           PARAMS=constructor_info.ParametersInterfaceDeclaration());
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
@@ -799,29 +838,6 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       self.AddEventAttributes(events)
     else:
       self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
-
-  def _EmitElementFactory(self, typename):
-    """Returns pair (constructor_info, factory_provider_name)."""
-    if typename not in _html_element_constructors:
-      return (None, None)
-    info = _html_element_constructors[typename]
-    if isinstance(info, str): info = ElementCtorInfo(tag=info)
-    constructor_info = info.ConstructorInfo(self._interface)
-    em = self._system._EmitterForFactoryProviderBody(info.factory_provider_name)
-    inits = em.Emit(
-        '\n'
-        '  factory $INTERFACE($PARAMS) {\n'
-        '    $INTERFACE _e = _document.$dom_createElement("$TAG");\n'
-        '$!INITS'
-        '    return _e;\n'
-        '  }\n',
-        INTERFACE=typename,
-        TAG=info.tag,
-        PARAMS=constructor_info.ParametersInterfaceDeclaration())
-    for param in constructor_info.param_infos:
-      inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
-
-    return (constructor_info, info.factory_provider_name)
 
 
   def AddAttribute(self, getter, setter):
@@ -942,6 +958,8 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       if IsDartCollectionType(supertype):
         # List methods are injected in AddIndexer.
         pass
+      elif IsPureInterface(supertype):
+        pass
       else:
         base = self._ImplClassName(supertype)
 
@@ -973,6 +991,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if constructor_info:
       self._EmitFactoryProvider(interface_name, constructor_info)
 
+    infos = HtmlElementConstructorInfos(interface_name)
+    if infos:
+      self._EmitHtmlElementFactoryConstructors(infos)
+
     emit_events, events = self._shared.GetEventAttributes(self._interface)
     if not emit_events:
       return
@@ -997,6 +1019,13 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
         NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
+
+  def _EmitHtmlElementFactoryConstructors(self, infos):
+    EmitHtmlElementFactoryConstructors(
+        self._system._EmitterForFactoryProviderBody(
+            infos[0].factory_provider_name),
+        infos,
+        self._interface.id, self._class_name)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -1223,7 +1252,7 @@ class HtmlFrogSystem(HtmlSystem):
     super(HtmlFrogSystem, self).__init__(
         templates, database, emitters, output_dir)
     self._dart_frog_file_paths = []
-
+    self._factory_provider_emitters = {}
 
   def InterfaceGenerator(self,
                          interface,
@@ -1231,6 +1260,8 @@ class HtmlFrogSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
+    if IsPureInterface(interface.id):
+      return
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     if not template:
@@ -1253,10 +1284,16 @@ class HtmlFrogSystem(HtmlSystem):
 
   def _ImplFileEmitter(self, name):
     """Returns the file emitter of the Frog implementation file."""
-    # TODO(jmesserly): is this the right path
     path = os.path.join(self._output_dir, 'html', 'frog', '%s.dart' % name)
     self._dart_frog_file_paths.append(path)
     return self._emitters.FileEmitter(path)
+
+  def _EmitterForFactoryProviderBody(self, name):
+    if name not in self._factory_provider_emitters:
+      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
+      file_emitter = self._ImplFileEmitter(name)
+      self._factory_provider_emitters[name] = file_emitter.Emit(template)
+    return self._factory_provider_emitters[name]
 
 # -----------------------------------------------------------------------------
 

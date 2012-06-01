@@ -65,6 +65,8 @@ class LocationSummary;
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
   M(BinaryOp, BinaryOpComp)                                                    \
+  M(UnarySmiOp, UnarySmiOpComp)                                                \
+  M(NumberNegate, NumberNegateComp)                                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -1006,34 +1008,33 @@ class CreateArrayComp : public TemplateComputation<1> {
 };
 
 
-class CreateClosureComp : public Computation {
+class CreateClosureComp : public TemplateComputation<2> {
  public:
-  // 'type_arguments' is null if function() does not require type arguments.
   CreateClosureComp(ClosureNode* node,
                     intptr_t try_index,
-                    Value* type_arguments)
+                    Value* type_arguments,
+                    Value* receiver)
       : ast_node_(*node),
-        try_index_(try_index),
-        type_arguments_(type_arguments) {}
+        try_index_(try_index) {
+    ASSERT(type_arguments != NULL);
+    ASSERT(receiver != NULL);
+    inputs_[0] = type_arguments;
+    inputs_[1] = receiver;
+  }
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
-  Value* type_arguments() const { return type_arguments_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const {
-    return i == 0 ? type_arguments() : NULL;
-  }
+  Value* type_arguments() const { return inputs_[0]; }
+  Value* receiver() const { return inputs_[1]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureNode& ast_node_;
   const intptr_t try_index_;
-  Value* type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };
@@ -1283,6 +1284,8 @@ class BinaryOpComp : public TemplateComputation<2> {
                Value* left,
                Value* right)
       : op_kind_(op_kind), instance_call_(instance_call) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
   }
@@ -1303,6 +1306,56 @@ class BinaryOpComp : public TemplateComputation<2> {
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+};
+
+
+// Handles both Smi operations: BIT_OR and NEGATE.
+class UnarySmiOpComp : public TemplateComputation<1> {
+ public:
+  UnarySmiOpComp(Token::Kind op_kind,
+                 InstanceCallComp* instance_call,
+                Value* value)
+      : op_kind_(op_kind), instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(UnarySmiOp)
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnarySmiOpComp);
+};
+
+
+// Handles non-Smi NEGATE operations
+class NumberNegateComp : public TemplateComputation<1> {
+ public:
+  NumberNegateComp(InstanceCallComp* instance_call,
+                   Value* value) : instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  DECLARE_COMPUTATION(NumberNegate)
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(NumberNegateComp);
 };
 
 #undef DECLARE_COMPUTATION
@@ -1430,7 +1483,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
-  virtual LocationSummary* locs() const {
+  virtual LocationSummary* locs() {
     // TODO(vegorov): This should be pure virtual method.
     // However we are temporary using NULL for instructions that
     // were not converted to the location based code generation yet.
@@ -1445,6 +1498,26 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   intptr_t cid_;
   ICData* ic_data_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
+};
+
+
+class InstructionWithInputs : public Instruction {
+ public:
+  InstructionWithInputs() : locs_(NULL) {
+  }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  virtual LocationSummary* MakeLocationSummary() const = 0;
+
+ private:
+  LocationSummary* locs_;
+  DISALLOW_COPY_AND_ASSIGN(InstructionWithInputs);
 };
 
 
@@ -1650,7 +1723,7 @@ class DoInstr : public Instruction {
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
 
-  virtual LocationSummary* locs() const {
+  virtual LocationSummary* locs() {
     return computation()->locs();
   }
 
@@ -1701,7 +1774,7 @@ class BindInstr : public Instruction {
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
 
-  virtual LocationSummary* locs() const {
+  virtual LocationSummary* locs() {
     return computation()->locs();
   }
 
@@ -1716,10 +1789,10 @@ class BindInstr : public Instruction {
 };
 
 
-class ReturnInstr : public Instruction {
+class ReturnInstr : public InstructionWithInputs {
  public:
   ReturnInstr(intptr_t token_index, Value* value)
-      : token_index_(token_index), value_(value) {
+      : InstructionWithInputs(), token_index_(token_index), value_(value) {
     ASSERT(value_ != NULL);
   }
 
@@ -1731,6 +1804,10 @@ class ReturnInstr : public Instruction {
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   Value* value_;
@@ -1739,12 +1816,13 @@ class ReturnInstr : public Instruction {
 };
 
 
-class ThrowInstr : public Instruction {
+class ThrowInstr : public InstructionWithInputs {
  public:
   ThrowInstr(intptr_t token_index,
              intptr_t try_index,
              Value* exception)
-      : token_index_(token_index),
+      : InstructionWithInputs(),
+        token_index_(token_index),
         try_index_(try_index),
         exception_(exception),
         successor_(NULL) {
@@ -1764,6 +1842,10 @@ class ThrowInstr : public Instruction {
     ASSERT(successor_ == NULL);
   }
 
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -1774,13 +1856,14 @@ class ThrowInstr : public Instruction {
 };
 
 
-class ReThrowInstr : public Instruction {
+class ReThrowInstr : public InstructionWithInputs {
  public:
   ReThrowInstr(intptr_t token_index,
                intptr_t try_index,
                Value* exception,
                Value* stack_trace)
-      : token_index_(token_index),
+      : InstructionWithInputs(),
+        token_index_(token_index),
         try_index_(try_index),
         exception_(exception),
         stack_trace_(stack_trace),
@@ -1805,6 +1888,10 @@ class ReThrowInstr : public Instruction {
     ASSERT(successor_ == NULL);
   }
 
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
@@ -1816,10 +1903,11 @@ class ReThrowInstr : public Instruction {
 };
 
 
-class BranchInstr : public Instruction {
+class BranchInstr : public InstructionWithInputs {
  public:
   explicit BranchInstr(Value* value)
-      : value_(value),
+      : InstructionWithInputs(),
+        value_(value),
         true_successor_(NULL),
         false_successor_(NULL) { }
 
@@ -1842,6 +1930,10 @@ class BranchInstr : public Instruction {
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
       intptr_t variable_count);
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
   Value* value_;
@@ -1884,7 +1976,7 @@ class FlowGraphVisitor : public ValueObject {
   // Map a block number in a forward iteration into the block number in the
   // corresponding reverse iteration.  Used to obtain an index into
   // block_order for reverse iterations.
-  intptr_t reverse_index(intptr_t index) {
+  intptr_t reverse_index(intptr_t index) const {
     return block_order_.length() - index - 1;
   }
 

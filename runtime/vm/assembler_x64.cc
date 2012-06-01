@@ -535,6 +535,17 @@ void Assembler::comisd(XmmRegister a, XmmRegister b) {
 }
 
 
+void Assembler::xorpd(XmmRegister dst, const Address& src) {
+  ASSERT(dst <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitOperandREX(0, src, REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0x57);
+  EmitOperand(dst & 7, src);
+}
+
+
 void Assembler::xchgl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1063,6 +1074,14 @@ void Assembler::negq(Register reg) {
 }
 
 
+void Assembler::notq(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_W);
+  EmitUint8(0xF7);
+  EmitUint8(0xD0 | (reg & 7));
+}
+
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);
@@ -1343,6 +1362,17 @@ void Assembler::StoreIntoObject(Register object,
 }
 
 
+void Assembler::DoubleNegate(XmmRegister d) {
+  static const struct ALIGN16 {
+    uint64_t a;
+    uint64_t b;
+  } double_negate_constant =
+      {0x8000000000000000LL, 0x8000000000000000LL};
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
+  xorpd(d, Address(TMP, 0));
+}
+
+
 void Assembler::Stop(const char* message) {
   int64_t message_address = reinterpret_cast<int64_t>(message);
   if (FLAG_print_stop_message) {
@@ -1539,6 +1569,37 @@ void Assembler::EmitGenericShift(bool wide,
   }
   EmitUint8(0xD3);
   EmitOperand(rm, Operand(operand));
+}
+
+
+void Assembler::LoadClassId(Register result, Register object) {
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagBit / kBitsPerByte;
+  movzxw(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(result != class_id);
+  movq(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  movq(result, Address(result, table_offset_in_isolate));
+  movq(result, Address(result, class_id, TIMES_8, 0));
+}
+
+
+void Assembler::LoadClass(Register result, Register object) {
+  LoadClassId(TMP, object);
+  LoadClassById(result, TMP);
+}
+
+
+void Assembler::CompareClassId(Register object, intptr_t class_id) {
+  LoadClassId(TMP, object);
+  cmpl(TMP, Immediate(class_id));
 }
 
 

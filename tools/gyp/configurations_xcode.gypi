@@ -48,19 +48,19 @@
 
       'Dart_ia32_Base': {
         'xcode_settings': {
-          'ARCHS': 'i386',
+          'ARCHS': [ 'i386' ],
         },
       },
 
       'Dart_x64_Base': {
         'xcode_settings': {
-          'ARCHS': 'x86_64',
+          'ARCHS': [ 'x86_64' ],
         },
       },
 
       'Dart_simarm_Base': {
         'xcode_settings': {
-          'ARCHS': 'i386',
+          'ARCHS': [ 'i386' ],
           'GCC_OPTIMIZATION_LEVEL': '3',
         },
       },

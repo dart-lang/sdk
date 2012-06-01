@@ -171,16 +171,12 @@ class MathTest {
     Expect.equals(0, Math.parseInt("   +0   "));
     Expect.equals(0, Math.parseInt("   -0   "));
     Expect.equals(0x1234567890, Math.parseInt("0x1234567890"));
-    Expect.equals(0x1234567890, Math.parseInt("+0x1234567890"));
     Expect.equals(-0x1234567890, Math.parseInt("-0x1234567890"));
     Expect.equals(0x1234567890, Math.parseInt("   0x1234567890   "));
-    Expect.equals(0x1234567890, Math.parseInt("   +0x1234567890   "));
     Expect.equals(-0x1234567890, Math.parseInt("   -0x1234567890   "));
     Expect.equals(256, Math.parseInt("0x100"));
-    Expect.equals(256, Math.parseInt("+0x100"));
     Expect.equals(-256, Math.parseInt("-0x100"));
     Expect.equals(256, Math.parseInt("   0x100   "));
-    Expect.equals(256, Math.parseInt("   +0x100   "));
     Expect.equals(-256, Math.parseInt("   -0x100   "));
     Expect.equals(0xabcdef, Math.parseInt("0xabcdef"));
     Expect.equals(0xABCDEF, Math.parseInt("0xABCDEF"));
@@ -233,6 +229,10 @@ class MathTest {
     Expect.equals(true, parseIntThrowsBadNumberFormatException("- 5"));
     Expect.equals(true, parseIntThrowsBadNumberFormatException(""));
     Expect.equals(true, parseIntThrowsBadNumberFormatException("  "));
+    Expect.equals(true, parseIntThrowsBadNumberFormatException("+0x1234567890"));
+    Expect.equals(true, parseIntThrowsBadNumberFormatException("   +0x1234567890   "));
+    Expect.equals(true, parseIntThrowsBadNumberFormatException("+0x100"));
+    Expect.equals(true, parseIntThrowsBadNumberFormatException("   +0x100   "));
   }
 
   static testMain() {

@@ -23,7 +23,6 @@ class HTracer extends HGraphVisitor implements Tracer {
     if (enabled) output.closeSync();
   }
 
-  String method;
   void traceCompilation(String methodName) {
     tag("compilation", () {
       printProperty("name", methodName);

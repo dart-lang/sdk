@@ -10,7 +10,8 @@ import java.util.Collection;
 
 class LibraryElementImplementation extends AbstractNodeElement implements LibraryElement {
 
-  private final Scope scope = new Scope("library", this);
+  private final Scope importScope = new Scope("import", this);
+  private final Scope scope = new Scope("library", this, importScope);
   private LibraryUnit libraryUnit;
   private MethodElement entryPoint;
 
@@ -25,6 +26,10 @@ class LibraryElementImplementation extends AbstractNodeElement implements Librar
     return false;
   }
 
+  @Override
+  public Scope getImportScope() {
+    return importScope;
+  }
 
   @Override
   public Scope getScope() {

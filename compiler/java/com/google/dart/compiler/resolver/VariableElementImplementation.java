@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,7 +22,6 @@ class VariableElementImplementation extends AbstractNodeElement implements Varia
   // this.foo by the resolver.
   private FieldElement fieldElement;
   private Type type;
-  private boolean typeInferred;
 
   VariableElementImplementation(EnclosingElement owner,
       DartNode node,
@@ -64,15 +63,6 @@ class VariableElementImplementation extends AbstractNodeElement implements Varia
   @Override
   public Type getType() {
     return type;
-  }
-  
-  public void setTypeInferred(boolean typeInferred) {
-    this.typeInferred = typeInferred;
-  }
-  
-  @Override
-  public boolean isTypeInferred() {
-    return typeInferred;
   }
 
   @Override

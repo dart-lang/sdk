@@ -28,8 +28,7 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
       "Default values can not be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
-  DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING,
-      "Deprecated use of the 'factory' keyword: use 'default' instead"),
+  DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
@@ -39,6 +38,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_COMMA_OR_RIGHT_BRACE("Expected ',' or '}'"),
   EXPECTED_COMMA_OR_RIGHT_PAREN("Expected ',' or ')', but got '%s'"),
   EXPECTED_EOS("Unexpected token '%s' (expected end of file)"),
+  EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
   EXPECTED_EXTENDS("Expected 'extends'"),
   EXPECTED_IDENTIFIER("Expected identifier"),
   EXPECTED_LEFT_PAREN("'(' expected"),

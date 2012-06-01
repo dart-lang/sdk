@@ -27,7 +27,7 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, optimization_counter_threshold);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, code_comments);
@@ -68,7 +68,9 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   __ Comment("Deopt stub for id %d", deopt_id_);
   __ Bind(entry_label());
   for (intptr_t i = 0; i < registers_.length(); i++) {
-    __ pushq(registers_[i]);
+    if (registers_[i] != kNoRegister) {
+      __ pushq(registers_[i]);
+    }
   }
   __ movq(RAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
@@ -137,15 +139,6 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 }
 
 
-static const Class* CoreClass(const char* c_name) {
-  const String& class_name = String::Handle(String::NewSymbol(c_name));
-  const Class& cls = Class::ZoneHandle(Library::Handle(
-      Library::CoreImplLibrary()).LookupClass(class_name));
-  ASSERT(!cls.IsNull());
-  return &cls;
-}
-
-
 #define __ assembler_->
 
 
@@ -173,18 +166,18 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (is_raw_type) {
     // Dynamic type argument, check only classes.
     // List is a very common case.
-    __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+    __ LoadClassId(R10, RAX);
     if (!type_class.is_interface()) {
-      __ CompareObject(R10, type_class);
+      __ cmpl(R10, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
     if (type.IsListInterface()) {
       Label unknown;
-      GrowableArray<const Class*> args;
-      args.Add(CoreClass("ObjectArray"));
-      args.Add(CoreClass("GrowableObjectArray"));
-      args.Add(CoreClass("ImmutableArray"));
-      CheckClasses(args, is_instance_lbl, &unknown);
+      GrowableArray<intptr_t> args;
+      args.Add(kArray);
+      args.Add(kGrowableObjectArray);
+      args.Add(kImmutableArray);
+      CheckClassIds(args, is_instance_lbl, &unknown);
       __ Bind(&unknown);
     }
     return GenerateSubtype1TestCacheLookup(
@@ -236,12 +229,12 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
 }
 
 
-// R10: instance class to check.
-void FlowGraphCompiler::CheckClasses(const GrowableArray<const Class*>& classes,
+// R10: instance class id to check.
+void FlowGraphCompiler::CheckClassIds(const GrowableArray<intptr_t>& class_ids,
                                      Label* is_instance_lbl,
                                      Label* is_not_instance_lbl) {
-  for (intptr_t i = 0; i < classes.length(); i++) {
-    __ CompareObject(R10, *classes[i]);
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ cmpl(R10, Immediate(class_ids[i]));
     __ j(EQUAL, is_instance_lbl);
   }
   __ jmp(is_not_instance_lbl);
@@ -278,21 +271,19 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
   }
 
-  ObjectStore* object_store = Isolate::Current()->object_store();
   // Compare if the classes are equal. Instance is not Smi.
   __ Bind(&compare_classes);
-  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClassId(R10, RAX);
   // If type is an interface, we can skip the class equality check.
   if (!type_class.is_interface()) {
-    __ CompareObject(R10, type_class);
+    __ cmpl(R10, Immediate(type_class.id()));
     __ j(EQUAL, is_instance_lbl);
   }
   // Check for interfaces that cannot be implemented by user.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolInterface()) {
-    const Class& bool_class = Class::ZoneHandle(object_store->bool_class());
-    __ CompareObject(R10, bool_class);
+    __ cmpl(R10, Immediate(kBool));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -301,8 +292,9 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ movq(R10, FieldAddress(R10, Class::signature_function_offset()));
-    __ cmpq(R10, raw_null);
+    __ LoadClassById(R13, R10);
+    __ movq(R13, FieldAddress(R13, Class::signature_function_offset()));
+    __ cmpq(R13, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -311,44 +303,29 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Note that instance is not Smi(checked above).
   if (type.IsSubtypeOf(
           Type::Handle(Type::NumberInterface()), &malformed_error)) {
-    const Class& mint_class = Class::ZoneHandle(object_store->mint_class());
-    const Class& bigint_class = Class::ZoneHandle(object_store->bigint_class());
-    const Class& double_class = Class::ZoneHandle(object_store->double_class());
-    GrowableArray<const Class*> args;
+    GrowableArray<intptr_t> args;
     if (type.IsNumberInterface()) {
-      args.Add(&double_class);
-      args.Add(&mint_class);
-      args.Add(&bigint_class);
+      args.Add(kDouble);
+      args.Add(kMint);
+      args.Add(kBigint);
     } else if (type.IsIntInterface()) {
-      args.Add(&mint_class);
-      args.Add(&bigint_class);
+      args.Add(kMint);
+      args.Add(kBigint);
     } else if (type.IsDoubleInterface()) {
-      args.Add(&double_class);
+      args.Add(kDouble);
     }
-    CheckClasses(args, is_instance_lbl, is_not_instance_lbl);
+    CheckClassIds(args, is_instance_lbl, is_not_instance_lbl);
     return;
   }
   if (type.IsStringInterface()) {
-    const Class& one_byte_string_class =
-        Class::ZoneHandle(object_store->one_byte_string_class());
-    const Class& two_byte_string_class =
-        Class::ZoneHandle(object_store->two_byte_string_class());
-    const Class& four_byte_string_class =
-        Class::ZoneHandle(object_store->four_byte_string_class());
-    const Class& external_one_byte_string_class =
-        Class::ZoneHandle(object_store->external_one_byte_string_class());
-    const Class& external_two_byte_string_class =
-        Class::ZoneHandle(object_store->external_two_byte_string_class());
-    const Class& external_four_byte_string_class =
-        Class::ZoneHandle(object_store->external_four_byte_string_class());
-    GrowableArray<const Class*> args;
-    args.Add(&one_byte_string_class);
-    args.Add(&two_byte_string_class);
-    args.Add(&four_byte_string_class);
-    args.Add(&external_one_byte_string_class);
-    args.Add(&external_two_byte_string_class);
-    args.Add(&external_four_byte_string_class);
-    CheckClasses(args, is_instance_lbl, is_not_instance_lbl);
+    GrowableArray<intptr_t> args;
+    args.Add(kOneByteString);
+    args.Add(kTwoByteString);
+    args.Add(kFourByteString);
+    args.Add(kExternalOneByteString);
+    args.Add(kExternalTwoByteString);
+    args.Add(kExternalFourByteString);
+    CheckClassIds(args, is_instance_lbl, is_not_instance_lbl);
     return;
   }
   // Otherwise fallthrough.
@@ -369,7 +346,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  __ LoadClass(R10, RAX);
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
   __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
@@ -418,8 +395,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
     Label fall_through;
-    __ movq(R10, FieldAddress(RDX, Object::class_offset()));
-    __ CompareObject(R10, Object::ZoneHandle(Object::type_arguments_class()));
+    __ CompareClassId(RDX, kTypeArguments);
     __ j(NOT_EQUAL, &fall_through);
     __ movq(RDI,
         FieldAddress(RDX, TypeArguments::type_at_offset(type.Index())));
@@ -1009,6 +985,16 @@ void FlowGraphCompiler::VisitBinaryOp(BinaryOpComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitUnarySmiOp(UnarySmiOpComp* comp) {
+  UNIMPLEMENTED();
+}
+
+
+void FlowGraphCompiler::VisitNumberNegate(NumberNegateComp* comp) {
+  UNIMPLEMENTED();
+}
+
+
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
@@ -1089,112 +1075,33 @@ void FlowGraphCompiler::VisitDo(DoInstr* instr) {
 
 
 void FlowGraphCompiler::VisitBind(BindInstr* instr) {
-  ASSERT(instr->locs() == NULL);
-
-  // If instruction does not have special location requirements
-  // then it returns result in register RAX.
-  instr->computation()->Accept(this);
-  __ pushq(RAX);
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
-  LoadValue(RAX, instr->value());
-  if (!is_optimizing()) {
-    // Count only in unoptimized code.
-    // TODO(srdjan): Replace the counting code with a type feedback
-    // collection and counting stub.
-    const Function& function =
-          Function::ZoneHandle(parsed_function_.function().raw());
-    __ LoadObject(RCX, function);
-    __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
-    if (CodeGenerator::CanOptimize()) {
-      // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(RCX, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold));
-      Label not_yet_hot;
-      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
-      __ pushq(RAX);  // Preserve result.
-      __ pushq(RCX);  // Argument for runtime: function to optimize.
-      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-      __ popq(RCX);  // Remove argument.
-      __ popq(RAX);  // Restore result.
-      __ Bind(&not_yet_hot);
-    }
-  }
-
-  if (FLAG_trace_functions) {
-    __ pushq(RAX);  // Preserve result.
-    const Function& function =
-        Function::ZoneHandle(parsed_function_.function().raw());
-    __ LoadObject(RBX, function);
-    __ pushq(RBX);
-    GenerateCallRuntime(AstNode::kNoId,
-                        0,
-                        CatchClauseNode::kInvalidTryIndex,
-                        kTraceFunctionExitRuntimeEntry);
-    __ popq(RAX);  // Remove argument.
-    __ popq(RAX);  // Restore result.
-  }
-  __ LeaveFrame();
-  __ ret();
-
-  // Generate 8 bytes of NOPs so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  AddCurrentDescriptor(PcDescriptors::kReturn,
-                       instr->cid(),
-                       instr->token_index(),
-                       CatchClauseNode::kInvalidTryIndex);  // try-index.
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
-  ASSERT(instr->exception()->IsUse());
-  GenerateCallRuntime(instr->cid(),
-                      instr->token_index(),
-                      instr->try_index(),
-                      kThrowRuntimeEntry);
-  __ int3();
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
-  ASSERT(instr->exception()->IsUse());
-  ASSERT(instr->stack_trace()->IsUse());
-  GenerateCallRuntime(instr->cid(),
-                      instr->token_index(),
-                      instr->try_index(),
-                      kReThrowRuntimeEntry);
-  __ int3();
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
 
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
-  // Determine if the true branch is fall through (!negated) or the false
-  // branch is.  They cannot both be backwards branches.
-  intptr_t index = reverse_index(current_block()->postorder_number());
-  bool negated = (block_order_[index + 1] == instr->false_successor());
-  ASSERT(!negated == (block_order_[index + 1] == instr->true_successor()));
-
-  LoadValue(RAX, instr->value());
-  __ LoadObject(RDX, Bool::ZoneHandle(Bool::True()));
-  __ cmpq(RAX, RDX);
-  if (negated) {
-    intptr_t target_index = instr->true_successor()->postorder_number();
-    __ j(EQUAL, &block_info_[target_index]->label);
-  } else {
-    intptr_t target_index = instr->false_successor()->postorder_number();
-    __ j(NOT_EQUAL, &block_info_[target_index]->label);
-  }
+  // Moved to intermediate_language_x64.cc.
+  UNREACHABLE();
 }
 
 
@@ -1329,7 +1236,7 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (StackSize() != 0) {
-    // We need to unwind the space we reserved for locals and copied parmeters.
+    // We need to unwind the space we reserved for locals and copied parameters.
     // The NoSuchMethodFunction stub does not expect to see that area on the
     // stack.
     __ addq(RSP, Immediate(StackSize() * kWordSize));
@@ -1343,7 +1250,7 @@ void FlowGraphCompiler::CopyParameters() {
     // Invoke noSuchMethod function.
     const int kNumArgsChecked = 1;
     ICData& ic_data = ICData::ZoneHandle();
-    ic_data = ICData::New(parsed_function_.function(),
+    ic_data = ICData::New(function,
                           String::Handle(function.name()),
                           AstNode::kNoId,
                           kNumArgsChecked);

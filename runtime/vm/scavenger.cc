@@ -355,6 +355,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
+  had_promotion_failure_ = false;
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 

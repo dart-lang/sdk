@@ -295,7 +295,7 @@ static void MegamorphicLookup(Assembler* assembler) {
   __ j(EQUAL, &null_receiver, Assembler::kNearJump);
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, &smi_receiver, Assembler::kNearJump);
-  __ LoadClassOfObject(EAX, EAX, EDI);
+  __ LoadClass(EAX, EAX, EDI);
   __ jmp(&class_in_eax, Assembler::kNearJump);
   __ Bind(&smi_receiver);
   // For Smis we need to get the class from the isolate.
@@ -702,7 +702,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      __ orl(ECX, Immediate(RawObject::ClassTag::encode(kArray)));
+      __ orl(ECX, Immediate(RawObject::ClassIdTag::encode(kArray)));
       __ movl(FieldAddress(EAX, Array::tags_offset()), ECX);
     }
 
@@ -772,7 +772,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(ZERO, &not_closure, Assembler::kNearJump);  // Not a closure, but a smi.
   // Verify that the class of the object is a closure class by checking that
   // class.signature_function() is not null.
-  __ LoadClassOfObject(EAX, EDI, ECX);
+  __ LoadClass(EAX, EDI, ECX);
   __ movl(EAX, FieldAddress(EAX, Class::signature_function_offset()));
   __ cmpl(EAX, raw_null);
   // Actual class is not a closure class.
@@ -1032,7 +1032,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // EDX: number of context variables.
       // EBX: size and bit tags.
       __ orl(EBX,
-             Immediate(RawObject::ClassTag::encode(context_class.index())));
+             Immediate(RawObject::ClassIdTag::encode(context_class.id())));
       __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
@@ -1174,7 +1174,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(type_args_size, tags);
-      tags = RawObject::ClassTag::update(ita_cls.index(), tags);
+      tags = RawObject::ClassIdTag::update(ita_cls.id(), tags);
       __ movl(Address(ECX, Instance::tags_offset()), Immediate(tags));
       // Set the new InstantiatedTypeArguments object (ECX) as the type
       // arguments (EDI) of the new object (EAX).
@@ -1196,8 +1196,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.index() != kIllegalObjectKind);
-    tags = RawObject::ClassTag::update(cls.index(), tags);
+    ASSERT(cls.id() != kIllegalObjectKind);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the remaining words of the object.
@@ -1296,10 +1296,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
 // Called for inline allocation of closures.
 // Input parameters:
-//   If the signature class is not parameterized, the receiver, if any, will be
-//   at ESP + 4 instead of ESP + 8, since no type arguments are passed.
-//   ESP + 8 (or ESP + 4): receiver (only if implicit instance closure).
-//   ESP + 4 : type arguments object (only if signature class is parameterized).
+//   ESP + 8 : receiver (null if not an implicit instance closure).
+//   ESP + 4 : type arguments object (null if class is no parameterized).
 //   ESP : points to return address.
 // Uses EAX, EBX, ECX, EDX as temporary registers.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
@@ -1314,7 +1312,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const Class& cls = Class::ZoneHandle(func.signature_class());
   const bool has_type_arguments = cls.HasTypeArguments();
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kReceiverOffset = (has_type_arguments ? 2 : 1) * kWordSize;
+  const intptr_t kReceiverOffset = 2 * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
@@ -1350,7 +1348,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
-    tags = RawObject::ClassTag::update(cls.index(), tags);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(Address(EAX, Closure::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
@@ -1378,7 +1376,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(context_size, tags);
-      tags = RawObject::ClassTag::update(context_class.index(), tags);
+      tags = RawObject::ClassIdTag::update(context_class.id(), tags);
       __ movl(Address(ECX, Context::tags_offset()), Immediate(tags));
 
       // Set number of variables field to 1 (for captured receiver).
@@ -1403,15 +1401,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     }
 
     // Set the type arguments field in the newly allocated closure.
-    if (has_type_arguments) {
-      ASSERT(!is_implicit_static_closure);
-      // Use the passed-in type arguments.
-      __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
-      __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
-    } else {
-      // Set to null.
-      __ movl(Address(EAX, Closure::type_arguments_offset()), raw_null);
-    }
+    __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
+    __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
 
     __ movl(Address(EAX, Closure::smrck_offset()), raw_null);
 
@@ -1591,7 +1582,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 #endif  // DEBUG
 
   // Loop that checks if there is an IC data match.
-  // EAX: receiver's class.
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
@@ -1697,7 +1687,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_smi);
-  __ LoadClassOfObject(EAX, EAX, EDI);
+  __ LoadClass(EAX, EAX, EDI);
   __ ret();
 }
 
@@ -1803,7 +1793,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
-  __ LoadClassOfObject(ECX, EAX, EBX);
+  __ LoadClass(ECX, EAX, EBX);
   // EAX: instance, ECX: instance-class.
   // Get instance type arguments
   if (n > 1) {

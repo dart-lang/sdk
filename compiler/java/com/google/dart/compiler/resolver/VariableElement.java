@@ -5,7 +5,6 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.type.Type;
 
 public interface VariableElement extends Element {
   FieldElement getParameterInitializerElement();
@@ -13,10 +12,4 @@ public interface VariableElement extends Element {
   boolean isNamed();
 
   DartExpression getDefaultValue();
-
-  /**
-   * @return <code>true</code> if {@link #getType()} returns {@link Type} which was not specified in
-   *         declaration, but instead inferred in some way.
-   */
-  boolean isTypeInferred();
 }

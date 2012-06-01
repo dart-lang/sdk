@@ -40,7 +40,7 @@ class Test {
 
   writeItems(int index) {
     if (index < 100) {
-      var transaction = db.transaction([STORE_NAME], IDBTransaction.READ_WRITE);
+      var transaction = db.transaction([STORE_NAME], 'readwrite');
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
       request.on.success.add(expectAsync1((e) {
@@ -58,7 +58,7 @@ class Test {
   };
 
   readAllViaCursor() {
-    IDBTransaction txn = db.transaction(STORE_NAME, IDBTransaction.READ_ONLY);
+    IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
     IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
     IDBRequest cursorRequest = objectStore.openCursor();
     int itemCount = 0;

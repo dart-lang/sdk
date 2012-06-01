@@ -27,6 +27,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
  private:
   void VisitBlocks();
 
+  void TryReplaceWithBinaryOp(InstanceCallComp* comp, Token::Kind op_kind);
+  void TryReplaceWithUnaryOp(InstanceCallComp* comp, Token::Kind op_kind);
+
+
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };
 

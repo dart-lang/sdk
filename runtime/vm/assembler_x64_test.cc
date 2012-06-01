@@ -1234,6 +1234,34 @@ ASSEMBLER_TEST_RUN(TestAdds, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(TestNot, assembler) {
+  __ movq(RAX, Immediate(0xFFFFFFFF00000000));
+  __ notq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestNot, entry) {
+  typedef int (*TestNot)();
+  unsigned int res = reinterpret_cast<TestNot>(entry)();
+  EXPECT_EQ(0xFFFFFFFF, res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(XorpdZeroing, assembler) {
+  __ movsd(XMM0, Address(RSP, kWordSize));
+  __ xorpd(XMM0, Address(RSP, kWordSize));
+  __ movq(RAX, Immediate(999));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
+  typedef double (*XorpdZeroingCode)(double d);
+  double res = reinterpret_cast<XorpdZeroingCode>(entry)(12.56e3);
+  EXPECT_FLOAT_EQ(0.0, res, 0.0001);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

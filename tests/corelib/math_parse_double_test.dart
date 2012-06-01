@@ -30,16 +30,12 @@ void main() {
   Expect.equals(-0.0, Math.parseDouble("   -0   "));
   Expect.equals(true, Math.parseDouble("   -0   ").isNegative());
   Expect.equals(1.0 * 0x1234567890, Math.parseDouble("0x1234567890"));
-  Expect.equals(1.0 * 0x1234567890, Math.parseDouble("+0x1234567890"));
   Expect.equals(1.0 * -0x1234567890, Math.parseDouble("-0x1234567890"));
   Expect.equals(1.0 * 0x1234567890, Math.parseDouble("   0x1234567890   "));
-  Expect.equals(1.0 * 0x1234567890, Math.parseDouble("   +0x1234567890   "));
   Expect.equals(1.0 * -0x1234567890, Math.parseDouble("   -0x1234567890   "));
   Expect.equals(256.0, Math.parseDouble("0x100"));
-  Expect.equals(256.0, Math.parseDouble("+0x100"));
   Expect.equals(-256.0, Math.parseDouble("-0x100"));
   Expect.equals(256.0, Math.parseDouble("   0x100   "));
-  Expect.equals(256.0, Math.parseDouble("   +0x100   "));
   Expect.equals(-256.0, Math.parseDouble("   -0x100   "));
   Expect.equals(1.0 * 0xabcdef, Math.parseDouble("0xabcdef"));
   Expect.equals(1.0 * 0xABCDEF, Math.parseDouble("0xABCDEF"));
@@ -118,4 +114,8 @@ void main() {
   Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" 1234567.e2 "));
   Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" +1234567.e2 "));
   Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" -1234567.e2 "));
+  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("+0x1234567890"));
+  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("   +0x1234567890   "));
+  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("   +0x100   "));
+  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("+0x100"));
 }

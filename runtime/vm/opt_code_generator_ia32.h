@@ -47,7 +47,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
   virtual void VisitTryCatchNode(TryCatchNode* node);
   virtual void VisitUnaryOpNode(UnaryOpNode* node);
 
-  virtual void GeneratePreEntryCode();
   virtual bool IsOptimizing() const { return true; }
 
   virtual void GenerateDeferredCode();

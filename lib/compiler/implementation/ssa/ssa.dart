@@ -23,6 +23,7 @@
 #source('types.dart');
 #source('types_propagation.dart');
 #source('validate.dart');
+#source('variable_allocator.dart');
 #source('value_set.dart');
 
 class RuntimeTypeInformation {

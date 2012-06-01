@@ -75,10 +75,6 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
-Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t05: Fail # Issue 2407
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t05: Fail # Issue 2407
-Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t05: Fail # Issue 2407
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t05: Fail # Issue 2407
 Language/10_Expressions/17_Conditional_A01_t01: Fail # Issue 2371
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # Issue 1489

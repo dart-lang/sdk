@@ -1950,30 +1950,6 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
   void webkitRequestFullscreen() native;
 }
 
-class _ElementTimeControlJs extends _DOMTypeJs implements ElementTimeControl native "*ElementTimeControl" {
-
-  void beginElement() native;
-
-  void beginElementAt(num offset) native;
-
-  void endElement() native;
-
-  void endElementAt(num offset) native;
-}
-
-class _ElementTraversalJs extends _DOMTypeJs implements ElementTraversal native "*ElementTraversal" {
-
-  final int childElementCount;
-
-  final _ElementJs firstElementChild;
-
-  final _ElementJs lastElementChild;
-
-  final _ElementJs nextElementSibling;
-
-  final _ElementJs previousElementSibling;
-}
-
 class _EntityJs extends _NodeJs implements Entity native "*Entity" {
 
   final String notationName;
@@ -5044,14 +5020,9 @@ class _MediaQueryListJs extends _DOMTypeJs implements MediaQueryList native "*Me
 
   final String media;
 
-  void addListener(_MediaQueryListListenerJs listener) native;
+  void addListener(MediaQueryListListener listener) native;
 
-  void removeListener(_MediaQueryListListenerJs listener) native;
-}
-
-class _MediaQueryListListenerJs extends _DOMTypeJs implements MediaQueryListListener native "*MediaQueryListListener" {
-
-  void queryChanged(_MediaQueryListJs list) native;
+  void removeListener(MediaQueryListListener listener) native;
 }
 
 class _MediaStreamJs extends _EventTargetJs implements MediaStream native "*MediaStream" {
@@ -5657,13 +5628,6 @@ class _NodeListJs extends _DOMTypeJs implements NodeList native "*NodeList" {
   // -- end List<Node> mixins.
 
   _NodeJs item(int index) native;
-}
-
-class _NodeSelectorJs extends _DOMTypeJs implements NodeSelector native "*NodeSelector" {
-
-  _ElementJs querySelector(String selectors) native;
-
-  _NodeListJs querySelectorAll(String selectors) native;
 }
 
 class _NotationJs extends _NodeJs implements Notation native "*Notation" {
@@ -6795,11 +6759,6 @@ class _SVGExceptionJs extends _DOMTypeJs implements SVGException native "*SVGExc
   String toString() native;
 }
 
-class _SVGExternalResourcesRequiredJs extends _DOMTypeJs implements SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
-
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
-}
-
 class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_DARKEN = 4;
@@ -7522,26 +7481,6 @@ class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement nati
   _CSSValueJs getPresentationAttribute(String name) native;
 }
 
-class _SVGFilterPrimitiveStandardAttributesJs extends _SVGStylableJs implements SVGFilterPrimitiveStandardAttributes native "*SVGFilterPrimitiveStandardAttributes" {
-
-  final _SVGAnimatedLengthJs height;
-
-  final _SVGAnimatedStringJs result;
-
-  final _SVGAnimatedLengthJs width;
-
-  final _SVGAnimatedLengthJs x;
-
-  final _SVGAnimatedLengthJs y;
-}
-
-class _SVGFitToViewBoxJs extends _DOMTypeJs implements SVGFitToViewBox native "*SVGFitToViewBox" {
-
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
-
-  final _SVGAnimatedRectJs viewBox;
-}
-
 class _SVGFontElementJs extends _SVGElementJs implements SVGFontElement native "*SVGFontElement" {
 }
 
@@ -7800,13 +7739,6 @@ class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native
   _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
 }
 
-class _SVGLangSpaceJs extends _DOMTypeJs implements SVGLangSpace native "*SVGLangSpace" {
-
-  String xmllang;
-
-  String xmlspace;
-}
-
 class _SVGLengthJs extends _DOMTypeJs implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_CM = 6;
@@ -7930,21 +7862,6 @@ class _SVGLinearGradientElementJs extends _SVGGradientElementJs implements SVGLi
   final _SVGAnimatedLengthJs y1;
 
   final _SVGAnimatedLengthJs y2;
-}
-
-class _SVGLocatableJs extends _DOMTypeJs implements SVGLocatable native "*SVGLocatable" {
-
-  final _SVGElementJs farthestViewportElement;
-
-  final _SVGElementJs nearestViewportElement;
-
-  _SVGRectJs getBBox() native;
-
-  _SVGMatrixJs getCTM() native;
-
-  _SVGMatrixJs getScreenCTM() native;
-
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
 }
 
 class _SVGMPathElementJs extends _SVGElementJs implements SVGMPathElement native "*SVGMPathElement" {
@@ -9008,15 +8925,6 @@ class _SVGStringListJs extends _DOMTypeJs implements SVGStringList native "*SVGS
   String replaceItem(String item, int index) native;
 }
 
-class _SVGStylableJs extends _DOMTypeJs implements SVGStylable native "*SVGStylable" {
-
-  final _SVGAnimatedStringJs className;
-
-  final _CSSStyleDeclarationJs style;
-
-  _CSSValueJs getPresentationAttribute(String name) native;
-}
-
 class _SVGStyleElementJs extends _SVGElementJs implements SVGStyleElement native "*SVGStyleElement" {
 
   bool disabled;
@@ -9120,17 +9028,6 @@ class _SVGTRefElementJs extends _SVGTextPositioningElementJs implements SVGTRefE
 }
 
 class _SVGTSpanElementJs extends _SVGTextPositioningElementJs implements SVGTSpanElement native "*SVGTSpanElement" {
-}
-
-class _SVGTestsJs extends _DOMTypeJs implements SVGTests native "*SVGTests" {
-
-  final _SVGStringListJs requiredExtensions;
-
-  final _SVGStringListJs requiredFeatures;
-
-  final _SVGStringListJs systemLanguage;
-
-  bool hasExtension(String extension) native;
 }
 
 class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentElement native "*SVGTextContentElement" {
@@ -9328,16 +9225,6 @@ class _SVGTransformListJs extends _DOMTypeJs implements SVGTransformList native 
   _SVGTransformJs replaceItem(_SVGTransformJs item, int index) native;
 }
 
-class _SVGTransformableJs extends _SVGLocatableJs implements SVGTransformable native "*SVGTransformable" {
-
-  final _SVGAnimatedTransformListJs transform;
-}
-
-class _SVGURIReferenceJs extends _DOMTypeJs implements SVGURIReference native "*SVGURIReference" {
-
-  final _SVGAnimatedStringJs href;
-}
-
 class _SVGUnitTypesJs extends _DOMTypeJs implements SVGUnitTypes native "*SVGUnitTypes" {
 
   static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
@@ -9435,7 +9322,7 @@ class _SVGViewElementJs extends _SVGElementJs implements SVGViewElement native "
   int zoomAndPan;
 }
 
-class _SVGViewSpecJs extends _SVGZoomAndPanJs implements SVGViewSpec native "*SVGViewSpec" {
+class _SVGViewSpecJs extends _DOMTypeJs implements SVGViewSpec native "*SVGViewSpec" {
 
   final String preserveAspectRatioString;
 
@@ -9449,22 +9336,15 @@ class _SVGViewSpecJs extends _SVGZoomAndPanJs implements SVGViewSpec native "*SV
 
   final String viewTargetString;
 
+  // From SVGZoomAndPan
+
+  int zoomAndPan;
+
   // From SVGFitToViewBox
 
   final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
 
   final _SVGAnimatedRectJs viewBox;
-}
-
-class _SVGZoomAndPanJs extends _DOMTypeJs implements SVGZoomAndPan native "*SVGZoomAndPan" {
-
-  static final int SVG_ZOOMANDPAN_DISABLE = 1;
-
-  static final int SVG_ZOOMANDPAN_MAGNIFY = 2;
-
-  static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
-
-  int zoomAndPan;
 }
 
 class _SVGZoomEventJs extends _UIEventJs implements SVGZoomEvent native "*SVGZoomEvent" {
@@ -13750,6 +13630,14 @@ interface DOMStringList extends List<String> {
   bool contains(String string);
 
   String item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface DOMStringMap {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

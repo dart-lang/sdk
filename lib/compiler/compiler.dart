@@ -46,7 +46,5 @@ Future<String> compile(Uri script,
                                    options);
   compiler.run(script);
   String code = compiler.assembledCode;
-  Completer<String> completer = new Completer<String>();
-  completer.complete(code);
-  return completer.future;
+  return new Future.immediate(code);
 }

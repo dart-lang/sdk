@@ -11,7 +11,7 @@ interface IA<T> default A<T extends Foo> { IA(); }
 class A<T extends Foo> implements IA<T> {
    factory A(){}
 }
- 
+
 main() {
-  var result = new IA<String>();  /// 01: static type warning
+  var result = new IA<String>();  /// 01: static type warning, dynamic type error
 }

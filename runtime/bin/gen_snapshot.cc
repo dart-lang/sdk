@@ -177,17 +177,21 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
     }
     ASSERT(tag == kImportTag);
     // Handle imports of other built-in libraries present in the SDK.
+    Builtin::BuiltinLibraryId id;
     if (DartUtils::IsDartCryptoLibURL(url_string)) {
-      return Builtin::LoadLibrary(Builtin::kCryptoLibrary);
+      id = Builtin::kCryptoLibrary;
     } else if (DartUtils::IsDartIOLibURL(url_string)) {
-      return Builtin::LoadLibrary(Builtin::kIOLibrary);
+      id = Builtin::kIOLibrary;
     } else if (DartUtils::IsDartJsonLibURL(url_string)) {
-      return Builtin::LoadLibrary(Builtin::kJsonLibrary);
+      id = Builtin::kJsonLibrary;
     } else if (DartUtils::IsDartUriLibURL(url_string)) {
-      return Builtin::LoadLibrary(Builtin::kUriLibrary);
+      id = Builtin::kUriLibrary;
     } else if (DartUtils::IsDartUtfLibURL(url_string)) {
-      return Builtin::LoadLibrary(Builtin::kUtfLibrary);
+      id = Builtin::kUtfLibrary;
+    } else {
+      return Dart_Error("Do not know how to load '%s'", url_string);
     }
+    return Builtin::LoadLibrary(id);
   }
   return Dart_Error("unexpected tag encountered %d", tag);
 }

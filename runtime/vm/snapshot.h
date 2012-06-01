@@ -190,6 +190,12 @@ class ReadStream : public ValueObject {
     return *current_++;
   }
 
+  void ReadBytes(uint8_t* addr, intptr_t len) {
+    ASSERT((current_ + len) < end_);
+    memmove(addr, current_, len);
+    current_ += len;
+  }
+
  private:
   const uint8_t* buffer_;
   const uint8_t* current_;
@@ -318,6 +324,10 @@ class BaseReader {
     int64_t value = Read<int64_t>();
     ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
     return value;
+  }
+
+  void ReadBytes(uint8_t* addr, intptr_t len) {
+    stream_.ReadBytes(addr, len);
   }
 
   RawSmi* ReadAsSmi();
@@ -522,7 +532,9 @@ class SnapshotWriter : public BaseWriter {
     DISALLOW_COPY_AND_ASSIGN(ForwardObjectNode);
   };
 
-  intptr_t MarkObject(RawObject* raw, RawClass* cls);
+  intptr_t MarkObject(RawObject* raw);
+
+  bool CheckAndWritePredefinedObject(RawObject* raw);
 
   void WriteInlinedObject(RawObject* raw);
 

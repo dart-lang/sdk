@@ -457,10 +457,13 @@ class Assembler : public ValueObject {
 
   void negl(Register reg);
   void negq(Register reg);
+  void notq(Register reg);
 
   void enter(const Immediate& imm);
   void leave();
   void ret();
+
+  void xorpd(XmmRegister dst, const Address& src);
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
@@ -517,6 +520,17 @@ class Assembler : public ValueObject {
   void LeaveFrame();
 
   void CallRuntime(const RuntimeEntry& entry);
+
+  /*
+   * Loading and comparing classes of objects.
+   */
+  void LoadClassId(Register result, Register object);
+
+  void LoadClassById(Register result, Register class_id);
+
+  void LoadClass(Register result, Register object);
+
+  void CompareClassId(Register object, intptr_t class_id);
 
   /*
    * Misc. functionality.

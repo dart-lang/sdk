@@ -27,9 +27,9 @@ ClassTable::ClassTable()
     for (intptr_t i = kObject; i < kInstance; i++) {
       table_[i] = vm_class_table->At(i);
     }
-    table_[kNullClassIndex] = vm_class_table->At(kNullClassIndex);
-    table_[kDynamicClassIndex] = vm_class_table->At(kDynamicClassIndex);
-    table_[kVoidClassIndex] = vm_class_table->At(kVoidClassIndex);
+    table_[kNullClassId] = vm_class_table->At(kNullClassId);
+    table_[kDynamicClassId] = vm_class_table->At(kDynamicClassId);
+    table_[kVoidClassId] = vm_class_table->At(kVoidClassId);
   }
 }
 
@@ -40,7 +40,7 @@ ClassTable::~ClassTable() {
 
 
 void ClassTable::Register(const Class& cls) {
-  intptr_t index = cls.index();
+  intptr_t index = cls.id();
   if (index != kIllegalObjectKind) {
     ASSERT(index > 0);
     ASSERT(index < kNumPredefinedKinds);
@@ -60,7 +60,7 @@ void ClassTable::Register(const Class& cls) {
       table_ = new_table;
     }
     ASSERT(top_ < capacity_);
-    cls.set_index(top_);
+    cls.set_id(top_);
     table_[top_] = cls.raw();
     top_++;  // Increment next index.
   }

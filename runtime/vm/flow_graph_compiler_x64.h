@@ -50,6 +50,31 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                       Register reg1,
                       Register reg2);
 
+  bool is_optimizing() const { return is_optimizing_; }
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
+
+  void GenerateCallRuntime(intptr_t cid,
+                           intptr_t token_index,
+                           intptr_t try_index,
+                           const RuntimeEntry& entry);
+  void AddCurrentDescriptor(PcDescriptors::Kind kind,
+                            intptr_t cid,
+                            intptr_t token_index,
+                            intptr_t try_index);
+
+  // Returns true if the next block after current in the current block order
+  // is the given block.
+  bool IsNextBlock(TargetEntryInstr* block_entry) const {
+    intptr_t current_index = reverse_index(current_block()->postorder_number());
+    return block_order_[current_index + 1] == block_entry;
+  }
+
+  // Returns assembler label associated with the given block entry.
+  Label* GetBlockLabel(TargetEntryInstr* block_entry) const {
+    intptr_t block_index = block_entry->postorder_number();
+    return &block_info_[block_index]->label;
+  }
+
  private:
   friend class DeoptimizationStub;
 
@@ -73,8 +98,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   };
 
   BlockEntryInstr* current_block() const { return current_block_; }
-
-  bool is_optimizing() const { return is_optimizing_; }
 
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
@@ -123,17 +146,9 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                     intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
-  void GenerateCallRuntime(intptr_t cid,
-                           intptr_t token_index,
-                           intptr_t try_index,
-                           const RuntimeEntry& entry);
-  void AddCurrentDescriptor(PcDescriptors::Kind kind,
-                            intptr_t cid,
-                            intptr_t token_index,
-                            intptr_t try_index);
 
   // Type checking helper methods.
-  void CheckClasses(const GrowableArray<const Class*>& classes,
+  void CheckClassIds(const GrowableArray<intptr_t>& class_ids,
                     Label* is_instance_lbl,
                     Label* is_not_instance_lbl);
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,

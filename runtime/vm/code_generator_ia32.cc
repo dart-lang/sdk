@@ -217,20 +217,6 @@ void CodeGenerator::GenerateDeferredCode() {
 }
 
 
-// Pre entry code is called before the frame has been constructed:
-// - check for stack overflow.
-// - optionally count function invocations.
-// - optionally trigger optimizing compiler if invocation threshold has been
-//   reached.
-// Note that first 5 bytes may be patched with a jump.
-// TODO(srdjan): Add check that no object is inlined in the first
-// 5 bytes (length of a jump instruction).
-void CodeGenerator::GeneratePreEntryCode() {
-  // TODO(srdjan): Still needed?
-  __ nop(5);
-}
-
-
 void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
@@ -792,6 +778,8 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
 
 
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   const Function& function = node->function();
   if (function.IsNonImplicitClosureFunction()) {
     // The context scope may have already been set by the new non-optimizing
@@ -803,8 +791,11 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
       ASSERT(!function.HasCode());
       function.set_context_scope(context_scope);
     }
+    __ pushl(raw_null);  // No receiver.
   } else if (function.IsImplicitInstanceClosureFunction()) {
     node->receiver()->Visit(this);
+  } else {
+    __ pushl(raw_null);  // No receiver.
   }
   ASSERT(function.context_scope() != ContextScope::null());
 
@@ -817,17 +808,15 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     const bool kPushInstantiator = false;
     GenerateInstantiatorTypeArguments(node->token_index(), kPushInstantiator);
+  } else {
+    __ pushl(raw_null);  // No type arguments.
   }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
-  if (requires_type_arguments) {
-    __ popl(ECX);  // Pop type arguments.
-  }
-  if (function.IsImplicitInstanceClosureFunction()) {
-    __ popl(ECX);  // Pop receiver.
-  }
+  __ popl(ECX);  // Pop type arguments.
+  __ popl(ECX);  // Pop receiver.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
@@ -1206,15 +1195,6 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
 }
 
 
-static const Class* CoreClass(const char* c_name) {
-  const String& class_name = String::Handle(String::NewSymbol(c_name));
-  const Class& cls = Class::ZoneHandle(Library::Handle(
-      Library::CoreImplLibrary()).LookupClass(class_name));
-  ASSERT(!cls.IsNull());
-  return &cls;
-}
-
-
 // Instance to test is in EAX. Test if its class is in subtype test cache array
 // and use the result in the array to jump to one of the labels. Fall through
 // if the instance is not in the cache array.
@@ -1233,7 +1213,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Check immediate equality.
-  __ LoadClassOfObject(ECX, EAX, EDI);
+  __ LoadClass(ECX, EAX, EDI);
   // ECX: instance class.
   __ CompareObject(ECX, type_class);
   __ j(EQUAL, is_instance_lbl);
@@ -1454,16 +1434,16 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
       type_arguments.IsRaw(type_arguments.Length());
   if (is_raw_type) {
     // Dynamic type argument, check only classes.
-    __ LoadClassIndexOfObject(ECX, EAX);
+    __ LoadClassId(ECX, EAX);
     if (!type_class.is_interface()) {
-      __ cmpl(ECX, Immediate(type_class.index()));
+      __ cmpl(ECX, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
     if (type.IsListInterface()) {
       // TODO(srdjan) also accept List<Object>.
-      __ cmpl(ECX, Immediate(CoreClass("ObjectArray")->index()));
+      __ cmpl(ECX, Immediate(kArray));
       __ j(EQUAL, is_instance_lbl);
-      __ cmpl(ECX, Immediate(CoreClass("GrowableObjectArray")->index()));
+      __ cmpl(ECX, Immediate(kGrowableObjectArray));
       __ j(EQUAL, is_instance_lbl);
     }
     return
@@ -1552,9 +1532,7 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
   // However, for specific core library interfaces, we can check for
   // specific core library classes.
   if (type.IsBoolInterface()) {
-    const Class& bool_class = Class::Handle(
-        Isolate::Current()->object_store()->bool_class());
-    __ CompareClassOfObject(EAX, bool_class, ECX);
+    __ CompareClassId(EAX, kBool, ECX);
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -1562,13 +1540,13 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
   // If type is an interface, we can skip the class equality check,
   // because instances cannot be of an interface type.
   if (!type_class.is_interface()) {
-    __ CompareClassOfObject(EAX, type_class, ECX);
+    __ CompareClassId(EAX, type_class.id(), ECX);
     __ j(EQUAL, is_instance_lbl);
   }
   if (type.IsSubtypeOf(
         Type::Handle(Type::NumberInterface()), &malformed_error)) {
     // Custom checking for numbers (Smi, Mint, Bigint and Double)
-    __ LoadClassIndexOfObject(ECX, EAX);
+    __ LoadClassId(ECX, EAX);
 
     if (type.IsIntInterface() || type.IsNumberInterface()) {
       // We already checked for Smi above.
@@ -1586,7 +1564,7 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
       __ jmp(is_not_instance_lbl);
     }
   } else if (type.IsStringInterface()) {
-    __ LoadClassIndexOfObject(ECX, EAX);
+    __ LoadClassId(ECX, EAX);
     __ cmpl(ECX, Immediate(kOneByteString));
     __ j(EQUAL, is_instance_lbl);
     __ cmpl(ECX, Immediate(kTwoByteString));
@@ -1597,7 +1575,7 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ LoadClassOfObject(ECX, EAX, EBX);
+    __ LoadClass(ECX, EAX, EBX);
     __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
     __ cmpl(ECX, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
@@ -1633,9 +1611,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
     // We expect that frequently checked objects wull have their type arguments
     // converted into instance of TypeArguments.
-    __ CompareClassOfObject(EBX,
-                            Class::Handle(Object::type_arguments_class()),
-                            EDX);
+    __ CompareClassId(EBX, kTypeArguments, EDX);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
     __ movl(EDX,
@@ -1866,9 +1842,7 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   // This check should pass if the receiver's class implements the interface
   // 'bool'. Check only class 'Bool' since it is the only legal implementation
   // of the interface 'bool'.
-  const Class& bool_class =
-      Class::Handle(Isolate::Current()->object_store()->bool_class());
-  __ CompareClassOfObject(EAX, bool_class, ECX);
+  __ CompareClassId(EAX, kBool, ECX);
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
@@ -2510,9 +2484,7 @@ void CodeGenerator::GenerateTypeArguments(
       // No need to check RAX for null (again), because a null instance will
       // have the wrong class (Null instead of TypeArguments).
       Label type_arguments_uninstantiated;
-      __ CompareClassOfObject(EAX,
-                              Class::Handle(Object::type_arguments_class()),
-                              ECX);
+      __ CompareClassId(EAX, kTypeArguments, ECX);
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
       __ cmpl(FieldAddress(EAX, TypeArguments::length_offset()),
               Immediate(Smi::RawValue(len)));

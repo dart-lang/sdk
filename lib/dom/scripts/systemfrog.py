@@ -35,6 +35,8 @@ class FrogSystem(System):
                          super_interface_name,
                          source_filter):
     """."""
+    if IsPureInterface(interface.id):
+      return
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     if not template:
@@ -98,6 +100,8 @@ class FrogInterfaceGenerator(object):
       supertype = interface.parents[0].type.id
       if IsDartCollectionType(supertype):
         # List methods are injected in AddIndexer.
+        pass
+      elif IsPureInterface(supertype):
         pass
       else:
         base = self._ImplClassName(supertype)
@@ -166,6 +170,9 @@ class FrogInterfaceGenerator(object):
       interface = self._system._database.GetInterface(type_name)
       if RecognizeCallback(interface):
         # Callbacks are typedef functions so don't have a class.
+        return type_name
+      elif type_name == 'MediaQueryListListener':
+        # Somewhat like a callback.  See Issue 3338.
         return type_name
       else:
         return self._ImplClassName(type_name)
@@ -276,6 +283,8 @@ class FrogInterfaceGenerator(object):
       if interface.parents:
         parent = interface.parents[0]
         if IsDartCollectionType(parent.type.id):
+          return (None, None)
+        if IsPureInterface(parent.type.id):
           return (None, None)
         if self._system._database.HasInterface(parent.type.id):
           parent_interface = self._system._database.GetInterface(parent.type.id)

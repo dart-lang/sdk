@@ -475,6 +475,7 @@ Debugger::Debugger()
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
+      last_bpt_line_(-1),
       ignore_breakpoints_(false) {
 }
 
@@ -966,6 +967,19 @@ void Debugger::SetEventHandler(EventHandler* handler) {
 }
 
 
+bool Debugger::IsDebuggable(const Function& func) {
+  RawFunction::Kind fkind = func.kind();
+  if ((fkind == RawFunction::kImplicitGetter) ||
+      (fkind == RawFunction::kImplicitSetter) ||
+      (fkind == RawFunction::kConstImplicitGetter)) {
+    return false;
+  }
+  const Class& cls = Class::Handle(func.owner());
+  const Library& lib = Library::Handle(cls.library());
+  return lib.IsDebuggable();
+}
+
+
 void Debugger::BreakpointCallback() {
   ASSERT(initialized_);
 
@@ -985,6 +999,15 @@ void Debugger::BreakpointCallback() {
               frame->pc());
   }
 
+  if (!bpt->IsInternal()) {
+    // This is a user-defined breakpoint, so we call the breakpoint callback
+    // even if it is on the same line as the previous breakpoint.
+    last_bpt_line_ = -1;
+  }
+
+  bool notify_frontend =
+    (last_bpt_line_ < 0) || (last_bpt_line_ != bpt->LineNumber());
+
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   while (frame != NULL) {
     ASSERT(frame->IsValid());
@@ -995,38 +1018,47 @@ void Debugger::BreakpointCallback() {
     frame = iterator.NextFrame();
   }
 
-  resume_action_ = kContinue;
-  if (bp_handler_ != NULL) {
-    SourceBreakpoint* src_bpt = bpt->src_bpt();
-    ASSERT(stack_trace_ == NULL);
-    ASSERT(obj_cache_ == NULL);
-    obj_cache_ = new RemoteObjectCache(64);
-    stack_trace_ = stack_trace;
-    (*bp_handler_)(src_bpt, stack_trace);
-    stack_trace_ = NULL;
-    obj_cache_ = NULL;  // Remote object cache is zone allocated.
+  if (notify_frontend) {
+    resume_action_ = kContinue;
+    if (bp_handler_ != NULL) {
+      SourceBreakpoint* src_bpt = bpt->src_bpt();
+      ASSERT(stack_trace_ == NULL);
+      ASSERT(obj_cache_ == NULL);
+      obj_cache_ = new RemoteObjectCache(64);
+      stack_trace_ = stack_trace;
+      (*bp_handler_)(src_bpt, stack_trace);
+      stack_trace_ = NULL;
+      obj_cache_ = NULL;  // Remote object cache is zone allocated.
+      last_bpt_line_ = bpt->LineNumber();
+    }
   }
 
+  Function& currently_instrumented_func = Function::Handle();
+  if (bpt->IsInternal()) {
+    currently_instrumented_func = bpt->function();
+  }
+  Function& func_to_instrument = Function::Handle();
   if (resume_action_ == kContinue) {
-    RemoveInternalBreakpoints();
+    // Nothing to do here, any potential instrumentation will be removed
+    // below.
   } else if (resume_action_ == kStepOver) {
-    Function& func = Function::Handle(bpt->function());
+    func_to_instrument = bpt->function();
     if (bpt->breakpoint_kind_ == PcDescriptors::kReturn) {
       // If we are at the function return, do a StepOut action.
       if (stack_trace->Length() > 1) {
-        ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
-        func = caller->DartFunction().raw();
+        ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
+        func_to_instrument = caller_frame->DartFunction().raw();
       }
     }
-    RemoveInternalBreakpoints();  // *bpt is now invalid.
-    InstrumentForStepping(func);
   } else if (resume_action_ == kStepInto) {
+    // If the call target is not debuggable, we treat StepInto like
+    // a StepOver, that is we instrument the current function.
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
+      func_to_instrument = bpt->function();
       int num_args, num_named_args;
       uword target;
       CodePatcher::GetInstanceCallAt(bpt->pc_, NULL,
           &num_args, &num_named_args, &target);
-      RemoveInternalBreakpoints();  // *bpt is now invalid.
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
       Instance& receiver = Instance::Handle(
           top_frame->GetInstanceCallReceiver(num_args));
@@ -1034,30 +1066,40 @@ void Debugger::BreakpointCallback() {
           ResolveCompileInstanceCallTarget(isolate_, receiver));
       if (!code.IsNull()) {
         Function& callee = Function::Handle(code.function());
-        InstrumentForStepping(callee);
+        if (IsDebuggable(callee)) {
+          func_to_instrument = callee.raw();
+        }
       }
     } else if (bpt->breakpoint_kind_ == PcDescriptors::kFuncCall) {
+      func_to_instrument = bpt->function();
       Function& callee = Function::Handle();
       uword target;
       CodePatcher::GetStaticCallAt(bpt->pc_, &callee, &target);
-      RemoveInternalBreakpoints();  // *bpt is now invalid.
-      InstrumentForStepping(callee);
+      if (IsDebuggable(callee)) {
+        func_to_instrument = callee.raw();
+      }
     } else {
       ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);
-      RemoveInternalBreakpoints();  // *bpt is now invalid.
       // Treat like stepping out to caller.
       if (stack_trace->Length() > 1) {
-        ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
-        InstrumentForStepping(caller->DartFunction());
+        ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
+        func_to_instrument = caller_frame->DartFunction().raw();
       }
     }
   } else {
     ASSERT(resume_action_ == kStepOut);
-    RemoveInternalBreakpoints();  // *bpt is now invalid.
     // Set stepping breakpoints in the caller.
     if (stack_trace->Length() > 1) {
-      ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
-      InstrumentForStepping(caller->DartFunction());
+      ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
+      func_to_instrument = caller_frame->DartFunction().raw();
+    }
+  }
+
+  if (func_to_instrument.raw() != currently_instrumented_func.raw()) {
+    last_bpt_line_ = -1;
+    RemoveInternalBreakpoints();  // *bpt is now invalid.
+    if (!func_to_instrument.IsNull()) {
+      InstrumentForStepping(func_to_instrument);
     }
   }
 }
@@ -1146,8 +1188,8 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
-      // Remove the code breakpoints associated with the source breakpoint.
-      RemoveCodeBreakpoints(curr_bpt);
+      // Remove references from code breakpoints to this source breakpoint.
+      UnlinkCodeBreakpoints(curr_bpt);
       delete curr_bpt;
       return;
     }
@@ -1158,13 +1200,31 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 }
 
 
-// Remove and delete the code breakpoints that are associated with given
-// source breakpoint bpt. If bpt is null, remove the internal breakpoints.
-void Debugger::RemoveCodeBreakpoints(SourceBreakpoint* src_bpt) {
-  CodeBreakpoint* prev_bpt = NULL;
+// Turn code breakpoints associated with the given source breakpoint into
+// internal breakpoints. They will later be deleted when control
+// returns from the user-defined breakpoint callback.
+// Breakpoints can only be deleted by the user when we are stopped
+// at another breakpoint, so we are guaranteed to remove the unlinked
+// code breakpoints when returning from the handler.
+void Debugger::UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt) {
+  ASSERT(src_bpt != NULL);
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != NULL) {
     if (curr_bpt->src_bpt() == src_bpt) {
+      curr_bpt->set_src_bpt(NULL);
+    }
+    curr_bpt = curr_bpt->next();
+  }
+}
+
+
+// Remove and delete internal breakpoints, i.e. breakpoints that
+// are not associated with a source breakpoint.
+void Debugger::RemoveInternalBreakpoints() {
+  CodeBreakpoint* prev_bpt = NULL;
+  CodeBreakpoint* curr_bpt = code_breakpoints_;
+  while (curr_bpt != NULL) {
+    if (curr_bpt->src_bpt() == NULL) {
       if (prev_bpt == NULL) {
         code_breakpoints_ = code_breakpoints_->next();
       } else {
@@ -1179,13 +1239,6 @@ void Debugger::RemoveCodeBreakpoints(SourceBreakpoint* src_bpt) {
       curr_bpt = curr_bpt->next();
     }
   }
-}
-
-
-// Remove and delete all breakpoints that are not associated with a
-// user-defined source breakpoint.
-void Debugger::RemoveInternalBreakpoints() {
-  RemoveCodeBreakpoints(NULL);
 }
 
 

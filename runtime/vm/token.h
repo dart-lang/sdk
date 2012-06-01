@@ -270,6 +270,7 @@ class Token {
 
   // Returns kILLEGAL if 'name' does not match a BinaryOp.
   static Token::Kind GetBinaryOp(const String& name);
+  static Token::Kind GetUnaryOp(const String& name);
 
  private:
   static const char* name_[];

@@ -76,6 +76,75 @@ class HeapPage {
 };
 
 
+// The history holds the timing information of the last garbage collection
+// runs.
+class PageSpaceGarbageCollectionHistory {
+ public:
+  PageSpaceGarbageCollectionHistory();
+  ~PageSpaceGarbageCollectionHistory() {}
+
+  void AddGarbageCollectionTime(uint64_t start, uint64_t end);
+
+  int GarbageCollectionTimeFraction();
+
+ private:
+  static const uint32_t kHistoryLength = 4;
+  uint64_t start_[kHistoryLength];
+  uint64_t end_[kHistoryLength];
+  uint32_t index_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(PageSpaceGarbageCollectionHistory);
+};
+
+
+// If GC is able to reclaim more than heap_growth_ratio (in percent) memory
+// and if the relative GC time is below a given threshold,
+// then the heap is not grown when the next GC decision is made.
+// PageSpaceController controls the heap size.
+class PageSpaceController {
+ public:
+  PageSpaceController(int heap_growth_ratio,
+                      int heap_growth_rate,
+                      int garbage_collection_time_ratio);
+  ~PageSpaceController();
+
+  bool CanGrowPageSpace(intptr_t size_in_bytes);
+
+  // A garbage collection is considered as successful if more than
+  // heap_growth_ratio % of memory got deallocated by the garbage collector.
+  // In this case garbage collection will be performed next time. Otherwise
+  // the heap will grow.
+  void EvaluateGarbageCollection(size_t in_use_before, size_t in_use_after,
+                                 int64_t start, int64_t end);
+
+  void Enable() {
+    is_enabled_ = true;
+  }
+
+ private:
+  bool is_enabled_;
+
+  // Heap growth control variable.
+  uword grow_heap_;
+
+  // If the garbage collector was not able to free more than heap_growth_ratio_
+  // memory, then the heap is grown. Otherwise garbage collection is performed.
+  int heap_growth_ratio_;
+
+  // Number of pages we grow.
+  int heap_growth_rate_;
+
+  // If the relative GC time stays below garbage_collection_time_ratio_
+  // garbage collection can be performed.
+  int garbage_collection_time_ratio_;
+
+  PageSpaceGarbageCollectionHistory history_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpaceController);
+};
+
+
 class PageSpace {
  public:
   // TODO(iposva): Determine heap sizes and tune the page size accordingly.
@@ -108,6 +177,10 @@ class PageSpace {
   static HeapPage* PageFor(RawObject* raw_obj) {
     return reinterpret_cast<HeapPage*>(
         RawObject::ToAddr(raw_obj) & ~(kPageSize -1));
+  }
+
+  void EnableGrowthControl() {
+    page_space_controller_.Enable();
   }
 
  private:
@@ -155,6 +228,8 @@ class PageSpace {
 
   // Keep track whether a MarkSweep is currently running.
   bool sweeping_;
+
+  PageSpaceController page_space_controller_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

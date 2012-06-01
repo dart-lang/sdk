@@ -49,8 +49,8 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
                        class_reg);
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.index() != kIllegalObjectKind);
-    tags = RawObject::ClassTag::update(cls.index(), tags);
+    ASSERT(cls.id() != kIllegalObjectKind);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(FieldAddress(instance_reg, Object::tags_offset()), Immediate(tags));
   } else {
     __ jmp(failure);

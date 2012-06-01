@@ -3942,7 +3942,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   const bool kTestOnly = false;
   LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
   if (receiver == NULL) {
-    ErrorMsg(token_pos, "illegal access to 'this'");
+    ErrorMsg(token_pos, "illegal implicit access to receiver 'this'");
   }
   return new LoadLocalNode(token_index_, *receiver);
 }
@@ -4987,6 +4987,23 @@ AstNode* Parser::MakeAssertCall(intptr_t begin, intptr_t end) {
 }
 
 
+AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
+  if (condition->IsClosureNode() ||
+      (condition->IsStoreLocalNode() &&
+       condition->AsStoreLocalNode()->value()->IsClosureNode())) {
+    EnsureExpressionTemp();
+    // Function literal in assert implies a call.
+    const intptr_t pos = condition->token_index();
+    condition = new ClosureCallNode(pos, condition, new ArgumentListNode(pos));
+  } else if (condition->IsConditionalExprNode()) {
+    ConditionalExprNode* cond_expr = condition->AsConditionalExprNode();
+    cond_expr->set_true_expr(InsertClosureCallNodes(cond_expr->true_expr()));
+    cond_expr->set_false_expr(InsertClosureCallNodes(cond_expr->false_expr()));
+  }
+  return condition;
+}
+
+
 AstNode* Parser::ParseAssertStatement() {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
@@ -5000,14 +5017,7 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* condition = ParseExpr(kAllowConst);
   const intptr_t condition_end = token_index_;
   ExpectToken(Token::kRPAREN);
-  if (condition->IsClosureNode()) {
-    EnsureExpressionTemp();
-    // Function literal in assert implies a call.
-    condition =
-        new ClosureCallNode(condition_pos,
-                            condition,
-                            new ArgumentListNode(condition_pos));
-  }
+  condition = InsertClosureCallNodes(condition);
   condition = new UnaryOpNode(condition_pos, Token::kNOT, condition);
   AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
   return new IfNode(condition_pos,
@@ -7904,6 +7914,13 @@ AstNode* Parser::ParseNewOperator() {
     // The type argument vector may have been expanded with the type arguments
     // of the super type when finalizing the temporary type.
     type_arguments = temp_type.arguments();
+    // The type parameter bounds of the factory class may be more specific than
+    // the type parameter bounds of the interface class. Therefore, although
+    // type was not malformed, temp_type may be malformed.
+    if (!type.IsMalformed() && temp_type.IsMalformed()) {
+      const Error& error = Error::Handle(temp_type.malformed_error());
+      type.set_malformed_error(error);
+    }
   }
 
   type_arguments ^= type_arguments.Canonicalize();
@@ -8163,7 +8180,7 @@ AstNode* Parser::ParsePrimary() {
     const String& this_name = String::Handle(String::NewSymbol(kThisName));
     LocalVariable* local = LookupLocalScope(this_name);
     if (local == NULL) {
-      ErrorMsg("unexpected use of 'this' in primary expression");
+      ErrorMsg("receiver 'this' is not in scope");
     }
     primary = new LoadLocalNode(token_index_, *local);
     ConsumeToken();

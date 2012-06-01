@@ -134,7 +134,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void IntrinsifyGetter();
   void IntrinsifySetter();
 
-  virtual void GeneratePreEntryCode();
   void GenerateLegacyEntryCode();
   void GenerateEntryCode();
   void GenerateLoadVariable(Register dst, const LocalVariable& local);

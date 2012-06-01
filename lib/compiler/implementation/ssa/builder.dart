@@ -438,7 +438,10 @@ class LocalsHandler {
 
   HParameterValue getActivationParameter(Element element) {
     // If the element is a parameter, we already have a
-    // HParameterValue for it.
+    // HParameterValue for it. We cannot create another one because
+    // it could then have another name than the real parameter. And
+    // the other one would not not it is just a copy of the real
+    // parameter.
     if (element.isParameter()) return directLocals[element];
 
     return builder.activationVariables.putIfAbsent(element, () {
@@ -2265,33 +2268,36 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  generateSuperNoSuchMethodSend(Send node) {
+    ClassElement cls = work.element.getEnclosingClass();
+    Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
+    HStatic target = new HStatic(element);
+    add(target);
+    HInstruction self = localsHandler.readThis();
+    Identifier identifier = node.selector.asIdentifier();
+    String name = identifier.source.slowToString();
+    // TODO(ahe): Add the arguments to this list.
+    push(new HLiteralList([]));
+    var inputs = <HInstruction>[
+        target,
+        self,
+        graph.addConstantString(new DartString.literal(name), node),
+        pop()];
+    push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
+  }
+
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element === null) {
-      ClassElement cls = work.element.getEnclosingClass();
-      element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
-      HStatic target = new HStatic(element);
-      add(target);
-      HInstruction self = localsHandler.readThis();
-      Identifier identifier = node.selector.asIdentifier();
-      String name = identifier.source.slowToString();
-      // TODO(ahe): Add the arguments to this list.
-      push(new HLiteralList([]));
-      var inputs = <HInstruction>[
-          target,
-          self,
-          graph.addConstantString(new DartString.literal(name), node),
-          pop()];
-      push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
-      return;
-    }
+    if (element === null) return generateSuperNoSuchMethodSend(node);
     HInstruction target = new HStatic(element);
     HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
-    if (element.kind == ElementKind.FUNCTION ||
-        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (node.isPropertyAccess) {
+      push(new HInvokeSuper(selector, inputs));
+    } else if (element.kind == ElementKind.FUNCTION ||
+               element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     element, inputs);
       if (!succeeded) {
@@ -2398,9 +2404,6 @@ class SsaBuilder implements Visitor {
 
   visitSend(Send node) {
     if (node.isSuperCall) {
-      if (node.isPropertyAccess) {
-        compiler.unimplemented('super property read', node: node);
-      }
       visitSuperSend(node);
     } else if (node.isOperator && methodInterceptionEnabled) {
       visitOperatorSend(node);
@@ -2460,7 +2463,15 @@ class SsaBuilder implements Visitor {
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      compiler.unimplemented('super property store', node: node);
+      Selector selector = elements.getSelector(node);
+      Element element = elements[node];
+      if (element === null) return generateSuperNoSuchMethodSend(node);
+      HInstruction target = new HStatic(element);
+      HInstruction context = localsHandler.readThis();
+      add(target);
+      var inputs = <HInstruction>[target, context];
+      addDynamicSendArgumentsToList(node, inputs);
+      push(new HInvokeSuper(selector, inputs));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(op.source.stringValue === '=');
@@ -3123,7 +3134,7 @@ class SsaBuilder implements Visitor {
     // must not reuse the existing locals handler. None of the variables
     // that have been defined in the body-block will be used, but for
     // loops we will add (unnecessary) phis that will reference the body
-    // variables. This will make it look as if the variables were used
+    // variables. This makes it look as if the variables were used
     // in a non-dominated block.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();

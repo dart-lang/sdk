@@ -102,6 +102,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   StubCode::Init(isolate);
+  isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
   if (FLAG_print_class_table) {
     isolate->class_table()->Print();

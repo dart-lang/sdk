@@ -69,6 +69,11 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   }
 
   @Override
+  public Scope getImportScope() {
+    return null;
+  }
+
+  @Override
   public List<InterfaceType> getInterfaces() {
     return Collections.<InterfaceType>emptyList();
   }
@@ -76,11 +81,6 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   @Override
   public DynamicType getType() {
     return Types.newDynamicType();
-  }
-  
-  @Override
-  public boolean isTypeInferred() {
-    return false;
   }
 
   @Override

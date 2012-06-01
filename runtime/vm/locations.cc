@@ -97,5 +97,14 @@ void LocationSummary::AllocateRegisters() {
 }
 
 
+LocationSummary* LocationSummary::Make(intptr_t input_count, Location out) {
+  LocationSummary* summary = new LocationSummary(input_count, 0);
+  for (intptr_t i = 0; i < input_count; i++) {
+    summary->set_in(i, Location::RequiresRegister());
+  }
+  summary->set_out(out);
+  return summary;
+}
+
 }  // namespace dart
 

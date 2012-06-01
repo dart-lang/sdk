@@ -655,7 +655,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
       test_runner: Reference to the object that notifies us when to run."""
     super(CommonBrowserTest, self).__init__(
         self.name(), BrowserTester.get_browsers(False),
-        'browser', ['js', 'frog'],
+        'browser', ['js', 'frog', 'dart2js'],
         self.get_standalone_benchmarks(), test_runner, 
         self.CommonBrowserTester(self),
         self.CommonBrowserFileProcessor(self))

@@ -56,7 +56,7 @@ class HValidator extends HInstructionVisitor {
       markInvalid("Non-exit or throw block without successor");
     }
 
-    // Make sure that successors ids are always higher than the current one.
+    // Check that successors ids are always higher than the current one.
     // TODO(floitsch): this is, of course, not true for back-branches.
     if (block.id === null) markInvalid("block without id");
     for (HBasicBlock successor in block.successors) {
@@ -67,7 +67,7 @@ class HValidator extends HInstructionVisitor {
       }
     }
 
-    // Make sure that the entries in the dominated-list are sorted.
+    // Check that the entries in the dominated-list are sorted.
     int lastId = 0;
     for (HBasicBlock dominated in block.dominatedBlocks) {
       if (!isValid) break;
@@ -83,8 +83,9 @@ class HValidator extends HInstructionVisitor {
     if (!isValid) return;
     block.forEachPhi(visitInstruction);
 
-    // Make sure the parameters of a phi are dominating the
-    // corresponding predecessor block.
+    // Check that the blocks of the parameters of a phi are dominating the
+    // corresponding predecessor block. Note that a block dominates
+    // itself.
     block.forEachPhi((HPhi phi) {
       for (int i = 0; i < phi.inputs.length; i++) {
         HInstruction input = phi.inputs[i];
@@ -94,8 +95,8 @@ class HValidator extends HInstructionVisitor {
       }
     });
 
-    // Make sure the inputs of an instruction dominate the
-    // instruction.
+    // Check that the blocks of the inputs of an instruction dominate the
+    // instruction's block.
     block.forEachInstruction((HInstruction instruction) {
       for (HInstruction input in instruction.inputs) {
         if (!input.block.dominates(block)) {

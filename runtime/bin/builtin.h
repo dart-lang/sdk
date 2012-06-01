@@ -21,13 +21,17 @@
 
 class Builtin {
  public:
+  // Note: Changes to this enum should be accompanied with changes to
+  // the builtin_libraries_ array in builtin.cc and builtin_nolib.cc.
   enum BuiltinLibraryId {
-    kBuiltinLibrary,
-    kCryptoLibrary,
-    kIOLibrary,
+    kBuiltinLibrary = 0,
     kJsonLibrary,
     kUriLibrary,
+    kCryptoLibrary,
+    kIOLibrary,
     kUtfLibrary,
+
+    kInvalidLibrary,
   };
 
   static Dart_Handle Source(BuiltinLibraryId id);
@@ -47,6 +51,13 @@ class Builtin {
   static const char json_source_[];
   static const char uri_source_[];
   static const char utf_source_[];
+
+  typedef struct {
+    const char* url_;
+    const char* source_;
+    bool has_natives_;
+  } builtin_lib_props;
+  static builtin_lib_props builtin_libraries_[];
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Builtin);

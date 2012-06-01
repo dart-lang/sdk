@@ -66,4 +66,15 @@ Token::Kind Token::GetBinaryOp(const String& name) {
 }
 
 
+Token::Kind Token::GetUnaryOp(const String& name) {
+  if (name.Equals(Str(Token::kNEGATE))) {
+    return Token::kNEGATE;
+  }
+  if ((name.Length() == 1) && (name.CharAt(0) == '~')) {
+    return Token::kBIT_NOT;
+  }
+  return Token::kILLEGAL;
+}
+
+
 }  // namespace dart
