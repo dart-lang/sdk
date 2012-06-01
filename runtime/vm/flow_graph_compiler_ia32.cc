@@ -65,7 +65,9 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   __ Comment("Deopt stub for id %d", deopt_id_);
   __ Bind(entry_label());
   for (intptr_t i = 0; i < registers_.length(); i++) {
-    __ pushl(registers_[i]);
+    if (registers_[i] != kNoRegister) {
+      __ pushl(registers_[i]);
+    }
   }
   __ movl(EAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
@@ -95,16 +97,6 @@ FlowGraphCompiler::FlowGraphCompiler(
 }
 
 
-FlowGraphCompiler::~FlowGraphCompiler() {
-  // BlockInfos are zone-allocated, so their destructors are not called.
-  // Verify the labels explicitly here.
-  for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
-    ASSERT(!block_info_[i]->label.HasNear());
-  }
-}
-
-
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new DescriptorList();
   exception_handlers_list_ = new ExceptionHandlerList();
@@ -115,12 +107,29 @@ void FlowGraphCompiler::InitCompiler() {
 }
 
 
+FlowGraphCompiler::~FlowGraphCompiler() {
+  // BlockInfos are zone-allocated, so their destructors are not called.
+  // Verify the labels explicitly here.
+  for (int i = 0; i < block_info_.length(); ++i) {
+    ASSERT(!block_info_[i]->label.IsLinked());
+    ASSERT(!block_info_[i]->label.HasNear());
+  }
+}
+
+
+intptr_t FlowGraphCompiler::StackSize() const {
+  return parsed_function_.stack_local_count() +
+      parsed_function_.copied_parameter_count();
+}
+
+
 void FlowGraphCompiler::Bailout(const char* reason) {
-  const char* kFormat = "FlowGraphCompiler Bailout: %s.";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, reason) + 1;
+  const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
+  const char* function_name = parsed_function_.function().ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, reason);
+  OS::SNPrint(chars, len, kFormat, function_name, reason);
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));
   Isolate::Current()->long_jump_base()->Jump(1, error);
@@ -179,12 +188,6 @@ void FlowGraphCompiler::IntrinsifySetter() {
 }
 
 
-intptr_t FlowGraphCompiler::StackSize() const {
-  return parsed_function_.stack_local_count() +
-      parsed_function_.copied_parameter_count();
-}
-
-
 bool FlowGraphCompiler::CanOptimize() {
   return
       !FLAG_report_usage_count &&
@@ -228,7 +231,194 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
 
 
 void FlowGraphCompiler::CopyParameters() {
-  Bailout("Copy Parameters");
+  const Function& function = parsed_function_.function();
+  LocalScope* scope = parsed_function_.node_sequence()->scope();
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_opt_params = function.num_optional_parameters();
+  ASSERT(parsed_function_.first_parameter_index() ==
+         ParsedFunction::kFirstLocalSlotIndex);
+  // Copy positional arguments.
+  // Check that no fewer than num_fixed_params positional arguments are passed
+  // in and that no more than num_params arguments are passed in.
+  // Passed argument i at fp[1 + argc - i]
+  // copied to fp[ParsedFunction::kFirstLocalSlotIndex - i].
+  const int num_params = num_fixed_params + num_opt_params;
+
+  // Total number of args is the first Smi in args descriptor array (EDX).
+  __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
+  // Check that num_args <= num_params.
+  Label wrong_num_arguments;
+  __ cmpl(EBX, Immediate(Smi::RawValue(num_params)));
+  __ j(GREATER, &wrong_num_arguments);
+  // Number of positional args is the second Smi in descriptor array (EDX).
+  __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
+  // Check that num_pos_args >= num_fixed_params.
+  __ cmpl(ECX, Immediate(Smi::RawValue(num_fixed_params)));
+  __ j(LESS, &wrong_num_arguments);
+  // Since EBX and ECX are Smi, use TIMES_2 instead of TIMES_4.
+  // Let EBX point to the last passed positional argument, i.e. to
+  // fp[1 + num_args - (num_pos_args - 1)].
+  __ subl(EBX, ECX);
+  __ leal(EBX, Address(EBP, EBX, TIMES_2, 2 * kWordSize));
+  // Let EDI point to the last copied positional argument, i.e. to
+  // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
+  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
+  __ leal(EDI, Address(EBP, (index * kWordSize)));
+  __ subl(EDI, ECX);  // ECX is a Smi, subtract twice for TIMES_4 scaling.
+  __ subl(EDI, ECX);
+  __ SmiUntag(ECX);
+  Label loop, loop_condition;
+  __ jmp(&loop_condition, Assembler::kNearJump);
+  // We do not use the final allocation index of the variable here, i.e.
+  // scope->VariableAt(i)->index(), because captured variables still need
+  // to be copied to the context that is not yet allocated.
+  const Address argument_addr(EBX, ECX, TIMES_4, 0);
+  const Address copy_addr(EDI, ECX, TIMES_4, 0);
+  __ Bind(&loop);
+  __ movl(EAX, argument_addr);
+  __ movl(copy_addr, EAX);
+  __ Bind(&loop_condition);
+  __ decl(ECX);
+  __ j(POSITIVE, &loop, Assembler::kNearJump);
+
+  // Copy or initialize optional named arguments.
+  ASSERT(num_opt_params > 0);  // Or we would not have to copy arguments.
+  // Start by alphabetically sorting the names of the optional parameters.
+  LocalVariable** opt_param = new LocalVariable*[num_opt_params];
+  int* opt_param_position = new int[num_opt_params];
+  for (int pos = num_fixed_params; pos < num_params; pos++) {
+    LocalVariable* parameter = scope->VariableAt(pos);
+    const String& opt_param_name = parameter->name();
+    int i = pos - num_fixed_params;
+    while (--i >= 0) {
+      LocalVariable* param_i = opt_param[i];
+      const intptr_t result = opt_param_name.CompareTo(param_i->name());
+      ASSERT(result != 0);
+      if (result > 0) break;
+      opt_param[i + 1] = opt_param[i];
+      opt_param_position[i + 1] = opt_param_position[i];
+    }
+    opt_param[i + 1] = parameter;
+    opt_param_position[i + 1] = pos;
+  }
+  // Generate code handling each optional parameter in alphabetical order.
+  // Total number of args is the first Smi in args descriptor array (EDX).
+  __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
+  // Number of positional args is the second Smi in descriptor array (EDX).
+  __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
+  __ SmiUntag(ECX);
+  // Let EBX point to the first passed argument, i.e. to fp[1 + argc - 0].
+  __ leal(EBX, Address(EBP, EBX, TIMES_2, kWordSize));  // EBX is Smi.
+  // Let EDI point to the name/pos pair of the first named argument.
+  __ leal(EDI, FieldAddress(EDX, Array::data_offset() + (2 * kWordSize)));
+  for (int i = 0; i < num_opt_params; i++) {
+    // Handle this optional parameter only if k or fewer positional arguments
+    // have been passed, where k is the position of this optional parameter in
+    // the formal parameter list.
+    Label load_default_value, assign_optional_parameter, next_parameter;
+    const int param_pos = opt_param_position[i];
+    __ cmpl(ECX, Immediate(param_pos));
+    __ j(GREATER, &next_parameter, Assembler::kNearJump);
+    // Check if this named parameter was passed in.
+    __ movl(EAX, Address(EDI, 0));  // Load EAX with the name of the argument.
+    __ CompareObject(EAX, opt_param[i]->name());
+    __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
+    // Load EAX with passed-in argument at provided arg_pos, i.e. at
+    // fp[1 + argc - arg_pos].
+    __ movl(EAX, Address(EDI, kWordSize));  // EAX is arg_pos as Smi.
+    __ addl(EDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
+    __ negl(EAX);
+    Address argument_addr(EBX, EAX, TIMES_2, 0);  // EAX is a negative Smi.
+    __ movl(EAX, argument_addr);
+    __ jmp(&assign_optional_parameter, Assembler::kNearJump);
+    __ Bind(&load_default_value);
+    // Load EAX with default argument at pos.
+    const Object& value = Object::ZoneHandle(
+        parsed_function_.default_parameter_values().At(
+            param_pos - num_fixed_params));
+    __ LoadObject(EAX, value);
+    __ Bind(&assign_optional_parameter);
+    // Assign EAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
+    // We do not use the final allocation index of the variable here, i.e.
+    // scope->VariableAt(i)->index(), because captured variables still need
+    // to be copied to the context that is not yet allocated.
+    const Address param_addr(
+        EBP, (ParsedFunction::kFirstLocalSlotIndex - param_pos) * kWordSize);
+    __ movl(param_addr, EAX);
+    __ Bind(&next_parameter);
+  }
+  delete[] opt_param;
+  delete[] opt_param_position;
+  // Check that EDI now points to the null terminator in the array descriptor.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label all_arguments_processed;
+  __ cmpl(Address(EDI, 0), raw_null);
+  __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+
+  __ Bind(&wrong_num_arguments);
+  if (StackSize() != 0) {
+    // We need to unwind the space we reserved for locals and copied parameters.
+    // The NoSuchMethodFunction stub does not expect to see that area on the
+    // stack.
+    __ addl(ESP, Immediate(StackSize() * kWordSize));
+  }
+  if (function.IsClosureFunction()) {
+    GenerateCallRuntime(AstNode::kNoId,
+                        0,
+                        CatchClauseNode::kInvalidTryIndex,
+                        kClosureArgumentMismatchRuntimeEntry);
+  } else {
+    // Invoke noSuchMethod function.
+    const int kNumArgsChecked = 1;
+    ICData& ic_data = ICData::ZoneHandle();
+    ic_data = ICData::New(function,
+                          String::Handle(function.name()),
+                          AstNode::kNoId,
+                          kNumArgsChecked);
+    __ LoadObject(ECX, ic_data);
+    // EBP - 4 : PC marker, allows easy identification of RawInstruction obj.
+    // EBP : points to previous frame pointer.
+    // EBP + 4 : points to return address.
+    // EBP + 8 : address of last argument (arg n-1).
+    // ESP + 8 + 4*(n-1) : address of first argument (arg 0).
+    // ECX : ic-data.
+    // EDX : arguments descriptor array.
+    __ call(&StubCode::CallNoSuchMethodFunctionLabel());
+  }
+
+  if (FLAG_trace_functions) {
+    __ pushl(EAX);  // Preserve result.
+    __ PushObject(Function::ZoneHandle(function.raw()));
+    GenerateCallRuntime(AstNode::kNoId,
+                        0,
+                        CatchClauseNode::kInvalidTryIndex,
+                        kTraceFunctionExitRuntimeEntry);
+    __ popl(EAX);  // Remove argument.
+    __ popl(EAX);  // Restore result.
+  }
+  __ LeaveFrame();
+  __ ret();
+
+  __ Bind(&all_arguments_processed);
+  // Nullify originally passed arguments only after they have been copied and
+  // checked, otherwise noSuchMethod would not see their original values.
+  // This step can be skipped in case we decide that formal parameters are
+  // implicitly final, since garbage collecting the unmodified value is not
+  // an issue anymore.
+
+  // EDX : arguments descriptor array.
+  // Total number of args is the first Smi in args descriptor array (EDX).
+  __ movl(ECX, FieldAddress(EDX, Array::data_offset()));
+  __ SmiUntag(ECX);
+  Label null_args_loop, null_args_loop_condition;
+  __ jmp(&null_args_loop_condition, Assembler::kNearJump);
+  const Address original_argument_addr(EBP, ECX, TIMES_4, 2 * kWordSize);
+  __ Bind(&null_args_loop);
+  __ movl(original_argument_addr, raw_null);
+  __ Bind(&null_args_loop_condition);
+  __ decl(ECX);
+  __ j(POSITIVE, &null_args_loop, Assembler::kNearJump);
 }
 
 

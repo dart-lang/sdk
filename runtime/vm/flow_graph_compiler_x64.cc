@@ -1236,7 +1236,7 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (StackSize() != 0) {
-    // We need to unwind the space we reserved for locals and copied parmeters.
+    // We need to unwind the space we reserved for locals and copied parameters.
     // The NoSuchMethodFunction stub does not expect to see that area on the
     // stack.
     __ addq(RSP, Immediate(StackSize() * kWordSize));
@@ -1250,7 +1250,7 @@ void FlowGraphCompiler::CopyParameters() {
     // Invoke noSuchMethod function.
     const int kNumArgsChecked = 1;
     ICData& ic_data = ICData::ZoneHandle();
-    ic_data = ICData::New(parsed_function_.function(),
+    ic_data = ICData::New(function,
                           String::Handle(function.name()),
                           AstNode::kNoId,
                           kNumArgsChecked);
