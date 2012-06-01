@@ -1222,6 +1222,9 @@ class _DOMStringListJs extends _DOMTypeJs implements DOMStringList native "*DOMS
   String item(int index) native;
 }
 
+class _DOMStringMapJs extends _DOMTypeJs implements DOMStringMap native "*DOMStringMap" {
+}
+
 class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTokenList" {
 
   final int length;
@@ -13750,6 +13753,14 @@ interface DOMStringList extends List<String> {
   bool contains(String string);
 
   String item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface DOMStringMap {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
