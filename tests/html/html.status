@@ -168,8 +168,13 @@ request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) && $system == linux]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff) && $system == linux]
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
+
+[ $compiler == dart2js && $runtime == chrome ]
+# TODO(sra): Triage incompatibility issue.
+indexeddb_3_test: Skip
+indexeddb_4_test: Skip
 
 # DOM errors.
 indexeddb_2_test: Fail # Uncaught error
