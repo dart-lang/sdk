@@ -166,22 +166,27 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CurrentContextComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(0, Location::RequiresRegister());
 }
 
 
 void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  __ movl(locs()->out().reg(), CTX);
 }
 
 
 LocationSummary* StoreContextComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  summary->set_in(0, Location::RegisterLocation(CTX));
+  return summary;
 }
 
 
 void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // Nothing to do.  Context register were loaded by register allocator.
+  ASSERT(locs()->in(0).reg() == CTX);
 }
 
 
@@ -196,12 +201,25 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ClosureCallComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(VerifyCallComputation(this));
+  // The arguments to the stub include the closure.  The arguments
+  // descriptor describes the closure's arguments (and so does not include
+  // the closure).
+  int argument_count = ArgumentCount();
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count - 1,
+                                         argument_names());
+  __ LoadObject(EDX, arguments_descriptor);
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &StubCode::CallClosureFunctionLabel(),
+                         PcDescriptors::kOther);
+  __ Drop(argument_count);
 }
 
 
@@ -456,12 +474,18 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateClosureComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Function& closure_function = function();
+  const Code& stub = Code::Handle(
+      StubCode::GetAllocationStubForClosure(closure_function));
+  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_index(), try_index(), &label,
+                         PcDescriptors::kOther);
+  __ Drop(2);  // Discard type arguments and receiver.
 }
 
 
