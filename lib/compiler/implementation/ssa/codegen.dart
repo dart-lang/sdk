@@ -468,9 +468,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           declaredVariables.add(variableName);
           buffer.add("var ");
         }
-      } else if (!isGeneratingDeclaration()
-                 && !isVariableDeclared(variableName)) {
-        delayedVariablesDeclaration.add(variableName);
+      } else if (!isVariableDeclared(variableName)) {
+        if (!isGeneratingDeclaration()) {
+          delayedVariablesDeclaration.add(variableName);
+        } else {
+          declaredVariables.add(variableName);
+        }
       }
     } else if (!isVariableDeclared(variableName)) {
       declaredVariables.add(variableName);

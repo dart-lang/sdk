@@ -164,9 +164,7 @@ void compile(List<String> argv) {
     dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
       new SourceFile(relativize(cwd, uri), source);
-    Completer<String> completer = new Completer<String>();
-    completer.complete(source);
-    return completer.future;
+    return new Future.immediate(source);
   }
 
   void info(var message) {
