@@ -11,13 +11,18 @@
         '../../frog/dart-frog.gyp:frog',
         '../../runtime/dart-runtime.gyp:dart',
       ],
+      'includes': [
+        '../../corelib/src/corelib_sources.gypi',
+      ],
       'actions': [
         {
           'action_name': 'run_apidoc',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/frog/bin/frog',
-            '<!@(["python", "../../tools/list_files.py", "\\.(css|dart|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../lib/dartdoc"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../lib/dartdoc"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib", "../../runtime/lib", "../../runtime/bin"])',
+            '<@(_sources)',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',
