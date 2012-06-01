@@ -1845,7 +1845,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           type = typeAsMemberOf(element, currentClass);
           break;
         case NONE:
-          return typeError(target, TypeErrorCode.NOT_A_METHOD_IN, name, currentClass);
+          // already reported by resolver
+          return dynamicType;
         default:
           type = element.getType();
           break;

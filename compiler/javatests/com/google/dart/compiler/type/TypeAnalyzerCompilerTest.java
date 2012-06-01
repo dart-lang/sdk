@@ -490,6 +490,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 4, 3, 7),
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 5, 3, 4));
   }
+  
+  public void test_callUnknownFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 3, 3, 5));
+  }
 
   /**
    * We should be able to call <code>Function</code> even if it is in the field.
