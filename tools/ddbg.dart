@@ -39,6 +39,7 @@ void printHelp() {
   ll  List loaded libraries
   pl <id> Print dlibrary info for given id
   ls <libname> List loaded scripts in library
+  gs <lib_id> <script_url> Get source text of script in library
   h   Print help
 """);
 }
@@ -117,6 +118,11 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum, "command": "getLibraryProperties",
                 "params": {"libraryId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
+  } else if (command == "gs" && args.length == 3) {
+    var cmd = { "id": seqNum, "command":  "getScriptSource",
+                "params": { "libraryId": Math.parseInt(args[1]),
+                            "url": args[2] }};
+    sendCmd(cmd).then((result) => handleGetSourceResponse(result));
   } else if (command == "q") {
     quitShell();
   } else if (command == "h") {
@@ -194,6 +200,13 @@ handleGetLibraryPropsResponse(response) {
       printNamedObject(globals[i]);
     }
   }
+}
+
+
+handleGetSourceResponse(response) {
+  Map result = response["result"];
+  String source = result["text"];
+  print("Source text:\n$source\n--------");
 }
 
 
