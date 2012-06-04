@@ -1220,8 +1220,10 @@ class HInvokeInterceptor extends HInvokeStatic {
 }
 
 class HFieldGet extends HInstruction {
+  // TODO(ngeoffray): Should [name] be an element?
   final SourceString name;
-  HFieldGet(this.name, HInstruction receiver)
+  final bool isFinalOrConst;
+  HFieldGet(this.name, HInstruction receiver, [this.isFinalOrConst = false])
       : super(<HInstruction>[receiver]);
   HFieldGet.fromActivation(receiver) : this(null, receiver);
 
@@ -1231,7 +1233,12 @@ class HFieldGet extends HInstruction {
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn() {
-    clearAllSideEffects();
+    if (isFinalOrConst) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      clearAllSideEffects();
+    }
   }
 
   int typeCode() => 27;

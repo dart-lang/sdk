@@ -572,7 +572,20 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Type type = receiver.propagatedType.computeType(compiler);
     if (type === null) return node;
     if (!compiler.world.isOnlyFields(type, node.name)) return node;
-    return new HFieldGet(node.name, node.inputs[0]);
+    ClassElement cls = type.element;
+    if (cls === null) return node;
+    Element element = cls.lookupLocalMember(node.name);
+    // If a subclass overrides a final field then there will be two fields,
+    // and here the final field will be used.
+    if (element === null) return node;
+    Modifiers modifiers = element.modifiers;
+    bool isFinalOrConst = false;
+    if (modifiers != null) {
+      isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
+    }
+    return new HFieldGet(node.name,
+                         node.inputs[0],
+                         isFinalOrConst: isFinalOrConst);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
