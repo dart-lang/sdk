@@ -444,7 +444,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // - RAX: object.
 // - RDX: instantiator type arguments or raw_null.
 // - RCX: instantiator or raw_null.
-// Destroys RCX and RDX.
 // Returns:
 // - object in RAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -644,7 +643,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ Bind(&is_instance);
   __ LoadObject(RAX, negate_result ? bool_false : bool_true);
   __ Bind(&done);
-  __ popq(RDX);  // Remove pushed instantiator type arguments..
+  __ popq(RDX);  // Remove pushed instantiator type arguments.
   __ popq(RCX);  // Remove pushed instantiator.
 }
 

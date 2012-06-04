@@ -7,6 +7,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/compiler_stats.h"
 #include "vm/il_printer.h"
@@ -405,6 +406,179 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_index,
                                      PcDescriptors::Kind kind) {
   __ call(label);
   AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
+}
+
+
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
+// - NULL -> return false.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - EAX: object.
+// - EDX: instantiator type arguments or raw_null.
+// - ECX: instantiator or raw_null.
+// Returns:
+// - true or false in EAX.
+void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
+                                          intptr_t token_index,
+                                          intptr_t try_index,
+                                          const AbstractType& type,
+                                          bool negate_result) {
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label is_instance, is_not_instance;
+  __ pushl(ECX);  // Store instantiator on stack.
+  __ pushl(EDX);  // Store instantiator type arguments.
+  // If type is instantiated and non-parameterized, we can inline code
+  // checking whether the tested instance is a Smi.
+  if (type.IsInstantiated()) {
+    // A null object is only an instance of Object and Dynamic, which has
+    // already been checked above (if the type is instantiated). So we can
+    // return false here if the instance is null (and if the type is
+    // instantiated).
+    // We can only inline this null check if the type is instantiated at compile
+    // time, since an uninstantiated type at compile time could be Object or
+    // Dynamic at run time.
+    __ cmpl(EAX, raw_null);
+    __ j(EQUAL, &is_not_instance);
+  }
+  // TODO(srdjan): Enable inlined checks.
+  // Generate inline instanceof test.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  // test_cache = GenerateInlineInstanceof(cid, token_index, type,
+  //                                       &is_instance, &is_not_instance);
+
+  // Generate runtime call.
+  __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
+  __ pushl(EAX);  // Push the instance.
+  __ PushObject(type);  // Push the type.
+  __ pushl(ECX);  // TODO(srdjan): Pass instantiator instead of null.
+  __ pushl(EDX);  // Instantiator type arguments.
+  __ LoadObject(EAX, test_cache);
+  __ pushl(EAX);
+  GenerateCallRuntime(cid, token_index, try_index, kInstanceofRuntimeEntry);
+  // Pop the two parameters supplied to the runtime entry. The result of the
+  // instanceof runtime call will be left as the result of the operation.
+  __ Drop(7);
+  Label done;
+  if (negate_result) {
+    __ popl(EDX);
+    __ LoadObject(EAX, bool_true);
+    __ cmpl(EDX, EAX);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+    __ LoadObject(EAX, bool_false);
+  } else {
+    __ popl(EAX);
+  }
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&is_not_instance);
+  __ LoadObject(EAX, negate_result ? bool_true : bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&is_instance);
+  __ LoadObject(EAX, negate_result ? bool_false : bool_true);
+  __ Bind(&done);
+  __ popl(EDX);  // Remove pushed instantiator type arguments.
+  __ popl(ECX);  // Remove pushed instantiator.
+}
+
+
+// Optimize assignable type check by adding inlined tests for:
+// - NULL -> return NULL.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - EAX: object.
+// - EDX: instantiator type arguments or raw_null.
+// - ECX: instantiator or raw_null.
+// Returns:
+// - object in EAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
+                                                 intptr_t token_index,
+                                                 intptr_t try_index,
+                                                 const AbstractType& dst_type,
+                                                 const String& dst_name) {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(token_index >= 0);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+  // Assignable check is skipped in FlowGraphBuilder, not here.
+  ASSERT(dst_type.IsMalformed() ||
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  ASSERT(!dst_type.IsVoidType());
+  __ pushl(ECX);  // Store instantiator.
+  __ pushl(EDX);  // Store instantiator type arguments.
+  // A null object is always assignable and is returned as result.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label is_assignable, runtime_call;
+  __ cmpl(EAX, raw_null);
+  __ j(EQUAL, &is_assignable);
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+    __ pushl(EAX);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(cid,
+                        token_index,
+                        try_index,
+                        kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+
+    __ Bind(&is_assignable);  // For a null object.
+    return;
+  }
+
+  // TODO(srdjan): Enable subtype test cache.
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  // test_cache = GenerateInlineInstanceof(cid, token_index, dst_type,
+  //                                       &is_assignable, &runtime_call);
+
+  __ Bind(&runtime_call);
+  __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
+  __ pushl(EAX);  // Push the source object.
+  __ PushObject(dst_type);  // Push the type of the destination.
+  __ pushl(ECX);  // Instantiator.
+  __ pushl(EDX);  // Instantiator type arguments.
+  __ PushObject(dst_name);  // Push the name of the destination.
+  __ LoadObject(EAX, test_cache);
+  __ pushl(EAX);
+  GenerateCallRuntime(cid,
+                      token_index,
+                      try_index,
+                      kTypeCheckRuntimeEntry);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(8);
+  __ popl(EAX);
+
+  __ Bind(&is_assignable);
+  __ popl(EDX);  // Remove pushed instantiator type arguments..
+  __ popl(ECX);  // Remove pushed instantiator.
 }
 
 

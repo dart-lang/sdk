@@ -156,12 +156,27 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
-  return NULL;
+  const int kNumInputs = 1;
+  const int kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
 }
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  __ CompareObject(value,  Bool::ZoneHandle(Bool::True()));
+  if (compiler->IsNextBlock(false_successor())) {
+    // If the next block is the false successor we will fall through to it if
+    // comparison with true fails.
+    __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
+  } else {
+    ASSERT(compiler->IsNextBlock(true_successor()));
+    // If the next block is the true successor we negate comparison and fall
+    // through to it.
+    __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
+  }
 }
 
 
@@ -191,12 +206,31 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
 }
 
 
 void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  __ cmpl(left, right);
+  Label load_true, done;
+  if (kind() == Token::kEQ_STRICT) {
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+  } else {
+    ASSERT(kind() == Token::kNE_STRICT);
+    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
+  }
+  __ LoadObject(result, bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(result, bool_true);
+  __ Bind(&done);
 }
 
 
@@ -311,12 +345,26 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* summary = new LocationSummary(3, 0);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_in(2, Location::RegisterLocation(EDX));
+  summary->set_out(Location::RegisterLocation(EAX));
+  return summary;
 }
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->in(0).reg() == EAX);  // Value.
+  ASSERT(locs()->in(1).reg() == ECX);  // Instantiator.
+  ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
+
+  compiler->GenerateAssertAssignable(cid(),
+                                     token_index(),
+                                     try_index(),
+                                     dst_type(),
+                                     dst_name());
+  ASSERT(locs()->in(0).reg() == locs()->out().reg());
 }
 
 
@@ -385,12 +433,37 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
   return NULL;
 }
 
 
 void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register receiver = locs()->in(0).reg();
+  Register value = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  // Preserve the value (second argument) under the arguments as the result
+  // of the computation, then call the setter.
+  const String& function_name =
+      String::ZoneHandle(Field::SetterSymbol(field_name()));
+
+  // Insert a copy of the second (last) argument under the arguments.
+  // TODO(fschneider): Avoid preserving the value if the result is not used.
+  __ pushl(value);
+  __ pushl(receiver);
+  __ pushl(value);
+  const intptr_t kArgumentCount = 2;
+  const intptr_t kCheckedArgumentCount = 1;
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kArgumentCount,
+                                 Array::ZoneHandle(),
+                                 kCheckedArgumentCount);
+  __ popl(result);
 }
 
 
@@ -455,12 +528,26 @@ void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstanceOfComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* summary = new LocationSummary(3, 0);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_in(2, Location::RegisterLocation(EDX));
+  summary->set_out(Location::RegisterLocation(EAX));
+  return summary;
 }
 
 
 void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->in(0).reg() == EAX);  // Value.
+  ASSERT(locs()->in(1).reg() == ECX);  // Instantiator.
+  ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
+
+  compiler->GenerateInstanceOf(cid(),
+                               token_index(),
+                               try_index(),
+                               type(),
+                               negate_result());
+  ASSERT(locs()->out().reg() == EAX);
 }
 
 

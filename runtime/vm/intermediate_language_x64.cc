@@ -113,26 +113,24 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
   const int kNumInputs = 1;
-  const int kNumTemps = 1;
+  const int kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
 
-  __ LoadObject(temp, Bool::ZoneHandle(Bool::True()));
-  __ cmpq(value, temp);
+  __ CompareObject(value, Bool::ZoneHandle(Bool::True()));
   if (compiler->IsNextBlock(false_successor())) {
-    // If the next block is the false sucessor we will fall through to it if
+    // If the next block is the false successor we will fall through to it if
     // comparison with true fails.
     __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
   } else {
-    // If the next block is the true sucessor we negate comparison and fall
+    ASSERT(compiler->IsNextBlock(true_successor()));
+    // If the next block is the true successor we negate comparison and fall
     // through to it.
     __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
   }
@@ -249,6 +247,7 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == Token::kEQ_STRICT) {
     __ j(EQUAL, &load_true, Assembler::kNearJump);
   } else {
+    ASSERT(kind() == Token::kNE_STRICT);
     __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
   }
   __ LoadObject(result, bool_false);
@@ -571,13 +570,15 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(value);
   __ pushq(receiver);
   __ pushq(value);
+  const intptr_t kArgumentCount = 2;
+  const intptr_t kCheckedArgumentCount = 1;
   compiler->GenerateInstanceCall(cid(),
                                  token_index(),
                                  try_index(),
                                  function_name,
-                                 2,
+                                 kArgumentCount,
                                  Array::ZoneHandle(),
-                                 1);
+                                 kCheckedArgumentCount);
   __ popq(result);
 }
 

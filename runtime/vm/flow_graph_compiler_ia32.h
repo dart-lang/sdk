@@ -18,6 +18,7 @@
 
 namespace dart {
 
+class AbstractType;
 class Assembler;
 class Code;
 class DeoptimizationStub;
@@ -58,6 +59,16 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
                     intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
+  void GenerateInstanceOf(intptr_t cid,
+                          intptr_t token_index,
+                          intptr_t try_index,
+                          const AbstractType& type,
+                          bool negate_result);
+  void GenerateAssertAssignable(intptr_t cid,
+                                intptr_t token_index,
+                                intptr_t try_index,
+                                const AbstractType& dst_type,
+                                const String& dst_name);
 
  private:
   friend class DeoptimizationStub;
