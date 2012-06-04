@@ -690,6 +690,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (cond.asLiteralBool() !== null && cond.asLiteralBool().value == true) {
       // If the condition is a constant boolean expression denoting true,
       // control-flow always enters the loop body.
+      // TODO(karlklose): this should be StatementType.RETURNING unless there
+      // is a break in the loop body that has the loop or a label outside the
+      // loop as a target.
       return bodyType;
     } else {
       return bodyType.join(StatementType.NOT_RETURNING);
