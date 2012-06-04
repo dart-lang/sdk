@@ -4062,6 +4062,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   num get webkitBackingStorePixelRatio() native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
+  bool get webkitImageSmoothingEnabled() native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
+
+  void set webkitImageSmoothingEnabled(bool) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
+
   List get webkitLineDash() native "CanvasRenderingContext2D_webkitLineDash_Getter";
 
   void set webkitLineDash(List) native "CanvasRenderingContext2D_webkitLineDash_Setter";
@@ -5192,6 +5196,17 @@ class _DOMApplicationCacheImpl extends _DOMWrapperBase implements DOMApplication
 
 // WARNING: Do not edit - generated code.
 
+class _DOMErrorImpl extends _DOMWrapperBase implements DOMError {
+
+  String get name() native "DOMError_name_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _DOMExceptionImpl extends _DOMWrapperBase implements DOMException {
 
   int get code() native "DOMException_code_Getter";
@@ -5907,6 +5922,8 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
   int get outerWidth() native "DOMWindow_outerWidth_Getter";
 
+  PagePopupController get pagePopupController() native "DOMWindow_pagePopupController_Getter";
+
   int get pageXOffset() native "DOMWindow_pageXOffset_Getter";
 
   int get pageYOffset() native "DOMWindow_pageYOffset_Getter";
@@ -6235,13 +6252,6 @@ class _DataTransferItemImpl extends _DOMWrapperBase implements DataTransferItem 
   }
 
   void _getAsString(callback) native "DataTransferItem_getAsString_Callback";
-
-  void webkitGetAsEntry([EntryCallback callback = null]) {
-    _webkitGetAsEntry(callback);
-    return;
-  }
-
-  void _webkitGetAsEntry(callback) native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7426,12 +7436,6 @@ class _DocumentImpl extends _NodeImpl implements Document
   }
 
   void _webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
-
-  WebKitNamedFlow webkitGetFlowByName(String name) {
-    return _webkitGetFlowByName(name);
-  }
-
-  WebKitNamedFlow _webkitGetFlowByName(name) native "Document_webkitGetFlowByName_Callback";
 
   // TODO(jacobr): implement all Element methods not on Document. 
 
@@ -10502,6 +10506,8 @@ class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetEleme
 
   void set disabled(bool) native "HTMLFieldSetElement_disabled_Setter";
 
+  HTMLCollection get elements() native "HTMLFieldSetElement_elements_Getter";
+
   FormElement get form() native "HTMLFieldSetElement_form_Getter";
 
   String get name() native "HTMLFieldSetElement_name_Getter";
@@ -10960,6 +10966,8 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   FileList get files() native "HTMLInputElement_files_Getter";
 
+  void set files(FileList) native "HTMLInputElement_files_Setter";
+
   FormElement get form() native "HTMLInputElement_form_Getter";
 
   String get formAction() native "HTMLInputElement_formAction_Getter";
@@ -11392,6 +11400,9 @@ class _HTMLMediaElementEventsImpl extends _ElementEventsImpl implements MediaEle
   EventListenerList get keyError() => _get('webkitkeyerror');
   EventListenerList get keyMessage() => _get('webkitkeymessage');
   EventListenerList get needKey() => _get('webkitneedkey');
+  EventListenerList get sourceClose() => _get('webkitsourceclose');
+  EventListenerList get sourceEnded() => _get('webkitsourceended');
+  EventListenerList get sourceOpen() => _get('webkitsourceopen');
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11587,12 +11598,32 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void _webkitGenerateKeyRequest_2(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
-  void webkitSourceAppend(Uint8Array data) {
-    _webkitSourceAppend(data);
+  void webkitSourceAbort(String id) {
+    _webkitSourceAbort(id);
     return;
   }
 
-  void _webkitSourceAppend(data) native "HTMLMediaElement_webkitSourceAppend_Callback";
+  void _webkitSourceAbort(id) native "HTMLMediaElement_webkitSourceAbort_Callback";
+
+  void webkitSourceAddId(String id, String type) {
+    _webkitSourceAddId(id, type);
+    return;
+  }
+
+  void _webkitSourceAddId(id, type) native "HTMLMediaElement_webkitSourceAddId_Callback";
+
+  void webkitSourceAppend(String id, Uint8Array data) {
+    _webkitSourceAppend(id, data);
+    return;
+  }
+
+  void _webkitSourceAppend(id, data) native "HTMLMediaElement_webkitSourceAppend_Callback";
+
+  TimeRanges webkitSourceBuffered(String id) {
+    return _webkitSourceBuffered(id);
+  }
+
+  TimeRanges _webkitSourceBuffered(id) native "HTMLMediaElement_webkitSourceBuffered_Callback";
 
   void webkitSourceEndOfStream(int status) {
     _webkitSourceEndOfStream(status);
@@ -11600,6 +11631,13 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
   }
 
   void _webkitSourceEndOfStream(status) native "HTMLMediaElement_webkitSourceEndOfStream_Callback";
+
+  void webkitSourceRemoveId(String id) {
+    _webkitSourceRemoveId(id);
+    return;
+  }
+
+  void _webkitSourceRemoveId(id) native "HTMLMediaElement_webkitSourceRemoveId_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13124,7 +13162,7 @@ class _IDBFactoryImpl extends _DOMWrapperBase implements IDBFactory {
 
 class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
 
-  String get keyPath() native "IDBIndex_keyPath_Getter";
+  Dynamic get keyPath() native "IDBIndex_keyPath_Getter";
 
   bool get multiEntry() native "IDBIndex_multiEntry_Getter";
 
@@ -13347,9 +13385,11 @@ class _IDBKeyRangeImpl extends _DOMWrapperBase implements IDBKeyRange {
 
 class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
 
+  bool get autoIncrement() native "IDBObjectStore_autoIncrement_Getter";
+
   List<String> get indexNames() native "IDBObjectStore_indexNames_Getter";
 
-  String get keyPath() native "IDBObjectStore_keyPath_Getter";
+  Dynamic get keyPath() native "IDBObjectStore_keyPath_Getter";
 
   String get name() native "IDBObjectStore_name_Getter";
 
@@ -13538,6 +13578,8 @@ class _IDBRequestImpl extends _DOMWrapperBase implements IDBRequest {
     return _on;
   }
 
+  DOMError get error() native "IDBRequest_error_Getter";
+
   int get errorCode() native "IDBRequest_errorCode_Getter";
 
   String get readyState() native "IDBRequest_readyState_Getter";
@@ -13608,6 +13650,8 @@ class _IDBTransactionImpl extends _DOMWrapperBase implements IDBTransaction {
   }
 
   IDBDatabase get db() native "IDBTransaction_db_Getter";
+
+  DOMError get error() native "IDBTransaction_error_Getter";
 
   String get mode() native "IDBTransaction_mode_Getter";
 
@@ -14215,6 +14259,40 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
   }
 
   void _stop() native "LocalMediaStream_stop_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // addEventListener(String type, EventListener listener)
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // addEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _addEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _addEventListener(type, listener, useCapture) native "LocalMediaStream_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) {
+    return _dispatchEvent(event);
+  }
+
+  bool _dispatchEvent(event) native "LocalMediaStream_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    //
+    // removeEventListener(String type, EventListener listener)
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    // -- reduced:
+    // removeEventListener(String type, EventListener listener, [Optional] bool useCapture)
+    //
+    _removeEventListener(type, listener, useCapture);
+    return;
+  }
+
+  void _removeEventListener(type, listener, useCapture) native "LocalMediaStream_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15945,6 +16023,22 @@ class _OverflowEventImpl extends _EventImpl implements OverflowEvent {
   int get orient() native "OverflowEvent_orient_Getter";
 
   bool get verticalOverflow() native "OverflowEvent_verticalOverflow_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _PagePopupControllerImpl extends _DOMWrapperBase implements PagePopupController {
+
+  void setValueAndClosePopup(int numberValue, String stringValue) {
+    _setValueAndClosePopup(numberValue, stringValue);
+    return;
+  }
+
+  void _setValueAndClosePopup(numberValue, stringValue) native "PagePopupController_setValueAndClosePopup_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20590,6 +20684,8 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   SVGPoint get currentTranslate() native "SVGSVGElement_currentTranslate_Getter";
 
+  SVGViewSpec get currentView() native "SVGSVGElement_currentView_Getter";
+
   SVGAnimatedLength get height() native "SVGSVGElement_height_Getter";
 
   num get pixelUnitToMillimeterX() native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
@@ -20601,8 +20697,6 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
   num get screenPixelToMillimeterY() native "SVGSVGElement_screenPixelToMillimeterY_Getter";
 
   bool get useCurrentView() native "SVGSVGElement_useCurrentView_Getter";
-
-  void set useCurrentView(bool) native "SVGSVGElement_useCurrentView_Setter";
 
   SVGRect get viewport() native "SVGSVGElement_viewport_Getter";
 
@@ -21541,11 +21635,15 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 
 class _SVGViewSpecImpl extends _DOMWrapperBase implements SVGViewSpec {
 
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewSpec_preserveAspectRatio_Getter";
+
   String get preserveAspectRatioString() native "SVGViewSpec_preserveAspectRatioString_Getter";
 
   SVGTransformList get transform() native "SVGViewSpec_transform_Getter";
 
   String get transformString() native "SVGViewSpec_transformString_Getter";
+
+  SVGAnimatedRect get viewBox() native "SVGViewSpec_viewBox_Getter";
 
   String get viewBoxString() native "SVGViewSpec_viewBoxString_Getter";
 
@@ -21556,10 +21654,6 @@ class _SVGViewSpecImpl extends _DOMWrapperBase implements SVGViewSpec {
   int get zoomAndPan() native "SVGViewSpec_zoomAndPan_Getter";
 
   void set zoomAndPan(int) native "SVGViewSpec_zoomAndPan_Setter";
-
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewSpec_preserveAspectRatio_Getter";
-
-  SVGAnimatedRect get viewBox() native "SVGViewSpec_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21706,8 +21800,6 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
 
-  DOMSelection get selection() native "ShadowRoot_selection_Getter";
-
   Element getElementById(String elementId) {
     return _getElementById(elementId);
   }
@@ -21731,6 +21823,12 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
   }
 
   NodeList _getElementsByTagNameNS(namespaceURI, localName) native "ShadowRoot_getElementsByTagNameNS_Callback";
+
+  DOMSelection getSelection() {
+    return _getSelection();
+  }
+
+  DOMSelection _getSelection() native "ShadowRoot_getSelection_Callback";
 
 }
 
@@ -24839,17 +24937,6 @@ class _WebKitCSSMatrixImpl extends _DOMWrapperBase implements CSSMatrix {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule {
-
-  CSSRuleList get cssRules() native "WebKitCSSRegionRule_cssRules_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
 
   int get operationType() native "WebKitCSSTransformValue_operationType_Getter";
@@ -24887,7 +24974,9 @@ class _WebKitNamedFlowImpl extends _DOMWrapperBase implements WebKitNamedFlow {
 
   NodeList get contentNodes() native "WebKitNamedFlow_contentNodes_Getter";
 
-  bool get overflow() native "WebKitNamedFlow_overflow_Getter";
+  String get name() native "WebKitNamedFlow_name_Getter";
+
+  bool get overset() native "WebKitNamedFlow_overset_Getter";
 
   NodeList getRegionsByContentNode(Node contentNode) {
     return _getRegionsByContentNode(contentNode);
@@ -27371,8 +27460,6 @@ interface CSSRule {
 
   static final int WEBKIT_KEYFRAME_RULE = 8;
 
-  static final int WEBKIT_REGION_RULE = 10;
-
   /** @domName CSSRule.cssText */
   String cssText;
 
@@ -29547,6 +29634,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
   final num webkitBackingStorePixelRatio;
 
+  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  bool webkitImageSmoothingEnabled;
+
   /** @domName CanvasRenderingContext2D.webkitLineDash */
   List webkitLineDash;
 
@@ -30101,6 +30191,18 @@ interface DOMApplicationCacheEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMError
+interface DOMError {
+
+  /** @domName DOMError.name */
+  final String name;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMException
 interface DOMException {
 
@@ -30520,9 +30622,6 @@ interface DataTransferItem {
 
   /** @domName DataTransferItem.getAsString */
   void getAsString([StringCallback callback]);
-
-  /** @domName DataTransferItem.webkitGetAsEntry */
-  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31061,9 +31160,6 @@ interface Document extends HtmlElement {
 
   /** @domName Document.webkitExitFullscreen */
   void webkitExitFullscreen();
-
-  /** @domName Document.webkitGetFlowByName */
-  WebKitNamedFlow webkitGetFlowByName(String name);
 
 }
 
@@ -32116,6 +32212,9 @@ interface FieldSetElement extends Element default _Elements {
   /** @domName HTMLFieldSetElement.disabled */
   bool disabled;
 
+  /** @domName HTMLFieldSetElement.elements */
+  final HTMLCollection elements;
+
   /** @domName HTMLFieldSetElement.form */
   final FormElement form;
 
@@ -33045,7 +33144,7 @@ interface IDBDatabaseEvents extends Events {
 /// @domName IDBDatabaseException
 interface IDBDatabaseException {
 
-  static final int ABORT_ERR = 8;
+  static final int ABORT_ERR = 20;
 
   static final int CONSTRAINT_ERR = 4;
 
@@ -33055,15 +33154,15 @@ interface IDBDatabaseException {
 
   static final int NOT_ALLOWED_ERR = 6;
 
-  static final int NOT_FOUND_ERR = 3;
+  static final int NOT_FOUND_ERR = 8;
 
   static final int NO_ERR = 0;
 
-  static final int QUOTA_ERR = 11;
+  static final int QUOTA_ERR = 22;
 
   static final int READ_ONLY_ERR = 9;
 
-  static final int TIMEOUT_ERR = 10;
+  static final int TIMEOUT_ERR = 23;
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
@@ -33114,7 +33213,7 @@ interface IDBFactory {
 interface IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  final String keyPath;
+  final Dynamic keyPath;
 
   /** @domName IDBIndex.multiEntry */
   final bool multiEntry;
@@ -33204,11 +33303,14 @@ interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
 /// @domName IDBObjectStore
 interface IDBObjectStore {
 
+  /** @domName IDBObjectStore.autoIncrement */
+  final bool autoIncrement;
+
   /** @domName IDBObjectStore.indexNames */
   final List<String> indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  final String keyPath;
+  final Dynamic keyPath;
 
   /** @domName IDBObjectStore.name */
   final String name;
@@ -33259,6 +33361,9 @@ interface IDBRequest extends EventTarget {
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
   IDBRequestEvents get on();
+
+  /** @domName IDBRequest.error */
+  final DOMError error;
 
   /** @domName IDBRequest.errorCode */
   final int errorCode;
@@ -33316,6 +33421,9 @@ interface IDBTransaction extends EventTarget {
 
   /** @domName IDBTransaction.db */
   final IDBDatabase db;
+
+  /** @domName IDBTransaction.error */
+  final DOMError error;
 
   /** @domName IDBTransaction.mode */
   final String mode;
@@ -33582,7 +33690,7 @@ interface InputElement extends Element default _Elements {
   bool disabled;
 
   /** @domName HTMLInputElement.files */
-  final FileList files;
+  FileList files;
 
   /** @domName HTMLInputElement.form */
   final FormElement form;
@@ -34055,7 +34163,7 @@ interface LinkElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName LocalMediaStream
-interface LocalMediaStream extends MediaStream {
+interface LocalMediaStream extends MediaStream, EventTarget {
 
   /** @domName LocalMediaStream.stop */
   void stop();
@@ -34402,11 +34510,23 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
+  /** @domName HTMLMediaElement.webkitSourceAbort */
+  void webkitSourceAbort(String id);
+
+  /** @domName HTMLMediaElement.webkitSourceAddId */
+  void webkitSourceAddId(String id, String type);
+
   /** @domName HTMLMediaElement.webkitSourceAppend */
-  void webkitSourceAppend(Uint8Array data);
+  void webkitSourceAppend(String id, Uint8Array data);
+
+  /** @domName HTMLMediaElement.webkitSourceBuffered */
+  TimeRanges webkitSourceBuffered(String id);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
+
+  /** @domName HTMLMediaElement.webkitSourceRemoveId */
+  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -34418,6 +34538,12 @@ interface MediaElementEvents extends ElementEvents {
   EventListenerList get keyMessage();
 
   EventListenerList get needKey();
+
+  EventListenerList get sourceClose();
+
+  EventListenerList get sourceEnded();
+
+  EventListenerList get sourceOpen();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35854,6 +35980,18 @@ interface OverflowEvent extends Event {
 
   /** @domName OverflowEvent.verticalOverflow */
   final bool verticalOverflow;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName PagePopupController
+interface PagePopupController {
+
+  /** @domName PagePopupController.setValueAndClosePopup */
+  void setValueAndClosePopup(int numberValue, String stringValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39382,6 +39520,9 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   /** @domName SVGSVGElement.currentTranslate */
   final SVGPoint currentTranslate;
 
+  /** @domName SVGSVGElement.currentView */
+  final SVGViewSpec currentView;
+
   /** @domName SVGSVGElement.height */
   final SVGAnimatedLength height;
 
@@ -39398,7 +39539,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   final num screenPixelToMillimeterY;
 
   /** @domName SVGSVGElement.useCurrentView */
-  bool useCurrentView;
+  final bool useCurrentView;
 
   /** @domName SVGSVGElement.viewport */
   final SVGRect viewport;
@@ -39947,7 +40088,10 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGViewSpec
-interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
+interface SVGViewSpec {
+
+  /** @domName SVGViewSpec.preserveAspectRatio */
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGViewSpec.preserveAspectRatioString */
   final String preserveAspectRatioString;
@@ -39958,6 +40102,9 @@ interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
   /** @domName SVGViewSpec.transformString */
   final String transformString;
 
+  /** @domName SVGViewSpec.viewBox */
+  final SVGAnimatedRect viewBox;
+
   /** @domName SVGViewSpec.viewBoxString */
   final String viewBoxString;
 
@@ -39966,6 +40113,9 @@ interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
   /** @domName SVGViewSpec.viewTargetString */
   final String viewTargetString;
+
+  /** @domName SVGViewSpec.zoomAndPan */
+  int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40255,9 +40405,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
-  /** @domName ShadowRoot.selection */
-  final DOMSelection selection;
-
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -40269,6 +40416,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   /** @domName ShadowRoot.getElementsByTagNameNS */
   NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+
+  /** @domName ShadowRoot.getSelection */
+  DOMSelection getSelection();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -43132,18 +43282,6 @@ interface WebKitCSSFilterValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName WebKitCSSRegionRule
-interface WebKitCSSRegionRule extends CSSRule {
-
-  /** @domName WebKitCSSRegionRule.cssRules */
-  final CSSRuleList cssRules;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName WebKitMutationObserver
 interface WebKitMutationObserver {
 
@@ -43165,8 +43303,11 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.contentNodes */
   final NodeList contentNodes;
 
-  /** @domName WebKitNamedFlow.overflow */
-  final bool overflow;
+  /** @domName WebKitNamedFlow.name */
+  final String name;
+
+  /** @domName WebKitNamedFlow.overset */
+  final bool overset;
 
   /** @domName WebKitNamedFlow.getRegionsByContentNode */
   NodeList getRegionsByContentNode(Node contentNode);
@@ -43408,6 +43549,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.outerWidth */
   final int outerWidth;
+
+  /** @domName DOMWindow.pagePopupController */
+  final PagePopupController pagePopupController;
 
   /** @domName DOMWindow.pageXOffset */
   final int pageXOffset;
