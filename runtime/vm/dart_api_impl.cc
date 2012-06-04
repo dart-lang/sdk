@@ -1134,8 +1134,8 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   // Fast path for Smis and Mints.
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  intptr_t class_index = Api::ClassId(integer);
-  if (class_index == kSmi || class_index == kMint) {
+  intptr_t class_id = Api::ClassId(integer);
+  if (class_id == kSmi || class_id == kMint) {
     *fits = true;
     return Api::Success(isolate);
   }

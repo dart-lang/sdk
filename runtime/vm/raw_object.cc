@@ -48,7 +48,12 @@ intptr_t RawObject::SizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
-  RawClass* raw_class = ptr()->class_;
+  // TODO(vegorov): this should be moved to fast path when class_ is eliminated.
+  if (FreeBit::decode(ptr()->tags_)) {
+    return reinterpret_cast<FreeListElement*>(ptr())->Size();
+  }
+
+  RawClass* raw_class = Isolate::Current()->class_table()->At(GetClassId());
   intptr_t instance_size = raw_class->ptr()->instance_size_;
   ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
 
@@ -262,9 +267,23 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
+  if (FreeBit::decode(ptr()->tags_)) {
+    // Nothing to visit for free list elements.
+    uword addr = RawObject::ToAddr(this);
+    FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
+    return element->Size();
+  }
+
   // Read the necessary data out of the class before visting the class itself.
-  RawClass* raw_class = ptr()->class_;
-  ObjectKind kind = raw_class->ptr()->instance_kind_;
+  intptr_t class_id = GetClassId();
+  ObjectKind kind;
+
+  if (class_id < kNumPredefinedKinds) {
+    kind = static_cast<ObjectKind>(class_id);
+  } else {
+    RawClass* raw_class = Isolate::Current()->class_table()->At(class_id);
+    kind = raw_class->ptr()->instance_kind_;
+  }
 
   // Visit the class before visting the fields.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&ptr()->class_));
@@ -278,14 +297,6 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     }
     CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
-    case kFreeListElement: {
-      ASSERT(FreeBit::decode(ptr()->tags_));
-      // Nothing to visit for free list elements.
-      uword addr = RawObject::ToAddr(this);
-      FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      size = element->Size();
-      break;
-    }
     default:
       OS::Print("Kind: %d\n", kind);
       UNREACHABLE();
@@ -439,9 +450,8 @@ intptr_t RawInstructions::VisitInstructionsPointers(
 
 
 bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
-  RawClass* raw_class = raw_obj->ptr()->class_;
-  ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
-  if (instance_kind == kInstructions) {
+  uword tags = raw_obj->ptr()->tags_;
+  if (RawObject::ClassIdTag::decode(tags) == kInstructions) {
     RawInstructions* raw_instr = reinterpret_cast<RawInstructions*>(raw_obj);
     uword start_pc =
         reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
@@ -564,9 +574,10 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  RawInstance* obj = raw_obj->ptr();
-  intptr_t instance_size = obj->class_->ptr()->instance_size_;
-  intptr_t num_native_fields = obj->class_->ptr()->num_native_fields_;
+  RawClass* cls = Isolate::Current()->class_table()->At(
+    raw_obj->GetClassId());
+  intptr_t instance_size = cls->ptr()->instance_size_;
+  intptr_t num_native_fields = cls->ptr()->num_native_fields_;
 
   // Calculate the first and last raw object pointer fields.
   uword obj_addr = RawObject::ToAddr(raw_obj);

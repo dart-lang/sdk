@@ -116,8 +116,12 @@ class MarkingStack : public ValueObject {
 
 class MarkingVisitor : public ObjectPointerVisitor {
  public:
-  MarkingVisitor(Heap* heap, PageSpace* page_space, MarkingStack* marking_stack)
-      : heap_(heap),
+  MarkingVisitor(Isolate* isolate,
+                 Heap* heap,
+                 PageSpace* page_space,
+                 MarkingStack* marking_stack)
+      : isolate_(isolate),
+        heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(page_space),
         marking_stack_(marking_stack) {
@@ -139,7 +143,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
     // Mark the object and push it on the marking stack.
     ASSERT(!raw_obj->IsMarked());
-    RawClass* raw_class = raw_obj->ptr()->class_;
+    RawClass* raw_class = isolate_->class_table()->At(raw_obj->GetClassId());
     raw_obj->SetMarkBit();
     marking_stack_->Push(raw_obj);
 
@@ -174,6 +178,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     MarkAndPush(raw_obj);
   }
 
+  Isolate* isolate_;
   Heap* heap_;
   Heap* vm_heap_;
   PageSpace* page_space_;
@@ -314,7 +319,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
                            bool invoke_api_callbacks) {
   MarkingStack marking_stack;
   Prologue(isolate, invoke_api_callbacks);
-  MarkingVisitor mark(heap_, page_space, &marking_stack);
+  MarkingVisitor mark(isolate, heap_, page_space, &marking_stack);
   IterateRoots(isolate, &mark, !invoke_api_callbacks);
   DrainMarkingStack(isolate, &mark);
   IterateWeakReferences(isolate, &mark);
