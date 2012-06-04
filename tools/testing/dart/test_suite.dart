@@ -1275,9 +1275,9 @@ class TestUtils {
   }
 
   static String buildDir(Map configuration) {
-    String debugMode =
-        (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    return "${outputDir(configuration)}$debugMode${configuration['arch']}";
+    String mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    String arch = configuration['arch'].toUpperCase();
+    return "${outputDir(configuration)}$mode$arch";
  }
 
   static String dartDir() {

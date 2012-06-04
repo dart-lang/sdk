@@ -130,7 +130,7 @@ def GetBuildMode(mode):
 
 
 def GetBuildConf(mode, arch):
-  return GetBuildMode(mode) + "_" + arch
+  return '%s%s' % (GetBuildMode(mode), arch.upper())
 
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))

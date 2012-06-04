@@ -17,6 +17,13 @@
 
     # Don't use separate host toolset for compiling V8.
     'want_separate_host_toolset': 0,
+
+  'conditions': [
+    ['"<(target_arch)"=="ia32"', { 'dart_target_arch': 'IA32', }],
+    ['"<(target_arch)"=="x64"', { 'dart_target_arch': 'X64', }],
+    ['"<(target_arch)"=="arm"', { 'dart_target_arch': 'ARM', }],
+    ['"<(target_arch)"=="simarm"', { 'dart_target_arch': 'SIMARM', }],
+  ],
   },
   'conditions': [
     [ 'OS=="linux"', { 'includes': [ 'configurations_make.gypi', ], } ],
@@ -24,7 +31,7 @@
     [ 'OS=="win"', { 'includes': [ 'configurations_msvs.gypi', ], } ],
   ],
   'target_defaults': {
-    'default_configuration': 'Debug_ia32',
+    'default_configuration': 'DebugIA32',
     'configurations': {
       'Dart_Base': {
         'abstract': 1,
@@ -63,23 +70,23 @@
         ],
       },
 
-      'Debug_ia32': {
+      'DebugIA32': {
         'inherit_from': ['Dart_Base', 'Dart_ia32_Base', 'Dart_Debug'],
       },
 
-      'Release_ia32': {
+      'ReleaseIA32': {
         'inherit_from': ['Dart_Base', 'Dart_ia32_Base', 'Dart_Release'],
       },
 
-      'Debug_x64': {
+      'DebugX64': {
         'inherit_from': ['Dart_Base', 'Dart_x64_Base', 'Dart_Debug'],
       },
 
-      'Release_x64': {
+      'ReleaseX64': {
         'inherit_from': ['Dart_Base', 'Dart_x64_Base', 'Dart_Release'],
       },
 
-      'Debug_simarm': {
+      'DebugSIMARM': {
         # Should not inherit from Dart_Debug because Dart_simarm_Base defines
         # the optimization level to be -O3, as the simulator runs too slow
         # otherwise.
@@ -89,40 +96,30 @@
         ],
       },
 
-      'Release_simarm': {
-        # Should not inherit from Dart_Release (see Debug_simarm).
+      'ReleaseSIMARM': {
+        # Should not inherit from Dart_Release (see DebugSIMARM).
         'inherit_from': ['Dart_Base', 'Dart_simarm_Base'],
         'defines': [
           'NDEBUG',
         ],
       },
 
-      'Debug_arm': {
+      'DebugARM': {
         'inherit_from': ['Dart_Base', 'Dart_arm_Base', 'Dart_Debug'],
       },
 
-      'Release_arm': {
+      'ReleaseARM': {
         'inherit_from': ['Dart_Base', 'Dart_arm_Base', 'Dart_Release'],
-      },
-
-      'Debug_dartc': {
-        # If we build any native code (e.g. V8), then we should just use the
-        # release version.
-        'inherit_from': ['Release_ia32'],
-      },
-
-      'Release_dartc': {
-        'inherit_from': ['Release_ia32'],
       },
 
       # These targets assume that target_arch is passed in explicitly
       # by the containing project (e.g., chromium).
       'Debug': {
-        'inherit_from': ['Debug_<(target_arch)']
+        'inherit_from': ['Debug<(dart_target_arch)']
       },
 
       'Release': {
-        'inherit_from': ['Release_<(target_arch)']
+        'inherit_from': ['Release<(dart_target_arch)']
       },
     },
   },
