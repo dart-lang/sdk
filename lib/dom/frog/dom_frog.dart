@@ -2605,9 +2605,9 @@ class _GeolocationJs extends _DOMTypeJs implements Geolocation native "*Geolocat
 
   void clearWatch(int watchId) native;
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native;
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native;
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native;
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native;
 }
 
 class _GeopositionJs extends _DOMTypeJs implements Geoposition native "*Geoposition" {
@@ -15104,9 +15104,9 @@ interface Geolocation {
 
   void clearWatch(int watchId);
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]);
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

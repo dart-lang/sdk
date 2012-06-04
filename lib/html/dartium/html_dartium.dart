@@ -9737,9 +9737,9 @@ class _GeolocationImpl extends _DOMWrapperBase implements Geolocation {
 
   void _clearWatch(watchId) native "Geolocation_clearWatch_Callback";
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native "Geolocation_getCurrentPosition_Callback";
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native "Geolocation_getCurrentPosition_Callback";
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native "Geolocation_watchPosition_Callback";
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native "Geolocation_watchPosition_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32721,10 +32721,10 @@ interface Geolocation {
   void clearWatch(int watchId);
 
   /** @domName Geolocation.getCurrentPosition */
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]);
 
   /** @domName Geolocation.watchPosition */
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
