@@ -15,7 +15,7 @@
 # ....bin/
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
-# ......frogc.dart
+# ......dart2js
 # ......pub
 # ....include/
 # ......dart_api.h
@@ -26,19 +26,20 @@
 # ......io/
 # ........io_runtime.dart
 # ........runtime/
+# ......compiler/
 # ......core/
 # ........core_{frog, runtime}.dart
 # ........{frog, runtime}/
 # ......coreimpl/
 # ........coreimpl_{frog, runtime}.dart
 # ........{frog, runtime}/
+# ......dart2js/
 # ......dartdoc/
 # ......isolate/
 # ........isolate_{frog, runtime}.dart
 # ........{frog, runtime}/
 # ......dom/
 # ........dom.dart
-# ......frog/
 # ......html/
 # ........html_frog.dart
 # ........html_dartium.dart
@@ -171,7 +172,7 @@ def Main(argv):
   BIN = join(SDK_tmp, 'bin')
   os.makedirs(BIN)
 
-  # Copy the Dart VM binary, frogc and Windows dart VM link library
+  # Copy the Dart VM binary and the Windows Dart VM link library
   # into sdk/bin.
   #
   # TODO(dgrove) - deal with architectures that are not ia32.
@@ -187,24 +188,9 @@ def Main(argv):
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
 
-  frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap', 'frogc')
-  CopyShellScript(frogc_src_binary, BIN)
-
-  # Create sdk/bin/frogc.dart, and hack as needed.
-  frog_src_dir = join(HOME, 'frog')
-
-  # Convert frogc.dart's imports from import('*') -> import('frog/*').
-  frogc_contents = open(join(frog_src_dir, 'frogc.dart')).read()
-  frogc_dest = open(join(BIN, 'frogc.dart'), 'w')
-  frogc_dest.write(
-    re.sub(r"#import\('([^.])", r"#import('../lib/frog/\1", frogc_contents))
-  frogc_dest.close()
-
   # Create pub shell script.
   pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
   CopyShellScript(pub_src_script, BIN)
-
-  # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart.
 
   #
   # Create and populate sdk/include.
@@ -230,7 +216,6 @@ def Main(argv):
   coreimpl_dest_dir = join(LIB, 'coreimpl')
   os.makedirs(coreimpl_dest_dir)
   os.makedirs(join(coreimpl_dest_dir, 'frog'))
-  os.makedirs(join(coreimpl_dest_dir, 'frog', 'node'))
   os.makedirs(join(coreimpl_dest_dir, 'runtime'))
 
 
@@ -293,41 +278,7 @@ def Main(argv):
         file_contents = open(filename).read()
         file = open(filename, 'w')
         file_contents = re.sub(r"\.\./lib", "..", file_contents)
-        file_contents = re.sub(r"\.\./frog/", "frog/", file_contents)
         file.write(file_contents)
-        file.close()
-
-  #
-  # Create and populate lib/frog.
-  #
-  # TODO(dgrove): Frog is not a dart library and should not live in lib.
-  #
-  frog_dest_dir = join(LIB, 'frog')
-  os.makedirs(frog_dest_dir)
-
-  for filename in os.listdir(frog_src_dir):
-    if filename == 'frog_options.dart':
-      # change config from 'dev' to 'sdk' in frog_options.dart
-      frog_options_contents = open(join(frog_src_dir, filename)).read()
-      frog_options_dest = open(join(frog_dest_dir, filename), 'w')
-      frog_options_dest.write(re.sub("final config = \'dev\';",
-                                     "final config = \'sdk\';",
-                                     frog_options_contents))
-      frog_options_dest.close()
-    elif filename.endswith('.dart'):
-      copyfile(join(frog_src_dir, filename), join(frog_dest_dir, filename))
-
-
-  copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'),
-           ignore=ignore_patterns('.svn'))
-
-  # Remap imports in frog/... .
-  for (dirpath, subdirs, filenames) in os.walk(frog_dest_dir):
-    for filename in filenames:
-      if filename.endswith('.dart'):
-        file_contents = open(join(dirpath, filename)).read()
-        file = open(join(dirpath, filename), 'w')
-        file.write(re.sub(r"\.\./lib/", "../", file_contents))
         file.close()
 
   #
@@ -372,22 +323,43 @@ def Main(argv):
   dartdoc_dest_dir = join(LIB, 'dartdoc')
   copytree(dartdoc_src_dir, dartdoc_dest_dir,
            ignore=ignore_patterns('.svn', 'docs'))
-  ReplaceInFiles([
+
+  # Copy frog into lib/dartdoc and fixup dependencies.
+  # TODO(johnniwinther): This should not be necessary long term.
+  frog_src_dir = join(HOME, 'frog')
+  frog_dest_dir = join(dartdoc_dest_dir, 'frog')
+  os.makedirs(frog_dest_dir)
+  for filename in os.listdir(frog_src_dir):
+    if filename == 'frog_options.dart':
+      # Change config from 'dev' to 'sdk' in frog_options.dart.
+      frog_options_contents = open(join(frog_src_dir, filename)).read()
+      frog_options_dest = open(join(frog_dest_dir, filename), 'w')
+      frog_options_dest.write(re.sub("final config = \'dev\';",
+                                     "final config = \'sdk\';",
+                                     frog_options_contents))
+      frog_options_dest.close()
+    elif filename.endswith('.dart'):
+      dest = join(frog_dest_dir, filename)
+      copyfile(join(frog_src_dir, filename), dest)
+      ReplaceInFiles([dest], [("../lib/", "../../")])
+    ReplaceInFiles([
       join(LIB, 'dartdoc', 'dartdoc.dart')
     ], [
-      ("#import\('../../frog", "#import('../frog"),
+      ("#import\('../../frog",
+          "#import('frog"),
       ("joinPaths\(scriptDir, '../../frog/'\)",
-          "joinPaths(scriptDir, '../frog/')"),
-      ("joinPaths\(frogPath, 'lib'\)", "joinPaths(frogPath, '..')"),
+          "joinPaths(scriptDir, 'frog/')"),
+      ("joinPaths\(frogPath, 'lib'\)",
+          "joinPaths(scriptDir, '../')"),
       ("joinPaths\(frogPath, 'minfrog'\)",
-          "joinPaths(scriptDir, '../../bin/frogc')")
+          "joinPaths(scriptDir, '../../bin/dart2js')"),
     ])
   ReplaceInFiles([
       join(LIB, 'dartdoc', 'classify.dart'),
       join(LIB, 'dartdoc', 'client-live-nav.dart'),
       join(LIB, 'dartdoc', 'client-static.dart')
     ], [
-      ("#import\('../../frog", "#import('../frog")
+      ("#import\('../../frog", "#import('frog")
     ])
 
   # Create and populate lib/isolate
@@ -491,24 +463,24 @@ def Main(argv):
   dest_file.close()
 
   # Create and copy tools.
-
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
 
-  # Create and populate util/pub
+  # Create and populate util/pub.
   pub_src_dir = join(HOME, 'utils', 'pub')
   pub_dst_dir = join(UTIL, 'pub')
   copytree(pub_src_dir, pub_dst_dir,
            ignore=ignore_patterns('.svn', 'sdk'))
 
-  # Copy import maps
-  PLATFORMS = ['any', 'vm', 'dartium', 'dart2js', 'frog' ]
+  # Copy import maps.
+  PLATFORMS = ['any', 'vm', 'dartium', 'dart2js' ]
   os.makedirs(join(LIB, 'config'))
   for platform in PLATFORMS:
     import_src = join(HOME, 'lib', 'config', 'import_' + platform + '.config')
     import_dst = join(LIB, 'config', 'import_' + platform + '.config')
     copyfile(import_src, import_dst);
 
+  # Copy dart2js.
   CopyDart2Js(build_dir, SDK_tmp)
 
   # Write the 'revision' file

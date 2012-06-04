@@ -118,7 +118,7 @@ void main() {
 
   // Compile the client-side code to JS.
   final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
-  final Future scriptCompiled = compileScript(compilerPath, libDir,
+  final Future scriptCompiled = compileScript(compilerPath,
                 '$scriptDir/client-$clientScript.dart',
                 '${dartdoc.outputDir}/client-$clientScript.js');
 
@@ -187,8 +187,7 @@ Future copyFiles(String from, String to) {
  * Compiles the given Dart script to a JavaScript file at [jsPath] using the
  * Dart-to-JS compiler located at [compilerPath].
  */
-Future compileScript(String compilerPath, String libDir,
-    String dartPath, String jsPath) {
+Future compileScript(String compilerPath, String dartPath, String jsPath) {
   final completer = new Completer();
   onExit(ProcessResult result) {
     if (result.exitCode != 0) {
@@ -208,11 +207,7 @@ Future compileScript(String compilerPath, String libDir,
   }
 
   print('Compiling $dartPath to $jsPath');
-  var processFuture = Process.run(compilerPath, [
-    '--libdir=$libDir', '--out=$jsPath',
-    '--compile-only', '--enable-type-checks', '--warnings-as-errors',
-    dartPath]);
-
+  var processFuture = Process.run(compilerPath, ['--out=$jsPath', dartPath]);
   processFuture.handleException(onError);
   processFuture.then(onExit);
 
