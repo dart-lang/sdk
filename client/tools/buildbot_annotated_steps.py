@@ -102,7 +102,7 @@ def ProcessTools(mode, name, version):
   print "toolsBuildScript = " + os.path.abspath(toolsBuildScript)
 
   utils = GetUtils()
-  outdir = GetOutDir(utils, mode)
+  outdir = os.path.abspath(GetOutDir(utils, mode))
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
