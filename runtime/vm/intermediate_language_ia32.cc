@@ -647,32 +647,63 @@ void ExtractConstructorInstantiatorComp::EmitNativeCode(
 
 
 LocationSummary* AllocateContextComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_temp(0, Location::RegisterLocation(EDX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
 }
 
 
 void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == EDX);
+  ASSERT(locs()->out().reg() == EAX);
+
+  __ movl(EDX, Immediate(num_context_variables()));
+  const ExternalLabel label("alloc_context",
+                            StubCode::AllocateContextEntryPoint());
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &label,
+                         PcDescriptors::kOther);
 }
 
 
 LocationSummary* ChainContextComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(1, Location::NoLocation());
 }
 
 
 void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+
+  // Chain the new context in context_value to its parent in CTX.
+  __ StoreIntoObject(context_value,
+                     FieldAddress(context_value, Context::parent_offset()),
+                     CTX);
+  // Set new context as current context.
+  __ movl(CTX, context_value);
 }
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
 void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushl(context_value);
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kCloneContextRuntimeEntry);
+  __ popl(result);  // Remove argument.
+  __ popl(result);  // Get result (cloned context).
 }
 
 
