@@ -162,7 +162,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * While generating expressions, we can't insert variable declarations.
    * Instead we declare them at the end of the function
    */
-  final List<String> delayedVariablesDeclaration;
+  final Set<String> delayedVariableDeclarations;
 
   /**
    * Set of variables that have already been declared.
@@ -203,7 +203,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                    this.parameters,
                    this.parameterNames)
     : declaredVariables = new Set<String>(),
-      delayedVariablesDeclaration = new List<String>(),
+      delayedVariableDeclarations = new Set<String>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       logicalOperations = new Set<HInstruction>(),
@@ -273,9 +273,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = new SubGraph(graph.entry, graph.exit);
     beginGraph(graph);
     visitBasicBlock(graph.entry);
-    if (!delayedVariablesDeclaration.isEmpty()) {
+    if (!delayedVariableDeclarations.isEmpty()) {
       addIndented("var ");
-      buffer.add(Strings.join(delayedVariablesDeclaration, ', '));
+      buffer.add(Strings.join(
+          new List<String>.from(delayedVariableDeclarations), ', '));
       buffer.add(";\n");
     }
     endGraph(graph);
@@ -463,14 +464,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void declareVariable(String variableName) {
     if (isGeneratingExpression()) {
       if (generationState == STATE_FIRST_DECLARATION) {
-        generationState = STATE_DECLARATION;
         if (!isVariableDeclared(variableName)) {
           declaredVariables.add(variableName);
           buffer.add("var ");
+          generationState = STATE_DECLARATION;
+        } else {
+          generationState = STATE_EXPRESSION;
         }
+
       } else if (!isVariableDeclared(variableName)) {
         if (!isGeneratingDeclaration()) {
-          delayedVariablesDeclaration.add(variableName);
+          delayedVariableDeclarations.add(variableName);
         } else {
           declaredVariables.add(variableName);
         }
