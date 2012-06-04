@@ -4713,10 +4713,9 @@ class _DivElementImpl extends _ElementImpl implements DivElement native "*HTMLDi
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DocumentImpl extends _NodeImpl
-    implements Document
+class _DocumentImpl extends _NodeImpl implements Document
     native "*HTMLDocument"
-    {
+{
 
 
   _DocumentEventsImpl get on() =>
@@ -4810,6 +4809,8 @@ class _DocumentImpl extends _NodeImpl
 
   String queryCommandValue(String command) native;
 
+  _ElementImpl $dom_querySelector(String selectors) native "querySelector";
+
   _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   void webkitCancelFullScreen() native;
@@ -4828,9 +4829,6 @@ class _DocumentImpl extends _NodeImpl
     }
     return $dom_querySelector(selectors);
   }
-
-// TODO(jacobr): autogenerate this method.
-  _ElementImpl $dom_querySelector(String selectors) native "return this.querySelector(selectors);";
 
   ElementList queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
@@ -5100,6 +5098,8 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
     elements.addAll(copy);
   }
 
+  _ElementImpl query(String selectors) => $dom_querySelector(selectors);
+
   ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
@@ -5299,7 +5299,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
-  _ElementImpl query(String selectors) native "querySelector";
+  _ElementImpl $dom_querySelector(String selectors) native "querySelector";
 
   _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
@@ -6022,6 +6022,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   ElementList get elements() => new _ChildrenElementList._wrap(this);
 
+  _ElementImpl query(String selectors) => $dom_querySelector(selectors);
+
   ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
@@ -6172,7 +6174,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void insertAdjacentText(String where, String text) native;
 
-  _ElementImpl query(String selectors) native "querySelector";
+  _ElementImpl $dom_querySelector(String selectors) native "querySelector";
 
   _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
@@ -22565,7 +22567,7 @@ interface Document extends HtmlElement {
   String queryCommandValue(String command);
 
   /** @domName Document.querySelector */
-  Element query(String selectors);
+  Element $dom_querySelector(String selectors);
 
   /** @domName Document.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
@@ -22703,7 +22705,7 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
   ElementEvents get on();
 
   /** @domName DocumentFragment.querySelector */
-  Element query(String selectors);
+  Element $dom_querySelector(String selectors);
 
   /** @domName DocumentFragment.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
@@ -22824,12 +22826,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   AttributeMap get attributes();
   void set attributes(Map<String, String> value);
-
-  /**
-   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
-   *   getElementsByTagNameNS
-   */
-  ElementList queryAll(String selectors);
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
@@ -23023,7 +23019,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   void insertAdjacentText(String where, String text);
 
   /** @domName Element.querySelector */
-  Element query(String selectors);
+  Element $dom_querySelector(String selectors);
 
   /** @domName Element.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
@@ -26921,10 +26917,10 @@ interface NodeSelector {
 
 
   /** @domName NodeSelector.querySelector */
-  Element query(String selectors);
+  Element querySelector(String selectors);
 
   /** @domName NodeSelector.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  NodeList querySelectorAll(String selectors);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
