@@ -2388,10 +2388,7 @@ class HLabeledBlockInformation implements HStatementInformation {
 
 class LoopTypeVisitor extends AbstractVisitor {
   const LoopTypeVisitor();
-  int visitNode(Node node) {
-    // TODO(lrn): Need a compiler object here.
-    compiler.internalError('visitNode should not be called', node: node);
-  }
+  int visitNode(Node node) => HLoopBlockInformation.NOT_A_LOOP;
   int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;
   int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
   int visitDoWhile(DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
@@ -2403,6 +2400,7 @@ class HLoopBlockInformation implements HStatementInformation {
   static final int FOR_LOOP = 1;
   static final int DO_WHILE_LOOP = 2;
   static final int FOR_IN_LOOP = 3;
+  static final int NOT_A_LOOP = -1;
 
   final int kind;
   final HExpressionInformation initializer;
@@ -2472,9 +2470,7 @@ class HAndOrBlockInformation implements HExpressionInformation {
 
   // We don't currently use HAndOrBlockInformation.
   HInstruction get conditionExpression() {
-    // TODO(lrn): Need a compiler object.
-    compiler.internalError('conditionExpression should not be called',
-                           instruction: this);
+    return null;
   }
   bool accept(HExpressionInformationVisitor visitor) =>
     visitor.visitAndOrInfo(this);

@@ -29,13 +29,13 @@ class LiveInterval {
   LiveInterval() : ranges = <LiveRange>[];
 
   /**
-   * Update all ranges that are contained in [start, end[ to
-   * die at [end].
+   * Update all ranges that are contained in [from, to[ to
+   * die at [to].
    */
-  void loopUpdate(int start, int end) {
+  void loopUpdate(int from, int to) {
     for (LiveRange range in ranges) {
-      if (start <= range.start && range.end < end) {
-        range.end = end;
+      if (from <= range.start && range.end < to) {
+        range.end = to;
       }
     }
   }
@@ -441,7 +441,7 @@ class VariableNamer {
       // If the name is null, then the checked input is being
       // generated at use site, and we don't need a name for the check
       // instruction.
-      if (name == null) return;
+      if (name == null) return null;
     } else if (instruction is HParameterValue) {
       HParameterValue parameter = instruction;
       name = parameterNames[parameter.element];
