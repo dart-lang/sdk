@@ -490,55 +490,135 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Class& cls = Class::ZoneHandle(constructor().owner());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
+  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  __ Drop(arguments().length());  // Discard arguments.
 }
 
 
 LocationSummary*
 AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(2, Location::RequiresRegister());
 }
 
 
 void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Class& cls = Class::ZoneHandle(constructor().owner());
+  Register type_arguments = locs()->in(0).reg();
+  Register instantiator_type_arguments = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  __ PushObject(Object::ZoneHandle());
+  __ pushl(Immediate(Smi::RawValue(token_index())));
+  __ PushObject(cls);
+  __ pushl(type_arguments);
+  __ pushl(instantiator_type_arguments);
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kAllocateObjectWithBoundsCheckRuntimeEntry);
+  // Pop instantiator type arguments, type arguments, class, and
+  // source location.
+  __ Drop(4);
+  __ popl(result);  // Pop new instance.
 }
 
 
 LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
 void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ movl(result, FieldAddress(obj, offset_in_bytes()));
 }
 
 
 LocationSummary* StoreVMFieldComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
 }
 
 
 void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value_reg = locs()->in(0).reg();
+  Register dest_reg = locs()->in(1).reg();
+  ASSERT(value_reg == locs()->out().reg());
+
+  __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                     value_reg);
 }
 
 
 LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
 }
 
 
 void InstantiateTypeArgumentsComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instantiator_reg = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Register result_reg = locs()->out().reg();
+
+  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
+  // (or null).
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(instantiator_reg, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  // Instantiate non-null type arguments.
+  if (type_arguments().IsUninstantiatedIdentity()) {
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check instantiator for null (again), because a null instance
+    // will have the wrong class (Null instead of TypeArguments).
+    Label type_arguments_uninstantiated;
+    __ CompareClassId(instantiator_reg, kTypeArguments, temp);
+    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
+    __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
+            Immediate(Smi::RawValue(len)));
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    __ Bind(&type_arguments_uninstantiated);
+  }
+  // A runtime call to instantiate the type arguments is required.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(type_arguments());
+  __ pushl(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kInstantiateTypeArgumentsRuntimeEntry);
+  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+  __ popl(result_reg);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+  ASSERT(instantiator_reg == result_reg);
 }
 
 

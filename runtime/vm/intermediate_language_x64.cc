@@ -885,10 +885,8 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TypeArguments).
     __ CompareClassId(instantiator_reg, kTypeArguments);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    Immediate arguments_length =
-        Immediate(Smi::RawValue(type_arguments().Length()));
     __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-        arguments_length);
+            Immediate(Smi::RawValue(len)));
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
     __ Bind(&type_arguments_uninstantiated);
   }
