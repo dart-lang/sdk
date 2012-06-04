@@ -1637,7 +1637,7 @@ class SsaBuilder implements Visitor {
     //   } else {
     //     t2 = t0;
     //   }
-    //   result = phi(t1, t2);
+    //   result = phi(t1, false);
     //
     // x || y is transformed into:
     //   t0 = boolify(x);
@@ -1646,7 +1646,7 @@ class SsaBuilder implements Visitor {
     //   } else {
     //     t2 = t0;
     //   }
-    //   result = phi(t1, t2);
+    //   result = phi(t1, true);
     HInstruction boolifiedLeft;
     HInstruction boolifiedRight;
 
@@ -1670,7 +1670,7 @@ class SsaBuilder implements Visitor {
 
     handleIf(visitCondition, visitThen, null);
     HPhi result = new HPhi.manyInputs(null,
-        <HInstruction>[boolifiedRight, boolifiedLeft]);
+        <HInstruction>[boolifiedRight, graph.addConstantBool(!isAnd)]);
     current.addPhi(result);
     stack.add(result);
   }

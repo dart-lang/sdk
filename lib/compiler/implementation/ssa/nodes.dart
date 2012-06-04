@@ -926,6 +926,8 @@ class HInstruction implements Hashable {
   bool isConstantString() => false;
   bool isConstantList() => false;
   bool isConstantMap() => false;
+  bool isConstantFalse() => false;
+  bool isConstantTrue() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1748,6 +1750,8 @@ class HConstant extends HInstruction {
   bool isConstantString() => constant.isString();
   bool isConstantList() => constant.isList();
   bool isConstantMap() => constant.isMap();
+  bool isConstantFalse() => constant.isFalse();
+  bool isConstantTrue() => constant.isTrue();
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
