@@ -1000,10 +1000,10 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   void visitBasicBlock(HBasicBlock block) {
     List<HBasicBlock> successors = block.successors;
 
-    // Phase 1: get the ValueSet of all successors, compute the
-    // intersection and move the instructions of the intersection into
-    // this block.
-    if (successors.length != 0) {
+    // Phase 1: get the ValueSet of all successors (if there are more than one),
+    // compute the intersection and move the instructions of the intersection
+    // into this block.
+    if (successors.length > 1) {
       ValueSet instructions = values[successors[0].id];
       for (int i = 1; i < successors.length; i++) {
         ValueSet other = values[successors[i].id];

@@ -475,9 +475,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (!isVariableDeclared(variableName)) {
         if (!isGeneratingDeclaration()) {
           delayedVariableDeclarations.add(variableName);
-        } else {
-          declaredVariables.add(variableName);
         }
+        // No matter if we are declaring the variable now or if we are
+        // delaying the declaration we can treat the variable as
+        // being declared from this point on.
+        declaredVariables.add(variableName);
       }
     } else if (!isVariableDeclared(variableName)) {
       declaredVariables.add(variableName);
@@ -490,6 +492,55 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     declareVariable(variableNames.getName(instruction));
   }
 
+  // For simple updates of the form 'i = i op constant' generate
+  // 'i op= constant' instead.
+  bool handleSimpleUpdateDefinition(HInstruction instruction, String name) {
+    // If the variable is not declared the short update syntax cannot
+    // be used since it is a declaration and not an update.
+    if (!isVariableDeclared(name)) return false;
+
+    // Check that the operation is one of +, *, - or /. Record whether
+    // or not the operation is commutative.
+    var isCommutative = false;
+    if (instruction is HAdd || instruction is HMultiply) {
+      isCommutative = true;
+    } else if (instruction is !HSubtract && instruction is !HDivide) {
+      return false;
+    }
+
+    // Is it a builtin operation involving constant numbers?
+    if (instruction.builtin && instruction.inputs.length == 3) {
+      var left = instruction.inputs[1];
+      var right = instruction.inputs[2];
+      if (left.isConstantNumber() && isCommutative) {
+        var tmp = right;
+        right = left;
+        left = tmp;
+      } else if (!right.isConstantNumber()) {
+        return false;
+      }
+      // Right is constant number.
+      var value = right.constant.value;
+      // Check that left has the same name as the definition and emit
+      // the short update definition if it is.
+      if (variableNames.getName(left) == name) {
+        if (instruction is HAdd && right.constant.value == 1) {
+          buffer.add('++');
+          declareInstruction(instruction);
+        } else if (instruction is HSubtract && right.constant.value == 1) {
+          buffer.add('--');
+          declareInstruction(instruction);
+        } else {
+          var operation = instruction.operation.name;
+          declareInstruction(instruction);
+          buffer.add(' ${operation}= ${value}');
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   void define(HInstruction instruction) {
     if (isGeneratingExpression()) {
       addExpressionSeparator();
@@ -497,9 +548,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       addIndentation();
     }
     if (instruction is !HCheck && variableNames.hasName(instruction)) {
-      declareInstruction(instruction);
-      buffer.add(" = ");
-      visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      var name = variableNames.getName(instruction);
+      if (!handleSimpleUpdateDefinition(instruction, name)) {
+        declareInstruction(instruction);
+        buffer.add(" = ");
+        visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      }
     } else {
       visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
     }
@@ -897,7 +951,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitAssignment(String destination, String source) {
-    if (isGeneratingExpression()) { 
+    if (isGeneratingExpression()) {
       addExpressionSeparator();
     } else {
       addIndentation();
