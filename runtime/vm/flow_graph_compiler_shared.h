@@ -102,8 +102,42 @@ class FlowGraphCompilerShared : public ValueObject {
   void FinalizePcDescriptors(const Code& code);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
+  void FinalizeComments(const Code& code);
+
+  void GenerateInstanceCall(intptr_t cid,
+                            intptr_t token_index,
+                            intptr_t try_index,
+                            const String& function_name,
+                            intptr_t argument_count,
+                            const Array& argument_names,
+                            intptr_t checked_argument_count);
+  void GenerateStaticCall(intptr_t cid,
+                          intptr_t token_index,
+                          intptr_t try_index,
+                          const Function& function,
+                          intptr_t argument_count,
+                          const Array& argument_names);
 
   void GenerateDeferredCode();
+
+
+  // Returns 'true' if code generation for this function is complete, i.e.,
+  // no fall-through to regular code is needed.
+  bool TryIntrinsify();
+  virtual void GenerateInlinedGetter(intptr_t offset) = 0;
+  virtual void GenerateInlinedSetter(intptr_t offset) = 0;
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  virtual intptr_t EmitInstanceCall(ExternalLabel* target_label,
+                                    const ICData& ic_data,
+                                    const Array& arguments_descriptor,
+                                    intptr_t argument_count) = 0;
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  virtual intptr_t EmitStaticCall(const Function& function,
+                                  const Array& arguments_descriptor,
+                                  intptr_t argument_count) = 0;
+
 
   struct BlockInfo : public ZoneAllocated {
    public:
@@ -113,6 +147,9 @@ class FlowGraphCompilerShared : public ValueObject {
   };
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
+
+  // Bail out of the flow graph compiler. Does not return to the caller.
+  void Bailout(const char* reason);
 
  private:
   // Map a block number in a forward iteration into the block number in the

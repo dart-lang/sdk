@@ -234,13 +234,13 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  cid(),
                                  token_index(),
                                  try_index());
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name(),
-                             ArgumentCount(),
-                             argument_names(),
-                             checked_argument_count());
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name(),
+                                 ArgumentCount(),
+                                 argument_names(),
+                                 checked_argument_count());
 }
 
 
@@ -251,11 +251,12 @@ LocationSummary* StaticCallComp::MakeLocationSummary() const {
 
 void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
-  compiler->EmitStaticCall(token_index(),
-                           try_index(),
-                           function(),
-                           ArgumentCount(),
-                           argument_names());
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               function(),
+                               ArgumentCount(),
+                               argument_names());
 }
 
 

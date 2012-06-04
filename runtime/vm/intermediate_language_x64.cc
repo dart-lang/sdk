@@ -303,13 +303,13 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  cid(),
                                  token_index(),
                                  try_index());
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name(),
-                             ArgumentCount(),
-                             argument_names(),
-                             checked_argument_count());
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name(),
+                                 ArgumentCount(),
+                                 argument_names(),
+                                 checked_argument_count());
 }
 
 
@@ -320,11 +320,12 @@ LocationSummary* StaticCallComp::MakeLocationSummary() const {
 
 void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
-  compiler->EmitStaticCall(token_index(),
-                           try_index(),
-                           function(),
-                           ArgumentCount(),
-                           argument_names());
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               function(),
+                               ArgumentCount(),
+                               argument_names());
 }
 
 
@@ -473,13 +474,13 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
 
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             operator_name,
-                             kNumberOfArguments,
-                             kNoArgumentNames,
-                             kNumArgumentsChecked);
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 operator_name,
+                                 kNumberOfArguments,
+                                 kNoArgumentNames,
+                                 kNumArgumentsChecked);
   __ Bind(&done);
 }
 
@@ -538,13 +539,13 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(value);
   const intptr_t kNumArguments = 3;
   const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name,
-                             kNumArguments,
-                             Array::ZoneHandle(),  // No optional arguments.
-                             kNumArgsChecked);
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
 }
 
 
@@ -570,13 +571,13 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(value);
   __ pushq(receiver);
   __ pushq(value);
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name,
-                             2,
-                             Array::ZoneHandle(),
-                             1);
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 2,
+                                 Array::ZoneHandle(),
+                                 1);
   __ popq(result);
 }
 
@@ -598,11 +599,12 @@ void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // TODO(fschneider): Avoid preserving the value if the result is not used.
   __ pushq(value);
   __ pushq(value);
-  compiler->EmitStaticCall(token_index(),
-                           try_index(),
-                           setter_function(),
-                           1,
-                           Array::ZoneHandle());
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               setter_function(),
+                               1,
+                               Array::ZoneHandle());
   __ popq(result);
 }
 

@@ -9,11 +9,8 @@
 
 #include "vm/ast_printer.h"
 #include "vm/compiler_stats.h"
-#include "vm/debugger.h"
 #include "vm/il_printer.h"
-#include "vm/intrinsifier.h"
 #include "vm/locations.h"
-#include "vm/longjump.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -21,11 +18,8 @@ namespace dart {
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_functions);
 
 
@@ -60,94 +54,29 @@ FlowGraphCompiler::FlowGraphCompiler(
                               is_optimizing) {}
 
 
-void FlowGraphCompiler::FinalizeComments(const Code& code) {
-  code.set_comments(assembler()->GetCodeComments());
-}
-
-
-void FlowGraphCompiler::Bailout(const char* reason) {
-  const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
-  const char* function_name = parsed_function().function().ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, function_name, reason);
-  const Error& error = Error::Handle(
-      LanguageError::New(String::Handle(String::New(chars))));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
-}
-
-
 #define __ assembler()->
 
-void FlowGraphCompiler::IntrinsifyGetter() {
+void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // TOS: return address.
   // +1 : receiver.
   // Sequence node has one return node, its input is load field node.
-  const SequenceNode& sequence_node = *parsed_function().node_sequence();
-  ASSERT(sequence_node.length() == 1);
-  ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
-  const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
-  ASSERT(return_node.value()->IsLoadInstanceFieldNode());
-  const LoadInstanceFieldNode& load_node =
-      *return_node.value()->AsLoadInstanceFieldNode();
   __ movl(EAX, Address(ESP, 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, load_node.field().Offset()));
+  __ movl(EAX, FieldAddress(EAX, offset));
   __ ret();
 }
 
 
-void FlowGraphCompiler::IntrinsifySetter() {
+void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   // TOS: return address.
   // +1 : value
   // +2 : receiver.
-  // Sequence node has one store node and one return NULL node.
-  const SequenceNode& sequence_node = *parsed_function().node_sequence();
-  ASSERT(sequence_node.length() == 2);
-  ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
-  ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
-  const StoreInstanceFieldNode& store_node =
-      *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
   __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
-  __ StoreIntoObject(EAX, FieldAddress(EAX, store_node.field().Offset()), EBX);
+  __ StoreIntoObject(EAX, FieldAddress(EAX, offset), EBX);
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, raw_null);
   __ ret();
-}
-
-
-bool FlowGraphCompiler::CanOptimize() {
-  return
-      !FLAG_report_usage_count &&
-      (FLAG_optimization_counter_threshold >= 0) &&
-      !Isolate::Current()->debugger()->IsActive();
-}
-
-
-// Returns 'true' if code generation for this function is complete, i.e.,
-// no fall-through to regular code is needed.
-bool FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimize()) return false;
-  // Intrinsification skips arguments checks, therefore disable if in checked
-  // mode.
-  if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
-    if ((parsed_function().function().kind() == RawFunction::kImplicitGetter)) {
-      IntrinsifyGetter();
-      return true;
-    }
-    if ((parsed_function().function().kind() == RawFunction::kImplicitSetter)) {
-      IntrinsifySetter();
-      return true;
-    }
-  }
-  // Even if an intrinsified version of the function was successfully
-  // generated, it may fall through to the non-intrinsified method body.
-  if (!FLAG_trace_functions) {
-    return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
-  }
-  return false;
 }
 
 
@@ -444,55 +373,29 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 
-void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
-                                         intptr_t token_index,
-                                         intptr_t try_index,
-                                         const String& function_name,
-                                         intptr_t argument_count,
-                                         const Array& argument_names,
-                                         intptr_t checked_argument_count) {
-  ICData& ic_data = ICData::ZoneHandle(ICData::New(parsed_function().function(),
-                                                   function_name,
-                                                   cid,
-                                                   checked_argument_count));
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
+                                             const ICData& ic_data,
+                                             const Array& arguments_descriptor,
+                                             intptr_t argument_count) {
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
 
-  uword label_address = 0;
-  switch (checked_argument_count) {
-    case 1:
-      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
-      break;
-    case 2:
-      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
-  ExternalLabel target_label("InlineCache", label_address);
-  __ call(&target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall, cid, token_index, try_index);
+  __ call(target_label);
+  const intptr_t descr_offset = assembler()->CodeSize();
   __ Drop(argument_count);
+  return descr_offset;
 }
 
 
-void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
-                                       intptr_t try_index,
-                                       const Function& function,
-                                       intptr_t argument_count,
-                                       const Array& argument_names) {
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
+                                           const Array& arguments_descriptor,
+                                           intptr_t argument_count) {
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
-
-  GenerateCall(token_index,
-               try_index,
-               &StubCode::CallStaticFunctionLabel(),
-               PcDescriptors::kFuncCall);
+  __ call(&StubCode::CallStaticFunctionLabel());
+  const intptr_t descr_offset = assembler()->CodeSize();
   __ Drop(argument_count);
+  return descr_offset;
 }
 
 

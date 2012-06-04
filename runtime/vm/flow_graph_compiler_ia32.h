@@ -36,25 +36,24 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
 
   void CompileGraph();
 
-  void FinalizeComments(const Code& code);
-
   void GenerateCallRuntime(intptr_t cid,
                            intptr_t token_index,
                            intptr_t try_index,
                            const RuntimeEntry& entry);
 
-  void EmitInstanceCall(intptr_t cid,
-                        intptr_t token_index,
-                        intptr_t try_index,
-                        const String& function_name,
-                        intptr_t argument_count,
-                        const Array& argument_names,
-                        intptr_t checked_argument_count);
-  void EmitStaticCall(intptr_t token_index,
-                      intptr_t try_index,
-                      const Function& function,
-                      intptr_t argument_count,
-                      const Array& argument_names);
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  virtual intptr_t EmitInstanceCall(ExternalLabel* target_label,
+                                    const ICData& ic_data,
+                                    const Array& arguments_descriptor,
+                                    intptr_t argument_count);
+
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  virtual intptr_t EmitStaticCall(const Function& function,
+                                  const Array& arguments_descriptor,
+                                  intptr_t argument_count);
+
   void GenerateCall(intptr_t token_index,
                     intptr_t try_index,
                     const ExternalLabel* label,
@@ -63,18 +62,13 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
  private:
   friend class DeoptimizationStub;
 
-  // Bail out of the flow graph compiler.  Does not return to the caller.
-  void Bailout(const char* reason);
-
   virtual void VisitBlocks();
 
   void CopyParameters();
   void EmitInstructionPrologue(Instruction* instr);
 
-  bool CanOptimize();
-  bool TryIntrinsify();
-  void IntrinsifyGetter();
-  void IntrinsifySetter();
+  virtual void GenerateInlinedGetter(intptr_t offset);
+  virtual void GenerateInlinedSetter(intptr_t offset);
 
   void EmitComment(Instruction* instr);
   void BailoutOnInstruction(Instruction* instr);

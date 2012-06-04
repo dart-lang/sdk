@@ -33,8 +33,6 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
 
   void CompileGraph();
 
-  void FinalizeComments(const Code& code);
-
   void GenerateCallRuntime(intptr_t cid,
                            intptr_t token_index,
                            intptr_t try_index,
@@ -51,9 +49,6 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
-  // Bail out of the flow graph compiler.  Does not return to the caller.
-  void Bailout(const char* reason);
-
   virtual void VisitBlocks();
 
   void EmitInstructionPrologue(Instruction* instr);
@@ -63,21 +58,18 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
 
   void EmitComment(Instruction* instr);
 
-  // Emit an instance call.
-  void EmitInstanceCall(intptr_t cid,
-                        intptr_t token_index,
-                        intptr_t try_index,
-                        const String& function_name,
-                        intptr_t argument_count,
-                        const Array& argument_names,
-                        intptr_t checked_argument_count);
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  virtual intptr_t EmitInstanceCall(ExternalLabel* target_label,
+                                    const ICData& ic_data,
+                                    const Array& arguments_descriptor,
+                                    intptr_t argument_count);
 
-  // Emit a static call.
-  void EmitStaticCall(intptr_t token_index,
-                      intptr_t try_index,
-                      const Function& function,
-                      intptr_t argument_count,
-                      const Array& argument_names);
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  virtual intptr_t EmitStaticCall(const Function& function,
+                                  const Array& arguments_descriptor,
+                                  intptr_t argument_count);
 
   // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_index,
@@ -136,10 +128,8 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
 
   void CopyParameters();
 
-  bool TryIntrinsify();
-  void IntrinsifyGetter();
-  void IntrinsifySetter();
-  static bool CanOptimize();
+  virtual void GenerateInlinedGetter(intptr_t offset);
+  virtual void GenerateInlinedSetter(intptr_t offset);
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };
