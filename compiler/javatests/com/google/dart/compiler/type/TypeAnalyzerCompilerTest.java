@@ -1399,6 +1399,151 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v1", "String");
   }
 
+  public void test_typesPropagation_ifIsNotType_withElse() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is! String) {",
+        "    var v1 = v;",
+        "  } else {",
+        "    var v2 = v;",
+        "  }",
+        "  var v3 = v;",
+        "}",
+        "");
+    // we don't know type, but not String
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    // we know that String
+    assertInferredElementTypeString(libraryResult, "v2", "String");
+    // again, we don't know after "if"
+    assertInferredElementTypeString(libraryResult, "v3", "<dynamic>");
+  }
+
+  public void test_typesPropagation_ifIsNotType_hasThenReturn() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  var v1 = v;",
+        "  if (v is! String) {",
+        "    return;",
+        "  }",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v2", "String");
+  }
+
+  public void test_typesPropagation_ifIsNotType_hasThenThrow() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is! String) {",
+        "    throw new Exception();",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+  }
+
+  public void test_typesPropagation_ifIsNotType_emptyThen() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is! String) {",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+  }
+  
+  public void test_typesPropagation_ifIsNotType_otherThen() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is! String) {",
+        "    ;",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+  }
+  
+  public void test_typesPropagation_ifIsNotType_hasThenThrow_withCatch() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  try {",
+        "    if (v is! String) {",
+        "      throw new Exception();",
+        "    }",
+        "  } catch (var e) {",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+  }
+  
+  public void test_typesPropagation_ifIsNotType_or() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var p1, var p2) {",
+        "  if (p1 is! int || p2 is! String) {",
+        "    return;",
+        "  }",
+        "  var v1 = p1;",
+        "  var v2 = p2;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "int");
+    assertInferredElementTypeString(libraryResult, "v2", "String");
+  }
+
+  public void test_typesPropagation_ifIsNotType_and() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (v is! String && true) {",
+        "    return;",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+  }
+
+  public void test_typesPropagation_ifIsNotType_not() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (!(v is! String)) {",
+        "    return;",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+  }
+  
+  public void test_typesPropagation_ifIsNotType_not2() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (!!(v is! String)) {",
+        "    return;",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+  }
+
+  public void test_typesPropagation_ifNotIsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (!(v is String)) {",
+        "    return;",
+        "  }",
+        "  var v1 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+  }
+
   public void test_typesPropagation_field_inClass() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",

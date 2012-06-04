@@ -7,13 +7,11 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/compiler_stats.h"
-#include "vm/debugger.h"
 #include "vm/il_printer.h"
-#include "vm/intrinsifier.h"
 #include "vm/locations.h"
-#include "vm/longjump.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -21,45 +19,12 @@ namespace dart {
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_functions);
 
 
-class DeoptimizationStub : public ZoneAllocated {
- public:
-  DeoptimizationStub(intptr_t deopt_id,
-                     intptr_t deopt_token_index,
-                     intptr_t try_index,
-                     DeoptReasonId reason)
-      : deopt_id_(deopt_id),
-        deopt_token_index_(deopt_token_index),
-        try_index_(try_index),
-        reason_(reason),
-        registers_(2),
-        entry_label_() {}
-
-  void Push(Register reg) { registers_.Add(reg); }
-  Label* entry_label() { return &entry_label_; }
-
-  void GenerateCode(FlowGraphCompiler* compiler);
-
- private:
-  const intptr_t deopt_id_;
-  const intptr_t deopt_token_index_;
-  const intptr_t try_index_;
-  const DeoptReasonId reason_;
-  GrowableArray<Register> registers_;
-  Label entry_label_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
-};
-
-
-void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
+void DeoptimizationStub::GenerateCode(FlowGraphCompilerShared* compiler) {
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -84,140 +49,35 @@ FlowGraphCompiler::FlowGraphCompiler(
     const ParsedFunction& parsed_function,
     const GrowableArray<BlockEntryInstr*>& block_order,
     bool is_optimizing)
-    : FlowGraphVisitor(block_order),
-      assembler_(assembler),
-      parsed_function_(parsed_function),
-      block_info_(block_order.length()),
-      current_block_(NULL),
-      pc_descriptors_list_(NULL),
-      stackmap_builder_(NULL),
-      exception_handlers_list_(NULL),
-      deopt_stubs_(),
-      is_optimizing_(is_optimizing) {
-}
+    : FlowGraphCompilerShared(assembler,
+                              parsed_function,
+                              block_order,
+                              is_optimizing) {}
 
 
-void FlowGraphCompiler::InitCompiler() {
-  pc_descriptors_list_ = new DescriptorList();
-  exception_handlers_list_ = new ExceptionHandlerList();
-  block_info_.Clear();
-  for (int i = 0; i < block_order_.length(); ++i) {
-    block_info_.Add(new BlockInfo());
-  }
-}
+#define __ assembler()->
 
-
-FlowGraphCompiler::~FlowGraphCompiler() {
-  // BlockInfos are zone-allocated, so their destructors are not called.
-  // Verify the labels explicitly here.
-  for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
-    ASSERT(!block_info_[i]->label.HasNear());
-  }
-}
-
-
-intptr_t FlowGraphCompiler::StackSize() const {
-  return parsed_function_.stack_local_count() +
-      parsed_function_.copied_parameter_count();
-}
-
-
-void FlowGraphCompiler::Bailout(const char* reason) {
-  const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
-  const char* function_name = parsed_function_.function().ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, function_name, reason);
-  const Error& error = Error::Handle(
-      LanguageError::New(String::Handle(String::New(chars))));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
-}
-
-
-// Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
-                                             intptr_t cid,
-                                             intptr_t token_index,
-                                             intptr_t try_index) {
-  pc_descriptors_list_->AddDescriptor(kind,
-                                      assembler_->CodeSize(),
-                                      cid,
-                                      token_index,
-                                      try_index);
-}
-
-#define __ assembler_->
-
-void FlowGraphCompiler::IntrinsifyGetter() {
+void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // TOS: return address.
   // +1 : receiver.
   // Sequence node has one return node, its input is load field node.
-  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
-  ASSERT(sequence_node.length() == 1);
-  ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
-  const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
-  ASSERT(return_node.value()->IsLoadInstanceFieldNode());
-  const LoadInstanceFieldNode& load_node =
-      *return_node.value()->AsLoadInstanceFieldNode();
   __ movl(EAX, Address(ESP, 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, load_node.field().Offset()));
+  __ movl(EAX, FieldAddress(EAX, offset));
   __ ret();
 }
 
 
-void FlowGraphCompiler::IntrinsifySetter() {
+void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   // TOS: return address.
   // +1 : value
   // +2 : receiver.
-  // Sequence node has one store node and one return NULL node.
-  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
-  ASSERT(sequence_node.length() == 2);
-  ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
-  ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
-  const StoreInstanceFieldNode& store_node =
-      *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
   __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
-  __ StoreIntoObject(EAX, FieldAddress(EAX, store_node.field().Offset()), EBX);
+  __ StoreIntoObject(EAX, FieldAddress(EAX, offset), EBX);
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, raw_null);
   __ ret();
-}
-
-
-bool FlowGraphCompiler::CanOptimize() {
-  return
-      !FLAG_report_usage_count &&
-      (FLAG_optimization_counter_threshold >= 0) &&
-      !Isolate::Current()->debugger()->IsActive();
-}
-
-
-// Returns 'true' if code generation for this function is complete, i.e.,
-// no fall-through to regular code is needed.
-bool FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimize()) return false;
-  // Intrinsification skips arguments checks, therefore disable if in checked
-  // mode.
-  if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
-      IntrinsifyGetter();
-      return true;
-    }
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter)) {
-      IntrinsifySetter();
-      return true;
-    }
-  }
-  // Even if an intrinsified version of the function was successfully
-  // generated, it may fall through to the non-intrinsified method body.
-  if (!FLAG_trace_functions) {
-    return Intrinsifier::Intrinsify(parsed_function_.function(), assembler_);
-  }
-  return false;
 }
 
 
@@ -231,11 +91,11 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
 
 
 void FlowGraphCompiler::CopyParameters() {
-  const Function& function = parsed_function_.function();
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
+  const Function& function = parsed_function().function();
+  LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
-  ASSERT(parsed_function_.first_parameter_index() ==
+  ASSERT(parsed_function().first_parameter_index() ==
          ParsedFunction::kFirstLocalSlotIndex);
   // Copy positional arguments.
   // Check that no fewer than num_fixed_params positional arguments are passed
@@ -334,7 +194,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ Bind(&load_default_value);
     // Load EAX with default argument at pos.
     const Object& value = Object::ZoneHandle(
-        parsed_function_.default_parameter_values().At(
+        parsed_function().default_parameter_values().At(
             param_pos - num_fixed_params));
     __ LoadObject(EAX, value);
     __ Bind(&assign_optional_parameter);
@@ -430,12 +290,12 @@ void FlowGraphCompiler::CompileGraph() {
     return;
   }
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
-  const Function& function = parsed_function_.function();
+  const Function& function = parsed_function().function();
 
   const int parameter_count = function.num_fixed_parameters();
-  const int num_copied_params = parsed_function_.copied_parameter_count();
-  const int local_count = parsed_function_.stack_local_count();
-  AssemblerMacros::EnterDartFrame(assembler_, (StackSize() * kWordSize));
+  const int num_copied_params = parsed_function().copied_parameter_count();
+  const int local_count = parsed_function().stack_local_count();
+  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
@@ -471,7 +331,7 @@ void FlowGraphCompiler::CompileGraph() {
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movl(EAX, raw_null);
-    const int base = parsed_function_.first_stack_local_index();
+    const int base = parsed_function().first_stack_local_index();
     for (int i = 0; i < local_count; ++i) {
       // Subtract index i (locals lie at lower addresses than EBP).
       __ movl(Address(EBP, (base - i) * kWordSize), EAX);
@@ -496,7 +356,7 @@ void FlowGraphCompiler::CompileGraph() {
       // Second printing.
       OS::Print("Annotated ");
     }
-    AstPrinter::PrintFunctionScope(parsed_function_);
+    AstPrinter::PrintFunctionScope(parsed_function());
   }
 
   VisitBlocks();
@@ -505,8 +365,8 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
-  pc_descriptors_list_->AddDescriptor(PcDescriptors::kPatchCode,
-                                      assembler_->CodeSize(),
+  pc_descriptors_list()->AddDescriptor(PcDescriptors::kPatchCode,
+                                      assembler()->CodeSize(),
                                       AstNode::kNoId,
                                       0,
                                       -1);
@@ -514,55 +374,29 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 
-void FlowGraphCompiler::EmitInstanceCall(intptr_t cid,
-                                         intptr_t token_index,
-                                         intptr_t try_index,
-                                         const String& function_name,
-                                         intptr_t argument_count,
-                                         const Array& argument_names,
-                                         intptr_t checked_argument_count) {
-  ICData& ic_data = ICData::ZoneHandle(ICData::New(parsed_function_.function(),
-                                                   function_name,
-                                                   cid,
-                                                   checked_argument_count));
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
+                                             const ICData& ic_data,
+                                             const Array& arguments_descriptor,
+                                             intptr_t argument_count) {
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
 
-  uword label_address = 0;
-  switch (checked_argument_count) {
-    case 1:
-      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
-      break;
-    case 2:
-      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
-  ExternalLabel target_label("InlineCache", label_address);
-  __ call(&target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall, cid, token_index, try_index);
+  __ call(target_label);
+  const intptr_t descr_offset = assembler()->CodeSize();
   __ Drop(argument_count);
+  return descr_offset;
 }
 
 
-void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
-                                       intptr_t try_index,
-                                       const Function& function,
-                                       intptr_t argument_count,
-                                       const Array& argument_names) {
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
+                                           const Array& arguments_descriptor,
+                                           intptr_t argument_count) {
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
-
-  GenerateCall(token_index,
-               try_index,
-               &StubCode::CallStaticFunctionLabel(),
-               PcDescriptors::kFuncCall);
+  __ call(&StubCode::CallStaticFunctionLabel());
+  const intptr_t descr_offset = assembler()->CodeSize();
   __ Drop(argument_count);
+  return descr_offset;
 }
 
 
@@ -575,10 +409,176 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_index,
 }
 
 
-void FlowGraphCompiler::GenerateDeferredCode() {
-  for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
-    deopt_stubs_[i]->GenerateCode(this);
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
+// - NULL -> return false.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - EAX: object.
+// - EDX: instantiator type arguments or raw_null.
+// - ECX: instantiator or raw_null.
+// Returns:
+// - true or false in EAX.
+void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
+                                          intptr_t token_index,
+                                          intptr_t try_index,
+                                          const AbstractType& type,
+                                          bool negate_result) {
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label is_instance, is_not_instance;
+  __ pushl(ECX);  // Store instantiator on stack.
+  __ pushl(EDX);  // Store instantiator type arguments.
+  // If type is instantiated and non-parameterized, we can inline code
+  // checking whether the tested instance is a Smi.
+  if (type.IsInstantiated()) {
+    // A null object is only an instance of Object and Dynamic, which has
+    // already been checked above (if the type is instantiated). So we can
+    // return false here if the instance is null (and if the type is
+    // instantiated).
+    // We can only inline this null check if the type is instantiated at compile
+    // time, since an uninstantiated type at compile time could be Object or
+    // Dynamic at run time.
+    __ cmpl(EAX, raw_null);
+    __ j(EQUAL, &is_not_instance);
   }
+  // TODO(srdjan): Enable inlined checks.
+  // Generate inline instanceof test.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  // test_cache = GenerateInlineInstanceof(cid, token_index, type,
+  //                                       &is_instance, &is_not_instance);
+
+  // Generate runtime call.
+  __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
+  __ pushl(EAX);  // Push the instance.
+  __ PushObject(type);  // Push the type.
+  __ pushl(ECX);  // TODO(srdjan): Pass instantiator instead of null.
+  __ pushl(EDX);  // Instantiator type arguments.
+  __ LoadObject(EAX, test_cache);
+  __ pushl(EAX);
+  GenerateCallRuntime(cid, token_index, try_index, kInstanceofRuntimeEntry);
+  // Pop the two parameters supplied to the runtime entry. The result of the
+  // instanceof runtime call will be left as the result of the operation.
+  __ Drop(7);
+  Label done;
+  if (negate_result) {
+    __ popl(EDX);
+    __ LoadObject(EAX, bool_true);
+    __ cmpl(EDX, EAX);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+    __ LoadObject(EAX, bool_false);
+  } else {
+    __ popl(EAX);
+  }
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&is_not_instance);
+  __ LoadObject(EAX, negate_result ? bool_true : bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&is_instance);
+  __ LoadObject(EAX, negate_result ? bool_false : bool_true);
+  __ Bind(&done);
+  __ popl(EDX);  // Remove pushed instantiator type arguments.
+  __ popl(ECX);  // Remove pushed instantiator.
+}
+
+
+// Optimize assignable type check by adding inlined tests for:
+// - NULL -> return NULL.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - EAX: object.
+// - EDX: instantiator type arguments or raw_null.
+// - ECX: instantiator or raw_null.
+// Returns:
+// - object in EAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
+                                                 intptr_t token_index,
+                                                 intptr_t try_index,
+                                                 const AbstractType& dst_type,
+                                                 const String& dst_name) {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(token_index >= 0);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+  // Assignable check is skipped in FlowGraphBuilder, not here.
+  ASSERT(dst_type.IsMalformed() ||
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  ASSERT(!dst_type.IsVoidType());
+  __ pushl(ECX);  // Store instantiator.
+  __ pushl(EDX);  // Store instantiator type arguments.
+  // A null object is always assignable and is returned as result.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label is_assignable, runtime_call;
+  __ cmpl(EAX, raw_null);
+  __ j(EQUAL, &is_assignable);
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+    __ pushl(EAX);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(cid,
+                        token_index,
+                        try_index,
+                        kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+
+    __ Bind(&is_assignable);  // For a null object.
+    return;
+  }
+
+  // TODO(srdjan): Enable subtype test cache.
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  // test_cache = GenerateInlineInstanceof(cid, token_index, dst_type,
+  //                                       &is_assignable, &runtime_call);
+
+  __ Bind(&runtime_call);
+  __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
+  __ pushl(EAX);  // Push the source object.
+  __ PushObject(dst_type);  // Push the type of the destination.
+  __ pushl(ECX);  // Instantiator.
+  __ pushl(EDX);  // Instantiator type arguments.
+  __ PushObject(dst_name);  // Push the name of the destination.
+  __ LoadObject(EAX, test_cache);
+  __ pushl(EAX);
+  GenerateCallRuntime(cid,
+                      token_index,
+                      try_index,
+                      kTypeCheckRuntimeEntry);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(8);
+  __ popl(EAX);
+
+  __ Bind(&is_assignable);
+  __ popl(EDX);  // Remove pushed instantiator type arguments..
+  __ popl(ECX);  // Remove pushed instantiator.
 }
 
 
@@ -614,11 +614,12 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::VisitBlocks() {
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+  for (intptr_t i = 0; i < block_order().length(); ++i) {
     __ Comment("B%d", i);
     // Compile the block entry.
-    current_block_ = block_order_[i];
-    Instruction* instr = current_block()->Accept(this);
+    set_current_block(block_order()[i]);
+    current_block()->PrepareEntry(this);
+    Instruction* instr = current_block()->StraightLineSuccessor();
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       if (FLAG_code_comments) EmitComment(instr);
@@ -635,53 +636,12 @@ void FlowGraphCompiler::VisitBlocks() {
     if (successor != NULL) {
       // Block ended with a "goto".  We can fall through if it is the
       // next block in the list.  Otherwise, we need a jump.
-      if ((i == block_order_.length() - 1) ||
-          (block_order_[i + 1] != successor)) {
-        __ jmp(&block_info_[successor->postorder_number()]->label);
+      if ((i == block_order().length() - 1) ||
+          (block_order()[i + 1] != successor)) {
+        __ jmp(GetBlockLabel(successor));
       }
     }
   }
-}
-
-
-void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
-  ASSERT(pc_descriptors_list_ != NULL);
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  descriptors.Verify(parsed_function_.function().is_optimizable());
-  code.set_pc_descriptors(descriptors);
-}
-
-
-void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
-  if (stackmap_builder_ == NULL) {
-    // The unoptimizing compiler has no stack maps.
-    code.set_stackmaps(Array::Handle());
-  } else {
-    // Finalize the stack map array and add it to the code object.
-    code.set_stackmaps(
-        Array::Handle(stackmap_builder_->FinalizeStackmaps(code)));
-  }
-}
-
-
-void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
-  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
-          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
-  code.set_var_descriptors(var_descs);
-}
-
-
-void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
-  ASSERT(exception_handlers_list_ != NULL);
-  const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
-      exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
-  code.set_exception_handlers(handlers);
-}
-
-
-void FlowGraphCompiler::FinalizeComments(const Code& code) {
-  code.set_comments(assembler_->GetCodeComments());
 }
 
 #undef __

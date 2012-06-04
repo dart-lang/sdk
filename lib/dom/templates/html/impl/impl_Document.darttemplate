@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class $CLASSNAME extends _NodeImpl
-    implements Document
+class $CLASSNAME extends _NodeImpl implements Document
 $if FROG
     native "*HTMLDocument"
 $endif
-    {
+{
 
 $!MEMBERS
   // TODO(jacobr): implement all Element methods not on Document. 
@@ -20,13 +19,6 @@ $!MEMBERS
     }
     return $dom_querySelector(selectors);
   }
-
-// TODO(jacobr): autogenerate this method.
-$if FROG
-  _ElementImpl $dom_querySelector(String selectors) native "return this.querySelector(selectors);";
-$else
-  _ElementImpl $dom_querySelector(String selectors) native "Document_querySelector_Callback";
-$endif
 
   ElementList queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {

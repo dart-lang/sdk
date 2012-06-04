@@ -67,7 +67,6 @@ void main() {
   }
 
   final frogPath = joinPaths(doc.scriptDir, '../../frog/');
-  final libDir = joinPaths(frogPath, 'lib');
 
   if (compilerPath === null) {
     compilerPath = joinPaths(frogPath, 'frog.py');
@@ -80,7 +79,7 @@ void main() {
 
   final clientScript = (mode == doc.MODE_STATIC) ?
       'static' : 'live-nav';
-  final Future scriptCompiled = doc.compileScript(compilerPath, libDir,
+  final Future scriptCompiled = doc.compileScript(compilerPath,
       '${doc.scriptDir}/../../lib/dartdoc/client-$clientScript.dart',
       '${outputDir}/client-$clientScript.js');
 

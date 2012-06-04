@@ -22,7 +22,9 @@ _private_html_members = set([
   'Document.getElementsByClassName',
   'Document.getElementsByName',
   'Document.getElementsByTagName',
+  'Document.querySelector',
   'Document.querySelectorAll',
+  'DocumentFragment.querySelector',
   'DocumentFragment.querySelectorAll',
   'Element.childElementCount',
   'Element.children',
@@ -43,6 +45,7 @@ _private_html_members = set([
   'Element.offsetLeft',
   'Element.offsetTop',
   'Element.offsetWidth',
+  'Element.querySelector',
   'Element.querySelectorAll',
   'Element.removeAttribute',
   'Element.scrollHeight',
@@ -63,7 +66,6 @@ _private_html_members = set([
   "Node.nodeType",
   'Node.removeChild',
   'Node.replaceChild',
-  'NodeSelector.querySelectorAll',
   'Storage.length',
   'Storage.clear',
   'Storage.getItem',
@@ -77,9 +79,6 @@ _private_html_members = set([
 # identical functionality but with cleaner names.
 _html_library_renames = {
     'Document.defaultView': 'window',
-    'DocumentFragment.querySelector': 'query',
-    'NodeSelector.querySelector': 'query',
-    'Element.querySelector': 'query',
     'Element.webkitMatchesSelector' : 'matchesSelector',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Node.cloneNode': 'clone',
@@ -257,7 +256,6 @@ _html_library_remove = set([
     ])
 
 _html_library_custom = set([
-    'Document.querySelector',
     'IFrameElement.get:contentWindow',
     'Window.get:document',
     'Window.get:top',

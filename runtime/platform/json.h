@@ -117,6 +117,7 @@ class TextBuffer : ValueObject {
   ~TextBuffer();
 
   intptr_t Printf(const char* format, ...);
+  void PrintJsonString8(const uint8_t* codepoints, intptr_t length);
 
   void Clear();
 

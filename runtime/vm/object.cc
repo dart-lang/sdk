@@ -277,7 +277,9 @@ void Object::InitOnce() {
 
     Class fake;
     // Initialization from Class::New<Class>.
-    cls = class_class_;
+    // Directly set raw_ to break a circular dependency: SetRaw will attempt
+    // to lookup class class in the class table where it is not registered yet.
+    cls.raw_ = class_class_;
     cls.set_handle_vtable(fake.vtable());
     cls.set_instance_size(Class::InstanceSize());
     cls.set_next_field_offset(Class::InstanceSize());

@@ -29,7 +29,7 @@ class SsaInstructionMerger extends HBaseVisitor {
       if (!generateAtUseSite.contains(input)
           && !input.isCodeMotionInvariant()
           && input.usedBy.length == 1
-          && input is! HPhi) {
+          && input is !HPhi) {
         expectedInputs.add(input);
       }
     }
@@ -133,190 +133,89 @@ class SsaInstructionMerger extends HBaseVisitor {
  */
 class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> generateAtUseSite;
-  Map<HPhi, String> logicalOperations;
+  Set<HInstruction> logicalOperations;
 
   SsaConditionMerger(this.generateAtUseSite, this.logicalOperations);
 
   void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
+    visitPostDominatorTree(graph);
   }
 
   /**
-   * Returns true if the given instruction is an expression that uses up all
-   * instructions up to the given [limit].
-   *
-   * That is, all instructions starting after the [limit] block (at the branch
-   * leading to the [instruction]) down to the given [instruction] can be
-   * generated at use-site.
+   * Check if a block has at least one statement other than
+   * [instruction].
    */
-  bool isExpression(HInstruction instruction, HBasicBlock limit) {
-    HBasicBlock block = instruction.block;
-    if (instruction is HPhi) {
-      if (!logicalOperations.containsKey(instruction)) {
-        return false;
-      }
-    } else {
-      while (instruction.previous != null) {
-        instruction = instruction.previous;
-        if (!generateAtUseSite.contains(instruction)) {
-          return false;
-        }
-      }
-      // Now [instruction] is the first instruction of the block
-      // (aka [block.first]). If there are also a phi, check the current
-      // [instruction] normally and make [instruction] be the phi.
-      if (!block.phis.isEmpty()) {
-        if (!generateAtUseSite.contains(instruction)) {
-          return false;
-        }
-        instruction = block.phis.last;
-        if (block.phis.first !== instruction) {
-          // If there is more than one phi, don't try to undestand it.
-          return false;
-        }
-        if (!logicalOperations.containsKey(instruction)) {
-          return false;
-        }
-      }
-    }
-    if (instruction is HPhi) {
-      assert(logicalOperations.containsKey(instruction));
-      return isExpression(instruction.inputs[0], limit);
-    }
-    if (block.predecessors.length !== 1) {
-      return false;
-    }
-    HBasicBlock previousBlock = block.predecessors[0];
-    if (previousBlock === limit) return true;
-    if (previousBlock.successors.length !== 1 ||
-        previousBlock.last is! HGoto) {
-      return false;
-    }
-    return isExpression(previousBlock.last, limit);
-  }
+  bool hasStatement(HBasicBlock block, HInstruction instruction) {
+    // If [instruction] is not in [block], then if the block is not
+    // empty, we know there will be a statement to emit.
+    if (instruction.block !== block) return block.last !== block.first;
 
-  void replaceWithLogicalOperator(HPhi phi, String type) {
-    if (canGenerateAtUseSite(phi)) generateAtUseSite.add(phi);
-    logicalOperations[phi] = type;
-    // If the phi corresponds to logical control flow, mark the
-    // control-flow instructions as generate-at-use-site.
-    generateAtUseSite.add(phi.block.predecessors[0].last);
-    generateAtUseSite.add(phi.block.predecessors[1].last);
-    // If the first input is only used as branch condition and result, it too
-    // can be generate-at-use-site.
-    if (phi.inputs[0].usedBy.length == 2) {
-      generateAtUseSite.add(phi.inputs[0]);
-    }
-    if (phi.inputs[1].usedBy.length == 1) {
-      generateAtUseSite.add(phi.inputs[1]);
-    }
-  }
+    // If [instruction] is not the last instruction of the block
+    // before the control flow instruction, then we will have to emit
+    // a statement for that last instruction.
+    if (instruction !== block.last.previous) return true;
 
-  bool canGenerateAtUseSite(HPhi phi) {
-    if (phi.usedBy.length != 1) {
-      return false;
+    // If one of the instructions in the block until [instruction] is
+    // not generated at use site, then we will have to emit a
+    // statement for it.
+    // TODO(ngeoffray): we could generate a comma separated
+    // list of expressions.
+    for (HInstruction temp = block.first;
+         temp !== instruction;
+         temp = temp.next) {
+      if (!generateAtUseSite.contains(temp)) return true;
     }
-    assert(phi.next == null);
-    HInstruction use = phi.usedBy[0];
 
-    HInstruction current = phi.block.first;
-    while (current != use) {
-      // Check that every instruction between the start of the block and the
-      // use of the phi (i.e., every instruction between the phi and the use)
-      // is itself generated at use site. That means that the phi can be
-      // moved to its use site without crossing any other code, because those
-      // instructions (if any) are moved too.
-      if (current is! HControlFlow && !generateAtUseSite.contains(current)) {
-        return false;
-      }
-      if (current.next != null) {
-        current = current.next;
-      } else if (current is HPhi) {
-        current = current.block.first;
-      } else {
-        assert(current is HControlFlow);
-        if (current is !HGoto) {
-          return false;
-        }
-        HBasicBlock nextBlock = current.block.successors[0];
-        if (!nextBlock.phis.isEmpty()) {
-          current = nextBlock.phis.first;
-        } else {
-          current = nextBlock.first;
-        }
-      }
-    }
-    return true;
-  }
-
-  HInstruction previousInstruction(HInstruction instruction) {
-    if (instruction.previous != null) return instruction.previous;
-    HBasicBlock block = instruction.block;
-    if (instruction is! HPhi) {
-      if (block.phis.last != null) return block.phis.last;
-    }
-    if (block.predecessors.length == 1) {
-      HBasicBlock previousBlock = block.predecessors[0];
-      if (previousBlock.last is HGoto) {
-        assert(previousBlock.successors.length == 1);
-        assert(previousBlock.successors[0] === block);
-        return previousInstruction(previousBlock.last);
-      }
-    }
-    return null;
-  }
-
-  void detectLogicControlFlow(HPhi phi) {
-    // Check for the most common pattern for a short-circuit logic operation:
-    //   B0 b0 = ...; if (b0) goto B1 else B2 (or: if (!b0) goto B2 else B1)
-    //   |\
-    //   | B1 b1 = ...; goto B2
-    //   |/
-    //   B2 b2 = phi(b0,b1); if(b2) ...
-    // TODO(lrn): Also recognize ?:-flow?
-    if (phi.inputs.length != 2) return;
-    HInstruction first = phi.inputs[0];
-    HBasicBlock firstBlock = phi.block.predecessors[0];
-    HInstruction second = phi.inputs[1];
-    HBasicBlock secondBlock = phi.block.predecessors[1];
-    // Check second input of phi being an expression followed by a goto.
-    if (second.usedBy.length != 1) return;
-    HInstruction secondNext =
-        (second is HPhi) ? secondBlock.first : second.next;
-    if (secondNext != secondBlock.last) return;
-    if (secondBlock.last is !HGoto) return;
-    if (secondBlock.successors[0] != phi.block) return;
-    if (!isExpression(second, firstBlock)) return;
-    // Check first input of phi being followed by a (possibly negated)
-    // conditional branch based on the same value.
-    if (firstBlock != phi.block.dominator) return;
-    if (firstBlock.last is! HIf) return;
-    if (firstBlock.successors[1] != phi.block) return;
-    HIf firstBranch = firstBlock.last;
-    HInstruction condition = firstBranch.inputs[0];
-    if (condition === first) {
-      replaceWithLogicalOperator(phi, "&&");
-    } else if (condition is HNot &&
-               condition.inputs[0] == first) {
-      replaceWithLogicalOperator(phi, "||");
-      // If the negation is only used by this logical operation, or only by
-      // logical operators in general, it won't need to be generated.
-      if (!generateAtUseSite.contains(condition)) {
-        for (HInstruction user in condition.usedBy) {
-          if (user is! HIf || !generateAtUseSite.contains(user)) {
-            return;
-          }
-        }
-        generateAtUseSite.add(condition);
-      }
-    }
-    return;
+    return false;
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    if (!block.phis.isEmpty() &&
-        block.phis.first === block.phis.last) {
-      detectLogicControlFlow(block.phis.first);
+    if (block.last is !HIf) return;
+    HIf startIf = block.last;
+    HBasicBlock end = startIf.joinBlock;
+
+    // We check that the structure is the following:
+    //         If
+    //       /    \
+    //      /      \
+    //   1 expr    goto
+    //    goto     /
+    //      \     /
+    //       \   /
+    // phi(expr, true|false)
+    if (end == null) return;
+    if (end.phis.isEmpty()) return;
+    if (end.phis.first !== end.phis.last) return;
+    HBasicBlock thenBlock = startIf.thenBlock;
+    HBasicBlock elseBlock = startIf.elseBlock;
+    if (end.predecessors[0] !== thenBlock) return;
+    if (end.predecessors[1] !== elseBlock) return;
+    HPhi phi = end.phis.first;
+    if (!phi.inputs[1].isConstantBoolean()) return;
+    
+    HInstruction thenInput = phi.inputs[0];
+    if (hasStatement(thenBlock, thenInput)) return;
+    if (elseBlock.first !== elseBlock.last) return;
+    
+    // From now on, we have recognized a logical operation built from
+    // the builder. We don't expect the builder and the optimizers to
+    // generate the then and else branches with multiple successors,
+    // and the join branch to have more than two predecessors.
+
+    // Mark the if instruction as a logical operation.
+    logicalOperations.add(startIf);
+
+    // If the logical operation is only used by the first instruction
+    // of its block, it can be generated at use site.
+    if (phi.usedBy.length == 1 && phi.usedBy[0] === phi.block.first) {
+      generateAtUseSite.add(phi);
+    }
+
+    // If [thenInput] is defined in [thenBlock], then it is only used
+    // by [phi] and can be generated at use site.
+    if (thenInput.block === thenBlock) {
+      assert(thenInput.usedBy.length == 1);
+      generateAtUseSite.add(thenInput);
     }
   }
 }

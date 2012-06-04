@@ -57,6 +57,25 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  // Nothing to do.
+}
+
+
+void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetBlockLabel(this));
+}
+
+
+void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetBlockLabel(this));
+  if (HasTryIndex()) {
+    compiler->AddExceptionHandler(try_index(),
+                                  compiler->assembler()->CodeSize());
+  }
+}
+
+
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
   const int kNumInputs = 0;
   const int kNumTemps = 0;
@@ -94,26 +113,24 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
   const int kNumInputs = 1;
-  const int kNumTemps = 1;
+  const int kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
 
-  __ LoadObject(temp, Bool::ZoneHandle(Bool::True()));
-  __ cmpq(value, temp);
+  __ CompareObject(value, Bool::ZoneHandle(Bool::True()));
   if (compiler->IsNextBlock(false_successor())) {
-    // If the next block is the false sucessor we will fall through to it if
+    // If the next block is the false successor we will fall through to it if
     // comparison with true fails.
     __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
   } else {
-    // If the next block is the true sucessor we negate comparison and fall
+    ASSERT(compiler->IsNextBlock(true_successor()));
+    // If the next block is the true successor we negate comparison and fall
     // through to it.
     __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
   }
@@ -230,6 +247,7 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == Token::kEQ_STRICT) {
     __ j(EQUAL, &load_true, Assembler::kNearJump);
   } else {
+    ASSERT(kind() == Token::kNE_STRICT);
     __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
   }
   __ LoadObject(result, bool_false);
@@ -284,13 +302,13 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  cid(),
                                  token_index(),
                                  try_index());
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name(),
-                             ArgumentCount(),
-                             argument_names(),
-                             checked_argument_count());
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name(),
+                                 ArgumentCount(),
+                                 argument_names(),
+                                 checked_argument_count());
 }
 
 
@@ -301,11 +319,12 @@ LocationSummary* StaticCallComp::MakeLocationSummary() const {
 
 void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
-  compiler->EmitStaticCall(token_index(),
-                           try_index(),
-                           function(),
-                           ArgumentCount(),
-                           argument_names());
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               function(),
+                               ArgumentCount(),
+                               argument_names());
 }
 
 
@@ -454,13 +473,13 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
 
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             operator_name,
-                             kNumberOfArguments,
-                             kNoArgumentNames,
-                             kNumArgumentsChecked);
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 operator_name,
+                                 kNumberOfArguments,
+                                 kNoArgumentNames,
+                                 kNumArgumentsChecked);
   __ Bind(&done);
 }
 
@@ -519,13 +538,13 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(value);
   const intptr_t kNumArguments = 3;
   const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name,
-                             kNumArguments,
-                             Array::ZoneHandle(),  // No optional arguments.
-                             kNumArgsChecked);
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
 }
 
 
@@ -551,13 +570,15 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(value);
   __ pushq(receiver);
   __ pushq(value);
-  compiler->EmitInstanceCall(cid(),
-                             token_index(),
-                             try_index(),
-                             function_name,
-                             2,
-                             Array::ZoneHandle(),
-                             1);
+  const intptr_t kArgumentCount = 2;
+  const intptr_t kCheckedArgumentCount = 1;
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kArgumentCount,
+                                 Array::ZoneHandle(),
+                                 kCheckedArgumentCount);
   __ popq(result);
 }
 
@@ -579,11 +600,12 @@ void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // TODO(fschneider): Avoid preserving the value if the result is not used.
   __ pushq(value);
   __ pushq(value);
-  compiler->EmitStaticCall(token_index(),
-                           try_index(),
-                           setter_function(),
-                           1,
-                           Array::ZoneHandle());
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               setter_function(),
+                               1,
+                               Array::ZoneHandle());
   __ popq(result);
 }
 
@@ -866,10 +888,8 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TypeArguments).
     __ CompareClassId(instantiator_reg, kTypeArguments);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    Immediate arguments_length =
-        Immediate(Smi::RawValue(type_arguments().Length()));
     __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-        arguments_length);
+            Immediate(Smi::RawValue(len)));
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
     __ Bind(&type_arguments_uninstantiated);
   }
@@ -1399,7 +1419,8 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                            instance_call()->try_index(),
                            &label,
                            PcDescriptors::kOther);
-    // Result is in EAX.
+    // Result is in RAX.
+    ASSERT(result != temp);
     __ movq(result, RAX);
     __ popq(temp);
     __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));

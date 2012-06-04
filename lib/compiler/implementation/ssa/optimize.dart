@@ -572,7 +572,20 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Type type = receiver.propagatedType.computeType(compiler);
     if (type === null) return node;
     if (!compiler.world.isOnlyFields(type, node.name)) return node;
-    return new HFieldGet(node.name, node.inputs[0]);
+    ClassElement cls = type.element;
+    if (cls === null) return node;
+    Element element = cls.lookupLocalMember(node.name);
+    // If a subclass overrides a final field then there will be two fields,
+    // and here the final field will be used.
+    if (element === null) return node;
+    Modifiers modifiers = element.modifiers;
+    bool isFinalOrConst = false;
+    if (modifiers != null) {
+      isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
+    }
+    return new HFieldGet(node.name,
+                         node.inputs[0],
+                         isFinalOrConst: isFinalOrConst);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -987,10 +1000,10 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   void visitBasicBlock(HBasicBlock block) {
     List<HBasicBlock> successors = block.successors;
 
-    // Phase 1: get the ValueSet of all successors, compute the
-    // intersection and move the instructions of the intersection into
-    // this block.
-    if (successors.length != 0) {
+    // Phase 1: get the ValueSet of all successors (if there are more than one),
+    // compute the intersection and move the instructions of the intersection
+    // into this block.
+    if (successors.length > 1) {
       ValueSet instructions = values[successors[0].id];
       for (int i = 1; i < successors.length; i++) {
         ValueSet other = values[successors[i].id];

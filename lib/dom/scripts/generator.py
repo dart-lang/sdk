@@ -719,6 +719,7 @@ _idl_type_registry = {
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
     'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int', native_type='unsigned long long'),
     'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
+    'PositionOptions': PrimitiveIDLTypeInfo('PositionOptions', dart_type='Object'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.

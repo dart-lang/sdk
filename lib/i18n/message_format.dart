@@ -38,17 +38,6 @@
 class MessageFormat {
 
   /**
-   * Literal strings, including '', are replaced with \uFDDF_x_ for
-   * parsing purposes, and recovered during format phase.
-   * \uFDDF is a Unicode nonprinting character, not expected to be found in the
-   * typical message.
-   */
-  final String _LITERAL_PLACEHOLDER = '\uFDDF_';
-
-  /** String describing the use case for this message.*/
-  final String _messageDescription;
-
-  /**
    * String that is used to determin the particular case and gender needed to be
    * returned. The format of this string follows the same pattern as in Closure,
    * Java, and C++. This pattern is described at the beginning of this class
@@ -57,11 +46,24 @@ class MessageFormat {
   final String _messageFunction;
 
   /**
-   * Constructor. Accepts a String [_messageDescription] describing the use case
-   * for this string in the program, and a the String [_messageFunction] that is
-   * used to determine the particular case and gender for the given instance.
+   * String indicating a language code with which the message is to be
+   * formatted (such as en-US).
    */
-  const MessageFormat(this._messageDescription, this._messageFunction);
+  final String _locale;
+
+  /**
+   * Constructor. The constructor expects you do provide annotations in comments
+   * above your declaration of this constructor with an @desc describing the
+   * context for the useage of the function. You may also specify @ex to specify
+   * examples of inputs for each particular argument that the [_messageFunction]
+   * accepts. The String [_messageFunction] is used to determine the particular
+   * case and gender for the given instance. An optional [_locale] can be
+   * provided for specifics of the language locale to be used, otherwise, we
+   * will attempt to infer it (acceptable if Dart is running on the client, we
+   * can infer from the browser).
+   */
+  //TODO(efortuna): _locale is not currently inferred.
+  const MessageFormat(this._messageFunction, [this._locale = 'en-US']);
 
   /**
    * Formats a message. By default, we treat '#' with special meaning

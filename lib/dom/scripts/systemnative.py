@@ -770,17 +770,12 @@ class NativeImplementationGenerator(object):
           dart_declaration, 'Callback', True)
       return
 
-    if self._interface.id == 'Document' and info.name == 'querySelector':
-      # Document.querySelector has custom implementation in dart:html.
-      # FIXME: Cleanup query selectors and remove this hack.
-      body = emitter.Emitter()
-    else:
-      body = self._members_emitter.Emit(
-          '\n'
-          '  $DECLARATION {\n'
-          '$!BODY'
-          '  }\n',
-          DECLARATION=dart_declaration)
+    body = self._members_emitter.Emit(
+        '\n'
+        '  $DECLARATION {\n'
+        '$!BODY'
+        '  }\n',
+        DECLARATION=dart_declaration)
 
     self._native_version = 0
     overloads = self.CombineOverloads(info.overloads)

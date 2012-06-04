@@ -430,10 +430,14 @@ void X86Decoder::PrintAddress(uword addr) {
       const Code& code = Code::Handle(Code::LookupCode(addr));
       if (!code.IsNull() && (code.EntryPoint() == addr)) {
         const Function& function = Function::Handle(code.function());
-        const char* name_of_function = function.ToFullyQualifiedCString();
-        Print(" [");
-        Print(name_of_function);
-        Print("]");
+        if (function.IsNull()) {
+          Print(" [ stub ]");
+        } else {
+          const char* name_of_function = function.ToFullyQualifiedCString();
+          Print(" [");
+          Print(name_of_function);
+          Print("]");
+        }
       }
     }
   }

@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+test_runner_test: Skip  # Issue 3216: Occasionally fails and leads to runaway processes.
 timeout_test: Skip  # Timeout test for testing the test runner.
 fail_test: Fail, OK # Fails intentionally
 out_of_memory_test: Skip # Issue 2345

@@ -337,6 +337,8 @@ class RawObject {
 
   intptr_t GetClassId() const {
     uword tags = ptr()->tags_;
+    // TODO(vegorov): stop destroying tags_ when creating FreeListElement.
+    ASSERT(!FreeBit::decode(tags));
     return ClassIdTag::decode(tags);
   }
 
@@ -346,6 +348,7 @@ class RawObject {
   friend class MarkingVisitor;
   friend class Object;
   friend class RawInstructions;
+  friend class RawInstance;
   friend class SnapshotReader;
   friend class SnapshotWriter;
 

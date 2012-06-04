@@ -48,12 +48,6 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   void set attributes(Map<String, String> value);
 
   /**
-   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
-   *   getElementsByTagNameNS
-   */
-  ElementList queryAll(String selectors);
-
-  /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */

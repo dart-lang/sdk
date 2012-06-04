@@ -1533,6 +1533,7 @@ class BlockEntryInstr : public Instruction {
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
+  virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
   void set_preorder_number(intptr_t number) { preorder_number_ = number; }
@@ -1603,6 +1604,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
 
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
@@ -1635,6 +1638,8 @@ class JoinEntryInstr : public BlockEntryInstr {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
@@ -1689,6 +1694,8 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT(HasTryIndex());
     return try_index_;
   }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
  private:
   BlockEntryInstr* predecessor_;
@@ -1973,13 +1980,6 @@ class FlowGraphVisitor : public ValueObject {
 #undef DECLARE_VISIT_INSTRUCTION
 
  protected:
-  // Map a block number in a forward iteration into the block number in the
-  // corresponding reverse iteration.  Used to obtain an index into
-  // block_order for reverse iterations.
-  intptr_t reverse_index(intptr_t index) const {
-    return block_order_.length() - index - 1;
-  }
-
   const GrowableArray<BlockEntryInstr*>& block_order_;
 
  private:

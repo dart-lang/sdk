@@ -75,6 +75,7 @@ import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
@@ -596,6 +597,99 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Elements.setType(entry.getKey(), entry.getValue());
         }
       }
+    }
+
+    /**
+     * @return <code>true</code> if we can prove that given {@link DartStatement} always leads to
+     *         the exit from the enclosing function.
+     */
+    private static boolean isExitFromFunction(DartStatement statement) {
+      // "return" is always exit
+      if (statement instanceof DartReturnStatement) {
+        return true;
+      }
+      // "throw" is exit if no enclosing "try"
+      if (statement instanceof DartThrowStatement) {
+        for (DartNode p = statement; p != null && !(p instanceof DartFunction); p = p.getParent()) {
+          // TODO(scheglov) Can be enhanced:
+          // 1. check if there is "catch" block which can catch this exception;
+          // 2. even if there is such "catch", we will not visit the rest of the "try".
+          if (p instanceof DartTryStatement) {
+            return false;
+          }
+        }
+        return true;
+      }
+      // "block" is exit if its last statement is exit
+      if (statement instanceof DartBlock) {
+        DartBlock block = (DartBlock) statement;
+        List<DartStatement> statements = block.getStatements();
+        if (!statements.isEmpty()) {
+          return isExitFromFunction(statements.get(statements.size() - 1));
+        }
+      }
+      // can not prove that given statement is always exit
+      return false;
+    }
+
+    /**
+     * Helper for setting {@link Type}s of {@link VariableElement}s when given "condition" is NOT
+     * satisfied.
+     */
+    private static void inferVariableTypesFromIsNotConditions(DartExpression condition,
+        final VariableElementsRestorer variableRestorer) {
+      condition.accept(new ASTVisitor<Void>() {
+        boolean negation = false;
+
+        @Override
+        public Void visitUnaryExpression(DartUnaryExpression node) {
+          boolean negationOld = negation;
+          try {
+            if (node.getOperator() == Token.NOT) {
+              negation = !negation;
+            }
+            return super.visitUnaryExpression(node);
+          } finally {
+            negation = negationOld;
+          }
+        }
+
+        @Override
+        public Void visitBinaryExpression(DartBinaryExpression node) {
+          // analyze (v is Type)
+          if (node.getOperator() == Token.IS) {
+            DartExpression arg1 = node.getArg1();
+            DartExpression arg2 = node.getArg2();
+            if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement) {
+              VariableElement variableElement = (VariableElement) arg1.getElement();
+              // !(v is Type)
+              if (negation && arg2 instanceof DartTypeExpression) {
+                Type isType = arg2.getType();
+                Type varType = Types.makeInferred(isType);
+                variableRestorer.setType(variableElement, varType);
+              }
+              // (v is! Type)
+              if (!negation) {
+                if (arg2 instanceof DartUnaryExpression) {
+                  DartUnaryExpression unary2 = (DartUnaryExpression) arg2;
+                  if (unary2.getOperator() == Token.NOT
+                      && unary2.getArg() instanceof DartTypeExpression) {
+                    Type isType = unary2.getArg().getType();
+                    Type varType = Types.makeInferred(isType);
+                    variableRestorer.setType(variableElement, varType);
+                  }
+                }
+              }
+            }
+          }
+          // visit || expressions
+          if (node.getOperator() == Token.OR) {
+            return super.visitBinaryExpression(node);
+          }
+          // other operators, such as && - don't infer types
+          return null;
+        }
+      });
     }
 
     private boolean checkAssignable(DartNode node, Type t, Type s) {
@@ -1287,8 +1381,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitIfStatement(DartIfStatement node) {
       DartExpression condition = node.getCondition();
       checkCondition(condition);
-      visitConditionalNode(condition, node.getThenStatement());
-      typeOf(node.getElseStatement());
+      // visit "then"
+      DartStatement thenStatement = node.getThenStatement();
+      visitConditionalNode(condition, thenStatement);
+      // visit "else"
+      {
+        DartStatement elseStatement = node.getElseStatement();
+        VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
+        // if has "else", then types inferred from "is! Type" applied only to "else"
+        if (elseStatement != null) {
+          inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+          typeOf(elseStatement);
+          variableRestorer.restore();
+        }
+        // if no "else", then inferred types applied to the end of the method
+        if (elseStatement == null && isExitFromFunction(thenStatement)) {
+          inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+        }
+
+      }
+      // done
       return voidType;
     }
     

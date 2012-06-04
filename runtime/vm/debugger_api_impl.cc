@@ -454,6 +454,28 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
 }
 
 
+DART_EXPORT Dart_Handle Dart_ScriptGetSource(
+                            intptr_t library_id,
+                            Dart_Handle script_url_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  String& script_url = String::Handle();
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+  const Script& script = Script::Handle(lib.LookupScript(script_url));
+  if (script.IsNull()) {
+    return Api::NewError("%s: script '%s' not found in library '%s'",
+                         CURRENT_FUNC, script_url.ToCString(),
+                         String::Handle(lib.url()).ToCString());
+  }
+  return Api::NewHandle(isolate, script.source());
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetScriptSource(
                             Dart_Handle library_url_in,
                             Dart_Handle script_url_in) {

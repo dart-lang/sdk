@@ -147,7 +147,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final String parameters;
 
   final Set<HInstruction> generateAtUseSite;
-  final Map<HPhi, String> logicalOperations;
+  final Set<HInstruction> logicalOperations;
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
   final Map<Element, String> parameterNames;
@@ -162,7 +162,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * While generating expressions, we can't insert variable declarations.
    * Instead we declare them at the end of the function
    */
-  final List<String> delayedVariablesDeclaration;
+  final Set<String> delayedVariableDeclarations;
 
   /**
    * Set of variables that have already been declared.
@@ -203,10 +203,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                    this.parameters,
                    this.parameterNames)
     : declaredVariables = new Set<String>(),
-      delayedVariablesDeclaration = new List<String>(),
+      delayedVariableDeclarations = new Set<String>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
-      logicalOperations = new Map<HPhi, String>(),
+      logicalOperations = new Set<HInstruction>(),
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>(),
       unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
@@ -273,9 +273,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = new SubGraph(graph.entry, graph.exit);
     beginGraph(graph);
     visitBasicBlock(graph.entry);
-    if (!delayedVariablesDeclaration.isEmpty()) {
+    if (!delayedVariableDeclarations.isEmpty()) {
       addIndented("var ");
-      buffer.add(Strings.join(delayedVariablesDeclaration, ', '));
+      buffer.add(Strings.join(
+          new List<String>.from(delayedVariableDeclarations), ', '));
       buffer.add(";\n");
     }
     endGraph(graph);
@@ -463,17 +464,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void declareVariable(String variableName) {
     if (isGeneratingExpression()) {
       if (generationState == STATE_FIRST_DECLARATION) {
-        generationState = STATE_DECLARATION;
         if (!isVariableDeclared(variableName)) {
           declaredVariables.add(variableName);
           buffer.add("var ");
+          generationState = STATE_DECLARATION;
+        } else {
+          generationState = STATE_EXPRESSION;
         }
+
       } else if (!isVariableDeclared(variableName)) {
         if (!isGeneratingDeclaration()) {
-          delayedVariablesDeclaration.add(variableName);
-        } else {
-          declaredVariables.add(variableName);
+          delayedVariableDeclarations.add(variableName);
         }
+        // No matter if we are declaring the variable now or if we are
+        // delaying the declaration we can treat the variable as
+        // being declared from this point on.
+        declaredVariables.add(variableName);
       }
     } else if (!isVariableDeclared(variableName)) {
       declaredVariables.add(variableName);
@@ -486,14 +492,72 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     declareVariable(variableNames.getName(instruction));
   }
 
+  // For simple updates of the form 'i = i op constant' generate
+  // 'i op= constant' instead.
+  bool handleSimpleUpdateDefinition(HInstruction instruction, String name) {
+    // If the variable is not declared the short update syntax cannot
+    // be used since it is a declaration and not an update.
+    if (!isVariableDeclared(name)) return false;
+
+    // Check that the operation is one of +, *, - or /. Record whether
+    // or not the operation is commutative.
+    var isCommutative = false;
+    if (instruction is HAdd || instruction is HMultiply) {
+      isCommutative = true;
+    } else if (instruction is !HSubtract && instruction is !HDivide) {
+      return false;
+    }
+
+    // Is it a builtin operation involving constant numbers?
+    if (instruction.builtin && instruction.inputs.length == 3) {
+      var left = instruction.inputs[1];
+      var right = instruction.inputs[2];
+      if (left.isConstantNumber() && isCommutative) {
+        var tmp = right;
+        right = left;
+        left = tmp;
+      } else if (!right.isConstantNumber()) {
+        return false;
+      }
+      // Right is constant number.
+      var value = right.constant.value;
+      // Check that left has the same name as the definition and emit
+      // the short update definition if it is.
+      if (variableNames.getName(left) == name) {
+        if (instruction is HAdd && right.constant.value == 1) {
+          buffer.add('++');
+          declareInstruction(instruction);
+        } else if (instruction is HSubtract && right.constant.value == 1) {
+          buffer.add('--');
+          declareInstruction(instruction);
+        } else {
+          var operation = instruction.operation.name;
+          declareInstruction(instruction);
+          buffer.add(' ${operation}= ${value}');
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   void define(HInstruction instruction) {
+    if (isGeneratingExpression()) {
+      addExpressionSeparator();
+    } else {
+      addIndentation();
+    }
     if (instruction is !HCheck && variableNames.hasName(instruction)) {
-      declareInstruction(instruction);
-      buffer.add(" = ");
-      visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      var name = variableNames.getName(instruction);
+      if (!handleSimpleUpdateDefinition(instruction, name)) {
+        declareInstruction(instruction);
+        buffer.add(" = ");
+        visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      }
     } else {
       visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
     }
+    if (!isGeneratingExpression()) buffer.add(';\n');
   }
 
   void use(HInstruction argument, int expectedPrecedenceForArgument) {
@@ -533,6 +597,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitIfInfo(HIfBlockInformation info) {
+    // If the [HIf] instruction is actually a logical operation, we
+    // let the flow-based traversal handle it.
+    if (logicalOperations.contains(info.condition.end.last)) return false;
     HInstruction condition = info.condition.conditionExpression;
     if (condition.isConstant()) {
       // If the condition is constant, only generate one branch (if any).
@@ -809,16 +876,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return true;
   }
 
-  void emitLogicalOperation(HPhi node, String operation) {
-    JSBinaryOperatorPrecedence operatorPrecedence =
-        JSPrecedence.binary[operation];
-    beginExpression(operatorPrecedence.precedence);
-    use(node.inputs[0], operatorPrecedence.left);
-    buffer.add(" $operation ");
-    use(node.inputs[1], operatorPrecedence.right);
-    endExpression(operatorPrecedence.precedence);
-  }
-
   // Wraps a loop body in a block to make continues have a target to break
   // to (if necessary).
   void wrapLoopBodyForContinue(HLoopBlockInformation info) {
@@ -894,7 +951,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitAssignment(String destination, String source) {
-    if (isGeneratingExpression()) { 
+    if (isGeneratingExpression()) {
       addExpressionSeparator();
     } else {
       addIndentation();
@@ -1012,38 +1069,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void iterateBasicBlock(HBasicBlock node) {
     HInstruction instruction = node.first;
-    while (instruction != null) {
-      if (instruction === node.last) {
-        assignPhisOfSuccessors(node);
-      }
-
-      if (isGenerateAtUseSite(instruction)) {
-        if (instruction is HIf) {
-          HIf hif = instruction;
-          // The "if" is implementing part of a logical expression.
-          // Skip directly forward to to its latest successor, since everything
-          // in-between must also be generateAtUseSite.
-          assert(hif.trueBranch.id < hif.falseBranch.id);
-          visitBasicBlock(hif.falseBranch);
-        }
-      } else if (instruction is HControlFlow) {
-        if (instruction is HLoopBranch && isGeneratingExpression()) {
-          addExpressionSeparator();
-        }
+    while (instruction !== node.last) {
+      if (instruction is HTypeGuard) {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
-      } else if (instruction is HTypeGuard) {
-        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
-      } else {
-        if (isGeneratingExpression()) {
-          addExpressionSeparator();
-        } else {
-          addIndentation();
-        }
+      } else if (!isGenerateAtUseSite(instruction)) {
         define(instruction);
-        if (!isGeneratingExpression()) buffer.add(';\n');
       }
       instruction = instruction.next;
     }
+    assignPhisOfSuccessors(node);
+    if (instruction is HLoopBranch && isGeneratingExpression()) {
+      addExpressionSeparator();
+    }
+    visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
   }
 
   visitInvokeBinary(HInvokeBinary node, String op) {
@@ -1263,7 +1301,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         || start.last is HContinue) {
       return false;
     }
-    HInstruction instruction = start.first;
     for (HInstruction instruction = start.first;
          instruction != start.last;
          instruction = instruction.next) {
@@ -1286,12 +1323,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitIf(HIf node) {
+    if (logicalOperations.contains(node)) {
+      HPhi phi = node.joinBlock.phis.first;
+      if (!isGenerateAtUseSite(phi)) define(phi);
+      visitBasicBlock(node.joinBlock);
+      return;
+    }
+
     if (subGraph !== null && node.block === subGraph.end) {
       if (isGeneratingExpression()) {
         use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
       }
       return;
     }
+
     HInstruction condition = node.inputs[0];
     int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
@@ -1587,17 +1632,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitNot(HNot node) {
+    assert(node.inputs.length == 1);
+    generateNot(node.inputs[0]);
+  }
+
+
+  void generateNot(HInstruction input) {
     bool isBuiltinRelational(HInstruction instruction) {
       if (instruction is !HRelational) return false;
       HRelational relational = instruction;
       return relational.builtin;
     }
 
-    assert(node.inputs.length == 1);
-    HInstruction input = node.inputs[0];
     if (input is HBoolify && isGenerateAtUseSite(input)) {
       beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      assert(node.inputs.length == 1);
       use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
       buffer.add(' !== true');
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
@@ -1636,11 +1684,33 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitPhi(HPhi node) {
-    String operation = logicalOperations[node];
-    if (operation !== null) {
-      emitLogicalOperation(node, operation);
+    HBasicBlock ifBlock = node.block.predecessors[0].predecessors[0];
+    // This method is only called for phis that are generated at use
+    // site. A phi can be generated at use site only if it is the
+    // result of a logical operation.
+    assert(logicalOperations.contains(ifBlock.last));
+    HInstruction input = ifBlock.last.inputs[0];
+    if (input.isConstantFalse()) {
+      use(node.inputs[1], expectedPrecedence);
+    } else if (input.isConstantTrue()) {
+      use(node.inputs[0], expectedPrecedence);
     } else {
-      buffer.add('${variableNames.getName(node)}');
+      String operation = node.inputs[1].isConstantFalse() ? '&&' : '||';
+      JSBinaryOperatorPrecedence operatorPrecedence =
+          JSPrecedence.binary[operation];
+      beginExpression(operatorPrecedence.precedence);
+      if (operation == '||') {
+        if (input is HNot) {
+          use(input.inputs[0], operatorPrecedence.left);
+        } else {
+          generateNot(input);
+        }
+      } else {
+        use(input, operatorPrecedence.left);
+      }
+      buffer.add(" $operation ");
+      use(node.inputs[0], operatorPrecedence.right);
+      endExpression(operatorPrecedence.precedence);
     }
   }
 

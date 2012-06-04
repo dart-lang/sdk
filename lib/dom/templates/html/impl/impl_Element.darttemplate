@@ -679,6 +679,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   ElementList get elements() => new _ChildrenElementList._wrap(this);
 
+  _ElementImpl query(String selectors) => $dom_querySelector(selectors);
+
   ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 

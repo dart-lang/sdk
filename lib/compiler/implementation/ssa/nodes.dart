@@ -926,6 +926,8 @@ class HInstruction implements Hashable {
   bool isConstantString() => false;
   bool isConstantList() => false;
   bool isConstantMap() => false;
+  bool isConstantFalse() => false;
+  bool isConstantTrue() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1220,8 +1222,10 @@ class HInvokeInterceptor extends HInvokeStatic {
 }
 
 class HFieldGet extends HInstruction {
+  // TODO(ngeoffray): Should [name] be an element?
   final SourceString name;
-  HFieldGet(this.name, HInstruction receiver)
+  final bool isFinalOrConst;
+  HFieldGet(this.name, HInstruction receiver, [this.isFinalOrConst = false])
       : super(<HInstruction>[receiver]);
   HFieldGet.fromActivation(receiver) : this(null, receiver);
 
@@ -1231,7 +1235,12 @@ class HFieldGet extends HInstruction {
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn() {
-    clearAllSideEffects();
+    if (isFinalOrConst) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      clearAllSideEffects();
+    }
   }
 
   int typeCode() => 27;
@@ -1741,6 +1750,8 @@ class HConstant extends HInstruction {
   bool isConstantString() => constant.isString();
   bool isConstantList() => constant.isList();
   bool isConstantMap() => constant.isMap();
+  bool isConstantFalse() => constant.isFalse();
+  bool isConstantTrue() => constant.isTrue();
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
@@ -2377,10 +2388,7 @@ class HLabeledBlockInformation implements HStatementInformation {
 
 class LoopTypeVisitor extends AbstractVisitor {
   const LoopTypeVisitor();
-  int visitNode(Node node) {
-    // TODO(lrn): Need a compiler object here.
-    compiler.internalError('visitNode should not be called', node: node);
-  }
+  int visitNode(Node node) => HLoopBlockInformation.NOT_A_LOOP;
   int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;
   int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
   int visitDoWhile(DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
@@ -2392,6 +2400,7 @@ class HLoopBlockInformation implements HStatementInformation {
   static final int FOR_LOOP = 1;
   static final int DO_WHILE_LOOP = 2;
   static final int FOR_IN_LOOP = 3;
+  static final int NOT_A_LOOP = -1;
 
   final int kind;
   final HExpressionInformation initializer;
@@ -2461,9 +2470,7 @@ class HAndOrBlockInformation implements HExpressionInformation {
 
   // We don't currently use HAndOrBlockInformation.
   HInstruction get conditionExpression() {
-    // TODO(lrn): Need a compiler object.
-    compiler.internalError('conditionExpression should not be called',
-                           instruction: this);
+    return null;
   }
   bool accept(HExpressionInformationVisitor visitor) =>
     visitor.visitAndOrInfo(this);

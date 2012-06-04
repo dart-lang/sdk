@@ -55,6 +55,8 @@ class MessageBuffer {
   int MessageId() const;
   const char* Params() const;
   intptr_t GetIntParam(const char* name) const;
+  // GetStringParam mallocs the buffer that it returns. Caller must free.
+  char* GetStringParam(const char* name) const;
   char* buf() const { return buf_; }
   bool Alive() const { return connection_is_alive_; }
 
@@ -133,6 +135,20 @@ intptr_t MessageBuffer::GetIntParam(const char* name) const {
   return strtol(r.ValueChars(), NULL, 10);
 }
 
+char* MessageBuffer::GetStringParam(const char* name) const {
+  const char* params = Params();
+  ASSERT(params != NULL);
+  dart::JSONReader pr(params);
+  pr.Seek(name);
+  if (pr.Type() != dart::JSONReader::kString) {
+    return NULL;
+  }
+  intptr_t buflen = pr.ValueLen() + 1;
+  char* param_chars = reinterpret_cast<char*>(malloc(buflen));
+  pr.GetValueChars(param_chars, buflen);
+  // TODO(hausner): Decode escape sequences.
+  return param_chars;
+}
 
 void MessageBuffer::ReadData() {
   ASSERT(data_length_ >= 0);
@@ -226,7 +242,7 @@ static int GetIntValue(Dart_Handle int_handle) {
   int64_t int64_val = -1;
   ASSERT(Dart_IsInteger(int_handle));
   Dart_Handle res = Dart_IntegerToInt64(int_handle, &int64_val);
-  ASSERT(!Dart_IsError(res));
+  ASSERT_NOT_ERROR(res);
   // TODO(hausner): Range check.
   return int64_val;
 }
@@ -262,6 +278,32 @@ void DebuggerConnectionHandler::HandleStepOverCmd(const char* json_msg) {
 }
 
 
+static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
+  ASSERT(Dart_IsString8(str));
+  intptr_t str_len = 0;
+  Dart_Handle res = Dart_StringLength(str, &str_len);
+  ASSERT_NOT_ERROR(res);
+  uint8_t* codepoints = reinterpret_cast<uint8_t*>(malloc(str_len));
+  ASSERT(codepoints != NULL);
+  intptr_t actual_len = str_len;
+  res = Dart_StringGet8(str, codepoints, &actual_len);
+  ASSERT(str_len == actual_len);
+  buf->Printf("\"");
+  buf->PrintJsonString8(codepoints, str_len);
+  buf->Printf("\"");
+  free(codepoints);
+}
+
+
+static void FormatErrorMsg(dart::TextBuffer* buf, Dart_Handle err) {
+  // TODO(hausner): Turn message into Dart string and
+  // properly encode the message.
+  ASSERT(Dart_IsError(err));
+  const char* msg = Dart_GetError(err);
+  buf->Printf("\"%s\"", msg);
+}
+
+
 void DebuggerConnectionHandler::HandleGetScriptURLsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   dart::TextBuffer msg(64);
@@ -280,9 +322,35 @@ void DebuggerConnectionHandler::HandleGetScriptURLsCmd(const char* json_msg) {
   msg.Printf("\"result\": { \"urls\": [");
   for (int i = 0; i < num_urls; i++) {
     Dart_Handle script_url = Dart_ListGetAt(urls, i);
-    msg.Printf("%s\"%s\"", (i == 0) ? "" : ", ", GetStringChars(script_url));
+    if (i > 0) {
+      msg.Printf(",");
+    }
+    FormatEncodedString(&msg, script_url);
   }
-  msg.Printf("] }}");
+  msg.Printf("]}}");
+  SendMsg(&msg);
+}
+
+
+void DebuggerConnectionHandler::HandleGetSourceCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  dart::TextBuffer msg(64);
+  intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
+  char* url_chars = msgbuf_->GetStringParam("url");
+  ASSERT(url_chars != NULL);
+  Dart_Handle url = Dart_NewString(url_chars);
+  ASSERT_NOT_ERROR(url);
+  free(url_chars);
+  url_chars = NULL;
+  Dart_Handle source = Dart_ScriptGetSource(lib_id, url);
+  if (Dart_IsError(source)) {
+    SendError(msg_id, Dart_GetError(source));
+    return;
+  }
+  msg.Printf("{ \"id\": %d, ", msg_id);
+  msg.Printf("\"result\": { \"text\": ");
+  FormatEncodedString(&msg, source);
+  msg.Printf("}}");
   SendMsg(&msg);
 }
 
@@ -302,12 +370,10 @@ void DebuggerConnectionHandler::HandleGetLibrariesCmd(const char* json_msg) {
     int lib_id = GetIntValue(lib_id_handle);
     Dart_Handle lib_url = Dart_GetLibraryURL(lib_id);
     ASSERT_NOT_ERROR(lib_url);
-    ASSERT(!Dart_IsNull(lib_url));
     ASSERT(Dart_IsString(lib_url));
-    char const* chars = NULL;
-    Dart_StringToCString(lib_url, &chars);
-    msg.Printf("%s{\"id\":%d,\"url\":\"%s\"}",
-               (i == 0) ? "" : ", ", lib_id, chars);
+    msg.Printf("%s{\"id\":%d,\"url\":", (i == 0) ? "" : ", ", lib_id);
+    FormatEncodedString(&msg, lib_url);
+    msg.Printf("}");
   }
   msg.Printf("]}}");
   SendMsg(&msg);
@@ -331,8 +397,21 @@ static void FormatField(dart::TextBuffer* buf,
     kind = "boolean";
   }
   buf->Printf("\"kind\":\"%s\",", kind);
-  Dart_Handle text = Dart_ToString(object);
-  buf->Printf("\"text\":\"%s\"}}", GetStringChars(text));
+  buf->Printf("\"text\":");
+  Dart_Handle text;
+  if (Dart_IsNull(object)) {
+    text = Dart_Null();
+  } else {
+    text = Dart_ToString(object);
+  }
+  if (Dart_IsNull(text)) {
+    buf->Printf("null");
+  } else if (Dart_IsError(text)) {
+    FormatErrorMsg(buf, text);
+  } else {
+    FormatEncodedString(buf, text);
+  }
+  buf->Printf("}}");
 }
 
 
@@ -384,7 +463,8 @@ static const char* FormatLibraryProps(dart::TextBuffer* buf,
                                       intptr_t lib_id) {
   Dart_Handle url = Dart_GetLibraryURL(lib_id);
   RETURN_IF_ERROR(url);
-  buf->Printf("{\"url\":\"%s\",", GetStringChars(url));
+  buf->Printf("{\"url\":");
+  FormatEncodedString(buf, url);
 
   // Imports and prefixes.
   Dart_Handle import_list = Dart_GetLibraryImports(lib_id);
@@ -393,7 +473,7 @@ static const char* FormatLibraryProps(dart::TextBuffer* buf,
   intptr_t list_length = 0;
   Dart_Handle res = Dart_ListLength(import_list, &list_length);
   RETURN_IF_ERROR(res);
-  buf->Printf("\"imports\":[");
+  buf->Printf(",\"imports\":[");
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle lib_id = Dart_ListGetAt(import_list, i + 1);
     ASSERT_NOT_ERROR(lib_id);
@@ -450,18 +530,17 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     intptr_t line_number = 0;
     res = Dart_ActivationFrameInfo(
         frame, &func_name, &script_url, &line_number);
+
     ASSERT_NOT_ERROR(res);
     ASSERT(Dart_IsString(func_name));
-    const char* func_name_chars;
-    Dart_StringToCString(func_name, &func_name_chars);
-    msg->Printf("%s { \"functionName\": \"%s\" , ",
-               i > 0 ? "," : "",
-               func_name_chars);
+    msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
+    FormatEncodedString(msg, func_name);
+
     ASSERT(Dart_IsString(script_url));
-    const char* script_url_chars;
-    Dart_StringToCString(script_url, &script_url_chars);
-    msg->Printf("\"location\": { \"url\": \"%s\", \"lineNumber\":%d},",
-               script_url_chars, line_number);
+    msg->Printf(",\"location\": { \"url\":");
+    FormatEncodedString(msg, script_url);
+    msg->Printf(",\"lineNumber\":%d},", line_number);
+
     Dart_Handle locals = Dart_GetLocalVariables(frame);
     ASSERT_NOT_ERROR(locals);
     msg->Printf("\"locals\":");
@@ -487,18 +566,13 @@ void DebuggerConnectionHandler::HandleGetStackTraceCmd(const char* json_msg) {
 
 void DebuggerConnectionHandler::HandleSetBpCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
-  const char* params = msgbuf_->Params();
-  ASSERT(params != NULL);
-  dart::JSONReader pr(params);
-  pr.Seek("url");
-  ASSERT(pr.Type() == dart::JSONReader::kString);
-  char url_chars[128];
-  pr.GetValueChars(url_chars, sizeof(url_chars));
+  char* url_chars = msgbuf_->GetStringParam("url");
+  ASSERT(url_chars != NULL);
   Dart_Handle url = Dart_NewString(url_chars);
   ASSERT_NOT_ERROR(url);
-  pr.Seek("line");
-  ASSERT(pr.Type() == dart::JSONReader::kInteger);
-  intptr_t line_number = atoi(pr.ValueChars());
+  free(url_chars);
+  url_chars = NULL;
+  intptr_t line_number = msgbuf_->GetIntParam("line");
   Dart_Handle bp_id = Dart_SetBreakpoint(url, line_number);
   if (Dart_IsError(bp_id)) {
     SendError(msg_id, Dart_GetError(bp_id));
@@ -594,6 +668,7 @@ void DebuggerConnectionHandler::HandleMessages() {
     { "getLibraryProperties", HandleGetLibPropsCmd },
     { "getObjectProperties", HandleGetObjPropsCmd },
     { "getScriptURLs", HandleGetScriptURLsCmd },
+    { "getScriptSource", HandleGetSourceCmd },
     { "getStackTrace", HandleGetStackTraceCmd },
     { "setBreakpoint", HandleSetBpCmd },
     { "removeBreakpoint", HandleRemBpCmd },
@@ -682,11 +757,9 @@ void DebuggerConnectionHandler::BptResolvedHandler(intptr_t bp_id,
   Dart_EnterScope();
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
-  msg.Printf("\"breakpointId\": %d, ", bp_id);
-  char const* url_chars;
-  Dart_StringToCString(url, &url_chars);
-  msg.Printf("\"url\": \"%s\", ", url_chars);
-  msg.Printf("\"line\": %d }}", line_number);
+  msg.Printf("\"breakpointId\": %d, \"url\":", bp_id);
+  FormatEncodedString(&msg, url);
+  msg.Printf(",\"line\": %d }}", line_number);
   QueueMsg(&msg);
   Dart_ExitScope();
 }

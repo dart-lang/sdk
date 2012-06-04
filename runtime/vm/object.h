@@ -4888,12 +4888,7 @@ RawClass* Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  RawClass* result = raw_->ptr()->class_;
-  ASSERT(result->ptr()->id_ ==
-      RawObject::ClassIdTag::decode(raw_->ptr()->tags_));
-  ASSERT(Isolate::Current()->class_table()->At(
-      RawObject::ClassIdTag::decode(raw_->ptr()->tags_)) == result);
-  return result;
+  return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 
 
@@ -4912,8 +4907,13 @@ void Object::SetRaw(RawObject* value) {
   ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
          vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
 #endif
-  set_vtable((raw_ == null_) ?
-             handle_vtable_ : raw_->ptr()->class_->ptr()->handle_vtable_);
+  if (raw_ == null_) {
+    set_vtable(handle_vtable_);
+  } else {
+    RawClass* raw_class =
+      Isolate::Current()->class_table()->At(raw_->GetClassId());
+    set_vtable(raw_class->ptr()->handle_vtable_);
+  }
 }
 
 

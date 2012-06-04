@@ -92,8 +92,11 @@ void JSONScanner::ScanString() {
       token_ = TokenIllegal;
       return;
     } else if (*current_pos_ == '\\') {
-      // TODO(hausner): Implement escape sequence.
-      UNIMPLEMENTED();
+      ++current_pos_;
+      if (*current_pos_ == '"') {
+        // Consume escaped double quote.
+        ++current_pos_;
+      }
     } else if (*current_pos_ < 0) {
       // UTF-8 not supported.
       token_length_ = 0;
@@ -370,6 +373,50 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
   msg_len_ += len;
   buf_[msg_len_] = '\0';
   return len;
+}
+
+
+void TextBuffer::PrintJsonString8(const uint8_t* codepoints, intptr_t length) {
+  for (intptr_t i = 0; i < length; i++) {
+    uint8_t cp = codepoints[i];
+    switch (cp) {
+      case '"':
+        Printf("%s", "\\\"");
+        break;
+      case '\\':
+        Printf("%s", "\\\\");
+        break;
+      case '/':
+        Printf("%s", "\\/");
+        break;
+      case '\b':
+        Printf("%s", "\\b");
+        break;
+      case '\f':
+        Printf("%s", "\\f");
+        break;
+      case '\n':
+        Printf("%s", "\\n");
+        break;
+      case '\r':
+        Printf("%s", "\\r");
+        break;
+      case '\t':
+        Printf("%s", "\\t");
+        break;
+      default:
+        if ((0x20 <= cp) && (cp <= 0x7e)) {
+          Printf("%c", cp);
+        } else {
+          // Encode character as \u00HH.
+          uint8_t digit2 = (cp & 0xf0) >> 4;
+          uint8_t digit3 = cp & 0xf;
+          Printf("\\u00%c%c",
+            digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
+            digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
+        }
+    }
+  }
 }
 
 

@@ -122,6 +122,8 @@
     'flow_graph_builder.cc',
     'flow_graph_builder.h',
     'flow_graph_compiler.h',
+    'flow_graph_compiler_shared.cc',
+    'flow_graph_compiler_shared.h',
     'flow_graph_compiler_arm.cc',
     'flow_graph_compiler_arm.h',
     'flow_graph_compiler_ia32.cc',

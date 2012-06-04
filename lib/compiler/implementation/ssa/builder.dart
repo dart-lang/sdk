@@ -696,20 +696,19 @@ interface JumpHandler default JumpHandlerImpl {
 // used as the target of a break, and therefore doesn't need a break
 // handler associated with it.
 class NullJumpHandler implements JumpHandler {
-  const NullJumpHandler();
+  final Compiler compiler;
+  NullJumpHandler(this.compiler);
 
   void generateBreak([LabelElement label]) {
     // TODO(lrn): Need a compiler object and a location. Since label
     // is optional, it may be null so we also need a position.
-    compiler.internalError('generateBreak should not be called',
-                           missingPosition);
+    compiler.internalError('generateBreak should not be called');
   }
 
   void generateContinue([LabelElement label]) {
     // TODO(lrn): Need a compiler object and a location. Since label
     // is optional, it may be null so we also need a position.
-    compiler.internalError('generateContinue should not be called',
-                           missingPosition);
+    compiler.internalError('generateContinue should not be called');
   }
 
   void forEachBreak(Function ignored) { }
@@ -1637,7 +1636,7 @@ class SsaBuilder implements Visitor {
     //   } else {
     //     t2 = t0;
     //   }
-    //   result = phi(t1, t2);
+    //   result = phi(t1, false);
     //
     // x || y is transformed into:
     //   t0 = boolify(x);
@@ -1646,7 +1645,7 @@ class SsaBuilder implements Visitor {
     //   } else {
     //     t2 = t0;
     //   }
-    //   result = phi(t1, t2);
+    //   result = phi(t1, true);
     HInstruction boolifiedLeft;
     HInstruction boolifiedRight;
 
@@ -1670,7 +1669,7 @@ class SsaBuilder implements Visitor {
 
     handleIf(visitCondition, visitThen, null);
     HPhi result = new HPhi.manyInputs(null,
-        <HInstruction>[boolifiedRight, boolifiedLeft]);
+        <HInstruction>[boolifiedRight, graph.addConstantBool(!isAnd)]);
     current.addPhi(result);
     stack.add(result);
   }
@@ -2803,7 +2802,7 @@ class SsaBuilder implements Visitor {
     TargetElement element = elements[node];
     if (element === null || element.statement !== node) {
       // No breaks or continues to this node.
-      return const NullJumpHandler();
+      return new NullJumpHandler(compiler);
     }
     return new JumpHandler(this, element);
   }
