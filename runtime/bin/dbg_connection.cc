@@ -202,7 +202,36 @@ static bool IsValidJSON(const char* msg) {
 
 void DebuggerConnectionHandler::SendMsg(dart::TextBuffer* msg) {
   ASSERT(debugger_fd_ >= 0);
-  Socket::Write(debugger_fd_, msg->buf(), msg->length());
+  ASSERT(IsValidJSON(msg->buf()));
+  // Sending messages in short pieces can be used to stress test the
+  // debugger front-end's message handling code.
+  const bool send_in_pieces = false;
+  if (send_in_pieces) {
+    intptr_t remaining = msg->length();
+    intptr_t sent = 0;
+    const intptr_t max_piece_len = 122;  // Pretty arbitrary, not a power of 2.
+    dart::Monitor sleep;
+    while (remaining > 0) {
+      intptr_t piece_len = remaining;
+      if (piece_len > max_piece_len) {
+        piece_len = max_piece_len;
+      }
+      intptr_t written =
+        Socket::Write(debugger_fd_, msg->buf() + sent, piece_len);
+      ASSERT(written == piece_len);
+      sent += written;
+      remaining -= written;
+      // Wait briefly so the OS does not coalesce message fragments.
+      {
+        MonitorLocker ml(&sleep);
+        ml.Wait(10);
+      }
+    }
+    return;
+  }
+  intptr_t bytes_written =
+      Socket::Write(debugger_fd_, msg->buf(), msg->length());
+  ASSERT(msg->length() == bytes_written);
   // TODO(hausner): Error checking. Probably just shut down the debugger
   // session if we there is an error while writing.
 }
@@ -725,8 +754,7 @@ void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   FormatCallFrames(&msg, trace);
   msg.Printf("}}");
-  Socket::Write(debugger_fd_, msg.buf(), msg.length());
-  ASSERT(IsValidJSON(msg.buf()));
+  SendMsg(&msg);
 }
 
 

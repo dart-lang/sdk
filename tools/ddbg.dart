@@ -11,6 +11,7 @@
 Map<int, Completer> outstandingCommands;
 
 Socket vmSock;
+String vmData;
 OutputStream vmStream;
 int seqNum = 0;
 
@@ -316,31 +317,34 @@ void processVmMessage(String json) {
 }
 
 
-// TODO(hausner): Need to handle the case where we receive only a partial
-// message from the debugger, e.g. when the message is too big to fit in
-// one network packet.
-void processVmData(String s) {
+void processVmData(String data) {
   final printMessages = false;
-  int msg_len = JSON.length(s);
+  if (vmData == null || vmData.length == 0) {
+    vmData = data;
+  } else {
+    vmData = vmData.concat(data);
+  }
+  int msg_len = JSON.length(vmData);
   if (printMessages && msg_len == 0) {
-    print("vm sent illegal or partial json message '$s'");
-    quitShell();
+    print("have partial or illegal json message"
+          " of ${vmData.length} chars:\n'$vmData'");
     return;
   }
-  while (msg_len > 0 && msg_len <= s.length) {
-    if (msg_len == s.length) {
-      if (printMessages) { print("message: $s"); }
-      processVmMessage(s);
+  while (msg_len > 0 && msg_len <= vmData.length) {
+    if (msg_len == vmData.length) {
+      if (printMessages) { print("have one full message:\n$vmData"); }
+      processVmMessage(vmData);
+      vmData = null;
       return;
     }
-    if (printMessages) { print("at least one message: '$s'"); }
-    var msg = s.substring(0, msg_len);
+    if (printMessages) { print("at least one message: '$vmData'"); }
+    var msg = vmData.substring(0, msg_len);
     if (printMessages) { print("first message: $msg"); }
     processVmMessage(msg);
-    s = s.substring(msg_len);
-    msg_len = JSON.length(s);
+    vmData = vmData.substring(msg_len);
+    msg_len = JSON.length(vmData);
   }
-  if (printMessages) { print("leftover vm data '$s'"); }
+  if (printMessages) { print("leftover vm data '$vmData'"); }
 }
 
 
