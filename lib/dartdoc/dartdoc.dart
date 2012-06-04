@@ -92,6 +92,11 @@ void main() {
     }
   }
 
+  if (args.length == 0) {
+    print('Provide at least one dart file to process.');
+    return;
+  }
+
   // The entrypoint of the library to generate docs for.
   final entrypoint = args[args.length - 1];
 
@@ -377,7 +382,7 @@ class Dartdoc {
   void writeHeader(String title, List<String> breadcrumbs) {
     final htmlAttributes = generateAppCache ?
         'manifest="/appcache.manifest"' : '';
-    
+
     write(
         '''
         <!DOCTYPE html>
