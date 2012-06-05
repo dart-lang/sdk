@@ -258,6 +258,7 @@ def AnalyzeOperation(interface, operations):
              *(op.arguments for op in split_operations))
 
   info = OperationInfo()
+  info.operations = operations
   info.overloads = split_operations
   info.declared_name = operations[0].id
   info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
@@ -528,7 +529,7 @@ class IDLTypeInfo(object):
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     if 'Callback' in idl_node.ext_attrs:
-      if 'RequiredCppParameter' in idl_node.ext_attrs:
+      if set(['Optional', 'Callback']).issubset(idl_node.ext_attrs.keys()):
         flag = 'DartUtilities::ConvertNullToDefaultValue'
       else:
         flag = 'DartUtilities::ConvertNone'
@@ -637,7 +638,7 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     arguments = [handle]
-    if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString' or 'RequiredCppParameter' in idl_node.ext_attrs:
+    if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString':
       arguments.append('DartUtilities::ConvertNullToDefaultValue')
     emitter.Emit(
         '\n'

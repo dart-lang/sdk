@@ -216,7 +216,6 @@ module storage {
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
     [DartName=getObject] IDBRequest get(in IDBKeyRange key);
-    [Suppressed] IDBRequest openCursor() raises (IDBDatabaseException);
   };
 
   interface EntrySync {

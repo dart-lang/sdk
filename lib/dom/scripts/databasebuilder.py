@@ -125,9 +125,8 @@ class DatabaseBuilder(object):
     for op in interface.operations:
       for argument in op.arguments:
         in_optional_whitelist = (interface.id, op.id, argument.id) in optional_argument_whitelist
-        if in_optional_whitelist or set(['Optional', 'Callback']).issubset(argument.ext_attrs.keys()):
+        if in_optional_whitelist:
           argument.ext_attrs['Optional'] = None
-          argument.ext_attrs['RequiredCppParameter'] = None
 
   def _rename_types(self, idl_file, import_options):
     """Rename interface and type names with names provided in the

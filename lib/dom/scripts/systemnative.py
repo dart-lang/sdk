@@ -743,7 +743,9 @@ class NativeImplementationGenerator(object):
       info: An OperationInfo object.
     """
 
-    if 'CheckSecurityForNode' in info.overloads[0].ext_attrs:
+    operation = info.operations[0]
+
+    if 'CheckSecurityForNode' in operation.ext_attrs:
       # FIXME: exclude from interface as well.
       return
 
@@ -761,14 +763,23 @@ class NativeImplementationGenerator(object):
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         self._DartType(info.type_name),
-        html_name or info.name,
+        html_name,
         info.ParametersImplementationDeclaration(self._DartType))
 
-    if 'Custom' in info.overloads[0].ext_attrs:
+    is_custom = 'Custom' in operation.ext_attrs
+    has_optional_arguments = any(IsOptional(argument) for argument in operation.arguments)
+    needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
+    if not needs_dispatcher:
+      # Bind directly to native implementation
       argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
-      self._GenerateNativeBinding(info.name , argument_count,
-          dart_declaration, 'Callback', True)
-      return
+      cpp_callback_name = self._GenerateNativeBinding(
+          info.name, argument_count, dart_declaration, 'Callback', is_custom)
+      if not is_custom:
+        self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name)
+    else:
+      self._GenerateDispatcher(info.operations, dart_declaration, [info.name for info in info.param_infos])
+
+  def _GenerateDispatcher(self, operations, dart_declaration, argument_names):
 
     body = self._members_emitter.Emit(
         '\n'
@@ -777,178 +788,60 @@ class NativeImplementationGenerator(object):
         '  }\n',
         DECLARATION=dart_declaration)
 
-    if self._interface.id == 'IDBObjectStore' and info.name == 'openCursor':
-      # FIXME: implement v8-like overload resolver and remove this hack.
-      info.overloads = info.overloads[1:]
-
-    self._native_version = 0
-    overloads = self.CombineOverloads(info.overloads)
-    fallthrough = self.GenerateDispatch(body, info, '    ', overloads)
-    if fallthrough:
-      body.Emit('    throw "Incorrect number or type of arguments";\n');
-
-  def CombineOverloads(self, overloads):
-    # Combine overloads that can be implemented by the same native method.  This
-    # undoes the expansion of optional arguments into multiple overloads unless
-    # IDL merging has made the overloads necessary.  Starting with overload with
-    # no optional arguments and grow it by adding optional arguments, then the
-    # longest overload can serve for all the shorter ones.
-    out = []
-    seed_index = 0
-    while seed_index < len(overloads):
-      seed = overloads[seed_index]
-      if len(seed.arguments) > 0 and IsOptional(seed.arguments[-1]):
-        # Must start with no optional arguments.
-        out.append(seed)
-        seed_index += 1
-        continue
-
-      prev = seed
-      probe_index = seed_index + 1
-      while probe_index < len(overloads):
-        probe = overloads[probe_index]
-        # Check that 'probe' extends 'prev' by one optional argument.
-        if len(probe.arguments) != len(prev.arguments) + 1:
-          break
-        if probe.arguments[:-1] != prev.arguments:
-          break
-        if not IsOptional(probe.arguments[-1]):
-          break
-        # See Issue 3177.  This test against known implemented types is to
-        # prevent combining a possibly unimplemented type.  Combining with an
-        # unimplemented type will cause all set of combined overloads to become
-        # 'unimplemented', even if no argument is passed to the the
-        # unimplemented parameter.
-        if DartType(probe.arguments[-1].type.id) not in [
-            'String', 'int', 'num', 'double', 'bool',
-            'IDBKeyRange']:
-          break
-        probe_index += 1
-        prev = probe
-      out.append(prev)
-      seed_index = probe_index
-
-    return out
-
-  def PrintOverloadsComment(self, emitter, info, indent, note, overloads):
-    emitter.Emit('$(INDENT)//$NOTE\n', INDENT=indent, NOTE=note)
-    for operation in overloads:
-      params = ', '.join([
-          ('[Optional] ' if IsOptional(arg) else '') + DartType(arg.type.id) + ' '
-          + arg.id for arg in operation.arguments])
-      emitter.Emit('$(INDENT)// $NAME($PARAMS)\n',
-                   INDENT=indent,
-                   NAME=info.name,
-                   PARAMS=params)
-    emitter.Emit('$(INDENT)//\n', INDENT=indent)
-
-  def GenerateDispatch(self, emitter, info, indent, overloads):
-    """Generates a dispatch to one of the overloads.
-
-    Arguments:
-      emitter: an Emitter for the body of a block of code.
-      info: the compound information about the operation and its overloads.
-      indent: an indentation string for generated code.
-      position: the index of the parameter to dispatch on.
-      overloads: a list of the IDLOperations to dispatch.
-
-    Returns True if the dispatch can fall through on failure, False if the code
-    always dispatches.
-    """
-
-    def NullCheck(name):
-      return '%s === null' % name
-
-    def TypeCheck(name, type):
-      return '%s is %s' % (name, type)
-
-    def IsNullable(type):
-      #return type != 'int' and type != 'num'
-      return True
-
-    def PickRequiredCppSingleOperation():
-      # Returns a special case single operation, or None.  Check if we dispatch
-      # on RequiredCppParameter arguments.  In this case all trailing arguments
-      # must be RequiredCppParameter and there is no need in dispatch.
-      def IsRequiredCppParameter(arg):
-        return 'RequiredCppParameter' in arg.ext_attrs
-      def HasRequiredCppParameters(op):
-        matches = filter(IsRequiredCppParameter, op.arguments)
-        if matches:
-          # Validate all the RequiredCppParameter ones are at the end.
-          rematches = filter(IsRequiredCppParameter,
-                             op.arguments[len(op.arguments) - len(matches):])
-          if len(matches) != len(rematches):
-            raise Exception('Invalid RequiredCppParameter - all subsequent '
-                            'parameters must also be RequiredCppParameter.')
-          return True
-        return False
-      if any(HasRequiredCppParameters(op) for op in overloads):
-        longest = max(overloads, key=lambda op: len(op.arguments))
-        # Validate all other overloads are prefixes.
-        for op in overloads:
-          for (index, arg) in enumerate(op.arguments):
-            type1 = arg.type.id
-            type2 = longest.arguments[index].type.id
-            if type1 != type2:
-              raise Exception(
-                  'Overloads for method %s with RequiredCppParameter have '
-                  'inconsistent types %s and %s for parameter #%s' %
-                  (info.name, type1, type2, index))
-        return longest
-      return None
-
-    single_operation = PickRequiredCppSingleOperation()
-    if single_operation:
-      self.GenerateSingleOperation(emitter, info, indent, single_operation)
-      return False
-
-    # Print just the interesting sets of overloads.
-    if len(overloads) > 1 or len(info.overloads) > 1:
-      self.PrintOverloadsComment(emitter, info, indent, '', info.overloads)
-      if overloads != info.overloads:
-        self.PrintOverloadsComment(emitter, info, indent, ' -- reduced:',
-                                   overloads)
-
-    # Match each operation in turn.
-    # TODO: Optimize the dispatch to avoid repeated tests.
-    fallthrough = True
-    for operation in overloads:
-      tests = []
-      for (position, param) in enumerate(info.param_infos):
-        if position < len(operation.arguments):
-          arg = operation.arguments[position]
-          dart_type = self._DartType(arg.type.id)
-          if dart_type == param.dart_type:
-            # The overload type matches the method parameter type exactly.  We
-            # will have already tested this type in checked mode, and the target
-            # will expect (i.e. check) this type.  This case happens when all
-            # the overloads have the same type in this position, including the
-            # trivial case of one overload.
-            test = None
-          else:
-            test = TypeCheck(param.name, dart_type)
-            if IsNullable(dart_type) or IsOptional(arg):
-              test = '(%s || %s)' % (NullCheck(param.name), test)
+    version = [1]
+    def GenerateCall(operation, argument_count, checks):
+      if checks:
+        if operation.type.id != 'void':
+          template = '    if ($CHECKS) {\n      return $CALL;\n    }\n'
         else:
-          test = NullCheck(param.name)
-        if test:
-          tests.append(test)
-      if tests:
-        cond = ' && '.join(tests)
-        if len(cond) + len(indent) + 7 > 80:
-          cond = (' &&\n' + indent + '    ').join(tests)
-        call = emitter.Emit(
-            '$(INDENT)if ($COND) {\n'
-            '$!CALL'
-            '$(INDENT)}\n',
-            COND=cond,
-            INDENT=indent)
-        self.GenerateSingleOperation(call, info, indent + '  ', operation)
+          template = '    if ($CHECKS) {\n      $CALL;\n      return;\n    }\n'
       else:
-        self.GenerateSingleOperation(emitter, info, indent, operation)
-        fallthrough = False
-    return fallthrough
+        if operation.type.id != 'void':
+          template = '    return $CALL;\n'
+        else:
+          template = '    $CALL;\n'
+
+      overload_name = '%s_%s' % (operation.id, version[0])
+      version[0] += 1
+      argument_list = ', '.join(argument_names[:argument_count])
+      call = '_%s(%s)' % (overload_name, argument_list)
+      body.Emit(template, CHECKS=' && '.join(checks), CALL=call)
+
+      dart_declaration = '%s%s _%s(%s)' % (
+          'static ' if operation.is_static else '',
+          self._DartType(operation.type.id), overload_name, argument_list)
+      cpp_callback_name = self._GenerateNativeBinding(
+          overload_name, (0 if operation.is_static else 1) + argument_count,
+          dart_declaration, 'Callback', False)
+      self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
+
+    def GenerateChecksAndCall(operation, argument_count):
+      checks = ['%s === null' % name for name in argument_names]
+      for i in range(0, argument_count):
+        argument = operation.arguments[i]
+        checks[i] = '%s is %s' % (argument_names[i], self._DartType(argument.type.id))
+        if IsOptional(argument) and 'Callback' in argument.ext_attrs:
+          checks[i] = '(%s or %s === null)' % (checks[position], argument_names[i])
+      GenerateCall(operation, argument_count, checks)
+
+    def IsOptionalInWebCore(argument):
+      return IsOptional(argument) and not 'Callback' in argument.ext_attrs
+
+    # TODO: Optimize the dispatch to avoid repeated checks.
+    if len(operations) > 1:
+      for operation in operations:
+        for position, argument in enumerate(operation.arguments):
+          if IsOptionalInWebCore(argument):
+            GenerateChecksAndCall(operation, position)
+        GenerateChecksAndCall(operation, len(operation.arguments))
+      body.Emit('    throw "Incorrect number or type of arguments";\n');
+    else:
+      operation = operations[0]
+      for position, argument in list(enumerate(operation.arguments))[::-1]:
+        if IsOptionalInWebCore(argument):
+          check = '%s === null' % argument_names[position]
+          GenerateCall(operation, position, [check])
+      GenerateCall(operation, len(operation.arguments), [])
 
   def AddOperation(self, info):
     self._AddOperation(info)
@@ -959,63 +852,21 @@ class NativeImplementationGenerator(object):
   def AddSecondaryOperation(self, interface, info):
     self.AddOperation(info)
 
-  def GenerateSingleOperation(self,  dispatch_emitter, info, indent, operation):
-    """Generates a call to a single operation.
-
-    Arguments:
-      dispatch_emitter: an dispatch_emitter for the body of a block of code.
-      info: the compound information about the operation and its overloads.
-      indent: an indentation string for generated code.
-      operation: the IDLOperation to call.
-    """
-
-    self._native_version += 1
-    native_name = info.name
-    if self._native_version > 1:
-      native_name = '%s_%s' % (native_name, self._native_version)
-    argument_list = ', '.join([info.param_infos[i].name
-                               for (i, arg) in enumerate(operation.arguments)])
-
-    # Generate dispatcher.
-    if info.type_name != 'void':
-      dispatch_emitter.Emit('$(INDENT)return _$NATIVENAME($ARGS);\n',
-                            INDENT=indent,
-                            NATIVENAME=native_name,
-                            ARGS=argument_list)
-    else:
-      dispatch_emitter.Emit('$(INDENT)_$NATIVENAME($ARGS);\n'
-                            '$(INDENT)return;\n',
-                            INDENT=indent,
-                            NATIVENAME=native_name,
-                            ARGS=argument_list)
-    # Generate binding.
-    modifier = ''
-    if operation.is_static:
-      modifier = 'static '
-    dart_declaration = '%s%s _%s(%s)' % (modifier, self._DartType(info.type_name), native_name,
-                                       argument_list)
-    is_custom = 'Custom' in operation.ext_attrs
-    cpp_callback_name = self._GenerateNativeBinding(
-        native_name, (0 if operation.is_static else 1) + len(operation.arguments), dart_declaration, 'Callback',
-        is_custom)
-    if is_custom:
-      return
-
-    # Generate callback.
+  def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
 
     parameter_definitions_emitter = emitter.Emitter()
-    arguments = []
+    cpp_arguments = []
     raises_exceptions = self._GenerateCallWithHandling(
-        operation, parameter_definitions_emitter, arguments)
-    raises_exceptions = raises_exceptions or len(operation.arguments) > 0 or operation.raises
+        operation, parameter_definitions_emitter, cpp_arguments)
+    raises_exceptions = raises_exceptions or len(arguments) > 0 or operation.raises
 
-    # Process Dart arguments.
+    # Process Dart cpp_arguments.
     start_index = 1
     if operation.is_static:
       start_index = 0
-    for (i, argument) in enumerate(operation.arguments):
-      if (i == len(operation.arguments) - 1 and
+    for (i, argument) in enumerate(arguments):
+      if (i == len(arguments) - 1 and
           self._interface.id == 'Console' and
           argument.id == 'arg'):
         # FIXME: we are skipping last argument here because it was added in
@@ -1023,25 +874,25 @@ class NativeImplementationGenerator(object):
         break
       argument_expression = self._GenerateToNative(
           parameter_definitions_emitter, argument, start_index + i)
-      arguments.append(argument_expression)
+      cpp_arguments.append(argument_expression)
 
     if operation.id in ['addEventListener', 'removeEventListener']:
       # addEventListener's and removeEventListener's last argument is marked
       # as optional in idl, but is not optional in webcore implementation.
-      if len(operation.arguments) == 2:
-        arguments.append('false')
+      if len(arguments) == 2:
+        cpp_arguments.append('false')
 
     if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty':
       # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
       # idl, but is not optional in webcore implementation.
-      if len(operation.arguments) == 2:
-        arguments.append('String()')
+      if len(arguments) == 2:
+        cpp_arguments.append('String()')
 
     if 'NeedsUserGestureCheck' in operation.ext_attrs:
-      arguments.append('DartUtilities::processingUserGesture')
+      cpp_arguments.append('DartUtilities::processingUserGesture')
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation)
-    invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
+    invocation = self._GenerateWebCoreInvocation(function_expression, cpp_arguments,
         operation.type.id, operation.ext_attrs, operation.raises)
     self._GenerateNativeCallback(cpp_callback_name,
         parameter_definitions=parameter_definitions_emitter.Fragments(),
