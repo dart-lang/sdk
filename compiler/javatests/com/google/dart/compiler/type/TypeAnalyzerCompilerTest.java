@@ -1899,6 +1899,37 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
   }
   
+  /**
+   * It is a static warning if the return type of the user-declared operator negate is explicitly
+   * declared and not a numerical type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3224
+   */
+  public void test_negateOperatorType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  num operator negate() {}",
+        "}",
+        "class B {",
+        "  int operator negate() {}",
+        "}",
+        "class C {",
+        "  double operator negate() {}",
+        "}",
+        "class D {",
+        "  String operator negate() {}",
+        "}",
+        "class E {",
+        "  Object operator negate() {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 12, 3, 6),
+        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
+  }
+  
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

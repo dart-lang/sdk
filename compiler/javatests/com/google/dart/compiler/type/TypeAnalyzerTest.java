@@ -1133,7 +1133,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  Foo foo;",
         "  bool b;",
         "  int i;",
-        "  Foo operator negate() { return this; }",
         "  Foo operator +(int operand) { return this; }",
         "  Foo operator -(int operand) { return this; }",
         "}",
@@ -1152,7 +1151,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}",
         "class X {",
         "  X x;",
-        "  Z operator negate() { return null; }",
         "  Z operator +(int operand) { return null; }",
         "  Z operator -(int operand) { return null; }",
         "}",
@@ -1166,7 +1164,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     ClassElement qux = source.get("Qux");
     ClassElement y = source.get("Y");
     ClassElement z = source.get("Z");
-    for (Token op : EnumSet.of(Token.DEC, Token.INC, Token.SUB)) {
+    for (Token op : EnumSet.of(Token.DEC, Token.INC)) {
       analyzeIn(foo, String.format("%sfoo", op), 0);
       analyzeIn(foo, String.format("i = %sfoo", op), 1);
       analyzeIn(bar, String.format("%sbar", op), 1);

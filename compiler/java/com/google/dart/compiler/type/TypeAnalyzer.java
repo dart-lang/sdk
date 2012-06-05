@@ -1508,12 +1508,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitMethodDefinition(DartMethodDefinition node) {
       MethodElement methodElement = node.getElement();
       Modifiers modifiers = methodElement.getModifiers();
+      DartTypeNode returnTypeNode = node.getFunction().getReturnTypeNode();
       if (modifiers.isFactory()) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
       } else if (modifiers.isSetter()) {
-        DartTypeNode returnType = node.getFunction().getReturnTypeNode();
-        if (returnType != null && returnType.getType() != voidType) {
-          typeError(returnType, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
+        if (returnTypeNode != null && returnTypeNode.getType() != voidType) {
+          typeError(returnTypeNode, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
         }
         if (currentClass != null && methodElement.getParameters().size() > 0) {
           Element parameterElement = methodElement.getParameters().get(0);
@@ -1547,6 +1547,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
       }
+      // operator "negate" should return numeric type
+      if (modifiers.isOperator() && methodElement.getName().equals("negate")
+          && returnTypeNode != null) {
+        Type returnType = node.getElement().getFunctionType().getReturnType();
+        if (!types.isSubtype(returnType, numType)) {
+          typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
+
+        }
+      }
+      // done
       return typeAsVoid(node);
     }
 
