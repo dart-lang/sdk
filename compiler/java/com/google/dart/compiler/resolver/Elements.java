@@ -36,6 +36,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.Paths;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -604,6 +605,29 @@ static FieldElementImplementation fieldFromNode(DartField node,
       }
     }
     return false;
+  }
+
+  /**
+   * @return the {@link LibraryElement} which declares given {@link Element}.
+   */
+  public static LibraryElement getDeclaringLibrary(Element element) {
+    while (element != null) {
+      if (element instanceof LibraryElement) {
+        return (LibraryElement) element;
+      }
+      element = element.getEnclosingElement();
+    }
+    return null;
+  }
+  
+  /**
+   * @return <code>true</code> if "element" is accessible in "scopeLibrary".
+   */
+  public static boolean isAccessible(LibraryElement scopeLibrary, Element element) {
+    if (element != null && StringUtils.startsWith(element.getName(), "_")) {
+      return Objects.equal(scopeLibrary, getDeclaringLibrary(element));
+    }
+    return true;
   }
   
   /**

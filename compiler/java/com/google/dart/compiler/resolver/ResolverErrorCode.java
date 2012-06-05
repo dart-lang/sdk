@@ -13,8 +13,9 @@ import com.google.dart.compiler.SubSystem;
 public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
-  CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
+  CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
+  CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
   CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),

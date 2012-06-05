@@ -1202,6 +1202,10 @@ public class Resolver {
           if (member != null) {
             if (!member.getElement().getModifiers().isStatic()) {
               element = member.getElement();
+              // Must be accessible.
+              if (!Elements.isAccessible(context.getScope().getLibrary(), element)) {
+                onError(x, ResolverErrorCode.CANNOT_ACCESS_METHOD, x.getFunctionNameString());
+              }
             }
           }
           break;
@@ -1471,6 +1475,9 @@ public class Resolver {
         case NONE:
           if (isStaticContextOrInitializer()) {
             onError(node, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
+          }
+          if (scope.findElement(null, name) != null) {
+            onError(node, ResolverErrorCode.CANNOT_ACCESS_METHOD, name);
           }
           break;
 
