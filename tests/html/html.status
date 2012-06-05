@@ -93,6 +93,7 @@ localstorage_test: Fail
 svg_3_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
+transferables_test: Fail   # Issue 3392.
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
 #   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
 # Note this test now passes for the wrong reasons. It used to be that the only
