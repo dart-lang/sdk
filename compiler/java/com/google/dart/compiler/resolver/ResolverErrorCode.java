@@ -116,6 +116,8 @@ public enum ResolverErrorCode implements ErrorCode {
   IS_AN_INSTANCE_METHOD("%s.%s is an instance method, not a static method"),
   LIST_LITERAL_ELEMENT_TYPE(
       "List literal element type must match declaration '%s' when type checks are on."),
+  MAIN_FUNCTION_PARAMETERS(
+      ErrorSeverity.WARNING, "Top-level function 'main' should not have parameters."),
   MAP_LITERAL_ELEMENT_TYPE(
       "Map literal element type must match declaration '%s' when type checks are on."),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),

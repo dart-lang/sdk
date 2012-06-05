@@ -53,6 +53,25 @@ import java.util.List;
  * slower, not actually unit test, but easier to use if you need access to DartNode's.
  */
 public class TypeAnalyzerCompilerTest extends CompilerTestCase {
+
+  /**
+   * Top-level "main" function should not have parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3271
+   */
+  public void test_topLevelMainFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(var p) {}",
+        "class A {",
+        "  main(var p) {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.MAIN_FUNCTION_PARAMETERS, 2, 1, 4));
+  }
+  
   /**
    * Tests that we correctly provide {@link Element#getEnclosingElement()} for method of class.
    */

@@ -1,10 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.ASTVisitor;
@@ -152,6 +153,7 @@ public class MemberBuilder {
         assertTopLevel(method);
       }
       if (element != null) {
+        checkTopLevelMainFunction(method);
         checkModifiers(element, method);
         recordElement(method, element);
         recordElement(method.getName(), element);
@@ -446,6 +448,17 @@ public class MemberBuilder {
       }
 
       return ElementKind.NONE;
+    }
+
+    /**
+     * Checks that top-level "main()" has no parameters.
+     */
+    private void checkTopLevelMainFunction(DartMethodDefinition method) {
+      if (Objects.equal(method.getName().toSource(), "main")
+          && currentHolder instanceof LibraryElement
+          && !method.getFunction().getParameters().isEmpty()) {
+        resolutionError(method.getName(), ResolverErrorCode.MAIN_FUNCTION_PARAMETERS);
+      }
     }
 
     private void checkModifiers(MethodElement element, DartMethodDefinition method) {
