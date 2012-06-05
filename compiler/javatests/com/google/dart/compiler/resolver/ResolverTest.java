@@ -1168,4 +1168,64 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 17, 5, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 18, 14, 7));
   }
+  
+  public void testErrorInUnqualifiedInvocation1() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "class Foo {",
+        "  Foo() {}",
+        "}",
+        "method() {",
+        " Foo();",
+        "}"),
+        errEx(ResolverErrorCode.DID_YOU_MEAN_NEW, 7, 2, 5));
+  }
+
+  public void testErrorInUnqualifiedInvocation2() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "class Foo {}",
+        "method() {",
+        " Foo();",
+        "}"),
+        errEx(ResolverErrorCode.DID_YOU_MEAN_NEW, 5, 2, 5));
+  }
+  
+  public void testErrorInUnqualifiedInvocation3() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "class Foo<T> {",
+        "  method() {",
+        "   T();",
+        "  }",        
+        "}"),
+        errEx(ResolverErrorCode.DID_YOU_MEAN_NEW, 5, 4, 3));
+  }  
+
+    
+  public void testErrorInUnqualifiedInvocation4() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "typedef int foo();",
+        "method() {",
+        " foo();",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 5, 2, 5));
+  }
+  
+  public void testErrorInUnqualifiedInvocation5() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "method() {",
+        "  outer: for(int i = 0; i < 1; i++) {",
+        "    outer();",
+        "  }",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 5, 5, 7));
+  }
 }

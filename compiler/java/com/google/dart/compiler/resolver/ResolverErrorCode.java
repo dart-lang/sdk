@@ -22,6 +22,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
   CANNOT_BE_INITIALIZED("cannot be initialized"),
   CANNOT_CALL_LABEL("Labels cannot be called"),
+  CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
+  CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
   CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
       "Cannot declare a non-factory named constructor of another class."),
   CANNOT_INIT_FIELD_FROM_SUPERCLASS("Cannot initialize a field from a super class"),

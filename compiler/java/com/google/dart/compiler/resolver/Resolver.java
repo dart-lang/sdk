@@ -1497,6 +1497,14 @@ public class Resolver {
           onError(node, ResolverErrorCode.CANNOT_CALL_LABEL);
           break;
 
+        case FUNCTION_TYPE_ALIAS:
+          onError(node, ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS);
+          break;
+          
+        case LIBRARY_PREFIX:
+          onError(node, ResolverErrorCode.CANNOT_CALL_LIBRARY_PREFIX);
+          break;
+          
         default:
           throw context.internalError(node, "Unexpected kind of element: %s", kind);
       }
