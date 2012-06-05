@@ -34,15 +34,6 @@ module core {
 };
 
 module dom {
-  // Force NodeSelector. WebKit defines these operations directly.
-  interface NodeSelector {
-    Element   querySelector(in DOMString selectors);
-    NodeList  querySelectorAll(in DOMString selectors);
-  };
-  Document implements NodeSelector;
-  DocumentFragment implements NodeSelector;
-  Element implements NodeSelector;
-
   // Force ElementTraversal. WebKit defines these directly.
   interface ElementTraversal {
     getter attribute unsigned long childElementCount;

@@ -14175,7 +14175,7 @@ interface DirectoryReaderSync {
 
 // WARNING: Do not edit - generated code.
 
-interface Document extends Node, NodeSelector {
+interface Document extends Node {
 
   final String URL;
 
@@ -14341,7 +14341,7 @@ interface Document extends Node, NodeSelector {
 
 // WARNING: Do not edit - generated code.
 
-interface DocumentFragment extends Node, NodeSelector {
+interface DocumentFragment extends Node {
 
   Element querySelector(String selectors);
 
@@ -14405,7 +14405,7 @@ interface EXTTextureFilterAnisotropic {
 
 // WARNING: Do not edit - generated code.
 
-interface Element extends Node, NodeSelector, ElementTraversal {
+interface Element extends Node, ElementTraversal {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
@@ -18298,18 +18298,6 @@ interface NodeList extends List<Node> {
   final int length;
 
   Node item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface NodeSelector {
-
-  Element querySelector(String selectors);
-
-  NodeList querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

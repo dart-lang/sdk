@@ -26808,10 +26808,13 @@ interface ElementRect {
   List<ClientRect> get clientRects();
 }
 
+interface NodeSelector {
+  Element query(String selectors);
+  NodeList queryAll(String selectors);
+}
+
 /// @domName Element
 interface Element extends Node, NodeSelector default _ElementFactoryProvider {
-// TODO(jacobr): switch back to:
-// interface Element extends Node, NodeSelector, ElementTraversal default _ElementImpl {
   Element.html(String html);
   Element.tag(String tag);
 
@@ -30922,26 +30925,6 @@ interface NodeList extends List<Node> {
 
   /** @domName NodeList.length */
   final int length;
-
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName NodeSelector
-interface NodeSelector {
-
-  // TODO(nweiz): add this back once DocumentFragment is ported.
-  // ElementList queryAll(String selectors);
-
-
-  /** @domName NodeSelector.querySelector */
-  Element querySelector(String selectors);
-
-  /** @domName NodeSelector.querySelectorAll */
-  NodeList querySelectorAll(String selectors);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
