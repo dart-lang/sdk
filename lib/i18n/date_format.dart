@@ -3,7 +3,7 @@
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
- * DateTimeFormat is for formatting and parsing dates in a locale-sensitive 
+ * DateFormat is for formatting and parsing dates in a locale-sensitive 
  * manner. 
  * It allows the user to choose from a set of standard date time formats as well
  * as specify a customized pattern under certain locales. Date elements that
@@ -105,23 +105,30 @@
  * that point, the parse of the run fails.
  */
 
-#library('DateTimeFormat');
+#library('DateFormat');
 
-class DateTimeFormat {
+class DateFormat {
 
   /** Definition of this object formats dates. */
   var formatDefinition;
 
   /**
-   * String indicating a language code with which the message is to be
-   * formatted (such as en-US).
+   * String indicating the locale code with which the message is to be
+   * formatted (such as en-CA).
    */
   String _locale;
 
   /** 
    * Date/Time format "skeleton" patterns. Also specifiable by String, but
-   * written this way so that they can be discoverable via autocomplete.
+   * written this way so that they can be discoverable via autocomplete. These
+   * follow the ICU syntax described at the top of the file. These skeletons can
+   * be combined and we will attempt to find the best format for each locale
+   * given the pattern.
+   * // TODO(efortuna): Hear back from i18n about Time Zones and the "core set"
+   * // of skeleton patterns.
    */
+                                          // Example of how this looks in the US
+                                          // locale.
   static final String Hm = 'Hm';          // HH:mm
   static final String Hms = 'Hms';        // HH:mm:ss 
   static final String M = 'M';            // L
@@ -145,38 +152,59 @@ class DateTimeFormat {
   static final String yQQQ = 'yQQQ';      // QQQ yyyy
 
   /** Date/Time format patterns. */
-  // TODO(alanknight): There's a style question of whether to use fullDate or 
-  // FULL_DATE naming conventions.
-  static final int _fullDate = 0;
-  static final int _longDate = 1;
-  static final int _mediumDate = 2;
-  static final int _shortDate = 3;
-  static final int _fullTime = 4;
-  static final int _longTime = 5;
-  static final int _mediumTime = 6;
-  static final int _shortTime = 7;
-  static final int _fullDateTime = 8;
-  static final int _longDateTime = 9;
-  static final int _mediumDateTime = 10;
-  static final int _shortDateTime = 11;
+  // TODO(efortuna): This are just guesses of what a full date, long date is. 
+  // Do the proper homework on ICU to find the proper set "Hms"/"yMMd"
+  // applicable to each case.
+  static final String fullDate = '$y$MMMMd';
+  static final String longDate = yMMMEd;
+  static final String mediumDate = '$y$Md';
+  static final String shortDate = Md;
+  static final String fullTime = '$Hms a';
+  static final String longTime = '$Hms a zzzz';
+  static final String mediumTime = Hms;
+  static final String shortTime = Hm;
+  static final String fullDateTime = '$fullDate$fullTime';
+  static final String longDateTime = '$logDate$longTime';
+  static final String mediumDateTime = '$mediumDate$mediumTime';
+  static final String shortDateTime = '$shortDate$shortTime';
     
   /**
-   * Named constructors for each of the above values.
-   * These could probably be made shorter if we just set the format to the 
-   * constant and the parsing was lazy.
+   * Named constructors for the above values.
    */
-  DateTimeFormat.fullDate() : this.formatDefinition = _fullDate;
-  DateTimeFormat.longDate() : this.formatDefinition = _longDate;
-  DateTimeFormat.mediumDate() : this.formatDefinition = _mediumDate;
-  DateTimeFormat.shortDate() : this.formatDefinition = _shortDate;
-  DateTimeFormat.fullTime() : this.formatDefinition = _fullTime;
-  DateTimeFormat.longTime() : this.formatDefinition = _longTime;
-  DateTimeFormat.mediumTime() : this.formatDefinition = _mediumTime;
-  DateTimeFormat.shortTime() : this.formatDefinition = _shortTime;
-  DateTimeFormat.fullDateTime() : this.formatDefinition = _fullDateTime;
-  DateTimeFormat.longDateTime() : this.formatDefinition = _longDateTime;
-  DateTimeFormat.mediumDateTime() : this.formatDefinition = _mediumDateTime;
-  DateTimeFormat.shortDateTime() : this.formatDefinition = _shortDateTime;
+  DateFormat.Hm([this._locale]) : formatDefinition = Hm;
+  DateFormat.Hms([this._locale]) : formatDefinition = Hms;
+  DateFormat.M([this._locale]) : formatDefinition = M;
+  DateFormat.MEd([this._locale]) : formatDefinition = MEd;
+  DateFormat.MMM([this._locale]) : formatDefinition = MMM;
+  DateFormat.MMMEd([this._locale]) : formatDefinition = MMMEd;
+  DateFormat.MMMMEd([this._locale]) : formatDefinition = MMMMEd;
+  DateFormat.MMMMd([this._locale]) : formatDefinition = MMMMd;
+  DateFormat.MMMd([this._locale]) : formatDefinition = MMMd;
+  DateFormat.Md([this._locale]) : formatDefinition = Md;
+  DateFormat.d([this._locale]) : formatDefinition = d;
+  DateFormat.hm([this._locale]) : formatDefinition = hm;
+  DateFormat.ms([this._locale]) : formatDefinition = ms;
+  DateFormat.y([this._locale]) : formatDefinition = y;
+  DateFormat.yM([this._locale]) : formatDefinition = yM;
+  DateFormat.yMEd([this._locale]) : formatDefinition = yMEd;
+  DateFormat.yMMM([this._locale]) : formatDefinition = yMMM;
+  DateFormat.yMMMEd([this._locale]) : formatDefinition = yMMMEd;
+  DateFormat.yMMMM([this._locale]) : formatDefinition = yMMMM;
+  DateFormat.yQ([this._locale]) : formatDefinition = yQ;
+  DateFormat.yQQQ([this._locale]) : formatDefinition = yQQQ;
+
+  DateFormat.fullDate([this._locale]) : formatDefinition = fullDate;
+  DateFormat.longDate([this._locale]) : formatDefinition = longDate;
+  DateFormat.mediumDate([this._locale]) : formatDefinition = mediumDate;
+  DateFormat.shortDate([this._locale]) : formatDefinition = shortDate;
+  DateFormat.fullTime([this._locale]) : formatDefinition = fullTime;
+  DateFormat.longTime([this._locale]) : formatDefinition = longTime;
+  DateFormat.mediumTime([this._locale]) : formatDefinition = mediumTime;
+  DateFormat.shortTime([this._locale]) : formatDefinition = shortTime;
+  DateFormat.fullDateTime([this._locale]) : formatDefinition = fullDateTime;
+  DateFormat.longDateTime([this._locale]) : formatDefinition = longDateTime;
+  DateFormat.mediumDateTime([this._locale]) : formatDefinition = mediumDateTime;
+  DateFormat.shortDateTime([this._locale]) : formatDefinition = shortDateTime;
   
   /**
    * Constructor accepts a [formatDefinition], which can be a String, one of the
@@ -185,7 +213,7 @@ class DateTimeFormat {
    * locale to be used, otherwise, we will attempt to infer it (acceptable if
    * Dart is running on the client, we can infer from the browser).
    */
-  DateTimeFormat(this.formatDefinition, [this._locale]);
+  DateFormat([this.formatDefinition = fullDate, this._locale]);
 
   /**
    * Given user input, attempt to parse the [inputString] into the anticipated
@@ -202,5 +230,23 @@ class DateTimeFormat {
   String format(Date date, [TimeZone timeZone]) {
     // TODO(efortuna): optional TimeZone argument? TimeZone is deprecated...
     return date.toString();
+  }
+
+  /**
+   * Returns a date string indicating how long ago (3 hours, 2 minutes)
+   * something has happened or how long in the future something will happen
+   * given a [reference] Date relative to the current time.
+   */
+  String formatDuration(Date reference) {
+    return '';
+  }
+  
+  /**
+   * Formats a String indicating how long ago (negative [duration]) or how far
+   * in the future (positive [duration]) some time is with respect to a
+   * reference [date]. The [duration] is expressed in miliseconds.
+   */
+  String formatDurationFrom(num duration, Date date) {
+    return '';
   }
 }

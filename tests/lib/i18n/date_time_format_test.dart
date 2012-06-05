@@ -6,7 +6,7 @@
 
 #library('date_time_format_test');
 
-#import('../../../lib/i18n/date_time_format.dart');
+#import('../../../lib/i18n/date_format.dart');
 #import('../../../lib/unittest/unittest.dart');
 
 /**
@@ -15,18 +15,18 @@
 
 main() {
   test('Date formatting', () {
-    var date_format = new DateTimeFormat.fullDate();
+    var date_format = new DateFormat.fullDate();
     Date date = new Date.now();
     // TODO(efortuna): Change the expectation once we have a functioning date
     // formatting class.
     Expect.stringEquals(date.toString(), date_format.format(date));
     
-    date_format = new DateTimeFormat("hh:mm:ss");
+    date_format = new DateFormat("hh:mm:ss");
     Expect.stringEquals(date.toString(), date_format.format(date));
   });
 
   test('Date parsing', () {
-    var date_format = new DateTimeFormat.fullDate();
+    var date_format = new DateFormat.fullDate();
     Date date =  new Date.now();
     // TODO(efortuna): Change the expectation once we have a functioning date
     // formatting class.
