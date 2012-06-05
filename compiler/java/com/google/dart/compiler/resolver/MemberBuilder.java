@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -22,6 +23,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
@@ -99,10 +101,59 @@ public class MemberBuilder {
       beginClassContext(node);
       EnclosingElement previousEnclosingElement = enclosingElement;
       enclosingElement = node.getElement();
-      this.visit(node.getMembers());
+      // visit fields, to make their Elements ready for constructor parameters
+      for (DartNode member : node.getMembers()) {
+        if (member instanceof DartFieldDefinition) {
+          member.accept(this);
+        }
+      }
+      // visit all other members
+      for (DartNode member : node.getMembers()) {
+        if (!(member instanceof DartFieldDefinition)) {
+          member.accept(this);
+        }
+      }
+      // done with this class
       enclosingElement = previousEnclosingElement;
       endClassContext();
       return null;
+    }
+
+    private void checkParameterInitializer(DartMethodDefinition method, DartParameter parameter) {
+      if (Elements.isNonFactoryConstructor(method.getElement())) {
+        if (method.getModifiers().isRedirectedConstructor()) {
+          resolutionError(parameter.getName(),
+              ResolverErrorCode.PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR);
+        }
+
+        FieldElement element =
+          Elements.lookupLocalField((ClassElement) currentHolder, parameter.getParameterName());
+        if (element == null) {
+          resolutionError(parameter, ResolverErrorCode.PARAMETER_NOT_MATCH_FIELD,
+                          parameter.getName());
+        } else if (element.isStatic()) {
+          resolutionError(parameter,
+                          ResolverErrorCode.PARAMETER_INIT_STATIC_FIELD,
+                          parameter.getName());
+        }
+
+        // Field parameters are not visible as parameters, so we do not declare them
+        // in the context. Instead we record the resolved field element.
+        Elements.setParameterInitializerElement(parameter.getElement(), element);
+
+        // The editor expects the referenced elements to be non-null
+        DartPropertyAccess prop = (DartPropertyAccess)parameter.getName();
+        prop.setElement(element);
+        prop.getName().setElement(element);
+
+        // If no type specified, use type of field.
+        if (parameter.getTypeNode() == null && element != null) {
+          Elements.setType(parameter.getElement(), element.getType());
+        }
+      } else {
+        resolutionError(parameter.getName(),
+            ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
+      }
     }
 
     @Override
@@ -166,6 +217,20 @@ public class MemberBuilder {
         context = previous;
       }
       return null;
+    }
+    
+    @Override
+    protected void resolveFunctionWithParameters(DartFunction node, MethodElement element) {
+      super.resolveFunctionWithParameters(node, element);
+      // Bind "formal initializers" to fields.
+      if (node.getParent() instanceof DartMethodDefinition) {
+        DartMethodDefinition method = (DartMethodDefinition) node.getParent();
+        for (DartParameter parameter : node.getParameters()) {
+          if (parameter.getQualifier() instanceof DartThisExpression) {
+            checkParameterInitializer(method, parameter);
+          }
+        }
+      }
     }
 
     @Override
@@ -253,6 +318,7 @@ public class MemberBuilder {
         case CONSTRUCTOR:
           return (ConstructorNodeElement) e;
       }
+
       // If the constructor name resolves to a class or there was an error,
       // create the unnamed constructor.
       return Elements.constructorFromMethodNode(method, "", (ClassElement) currentHolder,

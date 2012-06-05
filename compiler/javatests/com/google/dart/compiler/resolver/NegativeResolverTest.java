@@ -536,8 +536,8 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  foo() {}",
             "  var foo;",
             "}"),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3));
   }
 
   /**
@@ -920,8 +920,8 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  foo() {}",
             "  set foo(x) {}",
             "}"),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3));
   }
 
   public void test_nameShadow_functionExpressionParameters() {

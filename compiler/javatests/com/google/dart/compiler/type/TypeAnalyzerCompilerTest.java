@@ -34,6 +34,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -47,6 +48,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -897,6 +899,53 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3264
+   */
+  public void test_initializingFormalType_useFieldType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final double f;",
+        "  A(this.f);",
+        "}",
+        "class B {",
+        "  B(this.f);",
+        "  final double f;",
+        "}",
+        "",
+        "main() {",
+        "  new A('0');",
+        "  new B('0');",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 12, 9, 3),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 13, 9, 3));
+  }
+  
+  /**
+   * If "this.field" parameter has declared type, it should be assignable to the field.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3264
+   */
+  public void test_initializingFormalType_compatilityWithFieldType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final double f;",
+        "  A.useDynamic(Dynamic this.f);",
+        "  A.useNum(num this.f);",
+        "  A.useString(String this.f);",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 15, 13));
   }
 
   public void test_finalField_inClass() throws Exception {
@@ -1852,5 +1901,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
+  }
+  
+  /**
+   * @return the {@link DartNode} at the position of "pattern", with given {@link Class}.
+   */
+  private <T extends DartNode> T findIdentifier(
+      AnalyzeLibraryResult libraryResult,
+      String pattern,
+      int patternOffset,
+      final Class<T> clazz) {
+    String source = libraryResult.source;
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    // prepare index
+    assertTrue(source.contains(pattern));
+    final int index = source.indexOf(pattern) + patternOffset;
+    // find node
+    final AtomicReference<T> result = new AtomicReference<T>();
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitNode(DartNode node) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo.getOffset() <= index
+            && index < sourceInfo.getEnd()
+            && clazz.isInstance(node)) {
+          result.set(clazz.cast(node));
+        }
+        return super.visitNode(node);
+      }
+    });
+    return result.get();
   }
 }

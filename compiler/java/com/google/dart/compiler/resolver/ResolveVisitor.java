@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,6 +38,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     for (DartParameter parameter : node.getParameters()) {
       Elements.addParameter(element, (VariableElement) parameter.accept(this));
     }
+    resolveFunctionWithParameters(node, element);
     Type returnType =
         resolveType(
             node.getReturnTypeNode(),
@@ -49,6 +50,13 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
                                                element.getParameters(), returnType);
     Elements.setType(element, type);
     return element;
+  }
+
+  /**
+   * Allows subclass to process {@link DartFunction} element with parameters, but before
+   * {@link FunctionType} is created for it.
+   */
+  protected void resolveFunctionWithParameters(DartFunction node, MethodElement element) {
   }
 
   final FunctionAliasElement resolveFunctionAlias(DartFunctionTypeAlias node) {

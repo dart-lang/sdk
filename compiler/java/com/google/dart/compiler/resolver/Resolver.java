@@ -597,9 +597,7 @@ public class Resolver {
       // scope of the default expressions so we can report better errors.
       for (DartParameter parameter : parameters) {
         assert parameter.getElement() != null;
-        if (parameter.getQualifier() instanceof DartThisExpression) {
-          checkParameterInitializer(node, parameter);
-        } else {
+        if (!(parameter.getQualifier() instanceof DartThisExpression)) {
           getContext().declare(
               parameter.getElement(),
               ResolverErrorCode.DUPLICATE_PARAMETER,
@@ -1791,43 +1789,6 @@ public class Resolver {
           resolve(variable.getValue());
           node.setType(variable.getValue().getType());
         }
-      }
-    }
-
-    private void checkParameterInitializer(DartMethodDefinition method, DartParameter parameter) {
-      if (Elements.isNonFactoryConstructor(method.getElement())) {
-        if (method.getModifiers().isRedirectedConstructor()) {
-          onError(parameter.getName(),
-              ResolverErrorCode.PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR);
-        }
-
-        FieldElement element =
-          Elements.lookupLocalField((ClassElement) currentHolder, parameter.getParameterName());
-        if (element == null) {
-          onError(parameter, ResolverErrorCode.PARAMETER_NOT_MATCH_FIELD,
-                          parameter.getName());
-        } else if (element.isStatic()) {
-          onError(parameter,
-                          ResolverErrorCode.PARAMETER_INIT_STATIC_FIELD,
-                          parameter.getName());
-        }
-
-        // Field parameters are not visible as parameters, so we do not declare them
-        // in the context. Instead we record the resolved field element.
-        Elements.setParameterInitializerElement(parameter.getElement(), element);
-
-        // The editor expects the referenced elements to be non-null
-        DartPropertyAccess prop = (DartPropertyAccess)parameter.getName();
-        prop.setElement(element);
-        prop.getName().setElement(element);
-
-        // If no type specified, use type of field.
-        if (parameter.getTypeNode() == null && element != null) {
-          Elements.setType(parameter.getElement(), element.getType());
-        }
-      } else {
-        onError(parameter.getName(),
-            ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
       }
     }
 
