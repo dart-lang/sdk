@@ -36,9 +36,122 @@ testComplete() {
   Expect.isNull(future.exception);
 }
 
+// Tests for [onComplete]
+
+testCompleteWithCompleteHandlerBeforeComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+
+  int before;
+  future.onComplete((f) {
+    Expect.equals(future, f);
+    Expect.isTrue(f.isComplete);
+    Expect.isTrue(f.hasValue);
+    before = f.value;
+  });
+  Expect.throws(() => future.value);
+  Expect.isNull(before);
+  completer.complete(3);
+
+  Expect.equals(3, future.value);
+  Expect.equals(3, before);
+}
+
+testExceptionWithCompleteHandlerBeforeComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final exception = new Exception();
+
+  var err;
+  future.onComplete((f) {
+    Expect.equals(future, f);
+    Expect.isTrue(f.isComplete);
+    Expect.isFalse(f.hasValue);
+    err = f.exception;
+  });
+  Expect.throws(() => future.exception);
+  Expect.isNull(err);
+  completer.completeException(exception);
+  Expect.equals(exception, future.exception);
+  Expect.equals(exception, err);
+  Expect.throws(() => future.value, check: (e) => e == exception);
+}
+
+testCompleteWithCompleteHandlerAfterComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+
+  int after;
+  completer.complete(3);
+  future.onComplete((f) {
+    Expect.equals(future, f);
+    Expect.isTrue(f.isComplete);
+    Expect.isTrue(f.hasValue);
+    after = f.value;
+  });
+  Expect.equals(3, future.value);
+  Expect.equals(3, after);
+}
+
+testExceptionWithCompleteHandlerAfterComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final exception = new Exception();
+
+  var err;
+  completer.completeException(exception);
+  future.onComplete((f) {
+    Expect.equals(future, f);
+    Expect.isTrue(f.isComplete);
+    Expect.isFalse(f.hasValue);
+    err = f.exception;
+  });
+  Expect.equals(exception, future.exception);
+  Expect.equals(exception, err);
+  Expect.throws(() => future.value, check: (e) => e == exception);
+}
+
+testCompleteWithManyCompleteHandlers() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  int before;
+  int after1;
+  int after2;
+
+  future.onComplete((f) { before = f.value; });
+  completer.complete(3);
+  future.onComplete((f) { after1 = f.value; });
+  future.onComplete((f) { after2 = f.value; });
+
+  Expect.equals(3, future.value);
+  Expect.equals(3, before);
+  Expect.equals(3, after1);
+  Expect.equals(3, after2);
+}
+
+testExceptionWithManyCompleteHandlers() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final exception = new Exception();
+  var before;
+  var after1;
+  var after2;
+
+  future.onComplete((f) { before = f.exception; });
+  completer.completeException(exception);
+  future.onComplete((f) { after1 = f.exception; });
+  future.onComplete((f) { after2 = f.exception; });
+
+  Expect.equals(exception, future.exception);
+  Expect.equals(exception, before);
+  Expect.equals(exception, after1);
+  Expect.equals(exception, after2);
+  Expect.throws(() => future.value, check: (e) => e == exception);
+}
+
 // Tests for [then]
 
-testCompleteWithHandlerBeforeComplete() {
+testCompleteWithSuccessHandlerBeforeComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
@@ -52,7 +165,7 @@ testCompleteWithHandlerBeforeComplete() {
   Expect.equals(3, before);
 }
 
-testCompleteWithHandlerAfterComplete() {
+testCompleteWithSuccessHandlerAfterComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
@@ -67,22 +180,22 @@ testCompleteWithHandlerAfterComplete() {
   Expect.equals(3, after);
 }
 
-testCompleteManyHandlers() {
+testCompleteManySuccessHandlers() {
   final completer = new Completer<int>();
   final future = completer.future;
+  int before;
   int after1;
   int after2;
-  int after3;
 
-  future.then((int v) { after1 = v; });
+  future.then((int v) { before = v; });
   completer.complete(3);
+  future.then((int v) { after1 = v; });
   future.then((int v) { after2 = v; });
-  future.then((int v) { after3 = v; });
 
   Expect.equals(3, future.value);
+  Expect.equals(3, before);
   Expect.equals(3, after1);
   Expect.equals(3, after2);
-  Expect.equals(3, after3);
 }
 
 // Tests for [handleException]
@@ -97,7 +210,7 @@ testException() {
       check: (e) => e == ex);
 }
 
-testExceptionNoListeners() {
+testExceptionNoSuccessListeners() {
   final completer = new Completer<int>();
   final future = completer.future;
   final ex = new Exception();
@@ -190,6 +303,66 @@ testExceptionHandlerAfterCompleteReturnsFalseThenThrows() {
   Expect.equals(ex, ex2);
 }
 
+// Tests for mixed usage of [onComplete], [then], and [handleException]
+
+testCompleteWithCompletionAndSuccessHandlers() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+
+  var valueFromSuccessHandler;
+  var valueFromCompletionHandler;
+  future.onComplete((f) {
+    Expect.isNotNull(valueFromSuccessHandler);
+    valueFromCompletionHandler = f.value;
+  });
+  future.then((v) {
+    Expect.isNull(valueFromCompletionHandler);
+    valueFromSuccessHandler = v;
+  });
+  completer.complete(42);
+  Expect.equals(42, valueFromSuccessHandler);
+  Expect.equals(42, valueFromCompletionHandler);
+  Expect.equals(42, future.value);
+}
+
+testExceptionWithCompletionAndSuccessHandlers() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  var exceptionFromCompleteHandler;
+  future.onComplete((f) {
+    Expect.equals(future, f);
+    Expect.isFalse(f.hasValue);
+    exceptionFromCompleteHandler = f.exception;
+  });
+  future.then((v) => Expect.fail("Should not succeed"));
+  Expect.throws(() => completer.completeException(ex), check: (e) => ex == e);
+  Expect.equals(ex, exceptionFromCompleteHandler);
+}
+
+testExceptionWithCompletionAndSuccessAndExceptionHandlers() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  var exceptionFromCompleteHandler;
+  var exceptionFromExceptionHandler;
+  future.onComplete((f) {
+    Expect.equals(future, f);
+    Expect.isFalse(f.hasValue);
+    exceptionFromCompleteHandler = f.exception;
+  });
+  future.handleException((e) {
+    exceptionFromExceptionHandler = e;
+    return true;
+  });
+  future.then((v) => Expect.fail("Should not succeed"));
+  completer.completeException(ex);
+  Expect.equals(ex, exceptionFromCompleteHandler);
+  Expect.equals(ex, exceptionFromExceptionHandler);
+}
+
 // Tests for Future.transform
 
 testTransformSuccess() {
@@ -278,9 +451,15 @@ main() {
   testImmediate();
   testNeverComplete();
   testComplete();
-  testCompleteWithHandlerBeforeComplete();
-  testCompleteWithHandlerAfterComplete();
-  testCompleteManyHandlers();
+  testCompleteWithCompleteHandlerBeforeComplete();
+  testExceptionWithCompleteHandlerBeforeComplete();
+  testCompleteWithCompleteHandlerAfterComplete();
+  testExceptionWithCompleteHandlerAfterComplete();
+  testCompleteWithManyCompleteHandlers();
+  testExceptionWithManyCompleteHandlers();
+  testCompleteWithSuccessHandlerBeforeComplete();
+  testCompleteWithSuccessHandlerAfterComplete();
+  testCompleteManySuccessHandlers();
   testException();
   testExceptionHandler();
   testExceptionHandlerReturnsTrue();
@@ -289,6 +468,9 @@ main() {
   testExceptionHandlerReturnsFalse2();
   testExceptionHandlerAfterCompleteThenNotCalled();
   testExceptionHandlerAfterCompleteReturnsFalseThenThrows();
+  testCompleteWithCompletionAndSuccessHandlers();
+  testExceptionWithCompletionAndSuccessHandlers();
+  testExceptionWithCompletionAndSuccessAndExceptionHandlers();
   testTransformSuccess();
   testTransformFutureFails();
   testTransformTransformerFails();

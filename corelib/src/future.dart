@@ -7,12 +7,27 @@
 
 /**
  * A [Future] is used to obtain a value sometime in the future.  Receivers of a
- * [Future] obtain the value by passing a callback to [then]. For example:
+ * [Future] can obtain the value by passing a callback to [then].
+ * For example:
  *
  *   Future<int> future = getFutureFromSomewhere();
  *   future.then((value) {
  *     print("I received the number $value");
  *   });
+ * 
+ * A future may complete by *succeeding* (producing a value) or *failing*
+ * (producing an exception, which may be handled with [handleException]).
+ * Callbacks passed to [onComplete] will be invoked in either case.
+ *
+ * When a future completes:
+ *
+ *   1. if the future suceeded, handlers registered with [then] are called.
+ *   2. if the future failed, handlers registered with [handleException] are
+ *      called in sequence, until one returns true.
+ *   3. handlers registered with [onComplete] are called
+ *   4. if the future failed, and at least one handler was registered with
+ *      [then], and no handler registered with [handleException] returned
+ *      [:true:], then the exception is thrown.
  */
 interface Future<T> default FutureImpl<T> {
 
@@ -42,13 +57,20 @@ interface Future<T> default FutureImpl<T> {
   bool get hasValue();
 
   /**
-   * When this future is complete and has a value, then [onComplete] is called
-   * with the value.
+   * When this future is complete (either with a value or with an exception),
+   * then [complete] is called with the future.
+   * If [complete] throws an exception, it is ignored.
    */
-  void then(void onComplete(T value));
+  void onComplete(void complete(Future<T> future));
 
   /**
-   * If this future gets an exception, then call [onException].
+   * If this future is complete and has a value, then [onValue] is called
+   * with the value.
+   */
+  void then(void onValue(T value));
+
+  /**
+   * If this future is complete and has an exception, then call [onException].
    *
    * If [onException] returns true, then the exception is considered handled.
    *
@@ -73,9 +95,6 @@ interface Future<T> default FutureImpl<T> {
    *
    * If an exception occurs (received by this future, or thrown by
    * [transformation]) then the returned future will receive the exception.
-   *
-   * You must not add exception handlers to [this] future prior to calling
-   * transform, and any you add afterwards will not be invoked.
    */
   Future transform(transformation(T value));
 
@@ -90,9 +109,6 @@ interface Future<T> default FutureImpl<T> {
     * If an exception occurs (received by this future, thrown by
     * [transformation], or received by the future returned by [transformation])
     * then the returned future will receive the exception.
-    *
-    * You must not add exception handlers to [this] future prior to calling
-    * chain, and any you add afterwards will not be invoked.
     */
    Future chain(Future transformation(T value));
 }
