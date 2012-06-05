@@ -4,10 +4,6 @@
 
 [ $compiler == dartc ]
 
-Language/03_Overview/1_Scoping_A01_t35: Fail # Issue 2380
-Language/03_Overview/1_Scoping_A01_t39: Fail # Issue 2381
-Language/03_Overview/1_Scoping_A01_t40: Fail # Issue 2381
-Language/03_Overview/1_Scoping_A01_t41: Fail # Issue 2381
 Language/03_Overview/1_Scoping_A02_t05: Fail # Issue 2241 (co19 Issue)
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
 Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
@@ -130,7 +126,10 @@ Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
 Language/13_Types/1_Static_Types_A02_t08: Fail # Issue 2494
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
+Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 Issue 130
+Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
+Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
 
 LibTest/core/Dispatcher/*: Skip
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269

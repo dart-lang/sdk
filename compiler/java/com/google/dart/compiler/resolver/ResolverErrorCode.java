@@ -54,12 +54,13 @@ public enum ResolverErrorCode implements ErrorCode {
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(
       "default class must have the same type parameters as declared in the interface"),
-  DEFAULT_CONSTRUCTOR_UNRESOLVED("Can not resolve constructor with name '%s' in default class '%s'"),
+  DEFAULT_CONSTRUCTOR_UNRESOLVED("Cannot resolve constructor with name '%s' in default class '%s'"),
   DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
       "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
   DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
       "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
+  DEFAULT_VALUE_IN_TYPEDEF("Default values cannot be specified in a typedef"),
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),

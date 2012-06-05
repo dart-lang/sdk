@@ -224,6 +224,23 @@ public class Resolver {
     public Element visitFunctionTypeAlias(DartFunctionTypeAlias alias) {
       getContext().pushFunctionAliasScope(alias);
       resolveFunctionAlias(alias);
+
+      List<DartParameter> parameters = alias.getParameters();
+      for (DartParameter parameter : parameters) {
+        assert parameter.getElement() != null;
+        if (parameter.getQualifier() instanceof DartThisExpression) {
+          onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
+        } else {
+            getContext().declare(
+                parameter.getElement(),
+                ResolverErrorCode.DUPLICATE_PARAMETER,
+                ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
+        }
+        if (parameter.getDefaultExpr() != null) {
+          onError(parameter.getDefaultExpr(), ResolverErrorCode.DEFAULT_VALUE_IN_TYPEDEF);
+        }
+      }
+
       getContext().popScope();
       return null;
     }
