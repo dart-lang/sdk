@@ -129,15 +129,15 @@ class DatabaseBuilder(object):
         in_optional_whitelist = (interface.id, op.id, argument.id) in optional_argument_whitelist
         if in_optional_whitelist or set(['Optional', 'Callback']).issubset(argument.ext_attrs.keys()):
           argument.is_optional = True
+          argument.ext_attrs['Optional'] = None
           argument.ext_attrs['RequiredCppParameter'] = None
           continue
 
-        if argument.is_optional:
-          if 'Optional' in argument.ext_attrs:
-            optional_value = argument.ext_attrs['Optional']
-            if optional_value:
-              argument.is_optional = False
-              del argument.ext_attrs['Optional']
+        if 'Optional' in argument.ext_attrs:
+          optional_value = argument.ext_attrs['Optional']
+          if optional_value:
+            argument.is_optional = False
+            del argument.ext_attrs['Optional']
 
     # split operations with optional args into multiple operations
     new_ops = []

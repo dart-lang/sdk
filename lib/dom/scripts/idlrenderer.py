@@ -169,8 +169,6 @@ def render(idl_node, indent_str='  '):
     elif isinstance(node, IDLArgument):
       wsp(node.ext_attrs)
       w('in ')
-      if node.is_optional:
-        w('optional ')
       w('%s %s' % (node.type.id, node.id))
     else:
       raise TypeError("Expected str or IDLNode but %s found" %
