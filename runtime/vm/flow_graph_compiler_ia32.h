@@ -81,6 +81,59 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
   virtual void GenerateInlinedGetter(intptr_t offset);
   virtual void GenerateInlinedSetter(intptr_t offset);
 
+  RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
+                                                intptr_t token_index,
+                                                const AbstractType& type,
+                                                Label* is_instance_lbl,
+                                                Label* is_not_instance_lbl);
+
+  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
+      intptr_t cid,
+      intptr_t token_index,
+      const AbstractType& dst_type,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
+
+  void GenerateInstantiatedTypeNoArgumentsTest(intptr_t cid,
+                                               intptr_t token_index,
+                                               const AbstractType& dst_type,
+                                               Label* is_instance_lbl,
+                                               Label* is_not_instance_lbl);
+
+  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+      intptr_t cid,
+      intptr_t token_index,
+      const AbstractType& dst_type,
+      Label* is_instance_lbl,
+      Label* is_not_instance_label);
+
+  RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
+      intptr_t cid,
+      intptr_t token_index,
+      const Class& type_class,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
+
+  enum TypeTestStubKind {
+    kTestTypeOneArg,
+    kTestTypeTwoArgs,
+    kTestTypeThreeArgs,
+  };
+
+  RawSubtypeTestCache* GenerateCallSubtypeTestStub(TypeTestStubKind test_kind,
+                                                   Register instance_reg,
+                                                   Register type_arguments_reg,
+                                                   Register temp_reg,
+                                                   Label* is_instance_lbl,
+                                                   Label* is_not_instance_lbl);
+
+  void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
+
+  virtual void CheckClassIds(Register class_id_reg,
+                             const GrowableArray<intptr_t>& class_ids,
+                             Label* is_equal_lbl,
+                             Label* is_not_equal_lbl);
+
   void EmitComment(Instruction* instr);
   void BailoutOnInstruction(Instruction* instr);
 

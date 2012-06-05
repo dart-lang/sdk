@@ -12,6 +12,7 @@
 #include "vm/compiler_stats.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
+#include "vm/object_store.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -409,6 +410,380 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_index,
 }
 
 
+// Fall through if bool_register contains null.
+void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
+                                           Label* is_true,
+                                           Label* is_false) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label fall_through;
+  __ cmpl(bool_register, raw_null);
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  __ CompareObject(bool_register, bool_true);
+  __ j(EQUAL, is_true);
+  __ jmp(is_false);
+  __ Bind(&fall_through);
+}
+
+
+// Clobbers ECX.
+RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
+    TypeTestStubKind test_kind,
+    Register instance_reg,
+    Register type_arguments_reg,
+    Register temp_reg,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(temp_reg, type_test_cache);
+  __ pushl(temp_reg);  // Subtype test cache.
+  __ pushl(instance_reg);  // Instance.
+  if (test_kind == kTestTypeOneArg) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ pushl(raw_null);
+    __ call(&StubCode::Subtype1TestCacheLabel());
+  } else if (test_kind == kTestTypeTwoArgs) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ pushl(raw_null);
+    __ call(&StubCode::Subtype2TestCacheLabel());
+  } else if (test_kind == kTestTypeThreeArgs) {
+    __ pushl(type_arguments_reg);
+    __ call(&StubCode::Subtype3TestCacheLabel());
+  } else {
+    UNREACHABLE();
+  }
+  // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
+  ASSERT(instance_reg != ECX);
+  ASSERT(temp_reg != ECX);
+  __ popl(instance_reg);  // Discard.
+  __ popl(instance_reg);  // Restore receiver.
+  __ popl(temp_reg);  // Discard.
+  GenerateBoolToJump(ECX, is_instance_lbl, is_not_instance_lbl);
+  return type_test_cache.raw();
+}
+
+
+// Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
+// type test is conclusive, otherwise fallthrough if a type test could not
+// be completed.
+// EAX: instance (must survive), clobbers ECX, EDI
+RawSubtypeTestCache*
+FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
+    intptr_t cid,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::ZoneHandle(type.type_class());
+  ASSERT(type_class.HasTypeArguments());
+  const Register kInstanceReg = EAX;
+  // A Smi object cannot be the instance of a parameterized class.
+  __ testl(kInstanceReg, Immediate(kSmiTagMask));
+  __ j(ZERO, is_not_instance_lbl);
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::ZoneHandle(type.arguments());
+  const bool is_raw_type = type_arguments.IsNull() ||
+      type_arguments.IsRaw(type_arguments.Length());
+  if (is_raw_type) {
+    const Register kClassIdReg = ECX;
+    // Dynamic type argument, check only classes.
+    __ LoadClassId(kClassIdReg, kInstanceReg);
+    if (!type_class.is_interface()) {
+      __ cmpl(kClassIdReg, Immediate(type_class.id()));
+      __ j(EQUAL, is_instance_lbl);
+    }
+    if (type.IsListInterface()) {
+      GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
+    }
+    return GenerateSubtype1TestCacheLookup(
+        cid, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
+  }
+  // If one type argument only, check if type argument is Object or Dynamic.
+  if (type_arguments.Length() == 1) {
+    const AbstractType& tp_argument = AbstractType::ZoneHandle(
+        type_arguments.TypeAt(0));
+    ASSERT(!tp_argument.IsMalformed());
+    if (tp_argument.IsType()) {
+      ASSERT(tp_argument.HasResolvedTypeClass());
+      // Check if type argument is dynamic or Object.
+      const Type& object_type =
+          Type::Handle(Isolate::Current()->object_store()->object_type());
+      Error& malformed_error = Error::Handle();
+      if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
+        // Instance class test only necessary.
+        return GenerateSubtype1TestCacheLookup(
+            cid, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
+      }
+    }
+  }
+  // Regular subtype test cache involving instance's type arguments.
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = EDI;
+  return GenerateCallSubtypeTestStub(kTestTypeTwoArgs,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
+}
+
+
+void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
+                                      const GrowableArray<intptr_t>& class_ids,
+                                      Label* is_equal_lbl,
+                                      Label* is_not_equal_lbl) {
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ cmpl(class_id_reg, Immediate(class_ids[i]));
+    __ j(EQUAL, is_equal_lbl);
+  }
+  __ jmp(is_not_equal_lbl);
+}
+
+
+// Testing against an instantiated type with no arguments, without
+// SubtypeTestCache.
+// EAX: instance to test against (preserved). Clobbers ECX, EDI.
+void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
+    intptr_t cid,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::Handle(type.type_class());
+  ASSERT(!type_class.HasTypeArguments());
+
+  const Register kInstanceReg = EAX;
+  Label compare_classes;
+  __ testl(kInstanceReg, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
+  // Instance is Smi, check directly.
+  const Class& smi_class = Class::Handle(Smi::Class());
+  // TODO(regis): We should introduce a SmiType.
+  Error& malformed_error = Error::Handle();
+  if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+                            type_class,
+                            TypeArguments::Handle(),
+                            &malformed_error)) {
+    __ jmp(is_instance_lbl);
+  } else {
+    __ jmp(is_not_instance_lbl);
+  }
+  // Compare if the classes are equal.
+  __ Bind(&compare_classes);
+  const Register kClassIdReg = ECX;
+  __ LoadClassId(kClassIdReg, kInstanceReg);
+  // If type is an interface, we can skip the class equality check.
+  if (!type_class.is_interface()) {
+    __ cmpl(kClassIdReg, Immediate(type_class.id()));
+    __ j(EQUAL, is_instance_lbl);
+  }
+  // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
+  // Bool interface can be implemented only by core class Bool.
+  if (type.IsBoolInterface()) {
+    __ cmpl(kClassIdReg, Immediate(kBool));
+    __ j(EQUAL, is_instance_lbl);
+    __ jmp(is_not_instance_lbl);
+    return;
+  }
+  if (type.IsFunctionInterface()) {
+    // Check if instance is a closure.
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadClassById(EDI, kClassIdReg);
+    __ movl(EDI, FieldAddress(EDI, Class::signature_function_offset()));
+    __ cmpl(EDI, raw_null);
+    __ j(NOT_EQUAL, is_instance_lbl);
+    __ jmp(is_not_instance_lbl);
+    return;
+  }
+  // Custom checking for numbers (Smi, Mint, Bigint and Double).
+  // Note that instance is not Smi(checked above).
+  if (type.IsSubtypeOf(
+          Type::Handle(Type::NumberInterface()), &malformed_error)) {
+    GenerateNumberTypeCheck(
+        kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
+    return;
+  }
+  if (type.IsStringInterface()) {
+    GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
+    return;
+  }
+}
+
+
+// Generates inlined check if 'type' is a type parameter or type itsef
+// EAX: instance (preserved). Clobbers EDX, EDI, ECX.
+RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
+    intptr_t cid,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  ASSERT(!type.IsInstantiated());
+  // Skip check if destination is a dynamic type.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  if (type.IsTypeParameter()) {
+     // Load instantiator (or null) and instantiator type arguments on stack.
+    __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+    // EDX: instantiator type arguments.
+    // Check if type argument is Dynamic.
+    __ cmpl(EDX, raw_null);
+    __ j(EQUAL, is_instance_lbl);
+    // Can handle only type arguments that are instances of TypeArguments.
+    // (runtime checks canonicalize type arguments).
+    Label fall_through;
+    __ CompareClassId(EDX, kTypeArguments, EDI);
+    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+    __ movl(EDI,
+        FieldAddress(EDX, TypeArguments::type_at_offset(type.Index())));
+    // EDI: concrete type of type.
+    // Check if type argument is dynamic.
+    __ CompareObject(EDI, Type::ZoneHandle(Type::DynamicType()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ cmpl(EDI, raw_null);
+    __ j(EQUAL,  is_instance_lbl);
+    const Type& object_type =
+       Type::ZoneHandle(Isolate::Current()->object_store()->object_type());
+    __ CompareObject(EDI, object_type);
+    __ j(EQUAL,  is_instance_lbl);
+
+    // For Smi check quickly against int and num interfaces.
+    Label not_smi;
+    __ testl(EAX, Immediate(kSmiTagMask));  // Value is Smi?
+    __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+    __ CompareObject(EDI, Type::ZoneHandle(Type::IntInterface()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ CompareObject(EDI, Type::ZoneHandle(Type::NumberInterface()));
+    __ j(EQUAL,  is_instance_lbl);
+    // Smi must be handled in runtime.
+    __ jmp(&fall_through);
+
+    __ Bind(&not_smi);
+    // EDX: instantiator type arguments.
+    // EAX: instance.
+    const Register kInstanceReg = EAX;
+    const Register kTypeArgumentsReg = EDX;
+    const Register kTempReg = EDI;
+    const SubtypeTestCache& type_test_cache =
+        SubtypeTestCache::ZoneHandle(
+            GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
+                                        kInstanceReg,
+                                        kTypeArgumentsReg,
+                                        kTempReg,
+                                        is_instance_lbl,
+                                        is_not_instance_lbl));
+    __ Bind(&fall_through);
+    return type_test_cache.raw();
+  }
+  if (type.IsType()) {
+    const Register kInstanceReg = EAX;
+    const Register kTypeArgumentsReg = EDX;
+    __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
+    __ j(ZERO, is_not_instance_lbl);
+    __ movl(kTypeArgumentsReg, Address(ESP, 0));  // Instantiator type args.
+    // Uninstantiated type class is known at compile time, but the type
+    // arguments are determined at runtime by the instantiator.
+    const Register kTempReg = EDI;
+    return GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
+                                       kInstanceReg,
+                                       kTypeArgumentsReg,
+                                       kTempReg,
+                                       is_instance_lbl,
+                                       is_not_instance_lbl);
+  }
+  return SubtypeTestCache::null();
+}
+
+
+// Uses SubtypeTestCache to store instance class and result.
+// EAX: instance to test. Clobbers EDI, ECX.
+// Immediate class test already done.
+// TODO(srdjan): Implement a quicker subtype check, as type test
+// arrays can grow too high, but they may be useful when optimizing
+// code (type-feedback).
+RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
+    intptr_t cid,
+    intptr_t token_index,
+    const Class& type_class,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  const Register kInstanceReg = EAX;
+  __ LoadClass(ECX, kInstanceReg, EDI);
+  // ECX: instance class.
+  // Check immediate superclass equality.
+  __ movl(EDI, FieldAddress(ECX, Class::super_type_offset()));
+  __ movl(EDI, FieldAddress(EDI, Type::type_class_offset()));
+  __ CompareObject(EDI, type_class);
+  __ j(EQUAL, is_instance_lbl);
+
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = EDI;
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
+}
+
+
+// Inputs:
+// - EAX: instance to test against (preserved).
+// - EDX: optional instantiator type arguments (preserved).
+// Returns:
+// - preserved instance in EAX and optional instantiator type arguments in EDX.
+// Note that this inlined code must be followed by the runtime_call code, as it
+// may fall through to it. Otherwise, this inline code will jump to the label
+// is_instance or to the label is_not_instance.
+RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
+    intptr_t cid,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  if (type.IsInstantiated()) {
+    const Class& type_class = Class::ZoneHandle(type.type_class());
+    // A Smi object cannot be the instance of a parameterized class.
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (type_class.HasTypeArguments()) {
+      return GenerateInstantiatedTypeWithArgumentsTest(cid,
+                                                       token_index,
+                                                       type,
+                                                       is_instance_lbl,
+                                                       is_not_instance_lbl);
+      // Fall through to runtime call.
+    } else {
+      GenerateInstantiatedTypeNoArgumentsTest(cid,
+                                              token_index,
+                                              type,
+                                              is_instance_lbl,
+                                              is_not_instance_lbl);
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      return GenerateSubtype1TestCacheLookup(
+          cid, token_index, type_class,
+          is_instance_lbl, is_not_instance_lbl);
+    }
+  } else {
+    return GenerateUninstantiatedTypeTest(cid,
+                                          token_index,
+                                          type,
+                                          is_instance_lbl,
+                                          is_not_instance_lbl);
+  }
+  return SubtypeTestCache::null();
+}
+
+
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
 // - NULL -> return false.
@@ -450,8 +825,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   // TODO(srdjan): Enable inlined checks.
   // Generate inline instanceof test.
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  // test_cache = GenerateInlineInstanceof(cid, token_index, type,
-  //                                       &is_instance, &is_not_instance);
+  test_cache = GenerateInlineInstanceof(cid, token_index, type,
+                                        &is_instance, &is_not_instance);
 
   // Generate runtime call.
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
@@ -551,8 +926,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   // TODO(srdjan): Enable subtype test cache.
   // Generate inline type check, linking to runtime call if not assignable.
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  // test_cache = GenerateInlineInstanceof(cid, token_index, dst_type,
-  //                                       &is_assignable, &runtime_call);
+  test_cache = GenerateInlineInstanceof(cid, token_index, dst_type,
+                                        &is_assignable, &runtime_call);
 
   __ Bind(&runtime_call);
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.

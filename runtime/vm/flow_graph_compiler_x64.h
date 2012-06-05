@@ -78,14 +78,16 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
                     PcDescriptors::Kind kind);
 
   // Type checking helper methods.
-  void CheckClassIds(const GrowableArray<intptr_t>& class_ids,
-                    Label* is_instance_lbl,
-                    Label* is_not_instance_lbl);
+  virtual void CheckClassIds(Register class_id_reg,
+                             const GrowableArray<intptr_t>& class_ids,
+                             Label* is_instance_lbl,
+                             Label* is_not_instance_lbl);
+
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
                                                 intptr_t token_index,
                                                 const AbstractType& type,
-                                                Label* is_instance,
-                                                Label* is_not_instance);
+                                                Label* is_instance_lbl,
+                                                Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
       intptr_t cid,
@@ -101,9 +103,9 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
                                                Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
-      const AbstractType& dst_type,
       intptr_t cid,
       intptr_t token_index,
+      const AbstractType& dst_type,
       Label* is_instance_lbl,
       Label* is_not_instance_label);
 
@@ -125,6 +127,21 @@ class FlowGraphCompiler : public FlowGraphCompilerShared {
                           intptr_t try_index,
                           const AbstractType& type,
                           bool negate_result);
+
+  enum TypeTestStubKind {
+    kTestTypeOneArg,
+    kTestTypeTwoArgs,
+    kTestTypeThreeArgs,
+  };
+
+  RawSubtypeTestCache* GenerateCallSubtypeTestStub(TypeTestStubKind test_kind,
+                                                   Register instance_reg,
+                                                   Register type_arguments_reg,
+                                                   Register temp_reg,
+                                                   Label* is_instance_lbl,
+                                                   Label* is_not_instance_lbl);
+
+  void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
   void CopyParameters();
 
