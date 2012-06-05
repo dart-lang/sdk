@@ -489,7 +489,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 4, 3, 7),
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 5, 3, 4));
   }
-  
+
   public void test_callUnknownFunction() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1737,6 +1737,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       }
     });
     return result[0];
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3272
+   */
+  public void test_assignVoidToDynamic() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void foo() {}",
+        "main() {",
+        "  var v = foo();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
   
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {

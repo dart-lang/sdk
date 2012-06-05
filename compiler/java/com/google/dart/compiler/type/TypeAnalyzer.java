@@ -709,10 +709,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private boolean checkAssignable(Type targetType, DartExpression node) {
-      Type nodeType = nonVoidTypeOf(node);
+      // analyze "node"
+      Type nodeType = typeOf(node);
+      // target is Dynamic, any source type is good, even "void"
+      if (TypeKind.of(targetType) == TypeKind.DYNAMIC) {
+        return true;
+      }
+      // source was Dynamic
       if (hasInferredType(node)) {
         return true;
       }
+      // OK, check types
+      checkNonVoid(node, nodeType);
       return checkAssignable(node, targetType, nodeType);
     }
 
@@ -986,10 +994,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
      */
     private Type nonVoidTypeOf(DartNode node) {
       Type type = typeOf(node);
+      return checkNonVoid(node, type);
+    }
+
+    /**
+     * @return the given {@link Type}, registering an error if it is unresolved or void.
+     */
+    private Type checkNonVoid(HasSourceInfo errorTarget, Type type) {
       switch (TypeKind.of(type)) {
         case VOID:
         case NONE:
-          return typeError(node, TypeErrorCode.VOID);
+          return typeError(errorTarget, TypeErrorCode.VOID);
         default:
           return type;
       }
