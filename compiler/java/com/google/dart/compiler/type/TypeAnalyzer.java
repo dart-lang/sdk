@@ -2085,6 +2085,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
               Type varType = Types.makeInferred(valueType);
               Elements.setType(element, varType);
+              node.getName().setType(varType);
             }
           }
         }
