@@ -1077,9 +1077,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testSwitch() {
     analyze("{ int i = 27; switch(i) { case i: break; } }");
     analyze("{ num i = 27; switch(i) { case i: break; } }");
-    analyze("{ switch(true) { case 1: break; case 'foo': break; }}");
-    analyzeFail("{ int i = 27; switch(true) { case false: i = 2.7; }}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail(
+        "{ switch(true) { case 1: break; case 'foo': break; }}",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail(
+        "{ int i = 27; switch(true) { case false: i = 2.7; }}",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testThis() {

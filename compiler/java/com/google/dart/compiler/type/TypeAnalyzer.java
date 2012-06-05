@@ -80,6 +80,7 @@ import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperExpression;
+import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
@@ -1828,7 +1829,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitSwitchStatement(DartSwitchStatement node) {
-      return typeAsVoid(node);
+      node.visitChildren(this);
+      // analyze "expression"
+      DartExpression expression = node.getExpression();
+      Type switchType = nonVoidTypeOf(expression);
+      // check "case" expressions compatibility
+      for (DartSwitchMember switchMember : node.getMembers()) {
+        if (switchMember instanceof DartCase) {
+          DartCase caseMember = (DartCase) switchMember;
+          DartExpression caseExpr = caseMember.getExpr();
+          Type caseType = nonVoidTypeOf(caseExpr);
+          checkAssignable(caseExpr, switchType, caseType);
+        }
+      }
+      return voidType;
     }
 
     @Override

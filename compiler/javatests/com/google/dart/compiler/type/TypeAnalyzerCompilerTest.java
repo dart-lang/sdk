@@ -125,6 +125,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3269
+   */
+  public void test_switchExpression_case_typeMismatch() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "  switch (v) {",
+        "    case 0: break;",
+        "    case 'a': break;",
+        "    case 12.3: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 10, 3),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 10, 4));
+  }
+
+  /**
    * Language specification requires that factory should be declared in class. However declaring
    * factory on top level should not cause exceptions in compiler.
    * <p>
