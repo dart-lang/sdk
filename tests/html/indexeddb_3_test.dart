@@ -70,7 +70,7 @@ class Test {
         lastKey = cursor.key;
         itemCount += 1;
         sumKeys += cursor.key;
-        Expect.equals('Item ${cursor.key.toStringAsFixed(0)}', cursor.value);
+        Expect.equals('Item ${cursor.key}', cursor.value);
         cursor.continueFunction();
       } else {
         // Done
@@ -83,10 +83,9 @@ class Test {
   }
 
   readAllReversedViaCursor() {
-    IDBTransaction txn = db.transaction(STORE_NAME, IDBTransaction.READ_ONLY);
+    IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
     IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
-    // TODO: create a IDBKeyRange(0,100)
-    IDBRequest cursorRequest = objectStore.openCursor(null, IDBCursor.PREV);
+    IDBRequest cursorRequest = objectStore.openCursor(new IDBKeyRange.bound(0, 100), 'prev');
     int itemCount = 0;
     int sumKeys = 0;
     int lastKey = null;

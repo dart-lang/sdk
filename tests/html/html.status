@@ -10,7 +10,6 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-indexeddb_3_test: Skip  # Issue 3311
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
