@@ -121,35 +121,13 @@ class DatabaseBuilder(object):
         new_attributes.append(setter_attr)
     interface.attributes = new_attributes
 
-    # Remove optional annotations from legacy optional arguments.
+    # Add 'Optional' attribute to whitelisted arguments.
     for op in interface.operations:
-      for i in range(0, len(op.arguments)):
-        argument = op.arguments[i]
-
+      for argument in op.arguments:
         in_optional_whitelist = (interface.id, op.id, argument.id) in optional_argument_whitelist
         if in_optional_whitelist or set(['Optional', 'Callback']).issubset(argument.ext_attrs.keys()):
-          argument.is_optional = True
           argument.ext_attrs['Optional'] = None
           argument.ext_attrs['RequiredCppParameter'] = None
-          continue
-
-        if 'Optional' in argument.ext_attrs:
-          optional_value = argument.ext_attrs['Optional']
-          if optional_value:
-            argument.is_optional = False
-            del argument.ext_attrs['Optional']
-
-    # split operations with optional args into multiple operations
-    new_ops = []
-    for op in interface.operations:
-      for i in range(0, len(op.arguments)):
-        if op.arguments[i].is_optional:
-          op.arguments[i].is_optional = False
-          new_op = copy.deepcopy(op)
-          new_op.arguments = new_op.arguments[:i]
-          new_ops.append(new_op)
-      new_ops.append(op)
-    interface.operations = new_ops
 
   def _rename_types(self, idl_file, import_options):
     """Rename interface and type names with names provided in the

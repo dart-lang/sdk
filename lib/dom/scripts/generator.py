@@ -6,6 +6,7 @@
 """This module provides shared functionality for systems to generate
 Dart APIs from the IDL database."""
 
+import copy
 import re
 
 _pure_interfaces = set([
@@ -193,7 +194,7 @@ class ParamInfo(object):
 
 
 # Given a list of overloaded arguments, render a dart argument.
-def _DartArg(args, interface):
+def _DartArg(args, interface, constructor=False):
   # Given a list of overloaded arguments, choose a suitable name.
   def OverloadedName(args):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
@@ -210,15 +211,30 @@ def _DartArg(args, interface):
     else:
       return (None, TypeName(type_ids, interface))
 
+  def NeedsDefaultValue(argument):
+    if not argument:
+      return True
+    if 'Callback' in argument.ext_attrs:
+      # Callbacks with 'Optional=XXX' are treated as optional arguments.
+      return 'Optional' in argument.ext_attrs
+    if constructor:
+      # FIXME: Constructors with 'Optional=XXX' shouldn't be treated as
+      # optional arguments.
+      return 'Optional' in argument.ext_attrs
+    return False
+
   filtered = filter(None, args)
-  optional = any(not arg or arg.is_optional for arg in args)
+  needs_default_value = any(NeedsDefaultValue(arg) for arg in args)
   (type_id, dart_type) = OverloadedType(filtered)
   name = OverloadedName(filtered)
-  if optional:
+  if needs_default_value:
     return ParamInfo(name, type_id, dart_type, 'null')
   else:
     return ParamInfo(name, type_id, dart_type, None)
 
+def IsOptional(argument):
+  return ('Optional' in argument.ext_attrs and
+          argument.ext_attrs['Optional'] == None)
 
 def AnalyzeOperation(interface, operations):
   """Makes operation calling convention decision for a set of overloads.
@@ -226,13 +242,23 @@ def AnalyzeOperation(interface, operations):
   Returns: An OperationInfo object.
   """
 
+  # split operations with optional args into multiple operations
+  split_operations = []
+  for operation in operations:
+    for i in range(0, len(operation.arguments)):
+      if IsOptional(operation.arguments[i]):
+        new_operation = copy.deepcopy(operation)
+        new_operation.arguments = new_operation.arguments[:i]
+        split_operations.append(new_operation)
+    split_operations.append(operation)
+
   # Zip together arguments from each overload by position, then convert
   # to a dart argument.
   args = map(lambda *args: _DartArg(args, interface),
-             *(op.arguments for op in operations))
+             *(op.arguments for op in split_operations))
 
   info = OperationInfo()
-  info.overloads = operations
+  info.overloads = split_operations
   info.declared_name = operations[0].id
   info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
   info.constructor_name = None
@@ -248,7 +274,8 @@ def AnalyzeConstructor(interface):
   Returns None if the interface has no Constructor.
   """
   def GetArgs(func_value):
-    return map(lambda arg: _DartArg([arg], interface), func_value.arguments)
+    return map(lambda arg: _DartArg([arg], interface, True),
+               func_value.arguments)
 
   if 'Constructor' in interface.ext_attrs:
     name = None

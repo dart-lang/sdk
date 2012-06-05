@@ -459,7 +459,6 @@ class IDLArgument(IDLNode):
     IDLNode.__init__(self, ast)
     self.type = self._convert_first(ast, 'Type', IDLType)
     self._convert_ext_attrs(ast)
-    self.is_optional = 'Optional' in self.ext_attrs
 
   def __repr__(self):
     return '<IDLArgument(type = %s, id = %s)>' % (self.type, self.id)

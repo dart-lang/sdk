@@ -777,6 +777,10 @@ class NativeImplementationGenerator(object):
         '  }\n',
         DECLARATION=dart_declaration)
 
+    if self._interface.id == 'IDBObjectStore' and info.name == 'openCursor':
+      # FIXME: implement v8-like overload resolver and remove this hack.
+      info.overloads = info.overloads[1:]
+
     self._native_version = 0
     overloads = self.CombineOverloads(info.overloads)
     fallthrough = self.GenerateDispatch(body, info, '    ', overloads)
@@ -793,7 +797,7 @@ class NativeImplementationGenerator(object):
     seed_index = 0
     while seed_index < len(overloads):
       seed = overloads[seed_index]
-      if len(seed.arguments) > 0 and seed.arguments[-1].is_optional:
+      if len(seed.arguments) > 0 and IsOptional(seed.arguments[-1]):
         # Must start with no optional arguments.
         out.append(seed)
         seed_index += 1
@@ -808,7 +812,7 @@ class NativeImplementationGenerator(object):
           break
         if probe.arguments[:-1] != prev.arguments:
           break
-        if not probe.arguments[-1].is_optional:
+        if not IsOptional(probe.arguments[-1]):
           break
         # See Issue 3177.  This test against known implemented types is to
         # prevent combining a possibly unimplemented type.  Combining with an
@@ -830,7 +834,7 @@ class NativeImplementationGenerator(object):
     emitter.Emit('$(INDENT)//$NOTE\n', INDENT=indent, NOTE=note)
     for operation in overloads:
       params = ', '.join([
-          ('[Optional] ' if arg.is_optional else '') + DartType(arg.type.id) + ' '
+          ('[Optional] ' if IsOptional(arg) else '') + DartType(arg.type.id) + ' '
           + arg.id for arg in operation.arguments])
       emitter.Emit('$(INDENT)// $NAME($PARAMS)\n',
                    INDENT=indent,
@@ -924,7 +928,7 @@ class NativeImplementationGenerator(object):
             test = None
           else:
             test = TypeCheck(param.name, dart_type)
-            if IsNullable(dart_type) or arg.is_optional:
+            if IsNullable(dart_type) or IsOptional(arg):
               test = '(%s || %s)' % (NullCheck(param.name), test)
         else:
           test = NullCheck(param.name)
