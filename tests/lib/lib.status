@@ -16,5 +16,10 @@ crypto/hmac_sha256_test: Fail
 crypto/sha1_test: Fail
 crypto/sha256_test: Fail
 
+[ $compiler == dartc ]
+# TODO(efortuna): Dartc doesn't like a final var to have String interpolation,
+# but we're not supposed to use + operator... See issue 3387.
+i18n: Skip 
+
 [ $runtime == opera ]
 *: Skip
