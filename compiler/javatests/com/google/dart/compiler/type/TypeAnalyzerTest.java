@@ -53,19 +53,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
                 TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testAssert() {
-    analyze("assert(true);");
-    analyze("assert(false);");
-    analyzeFail("assert('message');", TypeErrorCode.ASSERT_BOOL);
-    analyze("assert(null);");
-    analyzeFail("assert(1);", TypeErrorCode.ASSERT_BOOL);
-    analyze("assert(foo() {});");
-    analyze("assert(bool foo() {});");
-    analyze("assert(Object foo() {});");
-    analyzeFail("assert(String foo() {});", TypeErrorCode.ASSERT_BOOL);
-    analyzeFail("assert(bool foo(x) {});", TypeErrorCode.ASSERT_BOOL);
-  }
-
   public void testBadInitializers() {
     analyzeFail("int i = .0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("int j = 1.0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
@@ -1351,8 +1338,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     // We seem to throw away prefix-plus in the parser:
     // analyzeFail("{ void f() {} +f(); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {} var x; x == f(); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} assert(f()); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} assert(f); }", TypeErrorCode.ASSERT_BOOL);
     analyzeFail("{ void f() {} while (f()); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {}; ({ 'x': f() }); }", TypeErrorCode.VOID);
   }

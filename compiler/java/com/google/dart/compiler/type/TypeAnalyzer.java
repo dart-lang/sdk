@@ -23,7 +23,6 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -73,6 +72,7 @@ import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
+import com.google.dart.compiler.ast.DartReturnBlock;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
@@ -112,6 +112,7 @@ import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -1017,26 +1018,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return analyzeBinaryOperator(node, target, Token.INDEX, node, node.getKey());
     }
 
-    @Override
-    public Type visitAssertion(DartAssertion node) {
-      DartExpression conditionNode = node.getExpression();
+    /**
+     * Asserts that given {@link DartExpression} is valid for using in "assert" statement.
+     */
+    private void checkAssertCondition(DartExpression conditionNode) {
       Type condition = nonVoidTypeOf(conditionNode);
       switch (condition.getKind()) {
         case FUNCTION:
           FunctionType ftype = (FunctionType) condition;
           Type returnType = ftype.getReturnType();
           if (!types.isAssignable(boolType, returnType) || !ftype.getParameterTypes().isEmpty()) {
-            typeError(node, TypeErrorCode.ASSERT_BOOL);
+            typeError(conditionNode, TypeErrorCode.ASSERT_BOOL);
           }
           break;
 
         default:
           if (!types.isAssignable(boolType, condition)) {
-            typeError(node, TypeErrorCode.ASSERT_BOOL);
+            typeError(conditionNode, TypeErrorCode.ASSERT_BOOL);
           }
           break;
       }
-      return voidType;
     }
 
     @Override
@@ -1044,6 +1045,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return typeAsVoid(node);
     }
 
+    @Override
+    public Type visitReturnBlock(DartReturnBlock node) {
+      // 'assert' is statement
+      if (node.getStatements().size() == 1
+          && node.getStatements().get(0) instanceof DartReturnStatement) {
+        DartReturnStatement statement = (DartReturnStatement) node.getStatements().get(0);
+        DartExpression value = statement.getValue();
+        if (value != null && Elements.isArtificialAssertMethod(value.getElement())) {
+          typeError(value, TypeErrorCode.ASSERT_IS_STATEMENT);
+          return voidType;
+        }
+      }
+      // continue
+      return super.visitReturnBlock(node);
+    }
+    
     private Type typeAsVoid(DartNode node) {
       node.visitChildren(this);
       return voidType;
@@ -1237,6 +1254,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitExprStmt(DartExprStmt node) {
+      // special support for incomplete "assert"
+      if (node.getExpression() instanceof DartIdentifier) {
+        DartIdentifier identifier = (DartIdentifier) node.getExpression();
+        NodeElement element = identifier.getElement();
+        if (Objects.equal(identifier.getName(), "assert")
+            && Elements.isArtificialAssertMethod(element)) {
+          onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
+          return voidType;
+        }
+      }
+      // normal
       typeOf(node.getExpression());
       return voidType;
     }
@@ -1964,6 +1992,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = target.getName();
       Element element = target.getElement();
       node.setElement(element);
+      // special support for "assert"
+      if (Elements.isArtificialAssertMethod(element)) {
+        if (node.getArguments().size() == 1) {
+          DartExpression condition = node.getArguments().get(0);
+          checkAssertCondition(condition);
+        } else {
+          onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
+        }
+        return voidType;
+      }
+      // normal invocation
       Type type;
       switch (ElementKind.of(element)) {
         case FIELD:

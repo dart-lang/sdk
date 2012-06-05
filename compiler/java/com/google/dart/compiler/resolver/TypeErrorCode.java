@@ -14,6 +14,8 @@ public enum TypeErrorCode implements ErrorCode {
   ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
       "%s is an abstract class because it does not implement the inherited abstract members: %s"),
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
+  ASSERT_NUMBER_ARGUMENTS(ErrorSeverity.ERROR, "assert requires exactly one argument"),
+  ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
@@ -59,6 +61,7 @@ public enum TypeErrorCode implements ErrorCode {
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");
 
+  private final ErrorSeverity severity;
   private final String message;
   private final boolean needsRecompilation;
 
@@ -73,6 +76,15 @@ public enum TypeErrorCode implements ErrorCode {
    * Initialize a newly created error code to have the given message and compilation flag.
    */
   private TypeErrorCode(String message, boolean needsRecompilation) {
+    this(ErrorSeverity.WARNING, message);
+  }
+
+  private TypeErrorCode(ErrorSeverity severity, String message) {
+    this(severity, message, false);
+  }
+  
+  private TypeErrorCode(ErrorSeverity severity, String message, boolean needsRecompilation) {
+    this.severity = severity;
     this.message = message;
     this.needsRecompilation = needsRecompilation;
   }
@@ -84,7 +96,7 @@ public enum TypeErrorCode implements ErrorCode {
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return ErrorSeverity.WARNING;
+    return severity;
   }
 
   @Override

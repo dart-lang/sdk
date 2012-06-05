@@ -844,6 +844,61 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getTypeErrors());
   }
 
+  public void test_assert_notUserFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  assert(true);",
+        "  assert(false);",
+        "  assert('message');", // not 'bool'
+        "  assert('null');", // not 'bool'
+        "  assert(0);", // not 'bool'
+        "  assert(f() {});", // OK, Dynamic
+        "  assert(bool f() {});", // OK, '() -> bool'
+        "  assert(Object f() {});", // OK, 'Object' compatible with 'bool'
+        "  assert(String f() {});", // not '() -> bool', return type
+        "  assert(bool f(x) {});", // not '() -> bool', parameter
+        "  assert(true, false);", // not single argument
+        "  assert;", // incomplete
+        "}",
+        "foo() => assert(true);", // 'assert' is statement, not expression
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
+        errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
+        errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
+        errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
+        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12),
+        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 13, 3, 19),
+        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 14, 3, 7),
+        errEx(TypeErrorCode.ASSERT_IS_STATEMENT, 16, 10, 12));
+  }
+
+  public void test_assert_isUserFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "assert(x) {}",
+        "main() {",
+        "  assert(true);",
+        "  assert(false);",
+        "  assert('message');",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_assert_asLocalVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  bool assert;",
+        "  assert;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
   public void test_finalField_inClass() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         getName(),

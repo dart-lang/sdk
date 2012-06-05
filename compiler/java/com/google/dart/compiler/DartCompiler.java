@@ -499,8 +499,7 @@ public class DartCompiler {
         }
 
         // The library scope can then be constructed, containing types declared
-        // in the library, and // types declared in the imports. Loop can be
-        // parallelized.
+        // in the library, and types declared in the imports. Loop can be parallelized.
         for (LibraryUnit lib : libs) {
           new TopLevelElementBuilder().fillInLibraryScope(lib, context);
         }
@@ -810,6 +809,11 @@ public class DartCompiler {
           failed = false;
         } finally {
           Closeables.close(r, failed);
+        }
+        
+        // auto-magically define "assert" function
+        if (dartSrc.getUri().toString().equals("dart://core/runtime/object.dart")) {
+          srcCode += "\nvoid assert(x) {}";
         }
 
         DartScannerParserContext parserContext =

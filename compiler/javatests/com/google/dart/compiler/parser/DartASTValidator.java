@@ -1,12 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.parser;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -45,7 +45,6 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -121,13 +120,6 @@ public class DartASTValidator extends ASTVisitor<Void> {
 
   @Override
   public Void visitArrayLiteral(DartArrayLiteral node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Void visitAssertion(DartAssertion node) {
     validate(node);
     node.visitChildren(this);
     return null;

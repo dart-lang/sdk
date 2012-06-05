@@ -16,7 +16,6 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -3437,13 +3436,6 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartStatement parseExpressionStatement() {
     beginExpressionStatement();
-    if (peek(1) == Token.LPAREN && optionalPseudoKeyword(ASSERT_KEYWORD)) {
-      consume(Token.LPAREN);
-      DartExpression expression = parseConditionalExpression();
-      expectCloseParen();
-      expectStatmentTerminator();
-      return done(new DartAssertion(expression));
-    }
     DartExpression expression = parseExpression();
     expectStatmentTerminator();
 

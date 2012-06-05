@@ -85,16 +85,16 @@ public class ASTVisitor<R> {
     return visitTypedLiteral(node);
   }
 
-  public R visitAssertion(DartAssertion node) {
-    return visitStatement(node);
-  }
-
   public R visitBinaryExpression(DartBinaryExpression node) {
     return visitExpression(node);
   }
 
   public R visitBlock(DartBlock node) {
     return visitStatement(node);
+  }
+  
+  public R visitReturnBlock(DartReturnBlock node) {
+    return visitBlock(node);
   }
 
   public R visitBooleanLiteral(DartBooleanLiteral node) {

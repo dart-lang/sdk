@@ -86,7 +86,8 @@ public class ResolutionContext implements ResolutionErrorListener {
         if (!Elements.isConstructorParameter(element)
             && !Elements.isParameterOfMethodWithoutBody(element)
             && !(Elements.isStaticContext(element) && !Elements.isStaticContext(existingElement))
-            && !existingElement.getModifiers().isAbstractField()) {
+            && !existingElement.getModifiers().isAbstractField()
+            && !Elements.isArtificialAssertMethod(existingElement)) {
           SourceInfo nameSourceInfo = element.getNameLocation();
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.

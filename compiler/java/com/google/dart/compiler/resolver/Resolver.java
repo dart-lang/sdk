@@ -1238,6 +1238,7 @@ public class Resolver {
       } else {
         checkInvocationTarget(x, currentMethod, element);
       }
+      recordElement(x, element);
       recordElement(x.getTarget(), element);
       visit(x.getArguments());
       return null;

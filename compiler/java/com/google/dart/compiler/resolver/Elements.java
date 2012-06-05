@@ -640,4 +640,19 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
+  
+  /**
+   * @return <code>true</code> if given {@link Element} if {@link MethodElement} for artificial
+   *         "assert" statement.
+   */
+  public static boolean isArtificialAssertMethod(Element element) {
+    if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
+      return Objects.equal(methodElement.getName(), "assert")
+          && methodElement.getEnclosingElement() instanceof LibraryElement
+          && methodElement.getEnclosingElement().getName().equals("dart://core/core_runtime.dart");
+    }
+    return false;
+  }
+
 }

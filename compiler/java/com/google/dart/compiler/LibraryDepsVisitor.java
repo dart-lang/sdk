@@ -57,6 +57,8 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
     // Add dependency on the computed type of identifiers.
     switch (kind) {
       case NONE:
+        source.addHole(node.getName());
+        break;
       case DYNAMIC:
         break;
       default: {
