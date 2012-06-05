@@ -171,53 +171,6 @@ class TestRunner(object):
     else:
       return 'linux'
 
-  def upload_to_app_engine(self, suite_names):		
-    """Upload our results to our appengine server.
-    Arguments:
-      suite_names: Directories to upload data from (should match directory
-        names)."""
-    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
-                          'perf_testing'))
-    for data in suite_names:
-      path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
-      shutil.rmtree(path, ignore_errors=True)
-      os.makedirs(path)
-      files = []
-      # Copy the 1000 most recent trace files to be uploaded.
-      for f in os.listdir(data):
-        files += [(os.path.getmtime(os.path.join(data, f)), f)]
-      files.sort()
-      for f in files[-1000:]:
-        shutil.copyfile(os.path.join(data, f[1]),
-                        os.path.join(path, f[1]+'.txt'))
-    # Generate directory listing.
-    for data in suite_names:
-      path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
-      out = open(os.path.join('appengine', 'static',
-                 '%s-%s.html' % (data, utils.GuessOS())), 'w')
-      out.write('<html>\n  <body>\n    <ul>\n')
-      for f in os.listdir(path):
-        if not f.startswith('.'):
-          out.write('      <li><a href=data' + \
-                    '''/%(data)s/%(os)s/%(file)s>%(file)s</a></li>\n''' % \
-                    {'data': data, 'os': utils.GuessOS(), 'file': f})
-      out.write('    </ul>\n  </body>\n</html>')
-      out.close()
-		
-    shutil.rmtree(os.path.join('appengine', 'static', 'graphs'),
-                  ignore_errors=True)
-    shutil.copytree('graphs', os.path.join('appengine', 'static', 'graphs'))
-    shutil.copyfile('index.html', os.path.join('appengine', 'static',
-                    'index.html'))		
-    shutil.copyfile('dromaeo.html', os.path.join('appengine', 'static',
-                    'dromaeo.html'))
-    shutil.copyfile('data.html', os.path.join('appengine', 'static',
-                    'data.html'))
-    self.run_cmd([os.path.join('..', '..', '..', 'third_party',
-                               'appengine-python', 'appcfg.py'), '--oauth2',
-                               'update', 'appengine/'])
-	
-
   def parse_args(self):
     parser = optparse.OptionParser()
     parser.add_option('--suites', '-s', dest='suites', help='Run the specified '
@@ -796,7 +749,7 @@ class DromaeoTester(Tester):
         '=': 'ASSIGN',	
         }	
     for (old, new) in remap.iteritems():	
-      str = str.replace(old, new)	
+      str = str.replace(old, new)
     return str
 
   # TODO(vsm): This is a hack to skip breaking tests.  Triage this
@@ -850,8 +803,8 @@ class DromaeoTest(RuntimePerformanceTest):
     # dart:dom has been removed from Dartium.
     if browser == 'dartium' and 'dom' in version:
       return False
-    # Only run dart2js on Chrome until we validate it elsewhere.
-    if browser != 'chrome' and 'dart2js' in version:
+    if browser == 'ff':
+      # TODO(vsm): We are waiting on a fix from Issue 3152 from dart2js.
       return False
     return True
 
@@ -950,10 +903,6 @@ class DromaeoTest(RuntimePerformanceTest):
           self.add_svn_revision_to_trace(self.test.trace_file, browser)
           file_path = '"%s"' % os.path.join(os.getcwd(), dromaeo_path,
               'index-js.html?%s' % version)
-          if platform.system() == 'Windows':
-	    file_path = file_path.replace('&', '^&')
-	    file_path = file_path.replace('?', '^?')
-	    file_path = file_path.replace('|', '^|')
           self.test.test_runner.run_cmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
                '--out', file_path, '--browser', browser,
@@ -1162,7 +1111,9 @@ class DromaeoSizeTest(Test):
 
 class CompileTimeAndSizeTest(Test):
   """Run tests to determine how long frogc takes to compile, and the compiled
-  file output size of some benchmarking files."""
+  file output size of some benchmarking files.
+  Note: This test is now 'deprecated' since frog is no longer in the sdk. We
+  just return the last numbers found for frog."""
   def __init__(self, test_runner):
     """Reference to the test_runner object that notifies us when to begin
     testing."""
@@ -1195,22 +1146,12 @@ class CompileTimeAndSizeTest(Test):
 
       self.add_svn_revision_to_trace(self.test.trace_file)
 
-      self.test.test_runner.run_cmd(
-          [self.test.dart_vm, 'frogc.dart', '--out=swarm-result',
-          os.path.join('..', 'samples', 'swarm', 'swarm.dart')])
-          #os.path.join('..', 'internal', 'golem', 'benchmarks-dart2js', 'tests',
-          #'samples-r6461', 'swarm', 'swarm.dart')])
-
       swarm_size = 0
       try:
         swarm_size = os.path.getsize('swarm-result')
       except OSError:
         pass #If compilation failed, continue on running other tests.
 
-      self.test.test_runner.run_cmd(
-          [self.test.dart_vm, 'frogc.dart', '--out=total-result',
-          os.path.join('..', 'internal', 'golem', 'benchmarks-dart2js', 'tests',
-          'samples-r6461', 'total', 'client', 'Total.dart')])
       total_size = 0
       try:
         total_size = os.path.getsize('total-result')
