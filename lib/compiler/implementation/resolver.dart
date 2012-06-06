@@ -591,9 +591,114 @@ class StatementScope {
   }
 }
 
+class TypeResolver {
+  final Compiler compiler;
+  TypeResolver(this.compiler);
+
+  Element resolveTypeName(Scope context, TypeAnnotation node) {
+    Identifier typeName = node.typeName.asIdentifier();
+    Send send = node.typeName.asSend();
+    if (send !== null) {
+      typeName = send.selector;
+    }
+    if (typeName.source == Types.VOID) {
+      return compiler.types.voidType.element;
+    } else if (send !== null) {
+      Element e = context.lookup(send.receiver.asIdentifier().source);
+      if (e !== null && e.kind === ElementKind.PREFIX) {
+        // The receiver is a prefix. Lookup in the imported members.
+        PrefixElement prefix = e;
+        return prefix.lookupLocalMember(typeName.source);
+      } else if (e !== null && e.kind === ElementKind.CLASS) {
+        // The receiver is the class part of a named constructor.
+        return e;
+      } else {
+        return null;
+      }
+    } else {
+      return context.lookup(typeName.source);
+    }
+  }
+
+  Type resolveTypeAnnotation(TypeAnnotation node,
+                             [Scope inContext, ClassElement inClass,
+                              onFailure(Node, MessageKind, [List arguments]),
+                              whenResolved(Node, Type)]) {
+    if (onFailure === null) {
+      onFailure = (n, k, [arguments]) {};
+    }
+    if (whenResolved === null) {
+      whenResolved = (n, t) {};
+    }
+    if (inClass !== null) {
+      inContext = new ClassScope(inClass, inClass.getLibrary());
+    }
+    if (inContext === null) {
+      compiler.internalError('resolveTypeAnnotation: no scope specified');
+    }
+    return resolveTypeAnnotationInContext(inContext, node, onFailure,
+                                          whenResolved);
+  }
+
+  Type resolveTypeAnnotationInContext(Scope context, TypeAnnotation node,
+                                      onFailure, whenResolved) {
+    Element element = resolveTypeName(context, node);
+    Type type;
+    if (element === null) {
+      onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+    } else if (!element.impliesType()) {
+      onFailure(node, MessageKind.NOT_A_TYPE, [node.typeName]);
+    } else {
+      if (element === compiler.types.voidType.element ||
+          element === compiler.types.dynamicType.element) {
+        type = element.computeType(compiler);
+      } else if (element.isClass()) {
+        ClassElement cls = element;
+        if (!cls.isResolved) compiler.resolveClass(cls);
+        LinkBuilder<Type> arguments = new LinkBuilder<Type>();
+        if (node.typeArguments !== null) {
+          int index = 0;
+          for (Link<Node> typeArguments = node.typeArguments.nodes;
+               !typeArguments.isEmpty();
+               typeArguments = typeArguments.tail) {
+            if (++index > cls.typeParameters.length) {
+              onFailure(typeArguments.head,
+                        MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+            }
+            Type argType = resolveTypeAnnotationInContext(context,
+                                                          typeArguments.head,
+                                                          onFailure,
+                                                          whenResolved);
+            arguments.addLast(argType);
+          }
+          if (index < cls.typeParameters.length) {
+            onFailure(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
+          }
+        }
+        if (cls.typeParameters.length == 0) {
+          // Return the canonical type if it has no type parameters.
+          type = cls.computeType(compiler);
+        } else {
+          type = new InterfaceType(cls, arguments.toLink());
+        }
+      } else if (element.isTypedef()) {
+        type = element.computeType(compiler);
+      } else if (element.isTypeVariable()) {
+        type = element.computeType(compiler);
+      } else {
+        compiler.cancel("unexpected element kind ${element.kind}",
+                        node: node);
+      }
+    }
+    whenResolved(node, type);
+    return type;
+  }
+}
+
 class ResolverVisitor extends CommonResolverVisitor<Element> {
   final TreeElementMapping mapping;
   final Element enclosingElement;
+  final TypeResolver typeResolver;
   bool inInstanceContext;
   Scope context;
   ClassElement currentClass;
@@ -608,6 +713,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           || element.isGenerativeConstructor(),
       this.currentClass = element.isMember() ? element.enclosingElement : null,
       this.statementScope = new StatementScope(),
+      typeResolver = new TypeResolver(compiler),
       super(compiler) {
     LibraryElement library = element.getLibrary();
     element = element.getEnclosingMember();
@@ -1096,77 +1202,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
-  Element resolveTypeName(TypeAnnotation node) {
-    Identifier typeName = node.typeName.asIdentifier();
-    Send send = node.typeName.asSend();
-    if (send !== null) {
-      typeName = send.selector;
-    }
-    if (typeName.source == Types.VOID) {
-      return compiler.types.voidType.element;
-    } else if (send !== null) {
-      Element e = context.lookup(send.receiver.asIdentifier().source);
-      if (e !== null && e.kind === ElementKind.PREFIX) {
-        // The receiver is a prefix. Lookup in the imported members.
-        PrefixElement prefix = e;
-        return prefix.lookupLocalMember(typeName.source);
-      } else if (e !== null && e.kind === ElementKind.CLASS) {
-        // The receiver is the class part of a named constructor.
-        return e;
-      } else {
-        return null;
-      }
-    } else {
-      return context.lookup(typeName.source);
-    }
-  }
-
   Type resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
-    Element element = resolveTypeName(node);
-    Type type;
-    if (element === null) {
-      report(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-    } else if (!element.impliesType()) {
-      report(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-    } else {
-      if (element === compiler.types.voidType.element ||
-          element === compiler.types.dynamicType.element) {
-        type = element.computeType(compiler);
-      } else if (element.isClass()) {
-        ClassElement cls = element;
-        if (!cls.isResolved) compiler.resolveClass(cls);
-        LinkBuilder<Type> arguments = new LinkBuilder<Type>();
-        if (node.typeArguments !== null) {
-          int index = 0;
-          for (Link<Node> typeArguments = node.typeArguments.nodes;
-               !typeArguments.isEmpty();
-               typeArguments = typeArguments.tail) {
-            if (++index > cls.typeParameters.length) {
-              report(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
-            }
-            arguments.addLast(resolveTypeAnnotation(typeArguments.head));
-          }
-          if (index < cls.typeParameters.length) {
-            report(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
-          }
-        }
-        if (cls.typeParameters.length == 0) {
-          // Return the canonical type if it has no type parameters.
-          type = cls.computeType(compiler);
-        } else {
-          type = new InterfaceType(cls, arguments.toLink());
-        }
-      } else if (element.isTypedef()) {
-        type = element.computeType(compiler);
-      } else if (element.isTypeVariable()) {
-        type = element.computeType(compiler);
-      } else {
-        compiler.cancel("unexpected element kind ${element.kind}",
-                        node: node);
-      }
-    }
-    return useType(node, type);
+    return typeResolver.resolveTypeAnnotation(node, inContext: context,
+                                              onFailure: report,
+                                              whenResolved: useType);
   }
 
   visitModifiers(Modifiers node) {
