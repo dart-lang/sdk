@@ -278,7 +278,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // "new I.foo()" - resolved, but we produce error.
     {
-      DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
+      DartNewExpression newExpression = findExpression(unit, "new I.foo(0)");
       DartNode constructorNode = newExpression.getElement().getNode();
       assertEquals(true, constructorNode.toSource().contains("F.foo("));
     }
@@ -2015,6 +2015,53 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
   }
   
+  /**
+   * It is a static warning if the return type of the user-declared operator equals is explicitly
+   * declared and not bool.
+   */
+  public void test_equalsOperator_type() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  bool operator equals(other) {}",
+        "}",
+        "class B {",
+        "  String operator equals(other) {}",
+        "}",
+        "class C {",
+        "  Object operator equals(other) {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE, 6, 3, 6),
+        errEx(TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE, 9, 3, 6));
+  }
+
+  /**
+   * We should be able to resolve "a == b" to the "equals" operator.
+   */
+  public void test_equalsOperator_resolving() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C {",
+            "  operator equals(other) => false;",
+            "}",
+            "main() {",
+            "  new C() == new C();",
+            "}",
+            "");
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    // find == expression
+    DartExpression expression = findExpression(unit, "new C() == new C()");
+    assertNotNull(expression);
+    // validate == element
+    MethodElement equalsElement = (MethodElement) expression.getElement();
+    assertNotNull(equalsElement);
+  }
+
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

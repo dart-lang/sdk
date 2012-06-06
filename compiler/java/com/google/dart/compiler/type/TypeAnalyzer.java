@@ -296,6 +296,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private String methodNameForBinaryOperator(Token operator) {
+      if (operator == Token.EQ) {
+        return "operator equals";
+      }
       return "operator " + operator.getSyntax();
     }
 
@@ -429,7 +432,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case GTE:
           return analyzeBinaryOperator(node, lhs, operator, lhsNode, rhsNode);
 
-       case EQ:
+        case EQ: {
+          // try to resolve "==" to "operator equals()", but don't complain if can not find it
+          String methodName = methodNameForBinaryOperator(operator);
+          InterfaceType itype = types.getInterfaceType(lhs);
+          if (itype != null) {
+            Member member = itype.lookupMember(methodName);
+            if (member != null) {
+              node.setElement(member.getElement());
+            }
+          }
+        }
        case NE:
        case EQ_STRICT:
        case NE_STRICT:
@@ -1575,13 +1588,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
       }
+      // operator "equals" should return "bool"
+      if (modifiers.isOperator() && methodElement.getName().equals("equals")
+          && returnTypeNode != null) {
+        Type returnType = node.getElement().getFunctionType().getReturnType();
+        if (!Objects.equal(returnType, boolType)) {
+          typeError(returnTypeNode, TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE);
+
+        }
+      }
       // operator "negate" should return numeric type
       if (modifiers.isOperator() && methodElement.getName().equals("negate")
           && returnTypeNode != null) {
         Type returnType = node.getElement().getFunctionType().getReturnType();
         if (!types.isSubtype(returnType, numType)) {
           typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
-
         }
       }
       // done

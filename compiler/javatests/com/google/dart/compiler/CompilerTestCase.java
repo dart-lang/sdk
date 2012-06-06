@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
@@ -368,21 +369,22 @@ public abstract class CompilerTestCase extends TestCase {
     assertErrors(errors, expectedWarnings);
   }
   /**
-   * @return the {@link DartInvocation} with given source. This is inaccurate approach, but good
+   * @return the {@link DartExpression} with given source. This is inaccurate approach, but good
    *         enough for specific tests.
    */
-  protected static DartNewExpression findNewExpression(DartNode rootNode, final String sampleSource) {
-    final DartNewExpression result[] = new DartNewExpression[1];
+  @SuppressWarnings("unchecked")
+  protected static <T extends DartExpression> T findExpression(DartNode rootNode, final String sampleSource) {
+    final DartExpression result[] = new DartExpression[1];
     rootNode.accept(new ASTVisitor<Void>() {
       @Override
-      public Void visitNewExpression(DartNewExpression node) {
+      public Void visitExpression(DartExpression node) {
         if (node.toSource().equals(sampleSource)) {
           result[0] = node;
         }
-        return super.visitInvocation(node);
+        return super.visitExpression(node);
       }
     });
-    return result[0];
+    return (T) result[0];
   }
 
   protected static DartFunctionTypeAlias findTypedef(DartNode rootNode, final String name) {

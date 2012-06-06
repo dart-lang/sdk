@@ -5,6 +5,7 @@ package com.google.dart.compiler.parser;
 
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
@@ -697,6 +698,21 @@ public class NegativeParserTest extends CompilerTestCase {
         "  operator call() {}",
         "}",
         ""));
+  }
+  
+  /**
+   * We can parse operator "equals" declaration.
+   */
+  public void test_operator_equals() {
+    DartParserRunner runner = parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator equals(other) => false;",
+        "}",
+        ""));
+    DartClass clazz = (DartClass) runner.getDartUnit().getTopLevelNodes().get(0);
+    DartMethodDefinition method = (DartMethodDefinition) clazz.getMembers().get(0);
+    assertTrue(method.getModifiers().isOperator());
   }
 
   /**

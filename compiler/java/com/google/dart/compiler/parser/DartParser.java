@@ -131,6 +131,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
+  private static final String EQUALS_KEYWORD = "equals";
   private static final String EXTENDS_KEYWORD = "extends";
   private static final String FACTORY_KEYWORD = "factory"; // TODO(zundel): remove
   private static final String GETTER_KEYWORD = "get";
@@ -149,6 +150,7 @@ public class DartParser extends CompletionHooksParserBase {
     ABSTRACT_KEYWORD,
     ASSERT_KEYWORD,
     CALL_KEYWORD,
+    EQUALS_KEYWORD,
     EXTENDS_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
@@ -1097,6 +1099,10 @@ public class DartParser extends CompletionHooksParserBase {
         if (peek(0).equals(Token.LPAREN)) {
           return true;
         }
+        // operator equals (
+        if (peekPseudoKeyword(0, EQUALS_KEYWORD) && peek(1).equals(Token.LPAREN)) {
+          return true;
+        }
         // operator negate (
         if (peekPseudoKeyword(0, NEGATE_KEYWORD) && peek(1).equals(Token.LPAREN)) {
           return true;
@@ -1229,7 +1235,11 @@ public class DartParser extends CompletionHooksParserBase {
           arity = 0;
         }
       } else if (operation == Token.IDENTIFIER
-                 && ctx.getTokenString().equals(NEGATE_KEYWORD)) {
+                 && ctx.getTokenString().equals(EQUALS_KEYWORD)) {
+        name = done(new DartIdentifier(EQUALS_KEYWORD));
+        arity = 1;
+      } else if (operation == Token.IDENTIFIER
+          && ctx.getTokenString().equals(NEGATE_KEYWORD)) {
         name = done(new DartIdentifier(NEGATE_KEYWORD));
         arity = 0;
       } else if (operation == Token.IDENTIFIER
