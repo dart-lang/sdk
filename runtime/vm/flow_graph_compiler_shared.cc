@@ -277,6 +277,54 @@ bool FlowGraphCompilerShared::TryIntrinsify() {
   return false;
 }
 
+
+void FlowGraphCompilerShared::GenerateNumberTypeCheck(
+    Register kClassIdReg,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  GrowableArray<intptr_t> args;
+  if (type.IsNumberInterface()) {
+    args.Add(kDouble);
+    args.Add(kMint);
+    args.Add(kBigint);
+  } else if (type.IsIntInterface()) {
+    args.Add(kMint);
+    args.Add(kBigint);
+  } else if (type.IsDoubleInterface()) {
+    args.Add(kDouble);
+  }
+  CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
+}
+
+
+void FlowGraphCompilerShared::GenerateStringTypeCheck(
+    Register kClassIdReg,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  GrowableArray<intptr_t> args;
+  args.Add(kOneByteString);
+  args.Add(kTwoByteString);
+  args.Add(kFourByteString);
+  args.Add(kExternalOneByteString);
+  args.Add(kExternalTwoByteString);
+  args.Add(kExternalFourByteString);
+  CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
+}
+
+
+void FlowGraphCompilerShared::GenerateListTypeCheck(
+    Register kClassIdReg,
+    Label* is_instance_lbl) {
+  Label unknown;
+  GrowableArray<intptr_t> args;
+  args.Add(kArray);
+  args.Add(kGrowableObjectArray);
+  args.Add(kImmutableArray);
+  CheckClassIds(kClassIdReg, args, is_instance_lbl, &unknown);
+  assembler()->Bind(&unknown);
+}
+
 }  // namespace dart
 
 

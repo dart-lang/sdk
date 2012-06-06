@@ -11,6 +11,8 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
@@ -313,6 +315,12 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
         String className = classElement.getName();
         coreElements.put(className, classElement);
         classes.put(className, classElement);
+      } else if (node instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldNode = (DartFieldDefinition) node;
+        for (DartField field : fieldNode.getFields()) {
+          Element fieldElement = field.getElement();
+          coreElements.put(fieldElement.getName(), fieldElement);
+        }
       } else {
         DartFunctionTypeAlias alias = (DartFunctionTypeAlias) node;
         FunctionAliasElement element = alias.getElement();

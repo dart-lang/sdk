@@ -664,11 +664,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // Set the length field.
     __ StoreIntoObject(RAX, FieldAddress(RAX, Array::length_offset()), R10);
 
-    // Store class value for array.
-    __ movq(RBX, FieldAddress(CTX, Context::isolate_offset()));
-    __ movq(RBX, Address(RBX, Isolate::object_store_offset()));
-    __ movq(RBX, Address(RBX, ObjectStore::array_class_offset()));
-    __ StoreIntoObject(RAX, FieldAddress(RAX, Array::class_offset()), RBX);
     // Calculate the size tag.
     // RAX: new object start as a tagged pointer.
     // R12: new object end address.
@@ -989,13 +984,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ movq(Address(RDI, 0), R13);
     __ addq(RAX, Immediate(kHeapObjectTag));
 
-    // Initialize the class field in the context object.
-    // RAX: new object.
-    // R10: number of context variables.
-    __ LoadObject(R13, context_class);  // Load up class field of context.
-    __ StoreIntoObject(RAX,
-                       FieldAddress(RAX, Context::class_offset()),
-                       R13);
     // Calculate the size tag.
     // RAX: new object.
     // R10: number of context variables.
@@ -1155,8 +1143,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
               RDX);
       const Class& ita_cls =
           Class::ZoneHandle(Object::instantiated_type_arguments_class());
-      __ LoadObject(RDX, ita_cls);
-      __ movq(Address(RCX, Instance::class_offset()), RDX);  // Set its class.
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(type_args_size, tags);
@@ -1173,12 +1159,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // RDI: new object type arguments.
     }
 
-    // Initialize the class field in the object.
     // RAX: new object start.
     // RBX: next object start.
     // RDI: new object type arguments (if is_cls_parameterized).
     __ LoadObject(RDX, cls);  // Load class of object to be allocated.
-    __ movq(Address(RAX, Instance::class_offset()), RDX);
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1327,11 +1311,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), R13);
 
-    // Initialize the class field in the object.
     // RAX: new closure object.
     // RBX: new context object (only if is_implicit_closure).
-    __ LoadObject(R10, cls);  // Load signature class of closure.
-    __ movq(Address(RAX, Closure::class_offset()), R10);
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
@@ -1356,10 +1337,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     } else if (is_implicit_instance_closure) {
       // Initialize the new context capturing the receiver.
 
-      // Set the class field to the Context class.
       const Class& context_class = Class::ZoneHandle(Object::context_class());
-      __ LoadObject(R13, context_class);
-      __ movq(Address(RBX, Context::class_offset()), R13);
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(context_size, tags);

@@ -53,19 +53,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
                 TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testAssert() {
-    analyze("assert(true);");
-    analyze("assert(false);");
-    analyzeFail("assert('message');", TypeErrorCode.ASSERT_BOOL);
-    analyze("assert(null);");
-    analyzeFail("assert(1);", TypeErrorCode.ASSERT_BOOL);
-    analyze("assert(foo() {});");
-    analyze("assert(bool foo() {});");
-    analyze("assert(Object foo() {});");
-    analyzeFail("assert(String foo() {});", TypeErrorCode.ASSERT_BOOL);
-    analyzeFail("assert(bool foo(x) {});", TypeErrorCode.ASSERT_BOOL);
-  }
-
   public void testBadInitializers() {
     analyzeFail("int i = .0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("int j = 1.0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
@@ -121,8 +108,10 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       analyzeIn(cls, expression, 0);
       expression = String.format("s = o %s o", op.getSyntax());
       analyzeIn(cls, expression, 1);
-      expression = String.format("o %s s", op.getSyntax());
-      analyzeIn(cls, expression, 1);
+      if (!op.equals(Token.ADD)) {
+        expression = String.format("o %s s", op.getSyntax());
+        analyzeIn(cls, expression, 1);
+      }
       expression = String.format("o %s i", op.getSyntax());
       analyzeIn(cls, expression, 1);
     }
@@ -173,18 +162,20 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       String expression;
       expression = String.format("o %s untyped", op.getSyntax());
       analyzeIn(cls, expression, 0);
-      expression = String.format("s %s untyped", op.getSyntax());
-      analyzeIn(cls, expression, 1);
       expression = String.format("o %s null", op.getSyntax());
       analyzeIn(cls, expression, 0);
-      expression = String.format("s %s null", op.getSyntax());
-      analyzeIn(cls, expression, 1);
       expression = String.format("o %s o", op.getSyntax());
       analyzeIn(cls, expression, 0);
-      expression = String.format("s %s o", op.getSyntax());
-      analyzeIn(cls, expression, 1);
       expression = String.format("o %s i", op.getSyntax());
       analyzeIn(cls, expression, 1);
+      if (!op.equals(Token.ASSIGN_ADD)) {
+        expression = String.format("s %s untyped", op.getSyntax());
+        analyzeIn(cls, expression, 1);
+        expression = String.format("s %s null", op.getSyntax());
+        analyzeIn(cls, expression, 1);
+        expression = String.format("s %s o", op.getSyntax());
+        analyzeIn(cls, expression, 1);
+      }
     }
 
     analyzeIn(cls, "untyped is String", 0);
@@ -712,11 +703,11 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testLoadInterfaces() {
     loadFile("interfaces.dart");
-    ClassElement superElement = coreElements.get("Super");
+    ClassElement superElement = (ClassElement)coreElements.get("Super");
     assertNotNull("no element for Super", superElement);
     assertEquals(object.getType(), superElement.getSupertype());
     assertEquals(0, superElement.getInterfaces().size());
-    ClassElement sub = coreElements.get("Sub");
+    ClassElement sub = (ClassElement)coreElements.get("Sub");
     assertNotNull("no element for Sub", sub);
     assertEquals(object.getType(), sub.getSupertype());
     assertEquals(1, sub.getInterfaces().size());
@@ -1077,9 +1068,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testSwitch() {
     analyze("{ int i = 27; switch(i) { case i: break; } }");
     analyze("{ num i = 27; switch(i) { case i: break; } }");
-    analyze("{ switch(true) { case 1: break; case 'foo': break; }}");
-    analyzeFail("{ int i = 27; switch(true) { case false: i = 2.7; }}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail(
+        "{ switch(true) { case 1: break; case 'foo': break; }}",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail(
+        "{ int i = 27; switch(true) { case false: i = 2.7; }}",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testThis() {
@@ -1143,7 +1137,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  Foo foo;",
         "  bool b;",
         "  int i;",
-        "  Foo operator negate() { return this; }",
         "  Foo operator +(int operand) { return this; }",
         "  Foo operator -(int operand) { return this; }",
         "}",
@@ -1162,7 +1155,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}",
         "class X {",
         "  X x;",
-        "  Z operator negate() { return null; }",
         "  Z operator +(int operand) { return null; }",
         "  Z operator -(int operand) { return null; }",
         "}",
@@ -1176,7 +1168,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     ClassElement qux = source.get("Qux");
     ClassElement y = source.get("Y");
     ClassElement z = source.get("Z");
-    for (Token op : EnumSet.of(Token.DEC, Token.INC, Token.SUB)) {
+    for (Token op : EnumSet.of(Token.DEC, Token.INC)) {
       analyzeIn(foo, String.format("%sfoo", op), 0);
       analyzeIn(foo, String.format("i = %sfoo", op), 1);
       analyzeIn(bar, String.format("%sbar", op), 1);
@@ -1335,9 +1327,9 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("{ void f() {} m(x) {} m(f()); }", TypeErrorCode.VOID);
 
     // Assigning a void expression to a variable.
-    analyzeFail("{ void f() {} String x = f(); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} String x; x = f(); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} String x; x += f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} int x = f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} int x; x = f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} int x; x += f(); }", TypeErrorCode.VOID);
 
     // Misc.
     analyzeFail("{ void f() {} 1 + f(); }", TypeErrorCode.VOID);
@@ -1348,8 +1340,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     // We seem to throw away prefix-plus in the parser:
     // analyzeFail("{ void f() {} +f(); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {} var x; x == f(); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} assert(f()); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} assert(f); }", TypeErrorCode.ASSERT_BOOL);
     analyzeFail("{ void f() {} while (f()); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {}; ({ 'x': f() }); }", TypeErrorCode.VOID);
   }
@@ -1376,5 +1366,28 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("{ var val1 = new IA<Foo>(); }");
     analyze("{ var val1 = new IA<Bar>(); }");
     analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+  
+  public void testStringConcat() {
+    Map<String, ClassNodeElement> source = loadSource(
+        "class Object {}",
+        "interface Foo {",
+        "  operator +(arg1);" +
+        "}",
+        "Foo a = new Foo();",
+        "Foo b = new Foo();",
+        "String s = 'foo';");
+    analyzeClasses(source);
+    analyze("{ var c = a + b; }");
+    analyzeFail("{ var c = s + b; }",
+        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
+    analyzeFail("{ var c = a + s; }",
+            TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);    
+    analyzeFail("var c = 'foo' + 1;",
+        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);        
+    analyzeFail("var c = 1 + 'foo';",
+        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);            
+    analyzeFail("var c = 'foo' + 'bar';",
+        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);                
   }
 }

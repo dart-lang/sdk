@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,12 +12,14 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -36,6 +38,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     for (DartParameter parameter : node.getParameters()) {
       Elements.addParameter(element, (VariableElement) parameter.accept(this));
     }
+    resolveFunctionWithParameters(node, element);
     Type returnType =
         resolveType(
             node.getReturnTypeNode(),
@@ -49,11 +52,24 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     return element;
   }
 
+  /**
+   * Allows subclass to process {@link DartFunction} element with parameters, but before
+   * {@link FunctionType} is created for it.
+   */
+  protected void resolveFunctionWithParameters(DartFunction node, MethodElement element) {
+  }
+
   final FunctionAliasElement resolveFunctionAlias(DartFunctionTypeAlias node) {
-    FunctionAliasElement funcAlias = node.getElement();
-    for (Type type : funcAlias.getTypeParameters()) {
-      TypeVariableElement typeVar = (TypeVariableElement) type.getElement();
-      getContext().getScope().declareElement(typeVar.getName(), typeVar);
+    HashSet<String> parameterNames = new HashSet<String>();
+    for (DartTypeParameter parameter : node.getTypeParameters()) {
+      TypeVariableElement typeVar = (TypeVariableElement) parameter.getElement();
+      String parameterName = typeVar.getName();
+      if (parameterNames.contains(parameterName)) {
+        getContext().onError(parameter, ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, parameterName);
+      } else {
+        parameterNames.add(parameterName);
+      }
+      getContext().getScope().declareElement(parameterName, typeVar);
     }
     return null;
   }

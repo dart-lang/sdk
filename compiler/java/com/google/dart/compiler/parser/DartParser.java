@@ -16,7 +16,6 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -3437,13 +3436,6 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartStatement parseExpressionStatement() {
     beginExpressionStatement();
-    if (peek(1) == Token.LPAREN && optionalPseudoKeyword(ASSERT_KEYWORD)) {
-      consume(Token.LPAREN);
-      DartExpression expression = parseConditionalExpression();
-      expectCloseParen();
-      expectStatmentTerminator();
-      return done(new DartAssertion(expression));
-    }
     DartExpression expression = parseExpression();
     expectStatmentTerminator();
 
@@ -4010,6 +4002,8 @@ public class DartParser extends CompletionHooksParserBase {
     if (optional(Token.ADD)) {
       if (peek(0) != Token.INTEGER_LITERAL && peek(0) != Token.DOUBLE_LITERAL) {
         reportError(position(), ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
+      } else if (position().getPos() + 1 != peekTokenLocation(0).getBegin().getPos()) {
+        reportError(position(), ParserErrorCode.NO_SPACE_AFTER_PLUS);
       }
     }
     // Check for unary minus operator.

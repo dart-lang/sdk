@@ -27,6 +27,7 @@ DECLARE_FLAG(bool, trace_isolates);
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
+FileWriterFunction Dart::flow_graph_writer_ = NULL;
 
 // TODO(turnidge): We should add a corresponding Dart::Cleanup.
 bool Dart::InitOnce(Dart_IsolateCreateCallback create,

@@ -60,6 +60,60 @@ FlowGraphCompiler::FlowGraphCompiler(
 #define __ assembler()->
 
 
+
+// Fall through if bool_register contains null.
+void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
+                                           Label* is_true,
+                                           Label* is_false) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label fall_through;
+  __ cmpq(bool_register, raw_null);
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  __ CompareObject(bool_register, bool_true);
+  __ j(EQUAL, is_true);
+  __ jmp(is_false);
+  __ Bind(&fall_through);
+}
+
+
+RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
+    TypeTestStubKind test_kind,
+    Register instance_reg,
+    Register type_arguments_reg,
+    Register temp_reg,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(temp_reg, type_test_cache);
+  __ pushq(temp_reg);  // Subtype test cache.
+  __ pushq(instance_reg);  // Instance.
+  if (test_kind == kTestTypeOneArg) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ pushq(raw_null);
+    __ call(&StubCode::Subtype1TestCacheLabel());
+  } else if (test_kind == kTestTypeTwoArgs) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ pushq(raw_null);
+    __ call(&StubCode::Subtype2TestCacheLabel());
+  } else if (test_kind == kTestTypeThreeArgs) {
+    __ pushq(type_arguments_reg);
+    __ call(&StubCode::Subtype3TestCacheLabel());
+  } else {
+    UNREACHABLE();
+  }
+  // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
+  __ popq(instance_reg);  // Discard.
+  __ popq(instance_reg);  // Restore receiver.
+  __ popq(temp_reg);  // Discard.
+  GenerateBoolToJump(RCX, is_instance_lbl, is_not_instance_lbl);
+  return type_test_cache.raw();
+}
+
 // Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
 // type test is conclusive, otherwise fallthrough if a type test could not
 // be completed.
@@ -74,29 +128,25 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::ZoneHandle(type.type_class());
   ASSERT(type_class.HasTypeArguments());
+  const Register kInstanceReg = RAX;
   // A Smi object cannot be the instance of a parameterized class.
-  __ testq(RAX, Immediate(kSmiTagMask));
+  __ testq(kInstanceReg, Immediate(kSmiTagMask));
   __ j(ZERO, is_not_instance_lbl);
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(type_arguments.Length());
   if (is_raw_type) {
+    const Register kClassIdReg = R10;
     // Dynamic type argument, check only classes.
     // List is a very common case.
-    __ LoadClassId(R10, RAX);
+    __ LoadClassId(kClassIdReg, kInstanceReg);
     if (!type_class.is_interface()) {
-      __ cmpl(R10, Immediate(type_class.id()));
+      __ cmpl(kClassIdReg, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
     if (type.IsListInterface()) {
-      Label unknown;
-      GrowableArray<intptr_t> args;
-      args.Add(kArray);
-      args.Add(kGrowableObjectArray);
-      args.Add(kImmutableArray);
-      CheckClassIds(args, is_instance_lbl, &unknown);
-      __ Bind(&unknown);
+      GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
     return GenerateSubtype1TestCacheLookup(
         cid, token_index, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -121,41 +171,26 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   }
 
   // Regular subtype test cache involving instance's type arguments.
-  const SubtypeTestCache& type_test_cache =
-      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
-  Label runtime_call;
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ LoadObject(R10, type_test_cache);
-  __ pushq(R10);  // Subtype test cache.
-  __ pushq(RAX);  // Instance.
-  __ pushq(raw_null);  // Unused.
-  __ call(&StubCode::Subtype2TestCacheLabel());
-  __ popq(RAX);  // Discard.
-  __ popq(RAX);  // Restore receiver.
-  __ popq(RDX);  // Discard.
-  // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
-
-  __ cmpq(RCX, raw_null);
-  __ j(EQUAL, &runtime_call, Assembler::kNearJump);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  __ CompareObject(RCX, bool_true);
-  __ j(EQUAL, is_instance_lbl);
-  __ jmp(is_not_instance_lbl);
-  __ Bind(&runtime_call);
-  return type_test_cache.raw();
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = R10;
+  return GenerateCallSubtypeTestStub(kTestTypeTwoArgs,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 
-// R10: instance class id to check.
-void FlowGraphCompiler::CheckClassIds(const GrowableArray<intptr_t>& class_ids,
-                                     Label* is_instance_lbl,
-                                     Label* is_not_instance_lbl) {
+void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
+                                      const GrowableArray<intptr_t>& class_ids,
+                                      Label* is_equal_lbl,
+                                      Label* is_not_equal_lbl) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ cmpl(R10, Immediate(class_ids[i]));
-    __ j(EQUAL, is_instance_lbl);
+    __ cmpl(class_id_reg, Immediate(class_ids[i]));
+    __ j(EQUAL, is_equal_lbl);
   }
-  __ jmp(is_not_instance_lbl);
+  __ jmp(is_not_equal_lbl);
 }
 
 
@@ -191,17 +226,18 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
   // Compare if the classes are equal. Instance is not Smi.
   __ Bind(&compare_classes);
-  __ LoadClassId(R10, RAX);
+  const Register kClassIdReg = R10;
+  __ LoadClassId(kClassIdReg, RAX);
   // If type is an interface, we can skip the class equality check.
   if (!type_class.is_interface()) {
-    __ cmpl(R10, Immediate(type_class.id()));
+    __ cmpl(kClassIdReg, Immediate(type_class.id()));
     __ j(EQUAL, is_instance_lbl);
   }
   // Check for interfaces that cannot be implemented by user.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolInterface()) {
-    __ cmpl(R10, Immediate(kBool));
+    __ cmpl(kClassIdReg, Immediate(kBool));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return;
@@ -210,7 +246,7 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ LoadClassById(R13, R10);
+    __ LoadClassById(R13, kClassIdReg);
     __ movq(R13, FieldAddress(R13, Class::signature_function_offset()));
     __ cmpq(R13, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
@@ -221,29 +257,12 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Note that instance is not Smi(checked above).
   if (type.IsSubtypeOf(
           Type::Handle(Type::NumberInterface()), &malformed_error)) {
-    GrowableArray<intptr_t> args;
-    if (type.IsNumberInterface()) {
-      args.Add(kDouble);
-      args.Add(kMint);
-      args.Add(kBigint);
-    } else if (type.IsIntInterface()) {
-      args.Add(kMint);
-      args.Add(kBigint);
-    } else if (type.IsDoubleInterface()) {
-      args.Add(kDouble);
-    }
-    CheckClassIds(args, is_instance_lbl, is_not_instance_lbl);
+    GenerateNumberTypeCheck(
+        kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return;
   }
   if (type.IsStringInterface()) {
-    GrowableArray<intptr_t> args;
-    args.Add(kOneByteString);
-    args.Add(kTwoByteString);
-    args.Add(kFourByteString);
-    args.Add(kExternalOneByteString);
-    args.Add(kExternalTwoByteString);
-    args.Add(kExternalFourByteString);
-    CheckClassIds(args, is_instance_lbl, is_not_instance_lbl);
+    GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return;
   }
   // Otherwise fallthrough.
@@ -259,45 +278,31 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  const SubtypeTestCache& type_test_cache =
-      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ LoadClass(R10, RAX);
+  const Register kInstanceReg = RAX;
+  __ LoadClass(R10, kInstanceReg);
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
   __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
   __ CompareObject(R13, type_class);
   __ j(EQUAL, is_instance_lbl);
 
-  __ LoadObject(R10, type_test_cache);
-  __ pushq(R10);  // Cache array.
-  __ pushq(RAX);  // Instance.
-  __ pushq(raw_null);  // Unused
-  __ call(&StubCode::Subtype1TestCacheLabel());
-  __ popq(RAX);  // Discard.
-  __ popq(RAX);  // Restore receiver.
-  __ popq(RDX);  // Discard.
-  // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
-
-  Label runtime_call;
-  __ cmpq(RCX, raw_null);
-  __ j(EQUAL, &runtime_call, Assembler::kNearJump);
-  __ CompareObject(RCX, bool_true);
-  __ j(EQUAL, is_instance_lbl);
-  __ jmp(is_not_instance_lbl);
-  __ Bind(&runtime_call);
-  return type_test_cache.raw();
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = R10;
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 
 // Generates inlined check if 'type' is a type parameter or type itsef
 // RAX: instance (preserved).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
-    const AbstractType& type,
     intptr_t cid,
     intptr_t token_index,
+    const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   ASSERT(!type.IsInstantiated());
@@ -323,6 +328,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(EQUAL,  is_instance_lbl);
     __ cmpq(RDI, raw_null);
     __ j(EQUAL,  is_instance_lbl);
+    const Type& object_type =
+       Type::ZoneHandle(Isolate::Current()->object_store()->object_type());
+    __ CompareObject(RDI, object_type);
+    __ j(EQUAL,  is_instance_lbl);
+
     // For Smi check quickly against int and num interface types.
     Label not_smi;
     __ testq(RAX, Immediate(kSmiTagMask));  // Value is Smi?
@@ -331,56 +341,42 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(EQUAL,  is_instance_lbl);
     __ CompareObject(RDI, Type::ZoneHandle(Type::NumberInterface()));
     __ j(EQUAL,  is_instance_lbl);
+    // Smi must be handled in runtime.
     __ jmp(&fall_through);
+
     __ Bind(&not_smi);
     // RDX: instantiator type arguments.
     // RAX: instance.
+    const Register kInstanceReg = RAX;
+    const Register kTypeArgumentsReg = RDX;
+    const Register kTempReg = R10;
     const SubtypeTestCache& type_test_cache =
-        SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
-    __ LoadObject(R10, type_test_cache);
-    __ pushq(R10);  // Subtype test cache.
-    __ pushq(RAX);  // Instance
-    __ pushq(RDX);  // Instantiator type arguments.
-    __ call(&StubCode::Subtype3TestCacheLabel());
-    __ popq(RDX);  // Discard type arguments.
-    __ popq(RAX);  // Restore receiver.
-    __ popq(RDX);  // Discard subtype test cache.
-    // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
-    __ cmpq(RCX, raw_null);
-    __ j(EQUAL, &fall_through, Assembler::kNearJump);
-    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-    __ CompareObject(RCX, bool_true);
-    __ j(EQUAL, is_instance_lbl);
-    __ jmp(is_not_instance_lbl);
+        SubtypeTestCache::ZoneHandle(
+            GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
+                                        kInstanceReg,
+                                        kTypeArgumentsReg,
+                                        kTempReg,
+                                        is_instance_lbl,
+                                        is_not_instance_lbl));
+
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
   if (type.IsType()) {
-    Label fall_through;
-    __ testq(RAX, Immediate(kSmiTagMask));  // Is instance Smi?
+    const Register kInstanceReg = RAX;
+    const Register kTypeArgumentsReg = RDX;
+    __ testq(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
     __ j(ZERO, is_not_instance_lbl);
-    __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
+    __ movq(kTypeArgumentsReg, Address(RSP, 0));  // Instantiator type args.
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator.
-    const SubtypeTestCache& type_test_cache =
-        SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
-    __ LoadObject(R10, type_test_cache);
-    __ pushq(R10);  // Subtype test cache.
-    __ pushq(RAX);  // Instance.
-    __ pushq(RDX);  // Instantiator type arguments.
-    __ call(&StubCode::Subtype3TestCacheLabel());
-    __ popq(RDX);  // Discard type arguments.
-    __ popq(RAX);  // Restore receiver.
-    __ popq(RDX);  // Discard subtype test cache.
-    // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
-    __ cmpq(RCX, raw_null);
-    __ j(EQUAL, &fall_through, Assembler::kNearJump);
-    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-    __ CompareObject(RCX, bool_true);
-    __ j(EQUAL, is_instance_lbl);
-    __ jmp(is_not_instance_lbl);
-    __ Bind(&fall_through);
-    return type_test_cache.raw();
+    const Register kTempReg = R10;
+    return GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
+                                       kInstanceReg,
+                                       kTypeArgumentsReg,
+                                       kTempReg,
+                                       is_instance_lbl,
+                                       is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
 }
@@ -426,9 +422,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
           is_instance_lbl, is_not_instance_lbl);
     }
   } else {
-    return GenerateUninstantiatedTypeTest(type,
-                                          cid,
+    return GenerateUninstantiatedTypeTest(cid,
                                           token_index,
+                                          type,
                                           is_instance_lbl,
                                           is_not_instance_lbl);
   }

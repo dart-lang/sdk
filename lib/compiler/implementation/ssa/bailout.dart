@@ -115,7 +115,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
       Type sourceType = source.computeType(compiler);
       Type speculatedType = speculativeType.computeType(compiler);
       if (speculatedType !== null
-          && !compiler.types.isSubtype(speculatedType, sourceType)) {
+          && !compiler.types.isAssignable(speculatedType, sourceType)) {
         return false;
       }
     }

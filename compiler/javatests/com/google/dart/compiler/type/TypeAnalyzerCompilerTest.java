@@ -34,6 +34,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -47,12 +48,51 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
  * slower, not actually unit test, but easier to use if you need access to DartNode's.
  */
 public class TypeAnalyzerCompilerTest extends CompilerTestCase {
+
+  /**
+   * Top-level "main" function should not have parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3271
+   */
+  public void test_topLevelMainFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(var p) {}",
+        "class A {",
+        "  main(var p) {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.MAIN_FUNCTION_PARAMETERS, 2, 1, 4));
+  }
+  
+  /**
+   * It is a compile-time error if initializer list contains an initializer for a variable that
+   * is not an instance variable declared in the immediately surrounding class.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3181
+   */
+  public void test_initializerForNotField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var x;",
+        "class A {",
+        "  A() : x = 5 {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS, 4, 9, 1));
+  }
+  
   /**
    * Tests that we correctly provide {@link Element#getEnclosingElement()} for method of class.
    */
@@ -122,6 +162,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertEquals(false, methodElement.isInterface());
     assertEquals(true, Iterables.isEmpty(methodElement.getMembers()));
     assertEquals(null, methodElement.lookupLocalElement("f"));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3269
+   */
+  public void test_switchExpression_case_typeMismatch() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "  switch (v) {",
+        "    case 0: break;",
+        "    case 'a': break;",
+        "    case 12.3: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 10, 3),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 10, 4));
   }
 
   /**
@@ -489,7 +551,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 4, 3, 7),
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 5, 3, 4));
   }
-  
+
   public void test_callUnknownFunction() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -803,6 +865,108 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getTypeErrors());
   }
 
+  public void test_assert_notUserFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  assert(true);",
+        "  assert(false);",
+        "  assert('message');", // not 'bool'
+        "  assert('null');", // not 'bool'
+        "  assert(0);", // not 'bool'
+        "  assert(f() {});", // OK, Dynamic
+        "  assert(bool f() {});", // OK, '() -> bool'
+        "  assert(Object f() {});", // OK, 'Object' compatible with 'bool'
+        "  assert(String f() {});", // not '() -> bool', return type
+        "  assert(bool f(x) {});", // not '() -> bool', parameter
+        "  assert(true, false);", // not single argument
+        "  assert;", // incomplete
+        "}",
+        "foo() => assert(true);", // 'assert' is statement, not expression
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
+        errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
+        errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
+        errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
+        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12),
+        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 13, 3, 19),
+        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 14, 3, 7),
+        errEx(TypeErrorCode.ASSERT_IS_STATEMENT, 16, 10, 12));
+  }
+
+  public void test_assert_isUserFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "assert(x) {}",
+        "main() {",
+        "  assert(true);",
+        "  assert(false);",
+        "  assert('message');",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_assert_asLocalVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  bool assert;",
+        "  assert;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3264
+   */
+  public void test_initializingFormalType_useFieldType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final double f;",
+        "  A(this.f);",
+        "}",
+        "class B {",
+        "  B(this.f);",
+        "  final double f;",
+        "}",
+        "",
+        "main() {",
+        "  new A('0');",
+        "  new B('0');",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 12, 9, 3),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 13, 9, 3));
+  }
+  
+  /**
+   * If "this.field" parameter has declared type, it should be assignable to the field.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3264
+   */
+  public void test_initializingFormalType_compatilityWithFieldType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final double f;",
+        "  A.useDynamic(Dynamic this.f);",
+        "  A.useNum(num this.f);",
+        "  A.useString(String this.f);",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 15, 13));
+  }
+
   public void test_finalField_inClass() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         getName(),
@@ -864,6 +1028,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  print(a.f);", // 8: OK, can read
             "}"));
     assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3182
+   */
+  public void test_extendNotType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int A;",
+        "class B extends A {",
+        "}",
+        "",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NOT_A_TYPE, 3, 17, 1));
   }
 
   /**
@@ -1065,6 +1246,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3183
+   */
+  public void test_implementsAndOverrides_differentDefaultValue() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  f1([x]) {}",
+            "  f2([x = 1]) {}",
+            "  f3([x = 1]) {}",
+            "  f4([x = 1]) {}",
+            "}",
+            "class B extends A {",
+            "  f1([x = 2]) {}",
+            "  f2([x]) {}",
+            "  f3([x = 2]) {}",
+            "  f4([x = '2']) {}",
+            "}",
+            "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 9, 7, 5),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 10, 7, 1),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 11, 7, 5),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 12, 7, 7));
+  }
+
+  /**
    * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
    * not declare all the named parameters declared by m2 in the same order.
    * <p>
@@ -1160,6 +1370,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  void set field(B arg) { setterField = arg; }",
             "}");
     assertErrors(result.getErrors(), errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3221
+   */
+  public void test_conditionalExpressionType() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  bool x = (true ? 1 : 2.0);",
+            "}", "");
+    List<DartCompilationError> errors = result.getErrors();
+    assertErrors(errors, errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 3, 12, 16));
+    {
+      String message = errors.get(0).getMessage();
+      assertTrue(message.contains("'num'"));
+      assertTrue(message.contains("'bool'"));
+    }
   }
 
   public void test_typeVariableBoundsMismatch() throws Exception {
@@ -1738,8 +1968,84 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     });
     return result[0];
   }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3272
+   */
+  public void test_assignVoidToDynamic() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void foo() {}",
+        "main() {",
+        "  var v = foo();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  /**
+   * It is a static warning if the return type of the user-declared operator negate is explicitly
+   * declared and not a numerical type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3224
+   */
+  public void test_negateOperatorType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  num operator negate() {}",
+        "}",
+        "class B {",
+        "  int operator negate() {}",
+        "}",
+        "class C {",
+        "  double operator negate() {}",
+        "}",
+        "class D {",
+        "  String operator negate() {}",
+        "}",
+        "class E {",
+        "  Object operator negate() {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 12, 3, 6),
+        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
+  }
   
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
+  }
+  
+  /**
+   * @return the {@link DartNode} at the position of "pattern", with given {@link Class}.
+   */
+  private <T extends DartNode> T findIdentifier(
+      AnalyzeLibraryResult libraryResult,
+      String pattern,
+      int patternOffset,
+      final Class<T> clazz) {
+    String source = libraryResult.source;
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    // prepare index
+    assertTrue(source.contains(pattern));
+    final int index = source.indexOf(pattern) + patternOffset;
+    // find node
+    final AtomicReference<T> result = new AtomicReference<T>();
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitNode(DartNode node) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo.getOffset() <= index
+            && index < sourceInfo.getEnd()
+            && clazz.isInstance(node)) {
+          result.set(clazz.cast(node));
+        }
+        return super.visitNode(node);
+      }
+    });
+    return result.get();
   }
 }

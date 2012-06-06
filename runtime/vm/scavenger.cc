@@ -14,10 +14,14 @@
 
 namespace dart {
 
+// Scavenger uses RawObject::kFreeBit to distinguish forwaded and non-forwarded
+// objects because scavenger can never encounter free list element during
+// evacuation and thus all objects scavenger encounters have
+// kFreeBit cleared.
 enum {
-  kForwardingMask = 3,
-  kNotForwarded = 1,  // Tagged pointer.
-  kForwarded = 3,  // Tagged pointer and forwarding bit set.
+  kForwardingMask = 1,
+  kNotForwarded = 0,
+  kForwarded = 1,
 };
 
 
@@ -43,8 +47,9 @@ static inline void ForwardTo(uword orignal, uword target) {
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
-  explicit ScavengerVisitor(Scavenger* scavenger)
-      : scavenger_(scavenger),
+  explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
+      : ObjectPointerVisitor(isolate),
+        scavenger_(scavenger),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()) {}
 
@@ -157,6 +162,11 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
       object_alignment_(object_alignment),
       count_(0),
       scavenging_(false) {
+  // Verify assumptions about the first word in objects which the scavenger is
+  // going to use for forwarding pointers.
+  ASSERT(Object::tags_offset() == 0);
+  ASSERT(kForwardingMask == (1 << RawObject::kFreeBit));
+
   // Allocate the virtual memory for this scavenge heap.
   space_ = VirtualMemory::Reserve(max_capacity);
   ASSERT(space_ != NULL);
@@ -368,7 +378,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
   // Setup the visitor and run a scavenge.
-  ScavengerVisitor visitor(this);
+  ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
   IterateRoots(isolate, &visitor, !invoke_api_callbacks);
   ProcessToSpace(&visitor);

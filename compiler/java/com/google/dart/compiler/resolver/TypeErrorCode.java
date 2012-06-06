@@ -14,8 +14,11 @@ public enum TypeErrorCode implements ErrorCode {
   ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
       "%s is an abstract class because it does not implement the inherited abstract members: %s"),
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
+  ASSERT_NUMBER_ARGUMENTS(ErrorSeverity.ERROR, "assert requires exactly one argument"),
+  ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
+  CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
       "Invalid type expression, cyclic reference to type variable '%s'"),
@@ -44,9 +47,10 @@ public enum TypeErrorCode implements ErrorCode {
   NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
-  NOT_A_TYPE("type \"%s\" expected, but \"%s\" found", true),
+  OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
+  PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'+' operator cannot be used for string concatentation"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
   SETTER_TYPE_MUST_BE_ASSIGNABLE("Setter type '%s' must be assignable to getter type '%s'"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
@@ -54,11 +58,12 @@ public enum TypeErrorCode implements ErrorCode {
   SUPERTYPE_HAS_FIELD("%s is a field in %s"),
   SUPERTYPE_HAS_METHOD("%s is a method in %s"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
-  TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
+  TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");
 
+  private final ErrorSeverity severity;
   private final String message;
   private final boolean needsRecompilation;
 
@@ -73,6 +78,15 @@ public enum TypeErrorCode implements ErrorCode {
    * Initialize a newly created error code to have the given message and compilation flag.
    */
   private TypeErrorCode(String message, boolean needsRecompilation) {
+    this(ErrorSeverity.WARNING, message);
+  }
+
+  private TypeErrorCode(ErrorSeverity severity, String message) {
+    this(severity, message, false);
+  }
+  
+  private TypeErrorCode(ErrorSeverity severity, String message, boolean needsRecompilation) {
+    this.severity = severity;
     this.message = message;
     this.needsRecompilation = needsRecompilation;
   }
@@ -84,7 +98,7 @@ public enum TypeErrorCode implements ErrorCode {
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return ErrorSeverity.WARNING;
+    return severity;
   }
 
   @Override

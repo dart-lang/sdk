@@ -145,6 +145,11 @@ abstract class AbstractParser {
     return true;
   }
 
+  protected Location peekTokenLocation(int n) {
+    assert (n >= 0);
+    return ctx.peekTokenLocation(n);
+  }
+
   protected String getPeekTokenValue(int n) {
     assert (n >= 0);
     String value = ctx.peekTokenString(n);

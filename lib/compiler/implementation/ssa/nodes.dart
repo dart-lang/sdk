@@ -51,7 +51,9 @@ interface HVisitor<R> {
   R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
+  R visitStringConcat(HStringConcat node);
   R visitSubtract(HSubtract node);
+  R visitSwitch(HSwitch node);
   R visitThis(HThis node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
@@ -254,8 +256,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
-  visitBreak(HBreak node) => visitGoto(node);
-  visitContinue(HContinue node) => visitGoto(node);
+  visitBreak(HBreak node) => visitJump(node);
+  visitContinue(HContinue node) => visitJump(node);
   visitCheck(HCheck node) => visitInstruction(node);
   visitConstant(HConstant node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
@@ -285,6 +287,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
       => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
+  visitJump(HJump node) => visitControlFlow(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
@@ -299,8 +302,10 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
+  visitSwitch(HSwitch node) => visitControlFlow(node);
   visitStatic(HStatic node) => visitInstruction(node);
   visitStaticStore(HStaticStore node) => visitInstruction(node);
+  visitStringConcat(HStringConcat node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTry(HTry node) => visitControlFlow(node);
@@ -332,7 +337,7 @@ class SubExpression extends SubGraph {
   /** Find the condition expression if this sub-expression is a condition. */
   HInstruction get conditionExpression() {
     HInstruction last = end.last;
-    if (last is HConditionalBranch) return last.inputs[0];
+    if (last is HConditionalBranch || last is HSwitch) return last.inputs[0];
     return null;
   }
 }
@@ -1221,16 +1226,23 @@ class HInvokeInterceptor extends HInvokeStatic {
   }
 }
 
-class HFieldGet extends HInstruction {
-  // TODO(ngeoffray): Should [name] be an element?
-  final SourceString name;
+abstract class HFieldAccess extends HInstruction {
+  final Element element;
+
+  HFieldAccess(this.element, List<HInstruction> inputs) : super(inputs);
+
+  bool isFromActivation() => element === null;
+}
+
+class HFieldGet extends HFieldAccess {
   final bool isFinalOrConst;
-  HFieldGet(this.name, HInstruction receiver, [this.isFinalOrConst = false])
-      : super(<HInstruction>[receiver]);
+
+  HFieldGet(Element element, HInstruction receiver,
+            [this.isFinalOrConst = false])
+      : super(element, <HInstruction>[receiver]);
   HFieldGet.fromActivation(receiver) : this(null, receiver);
 
   HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
-  bool isFromActivation() => name === null;
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
@@ -1245,20 +1257,18 @@ class HFieldGet extends HInstruction {
 
   int typeCode() => 27;
   bool typeEquals(other) => other is HFieldGet;
-  bool dataEquals(HFieldGet other) => name == other.name;
+  bool dataEquals(HFieldGet other) => element == other.element;
 }
 
-class HFieldSet extends HInstruction {
-  final SourceString name;
-  HFieldSet(this.name, HInstruction receiver, HInstruction value)
-      : super(<HInstruction>[receiver, value]);
+class HFieldSet extends HFieldAccess {
+  HFieldSet(Element element, HInstruction receiver, HInstruction value)
+      : super(element, <HInstruction>[receiver, value]);
   HFieldSet.fromActivation(receiver, value)
       : this(null, receiver, value);
 
   HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
   HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
-  bool isFromActivation() => name === null;
 
   void prepareGvn() {
     // TODO(ngeoffray): implement more fine grain side effects.
@@ -1472,6 +1482,26 @@ class HSubtract extends HBinaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
+/**
+ * An [HSwitch] instruction has one input for the incoming
+ * value, and one input per constant that it can switch on.
+ * Its block has one successor per constant, and one for the default.
+ * If the switch didn't have a default case, the last successor is
+ * the join block.
+ */
+class HSwitch extends HControlFlow {
+  HSwitch(List<HInstruction> inputs) : super(inputs);
+
+  HConstant constant(int index) => inputs[index + 1];
+  HInstruction get expression() => inputs[0];
+
+  HBasicBlock get defaultTarget() => block.successors.last();
+
+  accept(HVisitor visitor) => visitor.visitSwitch(this);
+
+  String toString() => "HSwitch cases = $inputs";
+}
+
 class HTruncatingDivide extends HBinaryArithmetic {
   HTruncatingDivide(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
@@ -1661,20 +1691,24 @@ class HGoto extends HControlFlow {
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
-class HBreak extends HGoto {
+abstract class HJump extends HControlFlow {
   final TargetElement target;
   final LabelElement label;
-  HBreak(this.target) : label = null;
-  HBreak.toLabel(LabelElement label) : label = label, target = label.target;
+  HJump(this.target) : label = null, super(const <HInstruction>[]);
+  HJump.toLabel(LabelElement label)
+      : label = label, target = label.target, super(const <HInstruction>[]);
+}
+
+class HBreak extends HJump {
+  HBreak(TargetElement target) : super(target);
+  HBreak.toLabel(LabelElement label) : super.toLabel(label);
   toString() => (label !== null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
-class HContinue extends HGoto {
-  final TargetElement target;
-  final LabelElement label;
-  HContinue(this.target) : label = null;
-  HContinue.toLabel(LabelElement label) : label = label, target = label.target;
+class HContinue extends HJump {
+  HContinue(TargetElement target) : super(target);
+  HContinue.toLabel(LabelElement label) : super.toLabel(label);
   toString() => (label !== null) ? 'continue ${label.labelName}' : 'continue';
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
@@ -1776,14 +1810,14 @@ class HNot extends HInstruction {
 }
 
 class HParameterValue extends HInstruction {
-  final Element element;
-
-  HParameterValue(this.element) : super(<HInstruction>[]);
+  HParameterValue(element) : super(<HInstruction>[]) {
+    sourceElement = element;
+  }
 
   void prepareGvn() {
     assert(!hasSideEffects());
   }
-  toString() => 'parameter ${element.name}';
+  toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
   bool isCodeMotionInvariant() => true;
 }
@@ -2200,6 +2234,19 @@ class HTypeConversion extends HCheck {
   bool hasSideEffects() => checked;
 }
 
+class HStringConcat extends HInstruction {
+  final Node node;
+  HStringConcat(HInstruction left, HInstruction right, this.node)
+      : super(<HInstruction>[left, right]);
+  HType get guaranteedType() => HType.STRING;
+
+  HInstruction get left() => inputs[0];
+  HInstruction get right() => inputs[1];
+
+  accept(HVisitor visitor) => visitor.visitStringConcat(this);
+  toString() => "string concat";
+}
+
 /** Non-block-based (aka. traditional) loop information. */
 class HLoopInformation {
   final HBasicBlock header;
@@ -2298,6 +2345,7 @@ interface HStatementInformationVisitor {
   bool visitLoopInfo(HLoopBlockInformation info);
   bool visitIfInfo(HIfBlockInformation info);
   bool visitTryInfo(HTryBlockInformation info);
+  bool visitSwitchInfo(HSwitchBlockInformation info);
   bool visitSequenceInfo(HStatementSequenceInformation info);
   // Pseudo-structure embedding a dominator-based traversal into
   // the block-structure traversal. This will eventually go away.
@@ -2492,4 +2540,34 @@ class HTryBlockInformation implements HStatementInformation {
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitTryInfo(this);
+}
+
+
+
+class HSwitchBlockInformation implements HStatementInformation {
+  final HExpressionInformation expression;
+  final List<List<Constant>> matchExpressions;
+  final List<HStatementInformation> statements;
+  // If the switch has a default, it's the last statement block, which
+  // may or may not have other expresions.
+  final bool hasDefault;
+  final TargetElement target;
+  final List<LabelElement> labels;
+
+  HSwitchBlockInformation(this.expression,
+                          this.matchExpressions,
+                          this.statements,
+                          this.hasDefault,
+                          this.target,
+                          this.labels);
+
+  HBasicBlock get start() => expression.start;
+  HBasicBlock get end() {
+    // We don't create a switch block if there are no cases.
+    assert(!statements.isEmpty());
+    return statements.last().end;
+  }
+
+  bool accept(HStatementInformationVisitor visitor) =>
+      visitor.visitSwitchInfo(this);
 }

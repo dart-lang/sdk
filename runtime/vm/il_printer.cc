@@ -11,16 +11,21 @@ namespace dart {
 
 
 void BufferFormatter::Print(const char* format, ...) {
-  intptr_t available = size_ - position_;
-  if (available <= 0) return;
   va_list args;
   va_start(args, format);
+  VPrint(format, args);
+  va_end(args);
+}
+
+
+void BufferFormatter::VPrint(const char* format, va_list args) {
+  intptr_t available = size_ - position_;
+  if (available <= 0) return;
   intptr_t written =
       OS::VSNPrint(buffer_ + position_, available, format, args);
   if (written >= 0) {
     position_ += (available <= written) ? available : written;
   }
-  va_end(args);
 }
 
 
@@ -63,7 +68,6 @@ void FlowGraphPrinter::PrintComputation(Computation* comp) {
   comp->PrintTo(&f);
   OS::Print("%s", str);
 }
-
 
 
 void Computation::PrintTo(BufferFormatter* f) const {
@@ -351,6 +355,189 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("if ");
   value()->PrintTo(f);
   f->Print(" goto (%d, %d)",
+            true_successor()->block_id(),
+            false_successor()->block_id());
+}
+
+
+void FlowGraphVisualizer::Print(const char* format, ...) {
+  char str[120];
+  BufferFormatter f(str, sizeof(str));
+  f.Print("%*s", 2 * indent_, "");
+  va_list args;
+  va_start(args, format);
+  f.VPrint(format, args);
+  va_end(args);
+  (*Dart::flow_graph_writer())(str, strlen(str));
+}
+
+
+void FlowGraphVisualizer::PrintInstruction(Instruction* instr) {
+  char str[120];
+  BufferFormatter f(str, sizeof(str));
+  instr->PrintToVisualizer(&f);
+  f.Print("%s <|@\n", str);
+  (*Dart::flow_graph_writer())(str, strlen(str));
+}
+
+
+void FlowGraphVisualizer::PrintFunction() {
+#define BEGIN(name)          \
+  Print("begin_%s\n", name); \
+  indent_++;
+#define END(name)          \
+  Print("end_%s\n", name); \
+  indent_--;
+
+  {
+    BEGIN("compilation");
+    const char* name = function_.ToFullyQualifiedCString();
+    Print("%s \"%s\"\n", "name", name);
+    Print("%s \"%s\"\n", "method", name);
+    Print("%s %d\n", "date", 0);  // Required field. Unused.
+    END("compilation");
+  }
+
+  {
+    BEGIN("cfg");
+    Print("%s \"%s\"\n", "name", "Flow graph builder");
+
+    for (intptr_t i = 0; i < block_order_.length(); ++i) {
+      BEGIN("block");
+      BlockEntryInstr* entry = block_order_[i];
+      Print("%s \"B%d\"\n", "name", entry->block_id());
+      Print("%s %d\n", "from_bci", -1);  // Required field. Unused.
+      Print("%s %d\n", "to_bci", -1);  // Required field. Unused.
+
+      Print("predecessors");
+      for (intptr_t j = 0; j < entry->PredecessorCount(); ++j) {
+        BlockEntryInstr* pred = entry->PredecessorAt(j);
+        Print(" \"B%d\"", pred->block_id());
+      }
+      Print("\n");
+
+      Print("successors");
+      Instruction* last = entry->last_instruction();
+      for (intptr_t j = 0; j < last->SuccessorCount(); ++j) {
+        intptr_t next_id = last->SuccessorAt(j)->block_id();
+        Print(" \"B%d\"", next_id);
+      }
+      Print("\n");
+
+      // TODO(fschneider): Use this for exception handlers.
+      Print("xhandlers\n");
+
+      // Can be freely used to mark blocks
+      Print("flags\n");
+
+      if (entry->dominator() != NULL) {
+        Print("%s \"B%d\"\n", "dominator", entry->dominator()->block_id());
+      }
+
+      // TODO(fschneider): Mark blocks with loop nesting level.
+      Print("%s %d\n", "loop_depth", 0);
+
+      {
+        BEGIN("states");  // Required section.
+        {
+          BEGIN("locals");  // Required section.
+          // TODO(fschneider): Insert phi-instructions here.
+          intptr_t num_phis = 0;
+          Print("%s %d\n", "size", num_phis);
+          END("locals");
+        }
+        END("states");
+      }
+
+      {
+        BEGIN("HIR");
+        // Print the block entry.
+        Print("0 0 ");  // Required fields "bci" and "use". Unused.
+        Instruction* current = block_order_[i];
+        PrintInstruction(current);
+        current = current->StraightLineSuccessor();
+        // And all the successors until an exit, branch, or a block entry.
+        while ((current != NULL) && !current->IsBlockEntry()) {
+          Print("0 0 ");
+          PrintInstruction(current);
+          current = current->StraightLineSuccessor();
+        }
+        BlockEntryInstr* successor =
+            (current == NULL) ? NULL : current->AsBlockEntry();
+        if (successor != NULL) {
+          Print("0 0 _ Goto B%d <|@\n", successor->block_id());
+        }
+        END("HIR");
+      }
+      END("block");
+    }
+    END("cfg");
+  }
+#undef BEGIN
+#undef END
+}
+
+
+// === Printing instructions in a visualizer-understandable format:
+// "result instruction(op1, op2)" where result is a temporary name
+// or _ for instruction without result.
+void GraphEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ [graph]");
+}
+
+
+void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ [join]");
+}
+
+
+void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ [target");
+  if (HasTryIndex()) {
+    f->Print(" catch %d]", try_index());
+  } else {
+    f->Print("]");
+  }
+}
+
+
+void DoInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ ");
+  computation()->PrintTo(f);
+}
+
+
+void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("t%d ", temp_index());
+  computation()->PrintTo(f);
+}
+
+
+void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s ", DebugName());
+  value()->PrintTo(f);
+}
+
+
+void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s ", DebugName());
+  exception()->PrintTo(f);
+}
+
+
+void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s ", DebugName());
+  exception()->PrintTo(f);
+  f->Print(", ");
+  stack_trace()->PrintTo(f);
+}
+
+
+void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s ", DebugName());
+  f->Print("if ");
+  value()->PrintTo(f);
+  f->Print(" goto (B%d, B%d)",
             true_successor()->block_id(),
             false_successor()->block_id());
 }

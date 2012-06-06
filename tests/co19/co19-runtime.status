@@ -300,7 +300,7 @@ Language/08_Interfaces/3_Factories_and_Constructors_A06_t05: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t06: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail
+Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail #co19 issue 131
 Language/08_Interfaces/4_Superinterfaces_A01_t02: Fail
 Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 issue 127
 Language/13_Types/4_Interface_Types_A10_t09: Fail # co19 issue 127

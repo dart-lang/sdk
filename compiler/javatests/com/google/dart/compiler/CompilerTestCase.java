@@ -101,6 +101,7 @@ public abstract class CompilerTestCase extends TestCase {
    * Collects the results of running analyzeLibrary.
    */
   protected static class AnalyzeLibraryResult extends DartCompilerListener.Empty {
+    public String source;
     private final List<DartCompilationError> errors = Lists.newArrayList();
     private final List<DartCompilationError> compilationErrors = Lists.newArrayList();
     private final List<DartCompilationError> compilationWarnings = Lists.newArrayList();
@@ -179,6 +180,7 @@ public abstract class CompilerTestCase extends TestCase {
   protected AnalyzeLibraryResult analyzeLibrary(String name, String code)
       throws Exception {
     AnalyzeLibraryResult result = new AnalyzeLibraryResult();
+    result.source = code;
     // Prepare library.
     MockLibrarySource lib = new MockLibrarySource();
     // Prepare unit.

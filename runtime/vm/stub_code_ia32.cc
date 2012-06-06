@@ -673,16 +673,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
                        FieldAddress(EAX, Array::length_offset()),
                        EDX);
 
-    // EAX: new object start as a tagged pointer.
-    // EBX: new object end address.
-    // EDX: Array length as Smi.
-    // Store class value for array.
-    __ movl(ECX, FieldAddress(CTX, Context::isolate_offset()));
-    __ movl(ECX, Address(ECX, Isolate::object_store_offset()));
-    __ movl(ECX, Address(ECX, ObjectStore::array_class_offset()));
-    __ StoreIntoObject(EAX,
-                       FieldAddress(EAX, Array::class_offset()),
-                       ECX);
     // Calculate the size tag.
     // EAX: new object start as a tagged pointer.
     // EBX: new object end address.
@@ -1004,13 +994,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
     __ addl(EAX, Immediate(kHeapObjectTag));
 
-    // Initialize the class field in the context object.
-    // EAX: new object.
-    // EDX: number of context variables.
-    __ LoadObject(EBX, context_class);  // Load up class field of context.
-    __ StoreIntoObject(EAX,
-                       FieldAddress(EAX, Context::class_offset()),
-                       EBX);
     // Calculate the size tag.
     // EAX: new object.
     // EDX: number of context variables.
@@ -1169,8 +1152,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
               EDX);
       const Class& ita_cls =
           Class::ZoneHandle(Object::instantiated_type_arguments_class());
-      __ LoadObject(EDX, ita_cls);
-      __ movl(Address(ECX, Instance::class_offset()), EDX);  // Set its class.
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(type_args_size, tags);
@@ -1187,12 +1168,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // EDI: new object type arguments.
     }
 
-    // Initialize the class field in the object.
     // EAX: new object start.
     // EBX: next object start.
     // EDI: new object type arguments (if is_cls_parameterized).
     __ LoadObject(EDX, cls);  // Load class of object to be allocated.
-    __ movl(Address(EAX, Instance::class_offset()), EDX);
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1340,11 +1319,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // next object start and initialize the object.
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
 
-    // Initialize the class field in the object.
     // EAX: new closure object.
     // ECX: new context object (only if is_implicit_closure).
-    __ LoadObject(EDX, cls);  // Load signature class of closure.
-    __ movl(Address(EAX, Closure::class_offset()), EDX);
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
@@ -1368,11 +1344,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ movl(Address(EAX, Closure::context_offset()), EDX);
     } else if (is_implicit_instance_closure) {
       // Initialize the new context capturing the receiver.
-
-      // Set the class field to the Context class.
       const Class& context_class = Class::ZoneHandle(Object::context_class());
-      __ LoadObject(EBX, context_class);
-      __ movl(Address(ECX, Context::class_offset()), EBX);
       // Set the tags.
       uword tags = 0;
       tags = RawObject::SizeTag::update(context_size, tags);

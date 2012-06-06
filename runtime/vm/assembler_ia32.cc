@@ -1281,6 +1281,18 @@ void Assembler::cmpxchgl(const Address& address, Register reg) {
 }
 
 
+void Assembler::CompareRegisters(Register a, Register b) {
+  cmpl(a, b);
+}
+
+
+void Assembler::MoveRegister(Register to, Register from) {
+  if (to != from) {
+    movl(to, from);
+  }
+}
+
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   int value = imm.value();
   if (value > 0) {
@@ -1575,6 +1587,16 @@ void Assembler::LoadClassId(Register result, Register object) {
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagBit / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(result != class_id);
+  movl(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  movl(result, Address(result, table_offset_in_isolate));
+  movl(result, Address(result, class_id, TIMES_4, 0));
 }
 
 

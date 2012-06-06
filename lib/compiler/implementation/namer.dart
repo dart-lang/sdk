@@ -80,21 +80,28 @@ class Namer {
     return '${privateName(lib, name)}\$${selector.argumentCount}$buffer';
   }
 
-  String instanceFieldName(LibraryElement lib, SourceString name) {
-    String proposedName = privateName(lib, name);
+  String instanceFieldName(ClassElement cls, SourceString name) {
+    String proposedName = privateName(cls.getLibrary(), name);
+    if (cls.lookupSuperMember(name) !== null) {
+      String libName = getName(cls.getLibrary());
+      String clsName = getName(cls);
+      proposedName = '$libName\$$clsName\$$proposedName';
+    }
     return safeName(proposedName);
   }
 
   String setterName(LibraryElement lib, SourceString name) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    return 'set\$${instanceFieldName(lib, name)}';
+    String safeName = safeName(privateName(lib, name));
+    return 'set\$$safeName';
   }
 
   String getterName(LibraryElement lib, SourceString name) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    return 'get\$${instanceFieldName(lib, name)}';
+    String safeName = safeName(privateName(lib, name));
+    return 'get\$$safeName';
   }
 
   String getFreshGlobalName(String proposedName) {
@@ -180,7 +187,7 @@ class Namer {
       } else if (element.kind == ElementKind.SETTER) {
         return setterName(element.getLibrary(), element.name);
       } else {
-        return instanceFieldName(element.getLibrary(), element.name);
+        return instanceFieldName(element.getEnclosingClass(), element.name);
       }
     } else {
       // Dealing with a top-level or static element.

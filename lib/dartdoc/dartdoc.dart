@@ -59,6 +59,7 @@ void main() {
   int mode;
   String outputDir;
   bool generateAppCache;
+  bool omitGenerationTime;
 
   for (int i = 0; i < args.length - 1; i++) {
     final arg = args[i];
@@ -81,6 +82,10 @@ void main() {
         generateAppCache = true;
         break;
 
+      case '--omit-generation-time':
+        omitGenerationTime = true;
+        break;
+
       default:
         if (arg.startsWith('--out=')) {
           outputDir = arg.substring('--out='.length);
@@ -90,6 +95,11 @@ void main() {
         }
         break;
     }
+  }
+
+  if (args.length == 0) {
+    print('Provide at least one dart file to process.');
+    return;
   }
 
   // The entrypoint of the library to generate docs for.
@@ -113,6 +123,9 @@ void main() {
   if (mode != null) dartdoc.mode = mode;
   if (outputDir != null) dartdoc.outputDir = outputDir;
   if (generateAppCache != null) dartdoc.generateAppCache = generateAppCache;
+  if (omitGenerationTime != null) {
+    dartdoc.omitGenerationTime = omitGenerationTime;
+  }
 
   cleanOutputDirectory(dartdoc.outputDir);
 
@@ -255,10 +268,13 @@ class Dartdoc {
   String searchResultsUrl = 'results.html';
 
   /** Set this to add footer text to each generated page. */
-  String footerText = '';
+  String footerText = null;
 
   /** Set this to add content before the footer */
   String preFooterText = '';
+
+  /** Set this to omit generation timestamp from output */
+  bool omitGenerationTime = false;
 
   /**
    * From exposes the set of libraries in `world.libraries`. That maps library
@@ -300,6 +316,24 @@ class Dartdoc {
     md.setImplicitLinkResolver((name) => resolveNameReference(name,
             library: _currentLibrary, type: _currentType,
             member: _currentMember));
+  }
+
+  String get footerContent(){
+    var footerItems = [];
+    if(!omitGenerationTime) {
+      footerItems.add("This page generated at ${new Date.now()}");
+    }
+    if(footerText != null) {
+      footerItems.add(footerText);
+    }
+    var content = '';
+    for (int i = 0; i < footerItems.length; i++) {
+      if(i > 0){
+        content = content.concat('\n');
+      }
+      content = content.concat('<div>${footerItems[i]}</div>');
+    }
+    return content;
   }
 
   void document([String entrypoint]) {
@@ -377,7 +411,7 @@ class Dartdoc {
   void writeHeader(String title, List<String> breadcrumbs) {
     final htmlAttributes = generateAppCache ?
         'manifest="/appcache.manifest"' : '';
-    
+
     write(
         '''
         <!DOCTYPE html>
@@ -462,8 +496,7 @@ class Dartdoc {
         </div>
         ${preFooterText}
         <div class="footer">
-          <p>This page generated at ${new Date.now()}</p>
-          <div>$footerText</div>
+          $footerContent
         </div>
         <script async src="${relativePath('$clientScript.js')}"></script>
         </body></html>

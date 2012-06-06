@@ -32,43 +32,18 @@ class FreeListElement {
     next_ = addr | 1;
   }
 
-  intptr_t Size() const {
-    if (class_ == minimal_element_class_) {
-      return kObjectAlignment;
-    }
-    ASSERT(class_ == element_class_);
-    return *SizeAddress();
+  intptr_t size() const {
+    return size_;
   }
 
   static FreeListElement* AsElement(uword addr, intptr_t size);
-
-  static bool IsSpecialClass(RawObject* raw_obj) {
-    return (raw_obj == minimal_element_class_) || (raw_obj == element_class_);
-  }
 
   static void InitOnce();
 
  private:
   // This layout mirrors the layout of RawObject.
-  RawClass* class_;
   uword next_;
-
-  // Returns the address of the embedded size.
-  intptr_t* SizeAddress() const {
-    ASSERT(class_ == element_class_);
-    uword addr = reinterpret_cast<uword>(&next_) + kWordSize;
-    return reinterpret_cast<intptr_t*>(addr);
-  }
-
-  // The two fake classe being used by the FreeList to identify free objects in
-  // the heap. These can be static and shared between isolates since they
-  // contain no per-isolate information. Actually, they need to be static so
-  // that they can be used from free list elements efficiently.
-  // The minimal_element_class_ is used by minimally sized free list elements
-  // which cannot hold the size within the element.
-  // element_class_ is used for free lists elements containing a size.
-  static RawClass* minimal_element_class_;
-  static RawClass* element_class_;
+  intptr_t size_;
 
   // FreeListElements cannot be allocated. Instead references to them are
   // created using the AsElement factory method.

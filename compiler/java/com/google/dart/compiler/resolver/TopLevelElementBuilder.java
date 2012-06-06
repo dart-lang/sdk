@@ -123,6 +123,10 @@ public class TopLevelElementBuilder {
     Element oldElement = scope.declareElement(newElement.getName(), newElement);
     // We had already node with such name, report duplicate.
     if (oldElement != null) {
+      // ignore "assert"
+      if (Elements.isArtificialAssertMethod(oldElement)) {
+        return;
+      }
       // Getter/setter can shared same name, but not setter/setter and getter/getter.
       if (newElement.getModifiers().isAbstractField()
           && oldElement.getModifiers().isAbstractField()) {

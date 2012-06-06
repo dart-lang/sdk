@@ -24,16 +24,22 @@ class FutureImpl<T> implements Future<T> {
   /**
    * Listeners waiting to receive the value of this future.
    */
-  final List<Function> _listeners;
+  final List<Function> _successListeners;
 
   /**
    * Exception handlers waiting for exceptions.
    */
   final List<Function> _exceptionHandlers;
 
+  /**
+   * Listeners waiting to be called when the future completes.
+   */
+  final List<Function> _completionListeners;
+
   FutureImpl()
-    : _listeners = [],
-      _exceptionHandlers = [];
+    : _successListeners = [],
+      _exceptionHandlers = [],
+      _completionListeners = [];
 
   factory FutureImpl.immediate(T value) {
     final res = new FutureImpl();
@@ -66,11 +72,11 @@ class FutureImpl<T> implements Future<T> {
     return isComplete && _exception === null;
   }
 
-  void then(void onComplete(T value)) {
+  void then(void onSuccess(T value)) {
     if (hasValue) {
-      onComplete(value);
+      onSuccess(value);
     } else if (!isComplete) {
-      _listeners.add(onComplete);
+      _successListeners.add(onSuccess);
     } else if (!_exceptionHandled) {
       throw _exception;
     }
@@ -87,27 +93,46 @@ class FutureImpl<T> implements Future<T> {
     }
   }
 
+  void onComplete(void complete(Future<T> future)) {
+    if (_isComplete) {
+      try {
+        complete(this);
+      } catch (final e) {}
+    } else {
+      _completionListeners.add(complete);
+    }
+  }
+
   void _complete() {
     _isComplete = true;
-    if (_exception !== null) {
-      for (Function handler in _exceptionHandlers) {
-        // Explicitly check for true here so that if the handler returns null,
-        // we don't get an exception in checked mode.
-        if (handler(_exception) == true) {
-          _exceptionHandled = true;
-          break;
+
+    try {
+      if (_exception !== null) {
+        for (Function handler in _exceptionHandlers) {
+          // Explicitly check for true here so that if the handler returns null,
+          // we don't get an exception in checked mode.
+          if (handler(_exception) == true) {
+            _exceptionHandled = true;
+            break;
+          }
         }
       }
-    }
 
-    if (hasValue) {
-      for (Function listener in _listeners) {
-        listener(value);
+      if (hasValue) {
+        for (Function listener in _successListeners) {
+          listener(value);
+        }
+      } else {
+        if (!_exceptionHandled && _successListeners.length > 0) {
+          throw _exception;
+        }
       }
-    } else {
-      if (!_exceptionHandled && _listeners.length > 0) {
-        throw _exception;
-      }
+    } finally {
+      for (Function listener in _completionListeners) {
+        try {
+          listener(this);
+        } catch (final e) {}
+      }      
     }
   }
 
@@ -133,14 +158,14 @@ class FutureImpl<T> implements Future<T> {
 
   Future transform(Function transformation) {
     final completer = new Completer();
-    handleException((e) {
-      completer.completeException(e);
-      return true;
-    });
-    then((v) {
+    onComplete((f) {
+      if (!f.hasValue) {
+        completer.completeException(f.exception);
+        return;
+      }
       var transformed = null;
       try {
-        transformed = transformation(v);
+        transformed = transformation(f.value);
       } catch (final e) {
         completer.completeException(e);
         return;
@@ -152,23 +177,21 @@ class FutureImpl<T> implements Future<T> {
 
   Future chain(Function transformation) {
     final completer = new Completer();
-    handleException((e) {
-      completer.completeException(e);
-      return true;
-    });
-    then((v) {
+    onComplete((f) {
+      if (!f.hasValue) {
+        completer.completeException(f.exception);
+        return;
+      }
       var future = null;
       try {
-        future = transformation(v);
+        future = transformation(f.value);
       } catch (final e) {
         completer.completeException(e);
         return;
       }
-      future.handleException((e) {
-        completer.completeException(e);
-        return true;
-      });
-      future.then((b) => completer.complete(b));
+      future.onComplete((g) => g.hasValue
+        ? completer.complete(g.value)
+        : completer.completeException(g.exception));
     });
     return completer.future;
   }

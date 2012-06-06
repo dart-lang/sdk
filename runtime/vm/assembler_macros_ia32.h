@@ -25,12 +25,10 @@ class AssemblerMacros : public AllStatic {
  public:
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Class must be loaded in 'class_reg'. Allocated instance is returned
-  // in 'instance_reg'. Only the class field of the object is initialized.
-  // 'class_reg' and 'instance_reg' may not be the same register.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
   static void TryAllocate(Assembler* assembler,
                           const Class& cls,
-                          Register class_reg,
                           Label* failure,
                           Register instance_reg);
 

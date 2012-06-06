@@ -15,7 +15,6 @@
 #library("test_suite");
 
 #import("dart:io");
-#import("dart:builtin");
 #import("dart:isolate");
 #import("status_file_parser.dart");
 #import("test_runner.dart");

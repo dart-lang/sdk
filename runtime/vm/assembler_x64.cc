@@ -1289,6 +1289,18 @@ void Assembler::cmpxchgq(const Address& address, Register reg) {
 }
 
 
+void Assembler::CompareRegisters(Register a, Register b) {
+  cmpq(a, b);
+}
+
+
+void Assembler::MoveRegister(Register to, Register from) {
+  if (to != from) {
+    movq(to, from);
+  }
+}
+
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   int64_t value = imm.value();
   if (value > 0) {

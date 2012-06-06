@@ -500,8 +500,14 @@ class Assembler : public ValueObject {
   void cmpxchgl(const Address& address, Register reg);
 
   /*
-   * Macros for High-level operations.
+   * Macros for High-level operations and implemented on all architectures.
    */
+
+  void CompareRegisters(Register a, Register b);
+
+  // Issues a move instruction if 'to' is not the same as 'from'.
+  void MoveRegister(Register to, Register from);
+
   void AddImmediate(Register reg, const Immediate& imm);
 
   void Drop(intptr_t stack_elements);
@@ -534,6 +540,8 @@ class Assembler : public ValueObject {
    * Loading and comparing classes of objects.
    */
   void LoadClassId(Register result, Register object);
+
+  void LoadClassById(Register result, Register class_id);
 
   void LoadClass(Register result, Register object, Register scratch);
 

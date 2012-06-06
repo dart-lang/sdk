@@ -200,7 +200,6 @@ class Object {
   }
 
   inline RawClass* clazz() const;
-  static intptr_t class_offset() { return OFFSET_OF(RawObject, class_); }
   static intptr_t tags_offset() { return OFFSET_OF(RawObject, tags_); }
 
   // Class testers.
@@ -2288,7 +2287,8 @@ class Code : public Object {
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
    public:
-    explicit FindRawCodeVisitor(uword pc) : pc_(pc) { }
+    explicit FindRawCodeVisitor(uword pc)
+        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
     virtual ~FindRawCodeVisitor() { }
 
     // Check if object matches find condition.

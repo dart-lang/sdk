@@ -50,9 +50,24 @@ class World {
     return result;
   }
 
-  bool isOnlyFields(Type type, SourceString member) {
+  /**
+   * Returns the single field with the given name, if such a field
+   * exists. If there are multple fields, or none, return null.
+   */
+  VariableElement locateSingleField(Type type, SourceString member) {
     MemberSet memberSet = _memberSetFor(type, member);
-    return !memberSet.isEmpty() && memberSet.hasJustFields();
+    int fieldCount = 0;
+    int nonFieldCount = 0;
+    VariableElement field;
+    memberSet.elements.forEach((Element element) {
+      if (element.isField()) {
+        field = element;
+        fieldCount++;
+      } else {
+        nonFieldCount++;
+      }
+    });
+    return (fieldCount == 1 && nonFieldCount == 0) ? field : null;
   }
 }
 
@@ -70,8 +85,4 @@ class MemberSet {
   }
 
   bool isEmpty() => elements.isEmpty();
-
-  bool hasJustFields() {
-    return elements.every((Element element) => element.isField());
-  }
 }

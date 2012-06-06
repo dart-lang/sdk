@@ -86,7 +86,8 @@ public class ResolutionContext implements ResolutionErrorListener {
         if (!Elements.isConstructorParameter(element)
             && !Elements.isParameterOfMethodWithoutBody(element)
             && !(Elements.isStaticContext(element) && !Elements.isStaticContext(existingElement))
-            && !existingElement.getModifiers().isAbstractField()) {
+            && !existingElement.getModifiers().isAbstractField()
+            && !Elements.isArtificialAssertMethod(existingElement)) {
           SourceInfo nameSourceInfo = element.getNameLocation();
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
@@ -246,7 +247,7 @@ public class ResolutionContext implements ResolutionErrorListener {
               return typeProvider.getDynamicType();
 
             default:
-              onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+              onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
               return typeProvider.getDynamicType();
           }
         }
@@ -268,14 +269,14 @@ public class ResolutionContext implements ResolutionErrorListener {
         if (Elements.isIdentifierName(identifier, "Dynamic")) {
           return typeProvider.getDynamicType();
         }
-        break;
+        onError(identifier, errorCode, identifier);
+        return typeProvider.getDynamicType();
       default:
         if (!(identifier instanceof DartSyntheticErrorIdentifier)) {
-          onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+          onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
         }
+        return typeProvider.getDynamicType();
     }
-    onError(identifier, errorCode, identifier);
-    return typeProvider.getDynamicType();
   }
 
   InterfaceType instantiateParameterizedType(ClassElement element, DartNode node,

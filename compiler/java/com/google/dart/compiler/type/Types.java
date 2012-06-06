@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
@@ -48,9 +49,37 @@ public class Types {
     } else if (isSubtype(s, t)) {
       return t;
     } else {
-      // TODO(karlklose) Return the intersection of the implemented interfaces.
-      return typeProvider.getDynamicType();
+      List<InterfaceType> tTypes = getSuperTypes(t);
+      List<InterfaceType> sTypes = getSuperTypes(s);
+      for (InterfaceType tType : tTypes) {
+        if (sTypes.contains(tType)) {
+          return tType;
+        }
+      }
+      return typeProvider.getObjectType();
     }
+  }
+
+  /**
+   * @return list of the super-types (if class type given) or super-interfaces (if interface type
+   *         given) from most specific to least specific.
+   */
+  private static List<InterfaceType> getSuperTypes(Type type) {
+    List<InterfaceType> types = Lists.newArrayList();
+    if (type instanceof InterfaceType) {
+      InterfaceType interfaceType = (InterfaceType) type;
+      if (interfaceType.getElement().isInterface()) {
+        types.add(interfaceType);
+        for (InterfaceType intf : interfaceType.getElement().getInterfaces()) {
+          types.addAll(getSuperTypes(intf));
+        }
+      } else {
+        for (InterfaceType st = interfaceType; st != null; st = st.getElement().getSupertype()) {
+          types.add(st);
+        }
+      }
+    }
+    return types;
   }
 
   /**

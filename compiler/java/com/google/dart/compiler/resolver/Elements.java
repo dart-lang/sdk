@@ -36,6 +36,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.Paths;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -330,18 +331,18 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         {@link DartClassMember} or part of top level declaration.
    */
   public static boolean isStaticContext(Element element) {
+    if (element instanceof ClassElement) {
+      return true;
+    }
     while (element != null) {
       if (element instanceof MethodElement) {
         MethodElement methodElement = (MethodElement) element;
-        if (methodElement.isStatic()) {
-          return true;
-        }
+        return methodElement.isStatic();
       }
       if (element instanceof FieldElement) {
         FieldElement fieldElement = (FieldElement) element;
-        if (fieldElement.isStatic()) {
-          return true;
-        }
+        return fieldElement.isStatic()
+            || fieldElement.getEnclosingElement() instanceof LibraryElement;
       }
       if (element instanceof ClassElement) {
         return false;
@@ -605,6 +606,29 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
+
+  /**
+   * @return the {@link LibraryElement} which declares given {@link Element}.
+   */
+  public static LibraryElement getDeclaringLibrary(Element element) {
+    while (element != null) {
+      if (element instanceof LibraryElement) {
+        return (LibraryElement) element;
+      }
+      element = element.getEnclosingElement();
+    }
+    return null;
+  }
+  
+  /**
+   * @return <code>true</code> if "element" is accessible in "scopeLibrary".
+   */
+  public static boolean isAccessible(LibraryElement scopeLibrary, Element element) {
+    if (element != null && StringUtils.startsWith(element.getName(), "_")) {
+      return Objects.equal(scopeLibrary, getDeclaringLibrary(element));
+    }
+    return true;
+  }
   
   /**
    * Looks to see if the property access requires a getter.
@@ -640,4 +664,19 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
+  
+  /**
+   * @return <code>true</code> if given {@link Element} if {@link MethodElement} for artificial
+   *         "assert" statement.
+   */
+  public static boolean isArtificialAssertMethod(Element element) {
+    if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
+      return Objects.equal(methodElement.getName(), "assert")
+          && methodElement.getEnclosingElement() instanceof LibraryElement
+          && methodElement.getEnclosingElement().getName().equals("dart://core/core_runtime.dart");
+    }
+    return false;
+  }
+
 }

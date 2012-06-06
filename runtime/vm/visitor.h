@@ -10,12 +10,16 @@
 namespace dart {
 
 // Forward declarations.
+class Isolate;
 class RawObject;
 
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
+  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) {}
   virtual ~ObjectPointerVisitor() {}
+
+  Isolate* isolate() const { return isolate_; }
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
@@ -26,16 +30,27 @@ class ObjectPointerVisitor {
   }
 
   void VisitPointer(RawObject** p) { VisitPointers(p , p); }
+
+ private:
+  Isolate* isolate_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };
 
 
 // An object finder visitor interface.
 class FindObjectVisitor {
  public:
+  explicit FindObjectVisitor(Isolate* isolate) : isolate_(isolate) {}
   virtual ~FindObjectVisitor() {}
 
   // Check if object matches find condition.
   virtual bool FindObject(RawObject* obj) = 0;
+
+ private:
+  Isolate* isolate_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(FindObjectVisitor);
 };
 
 }  // namespace dart

@@ -5,7 +5,6 @@
 #library("drt_updater");
 
 #import("dart:io");
-#import("dart:builtin");
 
 class _DartiumUpdater {
   String name;

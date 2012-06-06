@@ -34,15 +34,6 @@ module core {
 };
 
 module dom {
-  // Force NodeSelector. WebKit defines these operations directly.
-  interface NodeSelector {
-    Element   querySelector(in DOMString selectors);
-    NodeList  querySelectorAll(in DOMString selectors);
-  };
-  Document implements NodeSelector;
-  DocumentFragment implements NodeSelector;
-  Element implements NodeSelector;
-
   // Force ElementTraversal. WebKit defines these directly.
   interface ElementTraversal {
     getter attribute unsigned long childElementCount;
@@ -88,7 +79,7 @@ module html {
 
   [Supplemental]
   interface HTMLOptionsCollection {
-    [Suppressed] void add(in optional HTMLOptionElement element, in optional long before);
+    [Suppressed] void add([Optional] in HTMLOptionElement element, [Optional] in long before);
   };
 
   [Supplemental]
@@ -98,10 +89,10 @@ module html {
 
   [Supplemental]
   interface WebGLContextEvent {
-    [Suppressed] void initEvent(in optional DOMString eventTypeArg,
-                                in optional boolean canBubbleArg,
-                                in optional boolean cancelableArg,
-                                in optional DOMString statusMessageArg);
+    [Suppressed] void initEvent([Optional] in DOMString eventTypeArg,
+                                [Optional] in boolean canBubbleArg,
+                                [Optional] in boolean cancelableArg,
+                                [Optional] in DOMString statusMessageArg);
   };
 };
 
@@ -154,42 +145,42 @@ module canvas {
   [Supplemental]
   interface Float32Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Float64Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Int16Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Int32Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Int8Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Uint16Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Uint32Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
   [Supplemental]
   interface Uint8Array {
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
 
   [Supplemental]
@@ -198,7 +189,7 @@ module canvas {
     [Suppressed] const long BYTES_PER_ELEMENT = 1;
 
     [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
 };
 
@@ -206,7 +197,7 @@ module storage {
   // TODO(vsm): Define new names for these (see b/4436830).
   [Supplemental]
   interface IDBCursor {
-    [DartName=continueFunction] void continue(in optional IDBKey key);
+    [DartName=continueFunction] void continue([Optional] in IDBKey key);
   };
   [Supplemental]
   interface IDBIndex {
@@ -216,7 +207,6 @@ module storage {
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
     [DartName=getObject] IDBRequest get(in IDBKeyRange key);
-    [Suppressed] IDBRequest openCursor() raises (IDBDatabaseException);
   };
 
   interface EntrySync {

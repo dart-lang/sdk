@@ -698,6 +698,43 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3266
+   */
+  public void test_inaccessibleMethod_fromOtherLibrary() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "class A {",
+            "  _method() {}",
+            "}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart');",
+            "class B extends A {",
+            "  test1() {",
+            "    _method();",
+            "  }",
+            "  test2() {",
+            "    super._method();",
+            "  }",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(
+        errors,
+        errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 9),
+        errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 5, 15));
+  }
+
   private void assertAppBuilt() {
     didWrite(APP, EXTENSION_DEPS);
   }

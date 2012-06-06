@@ -118,6 +118,16 @@ class FlowGraphCompilerShared : public ValueObject {
                           intptr_t argument_count,
                           const Array& argument_names);
 
+  void GenerateNumberTypeCheck(Register kClassIdReg,
+                               const AbstractType& type,
+                               Label* is_instance_lbl,
+                               Label* is_not_instance_lbl);
+  void GenerateStringTypeCheck(Register kClassIdReg,
+                               Label* is_instance_lbl,
+                               Label* is_not_instance_lbl);
+  void GenerateListTypeCheck(Register kClassIdReg,
+                             Label* is_instance_lbl);
+
   void GenerateDeferredCode();
 
 
@@ -137,6 +147,10 @@ class FlowGraphCompilerShared : public ValueObject {
   virtual intptr_t EmitStaticCall(const Function& function,
                                   const Array& arguments_descriptor,
                                   intptr_t argument_count) = 0;
+  virtual void CheckClassIds(Register class_id_reg,
+                             const GrowableArray<intptr_t>& class_ids,
+                             Label* is_equal_lbl,
+                             Label* is_not_equal_lbl) = 0;
 
 
   struct BlockInfo : public ZoneAllocated {

@@ -13,6 +13,7 @@ import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.HasSourceInfoSetter;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
+import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.State;
 
 import java.util.ArrayDeque;
@@ -160,6 +161,11 @@ public class DartScannerParserContext implements ParserContext {
   @Override
   public String getTokenString() {
     return scanner.getTokenValue();
+  }
+
+  @Override
+  public Location peekTokenLocation(int n) {
+    return scanner.peekTokenLocation(n);
   }
 
   @Override

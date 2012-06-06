@@ -13,17 +13,19 @@ import com.google.dart.compiler.SubSystem;
 public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
-  CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
+  CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
+  CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
   CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
   CANNOT_BE_INITIALIZED("cannot be initialized"),
   CANNOT_CALL_LABEL("Labels cannot be called"),
+  CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
+  CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
   CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
       "Cannot declare a non-factory named constructor of another class."),
-  CANNOT_INIT_FIELD_FROM_SUPERCLASS("Cannot initialize a field from a super class"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
@@ -54,12 +56,13 @@ public enum ResolverErrorCode implements ErrorCode {
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(
       "default class must have the same type parameters as declared in the interface"),
-  DEFAULT_CONSTRUCTOR_UNRESOLVED("Can not resolve constructor with name '%s' in default class '%s'"),
+  DEFAULT_CONSTRUCTOR_UNRESOLVED("Cannot resolve constructor with name '%s' in default class '%s'"),
   DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
       "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
   DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
       "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
+  DEFAULT_VALUE_IN_TYPEDEF("Default values cannot be specified in a typedef"),
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
@@ -106,6 +109,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Illegal constructor declaration.  No default clause in interface"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
+  INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS("Only fields of immediately surrounding class can be initialized"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
@@ -115,6 +119,8 @@ public enum ResolverErrorCode implements ErrorCode {
   IS_AN_INSTANCE_METHOD("%s.%s is an instance method, not a static method"),
   LIST_LITERAL_ELEMENT_TYPE(
       "List literal element type must match declaration '%s' when type checks are on."),
+  MAIN_FUNCTION_PARAMETERS(
+      ErrorSeverity.WARNING, "Top-level function 'main' should not have parameters."),
   MAP_LITERAL_ELEMENT_TYPE(
       "Map literal element type must match declaration '%s' when type checks are on."),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
@@ -129,6 +135,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_LABEL("\"%s\" is not a label"),
   NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
   NOT_A_STATIC_METHOD("\"%s\" is not a static method"),
+  NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
   REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),

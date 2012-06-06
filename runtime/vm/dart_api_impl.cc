@@ -3400,4 +3400,9 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
   }
 }
 
+
+DART_EXPORT void Dart_InitFlowGraphPrinting(FileWriterFunction function) {
+  Dart::set_flow_graph_writer(function);
+}
+
 }  // namespace dart

@@ -120,7 +120,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
                  Heap* heap,
                  PageSpace* page_space,
                  MarkingStack* marking_stack)
-      : isolate_(isolate),
+      : ObjectPointerVisitor(isolate),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(page_space),
@@ -143,7 +143,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
     // Mark the object and push it on the marking stack.
     ASSERT(!raw_obj->IsMarked());
-    RawClass* raw_class = isolate_->class_table()->At(raw_obj->GetClassId());
+    RawClass* raw_class = isolate()->class_table()->At(raw_obj->GetClassId());
     raw_obj->SetMarkBit();
     marking_stack_->Push(raw_obj);
 
@@ -178,7 +178,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
     MarkAndPush(raw_obj);
   }
 
-  Isolate* isolate_;
   Heap* heap_;
   Heap* vm_heap_;
   PageSpace* page_space_;

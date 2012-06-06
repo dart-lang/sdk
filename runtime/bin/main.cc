@@ -39,6 +39,10 @@ static CommandLineOptions* import_map_options = NULL;
 static const char* generate_pprof_symbols_filename = NULL;
 
 
+// Global state that stores a file name for flow graph debugging output.
+// NULL if no output is generated.
+static File* flow_graph_file = NULL;
+
 // Global state that indicates whether there is a debug breakpoint.
 // This pointer points into an argv buffer and does not need to be
 // free'd.
@@ -129,6 +133,13 @@ static void ProcessPprofOption(const char* filename) {
 }
 
 
+static void ProcessFlowGraphOption(const char* flowgraph_option) {
+  ASSERT(flowgraph_option != NULL);
+  flow_graph_file = File::Open("flowgraph.cfg", File::kWriteTruncate);
+  ASSERT(flow_graph_file != NULL);
+}
+
+
 static void ProcessImportMapOption(const char* map) {
   ASSERT(map != NULL);
   import_map_options->AddArgument(map);
@@ -145,6 +156,7 @@ static struct {
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--import_map=", ProcessImportMapOption },
   { "--package-root=", ProcessPackageRootOption },
+  { "--generate_flow_graph", ProcessFlowGraphOption },
   { NULL, NULL }
 };
 
@@ -162,6 +174,12 @@ static bool ProcessMainOptions(const char* option) {
     name = main_options[i].option_name;
   }
   return false;
+}
+
+
+static void WriteToFlowGraphFile(const char* buffer, int64_t num_bytes) {
+  ASSERT(flow_graph_file != NULL);
+  flow_graph_file->WriteFully(buffer, num_bytes);
 }
 
 
@@ -193,6 +211,10 @@ static int ParseArguments(int argc,
   }
   if (generate_pprof_symbols_filename != NULL) {
     Dart_InitPprofSupport();
+  }
+
+  if (flow_graph_file != NULL) {
+    Dart_InitFlowGraphPrinting(&WriteToFlowGraphFile);
   }
 
   // Get the script name.

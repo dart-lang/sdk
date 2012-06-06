@@ -137,6 +137,8 @@ class Computation : public ZoneAllocated {
   // TODO(fschneider): Make EmitNativeCode and locs const.
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
+  static LocationSummary* MakeCallSummary();
+
  private:
   friend class Instruction;
   static intptr_t GetNextCid(Isolate* isolate) {
@@ -1401,7 +1403,8 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
   virtual const char* DebugName() const { return #type; }                      \
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BufferFormatter* f) const;                              \
+  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
 
 class Instruction : public ZoneAllocated {
@@ -1434,6 +1437,12 @@ class Instruction : public ZoneAllocated {
 
   virtual Instruction* StraightLineSuccessor() const = 0;
   virtual void SetSuccessor(Instruction* instr) = 0;
+
+  // Normal instructions can have 0 (inside a block) or 1 (last instruction in
+  // a block) successors. Branch instruction with >1 successors override this
+  // function.
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   virtual void replace_computation(Computation* value) {
     UNREACHABLE();
@@ -1468,6 +1477,7 @@ class Instruction : public ZoneAllocated {
 
   // Printing support.
   virtual void PrintTo(BufferFormatter* f) const = 0;
+  virtual void PrintToVisualizer(BufferFormatter* f) const = 0;
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
@@ -1593,6 +1603,9 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,
@@ -1929,6 +1942,9 @@ class BranchInstr : public InstructionWithInputs {
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,

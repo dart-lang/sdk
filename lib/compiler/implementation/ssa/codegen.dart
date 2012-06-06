@@ -633,6 +633,45 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return true;
   }
 
+  bool visitSwitchInfo(HSwitchBlockInformation info) {
+    bool isExpression = isJSExpression(info.expression);
+    if (!isExpression) {
+      generateStatements(info.expression);
+    }
+    addIndentation();
+    for (LabelElement label in info.labels) {
+      if (label.isTarget) {
+        writeLabel(label);
+        buffer.add(":");
+      }
+    }
+    addIndented("switch (");
+    if (isExpression) {
+      generateExpression(info.expression);
+    } else {
+      use(info.expression.conditionExpression,
+          JSPrecedence.EXPRESSION_PRECEDENCE);
+    }
+    buffer.add(") {\n");
+    indent++;
+    for (int i = 0; i < info.matchExpressions.length; i++) {
+      for (Constant constant in info.matchExpressions[i]) {
+        addIndented("case ");
+        generateConstant(constant);
+        buffer.add(":\n");
+      }
+      if (i == info.matchExpressions.length - 1 && info.hasDefault) {
+        addIndented("default:\n");
+      }
+      indent++;
+      generateStatements(info.statements[i]);
+      indent--;
+    }
+    indent--;
+    addIndented("}\n");
+    return true;
+  }
+
   bool visitSequenceInfo(HStatementSequenceInformation info) {
     return false;
   }
@@ -660,11 +699,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // Printing the catch part.
       HParameterValue exception = info.catchVariable;
       String name = variableNames.getName(exception);
-      parameterNames[exception.element] = name;
+      parameterNames[exception.sourceElement] = name;
       buffer.add(' catch ($name) {\n');
       indent++;
       generateStatements(info.catchBlock);
-      parameterNames.remove(exception.element);
+      parameterNames.remove(exception.sourceElement);
       indent--;
       addIndented('}');
     }
@@ -1296,9 +1335,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isEmptyElse(HBasicBlock start, HBasicBlock end) {
     if (start !== end) return false;
-    if (start.last is !HGoto
-        || start.last is HBreak
-        || start.last is HContinue) {
+    if (start.last is !HGoto) {
       return false;
     }
     for (HInstruction instruction = start.first;
@@ -1507,8 +1544,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     if (!node.isFromActivation()) {
-      String name =
-          compiler.namer.instanceFieldName(currentLibrary, node.name);
+      String name = compiler.namer.getName(node.element);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
@@ -1522,8 +1558,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     String name;
     if (!node.isFromActivation()) {
-      name =
-          compiler.namer.instanceFieldName(currentLibrary, node.name);
+      name = compiler.namer.getName(node.element);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
@@ -1569,28 +1604,33 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.MEMBER_PRECEDENCE);
   }
 
-  visitConstant(HConstant node) {
-    assert(isGenerateAtUseSite(node));
+  void generateConstant(Constant constant) {
     // TODO(floitsch): the compile-time constant handler and the codegen
     // need to work together to avoid the parenthesis. See r4928 for an
     // implementation that still dealt with precedence.
     ConstantHandler handler = compiler.constantHandler;
-    String name = handler.getNameForConstant(node.constant);
+    String name = handler.getNameForConstant(constant);
     if (name === null) {
-      assert(!node.constant.isObject());
-      if (node.constant.isNum()
+      assert(!constant.isObject());
+      if (constant.isNum()
           && expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
         buffer.add('(');
-        handler.writeConstant(buffer, node.constant);
+        handler.writeConstant(buffer, constant);
         buffer.add(')');
       } else {
-        handler.writeConstant(buffer, node.constant);
+        handler.writeConstant(buffer, constant);
       }
     } else {
       buffer.add(compiler.namer.CURRENT_ISOLATE);
       buffer.add(".");
       buffer.add(name);
     }
+
+  }
+
+  visitConstant(HConstant node) {
+    assert(isGenerateAtUseSite(node));
+    generateConstant(node.constant);
   }
 
   visitLoopBranch(HLoopBranch node) {
@@ -1798,6 +1838,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(text);
   }
 
+  void visitSwitch(HSwitch node) {
+    // Switches are handled using [visitSwitchInfo].
+  }
+
   void visitStatic(HStatic node) {
     world.registerStaticUse(node.element);
     buffer.add(compiler.namer.isolateAccess(node.element));
@@ -1810,6 +1854,50 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(' = ');
     use(node.inputs[0], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+  }
+
+  void visitStringConcat(HStringConcat node) {
+    if (isEmptyString(node.left)) {
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      useStringified(node.right, JSPrecedence.EXPRESSION_PRECEDENCE);
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
+   } else if (isEmptyString(node.right)) {
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      useStringified(node.left, JSPrecedence.EXPRESSION_PRECEDENCE);
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
+    } else {
+      JSBinaryOperatorPrecedence operatorPrecedences = JSPrecedence.binary['+'];
+      beginExpression(operatorPrecedences.precedence);
+      useStringified(node.left, operatorPrecedences.left);
+      buffer.add(' + ');
+      // If the right hand side is a string concatenation itself it is
+      // safe to make it left associative.
+      int rightPrecedence = (node.right is HStringConcat)
+          ? JSPrecedence.ADDITIVE_PRECEDENCE
+          : operatorPrecedences.right;
+      useStringified(node.right, rightPrecedence);
+      endExpression(operatorPrecedences.precedence);
+    }
+  }
+
+  bool isEmptyString(HInstruction node) {
+    if (!node.isConstantString()) return false;
+    HConstant constant = node;
+    StringConstant string = constant.constant;
+    return string.value.length == 0;
+  }
+
+  void useStringified(HInstruction node, int precedence) {
+    if (node.isString()) {
+      use(node, precedence);
+    } else {
+      Element convertToString = compiler.findHelper(const SourceString("S"));
+      world.registerStaticUse(convertToString);
+      buffer.add(compiler.namer.isolateAccess(convertToString));
+      buffer.add('(');
+      use(node, JSPrecedence.EXPRESSION_PRECEDENCE);
+      buffer.add(')');
+    }
   }
 
   void visitLiteralList(HLiteralList node) {
@@ -2193,10 +2281,21 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameters, parameterNames);
 
+  int maxBailoutParameters;
+
   void beginGraph(HGraph graph) {}
   void endGraph(HGraph graph) {}
 
   void bailout(HTypeGuard guard, String reason) {
+    if (maxBailoutParameters === null) {
+      maxBailoutParameters = 0;
+      work.guards.forEach((HTypeGuard guard) {
+        int inputLength = guard.inputs.length;
+        if (inputLength > maxBailoutParameters) {
+          maxBailoutParameters = inputLength;
+        }
+      });
+    }
     HInstruction input = guard.guarded;
     Namer namer = compiler.namer;
     Element element = work.element;
@@ -2211,21 +2310,20 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     int parametersCount = parameterNames.length;
     buffer.add('($parameters');
     if (parametersCount != 0) buffer.add(', ');
-    if (guard.guarded is !HParameterValue) {
-      buffer.add('${guard.state}');
-      bool first = true;
-      // TODO(ngeoffray): if the bailout method takes more arguments,
-      // fill the remaining arguments with undefined.
-      // TODO(ngeoffray): try to put a variable at a deterministic
-      // location, so that multiple bailout calls put the variable at
-      // the same parameter index.
-      for (int i = 0; i < guard.inputs.length; i++) {
-        buffer.add(', ');
-        use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      }
-    } else {
-      assert(guard.guarded is HParameterValue);
-      buffer.add(' 0');
+    buffer.add('${guard.state}');
+    // TODO(ngeoffray): try to put a variable at a deterministic
+    // location, so that multiple bailout calls put the variable at
+    // the same parameter index.
+    int i = 0;
+    for (; i < guard.inputs.length; i++) {
+      buffer.add(', ');
+      use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    }
+    // Make sure we call the bailout method with the number of
+    // arguments it expects. This avoids having the underlying
+    // JS engine fill them in for us.
+    for (; i < maxBailoutParameters; i++) {
+      buffer.add(', 0');
     }
     buffer.add(')');
   }

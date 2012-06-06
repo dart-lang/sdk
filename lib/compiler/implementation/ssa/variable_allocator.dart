@@ -444,9 +444,9 @@ class VariableNamer {
       if (name == null) return null;
     } else if (instruction is HParameterValue) {
       HParameterValue parameter = instruction;
-      name = parameterNames[parameter.element];
+      name = parameterNames[parameter.sourceElement];
       if (name == null) {
-        name = allocateWithHint(parameter.element.name.slowToString());
+        name = allocateWithHint(parameter.sourceElement.name.slowToString());
       }
     } else if (instruction.sourceElement !== null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());

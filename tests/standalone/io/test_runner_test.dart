@@ -35,30 +35,21 @@ class TestController {
   }
 }
 
-
 TestCase MakeTestCase(String testName, List<String> expectations) {
-  String test_path = "tests/standalone/${testName}.dart";
-  // Working directory may be dart/runtime rather than dart.
-  if (!new File(test_path).existsSync()) {
-    test_path = "../tests/standalone/${testName}.dart";
-  }
-
   var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
   return new TestCase(testName,
                       [new Command(new Options().executable,
-                                   <String>["--ignore-unrecognized-flags",
-                                            "--enable_type_checks",
-                                            test_path])],
+                                   <String>[new Options().script,
+                                            testName])],
                       configuration,
                       TestController.processCompletedTest,
                       new Set<String>.from(expectations));
 }
 
-
-void main() {
-  new RunningProcess(MakeTestCase("pass_test", [PASS])).start();
-  new RunningProcess(MakeTestCase("fail_test", [FAIL])).start();
-  new RunningProcess(MakeTestCase("timeout_test", [TIMEOUT])).start();
+void testTestRunner() {
+  new RunningProcess(MakeTestCase("pass", [PASS])).start();
+  new RunningProcess(MakeTestCase("fail", [FAIL])).start();
+  new RunningProcess(MakeTestCase("timeout", [TIMEOUT])).start();
 
   // The crash test sometimes times out.  Run it with a large timeout to help
   // diagnose the delay.
@@ -72,6 +63,32 @@ void main() {
                                   TestController.processCompletedTest,
                                   new Set<String>.from([CRASH]))).start();
   Expect.equals(4, TestController.numTests);
-  // Throw must be from body of start() function for this test to work.
-  Expect.throws(new RunningProcess(MakeTestCase("pass_test", [SKIP])).start);
+  // Test that the test runner throws an exception if a test with
+  // expectation SKIP is run.  Throw must be from the synchronous part
+  // of the RunninProcess starter, for the exception to be caught here.
+  Expect.throws(new RunningProcess(MakeTestCase("pass", [SKIP])).start);
+}
+
+void main() {
+  // Run the test_runner_test if there are no command-line options.
+  // Otherwise, run one of the component tests that always pass,
+  // fail, or timeout.
+  var arguments = new Options().arguments;
+  if (arguments.isEmpty()) {
+    testTestRunner();
+  } else {
+    switch (arguments[0]) {
+      case 'pass':
+        return;
+      case 'fail':
+        Expect.fail("This test always fails, to test the test scripts.");
+	break;
+      case 'timeout':
+        // Run for 10 seconds, then exit.  This tests a 2 second timeout.
+        new Timer(10 * 1000, (t){ });
+        break;
+      default:
+        throw "Unknown option ${arguments[0]} passed to test_runner_test";
+    }
+  }
 }

@@ -37,10 +37,13 @@ interface ElementRect {
   List<ClientRect> get clientRects();
 }
 
+interface NodeSelector {
+  Element query(String selectors);
+  NodeList queryAll(String selectors);
+}
+
 $!COMMENT
 interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
-// TODO(jacobr): switch back to:
-// interface $ID$EXTENDS default _ElementImpl {
   Element.html(String html);
   Element.tag(String tag);
 
