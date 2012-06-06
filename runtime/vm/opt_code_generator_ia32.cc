@@ -2749,7 +2749,6 @@ bool OptimizingCodeGenerator::TryInlineStaticCall(StaticCallNode* node) {
     __ sqrtsd(XMM0, XMM1);
     AssemblerMacros::TryAllocate(assembler_,
                                  double_class_,
-                                 EBX,  // Class register.
                                  &call_method,
                                  EAX);  // Result register.
     __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);

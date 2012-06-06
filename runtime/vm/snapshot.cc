@@ -368,7 +368,6 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
     UNREACHABLE();
   }
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
-  raw_obj->ptr()->class_ = cls.raw();
   uword tags = 0;
   intptr_t index = cls.id();
   ASSERT(index != kIllegalObjectKind);

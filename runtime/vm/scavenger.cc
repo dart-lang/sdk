@@ -14,10 +14,14 @@
 
 namespace dart {
 
+// Scavenger uses RawObject::kFreeBit to distinguish forwaded and non-forwarded
+// objects because scavenger can never encounter free list element during
+// evacuation and thus all objects scavenger encounters have
+// kFreeBit cleared.
 enum {
-  kForwardingMask = 3,
-  kNotForwarded = 1,  // Tagged pointer.
-  kForwarded = 3,  // Tagged pointer and forwarding bit set.
+  kForwardingMask = 1,
+  kNotForwarded = 0,
+  kForwarded = 1,
 };
 
 
@@ -157,6 +161,11 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
       object_alignment_(object_alignment),
       count_(0),
       scavenging_(false) {
+  // Verify assumptions about the first word in objects which the scavenger is
+  // going to use for forwarding pointers.
+  ASSERT(Object::tags_offset() == 0);
+  ASSERT(kForwardingMask == (1 << RawObject::kFreeBit));
+
   // Allocate the virtual memory for this scavenge heap.
   space_ = VirtualMemory::Reserve(max_capacity);
   ASSERT(space_ != NULL);

@@ -89,14 +89,8 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
     __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
 
-  // Store class value for array.
   // EAX: new object start as a tagged pointer.
   // EBX: new object end address.
-  __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
-  __ movl(EDI, Address(EDI, Isolate::object_store_offset()));
-  __ movl(EDI, Address(EDI, ObjectStore::array_class_offset()));
-  __ StoreIntoObject(EAX, FieldAddress(EAX, Array::class_offset()), EDI);
-
   // Store the type argument field.
   __ movl(EDI, Address(ESP, kTypeArgumentsOffset));  // type argument.
   __ StoreIntoObject(EAX,
@@ -303,15 +297,7 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
                      FieldAddress(EAX, GrowableObjectArray::data_offset()),
                      EBX);
 
-  // Store class value for the growable array object.
   // EAX: new growable array object start as a tagged pointer.
-  __ movl(EBX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movl(EBX, Address(EBX, Isolate::object_store_offset()));
-  __ movl(EBX, Address(EBX, ObjectStore::growable_object_array_class_offset()));
-  __ StoreIntoObject(EAX,
-                     FieldAddress(EAX, GrowableObjectArray::class_offset()),
-                     EBX);
-
   // Store the type argument field in the growable array object.
   __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
   __ StoreIntoObject(EAX,
@@ -656,12 +642,10 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   __ xorl(EDI, EDI);
   __ shld(EDI, EAX);
   // Result in EDI (high) and EBX (low).
-  const Class& mint_class = Class::ZoneHandle(
+  const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());
-  __ LoadObject(ECX, mint_class);
   AssemblerMacros::TryAllocate(assembler,
                                mint_class,
-                               ECX,  // Class register.
                                &fall_through,
                                EAX);  // Result register.
   // EBX and EDI are not objects but integer values.
@@ -916,12 +900,10 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
     case Token::kDIV: __ divsd(XMM0, XMM1); break;
     default: UNREACHABLE();
   }
-  const Class& double_class = Class::ZoneHandle(
+  const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ LoadObject(EBX, double_class);
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
-                               EBX,  // Class register.
                                &fall_through,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
@@ -964,12 +946,10 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 2 * kWordSize));
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
   __ mulsd(XMM0, XMM1);
-  const Class& double_class = Class::ZoneHandle(
+  const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ LoadObject(EBX, double_class);
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
-                               EBX,  // Class register.
                                &fall_through,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
@@ -987,12 +967,10 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   // Is Smi.
   __ SmiUntag(EAX);
   __ cvtsi2sd(XMM0, EAX);
-  const Class& double_class = Class::ZoneHandle(
+  const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ LoadObject(EBX, double_class);
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
-                               EBX,  // Class register.
                                &fall_through,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
@@ -1054,12 +1032,10 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
   __ Bind(&double_op);
   __ sqrtsd(XMM0, XMM1);
-  const Class& double_class = Class::ZoneHandle(
+  const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ LoadObject(EBX, double_class);
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
-                               EBX,  // Class register.
                                &fall_through,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
@@ -1092,13 +1068,11 @@ static void EmitTrigonometric(Assembler* assembler,
     default:
       UNREACHABLE();
   }
-  const Class& double_class = Class::ZoneHandle(
+  const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ LoadObject(EBX, double_class);
   Label alloc_failed;
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
-                               EBX,  // Class register.
                                &alloc_failed,
                                EAX);  // Result register.
   __ fstpl(FieldAddress(EAX, Double::value_offset()));

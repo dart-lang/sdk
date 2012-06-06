@@ -18,19 +18,9 @@ DECLARE_FLAG(bool, inline_alloc);
 // Static.
 void AssemblerMacros::TryAllocate(Assembler* assembler,
                                   const Class& cls,
-                                  Register class_reg,
                                   Label* failure,
                                   Register instance_reg) {
-#if defined(DEBUG)
-  Label ok;
-  __ LoadObject(instance_reg, cls);
-  __ cmpl(instance_reg, class_reg);
-  __ j(EQUAL, &ok, Assembler::kNearJump);
-  __ Stop("AssemblerMacros::TryAllocate, wrong arguments");
-  __ Bind(&ok);
-#endif
   ASSERT(failure != NULL);
-  ASSERT(class_reg != instance_reg);
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
@@ -44,9 +34,6 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
     __ movl(Address::Absolute(heap->TopAddress()), instance_reg);
     ASSERT(instance_size >= kHeapObjectTag);
     __ subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
-    __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, Instance::class_offset()),
-                       class_reg);
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalObjectKind);

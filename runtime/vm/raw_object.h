@@ -315,7 +315,6 @@ class RawObject {
   static bool IsByteArrayClassId(intptr_t index);
 
  protected:
-  RawClass* class_;
   uword tags_;  // Various object tags (bits).
 
  private:

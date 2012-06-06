@@ -272,8 +272,6 @@ void Object::InitOnce() {
     uword address = heap->Allocate(size, Heap::kOld);
     class_class_ = reinterpret_cast<RawClass*>(address + kHeapObjectTag);
     InitializeObject(address, Class::kInstanceKind, size);
-    // Make the class_ field point to itself.
-    class_class_->ptr()->class_ = class_class_;
 
     Class fake;
     // Initialization from Class::New<Class>.
@@ -299,10 +297,6 @@ void Object::InitOnce() {
   cls = Class::New<Instance>(kNullClassId);
   cls.set_is_finalized();
   null_class_ = cls.raw();
-
-  // Complete initialization of null_ instance, i.e. initialize its class_
-  // field.
-  null_->ptr()->class_ = null_class_;
 
   // Allocate and initialize the sentinel values of Null class.
   {
@@ -995,7 +989,6 @@ RawObject* Object::Allocate(const Class& cls,
   NoGCScope no_gc;
   InitializeObject(address, cls.id(), size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
-  raw_obj->ptr()->class_ = cls.raw();
   ASSERT(cls.id() == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
   return raw_obj;
 }
@@ -9033,7 +9026,6 @@ void Array::MakeImmutable() const {
       isolate, isolate->object_store()->immutable_array_class());
   {
     NoGCScope no_gc;
-    raw_ptr()->class_ = cls.raw();
     uword tags = raw_ptr()->tags_;
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     raw_ptr()->tags_ = tags;
@@ -9104,7 +9096,6 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // space as an Array object.
       RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
       const Class& cls = Class::Handle(isolate->object_store()->array_class());
-      raw->ptr()->class_ = cls.raw();
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
       tags = RawObject::ClassIdTag::update(cls.id(), tags);
@@ -9118,7 +9109,6 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       const Class& cls = Class::Handle(isolate->object_store()->object_class());
-      raw->ptr()->class_ = cls.raw();
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
       tags = RawObject::ClassIdTag::update(cls.id(), tags);

@@ -200,7 +200,6 @@ class Object {
   }
 
   inline RawClass* clazz() const;
-  static intptr_t class_offset() { return OFFSET_OF(RawObject, class_); }
   static intptr_t tags_offset() { return OFFSET_OF(RawObject, tags_); }
 
   // Class testers.

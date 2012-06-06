@@ -1786,14 +1786,14 @@ TEST_CASE(GrowableObjectArray) {
 
   // Test the MakeArray functionality to make sure the resulting array
   // object is properly setup.
-  // 1. Should produce an array of length 2 and a remainder array of length 0.
+  // 1. Should produce an array of length 2 and a remainder array of length 1.
   Array& new_array = Array::Handle();
   Object& obj = Object::Handle();
   uword addr = 0;
   intptr_t used_size = 0;
 
-  array = GrowableObjectArray::New(kArrayLen);
-  EXPECT_EQ(kArrayLen, array.Capacity());
+  array = GrowableObjectArray::New(kArrayLen + 1);
+  EXPECT_EQ(kArrayLen + 1, array.Capacity());
   EXPECT_EQ(0, array.Length());
   for (intptr_t i = 0; i < 2; i++) {
     value = Smi::New(i);
@@ -1850,7 +1850,7 @@ TEST_CASE(GrowableObjectArray) {
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
   new_array ^= obj.raw();
-  EXPECT_EQ(2, new_array.Length());
+  EXPECT_EQ(4, new_array.Length());
 }
 
 

@@ -9,49 +9,21 @@
 
 namespace dart {
 
-// Allocate a fake class to be used as the class for elements of the free list.
-// These raw classes are only used to identify free list elements in the heap.
-// These classes cannot be allocated in the heap as the elements of the free
-// list are not live objects and their class references would not be updated
-// during a moving collection. In the general case these classes are also used
-// to implement RawObject::Size() to allow other code to safely traverse
-// the heap without any knowledge of the embedded free list elements.
-RawClass* AllocateFakeClass() {
-  RawClass* result =
-      reinterpret_cast<RawClass*>(calloc(1, Class::InstanceSize()));
-  result->instance_kind_ = kFreeListElement;
-  return reinterpret_cast<RawClass*>(RawObject::FromAddr(
-      reinterpret_cast<uword>(result)));
-}
-
-
-RawClass* FreeListElement::minimal_element_class_ = NULL;
-RawClass* FreeListElement::element_class_ = NULL;
-
 
 FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
-  if (size == kObjectAlignment) {
-    result->class_ = minimal_element_class_;
-  } else {
-    result->class_ = element_class_;
-    *result->SizeAddress() = size;
-  }
+  result->size_ = size;
   result->set_next(NULL);
-  ASSERT(result->Size() == size);
   return result;
 }
 
 
 void FreeListElement::InitOnce() {
   ASSERT(sizeof(FreeListElement) == kObjectAlignment);
-  ASSERT(minimal_element_class_ == NULL);
-  ASSERT(element_class_ == NULL);
-  minimal_element_class_ = AllocateFakeClass();
-  element_class_ = AllocateFakeClass();
+  ASSERT(OFFSET_OF(FreeListElement, next_) == Object::tags_offset());
 }
 
 
@@ -88,7 +60,7 @@ uword FreeList::TryAllocate(intptr_t size) {
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
   while (current != NULL) {
-    if (current->Size() >= size) {
+    if (current->size() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
       // split and enqueue the remainder.
       if (previous == NULL) {
@@ -146,7 +118,7 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
 
 void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
                                            intptr_t size) {
-  intptr_t remainder_size = element->Size() - size;
+  intptr_t remainder_size = element->size() - size;
   if (remainder_size == 0) return;
 
   element = FreeListElement::AsElement(reinterpret_cast<uword>(element) + size,

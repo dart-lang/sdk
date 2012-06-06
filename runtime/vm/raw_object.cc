@@ -25,19 +25,9 @@ void RawObject::Validate(Isolate* isolate) const {
   if (!IsHeapObject()) {
     return;
   }
-  // Validate that the class_ field is sensible.
-  RawClass* raw_class = ptr()->class_;
-  ASSERT(raw_class->IsHeapObject());
-  RawClass* raw_class_class = raw_class->ptr()->class_;
-  ASSERT(raw_class_class->IsHeapObject());
-  ASSERT(raw_class_class->ptr()->instance_kind_ == kClass);
-
   // Validate that the tags_ field is sensible.
   uword tags = ptr()->tags_;
   ASSERT((tags & 0x000000f0) == 0);
-  intptr_t cid = ClassIdTag::decode(tags);
-  RawClass* tag_class = isolate->class_table()->At(cid);
-  ASSERT(tag_class == raw_class);
 #endif
 }
 
@@ -50,7 +40,7 @@ intptr_t RawObject::SizeFromClass() const {
 
   // TODO(vegorov): this should be moved to fast path when class_ is eliminated.
   if (FreeBit::decode(ptr()->tags_)) {
-    return reinterpret_cast<FreeListElement*>(ptr())->Size();
+    return reinterpret_cast<FreeListElement*>(ptr())->size();
   }
 
   RawClass* raw_class = Isolate::Current()->class_table()->At(GetClassId());
@@ -243,7 +233,7 @@ intptr_t RawObject::SizeFromClass() const {
         ASSERT(FreeBit::decode(ptr()->tags_));
         uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-        instance_size = element->Size();
+        instance_size = element->size();
         break;
       }
       default:
@@ -271,7 +261,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     // Nothing to visit for free list elements.
     uword addr = RawObject::ToAddr(this);
     FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-    return element->Size();
+    return element->size();
   }
 
   // Read the necessary data out of the class before visting the class itself.
@@ -284,9 +274,6 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     RawClass* raw_class = Isolate::Current()->class_table()->At(class_id);
     kind = raw_class->ptr()->instance_kind_;
   }
-
-  // Visit the class before visting the fields.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ptr()->class_));
 
   switch (kind) {
 #define RAW_VISITPOINTERS(clazz) \
