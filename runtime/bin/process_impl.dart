@@ -331,6 +331,9 @@ class _NonInteractiveProcess {
     // Start the underlying process.
     _process = new _Process.start(path, arguments, options);
 
+    // Make sure stdin is closed.
+    _process.onStart = _process.stdin.close;
+
     // Setup process error handling.
     _process.onError = (e) => _completer.completeException(e);
 
