@@ -1031,6 +1031,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3182
+   */
+  public void test_extendNotType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int A;",
+        "class B extends A {",
+        "}",
+        "",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NOT_A_TYPE, 3, 17, 1));
+  }
+
+  /**
    * Test for variants of {@link DartMethodDefinition} return types.
    */
   public void test_methodReturnTypes() throws Exception {

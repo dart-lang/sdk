@@ -121,7 +121,6 @@ Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
-Language/13_Types/1_Static_Types_A02_t08: Fail # Issue 2494
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
 Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130

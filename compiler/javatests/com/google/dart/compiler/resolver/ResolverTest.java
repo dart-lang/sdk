@@ -712,8 +712,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var Bar;",
         "  create() { return new Bar();}",
         "}"),
-        TypeErrorCode.NOT_A_TYPE,
-        ResolverErrorCode.NO_SUCH_TYPE,
+        ResolverErrorCode.NOT_A_TYPE,
         ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
   }
 
@@ -1039,8 +1038,7 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"),
         ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING,
-        TypeErrorCode.NOT_A_TYPE,
-        ResolverErrorCode.NO_SUCH_TYPE);
+        ResolverErrorCode.NOT_A_TYPE);
   }
 
   public void test_operatorIs_withFunctionAlias() throws Exception {

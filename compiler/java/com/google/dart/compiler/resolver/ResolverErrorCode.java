@@ -135,6 +135,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_LABEL("\"%s\" is not a label"),
   NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
   NOT_A_STATIC_METHOD("\"%s\" is not a static method"),
+  NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
   REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
