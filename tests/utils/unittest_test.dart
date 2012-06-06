@@ -21,7 +21,7 @@ class MyFailureHandler extends DefaultFailureHandler {
   }
 }
 
-void shouldFail(var value, Matcher matcher, String expected) {
+void shouldFail(var value, Matcher matcher, expected) {
   errorCount = 0;
   errorString = '';
   configureExpectHandler(testHandler);
