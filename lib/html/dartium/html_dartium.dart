@@ -39,6 +39,12 @@ Document get document() {
 
 Document get _document() => _window.document;
 
+class _Null {
+  const _Null();
+}
+
+final _null = const _Null();
+
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
   _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
   EventListenerList get error() => _get('error');
@@ -58,8 +64,8 @@ class _AbstractWorkerImpl extends _DOMWrapperBase implements AbstractWorker {
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -72,8 +78,8 @@ class _AbstractWorkerImpl extends _DOMWrapperBase implements AbstractWorker {
 
   bool $dom_dispatchEvent(Event evt) native "AbstractWorker_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -95,8 +101,8 @@ class _ArrayBufferImpl extends _DOMWrapperBase implements ArrayBuffer {
 
   int get byteLength() native "ArrayBuffer_byteLength_Getter";
 
-  ArrayBuffer slice(int begin, [int end = null]) {
-    if (end === null) {
+  ArrayBuffer slice(begin, [end = _null]) {
+    if (end === _null) {
       return _slice_1(begin);
     }
     return _slice_2(begin, end);
@@ -251,11 +257,11 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
-  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) {
-    if (buffer_OR_numberOfChannels is int && mixToMono_OR_numberOfFrames is int && sampleRate is num) {
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [sampleRate = _null]) {
+    if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels === null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames === null) && (sampleRate is num || sampleRate === null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
-    if (buffer_OR_numberOfChannels is ArrayBuffer && mixToMono_OR_numberOfFrames is bool && sampleRate === null) {
+    if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels === null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames === null) && sampleRate === _null) {
       return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
     }
     throw "Incorrect number or type of arguments";
@@ -267,8 +273,8 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
-  AudioChannelMerger createChannelMerger([int numberOfInputs = null]) {
-    if (numberOfInputs === null) {
+  AudioChannelMerger createChannelMerger([numberOfInputs = _null]) {
+    if (numberOfInputs === _null) {
       return _createChannelMerger_1();
     }
     return _createChannelMerger_2(numberOfInputs);
@@ -278,8 +284,8 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioChannelMerger _createChannelMerger_2(numberOfInputs) native "AudioContext_createChannelMerger_2_Callback";
 
-  AudioChannelSplitter createChannelSplitter([int numberOfOutputs = null]) {
-    if (numberOfOutputs === null) {
+  AudioChannelSplitter createChannelSplitter([numberOfOutputs = _null]) {
+    if (numberOfOutputs === _null) {
       return _createChannelSplitter_1();
     }
     return _createChannelSplitter_2(numberOfOutputs);
@@ -291,8 +297,8 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
-  DelayNode createDelayNode([num maxDelayTime = null]) {
-    if (maxDelayTime === null) {
+  DelayNode createDelayNode([maxDelayTime = _null]) {
+    if (maxDelayTime === _null) {
       return _createDelayNode_1();
     }
     return _createDelayNode_2(maxDelayTime);
@@ -306,11 +312,11 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioGainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) {
-    if (numberOfOutputChannels === null) {
+  JavaScriptAudioNode createJavaScriptNode(bufferSize, [numberOfInputChannels = _null, numberOfOutputChannels = _null]) {
+    if (numberOfOutputChannels === _null) {
       return _createJavaScriptNode_1(bufferSize, numberOfInputChannels);
     }
-    if (numberOfInputChannels === null) {
+    if (numberOfInputChannels === _null) {
       return _createJavaScriptNode_2(bufferSize);
     }
     return _createJavaScriptNode_3(bufferSize, numberOfInputChannels, numberOfOutputChannels);
@@ -332,11 +338,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native "AudioContext_createWaveTable_Callback";
 
-  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) {
-    _decodeAudioData_1(audioData, successCallback, errorCallback);
-  }
-
-  void _decodeAudioData_1(audioData, successCallback, errorCallback) native "AudioContext_decodeAudioData_1_Callback";
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native "AudioContext_decodeAudioData_Callback";
 
   void startRendering() native "AudioContext_startRendering_Callback";
 
@@ -409,12 +411,12 @@ class _AudioNodeImpl extends _DOMWrapperBase implements AudioNode {
 
   int get numberOfOutputs() native "AudioNode_numberOfOutputs_Getter";
 
-  void connect(destination, int output, [int input = null]) {
-    if (destination is AudioNode && output is int && input is int) {
+  void connect(destination, output, [input = _null]) {
+    if ((destination is AudioNode || destination === null) && (output is int || output === null) && (input is int || input === null)) {
       _connect_1(destination, output, input);
       return;
     }
-    if (destination is AudioParam && output is int && input === null) {
+    if ((destination is AudioParam || destination === null) && (output is int || output === null) && input === _null) {
       _connect_2(destination, output);
       return;
     }
@@ -578,8 +580,8 @@ class _BatteryManagerImpl extends _DOMWrapperBase implements BatteryManager {
 
   num get level() native "BatteryManager_level_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -592,8 +594,8 @@ class _BatteryManagerImpl extends _DOMWrapperBase implements BatteryManager {
 
   bool $dom_dispatchEvent(Event evt) native "BatteryManager_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -649,14 +651,14 @@ class _BlobImpl extends _DOMWrapperBase implements Blob {
 
   String get type() native "Blob_type_Getter";
 
-  Blob webkitSlice([int start = null, int end = null, String contentType = null]) {
-    if (contentType === null) {
+  Blob webkitSlice([start = _null, end = _null, contentType = _null]) {
+    if (contentType === _null) {
       return _webkitSlice_1(start, end);
     }
-    if (end === null) {
+    if (end === _null) {
       return _webkitSlice_2(start);
     }
-    if (start === null) {
+    if (start === _null) {
       return _webkitSlice_3();
     }
     return _webkitSlice_4(start, end, contentType);
@@ -851,8 +853,8 @@ class _CSSStyleDeclarationImpl extends _DOMWrapperBase implements CSSStyleDeclar
 
   String removeProperty(String propertyName) native "CSSStyleDeclaration_removeProperty_Callback";
 
-  void setProperty(String propertyName, String value, [String priority = null]) {
-    if (priority === null) {
+  void setProperty(propertyName, value, [priority = _null]) {
+    if (priority === _null) {
       _setProperty_1(propertyName, value);
       return;
     }
@@ -3657,8 +3659,8 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 
   CSSRuleList get rules() native "CSSStyleSheet_rules_Getter";
 
-  int addRule(String selector, String style, [int index = null]) {
-    if (index === null) {
+  int addRule(selector, style, [index = _null]) {
+    if (index === _null) {
       return _addRule_1(selector, style);
     }
     return _addRule_2(selector, style, index);
@@ -3830,11 +3832,11 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
-  ImageData createImageData(imagedata_OR_sw, [num sh = null]) {
-    if (imagedata_OR_sw is ImageData && sh === null) {
+  ImageData createImageData(imagedata_OR_sw, [sh = _null]) {
+    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw === null) && sh === _null) {
       return _createImageData_1(imagedata_OR_sw);
     }
-    if (imagedata_OR_sw is num && sh is num) {
+    if ((imagedata_OR_sw is num || imagedata_OR_sw === null) && (sh is num || sh === null)) {
       return _createImageData_2(imagedata_OR_sw, sh);
     }
     throw "Incorrect number or type of arguments";
@@ -3846,11 +3848,11 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
-  CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
-    if (canvas_OR_image is CanvasElement && repetitionType is String) {
+  CanvasPattern createPattern(canvas_OR_image, repetitionType) {
+    if ((canvas_OR_image is CanvasElement || canvas_OR_image === null) && (repetitionType is String || repetitionType === null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
-    if (canvas_OR_image is ImageElement && repetitionType is String) {
+    if ((canvas_OR_image is ImageElement || canvas_OR_image === null) && (repetitionType is String || repetitionType === null)) {
       return _createPattern_2(canvas_OR_image, repetitionType);
     }
     throw "Incorrect number or type of arguments";
@@ -3862,40 +3864,40 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
-    if (canvas_OR_image_OR_video is ImageElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width === null && height_OR_sh === null && dx === null && dy === null && dw === null && dh === null) {
+  void drawImage(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, [sw_OR_width = _null, height_OR_sh = _null, dx = _null, dy = _null, dw = _null, dh = _null]) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && sw_OR_width === _null && height_OR_sh === _null && dx === _null && dy === _null && dw === _null && dh === _null) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if (canvas_OR_image_OR_video is ImageElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width is num && height_OR_sh is num && dx === null && dy === null && dw === null && dh === null) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && dx === _null && dy === _null && dw === _null && dh === _null) {
       _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if (canvas_OR_image_OR_video is ImageElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width is num && height_OR_sh is num && dx is num && dy is num && dw is num && dh is num) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dw is num || dw === null) && (dh is num || dh === null)) {
       _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if (canvas_OR_image_OR_video is CanvasElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width === null && height_OR_sh === null && dx === null && dy === null && dw === null && dh === null) {
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && sw_OR_width === _null && height_OR_sh === _null && dx === _null && dy === _null && dw === _null && dh === _null) {
       _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if (canvas_OR_image_OR_video is CanvasElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width is num && height_OR_sh is num && dx === null && dy === null && dw === null && dh === null) {
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && dx === _null && dy === _null && dw === _null && dh === _null) {
       _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if (canvas_OR_image_OR_video is CanvasElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width is num && height_OR_sh is num && dx is num && dy is num && dw is num && dh is num) {
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dw is num || dw === null) && (dh is num || dh === null)) {
       _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if (canvas_OR_image_OR_video is VideoElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width === null && height_OR_sh === null && dx === null && dy === null && dw === null && dh === null) {
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && sw_OR_width === _null && height_OR_sh === _null && dx === _null && dy === _null && dw === _null && dh === _null) {
       _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if (canvas_OR_image_OR_video is VideoElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width is num && height_OR_sh is num && dx === null && dy === null && dw === null && dh === null) {
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && dx === _null && dy === _null && dw === _null && dh === _null) {
       _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if (canvas_OR_image_OR_video is VideoElement && sx_OR_x is num && sy_OR_y is num && sw_OR_width is num && height_OR_sh is num && dx is num && dy is num && dw is num && dh is num) {
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dw is num || dw === null) && (dh is num || dh === null)) {
       _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
@@ -3920,40 +3922,40 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
-  void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
-    if (compositeOperation === null) {
+  void drawImageFromRect(image, [sx = _null, sy = _null, sw = _null, sh = _null, dx = _null, dy = _null, dw = _null, dh = _null, compositeOperation = _null]) {
+    if (compositeOperation === _null) {
       _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh);
       return;
     }
-    if (dh === null) {
+    if (dh === _null) {
       _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw);
       return;
     }
-    if (dw === null) {
+    if (dw === _null) {
       _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy);
       return;
     }
-    if (dy === null) {
+    if (dy === _null) {
       _drawImageFromRect_4(image, sx, sy, sw, sh, dx);
       return;
     }
-    if (dx === null) {
+    if (dx === _null) {
       _drawImageFromRect_5(image, sx, sy, sw, sh);
       return;
     }
-    if (sh === null) {
+    if (sh === _null) {
       _drawImageFromRect_6(image, sx, sy, sw);
       return;
     }
-    if (sw === null) {
+    if (sw === _null) {
       _drawImageFromRect_7(image, sx, sy);
       return;
     }
-    if (sy === null) {
+    if (sy === _null) {
       _drawImageFromRect_8(image, sx);
       return;
     }
-    if (sx === null) {
+    if (sx === _null) {
       _drawImageFromRect_9(image);
       return;
     }
@@ -3984,8 +3986,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
-  void fillText(String text, num x, num y, [num maxWidth = null]) {
-    if (maxWidth === null) {
+  void fillText(text, x, y, [maxWidth = _null]) {
+    if (maxWidth === _null) {
       _fillText_1(text, x, y);
       return;
     }
@@ -4006,12 +4008,12 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
-    if (imagedata is ImageData && dx is num && dy is num && dirtyX === null && dirtyY === null && dirtyWidth === null && dirtyHeight === null) {
+  void putImageData(imagedata, dx, dy, [dirtyX = _null, dirtyY = _null, dirtyWidth = _null, dirtyHeight = _null]) {
+    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && dirtyX === _null && dirtyY === _null && dirtyWidth === _null && dirtyHeight === _null) {
       _putImageData_1(imagedata, dx, dy);
       return;
     }
-    if (imagedata is ImageData && dx is num && dy is num && dirtyX is num && dirtyY is num && dirtyWidth is num && dirtyHeight is num) {
+    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dirtyX is num || dirtyX === null) && (dirtyY is num || dirtyY === null) && (dirtyWidth is num || dirtyWidth === null) && (dirtyHeight is num || dirtyHeight === null)) {
       _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -4038,28 +4040,28 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
 
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is String && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [alpha_OR_g_OR_m = _null, b_OR_y = _null, a_OR_k = _null, a = _null]) {
+    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setFillColor_1(c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is String && alpha_OR_g_OR_m is num && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setFillColor_3(c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y is num && a_OR_k is num && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && a === _null) {
       _setFillColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y is num && a_OR_k is num && a is num) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
       _setFillColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
     }
@@ -4086,32 +4088,32 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
 
-  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r === null && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+  void setShadow(width, height, blur, [c_OR_color_OR_grayLevel_OR_r = _null, alpha_OR_g_OR_m = _null, b_OR_y = _null, a_OR_k = _null, a = _null]) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && c_OR_color_OR_grayLevel_OR_r === _null && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setShadow_1(width, height, blur);
       return;
     }
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r is String && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r is String && alpha_OR_g_OR_m is num && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y is num && a_OR_k is num && a === null) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && a === _null) {
       _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
       return;
     }
-    if (width is num && height is num && blur is num && c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y is num && a_OR_k is num && a is num) {
+    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
       _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
     }
@@ -4132,28 +4134,28 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
 
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is String && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [alpha_OR_g_OR_m = _null, b_OR_y = _null, a_OR_k = _null, a = _null]) {
+    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setStrokeColor_1(c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is String && alpha_OR_g_OR_m is num && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m === null && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && alpha_OR_g_OR_m === _null && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y === null && a_OR_k === null && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && b_OR_y === _null && a_OR_k === _null && a === _null) {
       _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y is num && a_OR_k is num && a === null) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && a === _null) {
       _setStrokeColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
       return;
     }
-    if (c_OR_color_OR_grayLevel_OR_r is num && alpha_OR_g_OR_m is num && b_OR_y is num && a_OR_k is num && a is num) {
+    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
       _setStrokeColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
     }
@@ -4176,8 +4178,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
-  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
-    if (lineWidth === null) {
+  void strokeRect(x, y, width, height, [lineWidth = _null]) {
+    if (lineWidth === _null) {
       _strokeRect_1(x, y, width, height);
       return;
     }
@@ -4188,8 +4190,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _strokeRect_2(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
-  void strokeText(String text, num x, num y, [num maxWidth = null]) {
-    if (maxWidth === null) {
+  void strokeText(text, x, y, [maxWidth = _null]) {
+    if (maxWidth === _null) {
       _strokeText_1(text, x, y);
       return;
     }
@@ -4206,12 +4208,12 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
-    if (imagedata is ImageData && dx is num && dy is num && dirtyX === null && dirtyY === null && dirtyWidth === null && dirtyHeight === null) {
+  void webkitPutImageDataHD(imagedata, dx, dy, [dirtyX = _null, dirtyY = _null, dirtyWidth = _null, dirtyHeight = _null]) {
+    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && dirtyX === _null && dirtyY === _null && dirtyWidth === _null && dirtyHeight === _null) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
     }
-    if (imagedata is ImageData && dx is num && dy is num && dirtyX is num && dirtyY is num && dirtyWidth is num && dirtyHeight is num) {
+    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dirtyX is num || dirtyX === null) && (dirtyY is num || dirtyY === null) && (dirtyWidth is num || dirtyWidth === null) && (dirtyHeight is num || dirtyHeight === null)) {
       _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -4522,8 +4524,8 @@ class _DOMApplicationCacheImpl extends _DOMWrapperBase implements DOMApplication
 
   void abort() native "DOMApplicationCache_abort_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -4536,8 +4538,8 @@ class _DOMApplicationCacheImpl extends _DOMWrapperBase implements DOMApplication
 
   bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -4937,10 +4939,10 @@ class _DOMURLFactoryProvider {
 class _DOMURLImpl extends _DOMWrapperBase implements DOMURL {
 
   static String createObjectURL(blob_OR_stream) {
-    if (blob_OR_stream is MediaStream) {
+    if ((blob_OR_stream is MediaStream || blob_OR_stream === null)) {
       return _createObjectURL_1(blob_OR_stream);
     }
-    if (blob_OR_stream is Blob) {
+    if ((blob_OR_stream is Blob || blob_OR_stream === null)) {
       return _createObjectURL_2(blob_OR_stream);
     }
     throw "Incorrect number or type of arguments";
@@ -5203,11 +5205,7 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
   Window open(String url, String name, [String options = null]) native "DOMWindow_open_Callback";
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    return _openDatabase_1(name, version, displayName, estimatedSize, creationCallback);
-  }
-
-  Database _openDatabase_1(name, version, displayName, estimatedSize, creationCallback) native "DOMWindow_openDatabase_1_Callback";
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native "DOMWindow_openDatabase_Callback";
 
   void postMessage(message, String targetOrigin, [List messagePorts = null]) native "DOMWindow_postMessage_Callback";
 
@@ -5249,17 +5247,9 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _webkitRequestFileSystem_1(type, size, successCallback, errorCallback);
-  }
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
-  void _webkitRequestFileSystem_1(type, size, successCallback, errorCallback) native "DOMWindow_webkitRequestFileSystem_1_Callback";
-
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _webkitResolveLocalFileSystemURL_1(url, successCallback, errorCallback);
-  }
-
-  void _webkitResolveLocalFileSystemURL_1(url, successCallback, errorCallback) native "DOMWindow_webkitResolveLocalFileSystemURL_1_Callback";
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5289,12 +5279,12 @@ class _DataTransferItemListImpl extends _DOMWrapperBase implements DataTransferI
 
   int get length() native "DataTransferItemList_length_Getter";
 
-  void add(data_OR_file, [String type = null]) {
-    if (data_OR_file is File && type === null) {
+  void add(data_OR_file, [type = _null]) {
+    if ((data_OR_file is File || data_OR_file === null) && type === _null) {
       _add_1(data_OR_file);
       return;
     }
-    if (data_OR_file is String && type is String) {
+    if ((data_OR_file is String || data_OR_file === null) && (type is String || type === null)) {
       _add_2(data_OR_file, type);
       return;
     }
@@ -5318,8 +5308,8 @@ class _DataTransferItemListImpl extends _DOMWrapperBase implements DataTransferI
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
-  num getFloat32(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  num getFloat32(byteOffset, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       return _getFloat32_1(byteOffset);
     }
     return _getFloat32_2(byteOffset, littleEndian);
@@ -5329,8 +5319,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat32_2(byteOffset, littleEndian) native "DataView_getFloat32_2_Callback";
 
-  num getFloat64(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  num getFloat64(byteOffset, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       return _getFloat64_1(byteOffset);
     }
     return _getFloat64_2(byteOffset, littleEndian);
@@ -5340,8 +5330,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat64_2(byteOffset, littleEndian) native "DataView_getFloat64_2_Callback";
 
-  int getInt16(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  int getInt16(byteOffset, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       return _getInt16_1(byteOffset);
     }
     return _getInt16_2(byteOffset, littleEndian);
@@ -5351,8 +5341,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getInt16_2(byteOffset, littleEndian) native "DataView_getInt16_2_Callback";
 
-  int getInt32(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  int getInt32(byteOffset, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       return _getInt32_1(byteOffset);
     }
     return _getInt32_2(byteOffset, littleEndian);
@@ -5364,8 +5354,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   Object getInt8() native "DataView_getInt8_Callback";
 
-  int getUint16(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  int getUint16(byteOffset, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       return _getUint16_1(byteOffset);
     }
     return _getUint16_2(byteOffset, littleEndian);
@@ -5375,8 +5365,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getUint16_2(byteOffset, littleEndian) native "DataView_getUint16_2_Callback";
 
-  int getUint32(int byteOffset, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  int getUint32(byteOffset, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       return _getUint32_1(byteOffset);
     }
     return _getUint32_2(byteOffset, littleEndian);
@@ -5388,8 +5378,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   Object getUint8() native "DataView_getUint8_Callback";
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  void setFloat32(byteOffset, value, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       _setFloat32_1(byteOffset, value);
       return;
     }
@@ -5400,8 +5390,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat32_2(byteOffset, value, littleEndian) native "DataView_setFloat32_2_Callback";
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  void setFloat64(byteOffset, value, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       _setFloat64_1(byteOffset, value);
       return;
     }
@@ -5412,8 +5402,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat64_2(byteOffset, value, littleEndian) native "DataView_setFloat64_2_Callback";
 
-  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  void setInt16(byteOffset, value, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       _setInt16_1(byteOffset, value);
       return;
     }
@@ -5424,8 +5414,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setInt16_2(byteOffset, value, littleEndian) native "DataView_setInt16_2_Callback";
 
-  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  void setInt32(byteOffset, value, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       _setInt32_1(byteOffset, value);
       return;
     }
@@ -5438,8 +5428,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void setInt8() native "DataView_setInt8_Callback";
 
-  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  void setUint16(byteOffset, value, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       _setUint16_1(byteOffset, value);
       return;
     }
@@ -5450,8 +5440,8 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setUint16_2(byteOffset, value, littleEndian) native "DataView_setUint16_2_Callback";
 
-  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
-    if (littleEndian === null) {
+  void setUint32(byteOffset, value, [littleEndian = _null]) {
+    if (littleEndian === _null) {
       _setUint32_1(byteOffset, value);
       return;
     }
@@ -5475,23 +5465,11 @@ class _DatabaseImpl extends _DOMWrapperBase implements Database {
 
   String get version() native "Database_version_Getter";
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
-    _changeVersion_1(oldVersion, newVersion, callback, errorCallback, successCallback);
-  }
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native "Database_changeVersion_Callback";
 
-  void _changeVersion_1(oldVersion, newVersion, callback, errorCallback, successCallback) native "Database_changeVersion_1_Callback";
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native "Database_readTransaction_Callback";
 
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
-    _readTransaction_1(callback, errorCallback, successCallback);
-  }
-
-  void _readTransaction_1(callback, errorCallback, successCallback) native "Database_readTransaction_1_Callback";
-
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
-    _transaction_1(callback, errorCallback, successCallback);
-  }
-
-  void _transaction_1(callback, errorCallback, successCallback) native "Database_transaction_1_Callback";
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native "Database_transaction_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5506,11 +5484,7 @@ class _DatabaseSyncImpl extends _DOMWrapperBase implements DatabaseSync {
 
   String get version() native "DatabaseSync_version_Getter";
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) {
-    _changeVersion_1(oldVersion, newVersion, callback);
-  }
-
-  void _changeVersion_1(oldVersion, newVersion, callback) native "DatabaseSync_changeVersion_1_Callback";
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native "DatabaseSync_changeVersion_Callback";
 
   void readTransaction(SQLTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
 
@@ -5591,8 +5565,8 @@ class _DeprecatedPeerConnectionImpl extends _DOMWrapperBase implements Deprecate
 
   MediaStreamList get remoteStreams() native "DeprecatedPeerConnection_remoteStreams_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -5611,8 +5585,8 @@ class _DeprecatedPeerConnectionImpl extends _DOMWrapperBase implements Deprecate
 
   void processSignalingMessage(String message) native "DeprecatedPeerConnection_processSignalingMessage_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -5672,11 +5646,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DirectoryEntry_getFile_Callback";
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _removeRecursively_1(successCallback, errorCallback);
-  }
-
-  void _removeRecursively_1(successCallback, errorCallback) native "DirectoryEntry_removeRecursively_1_Callback";
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native "DirectoryEntry_removeRecursively_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5704,11 +5674,7 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
 class _DirectoryReaderImpl extends _DOMWrapperBase implements DirectoryReader {
 
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _readEntries_1(successCallback, errorCallback);
-  }
-
-  void _readEntries_1(successCallback, errorCallback) native "DirectoryReader_readEntries_1_Callback";
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native "DirectoryReader_readEntries_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7185,8 +7151,8 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void scrollIntoView([bool centerIfNeeded = null]) {
-    if (centerIfNeeded === null) {
+  void scrollIntoView([centerIfNeeded = _null]) {
+    if (centerIfNeeded === _null) {
       _scrollIntoViewIfNeeded_1();
       return;
     }
@@ -7330,8 +7296,8 @@ class _EntryImpl extends _DOMWrapperBase implements Entry {
 
   String get name() native "Entry_name_Getter";
 
-  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (name === null) {
+  void copyTo(parent, [name = _null, successCallback = _null, errorCallback = _null]) {
+    if (name === _null) {
       _copyTo_1(parent);
       return;
     }
@@ -7342,20 +7308,12 @@ class _EntryImpl extends _DOMWrapperBase implements Entry {
 
   void _copyTo_2(parent, name, successCallback, errorCallback) native "Entry_copyTo_2_Callback";
 
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _getMetadata_1(successCallback, errorCallback);
-  }
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native "Entry_getMetadata_Callback";
 
-  void _getMetadata_1(successCallback, errorCallback) native "Entry_getMetadata_1_Callback";
+  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "Entry_getParent_Callback";
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _getParent_1(successCallback, errorCallback);
-  }
-
-  void _getParent_1(successCallback, errorCallback) native "Entry_getParent_1_Callback";
-
-  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (name === null) {
+  void moveTo(parent, [name = _null, successCallback = _null, errorCallback = _null]) {
+    if (name === _null) {
       _moveTo_1(parent);
       return;
     }
@@ -7366,11 +7324,7 @@ class _EntryImpl extends _DOMWrapperBase implements Entry {
 
   void _moveTo_2(parent, name, successCallback, errorCallback) native "Entry_moveTo_2_Callback";
 
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _remove_1(successCallback, errorCallback);
-  }
-
-  void _remove_1(successCallback, errorCallback) native "Entry_remove_1_Callback";
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native "Entry_remove_Callback";
 
   String toURL() native "Entry_toURL_Callback";
 
@@ -7519,8 +7473,8 @@ class _EventSourceImpl extends _DOMWrapperBase implements EventSource {
 
   String get url() native "EventSource_url_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -7535,8 +7489,8 @@ class _EventSourceImpl extends _DOMWrapperBase implements EventSource {
 
   bool $dom_dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -7656,8 +7610,8 @@ class _EventListenerListImpl implements EventListenerList {
 class _EventTargetImpl extends _DOMWrapperBase implements EventTarget {
 /*
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -7670,8 +7624,8 @@ class _EventTargetImpl extends _DOMWrapperBase implements EventTarget {
 
   bool $dom_dispatchEvent(Event event) native "EventTarget_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -7692,17 +7646,9 @@ class _EventTargetImpl extends _DOMWrapperBase implements EventTarget {
 
 class _FileEntryImpl extends _EntryImpl implements FileEntry {
 
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _createWriter_1(successCallback, errorCallback);
-  }
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native "FileEntry_createWriter_Callback";
 
-  void _createWriter_1(successCallback, errorCallback) native "FileEntry_createWriter_1_Callback";
-
-  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _file_1(successCallback, errorCallback);
-  }
-
-  void _file_1(successCallback, errorCallback) native "FileEntry_file_1_Callback";
+  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) native "FileEntry_file_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7897,8 +7843,8 @@ class _FileReaderImpl extends _DOMWrapperBase implements FileReader {
 
   void abort() native "FileReader_abort_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -7917,8 +7863,8 @@ class _FileReaderImpl extends _DOMWrapperBase implements FileReader {
 
   void readAsDataURL(Blob blob) native "FileReader_readAsDataURL_Callback";
 
-  void readAsText(Blob blob, [String encoding = null]) {
-    if (encoding === null) {
+  void readAsText(blob, [encoding = _null]) {
+    if (encoding === _null) {
       _readAsText_1(blob);
       return;
     }
@@ -7929,8 +7875,8 @@ class _FileReaderImpl extends _DOMWrapperBase implements FileReader {
 
   void _readAsText_2(blob, encoding) native "FileReader_readAsText_2_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -7964,8 +7910,8 @@ class _FileReaderSyncImpl extends _DOMWrapperBase implements FileReaderSync {
 
   String readAsDataURL(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
-  String readAsText(Blob blob, [String encoding = null]) {
-    if (encoding === null) {
+  String readAsText(blob, [encoding = _null]) {
+    if (encoding === _null) {
       return _readAsText_1(blob);
     }
     return _readAsText_2(blob, encoding);
@@ -8011,8 +7957,8 @@ class _FileWriterImpl extends _DOMWrapperBase implements FileWriter {
 
   void abort() native "FileWriter_abort_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -8025,8 +7971,8 @@ class _FileWriterImpl extends _DOMWrapperBase implements FileWriter {
 
   bool $dom_dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -8155,8 +8101,8 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
   void setElements(Object array, [int offset = null]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Float32Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -8259,8 +8205,8 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
   void setElements(Object array, [int offset = null]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Float64Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -9589,8 +9535,8 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void setSelectionRange(int start, int end, [String direction = null]) native "HTMLInputElement_setSelectionRange_Callback";
 
-  void stepDown([int n = null]) {
-    if (n === null) {
+  void stepDown([n = _null]) {
+    if (n === _null) {
       _stepDown_1();
       return;
     }
@@ -9601,8 +9547,8 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void _stepDown_2(n) native "HTMLInputElement_stepDown_2_Callback";
 
-  void stepUp([int n = null]) {
-    if (n === null) {
+  void stepUp([n = _null]) {
+    if (n === _null) {
       _stepUp_1();
       return;
     }
@@ -9954,11 +9900,11 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   int get webkitVideoDecodedByteCount() native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
-  TextTrack addTextTrack(String kind, [String label = null, String language = null]) {
-    if (language === null) {
+  TextTrack addTextTrack(kind, [label = _null, language = _null]) {
+    if (language === _null) {
       return _addTextTrack_1(kind, label);
     }
-    if (label === null) {
+    if (label === _null) {
       return _addTextTrack_2(kind);
     }
     return _addTextTrack_3(kind, label, language);
@@ -9978,8 +9924,8 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void play() native "HTMLMediaElement_play_Callback";
 
-  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData = null, String sessionId = null]) {
-    if (initData === null) {
+  void webkitAddKey(keySystem, key, [initData = _null, sessionId = _null]) {
+    if (initData === _null) {
       _webkitAddKey_1(keySystem, key);
       return;
     }
@@ -9992,8 +9938,8 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData = null]) {
-    if (initData === null) {
+  void webkitGenerateKeyRequest(keySystem, [initData = _null]) {
+    if (initData === _null) {
       _webkitGenerateKeyRequest_1(keySystem);
       return;
     }
@@ -10954,8 +10900,8 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
-  void setSelectionRange(int start, int end, [String direction = null]) {
-    if (direction === null) {
+  void setSelectionRange(start, end, [direction = _null]) {
+    if (direction === _null) {
       _setSelectionRange_1(start, end);
       return;
     }
@@ -11141,8 +11087,8 @@ class _IDBCursorImpl extends _DOMWrapperBase implements IDBCursor {
 
   void advance(int count) native "IDBCursor_advance_Callback";
 
-  void continueFunction([key = null]) {
-    if (key === null) {
+  void continueFunction([key = _null]) {
+    if (key === _null) {
       _continue_1();
       return;
     }
@@ -11214,8 +11160,8 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
 
   String get version() native "IDBDatabase_version_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -11228,8 +11174,8 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
 
   void close() native "IDBDatabase_close_Callback";
 
-  IDBObjectStore createObjectStore(String name, [Map options = null]) {
-    if (options === null) {
+  IDBObjectStore createObjectStore(name, [options = _null]) {
+    if (options === _null) {
       return _createObjectStore_1(name);
     }
     return _createObjectStore_2(name, options);
@@ -11243,8 +11189,8 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
 
   bool $dom_dispatchEvent(Event evt) native "IDBDatabase_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -11258,16 +11204,16 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
   IDBVersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
 
   IDBTransaction transaction(storeName_OR_storeNames, mode) {
-    if (storeName_OR_storeNames is List<String> && mode is String) {
+    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
-    if (storeName_OR_storeNames is String && mode is String) {
+    if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_2(storeName_OR_storeNames, mode);
     }
-    if (storeName_OR_storeNames is List<String> && mode is int) {
+    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is int || mode === null)) {
       return _transaction_3(storeName_OR_storeNames, mode);
     }
-    if (storeName_OR_storeNames is String && mode is int) {
+    if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is int || mode === null)) {
       return _transaction_4(storeName_OR_storeNames, mode);
     }
     throw "Incorrect number or type of arguments";
@@ -11317,14 +11263,14 @@ class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
 
   bool get unique() native "IDBIndex_unique_Getter";
 
-  IDBRequest count([key_OR_range = null]) {
-    if (key_OR_range === null) {
+  IDBRequest count([key_OR_range = _null]) {
+    if (key_OR_range === _null) {
       return _count_1();
     }
-    if (key_OR_range is IDBKeyRange) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
       return _count_2(key_OR_range);
     }
-    if (key_OR_range is Dynamic) {
+    if ((key_OR_range is Dynamic || key_OR_range === null)) {
       return _count_3(key_OR_range);
     }
     throw "Incorrect number or type of arguments";
@@ -11337,10 +11283,10 @@ class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
   IDBRequest _count_3(key_OR_range) native "IDBIndex_count_3_Callback";
 
   IDBRequest get(key) {
-    if (key is IDBKeyRange) {
+    if ((key is IDBKeyRange || key === null)) {
       return _get_1(key);
     }
-    if (key is Dynamic) {
+    if ((key is Dynamic || key === null)) {
       return _get_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -11351,10 +11297,10 @@ class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
   IDBRequest _get_2(key) native "IDBIndex_get_2_Callback";
 
   IDBRequest getKey(key) {
-    if (key is IDBKeyRange) {
+    if ((key is IDBKeyRange || key === null)) {
       return _getKey_1(key);
     }
-    if (key is Dynamic) {
+    if ((key is Dynamic || key === null)) {
       return _getKey_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -11364,26 +11310,26 @@ class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
 
   IDBRequest _getKey_2(key) native "IDBIndex_getKey_2_Callback";
 
-  IDBRequest openCursor([key_OR_range = null, direction = null]) {
-    if (key_OR_range === null && direction === null) {
+  IDBRequest openCursor([key_OR_range = _null, direction = _null]) {
+    if (key_OR_range === _null && direction === _null) {
       return _openCursor_1();
     }
-    if (key_OR_range is IDBKeyRange && direction === null) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && direction === _null) {
       return _openCursor_2(key_OR_range);
     }
-    if (key_OR_range is IDBKeyRange && direction is String) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is String || direction === null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (key_OR_range is Dynamic && direction === null) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && direction === _null) {
       return _openCursor_4(key_OR_range);
     }
-    if (key_OR_range is Dynamic && direction is String) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
       return _openCursor_5(key_OR_range, direction);
     }
-    if (key_OR_range is IDBKeyRange && direction is int) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is int || direction === null)) {
       return _openCursor_6(key_OR_range, direction);
     }
-    if (key_OR_range is Dynamic && direction is int) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is int || direction === null)) {
       return _openCursor_7(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -11403,26 +11349,26 @@ class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
 
   IDBRequest _openCursor_7(key_OR_range, direction) native "IDBIndex_openCursor_7_Callback";
 
-  IDBRequest openKeyCursor([key_OR_range = null, direction = null]) {
-    if (key_OR_range === null && direction === null) {
+  IDBRequest openKeyCursor([key_OR_range = _null, direction = _null]) {
+    if (key_OR_range === _null && direction === _null) {
       return _openKeyCursor_1();
     }
-    if (key_OR_range is IDBKeyRange && direction === null) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && direction === _null) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if (key_OR_range is IDBKeyRange && direction is String) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is String || direction === null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if (key_OR_range is Dynamic && direction === null) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && direction === _null) {
       return _openKeyCursor_4(key_OR_range);
     }
-    if (key_OR_range is Dynamic && direction is String) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
-    if (key_OR_range is IDBKeyRange && direction is int) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is int || direction === null)) {
       return _openKeyCursor_6(key_OR_range, direction);
     }
-    if (key_OR_range is Dynamic && direction is int) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is int || direction === null)) {
       return _openKeyCursor_7(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -11468,11 +11414,11 @@ class _IDBKeyRangeImpl extends _DOMWrapperBase implements IDBKeyRange {
 
   bool get upperOpen() native "IDBKeyRange_upperOpen_Getter";
 
-  static IDBKeyRange bound(lower, upper, [bool lowerOpen = null, bool upperOpen = null]) {
-    if (upperOpen === null) {
+  static IDBKeyRange bound(lower, upper, [lowerOpen = _null, upperOpen = _null]) {
+    if (upperOpen === _null) {
       return _bound_1(lower, upper, lowerOpen);
     }
-    if (lowerOpen === null) {
+    if (lowerOpen === _null) {
       return _bound_2(lower, upper);
     }
     return _bound_3(lower, upper, lowerOpen, upperOpen);
@@ -11484,8 +11430,8 @@ class _IDBKeyRangeImpl extends _DOMWrapperBase implements IDBKeyRange {
 
   static IDBKeyRange _bound_3(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_3_Callback";
 
-  static IDBKeyRange lowerBound(bound, [bool open = null]) {
-    if (open === null) {
+  static IDBKeyRange lowerBound(bound, [open = _null]) {
+    if (open === _null) {
       return _lowerBound_1(bound);
     }
     return _lowerBound_2(bound, open);
@@ -11497,8 +11443,8 @@ class _IDBKeyRangeImpl extends _DOMWrapperBase implements IDBKeyRange {
 
   static IDBKeyRange only(value) native "IDBKeyRange_only_Callback";
 
-  static IDBKeyRange upperBound(bound, [bool open = null]) {
-    if (open === null) {
+  static IDBKeyRange upperBound(bound, [open = _null]) {
+    if (open === _null) {
       return _upperBound_1(bound);
     }
     return _upperBound_2(bound, open);
@@ -11527,8 +11473,8 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
 
   IDBTransaction get transaction() native "IDBObjectStore_transaction_Getter";
 
-  IDBRequest add(value, [key = null]) {
-    if (key === null) {
+  IDBRequest add(value, [key = _null]) {
+    if (key === _null) {
       return _add_1(value);
     }
     return _add_2(value, key);
@@ -11540,14 +11486,14 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
 
   IDBRequest clear() native "IDBObjectStore_clear_Callback";
 
-  IDBRequest count([key_OR_range = null]) {
-    if (key_OR_range === null) {
+  IDBRequest count([key_OR_range = _null]) {
+    if (key_OR_range === _null) {
       return _count_1();
     }
-    if (key_OR_range is IDBKeyRange) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
       return _count_2(key_OR_range);
     }
-    if (key_OR_range is Dynamic) {
+    if ((key_OR_range is Dynamic || key_OR_range === null)) {
       return _count_3(key_OR_range);
     }
     throw "Incorrect number or type of arguments";
@@ -11559,8 +11505,8 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
 
   IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
-  IDBIndex createIndex(String name, String keyPath, [Map options = null]) {
-    if (options === null) {
+  IDBIndex createIndex(name, keyPath, [options = _null]) {
+    if (options === _null) {
       return _createIndex_1(name, keyPath);
     }
     return _createIndex_2(name, keyPath, options);
@@ -11571,10 +11517,10 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
   IDBIndex _createIndex_2(name, keyPath, options) native "IDBObjectStore_createIndex_2_Callback";
 
   IDBRequest delete(key_OR_keyRange) {
-    if (key_OR_keyRange is IDBKeyRange) {
+    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange === null)) {
       return _delete_1(key_OR_keyRange);
     }
-    if (key_OR_keyRange is Dynamic) {
+    if ((key_OR_keyRange is Dynamic || key_OR_keyRange === null)) {
       return _delete_2(key_OR_keyRange);
     }
     throw "Incorrect number or type of arguments";
@@ -11587,10 +11533,10 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
   IDBRequest getObject(key) {
-    if (key is IDBKeyRange) {
+    if ((key is IDBKeyRange || key === null)) {
       return _get_1(key);
     }
-    if (key is Dynamic) {
+    if ((key is Dynamic || key === null)) {
       return _get_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -11602,26 +11548,26 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
 
   IDBIndex index(String name) native "IDBObjectStore_index_Callback";
 
-  IDBRequest openCursor([key_OR_range = null, direction = null]) {
-    if (key_OR_range === null && direction === null) {
+  IDBRequest openCursor([key_OR_range = _null, direction = _null]) {
+    if (key_OR_range === _null && direction === _null) {
       return _openCursor_1();
     }
-    if (key_OR_range is IDBKeyRange && direction === null) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && direction === _null) {
       return _openCursor_2(key_OR_range);
     }
-    if (key_OR_range is IDBKeyRange && direction is String) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is String || direction === null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (key_OR_range is Dynamic && direction === null) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && direction === _null) {
       return _openCursor_4(key_OR_range);
     }
-    if (key_OR_range is Dynamic && direction is String) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
       return _openCursor_5(key_OR_range, direction);
     }
-    if (key_OR_range is IDBKeyRange && direction is int) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is int || direction === null)) {
       return _openCursor_6(key_OR_range, direction);
     }
-    if (key_OR_range is Dynamic && direction is int) {
+    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is int || direction === null)) {
       return _openCursor_7(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -11641,8 +11587,8 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
 
   IDBRequest _openCursor_7(key_OR_range, direction) native "IDBObjectStore_openCursor_7_Callback";
 
-  IDBRequest put(value, [key = null]) {
-    if (key === null) {
+  IDBRequest put(value, [key = _null]) {
+    if (key === _null) {
       return _put_1(value);
     }
     return _put_2(value, key);
@@ -11688,8 +11634,8 @@ class _IDBRequestImpl extends _DOMWrapperBase implements IDBRequest {
 
   String get webkitErrorMessage() native "IDBRequest_webkitErrorMessage_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -11702,8 +11648,8 @@ class _IDBRequestImpl extends _DOMWrapperBase implements IDBRequest {
 
   bool $dom_dispatchEvent(Event evt) native "IDBRequest_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -11745,8 +11691,8 @@ class _IDBTransactionImpl extends _DOMWrapperBase implements IDBTransaction {
 
   void abort() native "IDBTransaction_abort_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -11761,8 +11707,8 @@ class _IDBTransactionImpl extends _DOMWrapperBase implements IDBTransaction {
 
   IDBObjectStore objectStore(String name) native "IDBTransaction_objectStore_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -11804,8 +11750,8 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -11818,8 +11764,8 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   bool $dom_dispatchEvent(Event event) native "IDBVersionChangeRequest_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -11959,8 +11905,8 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
   void setElements(Object array, [int offset = null]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Int16Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -12063,8 +12009,8 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
   void setElements(Object array, [int offset = null]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Int32Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -12167,8 +12113,8 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
   void setElements(Object array, [int offset = null]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Int8Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -12201,8 +12147,8 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   int get bufferSize() native "JavaScriptAudioNode_bufferSize_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -12215,8 +12161,8 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   bool $dom_dispatchEvent(Event event) native "JavaScriptAudioNode_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -12292,8 +12238,8 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
   void stop() native "LocalMediaStream_stop_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -12306,8 +12252,8 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
   bool $dom_dispatchEvent(Event event) native "LocalMediaStream_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -12424,8 +12370,8 @@ class _MediaControllerImpl extends _DOMWrapperBase implements MediaController {
 
   void set volume(num) native "MediaController_volume_Setter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -12442,8 +12388,8 @@ class _MediaControllerImpl extends _DOMWrapperBase implements MediaController {
 
   void play() native "MediaController_play_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -12678,8 +12624,8 @@ class _MediaStreamImpl extends _DOMWrapperBase implements MediaStream {
 
   MediaStreamTrackList get videoTracks() native "MediaStream_videoTracks_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -12692,8 +12638,8 @@ class _MediaStreamImpl extends _DOMWrapperBase implements MediaStream {
 
   bool $dom_dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -12827,8 +12773,8 @@ class _MessagePortImpl extends _DOMWrapperBase implements MessagePort {
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -12845,8 +12791,8 @@ class _MessagePortImpl extends _DOMWrapperBase implements MessagePort {
 
   void postMessage(String message, [List messagePorts = null]) native "MessagePort_postMessage_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -13136,11 +13082,7 @@ class _NavigatorImpl extends _DOMWrapperBase implements Navigator {
 
   void registerProtocolHandler(String scheme, String url, String title) native "Navigator_registerProtocolHandler_Callback";
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
-    _webkitGetUserMedia_1(options, successCallback, errorCallback);
-  }
-
-  void _webkitGetUserMedia_1(options, successCallback, errorCallback) native "Navigator_webkitGetUserMedia_1_Callback";
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native "Navigator_webkitGetUserMedia_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13333,8 +13275,8 @@ class _NodeImpl extends _DOMWrapperBase implements Node {
 
   void set text(String) native "Node_textContent_Setter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -13359,8 +13301,8 @@ class _NodeImpl extends _DOMWrapperBase implements Node {
 
   Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -13654,8 +13596,8 @@ class _NotificationImpl extends _DOMWrapperBase implements Notification {
 
   void set tag(String) native "Notification_tag_Setter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -13674,8 +13616,8 @@ class _NotificationImpl extends _DOMWrapperBase implements Notification {
 
   static String permissionLevel() native "Notification_permissionLevel_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -13860,8 +13802,8 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
   MediaStreamList get remoteStreams() native "PeerConnection00_remoteStreams_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -13872,8 +13814,8 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
   void _addEventListener_2(type, listener, useCapture) native "PeerConnection00_addEventListener_2_Callback";
 
-  void addStream(MediaStream stream, [Map mediaStreamHints = null]) {
-    if (mediaStreamHints === null) {
+  void addStream(stream, [mediaStreamHints = _null]) {
+    if (mediaStreamHints === _null) {
       _addStream_1(stream);
       return;
     }
@@ -13886,8 +13828,8 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
   void close() native "PeerConnection00_close_Callback";
 
-  SessionDescription createAnswer(String offer, [Map mediaHints = null]) {
-    if (mediaHints === null) {
+  SessionDescription createAnswer(offer, [mediaHints = _null]) {
+    if (mediaHints === _null) {
       return _createAnswer_1(offer);
     }
     return _createAnswer_2(offer, mediaHints);
@@ -13897,8 +13839,8 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
   SessionDescription _createAnswer_2(offer, mediaHints) native "PeerConnection00_createAnswer_2_Callback";
 
-  SessionDescription createOffer([Map mediaHints = null]) {
-    if (mediaHints === null) {
+  SessionDescription createOffer([mediaHints = _null]) {
+    if (mediaHints === _null) {
       return _createOffer_1();
     }
     return _createOffer_2(mediaHints);
@@ -13912,8 +13854,8 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
   void processIceMessage(IceCandidate candidate) native "PeerConnection00_processIceMessage_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -13930,8 +13872,8 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
   void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
 
-  void startIce([Map iceOptions = null]) {
-    if (iceOptions === null) {
+  void startIce([iceOptions = _null]) {
+    if (iceOptions === _null) {
       _startIce_1();
       return;
     }
@@ -14034,11 +13976,7 @@ class _PointerLockImpl extends _DOMWrapperBase implements PointerLock {
 
   bool get isLocked() native "PointerLock_isLocked_Getter";
 
-  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) {
-    _lock_1(target, successCallback, failureCallback);
-  }
-
-  void _lock_1(target, successCallback, failureCallback) native "PointerLock_lock_1_Callback";
+  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native "PointerLock_lock_Callback";
 
   void unlock() native "PointerLock_unlock_Callback";
 
@@ -15082,8 +15020,8 @@ class _SVGElementInstanceImpl extends _DOMWrapperBase implements SVGElementInsta
 
   SVGElementInstance get previousSibling() native "SVGElementInstance_previousSibling_Getter";
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -15096,8 +15034,8 @@ class _SVGElementInstanceImpl extends _DOMWrapperBase implements SVGElementInsta
 
   bool dispatchEvent(Event event) native "SVGElementInstance_dispatchEvent_Callback";
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -18318,8 +18256,8 @@ class _SpeechGrammarListImpl extends _DOMWrapperBase implements SpeechGrammarLis
 
   int get length() native "SpeechGrammarList_length_Getter";
 
-  void addFromString(String string, [num weight = null]) {
-    if (weight === null) {
+  void addFromString(string, [weight = _null]) {
+    if (weight === _null) {
       _addFromString_1(string);
       return;
     }
@@ -18330,8 +18268,8 @@ class _SpeechGrammarListImpl extends _DOMWrapperBase implements SpeechGrammarLis
 
   void _addFromString_2(string, weight) native "SpeechGrammarList_addFromString_2_Callback";
 
-  void addFromUri(String src, [num weight = null]) {
-    if (weight === null) {
+  void addFromUri(src, [weight = _null]) {
+    if (weight === _null) {
       _addFromUri_1(src);
       return;
     }
@@ -18478,8 +18416,8 @@ class _SpeechRecognitionImpl extends _DOMWrapperBase implements SpeechRecognitio
 
   void abort() native "SpeechRecognition_abort_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -18492,8 +18430,8 @@ class _SpeechRecognitionImpl extends _DOMWrapperBase implements SpeechRecognitio
 
   bool $dom_dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -18632,17 +18570,9 @@ class _StorageImpl extends _DOMWrapperBase implements Storage {
 
 class _StorageInfoImpl extends _DOMWrapperBase implements StorageInfo {
 
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) {
-    _queryUsageAndQuota_1(storageType, usageCallback, errorCallback);
-  }
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native "StorageInfo_queryUsageAndQuota_Callback";
 
-  void _queryUsageAndQuota_1(storageType, usageCallback, errorCallback) native "StorageInfo_queryUsageAndQuota_1_Callback";
-
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) {
-    _requestQuota_1(storageType, newQuotaInBytes, quotaCallback, errorCallback);
-  }
-
-  void _requestQuota_1(storageType, newQuotaInBytes, quotaCallback, errorCallback) native "StorageInfo_requestQuota_1_Callback";
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) native "StorageInfo_requestQuota_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18892,8 +18822,8 @@ class _TextTrackCueImpl extends _DOMWrapperBase implements TextTrackCue {
 
   void set vertical(String) native "TextTrackCue_vertical_Setter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -18908,8 +18838,8 @@ class _TextTrackCueImpl extends _DOMWrapperBase implements TextTrackCue {
 
   DocumentFragment getCueAsHTML() native "TextTrackCue_getCueAsHTML_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -18972,8 +18902,8 @@ class _TextTrackImpl extends _DOMWrapperBase implements TextTrack {
 
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -18988,8 +18918,8 @@ class _TextTrackImpl extends _DOMWrapperBase implements TextTrack {
 
   void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -19023,8 +18953,8 @@ class _TextTrackListImpl extends _DOMWrapperBase implements TextTrackList {
 
   int get length() native "TextTrackList_length_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -19039,8 +18969,8 @@ class _TextTrackListImpl extends _DOMWrapperBase implements TextTrackList {
 
   TextTrack item(int index) native "TextTrackList_item_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -19387,8 +19317,8 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
   void setElements(Object array, [int offset = null]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Uint16Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -19491,8 +19421,8 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
   void setElements(Object array, [int offset = null]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Uint32Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -19595,8 +19525,8 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
   void setElements(Object array, [int offset = null]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(int start, [int end = null]) {
-    if (end === null) {
+  Uint8Array subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -19623,8 +19553,8 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   void setElements(Object array, [int offset = null]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(int start, [int end = null]) {
-    if (end === null) {
+  Uint8ClampedArray subarray(start, [end = _null]) {
+    if (end === _null) {
       return _subarray_1(start);
     }
     return _subarray_2(start, end);
@@ -19857,16 +19787,16 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
-  void bufferData(int target, data_OR_size, int usage) {
-    if (target is int && data_OR_size is ArrayBuffer && usage is int) {
+  void bufferData(target, data_OR_size, usage) {
+    if ((target is int || target === null) && (data_OR_size is ArrayBuffer || data_OR_size === null) && (usage is int || usage === null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
     }
-    if (target is int && data_OR_size is ArrayBufferView && usage is int) {
+    if ((target is int || target === null) && (data_OR_size is ArrayBufferView || data_OR_size === null) && (usage is int || usage === null)) {
       _bufferData_2(target, data_OR_size, usage);
       return;
     }
-    if (target is int && data_OR_size is int && usage is int) {
+    if ((target is int || target === null) && (data_OR_size is int || data_OR_size === null) && (usage is int || usage === null)) {
       _bufferData_3(target, data_OR_size, usage);
       return;
     }
@@ -19879,12 +19809,12 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
-  void bufferSubData(int target, int offset, data) {
-    if (target is int && offset is int && data is ArrayBuffer) {
+  void bufferSubData(target, offset, data) {
+    if ((target is int || target === null) && (offset is int || offset === null) && (data is ArrayBuffer || data === null)) {
       _bufferSubData_1(target, offset, data);
       return;
     }
-    if (target is int && offset is int && data is ArrayBufferView) {
+    if ((target is int || target === null) && (offset is int || offset === null) && (data is ArrayBufferView || data === null)) {
       _bufferSubData_2(target, offset, data);
       return;
     }
@@ -20069,24 +19999,24 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, ArrayBufferView pixels = null]) {
-    if (target is int && level is int && internalformat is int && format_OR_width is int && height_OR_type is int && border_OR_canvas_OR_image_OR_pixels_OR_video is int && format is int && type is int && pixels is ArrayBufferView) {
+  void texImage2D(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format = _null, type = _null, pixels = _null]) {
+    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && (format is int || format === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if (target is int && level is int && internalformat is int && format_OR_width is int && height_OR_type is int && border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData && format === null && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && format === _null && type === _null && pixels === _null) {
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if (target is int && level is int && internalformat is int && format_OR_width is int && height_OR_type is int && border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement && format === null && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && format === _null && type === _null && pixels === _null) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if (target is int && level is int && internalformat is int && format_OR_width is int && height_OR_type is int && border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement && format === null && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && format === _null && type === _null && pixels === _null) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if (target is int && level is int && internalformat is int && format_OR_width is int && height_OR_type is int && border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement && format === null && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && format === _null && type === _null && pixels === _null) {
       _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
@@ -20107,24 +20037,24 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, ArrayBufferView pixels = null]) {
-    if (target is int && level is int && xoffset is int && yoffset is int && format_OR_width is int && height_OR_type is int && canvas_OR_format_OR_image_OR_pixels_OR_video is int && type is int && pixels is ArrayBufferView) {
+  void texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type = _null, pixels = _null]) {
+    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if (target is int && level is int && xoffset is int && yoffset is int && format_OR_width is int && height_OR_type is int && canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && type === _null && pixels === _null) {
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if (target is int && level is int && xoffset is int && yoffset is int && format_OR_width is int && height_OR_type is int && canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && type === _null && pixels === _null) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if (target is int && level is int && xoffset is int && yoffset is int && format_OR_width is int && height_OR_type is int && canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && type === _null && pixels === _null) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if (target is int && level is int && xoffset is int && yoffset is int && format_OR_width is int && height_OR_type is int && canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement && type === null && pixels === null) {
+    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && type === _null && pixels === _null) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
@@ -20596,8 +20526,8 @@ class _WebSocketImpl extends _DOMWrapperBase implements WebSocket {
 
   String get url() native "WebSocket_url_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -20612,8 +20542,8 @@ class _WebSocketImpl extends _DOMWrapperBase implements WebSocket {
 
   bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -20700,8 +20630,8 @@ class _WorkerContextImpl extends _DOMWrapperBase implements WorkerContext {
 
   NotificationCenter get webkitNotifications() native "WorkerContext_webkitNotifications_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -20722,20 +20652,12 @@ class _WorkerContextImpl extends _DOMWrapperBase implements WorkerContext {
 
   void importScripts() native "WorkerContext_importScripts_Callback";
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    return _openDatabase_1(name, version, displayName, estimatedSize, creationCallback);
-  }
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native "WorkerContext_openDatabase_Callback";
 
-  Database _openDatabase_1(name, version, displayName, estimatedSize, creationCallback) native "WorkerContext_openDatabase_1_Callback";
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native "WorkerContext_openDatabaseSync_Callback";
 
-  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    return _openDatabaseSync_1(name, version, displayName, estimatedSize, creationCallback);
-  }
-
-  DatabaseSync _openDatabaseSync_1(name, version, displayName, estimatedSize, creationCallback) native "WorkerContext_openDatabaseSync_1_Callback";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -20750,21 +20672,13 @@ class _WorkerContextImpl extends _DOMWrapperBase implements WorkerContext {
 
   int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _webkitRequestFileSystem_1(type, size, successCallback, errorCallback);
-  }
-
-  void _webkitRequestFileSystem_1(type, size, successCallback, errorCallback) native "WorkerContext_webkitRequestFileSystem_1_Callback";
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
   EntrySync webkitResolveLocalFileSystemSyncURL(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _webkitResolveLocalFileSystemURL_1(url, successCallback, errorCallback);
-  }
-
-  void _webkitResolveLocalFileSystemURL_1(url, successCallback, errorCallback) native "WorkerContext_webkitResolveLocalFileSystemURL_1_Callback";
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20932,8 +20846,8 @@ class _XMLHttpRequestImpl extends _DOMWrapperBase implements XMLHttpRequest {
 
   void abort() native "XMLHttpRequest_abort_Callback";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -20954,8 +20868,8 @@ class _XMLHttpRequestImpl extends _DOMWrapperBase implements XMLHttpRequest {
 
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }
@@ -21009,8 +20923,8 @@ class _XMLHttpRequestUploadImpl extends _DOMWrapperBase implements XMLHttpReques
     return _on;
   }
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _addEventListener_1(type, listener);
       return;
     }
@@ -21023,8 +20937,8 @@ class _XMLHttpRequestUploadImpl extends _DOMWrapperBase implements XMLHttpReques
 
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
       _removeEventListener_1(type, listener);
       return;
     }

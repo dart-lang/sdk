@@ -179,17 +179,17 @@ class ParamInfo(object):
     name: Name of parameter.
     type_id: Original type id.  None for merged types.
     dart_type: DartType of parameter.
-    default_value: String holding the expression.  None for mandatory parameter.
+    is_optional: Parameter optionality.
   """
-  def __init__(self, name, type_id, dart_type, default_value):
+  def __init__(self, name, type_id, dart_type, is_optional):
     self.name = name
     self.type_id = type_id
     self.dart_type = dart_type
-    self.default_value = default_value
+    self.is_optional = is_optional
 
   def __repr__(self):
-    content = 'name = %s, type_id = %s, dart_type = %s, default_value = %s' % (
-        self.name, self.type_id, self.dart_type, self.default_value)
+    content = 'name = %s, type_id = %s, dart_type = %s, is_optional = %s' % (
+        self.name, self.type_id, self.dart_type, self.is_optional)
     return '<ParamInfo(%s)>' % content
 
 
@@ -211,7 +211,7 @@ def _DartArg(args, interface, constructor=False):
     else:
       return (None, TypeName(type_ids, interface))
 
-  def NeedsDefaultValue(argument):
+  def IsOptional(argument):
     if not argument:
       return True
     if 'Callback' in argument.ext_attrs:
@@ -224,13 +224,10 @@ def _DartArg(args, interface, constructor=False):
     return False
 
   filtered = filter(None, args)
-  needs_default_value = any(NeedsDefaultValue(arg) for arg in args)
+  is_optional = any(IsOptional(arg) for arg in args)
   (type_id, dart_type) = OverloadedType(filtered)
   name = OverloadedName(filtered)
-  if needs_default_value:
-    return ParamInfo(name, type_id, dart_type, 'null')
-  else:
-    return ParamInfo(name, type_id, dart_type, None)
+  return ParamInfo(name, type_id, dart_type, is_optional)
 
 def IsOptional(argument):
   return ('Optional' in argument.ext_attrs and
@@ -391,10 +388,11 @@ class OperationInfo(object):
   def ParametersInterfaceDeclaration(self):
     """Returns a formatted string declaring the parameters for the interface."""
     return self._FormatParams(
-        self.param_infos, True,
+        self.param_infos, None,
         lambda param: TypeOrNothing(param.dart_type, param.type_id))
 
-  def ParametersImplementationDeclaration(self, rename_type=None):
+  def ParametersImplementationDeclaration(
+      self, rename_type=None, default_value='null'):
     """Returns a formatted string declaring the parameters for the
     implementation.
 
@@ -405,7 +403,7 @@ class OperationInfo(object):
     if rename_type:
       def renamer(param_info):
         return TypeOrNothing(rename_type(param_info.dart_type))
-      return self._FormatParams(self.param_infos, False, renamer)
+      return self._FormatParams(self.param_infos, default_value, renamer)
     else:
       def type_fn(param_info):
         if param_info.dart_type == 'Dynamic':
@@ -417,7 +415,7 @@ class OperationInfo(object):
         else:
           return param_info.dart_type
       return self._FormatParams(
-          self.param_infos, False,
+          self.param_infos, default_value,
           lambda param: TypeOrNothing(param.dart_type, param.type_id))
 
   def ParametersAsArgumentList(self):
@@ -426,24 +424,23 @@ class OperationInfo(object):
     """
     return ', '.join(map(lambda param_info: param_info.name, self.param_infos))
 
-  def _FormatParams(self, params, is_interface, type_fn):
+  def _FormatParams(self, params, default_value, type_fn):
     def FormatParam(param):
       """Returns a parameter declaration fragment for an ParamInfo."""
       type = type_fn(param)
-      if is_interface or param.default_value is None:
-        return '%s%s' % (type, param.name)
-      else:
-        return '%s%s = %s' % (type, param.name, param.default_value)
+      if param.is_optional and default_value:
+        return '%s%s = %s' % (type, param.name, default_value)
+      return '%s%s' % (type, param.name)
 
     required = []
     optional = []
     for param_info in params:
-      if param_info.default_value:
+      if param_info.is_optional:
         optional.append(param_info)
       else:
         if optional:
           raise Exception('Optional parameters cannot precede required ones: '
-                          + str(args))
+                          + str(params))
         required.append(param_info)
     argtexts = map(FormatParam, required)
     if optional:

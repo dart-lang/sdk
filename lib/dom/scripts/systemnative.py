@@ -758,15 +758,23 @@ class NativeImplementationGenerator(object):
     if not html_name:
       return
 
+    is_custom = 'Custom' in operation.ext_attrs
+    has_optional_arguments = any(_IsArgumentOptionalInWebCore(argument) for argument in operation.arguments)
+    needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
+
+    if not needs_dispatcher:
+      type_renamer = self._DartType
+      default_value = 'null'
+    else:
+      type_renamer = lambda x: 'Dynamic'
+      default_value = '_null'
+
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         self._DartType(info.type_name),
         html_name,
-        info.ParametersImplementationDeclaration(self._DartType))
+        info.ParametersImplementationDeclaration(type_renamer, default_value))
 
-    is_custom = 'Custom' in operation.ext_attrs
-    has_optional_arguments = any(IsOptional(argument) for argument in operation.arguments)
-    needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
     if not needs_dispatcher:
       # Bind directly to native implementation
       argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
@@ -814,30 +822,27 @@ class NativeImplementationGenerator(object):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = ['%s === null' % name for name in argument_names]
+      checks = ['%s === _null' % name for name in argument_names]
       for i in range(0, argument_count):
         argument = operation.arguments[i]
-        checks[i] = '%s is %s' % (argument_names[i], self._DartType(argument.type.id))
-        if IsOptional(argument) and 'Callback' in argument.ext_attrs:
-          checks[i] = '(%s or %s === null)' % (checks[position], argument_names[i])
+        argument_name = argument_names[i]
+        checks[i] = '(%s is %s || %s === null)' % (
+            argument_name, self._DartType(argument.type.id), argument_name)
       GenerateCall(operation, argument_count, checks)
-
-    def IsOptionalInWebCore(argument):
-      return IsOptional(argument) and not 'Callback' in argument.ext_attrs
 
     # TODO: Optimize the dispatch to avoid repeated checks.
     if len(operations) > 1:
       for operation in operations:
         for position, argument in enumerate(operation.arguments):
-          if IsOptionalInWebCore(argument):
+          if _IsArgumentOptionalInWebCore(argument):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
       body.Emit('    throw "Incorrect number or type of arguments";\n');
     else:
       operation = operations[0]
       for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if IsOptionalInWebCore(argument):
-          check = '%s === null' % argument_names[position]
+        if _IsArgumentOptionalInWebCore(argument):
+          check = '%s === _null' % argument_names[position]
           GenerateCall(operation, position, [check])
       GenerateCall(operation, len(operation.arguments), [])
 
@@ -1052,3 +1057,6 @@ def _FindParent(interface, database, callback):
     parent_interface = _FindParent(parent_interface, database, callback)
     if parent_interface:
       return parent_interface
+
+def _IsArgumentOptionalInWebCore(argument):
+  return IsOptional(argument) and not 'Callback' in argument.ext_attrs

@@ -54,3 +54,9 @@ Document get document() {
 }
 
 Document get _document() => _window.document;
+
+class _Null {
+  const _Null();
+}
+
+final _null = const _Null();

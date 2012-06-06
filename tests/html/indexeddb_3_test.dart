@@ -85,7 +85,8 @@ class Test {
   readAllReversedViaCursor() {
     IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
     IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
-    IDBRequest cursorRequest = objectStore.openCursor(new IDBKeyRange.bound(0, 100), 'prev');
+    // TODO: create a IDBKeyRange(0,100)
+    IDBRequest cursorRequest = objectStore.openCursor(null, 'prev');
     int itemCount = 0;
     int sumKeys = 0;
     int lastKey = null;
