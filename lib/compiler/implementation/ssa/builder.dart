@@ -785,9 +785,8 @@ class JumpHandlerImpl implements JumpHandler {
   }
 }
 
-class SsaBuilder implements Visitor {
+class SsaBuilder extends ResolvedVisitor implements Visitor {
   final SsaBuilderTask builder;
-  TreeElements elements;
   final Interceptors interceptors;
   final WorkItem work;
   bool methodInterceptionEnabled;
@@ -824,11 +823,11 @@ class SsaBuilder implements Visitor {
       this.work = work,
       interceptors = builder.interceptors,
       methodInterceptionEnabled = true,
-      elements = work.resolutionTree,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
       activationVariables = new Map<Element, HParameterValue>(),
-      jumpTargets = new Map<TargetElement, JumpHandler>() {
+      jumpTargets = new Map<TargetElement, JumpHandler>(),
+      super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
 
@@ -1904,6 +1903,11 @@ class SsaBuilder implements Visitor {
 
   visitOperatorSend(node) {
     assert(node.selector is Operator);
+    if (!methodInterceptionEnabled) {
+      visitDynamicSend(node);
+      return;
+    }
+
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
       HStatic target = new HStatic(interceptors.getIndexInterceptor());
@@ -2246,7 +2250,7 @@ class SsaBuilder implements Visitor {
                       inputs));
   }
 
-  handleForeignSend(Send node) {
+  visitForeignSend(Send node) {
     Element element = elements[node];
     if (element.name == const SourceString('JS')) {
       handleForeignJs(node);
@@ -2401,37 +2405,13 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  visitSend(Send node) {
-    if (node.isSuperCall) {
-      visitSuperSend(node);
-    } else if (node.isOperator && methodInterceptionEnabled) {
-      visitOperatorSend(node);
-    } else if (node.isPropertyAccess) {
-      generateGetter(node, elements[node]);
-    } else if (Elements.isClosureSend(node, elements)) {
-      visitClosureSend(node);
-    } else {
-      Element element = elements[node];
-      if (element === null) {
-        // Example: f() with 'f' unbound.
-        // This can only happen inside an instance method.
-        visitDynamicSend(node);
-      } else if (element.kind == ElementKind.CLASS) {
-        compiler.internalError("Cannot generate code for send", node: node);
-      } else if (element.isInstanceMember()) {
-        // Example: f() with 'f' bound to instance method.
-        visitDynamicSend(node);
-      } else if (element.kind === ElementKind.FOREIGN) {
-        handleForeignSend(node);
-      } else if (!element.isInstanceMember()) {
-        // Example: A.f() or f() with 'f' bound to a static function.
-        // Also includes new A() or new A.named() which is treated like a
-        // static call to a factory.
-        visitStaticSend(node);
-      } else {
-        compiler.internalError("Cannot generate code for send", node: node);
-      }
-    }
+  visitGetterSend(Send node) {
+    generateGetter(node, elements[node]);
+  }
+
+  // TODO(antonm): migrate rest of SsaBuilder to internalError.
+  internalError(String reason, [Node node]) {
+    compiler.internalError(reason, node: node);
   }
 
   // TODO(karlklose): share with resolver.
