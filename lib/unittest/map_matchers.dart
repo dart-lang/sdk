@@ -43,7 +43,7 @@ class _ContainsMapping extends BaseMatcher {
       return mismatchDescription.addDescriptionOf(item).
           add("' doesn't contain key '").addDescriptionOf(_key);
     } else {
-      return mismatchDescription.add(' contains key ').addDescriptionOf(_key).
+      mismatchDescription.add(' contains key ').addDescriptionOf(_key).
           add(' but with value ');
       _valueMatcher.describeMismatch(item[_key], mismatchDescription);
       return mismatchDescription;
