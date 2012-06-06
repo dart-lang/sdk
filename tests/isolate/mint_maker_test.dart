@@ -191,7 +191,7 @@ class MintMakerWrapper {
 
 _checkBalance(PurseWrapper wrapper, expected) {
   wrapper.queryBalance(expectAsync1((int balance) {
-    expect(balance).equals(expected);
+    expect(balance, equals(expected));
   }));
 }
 

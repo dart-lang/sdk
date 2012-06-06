@@ -24,7 +24,7 @@ main() {
   test('spawn with other script tags in page', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      expect(msg).equals('re: hi');
+      expect(msg, equals('re: hi'));
       port.close();
     }));
 

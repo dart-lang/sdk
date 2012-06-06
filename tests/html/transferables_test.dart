@@ -10,11 +10,10 @@
 main() {
   useHtmlConfiguration();
 
-  asyncTest('TransferableTest', 1, () {
-    window.on.message.add((messageEvent) {
-      expect(messageEvent.data is ArrayBuffer).isTrue();
-      callbackDone();
-    });
+  test('TransferableTest', () {
+    window.on.message.add(expectAsync1((messageEvent) {
+      expect(messageEvent.data, new isInstanceOf<ArrayBuffer>());
+    }));
     final buffer = (new Float32Array(3)).buffer;
     window.webkitPostMessage(buffer, '*', [buffer]);
   });

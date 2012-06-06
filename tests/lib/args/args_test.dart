@@ -67,7 +67,7 @@ main() {
         parser.addFlag('verbose');
 
         var args = parser.parse(['--verbose']);
-        expect(args['verbose']).isTrue();
+        expect(args['verbose'], isTrue);
       });
 
       test('default if missing', () {
@@ -76,8 +76,8 @@ main() {
         parser.addFlag('b', defaultsTo: false);
 
         var args = parser.parse([]);
-        expect(args['a']).isTrue();
-        expect(args['b']).isFalse();
+        expect(args['a'], isTrue);
+        expect(args['b'], isFalse);
       });
 
       test('are false if missing with no default', () {
@@ -85,7 +85,7 @@ main() {
         parser.addFlag('verbose');
 
         var args = parser.parse([]);
-        expect(args['verbose']).isFalse();
+        expect(args['verbose'], isFalse);
       });
 
       test('throws if given a value', () {
@@ -102,7 +102,7 @@ main() {
         parser.addFlag('verbose');
 
         var args = parser.parse(['--no-verbose']);
-        expect(args['verbose']).isFalse();
+        expect(args['verbose'], isFalse);
       });
 
       test('set the flag to true if the flag actually starts with "no-"', () {
@@ -110,7 +110,7 @@ main() {
         parser.addFlag('no-body');
 
         var args = parser.parse(['--no-body']);
-        expect(args['no-body']).isTrue();
+        expect(args['no-body'], isTrue);
       });
 
       test('are not preferred over a colliding one without', () {
@@ -119,8 +119,8 @@ main() {
         parser.addFlag('strum');
 
         var args = parser.parse(['--no-strum']);
-        expect(args['no-strum']).isTrue();
-        expect(args['strum']).isFalse();
+        expect(args['no-strum'], isTrue);
+        expect(args['strum'], isFalse);
       });
     });
 
@@ -131,7 +131,7 @@ main() {
         parser.addFlag('a', callback: (value) => a = value);
 
         var args = parser.parse(['--a']);
-        expect(a).isTrue();
+        expect(a, isTrue);
       });
 
       test('for absent flags are invoked with the default value', () {
@@ -141,7 +141,7 @@ main() {
             callback: (value) => a = value);
 
         var args = parser.parse([]);
-        expect(a).isFalse();
+        expect(a, isFalse);
       });
 
       test('are invoked even if the flag is not present', () {
@@ -150,7 +150,7 @@ main() {
         parser.addFlag('a', callback: (value) => a = value);
 
         var args = parser.parse([]);
-        expect(a).isFalse();
+        expect(a, isFalse);
       });
 
       test('for present options are invoked with the value', () {
@@ -159,7 +159,7 @@ main() {
         parser.addOption('a', callback: (value) => a = value);
 
         var args = parser.parse(['--a=v']);
-        expect(a).equals('v');
+        expect(a, equals('v'));
       });
 
       test('for absent options are invoked with the default value', () {
@@ -169,7 +169,7 @@ main() {
             callback: (value) => a = value);
 
         var args = parser.parse([]);
-        expect(a).equals('v');
+        expect(a, equals('v'));
       });
 
       test('are invoked even if the option is not present', () {
@@ -178,7 +178,7 @@ main() {
         parser.addOption('a', callback: (value) => a = value);
 
         var args = parser.parse([]);
-        expect(a).isNull();
+        expect(a, isNull);
       });
     });
 
@@ -188,7 +188,7 @@ main() {
         parser.addFlag('arg', abbr: 'a');
 
         var args = parser.parse(['-a']);
-        expect(args['arg']).isTrue();
+        expect(args['arg'], isTrue);
       });
 
       test('can use multiple after a single "-"', () {
@@ -198,9 +198,9 @@ main() {
         parser.addFlag('third', abbr: 't');
 
         var args = parser.parse(['-tf']);
-        expect(args['first']).isTrue();
-        expect(args['second']).isFalse();
-        expect(args['third']).isTrue();
+        expect(args['first'], isTrue);
+        expect(args['second'], isFalse);
+        expect(args['third'], isTrue);
       });
 
       test('can have multiple "-" args', () {
@@ -210,9 +210,9 @@ main() {
         parser.addFlag('third', abbr: 't');
 
         var args = parser.parse(['-s', '-tf']);
-        expect(args['first']).isTrue();
-        expect(args['second']).isTrue();
-        expect(args['third']).isTrue();
+        expect(args['first'], isTrue);
+        expect(args['second'], isTrue);
+        expect(args['third'], isTrue);
       });
 
       test('can take arguments without a space separating', () {
@@ -220,7 +220,7 @@ main() {
         parser.addOption('file', abbr: 'f');
 
         var args = parser.parse(['-flip']);
-        expect(args['file']).equals('lip');
+        expect(args['file'], equals('lip'));
       });
 
       test('can take arguments with a space separating', () {
@@ -228,7 +228,7 @@ main() {
         parser.addOption('file', abbr: 'f');
 
         var args = parser.parse(['-f', 'name']);
-        expect(args['file']).equals('name');
+        expect(args['file'], equals('name'));
       });
 
       test('allow non-option characters in the value', () {
@@ -236,7 +236,7 @@ main() {
         parser.addOption('apple', abbr: 'a');
 
         var args = parser.parse(['-ab?!c']);
-        expect(args['apple']).equals('b?!c');
+        expect(args['apple'], equals('b?!c'));
       });
 
       test('throw if unknown', () {
@@ -292,28 +292,28 @@ main() {
         var parser = new ArgParser();
         parser.addOption('mode');
         var args = parser.parse(['--mode=release']);
-        expect(args['mode']).equals('release');
+        expect(args['mode'], equals('release'));
       });
 
       test('are null if not present', () {
         var parser = new ArgParser();
         parser.addOption('mode');
         var args = parser.parse([]);
-        expect(args['mode']).isNull();
+        expect(args['mode'], isNull);
       });
 
       test('default if missing', () {
         var parser = new ArgParser();
         parser.addOption('mode', defaultsTo: 'debug');
         var args = parser.parse([]);
-        expect(args['mode']).equals('debug');
+        expect(args['mode'], equals('debug'));
       });
 
       test('allow the value to be separated by whitespace', () {
         var parser = new ArgParser();
         parser.addOption('mode');
         var args = parser.parse(['--mode', 'release']);
-        expect(args['mode']).equals('release');
+        expect(args['mode'], equals('release'));
       });
 
       test('throw if unknown', () {
@@ -342,7 +342,7 @@ main() {
         var parser = new ArgParser();
         parser.addOption('mode', allowed: ['debug', 'release']);
         var args = parser.parse(['--mode=debug']);
-        expect(args['mode']).equals('debug');
+        expect(args['mode'], equals('debug'));
       });
 
       test('throw if the value is not in the allowed set', () {
@@ -360,10 +360,10 @@ main() {
         parser.addOption('tweet', defaultsTo: 'bird');
 
         var results = parser.parse(['--woof', '--meow', 'v', 'not', 'option']);
-        expect(results['woof']).isTrue();
-        expect(results['meow']).equals('v');
-        expect(results['tweet']).equals('bird');
-        expect(results.rest).equalsCollection(['not', 'option']);
+        expect(results['woof'], isTrue);
+        expect(results['meow'], equals('v'));
+        expect(results['tweet'], equals('bird'));
+        expect(results.rest, orderedEquals(['not', 'option']));
       });
 
       test('stops parsing at "--"', () {
@@ -372,9 +372,9 @@ main() {
         parser.addOption('meow', defaultsTo: 'kitty');
 
         var results = parser.parse(['--woof', '--', '--meow']);
-        expect(results['woof']).isTrue();
-        expect(results['meow']).equals('kitty');
-        expect(results.rest).equalsCollection(['--meow']);
+        expect(results['woof'], isTrue);
+        expect(results['meow'], equals('kitty'));
+        expect(results.rest, orderedEquals(['--meow']));
       });
     });
   });
@@ -540,16 +540,17 @@ main() {
 }
 
 throwsIllegalArg(function) {
-  expectThrow(function, (e) => e is IllegalArgumentException);
+  expect(function, throwsA(new isInstanceOf<IllegalArgumentException>()));
 }
 
 throwsBadFormat(ArgParser parser, List<String> args) {
-  expectThrow(() => parser.parse(args), (e) => e is ArgFormatException);
+  expect(() => parser.parse(args),
+      throwsA(new isInstanceOf<ArgFormatException>()));
 }
 
 validateUsage(ArgParser parser, String expected) {
   expected = unindentString(expected);
-  expect(parser.getUsage()).equals(expected);
+  expect(parser.getUsage(), equals(expected));
 }
 
 // TODO(rnystrom): Replace one in test_utils.

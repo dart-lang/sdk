@@ -14,7 +14,7 @@ main() {
   test("Render Mandelbrot in parallel", () {
     final state = new MandelbrotState();
     state._validated.future.then(expectAsync1((result) {
-      expect(result).isTrue();
+      expect(result, isTrue);
     }));
     for (int i = 0; i < Math.min(ISOLATES, N); i++) state.startClient(i);
   });

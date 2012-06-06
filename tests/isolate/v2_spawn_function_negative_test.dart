@@ -16,7 +16,7 @@ main() {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
       port.close();
-      expect(msg).equals('re: hello'); // should be hi, not hello
+      expect(msg, equals('re: hello')); // should be hi, not hello
     }));
 
     SendPort s = spawnFunction(child);
