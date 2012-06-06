@@ -20,5 +20,7 @@ interface $ID$EXTENDS {
 
   void cancelAnimationFrame(int id);
 
+  IDBFactory get indexedDB();
+
 $!MEMBERS
 }

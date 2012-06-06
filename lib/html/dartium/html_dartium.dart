@@ -5048,6 +5048,8 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
   void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
 
+  IDBFactory get indexedDB() => webkitIndexedDB;
+
   _EventsImpl _on;
 
   _DOMWindowEventsImpl get on() {
@@ -11210,22 +11212,12 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
     if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_2(storeName_OR_storeNames, mode);
     }
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is int || mode === null)) {
-      return _transaction_3(storeName_OR_storeNames, mode);
-    }
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is int || mode === null)) {
-      return _transaction_4(storeName_OR_storeNames, mode);
-    }
     throw "Incorrect number or type of arguments";
   }
 
   IDBTransaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_1_Callback";
 
   IDBTransaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_2_Callback";
-
-  IDBTransaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
-
-  IDBTransaction _transaction_4(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_4_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28436,7 +28428,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(storeName_OR_storeNames, mode);
+  IDBTransaction transaction(storeName_OR_storeNames, String mode);
 }
 
 interface IDBDatabaseEvents extends Events {
@@ -38757,6 +38749,8 @@ interface Window extends EventTarget {
 
   void cancelAnimationFrame(int id);
 
+  IDBFactory get indexedDB();
+
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -40589,6 +40583,28 @@ class _WebSocketFactoryProvider {
 
 class _TextFactoryProvider {
   factory Text(String data) => _document.$dom_createTextNode(data);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// IDBOpenRequest is not in WebKit but is needed for FireFox.  Dartium will not
+// implement this interface until it appears in the WebKit IDL.
+//
+// See:
+// http://www.w3.org/TR/IndexedDB/#request-api
+// http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#request-api
+
+interface IDBOpenDBRequest extends IDBRequest {
+
+  IDBOpenDBRequestEvents get on();
+}
+
+interface IDBOpenDBRequestEvents extends IDBRequestEvents {
+
+  EventListenerList get blocked();
+
+  EventListenerList get upgradeneeded();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -29,7 +29,7 @@ testReadWrite(key, value, check,
   }
 
   step2(e) {
-    var transaction = db.transaction(storeName, IDBTransaction.READ_ONLY);
+    var transaction = db.transaction(storeName, 'readonly');
     var request = transaction.objectStore(storeName).getObject(key);
     request.on.success.add(expectAsync1((e) {
         var object = e.target.result;
@@ -40,7 +40,7 @@ testReadWrite(key, value, check,
   }
 
   step1() {
-    var transaction = db.transaction([storeName], IDBTransaction.READ_WRITE);
+    var transaction = db.transaction([storeName], 'readwrite');
     var request = transaction.objectStore(storeName).put(value, key);
     request.on.success.add(expectAsync1(step2));
     request.on.error.add(fail);
@@ -65,7 +65,7 @@ testReadWrite(key, value, check,
     }
   }
 
-  var request = window.webkitIndexedDB.open(dbName);
+  var request = window.indexedDB.open(dbName);
   Expect.isNotNull(request);
   request.on.success.add(expectAsync1(initDb));
   request.on.error.add(fail);

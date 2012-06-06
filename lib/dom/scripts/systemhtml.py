@@ -259,6 +259,7 @@ _html_library_custom = set([
     'IFrameElement.get:contentWindow',
     'Window.get:document',
     'Window.get:top',
+    'IDBDatabase.transaction',
     ])
 
 # Events without onEventName attributes in the  IDL we want to support.
