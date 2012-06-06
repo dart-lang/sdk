@@ -23,6 +23,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
   abstract T asciiString(int start, int offset);
   abstract T utf8String(int start, int offset);
   abstract Token firstToken();
+  abstract Token previousToken();
   abstract void beginToken();
   abstract void addToCharOffset(int offset);
   abstract int get charOffset();
@@ -243,11 +244,13 @@ class AbstractScanner<T extends SourceString> implements Scanner {
     // [ [] []=
     next = advance();
     if (next === $CLOSE_SQUARE_BRACKET) {
-      return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
-    } else {
-      appendBeginGroup(OPEN_SQUARE_BRACKET_INFO, "[");
-      return next;
+      Token token = previousToken();
+      if (token is KeywordToken && token.value == Keyword.OPERATOR) {
+        return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
+      }
     }
+    appendBeginGroup(OPEN_SQUARE_BRACKET_INFO, "[");
+    return next;
   }
 
   int tokenizeCaret(int next) {

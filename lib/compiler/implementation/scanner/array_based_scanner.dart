@@ -74,6 +74,10 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     return tokens.next;
   }
 
+  Token previousToken() {
+    return tail;
+  }
+
   void addToCharOffset(int offset) {
     extraCharOffset += offset;
   }
