@@ -4147,16 +4147,14 @@ RawString* Field::SetterSymbol(const String& field_name) {
 
 RawString* Field::NameFromGetter(const String& getter_name) {
   String& str = String::Handle();
-  str = String::New(kGetterPrefix);
-  str = String::SubString(getter_name, str.Length());
+  str = String::SubString(getter_name, strlen(kGetterPrefix));
   return str.raw();
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
   String& str = String::Handle();
-  str = String::New(kSetterPrefix);
-  str = String::SubString(setter_name, str.Length());
+  str = String::SubString(setter_name, strlen(kSetterPrefix));
   return str.raw();
 }
 
