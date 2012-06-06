@@ -324,7 +324,10 @@ void Assembler::movq(const Address& dst, const Immediate& imm) {
 
 
 void Assembler::movsxl(Register dst, const Address& src) {
-  UNIMPLEMENTED();
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, src, REX_W);
+  EmitUint8(0x63);
+  EmitOperand(dst & 7, src);
 }
 
 

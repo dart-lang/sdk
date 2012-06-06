@@ -145,6 +145,119 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, ByteArray::length_offset()));
+  __ ret();
+  // Generate enough code to satisfy patchability constraint.
+  intptr_t offset = __ CodeSize();
+  __ nop(JumpPattern::InstructionLength() - offset);
+  return true;
+}
+
+
+// Assumes the first argument is a byte array, tests if the second
+// argument is a smi, tests if the smi is within bounds of the array
+// length, and jumps to label fall_through if any test fails.  Leaves
+// the second argument in RBX.
+void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Array.
+  __ movq(RBX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ testq(RBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RBX, FieldAddress(RAX, ByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
+}
+
+
+bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(RBX);
+  __ movsxb(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Int8Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(RBX);
+  __ movzxb(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Uint8Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movsxw(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Int16Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movzxw(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Uint16Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movsxl(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_2,
+                              Int32Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movl(RAX, FieldAddress(RAX,
+                            RBX,
+                            TIMES_2,
+                            Uint32Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   return false;
 }

@@ -74,6 +74,13 @@ namespace dart {
   V(StringBase, charCodeAt, String_charCodeAt)                                 \
   V(StringBase, hashCode, String_hashCode)                                     \
   V(StringBase, isEmpty, String_isEmpty)                                       \
+  V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
+  V(_Int8Array, [], Int8Array_getIndexed)                                      \
+  V(_Uint8Array, [], Uint8Array_getIndexed)                                    \
+  V(_Int16Array, [], Int16Array_getIndexed)                                    \
+  V(_Uint16Array, [], Uint16Array_getIndexed)                                  \
+  V(_Int32Array, [], Int32Array_getIndexed)                                    \
+  V(_Uint32Array, [], Uint32Array_getIndexed)                                  \
 
 // Forward declarations.
 class Assembler;
