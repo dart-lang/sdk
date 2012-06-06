@@ -212,39 +212,39 @@ class _ReturnsNormally extends BaseMatcher {
 
 /** A matcher for functions that throw BadNumberFormatException */
 final Matcher throwsBadNumberFormatException =
-    new _Throws(new isInstanceOf<BadNumberFormatException>());
+    const _Throws(const isInstanceOf<BadNumberFormatException>());
 
 /** A matcher for functions that throw an Exception */
 final Matcher throwsException =
-    new _Throws(new isInstanceOf<Exception>());
+    const _Throws(const isInstanceOf<Exception>());
 
 /** A matcher for functions that throw an IllegalArgumentException */
 final Matcher throwsIllegalArgumentException =
-    new _Throws(new isInstanceOf<IllegalArgumentException>());
+    const _Throws(const isInstanceOf<IllegalArgumentException>());
 
 /** A matcher for functions that throw an IllegalJSRegExpException */
 final Matcher throwsIllegalJSRegExpException =
-    new _Throws(new isInstanceOf<IllegalJSRegExpException>());
+    const _Throws(const isInstanceOf<IllegalJSRegExpException>());
 
 /** A matcher for functions that throw an IndexOutOfRangeException */
 final Matcher throwsIndexOutOfRangeException =
-    new _Throws(new isInstanceOf<IndexOutOfRangeException>());
+    const _Throws(const isInstanceOf<IndexOutOfRangeException>());
 
 /** A matcher for functions that throw a NoSuchMethodException */
 final Matcher throwsNoSuchMethodException =
-    new _Throws(new isInstanceOf<NoSuchMethodException>());
+    const _Throws(const isInstanceOf<NoSuchMethodException>());
 
 /** A matcher for functions that throw a NotImplementedException */
 final Matcher throwsNotImplementedException =
-    new _Throws(new isInstanceOf<NotImplementedException>());
+    const _Throws(const isInstanceOf<NotImplementedException>());
 
 /** A matcher for functions that throw a NullPointerException */
 final Matcher throwsNullPointerException =
-    new _Throws(new isInstanceOf<NullPointerException>());
+    const _Throws(const isInstanceOf<NullPointerException>());
 
 /** A matcher for functions that throw an UnsupportedOperationException */
 final Matcher throwsUnsupportedOperationException =
-    new _Throws(new isInstanceOf<UnsupportedOperationException>());
+    const _Throws(const isInstanceOf<UnsupportedOperationException>());
 
 /**
  * Returns a matcher that matches if an object has a length property
