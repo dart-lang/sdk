@@ -7,6 +7,7 @@
 #import('dart:uri');
 
 #import('colors.dart');
+#import('dart_backend/dart_backend.dart', prefix: 'dart_backend');
 #import('elements/elements.dart');
 #import('native_handler.dart', prefix: 'native');
 #import('scanner/scanner_implementation.dart');

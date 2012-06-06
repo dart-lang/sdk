@@ -71,11 +71,6 @@ class JavaScriptBackend extends Backend {
   }
 }
 
-class DartBackend extends Backend {
-  DartBackend(Compiler compiler) : super(compiler);
-  final List<CompilerTask> tasks = const <CompilerTask>[];
-}
-
 class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   int nextFreeClassId = 0;
@@ -163,7 +158,7 @@ class Compiler implements DiagnosticListener {
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     backend = emitJavascript ?
-        new JavaScriptBackend(this) : new DartBackend(this);
+        new JavaScriptBackend(this) : new dart_backend.DartBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              unparseValidator, constantHandler, enqueuer];
