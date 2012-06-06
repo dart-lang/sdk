@@ -7,6 +7,14 @@
  * can be invoked and classes which can be instantiated.
  */
 class ReachabilityVisitor implements Visitor {
+  final Compiler compiler;
+  final TreeElements elements;
+
+  ResolverTask get resolver() => compiler.resolver;
+  Enqueuer get world() => compiler.enqueuer.codegen;
+
+  ReachabilityVisitor(this.compiler, this.elements);
+
   visitBlock(Block node) {}
   visitBreakStatement(BreakStatement node) {}
   visitCascade(Cascade node) {}
@@ -42,10 +50,6 @@ class ReachabilityVisitor implements Visitor {
   visitLiteralString(LiteralString node) {}
   visitModifiers(Modifiers node) {}
   visitNamedArgument(NamedArgument node) {}
-  visitNewExpression(NewExpression node) {
-    // TODO(antonm): update set of instantiated classes.
-    unimplemented('NewExpression is not supported');
-  }
   visitNodeList(NodeList node) {}
   visitOperator(Operator node) {}
   visitParenthesizedExpression(ParenthesizedExpression node) {}
@@ -72,6 +76,12 @@ class ReachabilityVisitor implements Visitor {
   visitVariableDefinitions(VariableDefinitions node) {}
   visitWhile(While node) {}
 
+  visitNewExpression(NewExpression node) {
+    FunctionElement constructor = elements[node.send];
+    resolver.resolveMethodElement(constructor);
+    world.registerStaticUse(constructor.defaultImplementation);
+  }
+
   unimplemented(String reason) {
     throw new CompilerCancelledException('not implemented: $reason');
   }
@@ -82,17 +92,15 @@ class ReachabilityVisitor implements Visitor {
 }
 
 class DartBackend extends Backend {
-  final ReachabilityVisitor reachabilityVisitor;
   final List<CompilerTask> tasks = const <CompilerTask>[];
 
-  DartBackend(Compiler compiler)
-      : reachabilityVisitor = new ReachabilityVisitor(),
-        super(compiler);
+  DartBackend(Compiler compiler) : super(compiler);
 
   String codegen(WorkItem work) {
     // Traverse AST to populate sets of reachable classes and functions.
     FunctionExpression function = work.element.parseNode(compiler);
-    function.body.accept(new TraversingVisitor(reachabilityVisitor));
+    function.body.accept(new TraversingVisitor(
+        new ReachabilityVisitor(compiler, work.resolutionTree)));
   }
 
   void processNativeClasses(world, libraries) {}

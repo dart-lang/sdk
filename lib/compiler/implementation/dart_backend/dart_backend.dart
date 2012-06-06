@@ -4,6 +4,7 @@
 
 #library('dart_backend');
 
+#import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../tree/tree.dart');
 
