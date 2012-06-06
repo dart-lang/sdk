@@ -98,6 +98,7 @@ class DartBackend extends Backend {
 
   String codegen(WorkItem work) {
     // Traverse AST to populate sets of reachable classes and functions.
+    log('codegen(${work.element})');
     FunctionExpression function = work.element.parseNode(compiler);
     function.body.accept(new TraversingVisitor(
         new ReachabilityVisitor(compiler, work.resolutionTree)));
@@ -107,4 +108,6 @@ class DartBackend extends Backend {
   void assembleProgram() {
     compiler.assembledCode = '';
   }
+
+  log(String message) => compiler.log('[DartBackend] $message');
 }
