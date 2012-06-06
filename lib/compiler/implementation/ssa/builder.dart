@@ -390,11 +390,7 @@ class LocalsHandler {
       return directLocals[element];
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
-      // We must not use the [LocalsHandler.readThis()] since that could
-      // point to a captured this which would be stored in a closure-field
-      // itself.
-      HInstruction receiver = new HThis();
-      builder.add(receiver);
+      HInstruction receiver = readLocal(closureData.closureElement);
       HInstruction fieldGet = new HFieldGet(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
@@ -460,11 +456,7 @@ class LocalsHandler {
       directLocals[element] = value;
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
-      // We must not use the [LocalsHandler.readThis()] since that could
-      // point to a captured this which would be stored in a closure-field
-      // itself.
-      HInstruction receiver = new HThis();
-      builder.add(receiver);
+      HInstruction receiver = readLocal(closureData.closureElement);
       builder.add(new HFieldSet(redirect.name, receiver, value));
     } else if (isBoxed(element)) {
       Element redirect = redirectionMapping[element];
