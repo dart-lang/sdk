@@ -51,6 +51,7 @@ interface HVisitor<R> {
   R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
+  R visitStringConcat(HStringConcat node);
   R visitSubtract(HSubtract node);
   R visitSwitch(HSwitch node);
   R visitThis(HThis node);
@@ -304,6 +305,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitSwitch(HSwitch node) => visitControlFlow(node);
   visitStatic(HStatic node) => visitInstruction(node);
   visitStaticStore(HStaticStore node) => visitInstruction(node);
+  visitStringConcat(HStringConcat node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTry(HTry node) => visitControlFlow(node);
@@ -2230,6 +2232,18 @@ class HTypeConversion extends HCheck {
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
   bool hasSideEffects() => checked;
+}
+
+class HStringConcat extends HInstruction {
+  HStringConcat(HInstruction left, HInstrunction right)
+      : super(<HInstruction>[left, right]);
+  HType get guaranteedType() => HType.STRING;
+
+  HInstruction get left() => inputs[0];
+  HInstruction get right() => inputs[1];
+
+  accept(HVisitor visitor) => visitor.visitStringConcat(this);
+  toString() => "string concat";
 }
 
 /** Non-block-based (aka. traditional) loop information. */

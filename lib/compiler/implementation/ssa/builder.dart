@@ -2562,11 +2562,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(graph.addConstantString(node.dartString, node));
       return;
     }
-    int offset = node.getBeginToken().charOffset;
-    StringBuilderVisitor stringBuilder =
-        new StringBuilderVisitor(this, offset);
+    StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this);
     stringBuilder.visit(node);
-    stack.add(stringBuilder.result(node));
+    stack.add(stringBuilder.result);
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -2716,11 +2714,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    int offset = node.getBeginToken().charOffset;
-    StringBuilderVisitor stringBuilder =
-        new StringBuilderVisitor(this, offset);
+    StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this);
     stringBuilder.visit(node);
-    stack.add(stringBuilder.result(node));
+    stack.add(stringBuilder.result);
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
@@ -3395,33 +3391,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
  */
 class StringBuilderVisitor extends AbstractVisitor {
   final SsaBuilder builder;
-  final Element stringConcat;
-  final Element stringToString;
 
   /**
-   * Offset used for the synthetic operator token used by concat.
-   * Can probably be removed when we stop using String.operator+.
+   * The string value generated so far.
    */
-  final int offset;
+  HInstruction result = null;
 
-  /**
-   * Used to collect concatenated string literals into a single literal
-   * instead of introducing unnecessary concatenations.
-   */
-  DartString literalAccumulator = const LiteralDartString("");
-
-  /**
-   * The string value generated so far (not including that which is still
-   * in [literalAccumulator]).
-   */
-  HInstruction prefix = null;
-
-  StringBuilderVisitor(builder, this.offset)
-    : this.builder = builder,
-      stringConcat = builder.compiler.findHelper(
-          const SourceString("stringConcat")),
-      stringToString = builder.compiler.findHelper(
-          const SourceString("stringToString"));
+  StringBuilderVisitor(this.builder);
 
   void visit(Node node) {
     node.accept(this);
@@ -3432,27 +3408,9 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   void visitExpression(Node node) {
-    flushLiterals(node);
     node.accept(builder);
-    HInstruction asString = buildToString(node, builder.pop());
-    prefix = buildConcat(prefix, asString);
-  }
-
-  void visitLiteralNull(LiteralNull node) {
-    addLiteral(const LiteralDartString("null"));
-  }
-
-  void visitLiteralInt(LiteralInt node) {
-    addLiteral(new DartString.literal(node.value.toString()));
-  }
-
-  void visitLiteralDouble(LiteralDouble node) {
-    addLiteral(new DartString.literal(node.value.toString()));
-  }
-
-  void visitLiteralBool(LiteralBool node) {
-    addLiteral(node.value ? const LiteralDartString("true")
-                          : const LiteralDartString("false"));
+    HInstruction expression = builder.pop();
+    result = (result === null) ? expression : concat(result, expression);
   }
 
   void visitStringInterpolation(StringInterpolation node) {
@@ -3464,10 +3422,6 @@ class StringBuilderVisitor extends AbstractVisitor {
     visit(node.string);
   }
 
-  void visitLiteralString(LiteralString node) {
-    addLiteral(node.dartString);
-  }
-
   void visitStringJuxtaposition(StringJuxtaposition node) {
     node.visitChildren(this);
   }
@@ -3476,52 +3430,9 @@ class StringBuilderVisitor extends AbstractVisitor {
      node.visitChildren(this);
   }
 
-  /**
-   * Add another literal string to the literalAccumulator.
-   */
-  void addLiteral(DartString dartString) {
-    literalAccumulator = new DartString.concat(literalAccumulator, dartString);
-  }
-
-  /**
-   * Combine the strings in [literalAccumulator] into the prefix instruction.
-   * After this, the [literalAccumulator] is empty and [prefix] is non-null.
-   */
-  void flushLiterals(Node node) {
-    if (literalAccumulator.isEmpty()) {
-      if (prefix === null) {
-        prefix = builder.graph.addConstantString(literalAccumulator, node);
-      }
-      return;
-    }
-    HInstruction string =
-        builder.graph.addConstantString(literalAccumulator, node);
-    literalAccumulator = new DartString.empty();
-    if (prefix !== null) {
-      prefix = buildConcat(prefix, string);
-    } else {
-      prefix = string;
-    }
-  }
-
-  HInstruction buildConcat(HInstruction left, HInstruction right) {
-    HStatic target = new HStatic(stringConcat);
-    builder.add(target);
-    builder.push(new HAdd(target, left, right));
-    return builder.pop();
-  }
-
-  HInstruction buildToString(Node node, HInstruction input) {
-    HStatic target = new HStatic(stringToString);
-    builder.add(target);
-    builder.push(new HInvokeStatic(Selector.INVOCATION_1,
-                                   <HInstruction>[target, input],
-                                   HType.STRING));
-    return builder.pop();
-  }
-
-  HInstruction result(Node node) {
-    flushLiterals(node);
-    return prefix;
+  HInstruction concat(HInstruction left, HInstruction right) {
+    HInstruction instruction = new HStringConcat(left, right);
+    builder.add(instruction);
+    return instruction;
   }
 }

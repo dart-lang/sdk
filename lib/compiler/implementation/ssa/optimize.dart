@@ -590,6 +590,19 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (field === null) return node;
     return new HFieldSet(field, node.inputs[0], node.inputs[1]);
   }
+
+  HInstruction visitStringConcat(HStringConcat node) {
+    DartString folded = const LiteralDartString("");
+    for (int i = 0; i < node.inputs.length; i++) {
+      HInstruction part = node.inputs[i];
+      if (!part.isConstant()) return node;
+      HConstant constant = part;
+      if (!constant.constant.isPrimitive()) return node;
+      PrimitiveConstant primitive = constant.constant;
+      folded = new DartString.concat(folded, primitive.toDartString());
+    }
+    return graph.addConstantString(folded, node);
+  }
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {

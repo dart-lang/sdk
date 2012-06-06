@@ -381,6 +381,12 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Static $lhs = ${temporaryId(node.inputs[0])}";
   }
 
+  String visitStringConcat(HStringConcat node) {
+    var leftId = temporaryId(node.left);
+    var rightId = temporaryId(node.right);
+    return "StringConcat: $leftId + $rightId";
+  }
+
   String visitSubtract(HSubtract node) => visitInvokeStatic(node);
 
   String visitSwitch(HSwitch node) {

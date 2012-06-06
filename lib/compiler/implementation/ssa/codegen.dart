@@ -1856,6 +1856,50 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
+  void visitStringConcat(HStringConcat node) {
+    if (isEmptyString(node.left)) {
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      useStringified(node.right, JSPrecedence.EXPRESSION_PRECEDENCE);
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
+   } else if (isEmptyString(node.right)) {
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      useStringified(node.left, JSPrecedence.EXPRESSION_PRECEDENCE);
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
+    } else {
+      JSBinaryOperatorPrecedence operatorPrecedences = JSPrecedence.binary['+'];
+      beginExpression(operatorPrecedences.precedence);
+      useStringified(node.left, operatorPrecedences.left);
+      buffer.add(' + ');
+      // If the right hand side is a string concatenation itself it is
+      // safe to make it left associative.
+      int rightPrecedence = (node.right is HStringConcat)
+          ? JSPrecedence.ADDITIVE_PRECEDENCE
+          : operatorPrecedences.right;
+      useStringified(node.right, rightPrecedence);
+      endExpression(operatorPrecedences.precedence);
+    }
+  }
+
+  bool isEmptyString(HInstruction node) {
+    if (!node.isConstantString()) return false;
+    HConstant constant = node;
+    StringConstant string = constant.constant;
+    return string.value.length == 0;
+  }
+
+  void useStringified(HInstruction node, int precedence) {
+    if (node.isString()) {
+      use(node, precedence);
+    } else {
+      Element convertToString = compiler.findHelper(const SourceString("S"));
+      world.registerStaticUse(convertToString);
+      buffer.add(compiler.namer.isolateAccess(convertToString));
+      buffer.add('(');
+      use(node, JSPrecedence.EXPRESSION_PRECEDENCE);
+      buffer.add(')');
+    }
+  }
+
   void visitLiteralList(HLiteralList node) {
     generateArrayLiteral(node);
   }

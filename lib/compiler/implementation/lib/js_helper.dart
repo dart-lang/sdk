@@ -376,16 +376,11 @@ checkGrowable(list, reason) {
   }
 }
 
-String stringToString(value) {
+String S(value) {
   var res = value.toString();
   if (res is !String) throw new IllegalArgumentException(value);
   return res;
 }
-
-String stringConcat(String receiver, String other) {
-  return JS('String', @'# + #', receiver, other);
-}
-
 
 class ListIterator<T> implements Iterator<T> {
   int i;
@@ -415,13 +410,10 @@ class Primitives {
   static final int DOLLAR_CHAR_VALUE = 36;
 
   static String objectToString(Object object) {
-    String name = JS('String', @'#.constructor.name', object);
-    if (name === null) {
-      name = JS('String', @'#.match(/^\s*function\s*\$?(\S*)\s*\(/)[1]',
-                JS('String', @'#.constructor.toString()', object));
-    } else {
-      if (name.charCodeAt(0) === DOLLAR_CHAR_VALUE) name = name.substring(1);
-    }
+    String name = getTypeNameOf(object);
+    // TODO(kasperl): If the namer gave us a fresh global name, we may
+    // want to remove the numeric suffix that makes it unique too.
+    if (name.charCodeAt(0) === DOLLAR_CHAR_VALUE) name = name.substring(1);
     return "Instance of '$name'";
   }
 
