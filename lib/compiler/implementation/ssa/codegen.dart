@@ -633,6 +633,45 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return true;
   }
 
+  bool visitSwitchInfo(HSwitchBlockInformation info) {
+    bool isExpression = isJSExpression(info.expression);
+    if (!isExpression) {
+      generateStatements(info.expression);
+    }
+    addIndentation();
+    for (LabelElement label in info.labels) {
+      if (label.isTarget) {
+        writeLabel(label);
+        buffer.add(":");
+      }
+    }
+    addIndented("switch (");
+    if (isExpression) {
+      generateExpression(info.expression);
+    } else {
+      use(info.expression.conditionExpression,
+          JSPrecedence.EXPRESSION_PRECEDENCE);
+    }
+    buffer.add(") {\n");
+    indent++;
+    for (int i = 0; i < info.matchExpressions.length; i++) {
+      for (Constant constant in info.matchExpressions[i]) {
+        addIndented("case ");
+        generateConstant(constant);
+        buffer.add(":\n");
+      }
+      if (i == info.matchExpressions.length - 1 && info.hasDefault) {
+        addIndented("default:\n");
+      }
+      indent++;
+      generateStatements(info.statements[i]);
+      indent--;
+    }
+    indent--;
+    addIndented("}\n");
+    return true;
+  }
+
   bool visitSequenceInfo(HStatementSequenceInformation info) {
     return false;
   }
@@ -1565,28 +1604,33 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.MEMBER_PRECEDENCE);
   }
 
-  visitConstant(HConstant node) {
-    assert(isGenerateAtUseSite(node));
+  void generateConstant(Constant constant) {
     // TODO(floitsch): the compile-time constant handler and the codegen
     // need to work together to avoid the parenthesis. See r4928 for an
     // implementation that still dealt with precedence.
     ConstantHandler handler = compiler.constantHandler;
-    String name = handler.getNameForConstant(node.constant);
+    String name = handler.getNameForConstant(constant);
     if (name === null) {
-      assert(!node.constant.isObject());
-      if (node.constant.isNum()
+      assert(!constant.isObject());
+      if (constant.isNum()
           && expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
         buffer.add('(');
-        handler.writeConstant(buffer, node.constant);
+        handler.writeConstant(buffer, constant);
         buffer.add(')');
       } else {
-        handler.writeConstant(buffer, node.constant);
+        handler.writeConstant(buffer, constant);
       }
     } else {
       buffer.add(compiler.namer.CURRENT_ISOLATE);
       buffer.add(".");
       buffer.add(name);
     }
+
+  }
+
+  visitConstant(HConstant node) {
+    assert(isGenerateAtUseSite(node));
+    generateConstant(node.constant);
   }
 
   visitLoopBranch(HLoopBranch node) {
@@ -1792,6 +1836,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void addIndented(String text) {
     addIndentation();
     buffer.add(text);
+  }
+
+  void visitSwitch(HSwitch node) {
+    // Switches are handled using [visitSwitchInfo].
   }
 
   void visitStatic(HStatic node) {

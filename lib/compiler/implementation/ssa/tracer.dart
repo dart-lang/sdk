@@ -383,6 +383,22 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitSubtract(HSubtract node) => visitInvokeStatic(node);
 
+  String visitSwitch(HSwitch node) {
+    StringBuffer buf = new StringBuffer();
+    buf.add("Switch: (");
+    buf.add(temporaryId(node.inputs[0]));
+    buf.add(") ");
+    for (int i = 1; i < node.inputs.length; i++) {
+      buf.add(temporaryId(node.inputs[i]));
+      buf.add(": B");
+      buf.add(node.block.successors[i - 1].id);
+      buf.add(", ");
+    }
+    buf.add("default: B");
+    buf.add(node.block.successors.last().id);
+    return buf.toString();
+  }
+
   String visitThis(HThis node) => "this";
 
   String visitThrow(HThrow node) => "Throw ${temporaryId(node.inputs[0])}";

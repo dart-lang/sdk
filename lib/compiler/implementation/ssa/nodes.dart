@@ -52,6 +52,7 @@ interface HVisitor<R> {
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
   R visitSubtract(HSubtract node);
+  R visitSwitch(HSwitch node);
   R visitThis(HThis node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
@@ -300,6 +301,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
+  visitSwitch(HSwitch node) => visitControlFlow(node);
   visitStatic(HStatic node) => visitInstruction(node);
   visitStaticStore(HStaticStore node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
@@ -333,7 +335,7 @@ class SubExpression extends SubGraph {
   /** Find the condition expression if this sub-expression is a condition. */
   HInstruction get conditionExpression() {
     HInstruction last = end.last;
-    if (last is HConditionalBranch) return last.inputs[0];
+    if (last is HConditionalBranch || last is HSwitch) return last.inputs[0];
     return null;
   }
 }
@@ -1478,6 +1480,26 @@ class HSubtract extends HBinaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
+/**
+ * An [HSwitch] instruction has one input for the incoming
+ * value, and one input per constant that it can switch on.
+ * Its block has one successor per constant, and one for the default.
+ * If the switch didn't have a default case, the last successor is
+ * the join block.
+ */
+class HSwitch extends HControlFlow {
+  HSwitch(List<HInstruction> inputs) : super(inputs);
+
+  HConstant constant(int index) => inputs[index + 1];
+  HInstruction get expression() => inputs[0];
+
+  HBasicBlock get defaultTarget() => block.successors.last();
+
+  accept(HVisitor visitor) => visitor.visitSwitch(this);
+
+  String toString() => "HSwitch cases = $inputs";
+}
+
 class HTruncatingDivide extends HBinaryArithmetic {
   HTruncatingDivide(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
@@ -2308,6 +2330,7 @@ interface HStatementInformationVisitor {
   bool visitLoopInfo(HLoopBlockInformation info);
   bool visitIfInfo(HIfBlockInformation info);
   bool visitTryInfo(HTryBlockInformation info);
+  bool visitSwitchInfo(HSwitchBlockInformation info);
   bool visitSequenceInfo(HStatementSequenceInformation info);
   // Pseudo-structure embedding a dominator-based traversal into
   // the block-structure traversal. This will eventually go away.
@@ -2502,4 +2525,34 @@ class HTryBlockInformation implements HStatementInformation {
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitTryInfo(this);
+}
+
+
+
+class HSwitchBlockInformation implements HStatementInformation {
+  final HExpressionInformation expression;
+  final List<List<Constant>> matchExpressions;
+  final List<HStatementInformation> statements;
+  // If the switch has a default, it's the last statement block, which
+  // may or may not have other expresions.
+  final bool hasDefault;
+  final TargetElement target;
+  final List<LabelElement> labels;
+
+  HSwitchBlockInformation(this.expression,
+                          this.matchExpressions,
+                          this.statements,
+                          this.hasDefault,
+                          this.target,
+                          this.labels);
+
+  HBasicBlock get start() => expression.start;
+  HBasicBlock get end() {
+    // We don't create a switch block if there are no cases.
+    assert(!statements.isEmpty());
+    return statements.last().end;
+  }
+
+  bool accept(HStatementInformationVisitor visitor) =>
+      visitor.visitSwitchInfo(this);
 }

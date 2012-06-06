@@ -2913,6 +2913,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
+    if (tryBuildConstantSwitch(node)) return;
+
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock startBlock = openNewBlock();
     visit(node.expression);
@@ -2920,8 +2922,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.cases.isEmpty()) {
       return;
     }
-    Link<Node> cases = node.cases.nodes;
 
+    Link<Node> cases = node.cases.nodes;
     JumpHandler jumpHandler = createJumpHandler(node);
 
     buildSwitchCases(cases, expression);
@@ -2962,10 +2964,141 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     jumpHandler.close();
   }
 
+  bool tryBuildConstantSwitch(SwitchStatement node) {
+    Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
+    // First check whether all case expressions are compile-time constants.
+    for (SwitchCase switchCase in node.cases) {
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is CaseMatch) {
+          CaseMatch match = labelOrCase;
+          Constant constant =
+            compiler.constantHandler.tryCompileNodeWithDefinitions(
+                match.expression, elements);
+          if (constant === null) return false;
+          constants[labelOrCase] = constant;
+        } else {
+          // We don't handle labels yet.
+          return false;
+        }
+      }
+    }
+    // TODO(ngeoffray): Handle switch-instruction in bailout code.
+    work.allowSpeculativeOptimization = false;
+    // Then build a switch structure.
+    HBasicBlock expressionStart = openNewBlock();
+    visit(node.expression);
+    HInstruction expression = pop();
+    if (node.cases.isEmpty()) {
+      return true;
+    }
+    HBasicBlock expressionEnd = current;
+
+    HSwitch switchInstruction = new HSwitch(<HInstruction>[expression]);
+    HBasicBlock expressionBlock = close(switchInstruction);
+    JumpHandler jumpHandler = createJumpHandler(node);
+    LocalsHandler savedLocals = localsHandler;
+
+    List<List<Constant>> matchExpressions = <List<Constant>>[];
+    List<HStatementInformation> statements = <HStatementInformation>[];
+    bool hasDefault = false;
+    Element getFallThroughErrorElement =
+        compiler.findHelper(const SourceString("getFallThroughError"));
+    Iterator<Node> caseIterator = node.cases.iterator();
+    while (caseIterator.hasNext()) {
+      SwitchCase switchCase = caseIterator.next();
+      List<Constant> caseConstants = <Constant>[];
+      HBasicBlock block = graph.addNewBlock();
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is CaseMatch) {
+          Constant constant = constants[labelOrCase];
+          caseConstants.add(constant);
+          HConstant hConstant = graph.addConstant(constant);
+          switchInstruction.inputs.add(hConstant);
+          hConstant.usedBy.add(switchInstruction);
+          expressionBlock.addSuccessor(block);
+        }
+      }
+      matchExpressions.add(caseConstants);
+
+      if (switchCase.isDefaultCase) {
+        // An HSwitch has n inputs and n+1 successors, the last being the
+        // default case.
+        expressionBlock.addSuccessor(block);
+        hasDefault = true;
+      }
+      open(block);
+      localsHandler = new LocalsHandler.from(savedLocals);
+      visit(switchCase.statements);
+      if (!isAborted() && caseIterator.hasNext()) {
+        push(new HStatic(getFallThroughErrorElement));
+        HInstruction error = new HInvokeStatic(
+             Selector.INVOCATION_0, <HInstruction>[pop()]);
+        add(error);
+        close(new HThrow(error));
+      }
+      statements.add(
+          new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
+    }
+
+    // Add a join-block if necessary.
+    // We create [joinBlock] early, and then go through the cases that might
+    // want to jump to it. In each case, if we add [joinBlock] as a successor
+    // of another block, we also add an element to [caseLocals] that is used
+    // to create the phis in [joinBlock].
+    // If we never jump to the join block, [caseLocals] will stay empty, and
+    // the join block is never added to the graph.
+    HBasicBlock joinBlock = new HBasicBlock();
+    List<LocalsHandler> caseLocals = <LocalsHandler>[];
+    jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
+      instruction.block.addSuccessor(joinBlock);
+      caseLocals.add(locals);
+    });
+    if (!isAborted()) {
+      current.close(new HGoto());
+      lastOpenedBlock.addSuccessor(joinBlock);
+      caseLocals.add(localsHandler);
+    }
+    if (!hasDefault) {
+      // The current flow is only aborted if the switch has a default that
+      // aborts (all previous cases must abort, and if there is no default,
+      // it's possible to miss all the cases).
+      expressionEnd.addSuccessor(joinBlock);
+      caseLocals.add(savedLocals);
+    }
+    assert(caseLocals.length == joinBlock.predecessors.length);
+    if (caseLocals.length != 0) {
+      graph.addBlock(joinBlock);
+      open(joinBlock);
+      if (caseLocals.length == 1) {
+        localsHandler = caseLocals[0];
+      } else {
+        localsHandler = savedLocals.mergeMultiple(caseLocals, joinBlock);
+      }
+    } else {
+      // The joinblock is not used.
+      joinBlock = null;
+    }
+
+    HSubExpressionBlockInformation expressionInfo =
+        new HSubExpressionBlockInformation(new SubExpression(expressionStart,
+                                                             expressionEnd));
+    expressionStart.setBlockFlow(
+        new HSwitchBlockInformation(expressionInfo,
+                                    matchExpressions,
+                                    statements,
+                                    hasDefault,
+                                    jumpHandler.target,
+                                    jumpHandler.labels()),
+        joinBlock);
+
+    jumpHandler.close();
+    return true;
+  }
+
 
   // Recursively build an if/else structure to match the cases.
-  buildSwitchCases(Link<Node> cases, HInstruction expression,
-                   [int encounteredCaseTypes = 0]) {
+  void buildSwitchCases(Link<Node> cases, HInstruction expression,
+                        [int encounteredCaseTypes = 0]) {
     final int NO_TYPE = 0;
     final int INT_TYPE = 1;
     final int STRING_TYPE = 2;
