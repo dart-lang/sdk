@@ -28,7 +28,7 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
           !Dart::vm_isolate()->heap()->Contains(obj_addr)) {
         FATAL1("Invalid object pointer encountered 0x%lx\n", obj_addr);
       }
-      raw_obj->Validate(isolate_);
+      raw_obj->Validate(isolate());
     }
   }
 }

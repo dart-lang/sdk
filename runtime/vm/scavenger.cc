@@ -47,8 +47,9 @@ static inline void ForwardTo(uword orignal, uword target) {
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
-  explicit ScavengerVisitor(Scavenger* scavenger)
-      : scavenger_(scavenger),
+  explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
+      : ObjectPointerVisitor(isolate),
+        scavenger_(scavenger),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()) {}
 
@@ -377,7 +378,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
   // Setup the visitor and run a scavenge.
-  ScavengerVisitor visitor(this);
+  ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
   IterateRoots(isolate, &visitor, !invoke_api_callbacks);
   ProcessToSpace(&visitor);

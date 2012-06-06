@@ -2287,7 +2287,8 @@ class Code : public Object {
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
    public:
-    explicit FindRawCodeVisitor(uword pc) : pc_(pc) { }
+    explicit FindRawCodeVisitor(uword pc)
+        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
     virtual ~FindRawCodeVisitor() { }
 
     // Check if object matches find condition.

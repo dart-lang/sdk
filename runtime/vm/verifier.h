@@ -29,15 +29,15 @@ class RawObject;
 // the pointers visited are contained in the isolate heap.
 class VerifyPointersVisitor : public ObjectPointerVisitor {
  public:
-  explicit VerifyPointersVisitor(Isolate* isolate) : isolate_(isolate) {}
+  explicit VerifyPointersVisitor(Isolate* isolate)
+      : ObjectPointerVisitor(isolate) {
+  }
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
   static void VerifyPointers();
 
  private:
-  Isolate* isolate_;
-
   DISALLOW_COPY_AND_ASSIGN(VerifyPointersVisitor);
 };
 

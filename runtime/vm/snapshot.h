@@ -570,7 +570,8 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 // objects to a snap shot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
-  explicit SnapshotWriterVisitor(SnapshotWriter* writer) : writer_(writer) {}
+  explicit SnapshotWriterVisitor(SnapshotWriter* writer)
+      : ObjectPointerVisitor(Isolate::Current()), writer_(writer) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
