@@ -75,6 +75,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   /**
+   * It is a compile-time error if initializer list contains an initializer for a variable that
+   * is not an instance variable declared in the immediately surrounding class.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3181
+   */
+  public void test_initializerForNotField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var x;",
+        "class A {",
+        "  A() : x = 5 {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS, 4, 9, 1));
+  }
+  
+  /**
    * Tests that we correctly provide {@link Element#getEnclosingElement()} for method of class.
    */
   public void test_resolveClassMethod() throws Exception {

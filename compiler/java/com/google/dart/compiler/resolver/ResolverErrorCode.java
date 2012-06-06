@@ -26,7 +26,6 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
   CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
       "Cannot declare a non-factory named constructor of another class."),
-  CANNOT_INIT_FIELD_FROM_SUPERCLASS("Cannot initialize a field from a super class"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
@@ -110,6 +109,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Illegal constructor declaration.  No default clause in interface"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
+  INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS("Only fields of immediately surrounding class can be initialized"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),

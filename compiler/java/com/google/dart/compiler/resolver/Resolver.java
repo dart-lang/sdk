@@ -1520,6 +1520,7 @@ public class Resolver {
 
         case FIELD:
           FieldElement field = (FieldElement) element;
+          recordElement(x, field);
           if (field.isStatic()) {
             onError(x, ResolverErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
           } else if (field.getModifiers().isAbstractField()) {
@@ -1530,7 +1531,7 @@ public class Resolver {
              */
             onError(x, ResolverErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
           } else {
-            onError(x, ResolverErrorCode.CANNOT_INIT_FIELD_FROM_SUPERCLASS);
+            onError(x, ResolverErrorCode.INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS);
           }
           break;
 
