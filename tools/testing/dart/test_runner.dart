@@ -12,7 +12,6 @@
 #library("test_runner");
 
 #import("dart:io");
-#import("dart:builtin");
 #import("status_file_parser.dart");
 #import("test_progress.dart");
 #import("test_suite.dart");

@@ -5,7 +5,6 @@
 #library("test_options_parser");
 
 #import("dart:io");
-#import("dart:builtin");
 #import("drt_updater.dart");
 #import("test_suite.dart");
 
