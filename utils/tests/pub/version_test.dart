@@ -11,7 +11,7 @@
 main() {
   group('Version', () {
     test('none', () {
-      expect(Version.none.toString()).equals('0.0.0');
+      expect(Version.none.toString(), equals('0.0.0'));
     });
 
     group('constructor', () {
@@ -51,7 +51,7 @@ main() {
             var a = new Version.parse(versions[i]);
             var b = new Version.parse(versions[j]);
             var expectation = i.compareTo(j);
-            expect(a.compareTo(b)).equals(expectation);
+            expect(a.compareTo(b), equals(expectation));
           }
         }
       });
@@ -61,42 +61,39 @@ main() {
           for (var j = 0; j < versions.length; j++) {
             var a = new Version.parse(versions[i]);
             var b = new Version.parse(versions[j]);
-            expect(a < b).equals(i < j);
-            expect(a > b).equals(i > j);
-            expect(a <= b).equals(i <= j);
-            expect(a >= b).equals(i >= j);
-            expect(a == b).equals(i == j);
-            expect(a != b).equals(i != j);
+            expect(a < b, equals(i < j));
+            expect(a > b, equals(i > j));
+            expect(a <= b, equals(i <= j));
+            expect(a >= b, equals(i >= j));
+            expect(a == b, equals(i == j));
+            expect(a != b, equals(i != j));
           }
         }
       });
     });
 
     test('allows()', () {
-      expect(new Version.parse('1.2.3').allows(
-          new Version.parse('1.2.3'))).isTrue();
-      expect(new Version.parse('1.2.3').allows(
-          new Version.parse('1.1.4'))).isFalse();
-      expect(new Version.parse('1.2.3').allows(
-          new Version.parse('1.2.4'))).isFalse();
+      expect(new Version.parse('1.2.3').allows(new Version.parse('1.2.3')));
+      expect(!new Version.parse('1.2.3').allows(new Version.parse('1.1.4')));
+      expect(!new Version.parse('1.2.3').allows(new Version.parse('1.2.4')));
     });
 
     test('parse()', () {
-      expect(new Version.parse('0.0.0')).equals(new Version(0, 0, 0));
-      expect(new Version.parse('12.34.56')).equals(new Version(12, 34, 56));
+      expect(new Version.parse('0.0.0'), equals(new Version(0, 0, 0)));
+      expect(new Version.parse('12.34.56'), equals(new Version(12, 34, 56)));
 
-      expect(new Version.parse('1.2.3-alpha.1')).equals(
-          new Version(1, 2, 3, pre: 'alpha.1'));
-      expect(new Version.parse('1.2.3-x.7.z-92')).equals(
-          new Version(1, 2, 3, pre: 'x.7.z-92'));
+      expect(new Version.parse('1.2.3-alpha.1'), equals(
+          new Version(1, 2, 3, pre: 'alpha.1')));
+      expect(new Version.parse('1.2.3-x.7.z-92'), equals(
+          new Version(1, 2, 3, pre: 'x.7.z-92')));
 
-      expect(new Version.parse('1.2.3+build.1')).equals(
-          new Version(1, 2, 3, build: 'build.1'));
-      expect(new Version.parse('1.2.3+x.7.z-92')).equals(
-          new Version(1, 2, 3, build: 'x.7.z-92'));
+      expect(new Version.parse('1.2.3+build.1'), equals(
+          new Version(1, 2, 3, build: 'build.1')));
+      expect(new Version.parse('1.2.3+x.7.z-92'), equals(
+          new Version(1, 2, 3, build: 'x.7.z-92')));
 
-      expect(new Version.parse('1.0.0-rc-1+build-1')).equals(
-          new Version(1, 0, 0, pre: 'rc-1', build: 'build-1'));
+      expect(new Version.parse('1.0.0-rc-1+build-1'), equals(
+          new Version(1, 0, 0, pre: 'rc-1', build: 'build-1')));
 
       throwsBadFormat(() => new Version.parse('1.0'));
       throwsBadFormat(() => new Version.parse('1.2.3.4'));
@@ -108,18 +105,18 @@ main() {
     });
 
     test('toString()', () {
-      expect(new Version(0, 0, 0).toString()).equals('0.0.0');
-      expect(new Version(12, 34, 56).toString()).equals('12.34.56');
+      expect(new Version(0, 0, 0).toString(), equals('0.0.0'));
+      expect(new Version(12, 34, 56).toString(), equals('12.34.56'));
 
-      expect(new Version(1, 2, 3, pre: 'alpha.1').toString()).equals(
-          '1.2.3-alpha.1');
-      expect(new Version(1, 2, 3, pre: 'x.7.z-92').toString()).equals(
-          '1.2.3-x.7.z-92');
+      expect(new Version(1, 2, 3, pre: 'alpha.1').toString(), equals(
+          '1.2.3-alpha.1'));
+      expect(new Version(1, 2, 3, pre: 'x.7.z-92').toString(), equals(
+          '1.2.3-x.7.z-92'));
 
-      expect(new Version(1, 2, 3, build: 'build.1').toString()).equals(
-          '1.2.3+build.1');
-      expect(new Version(1, 2, 3, pre: 'pre', build: 'bui').toString()).equals(
-          '1.2.3-pre+bui');
+      expect(new Version(1, 2, 3, build: 'build.1').toString(), equals(
+          '1.2.3+build.1'));
+      expect(new Version(1, 2, 3, pre: 'pre', build: 'bui').toString(), equals(
+          '1.2.3-pre+bui'));
     });
   });
 
@@ -129,21 +126,21 @@ main() {
         var min = new Version.parse('1.2.3');
         var max = new Version.parse('1.3.5');
         var range = new VersionRange(min, max);
-        expect(range.min).equals(min);
-        expect(range.max).equals(max);
+        expect(range.min, equals(min));
+        expect(range.max, equals(max));
       });
 
       test('allows omitting max', () {
         var min = new Version.parse('1.2.3');
         var range = new VersionRange(min);
-        expect(range.min).equals(min);
-        expect(range.max).isNull();
+        expect(range.min, equals(min));
+        expect(range.max, isNull);
       });
 
       test('allows omitting min and max', () {
         var range = new VersionRange();
-        expect(range.min).isNull();
-        expect(range.max).isNull();
+        expect(range.min, isNull);
+        expect(range.max, isNull);
       });
 
       test('throws if min > max', () {
@@ -159,41 +156,41 @@ main() {
         var range = new VersionRange(
             new Version.parse('1.2.3'), new Version.parse('2.3.4'));
 
-        expect(range.allows(new Version.parse('1.2.2'))).isFalse();
-        expect(range.allows(new Version.parse('1.2.3'))).isTrue();
-        expect(range.allows(new Version.parse('1.3.3'))).isTrue();
-        expect(range.allows(new Version.parse('2.3.3'))).isTrue();
+        expect(!range.allows(new Version.parse('1.2.2')));
+        expect(range.allows(new Version.parse('1.2.3')));
+        expect(range.allows(new Version.parse('1.3.3')));
+        expect(range.allows(new Version.parse('2.3.3')));
       });
 
       test('version must be less than max', () {
         var range = new VersionRange(
             new Version.parse('1.2.3'), new Version.parse('2.3.4'));
 
-        expect(range.allows(new Version.parse('2.3.3'))).isTrue();
-        expect(range.allows(new Version.parse('2.3.4'))).isFalse();
-        expect(range.allows(new Version.parse('2.4.3'))).isFalse();
+        expect(range.allows(new Version.parse('2.3.3')));
+        expect(!range.allows(new Version.parse('2.3.4')));
+        expect(!range.allows(new Version.parse('2.4.3')));
       });
 
       test('has no min if one was not set', () {
         var range = new VersionRange(max: new Version.parse('1.2.3'));
 
-        expect(range.allows(new Version.parse('0.0.0'))).isTrue();
-        expect(range.allows(new Version.parse('1.2.3'))).isFalse();
+        expect(range.allows(new Version.parse('0.0.0')));
+        expect(!range.allows(new Version.parse('1.2.3')));
       });
 
       test('has no max if one was not set', () {
         var range = new VersionRange(new Version.parse('1.2.3'));
 
-        expect(range.allows(new Version.parse('1.2.3'))).isTrue();
-        expect(range.allows(new Version.parse('1.3.3'))).isTrue();
-        expect(range.allows(new Version.parse('999.3.3'))).isTrue();
+        expect(range.allows(new Version.parse('1.2.3')));
+        expect(range.allows(new Version.parse('1.3.3')));
+        expect(range.allows(new Version.parse('999.3.3')));
       });
 
       test('allows any version if there is no min or max', () {
         var range = new VersionRange();
 
-        expect(range.allows(new Version.parse('0.0.0'))).isTrue();
-        expect(range.allows(new Version.parse('999.99.9'))).isTrue();
+        expect(range.allows(new Version.parse('0.0.0')));
+        expect(range.allows(new Version.parse('999.99.9')));
       });
     });
   });

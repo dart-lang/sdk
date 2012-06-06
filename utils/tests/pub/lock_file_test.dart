@@ -33,12 +33,12 @@ main() {
     group('parse()', () {
       test('returns an empty lockfile if the contents are empty', () {
         var lockFile = new LockFile.parse('', sources);
-        expect(lockFile.packages.length).equals(0);
+        expect(lockFile.packages.length, equals(0));
       });
 
       test('returns an empty lockfile if the contents are whitespace', () {
         var lockFile = new LockFile.parse('  \t\n  ', sources);
-        expect(lockFile.packages.length).equals(0);
+        expect(lockFile.packages.length, equals(0));
       });
 
       test('parses a series of package descriptions', () {
@@ -54,19 +54,19 @@ packages:
     description: foo desc
 ''', sources);
 
-        expect(lockFile.packages.length).equals(2);
+        expect(lockFile.packages.length, equals(2));
 
         var bar = lockFile.packages['bar'];
-        expect(bar.name).equals('bar');
-        expect(bar.version).equals(new Version(1, 2, 3));
-        expect(bar.source).equals(mockSource);
-        expect(bar.description).equals('bar desc');
+        expect(bar.name, equals('bar'));
+        expect(bar.version, equals(new Version(1, 2, 3)));
+        expect(bar.source, equals(mockSource));
+        expect(bar.description, equals('bar desc'));
 
         var foo = lockFile.packages['foo'];
-        expect(foo.name).equals('foo');
-        expect(foo.version).equals(new Version(2, 3, 4));
-        expect(foo.source).equals(mockSource);
-        expect(foo.description).equals('foo desc');
+        expect(foo.name, equals('foo'));
+        expect(foo.version, equals(new Version(2, 3, 4)));
+        expect(foo.source, equals(mockSource));
+        expect(foo.description, equals('foo desc'));
       });
 
       test("throws if the version is missing", () {
