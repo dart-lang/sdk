@@ -18,6 +18,7 @@ public enum TypeErrorCode implements ErrorCode {
   ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
+  CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
       "Invalid type expression, cyclic reference to type variable '%s'"),

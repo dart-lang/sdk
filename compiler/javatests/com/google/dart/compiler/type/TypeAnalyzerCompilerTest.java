@@ -1246,6 +1246,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3183
+   */
+  public void test_implementsAndOverrides_differentDefaultValue() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  f1([x]) {}",
+            "  f2([x = 1]) {}",
+            "  f3([x = 1]) {}",
+            "  f4([x = 1]) {}",
+            "}",
+            "class B extends A {",
+            "  f1([x = 2]) {}",
+            "  f2([x]) {}",
+            "  f3([x = 2]) {}",
+            "  f4([x = '2']) {}",
+            "}",
+            "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 9, 7, 5),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 10, 7, 1),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 11, 7, 5),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 12, 7, 7));
+  }
+
+  /**
    * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
    * not declare all the named parameters declared by m2 in the same order.
    * <p>

@@ -99,6 +99,7 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
@@ -117,6 +118,7 @@ import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType.Member;
+import com.google.dart.compiler.util.apache.ObjectUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -220,13 +222,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void onError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
-      Source source = node.getSourceInfo().getSource();
+      onError(node.getSourceInfo(), errorCode, arguments);
+    }
+    
+    private void onError(SourceInfo errorTarget, ErrorCode errorCode, Object... arguments) {
+      Source source = errorTarget.getSource();
       if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
         if (source != null && SystemLibraryManager.isDartUri(source.getUri())) {
           return;
         }
       }
-      context.onError(new DartCompilationError(node, errorCode, arguments));
+      context.onError(new DartCompilationError(errorTarget, errorCode, arguments));
     }
 
     AssertionError internalError(HasSourceInfo node, String message, Object... arguments) {
@@ -2483,6 +2489,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (namedIterator.hasNext()) {
             VariableElement parameter = namedIterator.next();
             if (Objects.equal(parameter.getName(), superParameter.getName())) {
+              if (!Objects.equal(ObjectUtils.toString(parameter.getDefaultValue()),
+                  ObjectUtils.toString(superParameter.getDefaultValue()))) {
+                onError(parameter.getSourceInfo(),
+                    TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
+                    superParameter.getDefaultValue());
+              }
               continue;
             }
           }
