@@ -4002,6 +4002,8 @@ public class DartParser extends CompletionHooksParserBase {
     if (optional(Token.ADD)) {
       if (peek(0) != Token.INTEGER_LITERAL && peek(0) != Token.DOUBLE_LITERAL) {
         reportError(position(), ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
+      } else if (position().getPos() + 1 != peekTokenLocation(0).getBegin().getPos()) {
+        reportError(position(), ParserErrorCode.NO_SPACE_AFTER_PLUS);
       }
     }
     // Check for unary minus operator.

@@ -7,6 +7,7 @@ package com.google.dart.compiler.parser;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.parser.DartScanner.Location;
 
 /**
  * Abstracts parser and permits marking lexical ranges via event driven methods. Certain IDEs need
@@ -104,6 +105,11 @@ public interface ParserContext {
    * Peek ahead without advancing the lexer.
    */
   Token peek(int steps);
+
+  /**
+   * Return location information for the token that is 'n' tokens ahead of the current token.
+   */
+  Location peekTokenLocation(int n);
 
   /**
    * Set the next token to be returned.

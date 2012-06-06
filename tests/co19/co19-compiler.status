@@ -56,7 +56,6 @@ Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/10_Expressions/03_Numbers_A01_t24: Fail # Issue 2375
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # Issue 2376
 Language/10_Expressions/05_Strings_A01_t06: Fail # Issue 2377
 Language/10_Expressions/05_Strings_A01_t07: Fail # Issue 2377

@@ -95,7 +95,6 @@ instanceof3_test: Fail # Issue 2571
 label2_negative_test: Fail    # issue 1658
 library4_negative_test: Fail   # Bug 5406175
 list_literal4_test: Fail       # Issue 1343
-literal_unary_plus_test/01: Fail # Issue 1399
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail
 no_such_method_negative_test: Fail
