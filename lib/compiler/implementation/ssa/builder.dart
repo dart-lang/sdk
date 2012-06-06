@@ -2562,7 +2562,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(graph.addConstantString(node.dartString, node));
       return;
     }
-    StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this);
+    StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);
     stringBuilder.visit(node);
     stack.add(stringBuilder.result);
   }
@@ -2714,7 +2714,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this);
+    StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);
     stringBuilder.visit(node);
     stack.add(stringBuilder.result);
   }
@@ -3391,13 +3391,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
  */
 class StringBuilderVisitor extends AbstractVisitor {
   final SsaBuilder builder;
+  final Node node;
 
   /**
    * The string value generated so far.
    */
   HInstruction result = null;
 
-  StringBuilderVisitor(this.builder);
+  StringBuilderVisitor(this.builder, this.node);
 
   void visit(Node node) {
     node.accept(this);
@@ -3431,7 +3432,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
-    HInstruction instruction = new HStringConcat(left, right);
+    HInstruction instruction = new HStringConcat(left, right, node);
     builder.add(instruction);
     return instruction;
   }

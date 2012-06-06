@@ -601,7 +601,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       PrimitiveConstant primitive = constant.constant;
       folded = new DartString.concat(folded, primitive.toDartString());
     }
-    return graph.addConstantString(folded, node);
+    return graph.addConstantString(folded, node.node);
   }
 }
 

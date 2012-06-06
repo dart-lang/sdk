@@ -2235,7 +2235,8 @@ class HTypeConversion extends HCheck {
 }
 
 class HStringConcat extends HInstruction {
-  HStringConcat(HInstruction left, HInstrunction right)
+  final Node node;
+  HStringConcat(HInstruction left, HInstruction right, this.node)
       : super(<HInstruction>[left, right]);
   HType get guaranteedType() => HType.STRING;
 
