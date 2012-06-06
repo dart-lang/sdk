@@ -4810,9 +4810,7 @@ class _DOMStringListImpl extends _DOMWrapperBase implements DOMStringList {
 
   int get length() native "DOMStringList_length_Getter";
 
-  String operator[](int index) {
-    return item(index);
-  }
+  String operator[](int index) native "DOMStringList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -7773,9 +7771,7 @@ class _FileListImpl extends _DOMWrapperBase implements FileList {
 
   int get length() native "FileList_length_Getter";
 
-  File operator[](int index) {
-    return item(index);
-  }
+  File operator[](int index) native "FileList_item_Callback";
 
   void operator[]=(int index, File value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -8725,9 +8721,7 @@ class _HTMLCollectionImpl extends _DOMWrapperBase implements HTMLCollection {
 
   int get length() native "HTMLCollection_length_Getter";
 
-  Node operator[](int index) {
-    return item(index);
-  }
+  Node operator[](int index) native "HTMLCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -12531,9 +12525,7 @@ class _MediaListImpl extends _DOMWrapperBase implements MediaList {
 
   void set mediaText(String) native "MediaList_mediaText_Setter";
 
-  String operator[](int index) {
-    return item(index);
-  }
+  String operator[](int index) native "MediaList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -12999,9 +12991,7 @@ class _NamedNodeMapImpl extends _DOMWrapperBase implements NamedNodeMap {
 
   int get length() native "NamedNodeMap_length_Getter";
 
-  Node operator[](int index) {
-    return item(index);
-  }
+  Node operator[](int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -13585,11 +13575,9 @@ class _NodeListImpl extends _DOMWrapperBase implements NodeList {
 
   int get length() native "NodeList_length_Getter";
 
-  Node operator[](int index) {
-    return item(index);
-  }
+  Node operator[](int index) native "NodeList_item_Callback";
 
-  Node item(int index) native "NodeList_item_Callback";
+  Node _item(int index) native "NodeList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18705,9 +18693,7 @@ class _StyleSheetListImpl extends _DOMWrapperBase implements StyleSheetList {
 
   int get length() native "StyleSheetList_length_Getter";
 
-  StyleSheet operator[](int index) {
-    return item(index);
-  }
+  StyleSheet operator[](int index) native "StyleSheetList_item_Callback";
 
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -19149,9 +19135,7 @@ class _TouchListImpl extends _DOMWrapperBase implements TouchList {
 
   int get length() native "TouchList_length_Getter";
 
-  Touch operator[](int index) {
-    return item(index);
-  }
+  Touch operator[](int index) native "TouchList_item_Callback";
 
   void operator[]=(int index, Touch value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");

@@ -675,10 +675,8 @@ class NativeImplementationGenerator(object):
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $TYPE operator[](int index) {\n'
-          '    return item(index);\n'
-          '  }\n',
-          TYPE=dart_element_type)
+          '  $TYPE operator[](int index) native "$(INTERFACE)_item_Callback";\n',
+          TYPE=dart_element_type, INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
@@ -755,7 +753,7 @@ class NativeImplementationGenerator(object):
 
     if not html_name and info.name == 'item':
       # FIXME: item should be renamed to operator[], not removed.
-      html_name = 'item'
+      html_name = '_item'
 
     if not html_name:
       return
