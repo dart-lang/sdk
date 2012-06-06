@@ -57,7 +57,7 @@ public enum TypeErrorCode implements ErrorCode {
   SUPERTYPE_HAS_FIELD("%s is a field in %s"),
   SUPERTYPE_HAS_METHOD("%s is a method in %s"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
-  TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
+  TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");

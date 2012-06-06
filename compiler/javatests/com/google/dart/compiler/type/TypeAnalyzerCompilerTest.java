@@ -1307,6 +1307,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3221
+   */
+  public void test_conditionalExpressionType() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  bool x = (true ? 1 : 2.0);",
+            "}", "");
+    List<DartCompilationError> errors = result.getErrors();
+    assertErrors(errors, errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 3, 12, 16));
+    {
+      String message = errors.get(0).getMessage();
+      assertTrue(message.contains("'num'"));
+      assertTrue(message.contains("'bool'"));
+    }
+  }
+
   public void test_typeVariableBoundsMismatch() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
