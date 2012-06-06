@@ -16,6 +16,7 @@ class BufferFormatter : public ValueObject {
       buffer_(buffer),
       size_(size) { }
 
+  void VPrint(const char* format, va_list args);
   void Print(const char* format, ...);
 
  private:
@@ -34,8 +35,6 @@ class FlowGraphPrinter : public ValueObject {
                    const GrowableArray<BlockEntryInstr*>& block_order)
       : function_(function), block_order_(block_order) { }
 
-  virtual ~FlowGraphPrinter() {}
-
   // Print the instructions in a block terminated by newlines.  Add "goto N"
   // to the end of the block if it ends with an unconditional jump to
   // another block and that block is not next in reverse postorder.
@@ -46,6 +45,27 @@ class FlowGraphPrinter : public ValueObject {
  private:
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
+};
+
+
+class FlowGraphVisualizer : public ValueObject {
+ public:
+  FlowGraphVisualizer(const Function& function,
+                      const GrowableArray<BlockEntryInstr*>& block_order)
+      : function_(function), block_order_(block_order), indent_(0) { }
+
+  void PrintFunction();
+
+ private:
+  // Helpers for printing.
+  void PrintInstruction(Instruction* instr);
+  void Print(const char* format, ...);
+
+  const Function& function_;
+  const GrowableArray<BlockEntryInstr*>& block_order_;
+  intptr_t indent_;
+
+  DISALLOW_COPY_AND_ASSIGN(FlowGraphVisualizer);
 };
 
 }  // namespace dart

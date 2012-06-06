@@ -2115,4 +2115,8 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
 
+// Support for generating flow graph compiler debugging output into a file.
+typedef void (*FileWriterFunction)(const char* buffer, int64_t num_bytes);
+DART_EXPORT void Dart_InitFlowGraphPrinting(FileWriterFunction function);
+
 #endif  // INCLUDE_DART_API_H_

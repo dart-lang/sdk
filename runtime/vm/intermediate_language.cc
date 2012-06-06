@@ -171,6 +171,9 @@ void GraphEntryInstr::DiscoverBlocks(
       (variable_count == 0) ? NULL : new BitVector(variable_count);
   assigned_vars->Add(vars);
 
+  // The graph entry consists of only one instruction.
+  set_last_instruction(this);
+
   // Iteratively traverse all successors.  In the unoptimized code, we will
   // enter the function at the first successor in reverse postorder, so we
   // must visit the normal entry last.
@@ -266,6 +269,44 @@ void BranchInstr::DiscoverBlocks(
                                    parent, assigned_vars, variable_count);
   true_successor_->DiscoverBlocks(current_block, preorder, postorder,
                                   parent, assigned_vars, variable_count);
+}
+
+
+intptr_t Instruction::SuccessorCount() const {
+  ASSERT(!IsBranch());
+  ASSERT(!IsGraphEntry());
+  ASSERT(StraightLineSuccessor() == NULL ||
+         StraightLineSuccessor()->IsBlockEntry());
+  return StraightLineSuccessor() != NULL ? 1 : 0;
+}
+
+
+BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
+  return StraightLineSuccessor()->AsBlockEntry();
+}
+
+
+intptr_t GraphEntryInstr::SuccessorCount() const {
+  return 1 + catch_entries_.length();
+}
+
+
+BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
+  if (index == 0) return normal_entry_;
+  return catch_entries_[index - 1];
+}
+
+
+intptr_t BranchInstr::SuccessorCount() const {
+  return 2;
+}
+
+
+BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
+  if (index == 0) return true_successor_;
+  if (index == 1) return false_successor_;
+  UNREACHABLE();
+  return NULL;
 }
 
 

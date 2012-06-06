@@ -2301,14 +2301,22 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
   }
-  if (FLAG_print_flow_graph) {
+  if (FLAG_print_flow_graph || (Dart::flow_graph_writer() != NULL)) {
     intptr_t length = postorder_block_entries_.length();
     GrowableArray<BlockEntryInstr*> reverse_postorder(length);
     for (intptr_t i = length - 1; i >= 0; --i) {
       reverse_postorder.Add(postorder_block_entries_[i]);
     }
-    FlowGraphPrinter printer(function, reverse_postorder);
-    printer.PrintBlocks();
+    if (FLAG_print_flow_graph) {
+      // Print flow graph to stdout.
+      FlowGraphPrinter printer(function, reverse_postorder);
+      printer.PrintBlocks();
+    }
+    if (Dart::flow_graph_writer() != NULL) {
+      // Write flow graph to file.
+      FlowGraphVisualizer printer(function, reverse_postorder);
+      printer.PrintFunction();
+    }
   }
 }
 

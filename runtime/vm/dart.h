@@ -33,10 +33,17 @@ class Dart : public AllStatic {
   }
   static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
 
+  static void set_flow_graph_writer(FileWriterFunction writer_function) {
+    flow_graph_writer_ = writer_function;
+  }
+
+  static FileWriterFunction flow_graph_writer() { return flow_graph_writer_; }
+
  private:
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
+  static FileWriterFunction flow_graph_writer_;
 };
 
 }  // namespace dart
