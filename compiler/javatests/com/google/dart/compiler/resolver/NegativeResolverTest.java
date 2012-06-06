@@ -443,6 +443,72 @@ public class NegativeResolverTest extends CompilerTestCase {
         "duplicate top-level declaration 'FIELD foo' at Test.dart::2:5",
         errors.get(1).getMessage());
   }
+  
+  /**
+   * Shadowing top-level element with local variable.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3180
+   */
+  public void test_nameShadow_topLevel_localVariable_inFunction() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {}",
+            "interface B {}",
+            "var foo;",
+            "main() {",
+            "  var A;",
+            "  var B;",
+            "  var foo;",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 7, 1),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 7, 7, 1),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 8, 7, 3));
+    assertEquals(
+        "Local variable 'A' is hiding 'CLASS A' at Test.dart:A:2:7",
+        errors.get(0).getMessage());
+    assertEquals(
+        "Local variable 'B' is hiding 'CLASS B' at Test.dart:B:3:11",
+        errors.get(1).getMessage());
+    assertEquals(
+        "Local variable 'foo' is hiding 'FIELD foo' at Test.dart::4:5",
+        errors.get(2).getMessage());
+  }
+  
+  /**
+   * Shadowing top-level element with local variable.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3180
+   */
+  public void test_nameShadow_topLevel_localVariable_inInstanceMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {}",
+            "interface B {}",
+            "var foo;",
+            "class Z {",
+            "  m() {",
+            "    var A;",
+            "    var B;",
+            "    var foo;",
+            "  }",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 7, 9, 1),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 8, 9, 1),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 9, 9, 3));
+    assertEquals(
+        "Local variable 'A' is hiding 'CLASS A' at Test.dart:A:2:7",
+        errors.get(0).getMessage());
+    assertEquals(
+        "Local variable 'B' is hiding 'CLASS B' at Test.dart:B:3:11",
+        errors.get(1).getMessage());
+    assertEquals(
+        "Local variable 'foo' is hiding 'FIELD foo' at Test.dart::4:5",
+        errors.get(2).getMessage());
+  }
 
   /**
    * Multiple unnamed constructor definitions.

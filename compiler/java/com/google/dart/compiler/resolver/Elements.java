@@ -331,18 +331,18 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         {@link DartClassMember} or part of top level declaration.
    */
   public static boolean isStaticContext(Element element) {
+    if (element instanceof ClassElement) {
+      return true;
+    }
     while (element != null) {
       if (element instanceof MethodElement) {
         MethodElement methodElement = (MethodElement) element;
-        if (methodElement.isStatic()) {
-          return true;
-        }
+        return methodElement.isStatic();
       }
       if (element instanceof FieldElement) {
         FieldElement fieldElement = (FieldElement) element;
-        if (fieldElement.isStatic()) {
-          return true;
-        }
+        return fieldElement.isStatic()
+            || fieldElement.getEnclosingElement() instanceof LibraryElement;
       }
       if (element instanceof ClassElement) {
         return false;
