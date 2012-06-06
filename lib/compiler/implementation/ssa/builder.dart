@@ -672,7 +672,7 @@ class LocalsHandler {
 
 // Represents a single break/continue instruction.
 class JumpHandlerEntry {
-  final HGoto jumpInstruction;
+  final HJump jumpInstruction;
   final LocalsHandler locals;
   bool isBreak() => jumpInstruction is HBreak;
   bool isContinue() => jumpInstruction is HContinue;

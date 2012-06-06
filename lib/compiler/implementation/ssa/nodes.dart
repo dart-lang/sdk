@@ -254,8 +254,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
-  visitBreak(HBreak node) => visitGoto(node);
-  visitContinue(HContinue node) => visitGoto(node);
+  visitBreak(HBreak node) => visitJump(node);
+  visitContinue(HContinue node) => visitJump(node);
   visitCheck(HCheck node) => visitInstruction(node);
   visitConstant(HConstant node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
@@ -285,6 +285,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
       => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
+  visitJump(HJump node) => visitControlFlow(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
@@ -1666,20 +1667,24 @@ class HGoto extends HControlFlow {
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
-class HBreak extends HGoto {
+abstract class HJump extends HControlFlow {
   final TargetElement target;
   final LabelElement label;
-  HBreak(this.target) : label = null;
-  HBreak.toLabel(LabelElement label) : label = label, target = label.target;
+  HJump(this.target) : label = null, super(const <HInstruction>[]);
+  HJump.toLabel(LabelElement label)
+      : label = label, target = label.target, super(const <HInstruction>[]);
+}
+
+class HBreak extends HJump {
+  HBreak(TargetElement target) : super(target);
+  HBreak.toLabel(LabelElement label) : super.toLabel(label);
   toString() => (label !== null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
-class HContinue extends HGoto {
-  final TargetElement target;
-  final LabelElement label;
-  HContinue(this.target) : label = null;
-  HContinue.toLabel(LabelElement label) : label = label, target = label.target;
+class HContinue extends HJump {
+  HContinue(TargetElement target) : super(target);
+  HContinue.toLabel(LabelElement label) : super.toLabel(label);
   toString() => (label !== null) ? 'continue ${label.labelName}' : 'continue';
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }

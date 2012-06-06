@@ -1296,9 +1296,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isEmptyElse(HBasicBlock start, HBasicBlock end) {
     if (start !== end) return false;
-    if (start.last is !HGoto
-        || start.last is HBreak
-        || start.last is HContinue) {
+    if (start.last is !HGoto) {
       return false;
     }
     for (HInstruction instruction = start.first;
