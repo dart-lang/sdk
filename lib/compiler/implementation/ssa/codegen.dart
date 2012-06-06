@@ -2189,10 +2189,21 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameters, parameterNames);
 
+  int maxBailoutParameters;
+
   void beginGraph(HGraph graph) {}
   void endGraph(HGraph graph) {}
 
   void bailout(HTypeGuard guard, String reason) {
+    if (maxBailoutParameters === null) {
+      maxBailoutParameters = 0;
+      work.guards.forEach((HTypeGuard guard) {
+        int inputLength = guard.inputs.length;
+        if (inputLength > maxBailoutParameters) {
+          maxBailoutParameters = inputLength;
+        }
+      });
+    }
     HInstruction input = guard.guarded;
     Namer namer = compiler.namer;
     Element element = work.element;
@@ -2207,21 +2218,20 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     int parametersCount = parameterNames.length;
     buffer.add('($parameters');
     if (parametersCount != 0) buffer.add(', ');
-    if (guard.guarded is !HParameterValue) {
-      buffer.add('${guard.state}');
-      bool first = true;
-      // TODO(ngeoffray): if the bailout method takes more arguments,
-      // fill the remaining arguments with undefined.
-      // TODO(ngeoffray): try to put a variable at a deterministic
-      // location, so that multiple bailout calls put the variable at
-      // the same parameter index.
-      for (int i = 0; i < guard.inputs.length; i++) {
-        buffer.add(', ');
-        use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      }
-    } else {
-      assert(guard.guarded is HParameterValue);
-      buffer.add(' 0');
+    buffer.add('${guard.state}');
+    // TODO(ngeoffray): try to put a variable at a deterministic
+    // location, so that multiple bailout calls put the variable at
+    // the same parameter index.
+    int i = 0;
+    for (; i < guard.inputs.length; i++) {
+      buffer.add(', ');
+      use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    }
+    // Make sure we call the bailout method with the number of
+    // arguments it expects. This avoids having the underlying
+    // JS engine fill them in for us.
+    for (; i < maxBailoutParameters; i++) {
+      buffer.add(', 0');
     }
     buffer.add(')');
   }
