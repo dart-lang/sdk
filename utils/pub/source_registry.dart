@@ -50,6 +50,11 @@ class SourceRegistry {
   }
 
   /**
+   * Returns `true` if there is a source named [name].
+   */
+  bool contains(String name) => _map.containsKey(name);
+
+  /**
    * Returns the source named [name]. Throws an error if no such source has been
    * registered. If [name] is null, returns the default source.
    */

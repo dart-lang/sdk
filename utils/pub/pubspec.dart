@@ -4,7 +4,6 @@
 
 #library('pubspec');
 
-#import('io.dart');
 #import('package.dart');
 #import('source.dart');
 #import('source_registry.dart');
