@@ -1786,14 +1786,14 @@ class HNot extends HInstruction {
 }
 
 class HParameterValue extends HInstruction {
-  final Element element;
-
-  HParameterValue(this.element) : super(<HInstruction>[]);
+  HParameterValue(element) : super(<HInstruction>[]) {
+    sourceElement = element;
+  }
 
   void prepareGvn() {
     assert(!hasSideEffects());
   }
-  toString() => 'parameter ${element.name}';
+  toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
   bool isCodeMotionInvariant() => true;
 }
