@@ -571,21 +571,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (!receiver.propagatedType.isUseful()) return node;
     Type type = receiver.propagatedType.computeType(compiler);
     if (type === null) return node;
-    if (!compiler.world.isOnlyFields(type, node.name)) return node;
-    ClassElement cls = type.element;
-    if (cls === null) return node;
-    Element element = cls.lookupLocalMember(node.name);
-    // If a subclass overrides a final field then there will be two fields,
-    // and here the final field will be used.
-    if (element === null) return node;
-    Modifiers modifiers = element.modifiers;
+    Element field = compiler.world.locateSingleField(type, node.name);
+    if (field === null) return node;
+    Modifiers modifiers = field.modifiers;
     bool isFinalOrConst = false;
     if (modifiers != null) {
       isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
     }
-    return new HFieldGet(node.name,
-                         node.inputs[0],
-                         isFinalOrConst: isFinalOrConst);
+    return new HFieldGet(field, node.inputs[0], isFinalOrConst: isFinalOrConst);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -593,8 +586,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (!receiver.propagatedType.isUseful()) return node;
     Type type = receiver.propagatedType.computeType(compiler);
     if (type === null) return node;
-    if (!compiler.world.isOnlyFields(type, node.name)) return node;
-    return new HFieldSet(node.name, node.inputs[0], node.inputs[1]);
+    Element field = compiler.world.locateSingleField(type, node.name);
+    if (field === null) return node;
+    return new HFieldSet(field, node.inputs[0], node.inputs[1]);
   }
 }
 

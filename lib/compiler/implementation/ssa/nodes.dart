@@ -1221,16 +1221,23 @@ class HInvokeInterceptor extends HInvokeStatic {
   }
 }
 
-class HFieldGet extends HInstruction {
-  // TODO(ngeoffray): Should [name] be an element?
-  final SourceString name;
+abstract class HFieldAccess extends HInstruction {
+  final Element element;
+
+  HFieldAccess(this.element, List<HInstruction> inputs) : super(inputs);
+
+  bool isFromActivation() => element === null;
+}
+
+class HFieldGet extends HFieldAccess {
   final bool isFinalOrConst;
-  HFieldGet(this.name, HInstruction receiver, [this.isFinalOrConst = false])
-      : super(<HInstruction>[receiver]);
+
+  HFieldGet(Element element, HInstruction receiver,
+            [this.isFinalOrConst = false])
+      : super(element, <HInstruction>[receiver]);
   HFieldGet.fromActivation(receiver) : this(null, receiver);
 
   HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
-  bool isFromActivation() => name === null;
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
@@ -1245,20 +1252,18 @@ class HFieldGet extends HInstruction {
 
   int typeCode() => 27;
   bool typeEquals(other) => other is HFieldGet;
-  bool dataEquals(HFieldGet other) => name == other.name;
+  bool dataEquals(HFieldGet other) => element == other.element;
 }
 
-class HFieldSet extends HInstruction {
-  final SourceString name;
-  HFieldSet(this.name, HInstruction receiver, HInstruction value)
-      : super(<HInstruction>[receiver, value]);
+class HFieldSet extends HFieldAccess {
+  HFieldSet(Element element, HInstruction receiver, HInstruction value)
+      : super(element, <HInstruction>[receiver, value]);
   HFieldSet.fromActivation(receiver, value)
       : this(null, receiver, value);
 
   HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
   HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
-  bool isFromActivation() => name === null;
 
   void prepareGvn() {
     // TODO(ngeoffray): implement more fine grain side effects.

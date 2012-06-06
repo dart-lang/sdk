@@ -395,7 +395,7 @@ class LocalsHandler {
       // itself.
       HInstruction receiver = new HThis();
       builder.add(receiver);
-      HInstruction fieldGet = new HFieldGet(redirect.name, receiver);
+      HInstruction fieldGet = new HFieldGet(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -407,7 +407,7 @@ class LocalsHandler {
       // the box.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      HInstruction lookup = new HFieldGet(redirect.name, box);
+      HInstruction lookup = new HFieldGet(redirect, box);
       builder.add(lookup);
       return lookup;
     } else {
@@ -474,7 +474,7 @@ class LocalsHandler {
       // be accessed directly.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      builder.add(new HFieldSet(redirect.name, box, value));
+      builder.add(new HFieldSet(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
       HParameterValue parameter = getActivationParameter(element);

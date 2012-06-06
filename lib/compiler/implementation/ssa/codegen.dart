@@ -1507,8 +1507,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     if (!node.isFromActivation()) {
-      String name =
-          compiler.namer.instanceFieldName(currentLibrary, node.name);
+      String name = compiler.namer.getName(node.element);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
@@ -1522,8 +1521,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     String name;
     if (!node.isFromActivation()) {
-      name =
-          compiler.namer.instanceFieldName(currentLibrary, node.name);
+      name = compiler.namer.getName(node.element);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');

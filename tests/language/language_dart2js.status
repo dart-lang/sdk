@@ -80,7 +80,6 @@ named_parameters4_test: Fail # Unimplemented non-matching static call
 naming_test: Fail # Broken because operator negate is not accessible as if it was a method.
 operator6_test: Fail # Constant folding of bit-operations does not agree with runtime behavior. Issue 2887.
 pseudo_kw_test: Fail # Unexpected token '('
-super_field_access_test: Fail # internal error: super property read not implemented
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case

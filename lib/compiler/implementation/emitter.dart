@@ -398,7 +398,17 @@ function() {
       if (!parameters.optionalParameters.isEmpty()) {
         addParameterStubs(member, defineInstanceMember);
       }
-    } else if (member.kind !== ElementKind.FIELD) {
+    } else if (member.kind === ElementKind.FIELD) {
+      SourceString name = member.name;
+      ClassElement cls = member.getEnclosingClass();
+      if (cls.lookupSuperMember(name) !== null) {
+        String fieldName = namer.instanceFieldName(cls, name);
+        defineInstanceMember(namer.getterName(cls.getLibrary(), name),
+                             'function() {\n  return this.$fieldName;\n }');
+        defineInstanceMember(namer.setterName(cls.getLibrary(), name),
+                             'function(x) {\n  this.$fieldName = x;\n }');
+      }
+    } else {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
@@ -433,9 +443,9 @@ function() {
         } else {
           buffer.add(", ");
         }
-        LibraryElement library = member.getLibrary();
         SourceString name = member.name;
-        String fieldName = namer.instanceFieldName(library, name);
+        String fieldName = namer.instanceFieldName(member.getEnclosingClass(),
+                                                   name);
         // Getters and setters with suffixes will be generated dynamically.
         buffer.add('"$fieldName');
         if (needsDynamicGetter || needsDynamicSetter) {
@@ -717,8 +727,9 @@ function() {
     if (member.kind == ElementKind.GETTER) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      getter =
-          "this.${namer.instanceFieldName(member.getLibrary(), member.name)}";
+      String name = namer.instanceFieldName(member.getEnclosingClass(),
+                                            member.name);
+      getter = "this.$name";
     }
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
