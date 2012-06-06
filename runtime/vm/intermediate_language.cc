@@ -6,9 +6,12 @@
 
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
+#include "vm/locations.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/scopes.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
@@ -586,5 +589,381 @@ RawAbstractType* NumberNegateComp::StaticType() const {
 }
 
 
+// Shared code generation methods (EmitNativeCode, MakeLocationSummary, and
+// PrepareEntry). Only assembly code that can be shared across all architectures
+// can be used. Machine specific register allocation and code generation
+// is located in intermediate_language_<arch>.cc
+
+
+// True iff. the arguments to a call will be properly pushed and can
+// be popped after the call.
+template <typename T> static bool VerifyCallComputation(T* comp) {
+  // Argument values should be consecutive temps.
+  //
+  // TODO(kmillikin): implement stack height tracking so we can also assert
+  // they are on top of the stack.
+  intptr_t previous = -1;
+  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+    Value* val = comp->ArgumentAt(i);
+    if (!val->IsUse()) return false;
+    intptr_t current = val->AsUse()->definition()->temp_index();
+    if (i != 0) {
+      if (current != (previous + 1)) return false;
+    }
+    previous = current;
+  }
+  return true;
+}
+
+
+// Truee iff. the v2 is above v1 on stack, or one of them is constant.
+static bool VerifyValues(Value* v1, Value* v2) {
+  ASSERT(v1->IsUse() && v2->IsUse());
+  return (v1->AsUse()->definition()->temp_index() + 1) ==
+     v2->AsUse()->definition()->temp_index();
+}
+
+
+#define __ compiler->assembler()->
+
+void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  // Nothing to do.
+}
+
+
+void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetBlockLabel(this));
+}
+
+
+void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetBlockLabel(this));
+  if (HasTryIndex()) {
+    compiler->AddExceptionHandler(try_index(),
+                                  compiler->assembler()->CodeSize());
+  }
+}
+
+
+LocationSummary* ThrowInstr::MakeLocationSummary() const {
+  const int kNumInputs = 0;
+  const int kNumTemps = 0;
+  return new LocationSummary(kNumInputs, kNumTemps);
+}
+
+
+
+void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(exception()->IsUse());
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kThrowRuntimeEntry);
+  __ int3();
+}
+
+
+LocationSummary* ReThrowInstr::MakeLocationSummary() const {
+  const int kNumInputs = 0;
+  const int kNumTemps = 0;
+  return new LocationSummary(kNumInputs, kNumTemps);
+}
+
+
+void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(exception()->IsUse());
+  ASSERT(stack_trace()->IsUse());
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kReThrowRuntimeEntry);
+  __ int3();
+}
+
+
+LocationSummary* BranchInstr::MakeLocationSummary() const {
+  const int kNumInputs = 1;
+  const int kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  __ CompareObject(value,  Bool::ZoneHandle(Bool::True()));
+  if (compiler->IsNextBlock(false_successor())) {
+    // If the next block is the false successor we will fall through to it if
+    // comparison with true fails.
+    __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
+  } else {
+    ASSERT(compiler->IsNextBlock(true_successor()));
+    // If the next block is the true successor we negate comparison and fall
+    // through to it.
+    __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
+  }
+}
+
+
+LocationSummary* CurrentContextComp::MakeLocationSummary() const {
+  return LocationSummary::Make(0, Location::RequiresRegister());
+}
+
+
+void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ MoveRegister(locs()->out().reg(), CTX);
+}
+
+
+LocationSummary* StoreContextComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  summary->set_in(0, Location::RegisterLocation(CTX));
+  return summary;
+}
+
+
+void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Nothing to do.  Context register were loaded by register allocator.
+  ASSERT(locs()->in(0).reg() == CTX);
+}
+
+
+LocationSummary* StrictCompareComp::MakeLocationSummary() const {
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
+}
+
+
+void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  __ CompareRegisters(left, right);
+  Label load_true, done;
+  if (kind() == Token::kEQ_STRICT) {
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+  } else {
+    ASSERT(kind() == Token::kNE_STRICT);
+    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
+  }
+  __ LoadObject(result, bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(result, bool_true);
+  __ Bind(&done);
+}
+
+
+void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(VerifyCallComputation(this));
+  // The arguments to the stub include the closure.  The arguments
+  // descriptor describes the closure's arguments (and so does not include
+  // the closure).
+  Register temp_reg = locs()->temp(0).reg();
+  int argument_count = ArgumentCount();
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count - 1,
+                                         argument_names());
+  __ LoadObject(temp_reg, arguments_descriptor);
+
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &StubCode::CallClosureFunctionLabel(),
+                         PcDescriptors::kOther);
+  __ Drop(argument_count);
+}
+
+
+LocationSummary* InstanceCallComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(VerifyCallComputation(this));
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 cid(),
+                                 token_index(),
+                                 try_index());
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name(),
+                                 ArgumentCount(),
+                                 argument_names(),
+                                 checked_argument_count());
+}
+
+
+LocationSummary* StaticCallComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(VerifyCallComputation(this));
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               function(),
+                               ArgumentCount(),
+                               argument_names());
+}
+
+
+LocationSummary* UseVal::MakeLocationSummary() const {
+  return NULL;
+}
+
+
+void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  compiler->GenerateAssertAssignable(cid(),
+                                     token_index(),
+                                     try_index(),
+                                     dst_type(),
+                                     dst_name());
+  ASSERT(locs()->in(0).reg() == locs()->out().reg());
+}
+
+
+LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
+  return LocationSummary::Make(1, Location::SameAsFirstInput());
+}
+
+
+LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
+  return LocationSummary::Make(2, Location::RequiresRegister());
+}
+
+
+void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(VerifyValues(instance(), value()));
+  Register instance = locs()->in(0).reg();
+  Register value = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  __ StoreIntoObject(instance, FieldAddress(instance, field().Offset()),
+                     value);
+  // TODO(fschneider): Consider eliminating this move by specifying a
+  // SameAsSecondInput for the result.
+  __ MoveRegister(result, value);
+}
+
+
+LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
+  LocationSummary* locs = new LocationSummary(1, 1);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
+}
+
+
+void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->out().reg() == value);
+
+  __ LoadObject(temp, field());
+  __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
+}
+
+
+LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
+  return LocationSummary::Make(1, Location::RequiresRegister());
+}
+
+
+void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label done;
+  __ LoadObject(result, bool_true);
+  __ CompareRegisters(result, value);
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ LoadObject(result, bool_false);
+  __ Bind(&done);
+}
+
+
+LocationSummary* ChainContextComp::MakeLocationSummary() const {
+  return LocationSummary::Make(1, Location::NoLocation());
+}
+
+
+void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register context_value = locs()->in(0).reg();
+
+  // Chain the new context in context_value to its parent in CTX.
+  __ StoreIntoObject(context_value,
+                     FieldAddress(context_value, Context::parent_offset()),
+                     CTX);
+  // Set new context as current context.
+  __ MoveRegister(CTX, context_value);
+}
+
+
+LocationSummary* StoreVMFieldComp::MakeLocationSummary() const {
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
+}
+
+
+void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value_reg = locs()->in(0).reg();
+  Register dest_reg = locs()->in(1).reg();
+  ASSERT(value_reg == locs()->out().reg());
+
+  __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                     value_reg);
+}
+
+
+LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Class& cls = Class::ZoneHandle(constructor().owner());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
+  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_index(),
+                         try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  __ Drop(arguments().length());  // Discard arguments.
+}
+
+
+LocationSummary* CreateClosureComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Function& closure_function = function();
+  const Code& stub = Code::Handle(
+      StubCode::GetAllocationStubForClosure(closure_function));
+  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_index(), try_index(), &label,
+                         PcDescriptors::kOther);
+  __ Drop(2);  // Discard type arguments and receiver.
+}
+
+#undef __
 
 }  // namespace dart

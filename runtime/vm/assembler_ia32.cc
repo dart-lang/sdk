@@ -1281,6 +1281,18 @@ void Assembler::cmpxchgl(const Address& address, Register reg) {
 }
 
 
+void Assembler::CompareRegisters(Register a, Register b) {
+  cmpl(a, b);
+}
+
+
+void Assembler::MoveRegister(Register to, Register from) {
+  if (to != from) {
+    movl(to, from);
+  }
+}
+
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   int value = imm.value();
   if (value > 0) {

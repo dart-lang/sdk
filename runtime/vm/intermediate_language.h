@@ -137,6 +137,8 @@ class Computation : public ZoneAllocated {
   // TODO(fschneider): Make EmitNativeCode and locs const.
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
+  static LocationSummary* MakeCallSummary();
+
  private:
   friend class Instruction;
   static intptr_t GetNextCid(Isolate* isolate) {

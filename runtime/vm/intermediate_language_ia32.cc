@@ -7,6 +7,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "lib/error.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -19,30 +20,10 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
 
-// True iff. the arguments to a call will be properly pushed and can
-// be popped after the call.
-template <typename T> static bool VerifyCallComputation(T* comp) {
-  // Argument values should be consecutive temps.
-  //
-  // TODO(kmillikin): implement stack height tracking so we can also assert
-  // they are on top of the stack.
-  intptr_t previous = -1;
-  for (int i = 0; i < comp->ArgumentCount(); ++i) {
-    Value* val = comp->ArgumentAt(i);
-    if (!val->IsUse()) return false;
-    intptr_t current = val->AsUse()->definition()->temp_index();
-    if (i != 0) {
-      if (current != (previous + 1)) return false;
-    }
-    previous = current;
-  }
-  return true;
-}
-
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
-static LocationSummary* MakeCallSummary() {
+LocationSummary* Computation::MakeCallSummary() {
   LocationSummary* result = new LocationSummary(0, 0);
   result->set_out(Location::RegisterLocation(EAX));
   return result;
@@ -52,25 +33,6 @@ static LocationSummary* MakeCallSummary() {
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
   __ pushl(locs()->out().reg());
-}
-
-
-void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  // Nothing to do.
-}
-
-
-void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetBlockLabel(this));
-}
-
-
-void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetBlockLabel(this));
-  if (HasTryIndex()) {
-    compiler->AddExceptionHandler(try_index(),
-                                  compiler->assembler()->CodeSize());
-  }
 }
 
 
@@ -135,162 +97,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ThrowInstr::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* ReThrowInstr::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* BranchInstr::MakeLocationSummary() const {
-  const int kNumInputs = 1;
-  const int kNumTemps = 0;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
-  locs->set_in(0, Location::RequiresRegister());
-  return locs;
-}
-
-
-void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  __ CompareObject(value,  Bool::ZoneHandle(Bool::True()));
-  if (compiler->IsNextBlock(false_successor())) {
-    // If the next block is the false successor we will fall through to it if
-    // comparison with true fails.
-    __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
-  } else {
-    ASSERT(compiler->IsNextBlock(true_successor()));
-    // If the next block is the true successor we negate comparison and fall
-    // through to it.
-    __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
-  }
-}
-
-
-LocationSummary* CurrentContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(0, Location::RequiresRegister());
-}
-
-
-void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ movl(locs()->out().reg(), CTX);
-}
-
-
-LocationSummary* StoreContextComp::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-  summary->set_in(0, Location::RegisterLocation(CTX));
-  return summary;
-}
-
-
-void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.  Context register were loaded by register allocator.
-  ASSERT(locs()->in(0).reg() == CTX);
-}
-
-
-LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::SameAsFirstInput());
-}
-
-
-void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  Register result = locs()->out().reg();
-
-  __ cmpl(left, right);
-  Label load_true, done;
-  if (kind() == Token::kEQ_STRICT) {
-    __ j(EQUAL, &load_true, Assembler::kNearJump);
-  } else {
-    ASSERT(kind() == Token::kNE_STRICT);
-    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
-  }
-  __ LoadObject(result, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, bool_true);
-  __ Bind(&done);
-}
-
-
 LocationSummary* ClosureCallComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
-  // The arguments to the stub include the closure.  The arguments
-  // descriptor describes the closure's arguments (and so does not include
-  // the closure).
-  int argument_count = ArgumentCount();
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count - 1,
-                                         argument_names());
-  __ LoadObject(EDX, arguments_descriptor);
-  compiler->GenerateCall(token_index(),
-                         try_index(),
-                         &StubCode::CallClosureFunctionLabel(),
-                         PcDescriptors::kOther);
-  __ Drop(argument_count);
-}
-
-
-LocationSummary* InstanceCallComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 cid(),
-                                 token_index(),
-                                 try_index());
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
-                                 function_name(),
-                                 ArgumentCount(),
-                                 argument_names(),
-                                 checked_argument_count());
-}
-
-
-LocationSummary* StaticCallComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
-  compiler->GenerateStaticCall(cid(),
-                               token_index(),
-                               try_index(),
-                               function(),
-                               ArgumentCount(),
-                               argument_names());
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result = new LocationSummary(kNumInputs, kNumTemps);
+  result->set_out(Location::RegisterLocation(EAX));
+  result->set_temp(0, Location::RegisterLocation(EDX));  // Arg. descriptor.
+  return result;
 }
 
 
@@ -334,57 +147,89 @@ void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UseVal::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
   LocationSummary* summary = new LocationSummary(3, 0);
-  summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_in(1, Location::RegisterLocation(ECX));
-  summary->set_in(2, Location::RegisterLocation(EDX));
+  summary->set_in(0, Location::RegisterLocation(EAX));  // Value.
+  summary->set_in(1, Location::RegisterLocation(ECX));  // Instantiator.
+  summary->set_in(2, Location::RegisterLocation(EDX));  // Type arguments.
   summary->set_out(Location::RegisterLocation(EAX));
   return summary;
 }
 
 
-void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->in(0).reg() == EAX);  // Value.
-  ASSERT(locs()->in(1).reg() == ECX);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
-
-  compiler->GenerateAssertAssignable(cid(),
-                                     token_index(),
-                                     try_index(),
-                                     dst_type(),
-                                     dst_name());
-  ASSERT(locs()->in(0).reg() == locs()->out().reg());
-}
-
-
-LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return NULL;
-}
-
-
 void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  Label done;
+  __ CompareObject(obj, Bool::ZoneHandle(Bool::True()));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ CompareObject(obj, Bool::ZoneHandle(Bool::False()));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  __ pushl(Immediate(Smi::RawValue(token_index())));  // Source location.
+  __ pushl(obj);  // Push the source object.
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kConditionTypeErrorRuntimeEntry);
+  // We should never return here.
+  __ int3();
+
+  __ Bind(&done);
+  ASSERT(obj == result);
 }
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
-  return NULL;
+  LocationSummary* locs = new LocationSummary(2, 0);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
 }
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  ASSERT(locs()->out().reg() == EAX);
+
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label done, load_true, non_null_compare;
+  __ cmpl(left, raw_null);
+  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
+  // Comparison with NULL is "===".
+  __ cmpl(left, right);
+  __ j(EQUAL, &load_true, Assembler::kNearJump);
+  __ LoadObject(result, bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(result, bool_true);
+  __ jmp(&done);
+
+  __ Bind(&non_null_compare);
+  __ pushl(left);
+  __ pushl(right);
+  const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
+  const int kNumberOfArguments = 2;
+  const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
+
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 operator_name,
+                                 kNumberOfArguments,
+                                 kNoArgumentNames,
+                                 kNumArgumentsChecked);
+  __ Bind(&done);
 }
 
 
@@ -423,12 +268,31 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 3;
+  return LocationSummary::Make(kNumInputs, Location::NoLocation());
 }
 
 
 void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register value = locs()->in(2).reg();
+
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+
+  __ pushl(receiver);
+  __ pushl(index);
+  __ pushl(value);
+  const intptr_t kNumArguments = 3;
+  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
 }
 
 
@@ -487,43 +351,15 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 LocationSummary* LoadStaticFieldComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(0, Location::RequiresRegister());
 }
 
 
 void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  __ LoadObject(result, field());
+  __ movl(result, FieldAddress(result, Field::value_offset()));
 }
 
 
@@ -552,45 +388,38 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateArrayComp::MakeLocationSummary() const {
-  return NULL;
+  // TODO(regis): The elements of the array could be considered as arguments to
+  // CreateArrayComp, thereby making CreateArrayComp a call.
+  // For VerifyCallComputation to work, CreateArrayComp would need an
+  // ArgumentCount getter and an ArgumentAt getter.
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RegisterLocation(ECX));
+  locs->set_temp(0, Location::RegisterLocation(EDX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
 }
 
 
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* CreateClosureComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Function& closure_function = function();
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(closure_function));
-  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_index(), try_index(), &label,
-                         PcDescriptors::kOther);
-  __ Drop(2);  // Discard type arguments and receiver.
-}
-
-
-LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  Register temp_reg = locs()->temp(0).reg();
+  Register result_reg = locs()->out().reg();
+  ASSERT(temp_reg == EDX);
+  ASSERT(locs()->in(0).reg() == ECX);
+  // 1. Allocate the array.  EDX = length, ECX = element type.
+  __ movl(EDX,  Immediate(Smi::RawValue(ElementCount())));
   compiler->GenerateCall(token_index(),
                          try_index(),
-                         &label,
+                         &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther);
-  __ Drop(arguments().length());  // Discard arguments.
+  ASSERT(result_reg == EAX);
+  // Pop the element values from the stack into the array.
+  __ leal(temp_reg, FieldAddress(result_reg, Array::data_offset()));
+  for (int i = ElementCount() - 1; i >= 0; --i) {
+    ASSERT(ElementAt(i)->IsUse());
+    __ popl(Address(temp_reg, i * kWordSize));
+  }
 }
 
 
@@ -633,21 +462,6 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   __ movl(result, FieldAddress(obj, offset_in_bytes()));
-}
-
-
-LocationSummary* StoreVMFieldComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::SameAsFirstInput());
-}
-
-
-void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value_reg = locs()->in(0).reg();
-  Register dest_reg = locs()->in(1).reg();
-  ASSERT(value_reg == locs()->out().reg());
-
-  __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
-                     value_reg);
 }
 
 
@@ -712,25 +526,125 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
 
 LocationSummary*
 ExtractConstructorTypeArgumentsComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  locs->set_temp(0, Location::RequiresRegister());
+  return locs;
 }
 
 
 void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instantiator_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out().reg();
+  ASSERT(instantiator_reg == result_reg);
+  Register temp_reg = locs()->temp(0).reg();
+
+  // instantiator_reg is the instantiator type argument vector, i.e. an
+  // AbstractTypeArguments object (or null).
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(instantiator_reg, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  // Instantiate non-null type arguments.
+  if (type_arguments().IsUninstantiatedIdentity()) {
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check instantiator_reg for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
+    Label type_arguments_uninstantiated;
+    __ CompareClassId(instantiator_reg, kTypeArguments, temp_reg);
+    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(type_arguments().Length()));
+    __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    __ Bind(&type_arguments_uninstantiated);
+  }
+  // In the non-factory case, we rely on the allocation stub to
+  // instantiate the type arguments.
+  __ LoadObject(result_reg, type_arguments());
+  // result_reg: uninstantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+  // result_reg: uninstantiated or instantiated type arguments.
 }
 
 
 LocationSummary*
 ExtractConstructorInstantiatorComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  locs->set_temp(0, Location::RequiresRegister());
+  return locs;
 }
 
 
 void ExtractConstructorInstantiatorComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(instantiator()->IsUse());
+  Register instantiator_reg = locs()->in(0).reg();
+  ASSERT(locs()->out().reg() == instantiator_reg);
+  Register temp_reg = locs()->temp(0).reg();
+
+  // instantiator_reg is the instantiator AbstractTypeArguments object
+  // (or null).  If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments and do not pass the instantiator.
+  Label done;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    Label instantiator_not_null;
+    __ cmpl(instantiator_reg, raw_null);
+    __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
+    // Null was used in VisitExtractConstructorTypeArguments as the
+    // instantiated type arguments, no proper instantiator needed.
+    __ movl(instantiator_reg,
+            Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+    __ jmp(&done);
+    __ Bind(&instantiator_not_null);
+  }
+  // Instantiate non-null type arguments.
+  if (type_arguments().IsUninstantiatedIdentity()) {
+    // TODO(regis): The following emitted code is duplicated in
+    // VisitExtractConstructorTypeArguments above. The reason is that the code
+    // is split between two computations, so that each one produces a
+    // single value, rather than producing a pair of values.
+    // If this becomes an issue, we should expose these tests at the IL level.
+
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check the instantiator (RAX) for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
+    __ CompareClassId(instantiator_reg, kTypeArguments, temp_reg);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+    Immediate arguments_length =
+        Immediate(Smi::RawValue(type_arguments().Length()));
+    __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+    // The instantiator was used in VisitExtractConstructorTypeArguments as the
+    // instantiated type arguments, no proper instantiator needed.
+    __ movl(instantiator_reg,
+            Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  }
+  __ Bind(&done);
+  // instantiator_reg: instantiator or kNoInstantiator.
 }
 
 
@@ -755,23 +669,6 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &label,
                          PcDescriptors::kOther);
-}
-
-
-LocationSummary* ChainContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1, Location::NoLocation());
-}
-
-
-void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register context_value = locs()->in(0).reg();
-
-  // Chain the new context in context_value to its parent in CTX.
-  __ StoreIntoObject(context_value,
-                     FieldAddress(context_value, Context::parent_offset()),
-                     CTX);
-  // Set new context as current context.
-  __ movl(CTX, context_value);
 }
 
 
