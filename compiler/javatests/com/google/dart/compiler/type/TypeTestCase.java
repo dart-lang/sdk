@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.type;
 
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
@@ -18,6 +19,7 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.TypeVariableElement;
@@ -38,7 +40,7 @@ import java.util.Map;
  */
 abstract class TypeTestCase extends TestCase {
 
-  final Map<String, ClassElement> coreElements = new HashMap<String, ClassElement>();
+  final Map<String, Element> coreElements = Maps.newHashMap();
   final ClassElement object = element("Object", null);
   final ClassElement function = element("Function", itype(object));
   final ClassElement number = element("num", itype(object));

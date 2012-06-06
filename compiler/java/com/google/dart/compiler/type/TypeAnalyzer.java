@@ -353,7 +353,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return rhs;
         }
 
-        case ASSIGN_ADD:
+        case ASSIGN_ADD: {
+          checkStringConcatPlus(lhsNode);
+          checkStringConcatPlus(rhsNode);
+        }
         case ASSIGN_SUB:
         case ASSIGN_MUL:
         case ASSIGN_DIV:
@@ -411,7 +414,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
 
-        case ADD:
+        case ADD:  {
+          checkStringConcatPlus(lhsNode);
+          checkStringConcatPlus(rhsNode);
+        }
         case SUB:
         case MUL:
         case DIV:
@@ -444,6 +450,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         default:
           throw new AssertionError("Unknown operator: " + operator);
+      }
+    }
+
+    private void checkStringConcatPlus(DartExpression node) {  
+      if (node != null) {
+        Type type = null;
+        if (node.getElement() != null) { 
+          type = node.getElement().getType();
+        } else if (node.getType() != null) {
+          type = node.getType();
+        } 
+        if (type != null) {
+          if (type.equals(stringType)) {
+            onError(node, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
+          }
+        }
       }
     }
 
