@@ -28,6 +28,8 @@
  *   4. if the future failed, and at least one handler was registered with
  *      [then], and no handler registered with [handleException] returned
  *      [:true:], then the exception is thrown.
+ *
+ * Use a [Completer] to create and change the state of a [Future].
  */
 interface Future<T> default FutureImpl<T> {
 
