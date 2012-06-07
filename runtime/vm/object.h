@@ -4915,8 +4915,10 @@ void Object::SetRaw(RawObject* value) {
   } else {
     intptr_t cid = raw_->GetClassId();
     if (cid < kNumPredefinedKinds) {
+#if defined(DEBUG)
       ASSERT(builtin_vtables_[cid] ==
              isolate->class_table()->At(cid)->ptr()->handle_vtable_);
+#endif
       set_vtable(builtin_vtables_[cid]);
     } else {
 #if !defined(DEBUG)
