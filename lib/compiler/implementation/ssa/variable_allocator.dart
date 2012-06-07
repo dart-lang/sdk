@@ -399,10 +399,12 @@ class VariableNamer {
   final VariableNames names;
   final Set<String> usedNames;
   final Map<Element, String> parameterNames;
+  final List<String> freeTemporaryNames;
   int temporaryIndex = 0;
 
   VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
-    : usedNames = new Set<String>() {
+    : usedNames = new Set<String>(),
+      freeTemporaryNames = new List<String>() {
     // [VariableNames.swapTemp] is being used when there is a cycle
     // in a copy handler. Therefore we make sure no one will use it.
     usedNames.add(names.swapTemp);
@@ -427,6 +429,10 @@ class VariableNamer {
   }
 
   String allocateTemporary() {
+    while (!freeTemporaryNames.isEmpty()) {
+      String name = freeTemporaryNames.removeLast();
+      if (!usedNames.contains(name)) return name;
+    }
     String name = 't${temporaryIndex++}';
     while (usedNames.contains(name)) name = 't${temporaryIndex++}';
     return name;
@@ -490,6 +496,14 @@ class VariableNamer {
   void freeName(HInstruction instruction) {
     String ownName = names.ownName[instruction];
     if (ownName != null) {
+      RegExp regexp = const RegExp('t[0-9]+');
+      // We check if we have already looked for temporary names
+      // because if we haven't, chances are the temporary we allocate
+      // in this block can match a phi with the same name in the
+      // successor block.
+      if (temporaryIndex != 0 && regexp.hasMatch(ownName)) {
+        freeTemporaryNames.addLast(ownName);
+      }
       usedNames.remove(ownName);
     }
   }
