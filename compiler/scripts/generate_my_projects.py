@@ -30,6 +30,9 @@ def Main():
   if exit_code:
     return exit_code
 
+  if exit_code:
+    return exit_code
+
   if '--no-gyp' in sys.argv:
     print '--no-gyp is deprecated.'
 

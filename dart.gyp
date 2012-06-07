@@ -8,7 +8,7 @@
       'target_name': 'compiler',
       'type': 'none',
       'dependencies': [
-        'compiler/dart-compiler.gyp:dart_analyzer',
+        'compiler/dart-compiler.gyp:dartc',
       ],
       'actions': []
     },
@@ -30,7 +30,6 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'dart2js',
-        'compiler',
       ],
       'actions': [
         {
@@ -54,13 +53,6 @@
           ],
           'message': 'Creating SDK.',
         },
-      ],
-      'conditions' : [
-        ['OS=="linux"', {
-          'dependencies': [
-            'compiler',
-          ],
-        }],
       ],
     },
     {

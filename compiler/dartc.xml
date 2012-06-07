@@ -4,17 +4,8 @@
   BSD-style license that can be found in the LICENSE file.
  -->
 <project default="dist">
-  <!--
-      EDIT DARTC.XML FIRST.  This file is no longer used to build
-      dartc proper.  It is only here to avoid breaking dartium.gyp
-      short term.  Change dartc.xml to get everything working, 
-      then update this file to match.
-  -->
-
   <import file="sources.xml"/>
   <import file="test_sources.xml"/>
-  <import file="corelib_sources.xml"/>
-  <import file="compiler_corelib_sources.xml"/>
 
   <!--
     The file build.properties does not exist. If provided, properties can be customized.
@@ -66,6 +57,8 @@
     <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar"/>
     <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar"/>
     <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar"/>
+    <pathelement location="${third_party.dir}/fest/fest-util-1.1.6.jar"/>
+    <pathelement location="${third_party.dir}/fest/fest-assert-1.4.jar"/>
   </path>
 
   <target name="compile" description="Compiles all of the java source and copies resources to the classes directory.">
@@ -88,20 +81,12 @@
     <copy todir="${build.classes.dir}">
       <filelist refid="java_resources"/>
     </copy>
-
-    <!--
-      Copy the corelib files.
-      TODO - Extract this into its own jar.
-    -->
-    <copy todir="${build.classes.dir}/com/google/dart/corelib/src">
-      <filelist refid="corelib_resources"/>
-    </copy>
-    <copy todir="${build.classes.dir}/com/google/dart/corelib">
-      <filelist refid="compiler_corelib_resources"/>
-    </copy>
-
   </target>
 
+  <!--
+    We rely on GYP to call these targets when the dartc dependencies change, hence this
+    ant file cannot be used standalone.
+  -->
   <target name="compile-tests" depends="compile" description="Compiles all of the java tests and copies the resources to the test classes directory." >
     <mkdir dir="${build.test.classes.dir}"/>
     <javac destdir="${build.test.classes.dir}"

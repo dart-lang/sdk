@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Produce a build of dartc that can be used to measure its performance over
+# time.  This script needs to be backwards compatible with earlier
+# revisions.
+#
+# TODO: Still need to handle revisions between r2694 and r2764.
+# 
+DARTC_REVISION=$1
+USERNAME=$2
+PASSWORD=$3
+
+# Checkout the depot tools
+svn checkout --quiet http://src.chromium.org/svn/trunk/tools/depot_tools depot_tools
+GCLIENT_CMD=./depot_tools/gclient
+
+# Make a gclient with the compiler deps only
+$GCLIENT_CMD config https://dart.googlecode.com/svn/branches/bleeding_edge/deps/compiler.deps
+
+# Make sure that we have access
+svn ls --username $USERNAME --password "$PASSWORD" https://dart.googlecode.com/svn/
+
+# Try to sync to a particular revision transitively; muffle the output
+$GCLIENT_CMD sync -r $DARTC_REVISION -t > gclient.sync.txt
+
+# Build dartc
+cd compiler
+../tools/build.py --mode release
+rc=$?
+if [ $rc -ne 0 ]; then
+  exit $rc
+fi
+
+# Give the metrics system a backwards compatible way of getting to the 
+# artifacts that it needs.
+cd ..
+mkdir -p prebuilt
+cd prebuilt
+COMPILER_OUTDIR=../compiler/out/Release_ia32
+cp -r $COMPILER_OUTDIR/compiler ./compiler
+GENERATED_SCRIPT_DIR=obj.target/geni/dartc
+PATH_TO_METRICS_SCRIPT=$COMPILER_OUTDIR/$GENERATED_SCRIPT_DIR
+cp -r $PATH_TO_METRICS_SCRIPT/dartc_run.sh .
+cp -r $PATH_TO_METRICS_SCRIPT/dartc_size.sh .
+cp $COMPILER_OUTDIR/d8 .
+if [ -e $PATH_TO_METRICS_SCRIPT/dartc_metrics.sh ]; then
+  cp $PATH_TO_METRICS_SCRIPT/dartc_metrics.sh .
+fi
+
