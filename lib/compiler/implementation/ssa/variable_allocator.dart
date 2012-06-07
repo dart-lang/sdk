@@ -353,14 +353,21 @@ class VariableNames {
    * Name that is being used as a temporary to break cycles in
    * parallel copies. We make sure this name is not being used
    * anywhere by reserving it when we allocate names for instructions.
-   * TODO(ngeoffray): This isn't true for parameters, and we should
-   * rename the parameter name, to keep it simple.
    */
-  static final String SWAP_TEMP = 't0';
+  final String swapTemp;
 
-  VariableNames()
+  VariableNames(Map<Element, String> parameterNames)
     : ownName = new Map<HInstruction, String>(),
-      copyHandlers = new Map<HBasicBlock, CopyHandler>();
+      copyHandlers = new Map<HBasicBlock, CopyHandler>(),
+      swapTemp = computeSwapTemp(parameterNames);
+
+  static String computeSwapTemp(Map<Element, String> parameterNames) {
+    Set<String> parameters = new Set<String>.from(parameterNames.getValues());
+    String name = 't0';
+    int i = 1;
+    while (parameters.contains(name)) name = 't${i++}';
+    return name;
+  }
 
   String getName(HInstruction instruction) {
     return ownName[instruction];
@@ -392,12 +399,13 @@ class VariableNamer {
   final VariableNames names;
   final Set<String> usedNames;
   final Map<Element, String> parameterNames;
+  int temporaryIndex = 0;
 
   VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
     : usedNames = new Set<String>() {
-    // [VariableNames.SWAP_TEMP] is being used when there is a cycle
+    // [VariableNames.swapTemp] is being used when there is a cycle
     // in a copy handler. Therefore we make sure no one will use it.
-    usedNames.add(VariableNames.SWAP_TEMP);
+    usedNames.add(names.swapTemp);
 
     // All liveIns instructions must have a name at this point, so we
     // add them to the list of used names.
@@ -419,11 +427,8 @@ class VariableNamer {
   }
 
   String allocateTemporary() {
-    // Don't start at 0 because t0 is being used for
-    // [VariableNames.SWAP_TEMP].
-    int i = 1;
-    String name = 't${i++}';
-    while (usedNames.contains(name)) name = 't${i++}';
+    String name = 't${temporaryIndex++}';
+    while (usedNames.contains(name)) name = 't${temporaryIndex++}';
     return name;
   }
 
@@ -516,8 +521,9 @@ class SsaVariableAllocator extends HBaseVisitor {
                        this.liveInstructions,
                        this.liveIntervals,
                        this.generateAtUseSite,
-                       this.parameterNames)
-    : names = new VariableNames();
+                       parameterNames)
+    : this.names = new VariableNames(parameterNames),
+      this.parameterNames = parameterNames;
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);

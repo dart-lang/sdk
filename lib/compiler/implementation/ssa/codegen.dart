@@ -1090,7 +1090,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // cycle that we break by using a temporary name.
       if (currentLocation[current] !== null
           && current != currentLocation[initialValue[current]]) {
-        String tempName = VariableNames.SWAP_TEMP;
+        String tempName = variableNames.swapTemp;
         emitAssignment(tempName, current);
         currentLocation[current] = tempName;
         // [current] can now be safely updated. Copies of [current]
