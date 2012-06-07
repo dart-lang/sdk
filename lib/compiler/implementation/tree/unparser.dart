@@ -334,7 +334,9 @@ class Unparser implements Visitor {
     add(node.forToken.value);
     sb.add(' (');
     visit(node.declaredIdentifier);
+    sb.add(' ');
     add(node.inToken.value);
+    sb.add(' ');
     visit(node.expression);
     sb.add(') ');
     visit(node.body);
