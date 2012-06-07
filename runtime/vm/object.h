@@ -4904,7 +4904,11 @@ void Object::SetRaw(RawObject* value) {
   if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
     return;
+  } else if (raw_ == null_) {
+    set_vtable(handle_vtable_);
+    return;
   }
+
 #if defined(DEBUG)
   Isolate* isolate = Isolate::Current();
   Heap* isolate_heap = isolate->heap();
@@ -4912,23 +4916,19 @@ void Object::SetRaw(RawObject* value) {
   ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
          vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
 #endif
-  if (raw_ == null_) {
-    set_vtable(handle_vtable_);
-  } else {
-    intptr_t cid = raw_->GetClassId();
-    if (cid < kNumPredefinedKinds) {
+  intptr_t cid = raw_->GetClassId();
+  if (cid < kNumPredefinedKinds) {
 #if defined(DEBUG)
-      ASSERT(builtin_vtables_[cid] ==
-             isolate->class_table()->At(cid)->ptr()->handle_vtable_);
+    ASSERT(builtin_vtables_[cid] ==
+           isolate->class_table()->At(cid)->ptr()->handle_vtable_);
 #endif
-      set_vtable(builtin_vtables_[cid]);
-    } else {
+    set_vtable(builtin_vtables_[cid]);
+  } else {
 #if !defined(DEBUG)
-      Isolate* isolate = Isolate::Current();
+    Isolate* isolate = Isolate::Current();
 #endif
-      RawClass* raw_class = isolate->class_table()->At(cid);
-      set_vtable(raw_class->ptr()->handle_vtable_);
-    }
+    RawClass* raw_class = isolate->class_table()->At(cid);
+    set_vtable(raw_class->ptr()->handle_vtable_);
   }
 }
 
