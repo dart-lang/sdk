@@ -379,6 +379,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static cpp_vtable handle_vtable_;
+  static cpp_vtable builtin_vtables_[kNumPredefinedKinds];
 
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
@@ -418,6 +419,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
 
+  friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
   friend class SnapshotReader;
 
@@ -4901,8 +4903,9 @@ void Object::SetRaw(RawObject* value) {
     set_vtable(Smi::handle_vtable_);
     return;
   }
-#ifdef DEBUG
-  Heap* isolate_heap = Isolate::Current()->heap();
+#if defined(DEBUG)
+  Isolate* isolate = Isolate::Current();
+  Heap* isolate_heap = isolate->heap();
   Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
   ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
          vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
@@ -4910,9 +4913,18 @@ void Object::SetRaw(RawObject* value) {
   if (raw_ == null_) {
     set_vtable(handle_vtable_);
   } else {
-    RawClass* raw_class =
-      Isolate::Current()->class_table()->At(raw_->GetClassId());
-    set_vtable(raw_class->ptr()->handle_vtable_);
+    intptr_t cid = raw_->GetClassId();
+    if (cid < kNumPredefinedKinds) {
+      ASSERT(builtin_vtables_[cid] ==
+             isolate->class_table()->At(cid)->ptr()->handle_vtable_);
+      set_vtable(builtin_vtables_[cid]);
+    } else {
+#if !defined(DEBUG)
+      Isolate* isolate = Isolate::Current();
+#endif
+      RawClass* raw_class = isolate->class_table()->At(cid);
+      set_vtable(raw_class->ptr()->handle_vtable_);
+    }
   }
 }
 

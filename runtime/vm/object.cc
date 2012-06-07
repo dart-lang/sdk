@@ -42,6 +42,7 @@ static const char* kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 
 cpp_vtable Object::handle_vtable_ = 0;
+cpp_vtable Object::builtin_vtables_[kNumPredefinedKinds] = { 0 };
 cpp_vtable Smi::handle_vtable_ = 0;
 
 // These are initialized to a value that will force a illegal memory access if
