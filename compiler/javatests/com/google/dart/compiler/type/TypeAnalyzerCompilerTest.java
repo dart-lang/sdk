@@ -1802,7 +1802,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "f() {",
+        "f(var arg) {",
         "  var v1 = 1 + 2;",
         "  var v2 = 1 - 2;",
         "  var v3 = 1 * 2;",
@@ -1819,6 +1819,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v14 = 1 / 2.0;",
         "  var v15 = 1.0 ~/ 2.0;",
         "  var v16 = 1.0 ~/ 2;",
+        "  var v17 = arg as int",
         "}",
         "");
     assertInferredElementTypeString(libraryResult, "v1", "int");
@@ -1837,6 +1838,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v14", "double");
     assertInferredElementTypeString(libraryResult, "v15", "double");
     assertInferredElementTypeString(libraryResult, "v16", "double");
+    assertInferredElementTypeString(libraryResult, "v17", "int");
   }
 
   /**

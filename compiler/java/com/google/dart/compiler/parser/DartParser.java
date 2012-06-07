@@ -1899,6 +1899,10 @@ public class DartParser extends CompletionHooksParserBase {
           } else {
             right = done(new DartTypeExpression(parseTypeAnnotation()));
           }
+        } else if (token == Token.AS) {
+          beginCastExpression();
+          beginTypeExpression();
+          right = done(new DartTypeExpression(parseTypeAnnotation()));
         } else {
           right = parseBinaryExpression(level + 1);
         }
@@ -1908,7 +1912,8 @@ public class DartParser extends CompletionHooksParserBase {
 
         lastResult = right;
         result = doneWithoutConsuming(new DartBinaryExpression(token, result, right));
-        if ((token == Token.IS)
+        if (token == Token.IS
+            || token == Token.AS
             || token.isRelationalOperator()
             || token.isEqualityOperator()) {
           // The operations cannot be chained.

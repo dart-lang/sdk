@@ -24,6 +24,7 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTryStatement;
+import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
@@ -178,6 +179,18 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(1, ((DartIntegerLiteral)array.getExpressions().get(0)).getValue().intValue());
     assertEquals(2, ((DartIntegerLiteral)array.getExpressions().get(1)).getValue().intValue());
     assertEquals(3, ((DartIntegerLiteral)array.getExpressions().get(2)).getValue().intValue());
+  }
+
+  public void testAs() {
+    DartUnit unit = parseUnit("phony_cast.dart", "var x = 3 as int;");
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+    DartFieldDefinition f = (DartFieldDefinition)nodes.get(0);
+    DartField fieldX = f.getFields().get(0);
+    DartBinaryExpression cast = (DartBinaryExpression) fieldX.getValue();
+    assertTrue(cast.getArg1() instanceof DartIntegerLiteral);
+    assertEquals(Token.AS, cast.getOperator());
+    assertTrue(cast.getArg2() instanceof DartTypeExpression);
   }
 
   public void testMapLiteral() {

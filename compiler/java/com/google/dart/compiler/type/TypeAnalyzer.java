@@ -449,6 +449,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
          nonVoidTypeOf(rhsNode);
          return boolType;
 
+       case AS:
+         return typeOf(rhsNode);
+
        case IS:
          if (rhsNode instanceof DartUnaryExpression) {
            assert ((DartUnaryExpression) rhsNode).getOperator() == Token.NOT;
@@ -566,14 +569,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             @Override
             public Void visitBinaryExpression(DartBinaryExpression node) {
               // don't infer type if condition negated
-              if (!negation && node.getOperator() == Token.IS) {
+              if (!negation && (node.getOperator() == Token.IS || node.getOperator() == Token.AS)) {
                 DartExpression arg1 = node.getArg1();
                 DartExpression arg2 = node.getArg2();
                 if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
                     && arg2 instanceof DartTypeExpression) {
                   VariableElement variableElement = (VariableElement) arg1.getElement();
-                  Type isType = arg2.getType();
-                  Type varType = Types.makeInferred(isType);
+                  Type rhsType = arg2.getType();
+                  Type varType = Types.makeInferred(rhsType);
                   variableRestorer.setType(variableElement, varType);
                 }
               }

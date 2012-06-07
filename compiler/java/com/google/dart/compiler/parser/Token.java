@@ -70,6 +70,7 @@ public enum Token {
   GT(">", 10),
   LTE("<=", 10),
   GTE(">=", 10),
+  AS("as", 10),
   IS("is", 10),
 
   /* Unary operators. */
