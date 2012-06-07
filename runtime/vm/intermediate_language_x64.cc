@@ -512,7 +512,8 @@ LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
 }
 
 
-void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void InstantiateTypeArgumentsComp::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 

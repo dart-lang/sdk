@@ -17,7 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_ast);
@@ -25,7 +24,7 @@ DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
 
 
-void DeoptimizationStub::GenerateCode(FlowGraphCompilerShared* compiler) {
+void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -44,16 +43,6 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompilerShared* compiler) {
 #undef __
 }
 
-
-FlowGraphCompiler::FlowGraphCompiler(
-    Assembler* assembler,
-    const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>& block_order,
-    bool is_optimizing)
-    : FlowGraphCompilerShared(assembler,
-                              parsed_function,
-                              block_order,
-                              is_optimizing) {}
 
 
 #define __ assembler()->
@@ -957,22 +946,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
 }
 
 
-void FlowGraphCompiler::EmitComment(Instruction* instr) {
-  char buffer[80];
-  BufferFormatter f(buffer, sizeof(buffer));
-  instr->PrintTo(&f);
-  __ Comment("@%d: %s", instr->cid(), buffer);
-}
-
-
-void FlowGraphCompiler::BailoutOnInstruction(Instruction* instr) {
-  char buffer[80];
-  BufferFormatter f(buffer, sizeof(buffer));
-  instr->PrintTo(&f);
-  Bailout(buffer);
-}
-
-
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
@@ -987,37 +960,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   }
 }
 
-
-void FlowGraphCompiler::VisitBlocks() {
-  for (intptr_t i = 0; i < block_order().length(); ++i) {
-    __ Comment("B%d", i);
-    // Compile the block entry.
-    set_current_block(block_order()[i]);
-    current_block()->PrepareEntry(this);
-    Instruction* instr = current_block()->StraightLineSuccessor();
-    // Compile all successors until an exit, branch, or a block entry.
-    while ((instr != NULL) && !instr->IsBlockEntry()) {
-      if (FLAG_code_comments) EmitComment(instr);
-      if (instr->locs() == NULL) {
-        BailoutOnInstruction(instr);
-      } else {
-        EmitInstructionPrologue(instr);
-        instr->EmitNativeCode(this);
-        instr = instr->StraightLineSuccessor();
-      }
-    }
-    BlockEntryInstr* successor =
-        (instr == NULL) ? NULL : instr->AsBlockEntry();
-    if (successor != NULL) {
-      // Block ended with a "goto".  We can fall through if it is the
-      // next block in the list.  Otherwise, we need a jump.
-      if ((i == block_order().length() - 1) ||
-          (block_order()[i + 1] != successor)) {
-        __ jmp(GetBlockLabel(successor));
-      }
-    }
-  }
-}
 
 #undef __
 

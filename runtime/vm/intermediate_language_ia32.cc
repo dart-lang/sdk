@@ -299,7 +299,6 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
-  return NULL;
 }
 
 
@@ -332,22 +331,46 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StaticSetterComp::MakeLocationSummary() const {
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
 }
 
 
 void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  // Preserve the argument as the result of the computation,
+  // then call the setter.
+
+  // Duplicate the argument.
+  // TODO(fschneider): Avoid preserving the value if the result is not used.
+  __ pushl(value);
+  __ pushl(value);
+  compiler->GenerateStaticCall(cid(),
+                               token_index(),
+                               try_index(),
+                               setter_function(),
+                               1,
+                               Array::ZoneHandle());
+  __ popl(result);
 }
 
 
 LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
-  return NULL;
+  // TODO(fschneider): For this instruction the input register may be
+  // reused for the result (but is not required to) because the input
+  // is not used after the result is defined.  We should consider adding
+  // this information to the input policy.
+  return LocationSummary::Make(1, Location::RequiresRegister());
 }
 
 
 void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register instance = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ movl(result, FieldAddress(instance, field().Offset()));
 }
 
 
@@ -693,12 +716,27 @@ void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CatchEntryComp::MakeLocationSummary() const {
-  return NULL;
+  return LocationSummary::Make(0, Location::NoLocation());
 }
 
 
+// Restore stack and initialize the two exception variables:
+// exception and stack trace variables.
 void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // Restore RSP from RBP as we are coming from a throw and the code for
+  // popping arguments has not been run.
+  const intptr_t locals_space_size = compiler->StackSize() * kWordSize;
+  ASSERT(locals_space_size >= 0);
+  const intptr_t offset_size =
+      -locals_space_size + FlowGraphCompiler::kLocalsOffsetFromFP;
+  __ leal(ESP, Address(EBP, offset_size));
+
+  ASSERT(!exception_var().is_captured());
+  ASSERT(!stacktrace_var().is_captured());
+  __ movl(Address(EBP, exception_var().index() * kWordSize),
+          kExceptionObjectReg);
+  __ movl(Address(EBP, stacktrace_var().index() * kWordSize),
+          kStackTraceObjectReg);
 }
 
 
