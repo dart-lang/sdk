@@ -3,51 +3,52 @@
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
- * Message/plural format library with locale support.
+ * Library for internationalizing and localizing user messages, including
+ * support for customizing them based on plurals and genders.
  *
- * Message format grammar:
+ * Messages are written as functions with either one parameter (which can be
+ * omitted). The function name serves as an identifier for the message, and is
+ * customarily given a unique prefix such as intl_ to distinguish it from
+ * application functions.
+ * The function is expected to return a single interpolated string, based
+ * on the parameter (which can be a Map or a complex object).
  *
- *    messageFormatPattern := string ( "{" messageFormatElement "}" string )*
- *    messageFormatElement := argumentIndex [ "," elementFormat ]
- *    elementFormat := "plural" "," pluralStyle
- *                      | "select" "," selectStyle
- *    pluralStyle :=  pluralFormatPattern
- *    selectStyle :=  selectFormatPattern
- *    pluralFormatPattern := \\[ "offset" ":" offsetIndex ] pluralForms*
- *    selectFormatPattern := pluralForms*
- *    pluralForms := stringKey "{" ( "{" messageFormatElement "}"|string )* "}"
+ * For example
+ *   intl_helloWorld () => "Hello world";
+ *   intl_oneValue (waiting) => "There are $waiting jobs waiting";
+ *   intl_dict (dict) =>
+ *  "Hello ${dict['name']}, your waiting time is ${dict['minutes']} minutes";
  *
+ * More complex formatting can make use of the Intl object and associated
+ * message format.
+ * Here is a more complete example of usage with complex formatting
+ *  var intl = new Intl();
+ *  intl_howManyPeopleAreHere (NUM)
+ *    //@desc Lists how many people are here
+ *    => "There ${intl.plural(NUM,{'0': 'are', '1': 'is', 'other': 'are'})} "
+ *    "$NUM other ${intl.plural(NUM, {'1':'person', 'other': 'people'})} here.";
+ *  var msg_format = new MessageFormat(intl_howManyPeopleAreHere);
+ *  msg_format.format(2);
  *
- * Message example:
- *
- * I see {NUM_PEOPLE, plural, offset:1
- *         =0 {no one at all}
- *         =1 {{WHO}}
- *         one {{WHO} and one other person}
- *         other {{WHO} and # other people}}
- * in {PLACE}.
- *
- * Calling format({'NUM_PEOPLE': 2, 'WHO': 'Mark', 'PLACE': 'Athens'}) would
- * produce "I see Mark and one other person in Athens." as output.
- *
- * See tests/message_format_test.dart for more examples.
+ * See tests/message_format_test.dart for more comprehensive examples.
  */
 
 #library('MessageFormat');
+#import('intl.dart');
 
 class MessageFormat {
 
   /**
-   * String that is used to determin the particular case and gender needed to be
-   * returned. The format of this string follows the same pattern as in Closure,
-   * Java, and C++. This pattern is described at the beginning of this class
-   * definition. See tests/message_format_test.dart for more examples.
+   * The definition of this message. This should be a function which returns
+   * a string. The string may use Dart's string interpolation feature to
+   * substitute values based on the function's parameter.
+   * See tests/message_format_test.dart for more examples.
    */
-  final String _messageFunction;
+  final Function _messageFunction;
 
   /**
-   * String indicating a language code with which the message is to be
-   * formatted (such as en-US).
+   * String indicating a locale code with which the message is to be
+   * formatted (such as en-CA).
    */
   final String _locale;
 
@@ -63,26 +64,39 @@ class MessageFormat {
    * can infer from the browser).
    */
   //TODO(efortuna): _locale is not currently inferred.
-  const MessageFormat(this._messageFunction, [this._locale = 'en-US']);
+  const MessageFormat([this._messageFunction, this._locale = 'en-US']);
 
   /**
-   * Formats a message. By default, we treat '#' with special meaning
-   * representing the number (plural_variable - plural_offset). If [ignorePound]
-   * is true, then we do not treat '#' as a special character, and it is just
-   * treated literally. [namedParameters] is a map of String keys to String or
-   * int values to influence the formatting of the message or data in the
-   * message. For example, example, in the call to 
-   *     msg_formatter.format({'NUM_PEOPLE': 5, 'NAME': 'Angela'}),
-   * object \{'NUM_PEOPLE': 5, 'NAME': 'Angela'\} holds positional parameters.
-   * 1st parameter could mean 5 people, which could influence plural format,
-   * and 2nd parameter is just relevant data to be printed out in the proper
-   * position in the message.
-   * Returns the correctly formatted message in the desired language.
+   * Formats the _messageFunction message and returns the correctly
+   * formatted message in the language of the current locale.
+   *
+   * The variable [messageParameters] can be null, in which case the message
+   * function is called with no arguments. Otherwise, it is called with
+   * [messageParameters] as the single argument. If the message function
+   * requires more than one variable, then messageParameters can be a
+   * map with the values in it.
    */
-  String format(Map<String, dynamic> messageParameters,
-                [bool ignorePound=false]) {
-    // TODO(efortuna): actually perform the translation here. For now, I'm just
-    // returning a description of the message to be returned.
-    return _messageDescription;
+  String format(var messageParameters) {
+    return _messageFunction(messageParameters);
+  }
+
+  /**
+   * Formats the [messageFunction] argument and returns the correctly
+   * formatted message in the language of the current locale.
+   *
+   * The variable [messageParameters] can be null, in which case the message
+   * function is called with no arguments. Otherwise, it is called with
+   * messageParameters as the single argument. If the message function
+   * requires more than one variable, then messageParameters can be a
+   * map with the values in it.
+   *
+   * This differs from format only in that the message is passed as an argument
+   */
+  String formatMessage(Function messageFunction,var messageParameters) {
+    if (messageParameters == null) {
+      return messageFunction();
+    } else {
+      return messageFunction(messageParameters);
+    }
   }
 }

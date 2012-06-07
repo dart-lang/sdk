@@ -3,15 +3,15 @@
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
- * DateFormat is for formatting and parsing dates in a locale-sensitive 
- * manner. 
+ * DateFormat is for formatting and parsing dates in a locale-sensitive
+ * manner.
  * It allows the user to choose from a set of standard date time formats as well
  * as specify a customized pattern under certain locales. Date elements that
  * vary across locales include month name, weekname, field, order, etc.
  * //TODO(efortuna): Customized pattern system -- suggested by i18n needs
  * // feedback on appropriateness.
- * We also allow the user to use any customized pattern to parse or format 
- * date-time strings under certain locales. Date elements that vary across 
+ * We also allow the user to use any customized pattern to parse or format
+ * date-time strings under certain locales. Date elements that vary across
  * locales include month name, weekname, field, order, etc.
  *
  * This library uses the ICU/JDK date/time pattern specification as described
@@ -70,12 +70,12 @@
  *
  *     Format Pattern                         Result
  *     --------------                         -------
- *     "yyyy.MM.dd G 'at' HH:mm:ss vvvv"->1996.07.10 AD at 15:08:56 Pacific Time
- *     "EEE, MMM d, ''yy"               ->Wed, July 10, '96
- *     "h:mm a"                         ->12:08 PM
- *     "hh 'o''clock' a, zzzz"          ->12 o'clock PM, Pacific Daylight Time
- *     "K:mm a, vvv"                    ->0:00 PM, PT
- *     "yyyyy.MMMMM.dd GGG hh:mm aaa"   ->01996.July.10 AD 12:08 PM
+ *     "yyyy.MM.dd G 'at' HH:mm:ss vvvv"->> 1996.07.10 AD at 15:08:56 Pacific Time
+ *     "EEE, MMM d, ''yy"               ->> Wed, July 10, '96
+ *     "h:mm a"                         ->> 12:08 PM
+ *     "hh 'o''clock' a, zzzz"          ->> 12 o'clock PM, Pacific Daylight Time
+ *     "K:mm a, vvv"                    ->> 0:00 PM, PT
+ *     "yyyyy.MMMMM.dd GGG hh:mm aaa"   ->> 01996.July.10 AD 12:08 PM
  *
  * When parsing a date string using the abbreviated year pattern ("yy"),
  * DateTimeParse must interpret the abbreviated year relative to some
@@ -109,7 +109,11 @@
 
 class DateFormat {
 
-  /** Definition of this object formats dates. */
+  /**
+   * Definition of how this object formats dates.
+   */
+  // TODO(alanknight): This might just be a String, but it's not clear yet.
+
   var formatDefinition;
 
   /**
@@ -118,7 +122,7 @@ class DateFormat {
    */
   String _locale;
 
-  /** 
+  /**
    * Date/Time format "skeleton" patterns. Also specifiable by String, but
    * written this way so that they can be discoverable via autocomplete. These
    * follow the ICU syntax described at the top of the file. These skeletons can
@@ -130,7 +134,7 @@ class DateFormat {
                                           // Example of how this looks in the US
                                           // locale.
   static final String Hm = 'Hm';          // HH:mm
-  static final String Hms = 'Hms';        // HH:mm:ss 
+  static final String Hms = 'Hms';        // HH:mm:ss
   static final String M = 'M';            // L
   static final String MEd = 'MEd';        // E, M/d
   static final String MMM = 'MMM';        // LLL
@@ -152,7 +156,7 @@ class DateFormat {
   static final String yQQQ = 'yQQQ';      // QQQ yyyy
 
   /** Date/Time format patterns. */
-  // TODO(efortuna): This are just guesses of what a full date, long date is. 
+  // TODO(efortuna): This are just guesses of what a full date, long date is.
   // Do the proper homework on ICU to find the proper set "Hms"/"yMMd"
   // applicable to each case.
   static final String fullDate = '$y$MMMMd';
@@ -164,12 +168,12 @@ class DateFormat {
   static final String mediumTime = Hms;
   static final String shortTime = Hm;
   static final String fullDateTime = '$fullDate$fullTime';
-  static final String longDateTime = '$logDate$longTime';
+  static final String longDateTime = '$longDate$longTime';
   static final String mediumDateTime = '$mediumDate$mediumTime';
   static final String shortDateTime = '$shortDate$shortTime';
-    
+
   /**
-   * Named constructors for the above values.
+   * Constructors for dates/times that use a default format.
    */
   DateFormat.Hm([this._locale]) : formatDefinition = Hm;
   DateFormat.Hms([this._locale]) : formatDefinition = Hms;
@@ -205,7 +209,7 @@ class DateFormat {
   DateFormat.longDateTime([this._locale]) : formatDefinition = longDateTime;
   DateFormat.mediumDateTime([this._locale]) : formatDefinition = mediumDateTime;
   DateFormat.shortDateTime([this._locale]) : formatDefinition = shortDateTime;
-  
+
   /**
    * Constructor accepts a [formatDefinition], which can be a String, one of the
    * predefined static forms, or a custom date format using the syntax described
@@ -224,7 +228,7 @@ class DateFormat {
   }
 
  /**
-  * Format the given [date] object according to preset pattern and current 
+  * Format the given [date] object according to preset pattern and current
   * locale and return a formated string for the given date.
   */
   String format(Date date, [TimeZone timeZone]) {
@@ -240,7 +244,7 @@ class DateFormat {
   String formatDuration(Date reference) {
     return '';
   }
-  
+
   /**
    * Formats a String indicating how long ago (negative [duration]) or how far
    * in the future (positive [duration]) some time is with respect to a
