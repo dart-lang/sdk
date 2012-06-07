@@ -2061,7 +2061,57 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertNotNull(equalsElement);
   }
 
-
+  public void test_supertypeHasMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {}",
+            "interface I {",
+            "  foo();",
+            "  bar();",
+            "}",
+            "interface J extends I {",
+            "  get foo();",
+            "  set bar();",            
+            "}");
+      assertErrors(libraryResult.getTypeErrors(),
+          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 8, 7, 3),
+          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 9, 7, 3));
+  }
+  
+  public void test_supertypeHasField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "interface I {",
+        "  var foo;",
+        "  var bar;",
+        "}",
+        "interface J extends I {",
+        "  foo();",
+        "  bar();",            
+        "}");
+    assertErrors(libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
+  }  
+  
+  public void test_supertypeHasGetterSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "interface I {",
+        "  get foo();",
+        "  set bar();",
+        "}",
+        "interface J extends I {",
+        "  foo();",
+        "  bar();",            
+        "}");
+    assertErrors(libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
+  }    
+  
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

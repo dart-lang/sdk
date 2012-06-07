@@ -20,15 +20,7 @@ Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
-Language/07_Classes/2_Getters_A04_t03: Fail # Issue 973
-Language/07_Classes/2_Getters_A04_t04: Fail # Issue 973
-Language/07_Classes/2_Getters_A04_t05: Fail # Issue 973
-Language/07_Classes/2_Getters_A04_t07: Fail # Issue 973
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
-Language/07_Classes/3_Setters_A04_t03: Fail # Issue 973 
-Language/07_Classes/3_Setters_A04_t04: Fail # Issue 973
-Language/07_Classes/3_Setters_A04_t05: Fail # Issue 973
-Language/07_Classes/3_Setters_A04_t06: Fail # Issue 973
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t02: Fail # Issue 2474
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
@@ -40,14 +32,10 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail # Issue 976
-Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail # Issue 973
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # Issue 973
+Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
-Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail # Issue 972,973
-Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail # Issue 972,973
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail # Issue 972
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail # Issue 972
+Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail # co19 issue 132
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # Issue 2479
 Language/09_Generics/09_Generics_A04_t01: Fail # Issue 2480
 Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373

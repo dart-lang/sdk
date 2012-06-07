@@ -2416,7 +2416,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   checkOverride(node.getName(), field, element);
                   break;
                 case METHOD:
-                  typeError(node, TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
+                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
                             element.getEnclosingElement().getName());
                   break;
 
@@ -2444,7 +2444,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   break;
 
                 case FIELD:
-                  typeError(node, TypeErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
+                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
                             element.getEnclosingElement().getName());
                   break;
 

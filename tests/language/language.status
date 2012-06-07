@@ -98,14 +98,7 @@ list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail
 no_such_method_negative_test: Fail
-override_field_method1_negative_test: Fail # Bug 5215249
-override_field_method2_negative_test: Fail # Bug 5215249
-override_field_method3_negative_test: Fail # Bug 5215249
-override_field_method4_negative_test: Fail # Bug 5215249
-override_field_method5_negative_test: Fail # Bug 5215249
-override_field_method6_negative_test: Fail # Bug 5215249
 override_field_test/04: Fail             # Bug 5215249
-override_method_with_field_test/01: Fail   # Bug 5215249
 prefix6_negative_test: Fail	       # Issue 2383
 private_factory_resolution_negative_test: Fail # Issue 2275
 private_member3_negative_test: Fail       # Issue 2383

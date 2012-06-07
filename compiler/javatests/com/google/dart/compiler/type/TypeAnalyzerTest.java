@@ -1389,5 +1389,5 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);            
     analyzeFail("var c = 'foo' + 'bar';",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);                
-  }
+  }  
 }
