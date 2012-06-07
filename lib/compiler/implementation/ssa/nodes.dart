@@ -964,12 +964,15 @@ class HBoolify extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HCheck extends HInstruction {
+/**
+ * A [HCheck] instruction is an instruction that might do a dynamic
+ * check at runtime on another instruction. To have proper instruction
+ * dependencies in the graph, instructions that depend on the check
+ * being done reference the [HCheck] instruction instead of the
+ * instruction itself.
+ */
+abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
-
   HInstruction get checkedInput() => inputs[0];
 }
 

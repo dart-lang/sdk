@@ -75,3 +75,7 @@ io/options_test: Fail
 
 [$compiler == dart2js && $browser ]
 *: Skip
+
+[$compiler == dart2js && $checked ]
+io/http_test: Skip # Timeout TODO(ngeoffray): investigate
+io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate

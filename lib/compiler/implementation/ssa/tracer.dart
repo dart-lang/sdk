@@ -354,7 +354,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitNot(HNot node) => "Not: ${temporaryId(node.inputs[0])}";
 
   String visitParameterValue(HParameterValue node) {
-    return "p${node.element.name.slowToString()}";
+    return "p${node.sourceElement.name.slowToString()}";
   }
 
   String visitPhi(HPhi phi) {

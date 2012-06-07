@@ -308,7 +308,7 @@ class LocalsHandler {
     params.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
-      parameter = builder.potentiallyCheckType(parameter, element);
+      builder.potentiallyCheckType(parameter, element);
       directLocals[element] = parameter;
     });
 

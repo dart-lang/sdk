@@ -541,15 +541,27 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
+  // For simple type checks like i = intTypeCheck(i), we don't have to
+  // emit an assignment, because the intTypeCheck just returns its
+  // argument.
+  bool handleTypeConversion(instruction, name) {
+    if (instruction is !HTypeConversion) return false;
+    String inputName = variableNames.getName(instruction.checkedInput);
+    if (name != inputName) return false;
+    visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+    return true;
+  }
+
   void define(HInstruction instruction) {
     if (isGeneratingExpression()) {
       addExpressionSeparator();
     } else {
       addIndentation();
     }
-    if (instruction is !HCheck && variableNames.hasName(instruction)) {
+    if (!instruction.isControlFlow() && variableNames.hasName(instruction)) {
       var name = variableNames.getName(instruction);
-      if (!handleSimpleUpdateDefinition(instruction, name)) {
+      if (!handleSimpleUpdateDefinition(instruction, name)
+          && !handleTypeConversion(instruction, name)) {
         declareInstruction(instruction);
         buffer.add(" = ");
         visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -563,9 +575,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void use(HInstruction argument, int expectedPrecedenceForArgument) {
     if (isGenerateAtUseSite(argument)) {
       visit(argument, expectedPrecedenceForArgument);
-    } else if (argument is HCheck) {
+    } else if (argument is HCheck && argument.isControlFlow()) {
+      // A [HCheck] that has control flow can never be used as an
+      // expression and may not have a name. Therefore we just use the
+      // checked instruction.
       HCheck check = argument;
-      use(argument.checkedInput, expectedPrecedenceForArgument);
+      use(check.checkedInput, expectedPrecedenceForArgument);
     } else {
       buffer.add(variableNames.getName(argument));
     }
@@ -2497,14 +2512,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('  }\n');
   }
 
-  // For instructions that reference a guard or a check, we change that
-  // reference to the instruction they guard against. Therefore, we must
-  // use that instruction when restoring the environment.
-  HInstruction unwrap(argument) {
-    while (argument is HCheck) argument = argument.checkedInput;
-    return argument;
-  }
-
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
   bool visitIfInfo(HIfBlockInformation info) => false;
   bool visitLoopInfo(HLoopBlockInformation info) => false;
@@ -2520,8 +2527,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('    case ${node.state}:\n');
     int i = 0;
     for (HInstruction input in node.inputs) {
-      HInstruction instruction = unwrap(input);
-      setup.add('      ${variableNames.getName(instruction)} = env$i;\n');
+      setup.add('      ${variableNames.getName(input)} = env$i;\n');
       i++;
     }
     if (i > maxBailoutParameters) maxBailoutParameters = i;

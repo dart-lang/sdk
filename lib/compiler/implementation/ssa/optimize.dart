@@ -542,6 +542,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     // TODO(karlklose): remove the hasTypeArguments check.
     } else if (expressionType.isUseful()
+               && !expressionType.canBeNull()
                && !compiler.codegenWorld.rti.hasTypeArguments(type)) {
       Type receiverType = expressionType.computeType(compiler);
       if (receiverType !== null) {
@@ -569,6 +570,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     HInstruction receiver = node.inputs[0];
     if (!receiver.propagatedType.isUseful()) return node;
+    if (receiver.propagatedType.canBeNull()) return node;
     Type type = receiver.propagatedType.computeType(compiler);
     if (type === null) return node;
     Element field = compiler.world.locateSingleField(type, node.name);
@@ -584,6 +586,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     HInstruction receiver = node.inputs[0];
     if (!receiver.propagatedType.isUseful()) return node;
+    if (receiver.propagatedType.canBeNull()) return node;
     Type type = receiver.propagatedType.computeType(compiler);
     if (type === null) return node;
     Element field = compiler.world.locateSingleField(type, node.name);

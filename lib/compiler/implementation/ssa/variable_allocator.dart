@@ -115,19 +115,19 @@ class LiveEnvironment {
     // Special case the HCheck instruction to have the same live
     // interval as the instruction it is checking.
     if (instruction is HCheck) {
-      HInstruction input = instruction.checkedInput;
+      var input = instruction.checkedInput;
       while (input is HCheck) input = input.checkedInput;
       liveIntervals.putIfAbsent(input, () => new LiveInterval());
       liveIntervals.putIfAbsent(instruction, () => liveIntervals[input]);
-      return;
+    } else {
+      LiveInterval range = liveIntervals.putIfAbsent(
+          instruction, () => new LiveInterval());
+      int lastId = liveInstructions[instruction];
+      // If [lastId] is null, then this instruction is not being used.
+      range.add(new LiveRange(id, lastId == null ? id : lastId));
+      // The instruction is defined at [id].
+      range.start = id;
     }
-    LiveInterval range = liveIntervals.putIfAbsent(
-        instruction, () => new LiveInterval());
-    int lastId = liveInstructions[instruction];
-    // If [lastId] is null, then this instruction is not being used.
-    range.add(new LiveRange(id, lastId == null ? id : lastId));
-    // The instruction is defined at [id].
-    range.start = id;
     liveInstructions.remove(instruction);
   }
 
@@ -136,12 +136,17 @@ class LiveEnvironment {
    * already in the set, we save the id where it dies.
    */
   void add(HInstruction instruction, int userId) {
-    // Special case the HCheck instruction to use the actual checked
-    // instruction.
-    while (instruction is HCheck) instruction = instruction.checkedInput;
     // Note that we are visiting the grap in post-dominator order, so
     // the first time we see a variable is when it dies.
     liveInstructions.putIfAbsent(instruction, () => userId);
+    if (instruction is HCheck) {
+      // Special case the HCheck instruction to mark the actual
+      // checked instruction live.
+      liveInstructions.putIfAbsent(instruction, () => userId);
+      var input = instruction.checkedInput;
+      while (input is HCheck) input = input.checkedInput;
+      liveInstructions.putIfAbsent(input, () => userId);
+    }
   }
 
   /**
@@ -434,21 +439,24 @@ class VariableNamer {
   String allocateName(HInstruction instruction) {
     String name;
     if (instruction is HCheck) {
-      // Special case the check instruction to use the name of its
-      // checked instruction.
-      HCheck check = instruction;
-      name = names.ownName[check.checkedInput];
-      // If the name is null, then the checked input is being
-      // generated at use site, and we don't need a name for the check
-      // instruction.
-      if (name == null) return null;
+      // Special case this instruction to use the name of its
+      // input if it has one.
+      var temp = instruction;
+      do {
+        temp = temp.checkedInput;
+        name = names.ownName[temp];
+      } while (name == null && temp is HCheck);
+      if (name !== null) return addAllocatedName(instruction, name);
     } else if (instruction is HParameterValue) {
       HParameterValue parameter = instruction;
       name = parameterNames[parameter.sourceElement];
       if (name == null) {
         name = allocateWithHint(parameter.sourceElement.name.slowToString());
       }
-    } else if (instruction.sourceElement !== null) {
+      return addAllocatedName(instruction, name);
+    }
+
+    if (instruction.sourceElement !== null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
     } else {
       // We could not find an element for the instruction. If the
@@ -461,6 +469,11 @@ class VariableNamer {
         name = allocateTemporary();
       }
     }
+
+    return addAllocatedName(instruction, name);
+  }
+
+  String addAllocatedName(HInstruction instruction, String name) {
     usedNames.add(name);
     names.ownName[instruction] = name;
     return name;
@@ -534,6 +547,13 @@ class SsaVariableAllocator extends HBaseVisitor {
     // them generate at use site to make things simpler.
     if (instruction is HParameterValue && instruction is !HThis) return true;
     if (generateAtUseSite.contains(instruction)) return false;
+    // A [HCheck] instruction that has control flow needs a name only if its
+    // checked input needs a name (e.g. a check [HConstant] does not
+    // need a name).
+    if (instruction is HCheck && instruction.isControlFlow()) {
+      HCheck check = instruction;
+      return needsName(instruction.checkedInput);
+    }
     return true;
   }
  
