@@ -2518,11 +2518,15 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   bool visitTryInfo(HTryBlockInformation info) => false;
   bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
-  // For instructions that reference a guard or a check, we change that	
-  // reference to the instruction they guard against. Therefore, we must	
-  // use that instruction when restoring the environment.	
+  // If argument is a [HCheck] and it does not have a name, we try to
+  // find the name of its checked input. Note that there must be a
+  // name, otherwise the instruction would not be in the live
+  // environment.
   HInstruction unwrap(argument) {	
-    while (argument is HCheck) argument = argument.checkedInput;	
+    while (argument is HCheck && !variableNames.hasName(argument)) {
+      argument = argument.checkedInput;
+    }
+    assert(variableNames.hasName(argument));
     return argument;	
   }
 
