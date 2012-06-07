@@ -2410,7 +2410,7 @@ public class DartParser extends CompletionHooksParserBase {
       case INDEX:
         beginArrayLiteral();
         consume(Token.INDEX);
-        return done(done(new DartArrayLiteral(isConst, null, new ArrayList<DartExpression>())));
+        return done(done(new DartArrayLiteral(isConst, typeArguments, new ArrayList<DartExpression>())));
       case LBRACK:
         return done(parseArrayLiteral(isConst, typeArguments));
       case LBRACE:

@@ -8,6 +8,7 @@ import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
@@ -917,6 +918,33 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"),
         ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_const_array() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class int {}",
+        "class MyClass<E> {",
+        "  var a1 = <int>[];",
+        "  var a2 = <E>[];",
+        "  var a3 = const <int>[];",
+        "  var a4 = const <E>[];",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CONST_ARRAY_WITH_TYPE_VARIABLE, 7, 19, 1));
+  }
+
+  public void test_const_map() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class String {}",
+        "class int {}",
+        "class MyClass<E> {",
+        "  var a1 = <int>{};",
+        "  var a2 = <E>{};",
+        "  var a3 = const <int>{};",
+        "  var a4 = const <E>{};",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CONST_MAP_WITH_TYPE_VARIABLE, 8, 19, 1));
   }
 
   public void test_new_noSuchType() throws Exception {

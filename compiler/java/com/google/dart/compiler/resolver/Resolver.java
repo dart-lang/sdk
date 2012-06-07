@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -1694,14 +1695,17 @@ public class Resolver {
       }
 
       InterfaceType type =
-          topLevelContext.instantiateParameterizedType(
+          context.instantiateParameterizedType(
               defaultLiteralMapType.getElement(),
               node,
               typeArgs,
-              inStaticContext(currentMethod),
+              inStaticContext(node),
               inFactoryContext(currentMethod),
               ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
+      if (node.isConst()) {
+        checkTypeArgumentsInConstLiteral(typeArgs, ResolverErrorCode.CONST_MAP_WITH_TYPE_VARIABLE);
+      }
       recordType(node, type);
       visit(node.getEntries());
       return null;
@@ -1711,17 +1715,29 @@ public class Resolver {
     public Element visitArrayLiteral(DartArrayLiteral node) {
       List<DartTypeNode> typeArgs = node.getTypeArguments();
       InterfaceType type =
-          topLevelContext.instantiateParameterizedType(
+          context.instantiateParameterizedType(
               rawArrayType.getElement(),
               node,
               typeArgs,
-              inStaticContext(currentMethod),
+              inStaticContext(node),
               inFactoryContext(currentMethod),
               ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
+      if (node.isConst()) {
+        checkTypeArgumentsInConstLiteral(typeArgs, ResolverErrorCode.CONST_ARRAY_WITH_TYPE_VARIABLE);
+      }
       recordType(node, type);
       visit(node.getExpressions());
       return null;
+    }
+
+    private void checkTypeArgumentsInConstLiteral(List<DartTypeNode> typeArgs, ErrorCode errorCode) {
+      for (DartTypeNode typeNode : typeArgs) {
+        Type type = typeNode.getType();
+        if (type != null && type.getKind() == TypeKind.VARIABLE) {
+          onError(typeNode, errorCode);
+        }
+      }
     }
 
     private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
@@ -1817,6 +1833,17 @@ public class Resolver {
 
     private void onError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
       context.onError(node, errorCode, arguments);
+    }
+
+    private boolean inStaticContext(DartNode node) {
+      DartNode ancestor = node;
+      while (ancestor != null) {
+        if (ancestor instanceof DartClassMember<?>) {
+          return ((DartClassMember<?>) ancestor).getModifiers().isStatic();
+        }
+        ancestor = ancestor.getParent();
+      }
+      return true;
     }
 
     private boolean inStaticContext(Element element) {
