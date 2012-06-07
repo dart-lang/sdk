@@ -3602,18 +3602,12 @@ public class DartParser extends CompletionHooksParserBase {
    */
   protected void expectStatmentTerminator() {
     Token token = peek(0);
-    int braceCount = 1;
     if (expect(Token.SEMICOLON)) {
       return;
     }
     Set<Token> terminals = collectTerminalAnnotations();
     assert(terminals.contains(Token.SEMICOLON));
 
-    switch (token) {
-      case LBRACE:
-        braceCount++;
-      break;
-    }
     if (peek(0) == token) {
       reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_SEMICOLON);
     } else {

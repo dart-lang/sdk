@@ -315,6 +315,7 @@ public class ParserRecoveryTest extends AbstractParserTest {
     // The recovery on 'int class' closes the main method, assuming int class = 10 is a
     // new toplevel so 'print' ends up as a bogus top level node.
     DartClass bar = (DartClass)unit.getTopLevelNodes().get(3);
+    assertEquals("bar", bar.getName().getName());
   }
 
   public void testBadOperatorRecovery() {
@@ -1090,6 +1091,7 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
     assertEquals("A", A.getClassName());
     DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertNotNull(bad);
    // assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());

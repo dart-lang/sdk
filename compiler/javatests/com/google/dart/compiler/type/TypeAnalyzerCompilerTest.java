@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -34,7 +31,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -44,11 +40,13 @@ import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -2066,35 +2064,5 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
-  }
-  
-  /**
-   * @return the {@link DartNode} at the position of "pattern", with given {@link Class}.
-   */
-  private <T extends DartNode> T findIdentifier(
-      AnalyzeLibraryResult libraryResult,
-      String pattern,
-      int patternOffset,
-      final Class<T> clazz) {
-    String source = libraryResult.source;
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
-    // prepare index
-    assertTrue(source.contains(pattern));
-    final int index = source.indexOf(pattern) + patternOffset;
-    // find node
-    final AtomicReference<T> result = new AtomicReference<T>();
-    unit.accept(new ASTVisitor<Void>() {
-      @Override
-      public Void visitNode(DartNode node) {
-        SourceInfo sourceInfo = node.getSourceInfo();
-        if (sourceInfo.getOffset() <= index
-            && index < sourceInfo.getEnd()
-            && clazz.isInstance(node)) {
-          result.set(clazz.cast(node));
-        }
-        return super.visitNode(node);
-      }
-    });
-    return result.get();
   }
 }

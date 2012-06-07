@@ -10,8 +10,6 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
-import com.google.dart.compiler.ast.DartInvocation;
-import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
