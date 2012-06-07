@@ -385,7 +385,7 @@ class StandardTestSuite implements TestSuite {
         testName = filename;
       }
 
-      if (configuration['compiler'] != 'dartc' ||
+      if (configuration['compiler'] != 'dart_analyzer$suffix' ||
           testName.endsWith('_test.dart')) {
         if (testName.endsWith('.dart')) {
           testName = testName.substring(0, testName.length - 5);
@@ -1127,9 +1127,8 @@ class JUnitTestSuite implements TestSuite {
 
   void computeClassPath() {
     classPath = Strings.join(
-        ['$buildDir/compiler/lib/dartc.jar',
-         '$buildDir/compiler-tests.jar',
-         '$buildDir/closure_out/compiler.jar',
+        ['$buildDir/analyzer/util/analyzer/dart_analyzer.jar',
+         '$buildDir/analyzer/dart_analyzer_tests.jar',
          // Third party libraries.
          '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
          '$dartDir/third_party/guava/r09/guava-r09.jar',
@@ -1193,7 +1192,7 @@ class TestUtils {
       case 'none':
         return 'dart$suffix';
       case 'dartc':
-        return 'compiler/bin/dartc$suffix';
+        return 'analyzer/bin/dart_analyzer$suffix';
       case 'dart2js':
         var prefix = '';
         if (configuration['use_sdk']) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
@@ -16,6 +16,7 @@
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dart2js
+# ......dart_analyzer
 # ......pub
 # ....include/
 # ......dart_api.h
@@ -55,6 +56,9 @@
 # ......utf/
 # ......(more will come here)
 # ....util/
+# ......analyzer/
+# ........dart_analyzer.jar
+# ........(third-party libraries for dart_analyzer)
 # ......pub/
 # ......(more will come here)
 
@@ -89,6 +93,9 @@ def Copy(src, dest):
   copyfile(src, dest)
   copymode(src, dest)
 
+def ShouldCopyAnalyzer():
+  return utils.GuessOS() == 'linux'
+  
 
 def CopyShellScript(src_file, dest_dir):
   '''Copies a shell/batch script to the given destination directory. Handles
@@ -178,8 +185,10 @@ def Main(argv):
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(argv[1])
   dart_file_extension = ''
+  analyzer_file_extension = ''
   if utils.GuessOS() == 'win32':
     dart_file_extension = '.exe'
+    analyzer_file_extension = '.bat'  # TODO(zundel): test on Windows
     dart_import_lib_src = join(HOME, build_dir, 'dart.lib')
     dart_import_lib_dest = join(BIN, 'dart.lib')
     copyfile(dart_import_lib_src, dart_import_lib_dest)
@@ -188,6 +197,15 @@ def Main(argv):
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
 
+  if ShouldCopyAnalyzer():
+    # Copy analyzer into sdk/bin
+    ANALYZER_HOME = join(HOME, build_dir, 'analyzer')
+    dart_analyzer_src_binary = join(ANALYZER_HOME, 'bin', 'dart_analyzer')
+    dart_analyzer_dest_binary = join(BIN,
+        'dart_analyzer' + analyzer_file_extension)
+    copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
+    copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
+  
   # Create pub shell script.
   pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
   CopyShellScript(pub_src_script, BIN)
@@ -465,6 +483,26 @@ def Main(argv):
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
+
+  if ShouldCopyAnalyzer():
+    # Create and copy Analyzer library into 'util'
+    ANALYZER_DEST = join(UTIL, 'analyzer')
+    os.makedirs(ANALYZER_DEST)
+
+    analyzer_src_jar = join(ANALYZER_HOME, 'util', 'analyzer',
+                            'dart_analyzer.jar')
+    analyzer_dest_jar = join(ANALYZER_DEST, 'dart_analyzer.jar')
+    copyfile(analyzer_src_jar, analyzer_dest_jar)
+  
+    jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
+                   join("guava", "r09", "guava-r09.jar"),
+                   join("json", "r2_20080312", "json.jar") ]
+    for jarToCopy in jarsToCopy:
+        dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
+        os.makedirs(dest_dir)
+        dest_file = join (ANALYZER_DEST, jarToCopy)
+        src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
+        copyfile(src_file, dest_file)
 
   # Create and populate util/pub.
   pub_src_dir = join(HOME, 'utils', 'pub')
