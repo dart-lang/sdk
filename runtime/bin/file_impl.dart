@@ -37,13 +37,21 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     chained.then((ignored) => _checkScheduleCallbacks());
   }
 
+  void _closeFile() {
+    if (!_openedFile.closed) {
+      _openedFile.close().then((ignore) {
+        _streamMarkedClosed = true;
+        _checkScheduleCallbacks();
+      });
+    }
+  }
+
   Future<int> _fillBuffer() {
     Expect.equals(_position, _data.length);
 
     int size = Math.min(_bufferLength, _fileLength - _filePosition);
     if (size == 0) {
-      _streamMarkedClosed = true;
-      _openedFile.close();
+      _closeFile();
       return new Future.immediate(0);
     }
     if (_data.length != size) {
@@ -58,8 +66,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
       _position = 0;
 
       if (_fileLength == _filePosition) {
-        _streamMarkedClosed = true;
-        _openedFile.close();
+        _closeFile();
       }
       return read;
     });
@@ -106,12 +113,10 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   void _close() {
-    _streamMarkedClosed = true;
     _data = [];
     _position = 0;
-    if (!_openedFile.closed) {
-      _openedFile.close();
-    }
+    _filePosition = _fileLength;
+    _closeFile();
   }
 
   static final int _bufferLength = 64 * 1024;
