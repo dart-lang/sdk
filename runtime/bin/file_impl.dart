@@ -39,9 +39,13 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
   Future<int> _fillBuffer() {
     Expect.equals(_position, _data.length);
-    Expect.isTrue(_filePosition < _fileLength);
 
     int size = Math.min(_bufferLength, _fileLength - _filePosition);
+    if (size == 0) {
+      _streamMarkedClosed = true;
+      _openedFile.close();
+      return new Future.immediate(0);
+    }
     if (_data.length != size) {
       _data = new Uint8List(size);
     }
