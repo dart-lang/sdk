@@ -121,6 +121,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
+  void EmitClassChecksNoSmi(const ZoneGrowableArray<intptr_t>& class_ids,
+                            Register instance_reg,
+                            Register temp_reg,
+                            Label* deopt);
+
   // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
   // pc-descriptor information.
   intptr_t EmitInstanceCall(ExternalLabel* target_label,

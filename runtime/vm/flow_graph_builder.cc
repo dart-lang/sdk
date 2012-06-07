@@ -1751,20 +1751,49 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+void EffectGraphVisitor::BuildInstanceSetterValues(
+    InstanceSetterNode* node, Value** receiver, Value** value) {
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
   ValueGraphVisitor for_value(owner(), for_receiver.temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
+  *receiver = for_receiver.value();
+  *value = for_value.value();
+}
+
+
+void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+  Value *receiver, *value;
+  BuildInstanceSetterValues(node, &receiver, &value);
   InstanceSetterComp* setter =
       new InstanceSetterComp(node->token_index(),
                              owner()->try_index(),
                              node->field_name(),
-                             for_receiver.value(),
-                             for_value.value());
+                             receiver,
+                             value);
   ReturnComputation(setter);
+}
+
+
+void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+  Value *receiver, *value;
+  BuildInstanceSetterValues(node, &receiver, &value);
+  BindInstr* store_local_instr = new BindInstr(
+      BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                      value));
+  AddInstruction(store_local_instr);
+  UseVal* saved_value = new UseVal(store_local_instr);
+  InstanceSetterComp* setter =
+      new InstanceSetterComp(node->token_index(),
+                             owner()->try_index(),
+                             node->field_name(),
+                             receiver,
+                             saved_value);
+  AddInstruction(new DoInstr(setter));
+  ReturnComputation(
+       BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }
 
 
@@ -1854,8 +1883,8 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   ValueGraphVisitor for_instance(owner(), temp_index());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
-  LoadInstanceFieldComp* load =
-      new LoadInstanceFieldComp(node, for_instance.value());
+  LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
+      node->field(), for_instance.value(), NULL, NULL);
   ReturnComputation(load);
 }
 
@@ -1877,9 +1906,16 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        type,
                                        dst_name);
   }
-  StoreInstanceFieldComp* store =
-      new StoreInstanceFieldComp(node, for_instance.value(), store_value);
+  StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
+      node->field(), for_instance.value(), store_value, NULL, NULL);
   ReturnComputation(store);
+}
+
+
+// StoreInstanceFieldNode does not return result.
+void ValueGraphVisitor::VisitStoreInstanceFieldNode(
+    StoreInstanceFieldNode* node) {
+  UNIMPLEMENTED();
 }
 
 

@@ -37,6 +37,14 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
 
+// Truee iff. the v2 is above v1 on stack, or one of them is constant.
+static bool VerifyValues(Value* v1, Value* v2) {
+  ASSERT(v1->IsUse() && v2->IsUse());
+  return (v1->AsUse()->definition()->temp_index() + 1) ==
+     v2->AsUse()->definition()->temp_index();
+}
+
+
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -616,14 +624,6 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
 }
 
 
-// Truee iff. the v2 is above v1 on stack, or one of them is constant.
-static bool VerifyValues(Value* v1, Value* v2) {
-  ASSERT(v1->IsUse() && v2->IsUse());
-  return (v1->AsUse()->definition()->temp_index() + 1) ==
-     v2->AsUse()->definition()->temp_index();
-}
-
-
 #define __ compiler->assembler()->
 
 void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
@@ -642,6 +642,43 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
     compiler->AddExceptionHandler(try_index(),
                                   compiler->assembler()->CodeSize());
   }
+}
+
+
+LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  intptr_t num_temps = (class_ids() == NULL) ? 0 : 1;
+  LocationSummary* summary = new LocationSummary(kNumInputs, num_temps);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  if (class_ids() != NULL) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  return summary;
+}
+
+
+void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(VerifyValues(instance(), value()));
+  Register instance = locs()->in(0).reg();
+  Register value = locs()->in(1).reg();
+
+  if (class_ids() != NULL) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+                                          original()->token_index(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget,
+                                          instance,
+                                          value);
+    // Smis do not have instance fields (Smi class is always first).
+    Register temp = locs()->temp(0).reg();
+    ASSERT(temp != instance);
+    ASSERT(temp != value);
+    compiler->EmitClassChecksNoSmi(*class_ids(), instance, temp, deopt);
+  }
+  __ StoreIntoObject(instance, FieldAddress(instance, field().Offset()),
+                     value);
 }
 
 
@@ -839,25 +876,6 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
   return LocationSummary::Make(1, Location::SameAsFirstInput());
-}
-
-
-LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::RequiresRegister());
-}
-
-
-void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyValues(instance(), value()));
-  Register instance = locs()->in(0).reg();
-  Register value = locs()->in(1).reg();
-  Register result = locs()->out().reg();
-
-  __ StoreIntoObject(instance, FieldAddress(instance, field().Offset()),
-                     value);
-  // TODO(fschneider): Consider eliminating this move by specifying a
-  // SameAsSecondInput for the result.
-  __ MoveRegister(result, value);
 }
 
 

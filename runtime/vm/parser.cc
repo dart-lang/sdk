@@ -6122,7 +6122,8 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 // Ensure that the expression temp is allocated for nodes that may need it.
 AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
   AstNode* result = original->MakeAssignmentNode(rhs);
-  if ((result != NULL) && result->IsStoreIndexedNode()) {
+  if ((result != NULL) &&
+      (result->IsStoreIndexedNode() || result->IsInstanceSetterNode())) {
     EnsureExpressionTemp();
   }
   return result;

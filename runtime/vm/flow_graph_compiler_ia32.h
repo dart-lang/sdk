@@ -134,6 +134,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
+  void EmitClassChecksNoSmi(const ZoneGrowableArray<intptr_t>& class_ids,
+                            Register instance_reg,
+                            Register temp_reg,
+                            Label* deopt);
+
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.

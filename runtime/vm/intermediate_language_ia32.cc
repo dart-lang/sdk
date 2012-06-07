@@ -20,7 +20,6 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
 
-
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
 LocationSummary* Computation::MakeCallSummary() {
@@ -298,25 +297,25 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
+  return LocationSummary::Make(kNumInputs, Location::NoLocation());
 }
 
 
 void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register receiver = locs()->in(0).reg();
   Register value = locs()->in(1).reg();
-  Register result = locs()->out().reg();
 
   // Preserve the value (second argument) under the arguments as the result
   // of the computation, then call the setter.
   const String& function_name =
       String::ZoneHandle(Field::SetterSymbol(field_name()));
 
-  // Insert a copy of the second (last) argument under the arguments.
-  // TODO(fschneider): Avoid preserving the value if the result is not used.
-  __ pushl(value);
   __ pushl(receiver);
   __ pushl(value);
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 cid(),
+                                 token_index(),
+                                 try_index());
   const intptr_t kArgumentCount = 2;
   const intptr_t kCheckedArgumentCount = 1;
   compiler->GenerateInstanceCall(cid(),
@@ -326,7 +325,6 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  kArgumentCount,
                                  Array::ZoneHandle(),
                                  kCheckedArgumentCount);
-  __ popl(result);
 }
 
 
@@ -370,6 +368,19 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
+  if (class_ids() != NULL) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+                                          original()->token_index(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget,
+                                          instance,
+                                          kNoRegister);
+    // Smis do not have instance fields (Smi class is always first).
+    // Use 'result' as temporary register.
+    ASSERT(result != instance);
+    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+  }
   __ movl(result, FieldAddress(instance, field().Offset()));
 }
 

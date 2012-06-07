@@ -2660,6 +2660,23 @@ TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(Bool::True(), test_result.raw());
 }
 
+
+TEST_CASE(FieldTests) {
+  const String& f = String::Handle(String::New("oneField"));
+  const String& getter_f = String::Handle(Field::GetterName(f));
+  const String& setter_f = String::Handle(Field::SetterName(f));
+  EXPECT(!Field::IsGetterName(f));
+  EXPECT(!Field::IsSetterName(f));
+  EXPECT(Field::IsGetterName(getter_f));
+  EXPECT(!Field::IsSetterName(getter_f));
+  EXPECT(!Field::IsGetterName(setter_f));
+  EXPECT(Field::IsSetterName(setter_f));
+  EXPECT_STREQ(f.ToCString(),
+               String::Handle(Field::NameFromGetter(getter_f)).ToCString());
+  EXPECT_STREQ(f.ToCString(),
+               String::Handle(Field::NameFromSetter(setter_f)).ToCString());
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

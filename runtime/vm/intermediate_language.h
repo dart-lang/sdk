@@ -94,6 +94,9 @@ class Computation : public ZoneAllocated {
 
   ICData* ic_data() const { return ic_data_; }
   void set_ic_data(ICData* value) { ic_data_ = value; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -674,22 +677,29 @@ class NativeCallComp : public TemplateComputation<0> {
 
 class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
-  LoadInstanceFieldComp(LoadInstanceFieldNode* ast_node, Value* instance)
-      : ast_node_(*ast_node) {
+  LoadInstanceFieldComp(const Field& field,
+                        Value* instance,
+                        InstanceCallComp* original,  // Maybe NULL.
+                        ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
+      : field_(field), original_(original), class_ids_(class_ids) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
 
   DECLARE_COMPUTATION(LoadInstanceField)
 
-  const Field& field() const { return ast_node_.field(); }
-
+  const Field& field() const { return field_; }
   Value* instance() const { return inputs_[0]; }
+  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
+  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const LoadInstanceFieldNode& ast_node_;
+  const Field& field_;
+  const InstanceCallComp* original_;  // For optimizations.
+  // If non-NULL, the instruction is valid only for the class ids listed.
+  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -697,10 +707,12 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
 class StoreInstanceFieldComp : public TemplateComputation<2> {
  public:
-  StoreInstanceFieldComp(StoreInstanceFieldNode* ast_node,
+  StoreInstanceFieldComp(const Field& field,
                          Value* instance,
-                         Value* value)
-      : ast_node_(*ast_node) {
+                         Value* value,
+                         InstanceSetterComp* original,  // Maybe NULL.
+                         ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
+      : field_(field), original_(original), class_ids_(class_ids) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
     inputs_[0] = instance;
@@ -709,16 +721,21 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(StoreInstanceField)
 
-  intptr_t token_index() const { return ast_node_.token_index(); }
-  const Field& field() const { return ast_node_.field(); }
+  const Field& field() const { return field_; }
 
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
+  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
+  const InstanceSetterComp* original() const { return original_; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const StoreInstanceFieldNode& ast_node_;
+  const Field& field_;
+  const InstanceSetterComp* original_;  // For optimizations.
+  // If non-NULL, the instruction is valid only for the class ids listed.
+  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };

@@ -1538,6 +1538,8 @@ class Field : public Object {
   static RawString* SetterSymbol(const String& field_name);
   static RawString* NameFromGetter(const String& getter_name);
   static RawString* NameFromSetter(const String& setter_name);
+  static bool IsGetterName(const String& function_name);
+  static bool IsSetterName(const String& function_name);
 
  private:
   void set_name(const String& value) const;

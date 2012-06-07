@@ -10,6 +10,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, trace_optimization);
 
@@ -137,18 +138,160 @@ void FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
 }
 
 
+// Returns true if all targets are the same.
+static bool HasOneTarget(const ICData& ic_data) {
+  ASSERT(ic_data.NumberOfChecks() > 0);
+  Function& prev_target = Function::Handle();
+  Class& cls = Class::Handle();
+  ic_data.GetOneClassCheckAt(0, &cls, &prev_target);
+  ASSERT(!prev_target.IsNull());
+  Function& target = Function::Handle();
+  for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    ASSERT(!target.IsNull());
+    if (prev_target.raw() != target.raw()) {
+      return false;
+    }
+    prev_target = target.raw();
+  }
+  return true;
+}
+
+
+// Using field class
+static RawField* GetField(const Class& field_class, const String& field_name) {
+  Class& cls = Class::Handle(field_class.raw());
+  Field& field = Field::Handle();
+  while (!cls.IsNull()) {
+    field = cls.LookupInstanceField(field_name);
+    if (!field.IsNull()) {
+      return field.raw();
+    }
+    cls = cls.SuperClass();
+  }
+  return Field::null();
+}
+
+
+// Returns array of all class ids that are in ic_data. The result is
+// normalized so that a smi class is at index 0 if it exists in the ic_data.
+static ZoneGrowableArray<intptr_t>*  ExtractClassIds(const ICData& ic_data) {
+  if (ic_data.NumberOfChecks() == 0) return NULL;
+  ZoneGrowableArray<intptr_t>* result =
+      new ZoneGrowableArray<intptr_t>(ic_data.NumberOfChecks());
+  intptr_t smi_index = -1;
+  Function& target = Function::Handle();
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    result->Add(cls.id());
+    if (cls.id() == kSmi) {
+      ASSERT(smi_index < 0);  // Classes entered only once in ic_data.
+      smi_index = i;
+    }
+  }
+  if (smi_index >= 0) {
+    // Smi class id must be at index 0.
+    intptr_t temp = (*result)[0];
+    (*result)[0] =  (*result)[smi_index];
+    (*result)[smi_index] = temp;
+  }
+  return result;
+}
+
+
+// Only unique implicit instance getters can be currently handled.
+void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  if (ic_data.NumberOfChecks() == 0) {
+    // No type feedback collected
+    return;
+  }
+  if (!HasOneTarget(ic_data)) {
+    // TODO(srdjan): Implement when not all targets are the sa,e.
+    return;
+  }
+  Function& target = Function::Handle();
+  Class& cls = Class::Handle();
+  ic_data.GetOneClassCheckAt(0, &cls, &target);
+  if (target.kind() != RawFunction::kImplicitGetter) {
+    // Not an implicit getter.
+    // TODO(srdjan): Inline special getters (e.g., array length).
+    return;
+  }
+  // Inline implicit instance getter.
+  const String& field_name =
+      String::Handle(Field::NameFromGetter(comp->function_name()));
+  const Field& field = Field::Handle(GetField(cls, field_name));
+  ASSERT(!field.IsNull());
+  LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
+      field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
+  // Replace 'comp' with 'load'.
+  load->set_instr(comp->instr());
+  comp->instr()->replace_computation(load);
+}
+
+
+void FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  if (ic_data.NumberOfChecks() == 0) {
+    // No type feedback collected
+    return;
+  }
+  if (!HasOneTarget(ic_data)) {
+    // TODO(srdjan): Implement when not all targets are the sa,e.
+    return;
+  }
+  Function& target = Function::Handle();
+  Class& cls = Class::Handle();
+  ic_data.GetOneClassCheckAt(0, &cls, &target);
+  if (target.kind() != RawFunction::kImplicitSetter) {
+    // Not an implicit setter.
+    // TODO(srdjan): Inline special setters.
+    return;
+  }
+  // Inline implicit instance setter.
+  const Field& field = Field::Handle(GetField(cls, comp->field_name()));
+  ASSERT(!field.IsNull());
+  StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
+      field,
+      comp->InputAt(0),
+      comp->InputAt(1),
+      comp,
+      ExtractClassIds(ic_data));
+  // Replace 'comp' with 'store'.
+  store->set_instr(comp->instr());
+  comp->instr()->replace_computation(store);
+}
+
+
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
-  if ((comp->ic_data() != NULL) && (!comp->ic_data()->IsNull())) {
-    Token::Kind op_kind = Token::GetBinaryOp(comp->function_name());
+  if (comp->HasICData()) {
+    const String& function_name = comp->function_name();
+    Token::Kind op_kind = Token::GetBinaryOp(function_name);
     if (op_kind != Token::kILLEGAL) {
       TryReplaceWithBinaryOp(comp, op_kind);
       return;
     }
-    op_kind = Token::GetUnaryOp(comp->function_name());
+    op_kind = Token::GetUnaryOp(function_name);
     if (op_kind != Token::kILLEGAL) {
       TryReplaceWithUnaryOp(comp, op_kind);
       return;
     }
+    if (Field::IsGetterName(function_name)) {
+      TryInlineInstanceGetter(comp);
+      return;
+    }
+  }
+}
+
+
+void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {
+  // TODO(srdjan): Add assigneable check node if --enable_type_checks.
+  if (comp->HasICData() && !FLAG_enable_type_checks) {
+    TryInlineInstanceSetter(comp);
   }
 }
 

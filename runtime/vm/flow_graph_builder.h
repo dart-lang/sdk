@@ -159,6 +159,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                Value** array,
                                Value** index,
                                Value** value);
+  void BuildInstanceSetterValues(InstanceSetterNode* node,
+                                 Value** receiver,
+                                 Value** value);
 
   virtual void BuildInstanceOf(ComparisonNode* node);
 
@@ -226,6 +229,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
   virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
+  virtual void VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node);
+  virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
 

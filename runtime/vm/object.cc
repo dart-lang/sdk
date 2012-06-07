@@ -4160,6 +4160,16 @@ RawString* Field::NameFromSetter(const String& setter_name) {
 }
 
 
+bool Field::IsGetterName(const String& function_name) {
+  return function_name.StartsWith(String::Handle(String::New(kGetterPrefix)));
+}
+
+
+bool Field::IsSetterName(const String& function_name) {
+  return function_name.StartsWith(String::Handle(String::New(kSetterPrefix)));
+}
+
+
 void Field::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());

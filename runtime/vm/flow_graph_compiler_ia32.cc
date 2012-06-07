@@ -961,6 +961,30 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
+// Checks class id of instance against all 'class_ids'. Jump to 'deopt' label
+// if no match or instance is Smi.
+void FlowGraphCompiler::EmitClassChecksNoSmi(
+    const ZoneGrowableArray<intptr_t>& class_ids,
+    Register instance_reg,
+    Register temp_reg,
+    Label* deopt) {
+  Label ok;
+  ASSERT(class_ids[0] != kSmi);
+  __ testl(instance_reg, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+  Label is_ok;
+  __ LoadClassId(temp_reg, instance_reg);
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ cmpl(temp_reg, Immediate(class_ids[i]));
+    if (i == class_ids.length() - 1) {
+      __ j(NOT_EQUAL, deopt);
+    } else {
+      __ j(EQUAL, &is_ok, Assembler::kNearJump);
+    }
+  }
+  __ Bind(&is_ok);
+}
+
 #undef __
 
 }  // namespace dart
