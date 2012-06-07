@@ -96,7 +96,7 @@ installCommand() {
     ]).scheduleCreate();
 
     dir(appPath, [
-      file('pubspec', 'dependencies:\n  foo:')
+      file('pubspec.yaml', 'dependencies:\n  foo:')
     ]).scheduleCreate();
 
     dir(packagesPath, [
@@ -116,7 +116,7 @@ installCommand() {
       dir('lib', [
         dir('foo', [
           file('foo.dart', 'main() => "foo";'),
-          file('pubspec', 'dependencies:\n  bar:')
+          file('pubspec.yaml', 'dependencies:\n  bar:')
         ]),
         dir('bar', [
           file('bar.dart', 'main() => "bar";'),
@@ -125,7 +125,7 @@ installCommand() {
     ]).scheduleCreate();
 
     dir(appPath, [
-      file('pubspec', 'dependencies:\n  foo:')
+      file('pubspec.yaml', 'dependencies:\n  foo:')
     ]).scheduleCreate();
 
     dir(packagesPath, [
@@ -150,7 +150,7 @@ installCommand() {
       ]).scheduleCreate();
 
       dir(appPath, [
-        file('pubspec', '''
+        file('pubspec.yaml', '''
 dependencies:
   foo:
     git: ../foo.git
@@ -172,7 +172,7 @@ dependencies:
     withGit(() {
       git('foo.git', [
         file('foo.dart', 'main() => "foo";'),
-        file('pubspec', '''
+        file('pubspec.yaml', '''
 dependencies:
   bar:
     git: ../bar.git
@@ -184,7 +184,7 @@ dependencies:
       ]).scheduleCreate();
 
       dir(appPath, [
-        file('pubspec', '''
+        file('pubspec.yaml', '''
 dependencies:
   foo:
     git: ../foo.git
