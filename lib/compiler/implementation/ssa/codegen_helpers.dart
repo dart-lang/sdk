@@ -151,9 +151,10 @@ class SsaConditionMerger extends HGraphVisitor {
     if (instruction.block !== block) return block.last !== block.first;
 
     // If [instruction] is not the last instruction of the block
-    // before the control flow instruction, then we will have to emit
-    // a statement for that last instruction.
-    if (instruction !== block.last.previous) return true;
+    // before the control flow instruction, or the last instruction,
+    // then we will have to emit a statement for that last instruction.
+    if (instruction != block.last
+        && instruction !== block.last.previous) return true;
 
     // If one of the instructions in the block until [instruction] is
     // not generated at use site, then we will have to emit a
@@ -186,36 +187,51 @@ class SsaConditionMerger extends HGraphVisitor {
     if (end == null) return;
     if (end.phis.isEmpty()) return;
     if (end.phis.first !== end.phis.last) return;
-    HBasicBlock thenBlock = startIf.thenBlock;
     HBasicBlock elseBlock = startIf.elseBlock;
-    if (end.predecessors[0] !== thenBlock) return;
+
     if (end.predecessors[1] !== elseBlock) return;
     HPhi phi = end.phis.first;
-    if (!phi.inputs[1].isConstantBoolean()) return;
+    if (!phi.inputs[1].isConstantBoolean()) return; 
+    if (elseBlock.first is !HGoto) return;
+    assert(elseBlock.successors.length == 1);
+    assert(end.predecessors.length == 2);
+
+    HBasicBlock thenBlock = startIf.thenBlock;
+    // Skip trivial goto blocks.
+    while (thenBlock.successors[0] != end && thenBlock.first is HGoto) {
+      thenBlock = thenBlock.successors[0];
+    }
     
     HInstruction thenInput = phi.inputs[0];
-    if (hasStatement(thenBlock, thenInput)) return;
-    if (elseBlock.first !== elseBlock.last) return;
-    
-    // From now on, we have recognized a logical operation built from
-    // the builder. We don't expect the builder and the optimizers to
-    // generate the then and else branches with multiple successors,
-    // and the join branch to have more than two predecessors.
 
-    // Mark the if instruction as a logical operation.
+    // If the [thenBlock] is already a logical operation, and does not
+    // have any statement, we can emit a sequence of logical operation.
+    if (logicalOperations.contains(thenBlock.last)) {
+      if (hasStatement(thenBlock, thenBlock.last)) return;
+      assert(thenInput.usedBy.length == 1);
+      generateAtUseSite.add(thenInput);
+    } else {
+      if (end.predecessors[0] !== thenBlock) return;
+      if (hasStatement(thenBlock, thenInput)) return;
+      // If [thenInput] is defined in [thenBlock], then it is only used
+      // by [phi] and can be generated at use site.
+      if (thenInput.block === thenBlock) {
+        // The instruction cannot be used by anyone else otherwise it
+        // would not be the last non control-flow instruction of [thenBlock].
+        assert(thenInput.usedBy.length == 1);
+        generateAtUseSite.add(thenInput);
+      }
+      assert(thenBlock.successors.length == 1);
+    }
+     
+    // From now on, we have recognized a logical operation built from
+    // the builder. Mark the if instruction as such.
     logicalOperations.add(startIf);
 
     // If the logical operation is only used by the first instruction
     // of its block, it can be generated at use site.
     if (phi.usedBy.length == 1 && phi.usedBy[0] === phi.block.first) {
       generateAtUseSite.add(phi);
-    }
-
-    // If [thenInput] is defined in [thenBlock], then it is only used
-    // by [phi] and can be generated at use site.
-    if (thenInput.block === thenBlock) {
-      assert(thenInput.usedBy.length == 1);
-      generateAtUseSite.add(thenInput);
     }
   }
 }

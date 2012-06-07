@@ -1739,10 +1739,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitPhi(HPhi node) {
-    HBasicBlock ifBlock = node.block.predecessors[0].predecessors[0];
     // This method is only called for phis that are generated at use
     // site. A phi can be generated at use site only if it is the
     // result of a logical operation.
+    HBasicBlock ifBlock = node.block.dominator;
     assert(logicalOperations.contains(ifBlock.last));
     HInstruction input = ifBlock.last.inputs[0];
     if (input.isConstantFalse()) {
