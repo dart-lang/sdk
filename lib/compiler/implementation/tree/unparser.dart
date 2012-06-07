@@ -107,6 +107,7 @@ class Unparser implements Visitor {
     visit(node.thenPart);
     if (node.hasElsePart) {
       add(node.elseToken.value);
+      sb.add(' ');
       visit(node.elsePart);
     }
   }
