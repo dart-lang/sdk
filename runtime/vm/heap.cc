@@ -75,7 +75,7 @@ uword Heap::AllocateOld(intptr_t size) {
     if (FLAG_verbose_gc) {
       PrintSizes();
     }
-    addr = old_space_->TryAllocate(size);
+    addr = old_space_->TryAllocate(size, PageSpace::kForceGrowth);
     if (addr == 0) {
       OS::PrintErr("Exhausted heap space, trying to allocate %d bytes.\n",
                    size);

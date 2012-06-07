@@ -191,6 +191,11 @@ uword PageSpace::TryBumpAllocate(intptr_t size) {
 
 
 uword PageSpace::TryAllocate(intptr_t size) {
+  return TryAllocate(size, kControlGrowth);
+}
+
+
+uword PageSpace::TryAllocate(intptr_t size, GrowthPolicy growth_policy) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
@@ -200,7 +205,7 @@ uword PageSpace::TryAllocate(intptr_t size) {
       result = freelist_.TryAllocate(size);
       if ((result == 0) &&
           (page_space_controller_.CanGrowPageSpace(size) ||
-           (size < (capacity() - in_use()))) &&  // Fragmentation
+           growth_policy == kForceGrowth) &&
           CanIncreaseCapacity(kPageSize)) {
         AllocatePage();
         result = TryBumpAllocate(size);

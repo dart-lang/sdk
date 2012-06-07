@@ -151,10 +151,16 @@ class PageSpace {
   static const intptr_t kPageSize = 256 * KB;
   static const intptr_t kPageAlignment = kPageSize;
 
+  enum GrowthPolicy {
+    kControlGrowth,
+    kForceGrowth
+  };
+
   PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable = false);
   ~PageSpace();
 
   uword TryAllocate(intptr_t size);
+  uword TryAllocate(intptr_t size, GrowthPolicy growth_policy);
 
   intptr_t in_use() const { return in_use_; }
   intptr_t capacity() const { return capacity_; }
