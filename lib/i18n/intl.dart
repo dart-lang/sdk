@@ -3,56 +3,70 @@
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
+ * Internationalization object providing access to message formatting objects,
+ * date formatting, parsing, bidirectional text relative to a specific locale.
  */
 
 #library('Intl');
-#import('date_format.dart');
-#import('message_format.dart');
+
+#import('intl_message.dart');
 
 class Intl {
 
   /**
-   * As yet not clearly defined variable for holding onto our current locale,
-   * which may actually be a list of locales, or have different information
-   * for different aspects of internationalization (e.g. German locale but with
-   * Canadian date format)
+   * String indicating the locale code with which the message is to be
+   * formatted (such as en-CA).
    */
-  // TODO (alanknight): Actually make this class do something with locales,
-  // just a skeleton right now.
-  var _locale;
+  String _locale;
+
+  IntlMessage intlMsg;
+  
+  DateFormat date;
 
   /**
-   * Constructor
+   * Constructor optionally [_locale] for specifics of the language
+   * locale to be used, otherwise, we will attempt to infer it (acceptable if
+   * Dart is running on the client, we can infer from the browser/client
+   * preferences).
    */
-  Intl([this._locale]);
+  Intl([this._locale]) : intlMsg = new IntlMessage(_locale),
+      date = new DateFormat(_locale);
 
   /**
-   * Methods to return appropriate format objects.
+   * Create a message that can be internationalized. It contains a [message_str]
+   * that will be translated, a [desc] providing a description of the use case
+   * for the [message_str], and a map of [examples] for each data element to be
+   * substituted into the message. For example, if message="Hello, $name", then
+   * examples = {'name': 'Sparky'}. The values of [desc] and [examples] MUST be
+   * simple Strings available at compile time: no String interpolation or
+   * concatenation.
    */
-  DateFormat date() => new DateFormat.fullDate();
-  DateFormat time() => new DateFormat.fullTime();
-  DateFormat dateTime() => new DateFormat.fullDateTime();
-  MessageFormat message() => new MessageFormat();
+  String message(String message_str, [final String desc='',
+                 final Map examples=const {}]) {
+    // TODO(efortuna): implement.
+    return message_str; 
+  }
 
   /**
-   * Support methods for message formatting.
+   * Support method for message formatting. Select the correct plural form from
+   * [cases] given [howMany].
    */
-  String plural(num howMany, Map actions) {
-    var desiredKey = howMany.toString();
-    for (var key in actions.getKeys()) {
-        if(desiredKey == key) return actions[key];
-    }
-    if (actions.containsKey('other')) {
-      return actions['other'];
+  static String plural(var howMany, Map cases, [num offset=0]) {
+    // TODO(efortuna): Deal with "few" and "many" cases, offset, and others!
+    select(howMany.toString(), cases);
+  }
+
+  /**
+   * Support method for message formatting. Select the correct exact (gender,
+   * usually) form from [cases] given the user [choice].
+   */
+  static String select(String choice, Map cases) {
+    if (cases.getKeys().some((elem) => elem == choice)) {
+      return cases[choice];
+    } else if (cases.containsKey('other')){
+      return cases['other'];
     } else {
       return '';
     }
-  }
-
-  String select(String choice, Map actions) {
-    for (var key in actions.getKeys()) {
-      if (choice == key) return actions[key];
-    }
-    return '';
   }
 }
