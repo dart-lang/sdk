@@ -384,7 +384,7 @@ class StandardTestSuite implements TestSuite {
       } else {
         testName = filename;
       }
-
+      String suffix = executableSuffix(configuration['compiler']);
       if (configuration['compiler'] != 'dart_analyzer$suffix' ||
           testName.endsWith('_test.dart')) {
         if (testName.endsWith('.dart')) {
