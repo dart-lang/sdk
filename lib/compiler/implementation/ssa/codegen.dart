@@ -2518,6 +2518,14 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   bool visitTryInfo(HTryBlockInformation info) => false;
   bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
+  // For instructions that reference a guard or a check, we change that	
+  // reference to the instruction they guard against. Therefore, we must	
+  // use that instruction when restoring the environment.	
+  HInstruction unwrap(argument) {	
+    while (argument is HCheck) argument = argument.checkedInput;	
+    return argument;	
+  }
+
   void visitTypeGuard(HTypeGuard node) {
     indent--;
     addIndented('case ${node.state}:\n');
@@ -2527,7 +2535,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('    case ${node.state}:\n');
     int i = 0;
     for (HInstruction input in node.inputs) {
-      setup.add('      ${variableNames.getName(input)} = env$i;\n');
+      HInstruction instruction = unwrap(input);
+      setup.add('      ${variableNames.getName(instruction)} = env$i;\n');
       i++;
     }
     if (i > maxBailoutParameters) maxBailoutParameters = i;
