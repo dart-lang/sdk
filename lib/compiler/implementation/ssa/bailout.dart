@@ -81,14 +81,26 @@ class Environment {
  * inconsistent way. No further analysis should rely on them.
  */
 class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
+  static final int SMALL_METHOD_BLOCK_LIMIT = 5;
+
   final Compiler compiler;
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
+  bool smallMethodNoLoops = false;
   int stateId = 1;
 
   SsaTypeGuardInserter(this.compiler, this.work);
 
   void visitGraph(HGraph graph) {
+    var blocks = graph.blocks;
+    if (blocks.length < SMALL_METHOD_BLOCK_LIMIT) {
+      smallMethodNoLoops = true;
+      for (var i = 0; i < blocks.length; i++) {
+        if (blocks[i].enclosingLoopHeader !== null) {
+          smallMethodNoLoops = false;
+        }
+      }
+    }
     work.guards = <HTypeGuard>[];
     visitDominatorTree(graph);
   }
@@ -107,10 +119,9 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
-
-    Element source = instruction.sourceElement;
     // Do not insert a type guard if the instruction has a type
     // annotation that disagrees with the speculated type.
+    Element source = instruction.sourceElement;
     if (source !== null) {
       Type sourceType = source.computeType(compiler);
       Type speculatedType = speculativeType.computeType(compiler);
@@ -120,6 +131,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
       }
     }
 
+    // Insert type guards if there are uses in loops.
     bool isNested(HBasicBlock inner, HBasicBlock outer) {
       if (inner === outer) return false;
       if (outer === null) return true;
@@ -136,6 +148,14 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
       HBasicBlock userLoopHeader = user.block.enclosingLoopHeader;
       if (isNested(userLoopHeader, currentLoopHeader)) return true;
     }
+
+    // Insert type guards for small methods with no loops and multiple
+    // uses. These are expected to be helper methods that could
+    // benefit from type guards. If there is a loop, we expect the
+    // loop to take most of the time and that inserting a type guard
+    // for something not used in the loop will not be valuable.
+    if (smallMethodNoLoops && instruction.usedBy.length > 2) return true;
+
     return false;
   }
 
