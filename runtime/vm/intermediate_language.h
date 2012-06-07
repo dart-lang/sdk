@@ -139,6 +139,24 @@ class Computation : public ZoneAllocated {
 
   static LocationSummary* MakeCallSummary();
 
+  // Declare an enum value used to define type-test predicates.
+  enum ComputationType {
+#define DECLARE_COMPUTATION_TYPE(ShortName, ClassName) k##ShortName,
+
+  FOR_EACH_COMPUTATION(DECLARE_COMPUTATION_TYPE)
+
+#undef DECLARE_COMPUTATION_TYPE
+  };
+
+  virtual ComputationType computation_type() const = 0;
+
+  // Declare predicate for each computation.
+#define DECLARE_PREDICATE(ShortName, ClassName)                             \
+  inline bool Is##ShortName() const;                                        \
+  inline ClassName* As##ShortName();
+  FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
+#undef DECLARE_PREDICATE
+
  private:
   friend class Instruction;
   static intptr_t GetNextCid(Isolate* isolate) {
@@ -236,13 +254,6 @@ class Value : public TemplateComputation<0> {
  public:
   Value() { }
 
-#define DEFINE_TESTERS(ShortName, ClassName)                                   \
-  virtual ClassName* As##ShortName() { return NULL; }                          \
-  bool Is##ShortName() { return As##ShortName() != NULL; }
-
-  FOR_EACH_VALUE(DEFINE_TESTERS)
-#undef DEFINE_TESTERS
-
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
@@ -251,6 +262,9 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual ComputationType computation_type() const {                           \
+    return Computation::k##ShortName;                                          \
+  }                                                                            \
   virtual const char* DebugName() const { return #ShortName; }                 \
   virtual RawAbstractType* StaticType() const;                                 \
   virtual LocationSummary* MakeLocationSummary() const;                        \
@@ -259,7 +273,6 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
   DECLARE_COMPUTATION(ShortName)                                               \
-  virtual ShortName##Val* As##ShortName() { return this; }                     \
   virtual void PrintTo(BufferFormatter* f) const;
 
 
@@ -516,7 +529,7 @@ class EqualityCompareComp : public TemplateComputation<2> {
     inputs_[1] = right;
   }
 
-  DECLARE_COMPUTATION(EqualityCompareComp)
+  DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
@@ -1361,6 +1374,19 @@ class NumberNegateComp : public TemplateComputation<1> {
 };
 
 #undef DECLARE_COMPUTATION
+
+
+// Implementation of type testers and cast functins.
+#define DEFINE_PREDICATE(ShortName, ClassName)                                 \
+bool Computation::Is##ShortName() const {                                      \
+  return computation_type() == k##ShortName;                                   \
+}                                                                              \
+ClassName* Computation::As##ShortName() {                                      \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<ClassName*>(this);                                        \
+}
+FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
+#undef DEFINE_PREDICATE
 
 
 // Instructions.
