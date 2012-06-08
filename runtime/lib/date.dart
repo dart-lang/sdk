@@ -3,6 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart core library.
 
+class TimeZoneImplementation implements TimeZone {
+  const TimeZoneImplementation.utc() : isUtc = true;
+  TimeZoneImplementation.local() : isUtc = false {}
+
+  bool operator ==(Object other) {
+    if (!(other is TimeZoneImplementation)) return false;
+    return isUtc == other.isUtc;
+  }
+
+  final bool isUtc;
+}
+
 // VM implementation of DateImplementation.
 class DateImplementation implements Date {
   static final int _SECONDS_YEAR_2035 = 2051222400;
@@ -20,6 +32,17 @@ class DateImplementation implements Date {
             years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
     if (value === null) throw new IllegalArgumentException();
   }
+
+  DateImplementation.withTimeZone(int years,
+                                  int month,
+                                  int day,
+                                  int hours,
+                                  int minutes,
+                                  int seconds,
+                                  int milliseconds,
+                                  TimeZone timeZone)
+      : this(years, month, day, hours, minutes, seconds, milliseconds,
+             timeZone.isUtc);
 
   DateImplementation.now()
       : _isUtc = true,
@@ -106,6 +129,13 @@ class DateImplementation implements Date {
   Date toUtc() {
     if (isUtc()) return this;
     return new DateImplementation.fromEpoch(value, true);
+  }
+
+  Date changeTimeZone(TimeZone targetTimeZone) {
+    if (targetTimeZone === null) {
+      targetTimeZone = new TimeZoneImplementation.local();
+    }
+    return new Date.fromEpoch(value, targetTimeZone.isUtc);
   }
 
   String get timeZoneName() {

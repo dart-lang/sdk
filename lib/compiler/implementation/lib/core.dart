@@ -35,6 +35,7 @@
 #source('../../../../corelib/src/string.dart');
 #source('../../../../corelib/src/string_buffer.dart');
 #source('../../../../corelib/src/strings.dart');
+#source('../../../../corelib/src/time_zone.dart');
 #source('mock.dart');
 #source('clock.dart');
 

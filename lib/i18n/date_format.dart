@@ -230,8 +230,8 @@ class DateFormat {
   * Format the given [date] object according to preset pattern and current
   * locale and return a formated string for the given date.
   */
-  String format(Date date) {
-    // TODO(efortuna): readd optional TimeZone argument (or similar)?
+  String format(Date date, [TimeZone timeZone]) {
+    // TODO(efortuna): optional TimeZone argument? TimeZone is deprecated...
     return date.toString();
   }
 
