@@ -65,7 +65,7 @@ class FrogSystem(System):
 
 # ------------------------------------------------------------------------------
 
-class FrogInterfaceGenerator(object):
+class FrogInterfaceGenerator(BaseGenerator):
   """Generates a Frog class for a DOM IDL interface."""
 
   def __init__(self, system, interface, template, super_interface, dart_code):
@@ -82,6 +82,7 @@ class FrogInterfaceGenerator(object):
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
+    super(FrogInterfaceGenerator, self).__init__(system._database)
     self._system = system
     self._interface = interface
     self._template = template
@@ -353,9 +354,6 @@ class FrogInterfaceGenerator(object):
     template = self._system._templates.Load(template_file)
     self._members_emitter.Emit(template, E=DartType(element_type))
 
-  def AmendIndexer(self, element_type):
-    pass
-
   def AddOperation(self, info):
     """
     Arguments:
@@ -381,6 +379,3 @@ class FrogInterfaceGenerator(object):
         NAME=info.name,
         PARAMS=params,
         NATIVESTRING=native_string)
-
-  def AddStaticOperation(self, info):
-    pass

@@ -7,8 +7,7 @@
 Dart APIs from the IDL database."""
 
 import os
-#import re
-import generator
+from generator import *
 
 def MassagePath(path):
   # The most robust way to emit path separators is to use / always.
@@ -96,7 +95,7 @@ class System(object):
         # Only consider primary parent, secondary parents are not on the
         # implementation class inheritance chain.
         parent = interface.parents[0]
-        if generator.IsDartCollectionType(parent.type.id):
+        if IsDartCollectionType(parent.type.id):
           return
         if self._database.HasInterface(parent.type.id):
           parent_interface = self._database.GetInterface(parent.type.id)
@@ -109,3 +108,109 @@ class System(object):
     result = set()
     WalkParentChain(interface)
     return result;
+
+class BaseGenerator(object):
+  def __init__(self, database):
+    self._database = database
+
+  def AddMembers(self, interface):
+    for const in sorted(interface.constants, ConstantOutputOrder):
+      self.AddConstant(const)
+
+    attributes = [attr for attr in interface.attributes
+                  if attr.type.id != 'EventListener']
+    for (getter, setter) in  _PairUpAttributes(attributes):
+      self.AddAttribute(getter, setter)
+
+    # The implementation should define an indexer if the interface directly
+    # extends List.
+    (element_type, requires_indexer) = ListImplementationInfo(
+          interface, self._database)
+    if element_type:
+      if requires_indexer:
+        self.AddIndexer(element_type)
+      else:
+        self.AmendIndexer(element_type)
+    # Group overloaded operations by id
+    operationsById = {}
+    for operation in interface.operations:
+      if operation.id not in operationsById:
+        operationsById[operation.id] = []
+      operationsById[operation.id].append(operation)
+
+    # Generate operations
+    for id in sorted(operationsById.keys()):
+      operations = operationsById[id]
+      info = AnalyzeOperation(interface, operations)
+      if info.IsStatic():
+        self.AddStaticOperation(info)
+      else:
+        self.AddOperation(info)
+
+  def AddSecondaryMembers(self, interface, secondary_parents):
+    # With multiple inheritance, attributes and operations of non-first
+    # interfaces need to be added.  Sometimes the attribute or operation is
+    # defined in the current interface as well as a parent.  In that case we
+    # avoid making a duplicate definition and pray that the signatures match.
+
+    for parent_interface in secondary_parents:
+      if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
+        continue
+      attributes = [attr for attr in parent_interface.attributes
+                    if not FindMatchingAttribute(interface, attr)]
+      for (getter, setter) in _PairUpAttributes(attributes):
+        self.AddSecondaryAttribute(parent_interface, getter, setter)
+
+      # Group overloaded operations by id
+      operationsById = {}
+      for operation in parent_interface.operations:
+        if operation.id not in operationsById:
+          operationsById[operation.id] = []
+        operationsById[operation.id].append(operation)
+
+      # Generate operations
+      for id in sorted(operationsById.keys()):
+        if not any(op.id == id for op in interface.operations):
+          operations = operationsById[id]
+          info = AnalyzeOperation(interface, operations)
+          self.AddSecondaryOperation(parent_interface, info)
+
+  def AddConstant(self, constant):
+    pass
+
+  def AddAttribute(self, getter, setter):
+    pass
+
+  def AddIndexer(self, element_type):
+    pass
+
+  def AmendIndexer(self, element_type):
+    pass
+
+  def AddOperation(self, info):
+    pass
+
+  def AddStaticOperation(self, info):
+    pass
+
+  def AddSecondaryAttribute(self, interface, getter, setter):
+    pass
+
+  def AddSecondaryOperation(self, interface, attr):
+    pass
+
+
+def _PairUpAttributes(attributes):
+  """Returns a list of (getter, setter) pairs sorted by name.
+
+  One element of the pair may be None.
+  """
+  names = sorted(set(attr.id for attr in attributes))
+  getters = {}
+  setters = {}
+  for attr in attributes:
+    if attr.is_fc_getter:
+      getters[attr.id] = attr
+    elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
+      setters[attr.id] = attr
+  return [(getters.get(id), setters.get(id)) for id in names]

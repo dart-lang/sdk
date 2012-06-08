@@ -8,13 +8,13 @@ native binding from the IDL database."""
 
 import emitter
 import os
+import systembase
 from generator import *
-from systembase import *
 from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
 from systemhtml import HtmlElementConstructorInfos
 from systemhtml import EmitHtmlElementFactoryConstructors
 
-class NativeImplementationSystem(System):
+class NativeImplementationSystem(systembase.System):
 
   def __init__(self, templates, database, html_database, html_renames,
                emitters, output_dir):
@@ -192,7 +192,7 @@ class NativeImplementationSystem(System):
     return self._dom_impl_files
 
 
-class NativeImplementationGenerator(object):
+class NativeImplementationGenerator(systembase.BaseGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
   def __init__(self, system, interface,
@@ -213,6 +213,7 @@ class NativeImplementationGenerator(object):
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
     """
+    super(NativeImplementationGenerator, self).__init__(system._database)
     self._system = system
     self._interface = interface
     self._dart_impl_emitter = dart_impl_emitter
