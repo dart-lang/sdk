@@ -549,6 +549,18 @@ void Assembler::xorpd(XmmRegister dst, const Address& src) {
 }
 
 
+void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(dst <= XMM7);
+  Operand operand(src);
+  EmitUint8(0xF2);
+  EmitOperandREX(0, operand, REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0x2A);
+  EmitOperand(dst, operand);
+}
+
+
 void Assembler::xchgl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);

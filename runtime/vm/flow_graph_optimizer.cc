@@ -27,7 +27,7 @@ void FlowGraphOptimizer::ApplyICData() {
 void FlowGraphOptimizer::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     Instruction* instr = block_order_[i]->Accept(this);
-    // Compile all successors until an exit, branch, or a block entry.
+    // Optimize all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       instr = instr->Accept(this);
     }
@@ -93,6 +93,12 @@ static bool HasOneDouble(const ICData& ic_data) {
 }
 
 
+static bool HasTwoDouble(const ICData& ic_data) {
+  const Class& double_class =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
+  return ICDataHasTwoReceiverClasses(ic_data, double_class, double_class);
+}
+
 
 void FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
@@ -100,14 +106,42 @@ void FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
     // TODO(srdjan): Not yet supported.
     return;
   }
-  if (!HasTwoSmi(*comp->ic_data())) {
+
+  BinaryOpComp::OperandsType operands_type;
+
+  if (HasTwoSmi(*comp->ic_data())) {
+    if (op_kind == Token::kDIV ||
+        op_kind == Token::kMOD) {
+      // TODO(srdjan): Not yet supported.
+      return;
+    }
+
+    operands_type = BinaryOpComp::kSmiOperands;
+  } else if (HasTwoDouble(*comp->ic_data())) {
+    if (op_kind != Token::kADD &&
+        op_kind != Token::kSUB &&
+        op_kind != Token::kMUL &&
+        op_kind != Token::kDIV) {
+      // TODO(vegorov): Not yet supported.
+      return;
+    }
+
+    operands_type = BinaryOpComp::kDoubleOperands;
+  } else {
     // TODO(srdjan): Not yet supported.
     return;
   }
+
   ASSERT(comp->instr() != NULL);
   ASSERT(comp->InputCount() == 2);
+  Value* left = comp->InputAt(0);
+  Value* right = comp->InputAt(1);
   BinaryOpComp* bin_op =
-      new BinaryOpComp(op_kind, comp, comp->InputAt(0), comp->InputAt(1));
+      new BinaryOpComp(op_kind,
+                       operands_type,
+                       comp,
+                       left,
+                       right);
   ASSERT(bin_op->ic_data() == NULL);
   bin_op->set_ic_data(comp->ic_data());
   bin_op->set_instr(comp->instr());

@@ -762,6 +762,19 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
+
+  if (operands_type() == kDoubleOperands) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::RegisterLocation(RAX));
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+
+  ASSERT(operands_type() == kSmiOperands);
+
   if (op_kind() == Token::kTRUNCDIV) {
     const intptr_t kNumTemps = 3;
     LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
@@ -803,22 +816,7 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
 
 
 // TODO(srdjan): Implement variations.
-static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
-                               BinaryOpComp* comp) {
-  ASSERT((comp->ic_data() != NULL));
-  const ICData& ic_data = *comp->ic_data();
-  if (ic_data.IsNull()) return false;
-  if (ic_data.num_args_tested() != 2) return false;
-  if (ic_data.NumberOfChecks() != 1) return false;
-  Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
-  const Class& smi_class =
-      Class::Handle(Isolate::Current()->object_store()->smi_class());
-  if ((classes[0]->raw() != smi_class.raw()) ||
-      (classes[1]->raw() != smi_class.raw())) {
-    return false;
-  }
+static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   // TODO(srdjan): need to allocate a temporary register (now using r10)
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
@@ -891,15 +889,6 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
       __ SmiTag(result);
       break;
     }
-    case Token::kDIV: {
-      // Dispatches to 'Double./'.
-      // TODO(srdjan): Implement as conversion to double and double division.
-      return false;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
-      return false;
-    }
     case Token::kSHR: {
       const Immediate kCountLimit = Immediate(0x1F);
       __ cmpq(right, Immediate(0));
@@ -934,35 +923,90 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
       __ shlq(left, right_temp);
       break;
     }
+    case Token::kDIV: {
+      // Dispatches to 'Double./'.
+      // TODO(srdjan): Implement as conversion to double and double division.
+      UNREACHABLE();
+      break;
+    }
+    case Token::kMOD: {
+      // TODO(srdjan): Implement.
+      UNREACHABLE();
+      break;
+    }
     case Token::kOR:
     case Token::kAND: {
       // Flow graph builder has dissected this operation to guarantee correct
       // behavior (short-circuit evaluation).
       UNREACHABLE();
-      return false;
+      break;
     }
     default:
       UNREACHABLE();
-      return false;
+      break;
   }
+}
+
+
+static bool EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
+                               BinaryOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Register result = comp->locs()->out().reg();
+
+
+  const Class& double_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+  __ pushq(left);
+  __ pushq(right);
+  compiler->GenerateCall(comp->instance_call()->token_index(),
+                         comp->instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  // Newly allocated object is now in the result register (RAX).
+  ASSERT(result == RAX);
+  __ popq(right);
+  __ popq(left);
+
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptDoubleBinaryOp,
+                                        left,
+                                        right);
+
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+
+  switch (comp->op_kind()) {
+    case Token::kADD: __ addsd(XMM0, XMM1); break;
+    case Token::kSUB: __ subsd(XMM0, XMM1); break;
+    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
+    case Token::kDIV: __ divsd(XMM0, XMM1); break;
+    default: UNREACHABLE();
+  }
+
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
   return true;
 }
 
+
 void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (TryEmitSmiBinaryOp(compiler, this)) {
-    // Operation inlined.
-    return;
-  }
-  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
-  // for all intended operations.
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ pushq(left);
-  __ pushq(right);
-  InstanceCallComp* instance_call_comp = instance_call();
-  instance_call_comp->EmitNativeCode(compiler);
-  if (locs()->out().reg() != RAX) {
-    __ movq(locs()->out().reg(), RAX);
+  switch (operands_type()) {
+    case kSmiOperands:
+      EmitSmiBinaryOp(compiler, this);
+      break;
+
+    case kDoubleOperands:
+      EmitDoubleBinaryOp(compiler, this);
+      break;
+
+    default:
+      UNREACHABLE();
   }
 }
 

@@ -1311,11 +1311,19 @@ class CatchEntryComp : public TemplateComputation<0> {
 
 class BinaryOpComp : public TemplateComputation<2> {
  public:
+  enum OperandsType {
+    kSmiOperands,
+    kDoubleOperands
+  };
+
   BinaryOpComp(Token::Kind op_kind,
+               OperandsType operands_type,
                InstanceCallComp* instance_call,
                Value* left,
                Value* right)
-      : op_kind_(op_kind), instance_call_(instance_call) {
+      : op_kind_(op_kind),
+        operands_type_(operands_type),
+        instance_call_(instance_call) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -1327,6 +1335,8 @@ class BinaryOpComp : public TemplateComputation<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
+  OperandsType operands_type() const { return operands_type_; }
+
   InstanceCallComp* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -1335,6 +1345,7 @@ class BinaryOpComp : public TemplateComputation<2> {
 
  private:
   const Token::Kind op_kind_;
+  const OperandsType operands_type_;
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
