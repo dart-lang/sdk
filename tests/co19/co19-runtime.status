@@ -462,5 +462,5 @@ Language/10_Expressions/06_Lists_A09_t01: Fail
 Language/10_Expressions/06_Lists_A09_t04: Fail
 
 
-[ $runtime == vm && $mode == debug ]
+[ $runtime == vm && $mode == debug && $unchecked ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
