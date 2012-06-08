@@ -330,7 +330,7 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf}.
   #
 
-  for library in ['crypto', 'json', 'unittest', 'uri', 'utf']:
+  for library in ['crypto', 'json', 'unittest', 'uri', 'utf', 'i18n']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
