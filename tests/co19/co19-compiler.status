@@ -239,19 +239,9 @@ Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/11_Labels_A01_t01: Fail # Issue 2440
 Language/11_Statements/11_Labels_A01_t03: Fail # Issue 1335
 Language/11_Statements/11_Labels_A03_t05: Fail # Issue 2441
-Language/11_Statements/12_Break_A02_t05: Fail # Issue 2442
-Language/11_Statements/12_Break_A02_t06: Fail # Issue 2442
-Language/11_Statements/12_Break_A02_t07: Fail # Issue 2442
-Language/11_Statements/12_Break_A02_t08: Fail # Issue 2442
-Language/11_Statements/13_Continue_A02_t06: Fail # Issue 2442
-Language/11_Statements/13_Continue_A02_t07: Fail # Issue 2442
-Language/11_Statements/13_Continue_A02_t08: Fail # Issue 2442
-Language/11_Statements/13_Continue_A02_t09: Fail # Issue 2442
-Language/11_Statements/13_Continue_A02_t10: Fail # Issue 2442
-Language/11_Statements/13_Continue_A02_t11: Fail # Issue 2442
+Language/11_Statements/13_Continue_A02_t07: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t12: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t13: Fail # Issue 2441
-Language/11_Statements/13_Continue_A02_t15: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t16: Fail # Issue 2441
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109

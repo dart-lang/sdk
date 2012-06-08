@@ -18,7 +18,9 @@ public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_MEMBER_IN_INTERFACE("Abstract members are not allowed in interfaces"),
   ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
   ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
+  BREAK_OUTSIDE_OF_LOOP("'break' used outside of loop, case statement"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
+  CONTINUE_OUTSIDE_OF_LOOP("'continue' used outside of loop or case statement"),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT(
       "Default values cannot be specified in abstract method"),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE(

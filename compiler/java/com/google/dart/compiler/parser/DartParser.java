@@ -221,6 +221,15 @@ public class DartParser extends CompletionHooksParserBase {
    * {@link #setAllowFunctionExpression(boolean)}.
    */
   private boolean allowFunctionExpression = true;
+  
+  /**
+   * 'break' (with no labels) and 'continue' stmts are not valid 
+   * just anywhere, they must be inside a loop or a case stmt.  
+   * 
+   * A break with a label may be valid and is allowed through and
+   * checked in the resolver.
+   */
+  private boolean inLoopOrCaseStatement = false;
 
   /**
    * Set the {@link #allowFunctionExpression} flag indicating whether function expressions are
@@ -3093,39 +3102,13 @@ public class DartParser extends CompletionHooksParserBase {
    * @return {@link DartBlock} instance containing function body
    */
   private DartBlock parseFunctionStatementBody(boolean requireSemicolonForArrow) {
+    // A break inside a function body should have nothing to do with a loop in
+    // the code surrounding the definition.
+    boolean oldInLoopOrCaseStatement = inLoopOrCaseStatement;
+    inLoopOrCaseStatement = false;
+    DartBlock result;
     if (isDietParse) {
-      DartBlock emptyBlock = new DartBlock(new ArrayList<DartStatement>());
-      if (optional(Token.ARROW)) {
-        while (true) {
-          Token token = next();
-          if (token == Token.SEMICOLON) {
-            break;
-          }
-        }
-      } else {
-        if (!peek(0).equals(Token.LBRACE) && looksLikeTopLevelKeyword()) {
-          // Allow recovery back to the top level.
-          reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
-          return done(emptyBlock);
-        }
-        expect(Token.LBRACE);
-        int nesting = 1;
-        while (nesting > 0) {
-          Token token = next();
-          switch (token) {
-            case LBRACE:
-              ++nesting;
-              break;
-            case RBRACE:
-              --nesting;
-              break;
-            case EOS:
-              return emptyBlock;
-          }
-        }
-      }
-      // Return an empty block so we don't generate unparseable code.
-      return emptyBlock;
+      result = dietParseFunctionStatementBody();
     } else {
       beginFunctionStatementBody();
       if (optional(Token.ARROW)) {
@@ -3136,11 +3119,48 @@ public class DartParser extends CompletionHooksParserBase {
         if (requireSemicolonForArrow) {
           expect(Token.SEMICOLON);
         }
-        return done(makeReturnBlock(expr));
+        result = done(makeReturnBlock(expr));
       } else {
-        return done(parseBlock());
+        result = done(parseBlock());
       }
     }
+    inLoopOrCaseStatement = oldInLoopOrCaseStatement;
+    return result;
+  }
+
+  private DartBlock dietParseFunctionStatementBody() {
+    DartBlock emptyBlock = new DartBlock(new ArrayList<DartStatement>());
+    if (optional(Token.ARROW)) {
+      while (true) {
+        Token token = next();
+        if (token == Token.SEMICOLON) {
+          break;
+        }
+      }
+    } else {
+      if (!peek(0).equals(Token.LBRACE) && looksLikeTopLevelKeyword()) {
+        // Allow recovery back to the top level.
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+        return done(emptyBlock);
+      }
+      expect(Token.LBRACE);
+      int nesting = 1;
+      while (nesting > 0) {
+        Token token = next();
+        switch (token) {
+          case LBRACE:
+            ++nesting;
+            break;
+          case RBRACE:
+            --nesting;
+            break;
+          case EOS:
+            return emptyBlock;
+        }
+      }
+    }
+    // Return an empty block so we don't generate unparseable code.
+    return emptyBlock;
   }
 
   /**
@@ -3202,6 +3222,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartIdentifier label = null;
     if (match(Token.IDENTIFIER)) {
       label = parseIdentifier();
+    } else if (!inLoopOrCaseStatement) {
+      // The validation of matching of labels to break statements is done later.
+      reportErrorWithoutAdvancing(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);      
     }
     expectStatmentTerminator();
     return done(new DartBreakStatement(label));
@@ -3211,6 +3234,9 @@ public class DartParser extends CompletionHooksParserBase {
     beginContinueStatement();
     expect(Token.CONTINUE);
     DartIdentifier label = null;
+    if (!inLoopOrCaseStatement) {
+      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);      
+    }
     if (peek(0) == Token.IDENTIFIER) {
       label = parseIdentifier();
     }
@@ -3674,7 +3700,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
-    DartStatement body = parseStatement();
+    DartStatement body = parseLoopOrCaseStatement();
     return done(new DartWhileStatement(condition, body));
   }
 
@@ -3690,13 +3716,27 @@ public class DartParser extends CompletionHooksParserBase {
   private DartDoWhileStatement parseDoWhileStatement() {
     beginDoStatement();
     expect(Token.DO);
-    DartStatement body = parseStatement();
+    DartStatement body = parseLoopOrCaseStatement();
     expect(Token.WHILE);
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
     expectStatmentTerminator();
     return done(new DartDoWhileStatement(condition, body));
+  }
+
+  /**
+   * Use this wrapper to parse the body of a loop or case statement.
+   * 
+   * Sets up flag variables to make sure continue and break are properly 
+   * marked as errors when in wrong context. 
+   */
+  private DartStatement parseLoopOrCaseStatement() {
+    boolean oldInBreakable = inLoopOrCaseStatement;
+    inLoopOrCaseStatement = true;
+    DartStatement stmt = parseStatement();
+    inLoopOrCaseStatement = oldInBreakable;
+    return stmt;
   }
 
   /**
@@ -3766,7 +3806,7 @@ public class DartParser extends CompletionHooksParserBase {
       DartExpression iterable = parseExpression();
       expectCloseParen();
 
-      DartStatement body = parseStatement();
+      DartStatement body = parseLoopOrCaseStatement();
       return done(new DartForInStatement(setup, iterable, body));
 
     } else if (optional(Token.SEMICOLON)) {
@@ -3785,7 +3825,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       expectCloseParen();
 
-      DartStatement body = parseStatement();
+      DartStatement body = parseLoopOrCaseStatement();
       return done(new DartForStatement(setup, condition, next, body));
     } else {
       reportUnexpectedToken(position(), null, peek(0));
@@ -3833,7 +3873,7 @@ public class DartParser extends CompletionHooksParserBase {
         case EOS:
           return statements;
         default:
-          if ((statement = parseStatement()) == null) {
+          if ((statement = parseLoopOrCaseStatement()) == null) {
             return statements;
           }
           statements.add(statement);

@@ -92,7 +92,6 @@ generic_parameterized_extends_test: Skip  # Bug 5392297
 getters_setters_type3_test: Fail # Issue 2351
 instance_call_wrong_argument_count_negative_test: Fail
 instanceof3_test: Fail # Issue 2571
-label2_negative_test: Fail    # issue 1658
 library4_negative_test: Fail   # Bug 5406175
 list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343

@@ -531,4 +531,24 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 13, 14,
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 15, 13);
   }
+  
+  public void testBreakOutsideLoop() throws Exception {
+    parseUnit("phony_lone_super_expression1.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  method() {",
+            "    while (true) { break; }", // ok
+            "    break;",  // bad
+            "    L1: break L1;", // ok
+            "    while (true) { continue; }", // ok
+            "    continue;", // bad
+            "    L2: continue L2;", // bad
+            "    while (true) { int f() { break; }; }", // bad
+            "  }",
+            "}"),
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 4, 10,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 7, 13,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 18,
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);      
+  }
 }
