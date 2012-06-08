@@ -1281,6 +1281,8 @@ public class Resolver {
 
 
       switch (ElementKind.of(element)) {
+        case DYNAMIC:
+          return null;
         case CLASS:
         // Check for default constructor.
         ClassElement classElement = (ClassElement) element;

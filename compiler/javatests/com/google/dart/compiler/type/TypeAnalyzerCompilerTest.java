@@ -580,6 +580,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * When we attempt to use function as type, we should report only one error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3309
+   */
+  public void test_useFunctionAsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "func() {}",
+        "main() {",
+        "  new func();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.NOT_A_TYPE, 4, 7, 4));
+  }
+
+  /**
    * There was problem that {@link DartForInStatement} visits "iterable" two times. At first time we
    * set {@link MethodElement}, because we resolve it to getter. However because of this at second
    * time we can not resolve. Solution - don't try to resolve second time, we already done at first

@@ -713,8 +713,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var Bar;",
         "  create() { return new Bar();}",
         "}"),
-        ResolverErrorCode.NOT_A_TYPE,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode.NOT_A_TYPE);
   }
 
   public void testNewExpression4() {
@@ -955,8 +954,7 @@ public class ResolverTest extends ResolverTestCase {
         "    new Unknown();",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_new_noSuchType_typeArgument() throws Exception {
@@ -1091,7 +1089,6 @@ public class ResolverTest extends ResolverTestCase {
         "  static bar() { T variable = 1; }",
         "}"),
         ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR,
         TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT);
   }
 
