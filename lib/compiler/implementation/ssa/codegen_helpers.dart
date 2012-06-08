@@ -127,15 +127,15 @@ class SsaInstructionMerger extends HBaseVisitor {
 }
 
 /**
- *  Detect control flow arising from short-circuit logical operators, and
- *  prepare the program to be generated using these operators instead of
- *  nested ifs and boolean variables.
+ *  Detect control flow arising from short-circuit logical and
+ *  conditional operators, and prepare the program to be generated
+ *  using these operators instead of nested ifs and boolean variables.
  */
 class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> generateAtUseSite;
-  Set<HInstruction> logicalOperations;
+  Set<HInstruction> controlFlowOperators;
 
-  SsaConditionMerger(this.generateAtUseSite, this.logicalOperations);
+  SsaConditionMerger(this.generateAtUseSite, this.controlFlowOperators);
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
@@ -145,7 +145,7 @@ class SsaConditionMerger extends HGraphVisitor {
    * Check if a block has at least one statement other than
    * [instruction].
    */
-  bool hasStatement(HBasicBlock block, HInstruction instruction) {
+  bool hasAnyStatement(HBasicBlock block, HInstruction instruction) {
     // If [instruction] is not in [block], then if the block is not
     // empty, we know there will be a statement to emit.
     if (instruction.block !== block) return block.last !== block.first;
@@ -170,6 +170,19 @@ class SsaConditionMerger extends HGraphVisitor {
     return false;
   }
 
+  bool isSafeToGenerateAtUseSite(HInstruction user, HInstruction input) {
+    // A [HForeign] instruction uses operators and if we generate
+    // [input] at use site, the precedence might be wrong.
+    if (user is HForeign) return false;
+    // A [HCheck] instruction with control flow uses its input
+    // multiple times, so we avoid generating it at use site.
+    if (user is HCheck && user.isControlFlow()) return false;
+    // A [HIs] instruction uses its input multiple times, so we
+    // avoid generating it at use site.
+    if (user is HIs) return false;
+    return true;
+  }
+
   void visitBasicBlock(HBasicBlock block) {
     if (block.last is !HIf) return;
     HIf startIf = block.last;
@@ -191,8 +204,10 @@ class SsaConditionMerger extends HGraphVisitor {
 
     if (end.predecessors[1] !== elseBlock) return;
     HPhi phi = end.phis.first;
-    if (!phi.inputs[1].isConstantBoolean()) return; 
-    if (elseBlock.first is !HGoto) return;
+    HInstruction thenInput = phi.inputs[0];
+    HInstruction elseInput = phi.inputs[1];
+
+    if (hasAnyStatement(elseBlock, elseInput)) return;
     assert(elseBlock.successors.length == 1);
     assert(end.predecessors.length == 2);
 
@@ -202,36 +217,42 @@ class SsaConditionMerger extends HGraphVisitor {
       thenBlock = thenBlock.successors[0];
     }
     
-    HInstruction thenInput = phi.inputs[0];
-
-    // If the [thenBlock] is already a logical operation, and does not
-    // have any statement, we can emit a sequence of logical operation.
-    if (logicalOperations.contains(thenBlock.last)) {
-      if (hasStatement(thenBlock, thenBlock.last)) return;
-      assert(thenInput.usedBy.length == 1);
-      generateAtUseSite.add(thenInput);
+    // If the [thenBlock] is already a control flow operation, and does not
+    // have any statement and its join block is [end], we can emit a
+    // sequence of control flow operation.
+    if (controlFlowOperators.contains(thenBlock.last)) {
+      HIf otherIf = thenBlock.last;
+      if (otherIf.joinBlock !== end) return;
+      if (hasAnyStatement(thenBlock, otherIf)) return;
     } else {
       if (end.predecessors[0] !== thenBlock) return;
-      if (hasStatement(thenBlock, thenInput)) return;
-      // If [thenInput] is defined in [thenBlock], then it is only used
-      // by [phi] and can be generated at use site.
-      if (thenInput.block === thenBlock) {
-        // The instruction cannot be used by anyone else otherwise it
-        // would not be the last non control-flow instruction of [thenBlock].
-        assert(thenInput.usedBy.length == 1);
-        generateAtUseSite.add(thenInput);
-      }
+      if (hasAnyStatement(thenBlock, thenInput)) return;
       assert(thenBlock.successors.length == 1);
     }
      
-    // From now on, we have recognized a logical operation built from
+    // From now on, we have recognized a control flow operation built from
     // the builder. Mark the if instruction as such.
-    logicalOperations.add(startIf);
+    controlFlowOperators.add(startIf);
 
-    // If the logical operation is only used by the first instruction
-    // of its block, it can be generated at use site.
-    if (phi.usedBy.length == 1 && phi.usedBy[0] === phi.block.first) {
+    // If the operation is only used by the first instruction
+    // of its block and is safe to be generated at use sute, mark it
+    // so.
+    if (phi.usedBy.length == 1
+        && phi.usedBy[0] === phi.block.first
+        && isSafeToGenerateAtUseSite(phi.usedBy[0], phi)) {
       generateAtUseSite.add(phi);
+    }
+
+    if (elseInput.block === elseBlock) {
+      assert(elseInput.usedBy.length == 1);
+      generateAtUseSite.add(elseInput);
+    }
+
+    // If [thenInput] is defined in the first predecessor, then it is only used
+    // by [phi] and can be generated at use site.
+    if (thenInput.block === end.predecessors[0]) {
+      assert(thenInput.usedBy.length == 1);
+      generateAtUseSite.add(thenInput);
     }
   }
 }
