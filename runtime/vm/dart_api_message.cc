@@ -404,7 +404,8 @@ bool ApiMessageWriter::IsCObjectMarked(Dart_CObject* object) {
 
 intptr_t ApiMessageWriter::GetMarkedCObjectMark(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
-  intptr_t mark_value = ((object->type & kDartCObjectMarkMask) >> 3);
+  intptr_t mark_value =
+      ((object->type & kDartCObjectMarkMask) >> kDartCObjectTypeBits);
   // An offset was added to object id for making marking object id 0 possible.
   return mark_value - kDartCObjectMarkOffset;
 }
