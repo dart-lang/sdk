@@ -6067,33 +6067,17 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  int get $dom_childElementCount() native "return this.childElementCount;";
-
   _HTMLCollectionImpl get $dom_children() native "return this.children;";
 
   String get $dom_className() native "return this.className;";
 
   void set $dom_className(String value) native "this.className = value;";
 
-  int get $dom_clientHeight() native "return this.clientHeight;";
-
-  int get $dom_clientLeft() native "return this.clientLeft;";
-
-  int get $dom_clientTop() native "return this.clientTop;";
-
-  int get $dom_clientWidth() native "return this.clientWidth;";
-
   String contentEditable;
-
-  final Map<String, String> dataset;
 
   String dir;
 
   bool draggable;
-
-  _ElementImpl get $dom_firstElementChild() native "return this.firstElementChild;";
 
   bool hidden;
 
@@ -6104,6 +6088,42 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   final bool isContentEditable;
 
   String lang;
+
+  final String outerHTML;
+
+  bool spellcheck;
+
+  int tabIndex;
+
+  String title;
+
+  bool translate;
+
+  String webkitdropzone;
+
+  void click() native;
+
+  _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
+
+  void insertAdjacentHTML(String where, String html) native;
+
+  void insertAdjacentText(String where, String text) native;
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
+  int get $dom_childElementCount() native "return this.childElementCount;";
+
+  int get $dom_clientHeight() native "return this.clientHeight;";
+
+  int get $dom_clientLeft() native "return this.clientLeft;";
+
+  int get $dom_clientTop() native "return this.clientTop;";
+
+  int get $dom_clientWidth() native "return this.clientWidth;";
+
+  final Map<String, String> dataset;
+
+  _ElementImpl get $dom_firstElementChild() native "return this.firstElementChild;";
 
   _ElementImpl get $dom_lastElementChild() native "return this.lastElementChild;";
 
@@ -6119,8 +6139,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   int get $dom_offsetWidth() native "return this.offsetWidth;";
 
-  final String outerHTML;
-
   final _ElementImpl previousElementSibling;
 
   int get $dom_scrollHeight() native "return this.scrollHeight;";
@@ -6135,25 +6153,13 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   int get $dom_scrollWidth() native "return this.scrollWidth;";
 
-  bool spellcheck;
-
   final _CSSStyleDeclarationImpl style;
-
-  int tabIndex;
 
   final String tagName;
 
-  String title;
-
-  bool translate;
-
   final String webkitRegionOverflow;
 
-  String webkitdropzone;
-
   void blur() native;
-
-  void click() native;
 
   void focus() native;
 
@@ -6168,12 +6174,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _NodeListImpl $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
   bool $dom_hasAttribute(String name) native "hasAttribute";
-
-  _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
-
-  void insertAdjacentHTML(String where, String html) native;
-
-  void insertAdjacentText(String where, String text) native;
 
   _ElementImpl $dom_querySelector(String selectors) native "querySelector";
 
@@ -22959,43 +22959,20 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementEvents get on();
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  /** @domName Element.childElementCount */
-  final int $dom_childElementCount;
-
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
 
   /** @domName HTMLElement.className */
   String $dom_className;
 
-  /** @domName Element.clientHeight */
-  final int $dom_clientHeight;
-
-  /** @domName Element.clientLeft */
-  final int $dom_clientLeft;
-
-  /** @domName Element.clientTop */
-  final int $dom_clientTop;
-
-  /** @domName Element.clientWidth */
-  final int $dom_clientWidth;
-
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
-
-  /** @domName Element.dataset */
-  final Map<String, String> dataset;
 
   /** @domName HTMLElement.dir */
   String dir;
 
   /** @domName HTMLElement.draggable */
   bool draggable;
-
-  /** @domName Element.firstElementChild */
-  final Element $dom_firstElementChild;
 
   /** @domName HTMLElement.hidden */
   bool hidden;
@@ -23011,6 +22988,59 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName HTMLElement.lang */
   String lang;
+
+  /** @domName HTMLElement.outerHTML */
+  final String outerHTML;
+
+  /** @domName HTMLElement.spellcheck */
+  bool spellcheck;
+
+  /** @domName HTMLElement.tabIndex */
+  int tabIndex;
+
+  /** @domName HTMLElement.title */
+  String title;
+
+  /** @domName HTMLElement.translate */
+  bool translate;
+
+  /** @domName HTMLElement.webkitdropzone */
+  String webkitdropzone;
+
+  /** @domName HTMLElement.click */
+  void click();
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element);
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html);
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text);
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
+  /** @domName Element.childElementCount */
+  final int $dom_childElementCount;
+
+  /** @domName Element.clientHeight */
+  final int $dom_clientHeight;
+
+  /** @domName Element.clientLeft */
+  final int $dom_clientLeft;
+
+  /** @domName Element.clientTop */
+  final int $dom_clientTop;
+
+  /** @domName Element.clientWidth */
+  final int $dom_clientWidth;
+
+  /** @domName Element.dataset */
+  final Map<String, String> dataset;
+
+  /** @domName Element.firstElementChild */
+  final Element $dom_firstElementChild;
 
   /** @domName Element.lastElementChild */
   final Element $dom_lastElementChild;
@@ -23033,9 +23063,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.offsetWidth */
   final int $dom_offsetWidth;
 
-  /** @domName HTMLElement.outerHTML */
-  final String outerHTML;
-
   /** @domName Element.previousElementSibling */
   final Element previousElementSibling;
 
@@ -23051,35 +23078,17 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.scrollWidth */
   final int $dom_scrollWidth;
 
-  /** @domName HTMLElement.spellcheck */
-  bool spellcheck;
-
   /** @domName Element.style */
   final CSSStyleDeclaration style;
-
-  /** @domName HTMLElement.tabIndex */
-  int tabIndex;
 
   /** @domName Element.tagName */
   final String tagName;
 
-  /** @domName HTMLElement.title */
-  String title;
-
-  /** @domName HTMLElement.translate */
-  bool translate;
-
   /** @domName Element.webkitRegionOverflow */
   final String webkitRegionOverflow;
 
-  /** @domName HTMLElement.webkitdropzone */
-  String webkitdropzone;
-
   /** @domName Element.blur */
   void blur();
-
-  /** @domName HTMLElement.click */
-  void click();
 
   /** @domName Element.focus */
   void focus();
@@ -23101,15 +23110,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
-
-  /** @domName HTMLElement.insertAdjacentElement */
-  Element insertAdjacentElement(String where, Element element);
-
-  /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html);
-
-  /** @domName HTMLElement.insertAdjacentText */
-  void insertAdjacentText(String where, String text);
 
   /** @domName Element.querySelector */
   Element $dom_querySelector(String selectors);

@@ -262,6 +262,24 @@ _html_library_custom = set([
     'IDBDatabase.transaction',
     ])
 
+# This map controls merging of interfaces in dart:html library.
+# All constants, attributes, and operations of merged interface (key) are
+# added to target interface (value). All references to the merged interface
+# (e.g. parameter types, return types, parent interfaces) are replaced with
+# target interface. There are two important restrictions:
+# 1) Merged and target interfaces shouldn't have common members, otherwise there
+# would be duplicated declarations in generated Dart code.
+# 2) Merged interface should be direct child of target interface, so the
+# children of merged interface are not affected by the merge.
+# As a consequence, target interface implementation and its direct children
+# interface implementations should implement merged attribute accessors and
+# operations. For example, SVGElement and Element implementation classes should
+# implement HTMLElement.insertAdjacentElement(), HTMLElement.innerHTML, etc.
+_merged_html_interfaces = {
+   'HTMLDocument': 'Document',
+   'HTMLElement': 'Element'
+}
+
 # Events without onEventName attributes in the  IDL we want to support.
 # We can automatically extract most event event names by checking for
 # onEventName methods in the IDL but some events aren't listed so we need
@@ -703,6 +721,9 @@ class HtmlInterfacesSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
+    if interface.id in _merged_html_interfaces:
+      return None
+
     interface_name = interface.id
     dart_interface_file_path = self._FilePathForDartInterface(interface_name)
 
@@ -838,6 +859,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     else:
       self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
 
+    for merged_interface in _merged_html_interfaces:
+      if _merged_html_interfaces[merged_interface] == self._interface.id:
+        self.AddMembers(self._database.GetInterface(merged_interface))
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter)
@@ -1003,6 +1027,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       parent_events_class = self._shared.GetParentEventsClass(self._interface)
       self._EmitEventGetter('_' + parent_events_class + 'Impl')
 
+    for merged_interface in _merged_html_interfaces:
+      if _merged_html_interfaces[merged_interface] == self._interface.id:
+        self.AddMembers(self._database.GetInterface(merged_interface))
+
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name
     template = self._system._templates.TryLoad(template_file)
@@ -1107,8 +1135,8 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
     # If the (getter, setter) pair is shadowing, we can't generate a shadowing
     # field (Issue 1633).
-    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter)
-    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
+    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter, _merged_html_interfaces)
+    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter, _merged_html_interfaces)
     if super_getter or super_setter:
       if getter and not setter and super_getter and not super_setter:
         if DartType(getter.type.id) == DartType(super_getter.type.id):
@@ -1119,7 +1147,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               '\n'
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
-              SUPER=super_getter_interface.id,
+              SUPER=super_getter_interface,
               NAME=DartDomNameOfAttribute(getter),
               TYPE=output_type)
           return
@@ -1259,6 +1287,9 @@ class HtmlFrogSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
+    if interface.id in _merged_html_interfaces:
+      return None
+
     if IsPureInterface(interface.id):
       return
     template_file = 'impl_%s.darttemplate' % interface.id

@@ -223,7 +223,7 @@ class FrogInterfaceGenerator(BaseGenerator):
               '\n'
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
-              SUPER=super_getter_interface.id,
+              SUPER=super_getter_interface,
               NAME=DartDomNameOfAttribute(getter),
               TYPE=output_type)
           return
@@ -277,7 +277,7 @@ class FrogInterfaceGenerator(BaseGenerator):
         NATIVE_NAME=attr.id,
         OPT_TYPE=TypeOrNothing(self._NarrowInputType(attr.type.id)))
 
-  def _FindShadowedAttribute(self, attr):
+  def _FindShadowedAttribute(self, attr, merged_interfaces={}):
     """Returns (attribute, superinterface) or (None, None)."""
     def FindInParent(interface):
       """Returns matching attribute in parent, or None."""
@@ -288,11 +288,29 @@ class FrogInterfaceGenerator(BaseGenerator):
         if IsPureInterface(parent.type.id):
           return (None, None)
         if self._system._database.HasInterface(parent.type.id):
-          parent_interface = self._system._database.GetInterface(parent.type.id)
-          attr2 = FindMatchingAttribute(parent_interface, attr)
-          if attr2:
-            return (attr2, parent_interface)
-          return FindInParent(parent_interface)
+          interfaces_to_search_in = []
+          if parent.type.id in merged_interfaces:
+            # IDL parent was merged into another interface, which became a
+            # parent interface in Dart.
+            interfaces_to_search_in.append(parent.type.id)
+            parent_interface_name = merged_interfaces[parent.type.id]
+          else:
+            parent_interface_name = parent.type.id
+
+          for interface_name in merged_interfaces:
+            if merged_interfaces[interface_name] == parent_interface_name:
+              # IDL parent has another interface that was merged into it.
+              interfaces_to_search_in.append(interface_name)
+
+          interfaces_to_search_in.append(parent_interface_name)
+          for interface_name in interfaces_to_search_in:
+            interface = self._system._database.GetInterface(interface_name)
+            attr2 = FindMatchingAttribute(interface, attr)
+            if attr2:
+              return (attr2, parent_interface_name)
+
+          return FindInParent(
+              self._system._database.GetInterface(parent_interface_name))
       return (None, None)
 
     return FindInParent(self._interface) if attr else (None, None)

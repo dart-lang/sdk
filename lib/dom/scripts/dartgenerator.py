@@ -80,13 +80,10 @@ class DartGenerator(object):
       if database.HasInterface(old_name):
         _logger.info('renaming interface %s to %s' % (old_name, new_name))
         interface = database.GetInterface(old_name)
-        database.DeleteInterface(old_name)
         if not database.HasInterface(new_name):
           interface.id = new_name
+          database.DeleteInterface(old_name)
           database.AddInterface(interface)
-        else:
-          new_interface = database.GetInterface(new_name)
-          MergeNodes(new_interface, interface)
 
         if rename_javascript_binding_names:
           interface.javascript_binding_name = new_name

@@ -26750,43 +26750,20 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementEvents get on();
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  /** @domName Element.childElementCount */
-  final int $dom_childElementCount;
-
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
 
   /** @domName HTMLElement.className */
   String $dom_className;
 
-  /** @domName Element.clientHeight */
-  final int $dom_clientHeight;
-
-  /** @domName Element.clientLeft */
-  final int $dom_clientLeft;
-
-  /** @domName Element.clientTop */
-  final int $dom_clientTop;
-
-  /** @domName Element.clientWidth */
-  final int $dom_clientWidth;
-
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
-
-  /** @domName Element.dataset */
-  final Map<String, String> dataset;
 
   /** @domName HTMLElement.dir */
   String dir;
 
   /** @domName HTMLElement.draggable */
   bool draggable;
-
-  /** @domName Element.firstElementChild */
-  final Element $dom_firstElementChild;
 
   /** @domName HTMLElement.hidden */
   bool hidden;
@@ -26802,6 +26779,59 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName HTMLElement.lang */
   String lang;
+
+  /** @domName HTMLElement.outerHTML */
+  final String outerHTML;
+
+  /** @domName HTMLElement.spellcheck */
+  bool spellcheck;
+
+  /** @domName HTMLElement.tabIndex */
+  int tabIndex;
+
+  /** @domName HTMLElement.title */
+  String title;
+
+  /** @domName HTMLElement.translate */
+  bool translate;
+
+  /** @domName HTMLElement.webkitdropzone */
+  String webkitdropzone;
+
+  /** @domName HTMLElement.click */
+  void click();
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element);
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html);
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text);
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
+  /** @domName Element.childElementCount */
+  final int $dom_childElementCount;
+
+  /** @domName Element.clientHeight */
+  final int $dom_clientHeight;
+
+  /** @domName Element.clientLeft */
+  final int $dom_clientLeft;
+
+  /** @domName Element.clientTop */
+  final int $dom_clientTop;
+
+  /** @domName Element.clientWidth */
+  final int $dom_clientWidth;
+
+  /** @domName Element.dataset */
+  final Map<String, String> dataset;
+
+  /** @domName Element.firstElementChild */
+  final Element $dom_firstElementChild;
 
   /** @domName Element.lastElementChild */
   final Element $dom_lastElementChild;
@@ -26824,9 +26854,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.offsetWidth */
   final int $dom_offsetWidth;
 
-  /** @domName HTMLElement.outerHTML */
-  final String outerHTML;
-
   /** @domName Element.previousElementSibling */
   final Element previousElementSibling;
 
@@ -26842,35 +26869,17 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.scrollWidth */
   final int $dom_scrollWidth;
 
-  /** @domName HTMLElement.spellcheck */
-  bool spellcheck;
-
   /** @domName Element.style */
   final CSSStyleDeclaration style;
-
-  /** @domName HTMLElement.tabIndex */
-  int tabIndex;
 
   /** @domName Element.tagName */
   final String tagName;
 
-  /** @domName HTMLElement.title */
-  String title;
-
-  /** @domName HTMLElement.translate */
-  bool translate;
-
   /** @domName Element.webkitRegionOverflow */
   final String webkitRegionOverflow;
 
-  /** @domName HTMLElement.webkitdropzone */
-  String webkitdropzone;
-
   /** @domName Element.blur */
   void blur();
-
-  /** @domName HTMLElement.click */
-  void click();
 
   /** @domName Element.focus */
   void focus();
@@ -26892,15 +26901,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
-
-  /** @domName HTMLElement.insertAdjacentElement */
-  Element insertAdjacentElement(String where, Element element);
-
-  /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html);
-
-  /** @domName HTMLElement.insertAdjacentText */
-  void insertAdjacentText(String where, String text);
 
   /** @domName Element.querySelector */
   Element $dom_querySelector(String selectors);
