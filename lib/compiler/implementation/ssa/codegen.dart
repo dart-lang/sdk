@@ -1407,10 +1407,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     HInstruction condition = node.inputs[0];
-    int preVisitedBlocks = 0;
-    List<HBasicBlock> dominated = node.block.dominatedBlocks;
     HIfBlockInformation info = node.blockInformation.body;
-    HBasicBlock joinBlock = node.joinBlock;
     if (condition.isConstant()) {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
@@ -1418,29 +1415,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (node.hasElse) {
         generateStatements(info.elseGraph);
       }
-      // We ignore the other branch, even if it isn't visited.
-      preVisitedBlocks = node.hasElse ? 2 : 1;
     } else {
       startIf(node);
       assert(!isGenerateAtUseSite(node));
       startThen(node);
-      assert(node.thenBlock === dominated[0]);
       generateStatements(info.thenGraph);
-      preVisitedBlocks++;
       endThen(node);
-      HBasicBlock endBlock =
-          (joinBlock == null || joinBlock.predecessors.length != 2)
-              ? null
-              : joinBlock.predecessors[1];
-      if (node.hasElse && !isEmptyElse(node.elseBlock, endBlock)) {
+      HStatementInformation elseGraph = info.elseGraph;
+      if (node.hasElse && !isEmptyElse(elseGraph.start, elseGraph.end)) {
         startElse(node);
-        assert(node.elseBlock === dominated[1]);
-        generateStatements(info.elseGraph);
-        preVisitedBlocks++;
+        generateStatements(elseGraph);
         endElse(node);
       }
       endIf(node);
     }
+
+    HBasicBlock joinBlock = node.joinBlock;
     if (joinBlock !== null && joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
@@ -1452,11 +1442,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // branches, and is not the join block.
     // Depending on how the then/else branches terminate
     // (e.g., return/throw/break) there can be any number of these.
-    int dominatedCount = dominated.length;
-    for (int i = preVisitedBlocks; i < dominatedCount; i++) {
-      HBasicBlock dominatedBlock = dominated[i];
-      assert(dominatedBlock.dominator === node.block);
-      visitBasicBlock(dominatedBlock);
+    List<HBasicBlock> dominated = node.block.dominatedBlocks;
+    for (int i = node.hasElse ? 2 : 1; i < dominated.length; i++) {
+      visitBasicBlock(dominated[i]);
     }
   }
 
