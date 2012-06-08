@@ -4,6 +4,7 @@
 
 #include "vm/class_table.h"
 #include "vm/flags.h"
+#include "vm/freelist.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -27,6 +28,7 @@ ClassTable::ClassTable()
     for (intptr_t i = kObject; i < kInstance; i++) {
       table_[i] = vm_class_table->At(i);
     }
+    table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
     table_[kNullClassId] = vm_class_table->At(kNullClassId);
     table_[kDynamicClassId] = vm_class_table->At(kDynamicClassId);
     table_[kVoidClassId] = vm_class_table->At(kVoidClassId);

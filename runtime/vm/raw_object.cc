@@ -38,11 +38,6 @@ intptr_t RawObject::SizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
-  // TODO(vegorov): this should be moved to fast path when class_ is eliminated.
-  if (FreeBit::decode(ptr()->tags_)) {
-    return reinterpret_cast<FreeListElement*>(ptr())->size();
-  }
-
   RawClass* raw_class = Isolate::Current()->class_table()->At(GetClassId());
   intptr_t instance_size = raw_class->ptr()->instance_size_;
   ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
@@ -233,7 +228,7 @@ intptr_t RawObject::SizeFromClass() const {
         ASSERT(FreeBit::decode(ptr()->tags_));
         uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-        instance_size = element->size();
+        instance_size = element->Size();
         break;
       }
       default:
@@ -244,8 +239,7 @@ intptr_t RawObject::SizeFromClass() const {
   ASSERT(instance_size != 0);
   uword tags = ptr()->tags_;
   ASSERT((instance_size == SizeTag::decode(tags)) ||
-         (SizeTag::decode(tags) == 0) ||
-         FreeBit::decode(tags));
+         (SizeTag::decode(tags) == 0));
   return instance_size;
 }
 
@@ -256,13 +250,6 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
 
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
-
-  if (FreeBit::decode(ptr()->tags_)) {
-    // Nothing to visit for free list elements.
-    uword addr = RawObject::ToAddr(this);
-    FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-    return element->size();
-  }
 
   // Read the necessary data out of the class before visting the class itself.
   intptr_t class_id = GetClassId();
@@ -284,6 +271,13 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     }
     CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
+    case kFreeListElement: {
+      ASSERT(FreeBit::decode(ptr()->tags_));
+      uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
+      FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
+      size = element->Size();
+      break;
+    }
     default:
       OS::Print("Kind: %d\n", kind);
       UNREACHABLE();

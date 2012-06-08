@@ -299,6 +299,10 @@ void Object::InitOnce() {
   cls.set_is_finalized();
   null_class_ = cls.raw();
 
+  // Allocate and initialize the free list element class.
+  cls = Class::New<FreeListElement::FakeInstance>(kFreeListElement);
+  cls.set_is_finalized();
+
   // Allocate and initialize the sentinel values of Null class.
   {
     cls = null_class_;

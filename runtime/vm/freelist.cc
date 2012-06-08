@@ -15,15 +15,25 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
-  result->size_ = size;
+
+  uword tags = 0;
+  tags = RawObject::FreeBit::update(true, tags);
+  tags = RawObject::SizeTag::update(size, tags);
+  tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
+
+  result->tags_ = tags;
+  if (size > RawObject::SizeTag::kMaxSizeTag) {
+    *result->SizeAddress() = size;
+  }
   result->set_next(NULL);
+
   return result;
 }
 
 
 void FreeListElement::InitOnce() {
   ASSERT(sizeof(FreeListElement) == kObjectAlignment);
-  ASSERT(OFFSET_OF(FreeListElement, next_) == Object::tags_offset());
+  ASSERT(OFFSET_OF(FreeListElement, tags_) == Object::tags_offset());
 }
 
 
@@ -60,7 +70,7 @@ uword FreeList::TryAllocate(intptr_t size) {
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
   while (current != NULL) {
-    if (current->size() >= size) {
+    if (current->Size() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
       // split and enqueue the remainder.
       if (previous == NULL) {
@@ -118,7 +128,7 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
 
 void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
                                            intptr_t size) {
-  intptr_t remainder_size = element->size() - size;
+  intptr_t remainder_size = element->Size() - size;
   if (remainder_size == 0) return;
 
   element = FreeListElement::AsElement(reinterpret_cast<uword>(element) + size,
