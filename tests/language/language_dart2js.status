@@ -29,6 +29,8 @@ default_factory2_test/01: Fail # Type bounds for type variable not checked.
 
 arithmetic_test: Fail
 
+[ $compiler == dart2js && $unchecked ]
+assertion_test: Fail, OK
 
 [ $compiler == dart2js]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
