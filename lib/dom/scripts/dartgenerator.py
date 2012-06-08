@@ -184,7 +184,7 @@ class DartGenerator(object):
     self.FilterMembersWithUnidentifiedTypes(database)
 
   def Generate(self, database, system, source_filter=None, super_database=None,
-      common_prefix=None, webkit_renames={}, html_renames={}):
+      common_prefix=None, webkit_renames={}):
     self._database = database
 
     # Collect interfaces

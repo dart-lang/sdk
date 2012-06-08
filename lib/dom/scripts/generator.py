@@ -387,11 +387,11 @@ class OperationInfo(object):
     param_infos: A list of ParamInfo.
   """
 
-  def ParametersInterfaceDeclaration(self):
+  def ParametersInterfaceDeclaration(self, rename_type=lambda x: x):
     """Returns a formatted string declaring the parameters for the interface."""
     return self._FormatParams(
         self.param_infos, None,
-        lambda param: TypeOrNothing(param.dart_type, param.type_id))
+        lambda param: TypeOrNothing(rename_type(param.dart_type), param.type_id))
 
   def ParametersImplementationDeclaration(
       self, rename_type=None, default_value='null'):

@@ -162,21 +162,26 @@ class FrogInterfaceGenerator(BaseGenerator):
         NAMEDCONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
-  def _NarrowToImplementationType(self, type_name):
+  def _ShouldNarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.
     if type_name == 'EventListener':
       # Callbacks are typedef functions so don't have a class.
-      return type_name
+      return False
     if self._system._database.HasInterface(type_name):
       interface = self._system._database.GetInterface(type_name)
       if RecognizeCallback(interface):
         # Callbacks are typedef functions so don't have a class.
-        return type_name
+        return False
       elif type_name == 'MediaQueryListListener':
         # Somewhat like a callback.  See Issue 3338.
-        return type_name
+        return False
       else:
-        return self._ImplClassName(type_name)
+        return True
+    return False
+
+  def _NarrowToImplementationType(self, type_name):
+    if self._ShouldNarrowToImplementationType(type_name):
+      return self._ImplClassName(type_name)
     return type_name
 
   def _NarrowInputType(self, type_name):

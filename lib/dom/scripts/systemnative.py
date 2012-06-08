@@ -16,16 +16,14 @@ from systemhtml import EmitHtmlElementFactoryConstructors
 
 class NativeImplementationSystem(systembase.System):
 
-  def __init__(self, templates, database, html_database, html_renames,
-               emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
 
-    self._html_renames = html_renames
     self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
-    self._html_system = HtmlSystemShared(html_database)
+    self._html_system = HtmlSystemShared(database)
     self._factory_provider_emitters = {}
 
   def InterfaceGenerator(self,
@@ -223,6 +221,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._templates = templates
     self._current_secondary_parent = None
     self._html_system = self._system._html_system
+    self._html_renames = self._html_system._html_renames
 
   def StartInterface(self):
     self._interface_type_info = GetIDLTypeInfo(self._interface.id)
@@ -382,8 +381,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return '_%sImpl' % interface_name
 
   def _DartType(self, idl_type):
-    type_info = GetIDLTypeInfo(idl_type)
-    return self._HTMLInterfaceName(type_info.dart_type())
+    return self._html_system.DartType(idl_type)
 
   def _BaseClassName(self):
     if not self._interface.parents:
@@ -415,7 +413,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return self._ImplClassName(supertype)
 
   def _HTMLInterfaceName(self, interface_name):
-    return self._system._html_renames.get(interface_name, interface_name)
+    return self._html_renames.get(interface_name, interface_name)
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
@@ -557,12 +555,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       # FIXME: exclude from interface as well.
       return
 
-    html_interface_name = self._HTMLInterfaceName(self._interface.id)
     dom_name = DartDomNameOfAttribute(getter or setter)
     html_getter_name = self._html_system.RenameInHtmlLibrary(
-        html_interface_name, dom_name, 'get:', implementation_class=True)
+        self._interface.id, dom_name, 'get:', implementation_class=True)
     html_setter_name = self._html_system.RenameInHtmlLibrary(
-        html_interface_name, dom_name, 'set:', implementation_class=True)
+        self._interface.id, dom_name, 'set:', implementation_class=True)
 
     if getter and html_getter_name:
       self._AddGetter(getter, html_getter_name)
@@ -748,9 +745,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       # FIXME: exclude from interface as well.
       return
 
-    html_interface_name = self._HTMLInterfaceName(self._interface.id)
     html_name = self._html_system.RenameInHtmlLibrary(
-        html_interface_name, info.name, implementation_class=True)
+        self._interface.id, info.name, implementation_class=True)
 
     if not html_name and info.name == 'item':
       # FIXME: item should be renamed to operator[], not removed.
