@@ -460,3 +460,7 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Crash
 Language/10_Expressions/07_Maps_A10_t05: Fail
 Language/10_Expressions/06_Lists_A09_t01: Fail
 Language/10_Expressions/06_Lists_A09_t04: Fail
+
+
+[ $runtime == vm && $mode == debug ]
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
