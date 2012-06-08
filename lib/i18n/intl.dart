@@ -10,6 +10,7 @@
 #library('Intl');
 
 #import('intl_message.dart');
+#import('date_format.dart');
 
 class Intl {
 
@@ -20,7 +21,7 @@ class Intl {
   String _locale;
 
   IntlMessage intlMsg;
-  
+
   DateFormat date;
 
   /**
@@ -29,22 +30,27 @@ class Intl {
    * Dart is running on the client, we can infer from the browser/client
    * preferences).
    */
-  Intl([this._locale]) : intlMsg = new IntlMessage(_locale),
-      date = new DateFormat(_locale);
+  Intl([this._locale]) {
+    intlMsg = new IntlMessage(_locale);
+    date = new DateFormat(_locale);
+  }
 
   /**
-   * Create a message that can be internationalized. It contains a [message_str]
-   * that will be translated, a [desc] providing a description of the use case
+   * Create a message that can be internationalized. It takes a
+   * [message_str] that will be translated, which may be interpolated
+   * based on one or more variables, a [desc] providing a description of usage
    * for the [message_str], and a map of [examples] for each data element to be
    * substituted into the message. For example, if message="Hello, $name", then
-   * examples = {'name': 'Sparky'}. The values of [desc] and [examples] MUST be
-   * simple Strings available at compile time: no String interpolation or
-   * concatenation.
+   * examples = {'name': 'Sparky'}. The values of [desc] and [examples] are
+   * not used at run-time but are only made available to the translators, so
+   * they MUST be simple Strings available at compile time: no String
+   * interpolation or concatenation.
+   * The expected usage of this is inside a function that takes as parameters
+   * the variables used in the interpolated string.
    */
   String message(String message_str, [final String desc='',
                  final Map examples=const {}]) {
-    // TODO(efortuna): implement.
-    return message_str; 
+    return message_str;
   }
 
   /**
@@ -53,7 +59,9 @@ class Intl {
    */
   static String plural(var howMany, Map cases, [num offset=0]) {
     // TODO(efortuna): Deal with "few" and "many" cases, offset, and others!
-    select(howMany.toString(), cases);
+    // TODO(alanknight): Should we have instance methods instead/as well?
+    // Or have the others as statics?
+    return select(howMany.toString(), cases);
   }
 
   /**
@@ -61,7 +69,7 @@ class Intl {
    * usually) form from [cases] given the user [choice].
    */
   static String select(String choice, Map cases) {
-    if (cases.getKeys().some((elem) => elem == choice)) {
+    if (cases.containsKey(choice)) {
       return cases[choice];
     } else if (cases.containsKey('other')){
       return cases['other'];

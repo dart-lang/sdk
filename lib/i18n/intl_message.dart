@@ -7,14 +7,20 @@
  *
  *
  * _message example:
- *    '''I see ${intl.plural(num_people,
+ *    '''I see ${Intl.plural(num_people,
  *             {'0': 'no one at all',
  *              '1': 'one other person',
  *              'other': '$num_people other people'})} in $place.''''
  *
- * Useage example:
- *      msg(num_people, place) => new IntlMessage(
-            '''I see ${intl.plural(num_people,
+ * Usage examples:
+ *      today(date) => intl.message(
+ *          "Today's date is $date",
+ *          desc: 'Indicate the current date',
+ *          examples: {'date' : 'June 8, 2012'});
+ *      print(today(new Date.now());
+ *
+ *      msg(num_people, place) => intl.message(
+ *           '''I see ${Intl.plural(num_people,
  *             {'0': 'no one at all',
  *              '1': 'one other person',
  *              'other': '$num_people other people'})} in $place.'''',
