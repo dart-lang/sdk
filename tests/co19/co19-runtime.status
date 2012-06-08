@@ -453,3 +453,10 @@ Language/03_Overview/1_Scoping_A02_t30: Fail
 Language/03_Overview/1_Scoping_A02_t31: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t05: Fail
+
+
+[ $runtime == vm && $arch == x64 && $checked ]
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Crash
+Language/10_Expressions/07_Maps_A10_t05: Fail
+Language/10_Expressions/06_Lists_A09_t01: Fail
+Language/10_Expressions/06_Lists_A09_t04: Fail
