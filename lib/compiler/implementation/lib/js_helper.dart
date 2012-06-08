@@ -814,9 +814,9 @@ unwrapException(ex) {
     }
 
     // If we cannot determine what kind of error this is, we fall back
-    // to reporting this as a TypeError even though that may be
-    // inaccurate. It's probably better than nothing.
-    return new TypeError(message is String ? message : '');
+    // to reporting this as a generic exception. It's probably better
+    // than nothing.
+    return new Exception(message is String ? message : '');
   }
 
   if (JS('bool', @'# instanceof RangeError', ex)) {
