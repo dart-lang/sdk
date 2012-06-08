@@ -78,54 +78,41 @@ class FileTest {
     int bytesRead;
 
     // Test reading all using readInto.
-    var file1 = new File(inFilename);
-    var input1 = file1.openInputStream();
-    List<int> buffer1;
-    input1.onData = () {
-      buffer1 = new List<int>(42);
-      bytesRead = input1.readInto(buffer1, 0, 42);
+    file = new File(inFilename);
+    input = file.openInputStream();
+    input.onData = () {
+      List<int> buffer1 = new List<int>(42);
+      bytesRead = input.readInto(buffer1, 0, 42);
       Expect.equals(42, bytesRead);
-    };
-    input1.onError = (e) { throw e; };
-    input1.onClosed = () {
-      Expect.isTrue(input1.closed);
+      Expect.isTrue(input.closed);
 
       // Test reading all using readInto and read.
-      var file2 = new File(inFilename);
-      var input2 = file2.openInputStream();
-      input2.onData = () {
-        bytesRead = input2.readInto(buffer1, 0, 21);
+      file = new File(inFilename);
+      input = file.openInputStream();
+      input.onData = () {
+        bytesRead = input.readInto(buffer1, 0, 21);
         Expect.equals(21, bytesRead);
-        buffer1 = input2.read();
+        buffer1 = input.read();
         Expect.equals(21, buffer1.length);
-      };
-      input2.onError = (e) { throw e; };
-      input2.onClosed = () {
-        Expect.isTrue(input2.closed);
+        Expect.isTrue(input.closed);
 
         // Test reading all using read and readInto.
-        var file3 = new File(inFilename);
-        var input3 = file3.openInputStream();
-        input3.onData = () {
-          buffer1 = input3.read(21);
+        file = new File(inFilename);
+        input = file.openInputStream();
+        input.onData = () {
+          buffer1 = input.read(21);
           Expect.equals(21, buffer1.length);
-          bytesRead = input3.readInto(buffer1, 0, 21);
+          bytesRead = input.readInto(buffer1, 0, 21);
           Expect.equals(21, bytesRead);
-        };
-        input3.onError = (e) { throw e; };
-        input3.onClosed = () {
-          Expect.isTrue(input3.closed);
+          Expect.isTrue(input.closed);
 
           // Test reading all using read.
-          var file4 = new File(inFilename);
-          var input4 = file4.openInputStream();
-          input4.onData = () {
-            buffer1 = input4.read();
+          file = new File(inFilename);
+          input = file.openInputStream();
+          input.onData = () {
+            buffer1 = input.read();
             Expect.equals(42, buffer1.length);
-          };
-          input4.onError = (e) { throw e; };
-          input4.onClosed = () {
-            Expect.isTrue(input4.closed);
+            Expect.isTrue(input.closed);
 
             // Write the contents of the file just read into another file.
             String outFilename =
@@ -139,21 +126,20 @@ class FileTest {
               output.onClosed = () {
                 // Now read the contents of the file just written.
                 List<int> buffer2 = new List<int>(42);
-                var file6 = new File(outFilename);
-                var input6 = file6.openInputStream();
-                input6.onData = () {
-                  bytesRead = input6.readInto(buffer2, 0, 42);
+                file = new File(outFilename);
+                input = file.openInputStream();
+                input.onData = () {
+                  bytesRead = input.readInto(buffer2, 0, 42);
                   Expect.equals(42, bytesRead);
                   // Now compare the two buffers to check if they are identical.
                   for (int i = 0; i < buffer1.length; i++) {
                     Expect.equals(buffer1[i],  buffer2[i]);
                   }
                 };
-                input6.onError = (e) { throw e; };
-                input6.onClosed = () {
+                input.onClosed = () {
                   // Delete the output file.
-                  file6.deleteSync();
-                  Expect.isFalse(file6.existsSync());
+                  file.deleteSync();
+                  Expect.isFalse(file.existsSync());
                   asyncTestDone("testReadWriteStream");
                 };
               };
