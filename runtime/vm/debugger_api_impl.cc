@@ -106,6 +106,7 @@ DART_EXPORT void Dart_SetBreakpointHandler(
 
 
 static Dart_BreakpointResolvedHandler* bp_resolved_handler = NULL;
+static Dart_ExceptionThrownHandler* exc_thrown_handler = NULL;
 
 static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
   Isolate* isolate = Isolate::Current();
@@ -118,6 +119,14 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
     ASSERT(bpt != NULL);
     Dart_Handle url = Api::NewHandle(isolate, bpt->SourceUrl());
     (*bp_resolved_handler)(bpt->id(), url, bpt->LineNumber());
+  } else if (event->type == Debugger::kExceptionThrown) {
+    if (exc_thrown_handler == NULL) {
+      return;
+    }
+    Dart_Handle exception = Api::NewHandle(isolate, event->exception->raw());
+    Dart_StackTrace trace =
+        reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
+    (*exc_thrown_handler)(exception, trace);
   } else {
     UNIMPLEMENTED();
   }
@@ -127,6 +136,15 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
 DART_EXPORT void Dart_SetBreakpointResolvedHandler(
                             Dart_BreakpointResolvedHandler handler) {
   bp_resolved_handler = handler;
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  isolate->debugger()->SetEventHandler(DebuggerEventHandler);
+}
+
+
+DART_EXPORT void Dart_SetExceptionThrownHandler(
+                            Dart_ExceptionThrownHandler handler) {
+  exc_thrown_handler = handler;
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetEventHandler(DebuggerEventHandler);

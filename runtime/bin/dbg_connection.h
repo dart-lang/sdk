@@ -41,13 +41,17 @@ class DebuggerConnectionHandler {
   static void QueueMsg(dart::TextBuffer* msg);
   static void SendQueuedMsgs();
 
-  static void SendBreakpointEvent(Dart_Breakpoint bpt, Dart_StackTrace trace);
+  static void SendBreakpointEvent(Dart_StackTrace trace);
+  static void SendExceptionEvent(Dart_Handle exception, Dart_StackTrace trace);
   static void BptResolvedHandler(intptr_t bp_id,
                                  Dart_Handle url,
                                  intptr_t line_number);
   static void BreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace);
+  static void ExceptionThrownHandler(Dart_Handle exception,
+                                     Dart_StackTrace stack_trace);
 
   static void AcceptDbgConnection(int debug_fd);
+  static void WaitForConnection();
   static void CloseDbgConnection();
 
   static void HandleMessages();

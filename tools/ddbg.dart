@@ -134,19 +134,24 @@ void processCommand(String cmdLine) {
 }
 
 
-printNamedObject(obj) {
-  var name = obj["name"];
-  var value = obj["value"];
+String remoteValue(value) {
   var kind = value["kind"];
   var text = value["text"];
   var id = value["objectId"];
   if (kind == "string") {
-    print("  $name = '$text'");
+    return "'$text'";
   } else if (kind == "object") {
-    print("  $name (id:$id) = $text");
+    return "(obj id: $id) = $text";
   } else {
-    print("  $name = $text");
+    return "$text";
   }
+}
+
+
+printNamedObject(obj) {
+  var name = obj["name"];
+  var value = obj["value"];
+  print("  $name = ${remoteValue(value)}");
 }
 
 
@@ -276,11 +281,20 @@ void printStackTrace(List frames) {
 
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
+  var reason = msg["params"]["reason"];
   stackTrace = msg["params"]["callFrames"];
   assert(stackTrace != null);
   assert(stackTrace.length >= 1);
   curFrame = stackTrace[0];
-  print("VM paused, stack trace:");
+  if (reason == "breakpoint") {
+    print("VM paused on breakpoint");
+  } else {
+    assert(reason == "exception");
+    var excObj = msg["params"]["exception"];
+    print("VM paused on exception");
+    print(remoteValue(excObj));
+  }
+  print("Stack trace:");
   printStackTrace(stackTrace);
 }
 

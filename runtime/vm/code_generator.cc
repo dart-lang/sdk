@@ -872,7 +872,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
   ASSERT(arguments.Count() ==
       kBreakpointStaticHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->BreakpointCallback();
+  isolate->debugger()->SignalBpReached();
   // Make sure the static function that is about to be called is
   // compiled. The stub will jump to the entry point without any
   // further tests.
@@ -892,7 +892,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
   ASSERT(arguments.Count() ==
          kBreakpointReturnHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->BreakpointCallback();
+  isolate->debugger()->SignalBpReached();
 }
 
 
@@ -901,7 +901,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
   ASSERT(arguments.Count() ==
      kBreakpointDynamicHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->BreakpointCallback();
+  isolate->debugger()->SignalBpReached();
 }
 
 
