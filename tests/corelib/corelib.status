@@ -85,6 +85,9 @@ string_base_vm_test: Fail, OK # VM specific test.
 [ $compiler == dart2js && $runtime == drt ]
 list_sort_test: Fail, Pass # Issue 2667
 
+[ $compiler == dart2js && $runtime == safari ]
+core_runtime_types_test: Fail
+
 [ $compiler == dart2js && $runtime == ie ]
 const_list_literal_test: Skip # BUG(3304): Times out.
 date_time7_test: Skip # BUG(3304): Times out.
