@@ -54,6 +54,20 @@ class BitOperationsTest {
     TestPositiveValueShifts();
     TestNoMaskingOfShiftCount();
     TestNegativeCountShifts();
+    for (int i = 0; i < 1000; i++) {
+      TestCornerCasesLeftShifts();
+    }
+  }
+  
+  static void TestCornerCasesLeftShifts() {
+    var v32 = 0xFF000000;
+    var v64 = 0xFF00000000000000;
+    Expect.equals(0x3, v32 >> 0x1E);
+    Expect.equals(0x1, v32 >> 0x1F);
+    Expect.equals(0x0, v32 >> 0x20);
+    Expect.equals(0x3, v64 >> 0x3E);
+    Expect.equals(0x1, v64 >> 0x3F);
+    Expect.equals(0x0, v64 >> 0x40);
   }
   
   static void TestNegativeCountShifts() {

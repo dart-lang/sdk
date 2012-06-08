@@ -1396,40 +1396,9 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
 
 static const char* DeoptReasonToText(intptr_t deopt_id) {
   switch (deopt_id) {
-    case kDeoptUnknown: return "kDeoptUnknown";
-    case kDeoptIncrLocal: return "kDeoptIncrLocal";
-    case kDeoptIncrInstance: return "kDeoptIncrInstance";
-    case kDeoptIncrInstanceOneClass: return "kDeoptIncrInstanceOneClass";
-    case kDeoptInstanceGetterSameTarget:
-      return "kDeoptInstanceGetterSameTarget";
-    case kDeoptInstanceGetter: return "kDeoptInstanceGetter";
-    case kDeoptStoreIndexed: return "kDeoptStoreIndexed";
-    case kDeoptCheckedInstanceCallSmiOnly:
-      return "kDeoptCheckedInstanceCallSmiOnly";
-    case kDeoptCheckedInstanceCallSmiFail:
-      return "kDeoptCheckedInstanceCallSmiFail";
-    case kDeoptCheckedInstanceCallCheckFail:
-      return "kDeoptCheckedInstanceCallCheckFail";
-    case kDeoptIntegerToDouble: return "kDeoptIntegerToDouble";
-    case kDeoptDoubleToDouble: return "kDeoptDoubleToDouble";
-    case kDeoptSmiBinaryOp: return "kDeoptSmiBinaryOp";
-    case kDeoptMintBinaryOp: return "kDeoptMintBinaryOp";
-    case kDeoptDoubleBinaryOp: return "kDeoptDoubleBinaryOp";
-    case kDeoptInstanceSetterSameTarget:
-      return "kDeoptInstanceSetterSameTarget";
-    case kDeoptInstanceSetter: return "kDeoptInstanceSetter";
-    case kDeoptSmiEquality: return "kDeoptSmiEquality";
-    case kDeoptSmiCompareSmis: return "kDeoptSmiCompareSmis";
-    case kDeoptSmiCompareAny: return "kDeoptSmiCompareAny";
-    case kDeoptEqualityNoFeedback: return "kDeoptEqualityNoFeedback";
-    case kDeoptEqualityClassCheck: return "kDeoptEqualityClassCheck";
-    case kDeoptDoubleComparison: return "kDeoptDoubleComparison";
-    case kDeoptLoadIndexedFixedArray: return "kDeoptLoadIndexedFixedArray";
-    case kDeoptLoadIndexedGrowableArray:
-      return "kDeoptLoadIndexedGrowableArray";
-    case kDeoptNoTypeFeedback: return "kDeoptNoTypeFeedback";
-    case kDeoptSAR: return "kDeoptSAR";
-    case kDeoptUnaryOp: return "kDeoptUnaryOp";
+#define DEOPT_REASON_ID_TO_TEXT(name) case k##name: return #name;
+DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
+#undef DEOPT_REASON_ID_TO_TEXT
     default:
       UNREACHABLE();
       return "";
