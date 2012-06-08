@@ -3,27 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/03_Overview/1_Scoping_A02_t30: Fail # Please triage this failure.
-Language/03_Overview/1_Scoping_A02_t31: Fail # Please triage this failure.
-Language/05_Variables/05_Variables_A01_t01: Fail # Please triage this failure.
-Language/05_Variables/05_Variables_A04_t09: Fail # Please triage this failure.
-Language/05_Variables/05_Variables_A05_t03: Fail # Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # Please triage this failure.
-Language/07_Classes/07_Classes_A02_t01: Fail # Please triage this failure.
-Language/07_Classes/07_Classes_A04_t20: Fail # Please triage this failure.
-Language/07_Classes/07_Classes_A04_t24: Fail # Please triage this failure.
-Language/07_Classes/07_Classes_A04_t25: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t03: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t04: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail # Please triage this failure.
-Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Please triage this failure.
-Language/07_Classes/4_Instance_Variables_A02_t06: Fail # Please triage this failure.
-Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Please triage this failure.
+
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Please triage this failure.
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Please triage this failure.
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Please triage this failure.
@@ -62,75 +42,6 @@ Language/10_Expressions/20_Equality_A02_t03: Fail # Please triage this failure.
 Language/10_Expressions/20_Equality_A03_t01: Fail # Please triage this failure.
 Language/10_Expressions/20_Equality_A03_t02: Fail # Please triage this failure.
 Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t05: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t06: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t08: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t14: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t16: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # Please triage this failure.
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # Please triage this failure.
 Language/11_Statements/05_For_A01_t11: Fail # Please triage this failure.
 Language/11_Statements/08_Switch_A01_t01: Fail # Please triage this failure.
@@ -164,6 +75,8 @@ Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t05: Fail # Please tr
 
 
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
+Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
+Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 2383 
 Language/03_Overview/2_Privacy_A01_t09: Fail # Issue 2383
@@ -171,13 +84,32 @@ Language/03_Overview/2_Privacy_A01_t10: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
+Language/05_Variables/05_Variables_A01_t01: Fail # Issue 3323
+Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
+Language/05_Variables/05_Variables_A05_t03: Fail # Issue 3323
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # Issue 963
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # Issue 2137,2493
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # Issue 2493
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
+Language/07_Classes/07_Classes_A02_t01: Fail # Issue 3449
+Language/07_Classes/07_Classes_A04_t20: Fail # Issue 3475
+Language/07_Classes/07_Classes_A04_t24: Fail # Issue 3475
+Language/07_Classes/07_Classes_A04_t25: Fail # Issue 3475
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail # Issue 3449
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t03: Fail # Issue 3449
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t04: Fail # Issue 3449
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail # Issue 3449
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail # Issue 3449
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail # Issue 3449
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail # Issue 3449
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
+Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Issue 3323
+Language/07_Classes/4_Instance_Variables_A02_t06: Fail # Issue 3323
+Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Issue 3323
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t02: Fail # Issue 2474
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
@@ -233,6 +165,75 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t09: Fail # Issue 2437
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # Issue 1489
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # Issue 1439
 Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # Issue 2437
+Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
+Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
+Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
+Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t05: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t06: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t08: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t14: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t16: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail # Issue 3477
+Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # Issue 3475
+Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # Issue 3475
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
