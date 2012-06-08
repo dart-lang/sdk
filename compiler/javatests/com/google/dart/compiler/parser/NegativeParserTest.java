@@ -386,6 +386,12 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 12, 3));
   }
 
+  public void test_incompleteExpressionInInterpolation() {
+    parseExpectErrors(
+        "var s = 'fib(3) = ${fib(3}';",
+        errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 1, 26, 1));
+  }
+
   public void test_interfaceMethodWithBody() {
     parseExpectErrors(
         Joiner.on("\n").join(

@@ -259,56 +259,60 @@ public class DartParser extends CompletionHooksParserBase {
   @Terminals(tokens={Token.EOS, Token.CLASS, Token.LIBRARY, Token.IMPORT, Token.SOURCE,
       Token.RESOURCE, Token.NATIVE})
   public DartUnit parseUnit(DartSource source) {
-    beginCompilationUnit();
-    ctx.unitAboutToCompile(source, isDietParse);
-    DartUnit unit = new DartUnit(source, isDietParse);
+    try {
+      beginCompilationUnit();
+      ctx.unitAboutToCompile(source, isDietParse);
+      DartUnit unit = new DartUnit(source, isDietParse);
 
-    // parse any directives at the beginning of the source
-    parseDirectives(unit);
+      // parse any directives at the beginning of the source
+      parseDirectives(unit);
 
-    while (!EOS()) {
-      DartNode node = null;
-      beginTopLevelElement();
-      isParsingClass = isParsingInterface = false;
-      // Check for ABSTRACT_KEYWORD.
-      isTopLevelAbstract = false;
-      topLevelAbstractModifierPosition = null;
-      if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-        isTopLevelAbstract = true;
-        topLevelAbstractModifierPosition = position();
-      }
-      // Parse top level element.
-      if (optional(Token.CLASS)) {
-        isParsingClass = true;
-        node = done(parseClass());
-      } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) && peek(1).equals(Token.IDENTIFIER)) {
-        consume(Token.IDENTIFIER);
-        isParsingInterface = true;
-        node = done(parseClass());
-      } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
-          && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
-        consume(Token.IDENTIFIER);
-        node = done(parseFunctionTypeAlias());
-      } else if (looksLikeDirective()) {
-        reportErrorWithoutAdvancing(ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
-        parseDirectives(unit);
-      } else {
-        node = done(parseFieldOrMethod(false));
-      }
-      // Parsing was successful, add node.
-      if (node != null) {
-        unit.getTopLevelNodes().add(node);
-        // Only "class" can be top-level abstract element.
-        if (isTopLevelAbstract && !isParsingClass) {
-          Position abstractPositionEnd = topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
-          Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
-          reportError(new DartCompilationError(source, location,
-              ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
+      while (!EOS()) {
+        DartNode node = null;
+        beginTopLevelElement();
+        isParsingClass = isParsingInterface = false;
+        // Check for ABSTRACT_KEYWORD.
+        isTopLevelAbstract = false;
+        topLevelAbstractModifierPosition = null;
+        if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+          isTopLevelAbstract = true;
+          topLevelAbstractModifierPosition = position();
+        }
+        // Parse top level element.
+        if (optional(Token.CLASS)) {
+          isParsingClass = true;
+          node = done(parseClass());
+        } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) && peek(1).equals(Token.IDENTIFIER)) {
+          consume(Token.IDENTIFIER);
+          isParsingInterface = true;
+          node = done(parseClass());
+        } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
+            && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
+          consume(Token.IDENTIFIER);
+          node = done(parseFunctionTypeAlias());
+        } else if (looksLikeDirective()) {
+          reportErrorWithoutAdvancing(ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+          parseDirectives(unit);
+        } else {
+          node = done(parseFieldOrMethod(false));
+        }
+        // Parsing was successful, add node.
+        if (node != null) {
+          unit.getTopLevelNodes().add(node);
+          // Only "class" can be top-level abstract element.
+          if (isTopLevelAbstract && !isParsingClass) {
+            Position abstractPositionEnd = topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
+            Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
+            reportError(new DartCompilationError(source, location,
+                ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
+          }
         }
       }
+      expect(Token.EOS);
+      return done(unit);
+    } catch (StringInterpolationParseError exception) {
+      throw new InternalCompilerException("Failed to parse " + source.getUri(), exception);
     }
-    expect(Token.EOS);
-    return done(unit);
   }
 
   private boolean looksLikeDirective() {
@@ -2051,7 +2055,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
   /**
    * Pastes together adjacent strings.  Re-uses the StringInterpolation
-   * node if there is more than one ajacent string.
+   * node if there is more than one adjacent string.
    */
   private DartExpression parseStringWithPasting() {
     List<DartExpression> expressions = new ArrayList<DartExpression>();
@@ -2477,6 +2481,16 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
+   * Instances of the class {@code StringInterpolationParseError} represent the detection of an
+   * error that needs to be handled in an enclosing context.
+   */
+  private static class StringInterpolationParseError extends RuntimeException {
+    public StringInterpolationParseError() {
+      super();
+    }
+  }
+
+  /**
    * <pre>
    * string-interpolation
    *   : (STRING_SEGMENT? embedded-exp?)* STRING_LAST_SEGMENT
@@ -2522,7 +2536,14 @@ public class DartParser extends CompletionHooksParserBase {
             builder.addExpression(new DartSyntheticErrorExpression(""));
             break;
           } else {
-            builder.addExpression(parseExpression());
+            try {
+              builder.addExpression(parseExpression());
+            } catch (StringInterpolationParseError exception) {
+              if (peek(0) == Token.STRING_LAST_SEGMENT) {
+                break;
+              }
+              throw new InternalCompilerException("Invalid expression found in string interpolation");
+            }
           }
           Token lookAhead = peek(0);
           String lookAheadString = getPeekTokenValue(0);
@@ -2832,7 +2853,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
 
       case STRING_LAST_SEGMENT:
-        throw new InternalCompilerException("Invariant Broken");
+        throw new StringInterpolationParseError();
 
       default: {
         return parseLiteral();
