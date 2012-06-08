@@ -87,11 +87,13 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
   bool smallMethodNoLoops = false;
+  bool isRecursiveMethod = false;
   int stateId = 1;
 
   SsaTypeGuardInserter(this.compiler, this.work);
 
   void visitGraph(HGraph graph) {
+    isRecursiveMethod = graph.isRecursiveMethod;
     var blocks = graph.blocks;
     if (blocks.length < SMALL_METHOD_BLOCK_LIMIT) {
       smallMethodNoLoops = true;
@@ -117,8 +119,17 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
+  // Primitive types that are not null are valuable. These include
+  // indexable arrays.
+  bool typeValuable(HType type) {
+    return type.isPrimitive() && !type.isNull();
+  }
+
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
+    // If the type itself is not valuable, do not generate a guard for it.
+    if (!typeValuable(speculativeType)) return false;
+
     // Do not insert a type guard if the instruction has a type
     // annotation that disagrees with the speculated type.
     Element source = instruction.sourceElement;
@@ -130,6 +141,9 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
         return false;
       }
     }
+
+    // Insert type guards for recursive methods.
+    if (isRecursiveMethod) return true;
 
     // Insert type guards if there are uses in loops.
     bool isNested(HBasicBlock inner, HBasicBlock outer) {

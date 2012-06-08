@@ -2281,6 +2281,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
   }
 
+  visitSend(Send node) {
+    Element element = elements[node];
+    if (element !== null && element === work.element) {
+      graph.isRecursiveMethod = true;
+    }
+    super.visitSend(node);
+  }
+
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
