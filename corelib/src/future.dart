@@ -19,7 +19,7 @@
  * (producing an exception, which may be handled with [handleException]).
  * Callbacks passed to [onComplete] will be invoked in either case.
  *
- * When a future completes:
+ * When a future completes, the following actions happen in order:
  *
  *   1. if the future suceeded, handlers registered with [then] are called.
  *   2. if the future failed, handlers registered with [handleException] are
@@ -69,7 +69,7 @@ interface Future<T> default FutureImpl<T> {
    * If this future is complete and has a value, then [onValue] is called
    * with the value.
    */
-  void then(void onValue(T value));
+  void then(void onSuccess(T value));
 
   /**
    * If this future is complete and has an exception, then call [onException].
