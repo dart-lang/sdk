@@ -79,6 +79,7 @@ class Compiler implements DiagnosticListener {
   Namer namer;
   Types types;
   final bool enableTypeAssertions;
+  final bool enableUserAssertions;
 
   final Tracer tracer;
 
@@ -102,6 +103,7 @@ class Compiler implements DiagnosticListener {
   ClassElement functionClass;
   ClassElement nullClass;
   ClassElement listClass;
+  Element assertMethod;
 
   Element get currentElement() => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -143,6 +145,7 @@ class Compiler implements DiagnosticListener {
 
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
+            this.enableUserAssertions = false,
             bool emitJavascript = true,
             validateUnparse = false])
       : libraries = new Map<String, LibraryElement>(),
@@ -322,6 +325,8 @@ class Compiler implements DiagnosticListener {
 
     libraries['dart:core'] = coreLibrary;
     libraries['dart:coreimpl'] = coreImplLibrary;
+
+    assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
   }

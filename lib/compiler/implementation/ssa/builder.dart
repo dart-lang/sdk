@@ -2372,6 +2372,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitStaticSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (element === compiler.assertMethod && !compiler.enableUserAssertions) {
+      stack.add(graph.addConstantNull());
+      return;
+    }
     compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
     HInstruction target = new HStatic(element);
     add(target);

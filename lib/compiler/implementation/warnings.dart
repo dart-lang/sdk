@@ -176,6 +176,9 @@ class MessageKind {
   static final MISSING_TYPE_ARGUMENT = const MessageKind(
       "missing type argument");
 
+  static final MISSING_ARGUMENTS_TO_ASSERT = const MessageKind(
+      "missing arguments to assert");
+
   static final COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

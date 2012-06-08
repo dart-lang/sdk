@@ -86,7 +86,6 @@ switch_label_test: Fail # error: target of continue is not a loop or switch case
 
 
 # Implementation errors (library or generated code).
-assertion_test: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 generic_deep_test: Fail # Expect.isTrue(false) fails.
 generic_inheritance_test: Fail # Expect.isTrue(false) fails.
 generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.

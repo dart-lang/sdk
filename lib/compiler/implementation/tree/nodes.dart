@@ -270,6 +270,7 @@ class Send extends Expression {
   bool get isPostfix() => argumentsNode is Postfix;
   bool get isIndex() =>
       isOperator && selector.asOperator().source.stringValue === '[]';
+  bool get isCall() => !isOperator && !isPropertyAccess;
 
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();
