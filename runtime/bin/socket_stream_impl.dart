@@ -108,6 +108,10 @@ class _SocketOutputStream
         buffer, offset, (len == null) ? buffer.length - offset : len, true);
   }
 
+  void flush() {
+    // Nothing to do on a socket output stream.
+  }
+
   void close() {
     if (_closing && _closed) return;
     if (!_pendingWrites.isEmpty()) {

@@ -129,9 +129,17 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 }
 
 
+class _PendingOperation {
+  const _PendingOperation(this._id);
+  static final _PendingOperation CLOSE = const _PendingOperation(0);
+  static final _PendingOperation FLUSH = const _PendingOperation(1);
+  final int _id;
+}
+
+
 class _FileOutputStream extends _BaseOutputStream implements OutputStream {
   _FileOutputStream(String name, FileMode mode) {
-    _pendingOperations = new List<List<int>>();
+    _pendingOperations = new List();
     var f = new File(name);
     var openFuture = f.open(mode);
     openFuture.then((openedFile) {
@@ -176,9 +184,19 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     return write(copy);
   }
 
+
+  void flush() {
+    if (_file == null) {
+      _pendingOperations.add(_PendingOperation.FLUSH);
+    } else {
+      _file.flush().then((ignored) => null);
+    }
+  }
+
+
   void close() {
     if (_file == null) {
-      _pendingOperations.add(null);
+      _pendingOperations.add(_PendingOperation.CLOSE);
     } else if (!_streamMarkedClosed) {
       _file.close().then((ignore) {
         if (_onClosed != null) _onClosed();
@@ -207,7 +225,16 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
   void _processPendingOperations() {
     _pendingOperations.forEach((buffer) {
-      (buffer != null) ? write(buffer) : close();
+      if (buffer is _PendingOperation) {
+        if (buffer === _PendingOperation.CLOSE) {
+          close();
+        } else {
+          assert(buffer === _PendingOperation.FLUSH);
+          flush();
+        }
+      } else {
+        write(buffer);
+      }
     });
     _pendingOperations = null;
   }
@@ -245,7 +272,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
   // List of pending writes that were issued before the underlying
   // file was successfully opened.
-  List<List<int>> _pendingOperations;
+  List _pendingOperations;
 
   Function _onNoPendingWrites;
   Function _onClosed;

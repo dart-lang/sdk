@@ -64,6 +64,10 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
     return true;
   }
 
+  void flush() {
+    // Nothing to do on a list output stream.
+  }
+
   void close() {
     if (_streamMarkedClosed) throw new StreamException.streamClosed();
     _streamMarkedClosed = true;
