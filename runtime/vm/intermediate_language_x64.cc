@@ -815,9 +815,7 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
 }
 
 
-// TODO(srdjan): Implement variations.
 static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
-  // TODO(srdjan): need to allocate a temporary register (now using r10)
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
   Register result = comp->locs()->out().reg();
@@ -890,7 +888,8 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       break;
     }
     case Token::kSHR: {
-      const Immediate kCountLimit = Immediate(0x1F);
+      // sarq operation masks the count to 6 bits.
+      const Immediate kCountLimit = Immediate(0x3F);
       __ cmpq(right, Immediate(0));
       __ j(LESS, deopt);
       __ SmiUntag(right);
@@ -899,7 +898,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       __ j(LESS, &count_ok, Assembler::kNearJump);
       __ movq(right, kCountLimit);
       __ Bind(&count_ok);
-      ASSERT(right == RCX);  // Count must be in ECX
+      ASSERT(right == RCX);  // Count must be in RCX
       __ SmiUntag(left);
       __ sarq(left, right);
       __ SmiTag(left);
@@ -948,7 +947,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 }
 
 
-static bool EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
+static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
                                BinaryOpComp* comp) {
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
@@ -991,7 +990,6 @@ static bool EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
   }
 
   __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
-  return true;
 }
 
 

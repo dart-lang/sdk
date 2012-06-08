@@ -754,25 +754,212 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  return summary;
+  if (operands_type() == kDoubleOperands) {
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    return summary;
+  }
+  ASSERT(operands_type() == kSmiOperands);
+  if (op_kind() == Token::kTRUNCDIV) {
+    const intptr_t kNumTemps = 3;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RegisterLocation(EAX));
+    summary->set_in(1, Location::RegisterLocation(ECX));
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RegisterLocation(EBX));
+    // Will be used for for sign extension.
+    summary->set_temp(1, Location::RegisterLocation(EDX));
+    summary->set_temp(2, Location::RequiresRegister());
+    return summary;
+  } else if (op_kind() == Token::kSHR) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterLocation(ECX));
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  } else if (op_kind() == Token::kSHL) {
+    const intptr_t kNumTemps = 2;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RegisterLocation(ECX));
+    return summary;
+  } else {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+}
+
+
+static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register result = comp->locs()->out().reg();
+  Register temp = comp->locs()->temp(0).reg();
+  ASSERT(left == result);
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptSmiBinaryOp,
+                                        temp,
+                                        right);
+  __ movl(temp, left);
+  __ orl(left, right);
+  __ testl(left, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+  __ movl(left, temp);
+  switch (comp->op_kind()) {
+    case Token::kADD: {
+      __ addl(left, right);
+      __ j(OVERFLOW, deopt);
+      break;
+    }
+    case Token::kSUB: {
+      __ subl(left, right);
+      __ j(OVERFLOW, deopt);
+      break;
+    }
+    case Token::kMUL: {
+      __ SmiUntag(left);
+      __ imull(left, right);
+      __ j(OVERFLOW, deopt);
+      break;
+    }
+    case Token::kBIT_AND: {
+      // No overflow check.
+      __ andl(left, right);
+      break;
+    }
+    case Token::kBIT_OR: {
+      // No overflow check.
+      __ orl(left, right);
+      break;
+    }
+    case Token::kBIT_XOR: {
+      // No overflow check.
+      __ xorl(left, right);
+      break;
+    }
+    case Token::kTRUNCDIV: {
+      // Handle divide by zero in runtime.
+      // Deoptimization requires that temp and right are preserved.
+      __ testl(right, right);
+      __ j(ZERO, deopt);
+      ASSERT(left == EAX);
+      ASSERT((right != EDX) && (right != EAX));
+      ASSERT((temp != EDX) && (temp != EAX));
+      ASSERT(comp->locs()->temp(1).reg() == EDX);
+      ASSERT(result == EAX);
+      Register right_temp = comp->locs()->temp(2).reg();
+      __ movl(right_temp, right);
+      __ SmiUntag(left);
+      __ SmiUntag(right_temp);
+      __ cdq();  // Sign extend EAX -> EDX:EAX.
+      __ idivl(right_temp);  //  EAX: quotient, EDX: remainder.
+      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+      // case we cannot tag the result.
+      __ cmpl(result, Immediate(0x40000000));
+      __ j(EQUAL, deopt);
+      __ SmiTag(result);
+      break;
+    }
+    case Token::kSHR: {
+      // sarl operation masks the count to 5 bits.
+      const Immediate kCountLimit = Immediate(0x1F);
+      __ cmpl(right, Immediate(0));
+      __ j(LESS, deopt);
+      __ SmiUntag(right);
+      __ cmpl(right, kCountLimit);
+      Label count_ok;
+      __ j(LESS, &count_ok, Assembler::kNearJump);
+      __ movl(right, kCountLimit);
+      __ Bind(&count_ok);
+      ASSERT(right == ECX);  // Count must be in ECX
+      __ SmiUntag(left);
+      __ sarl(left, right);
+      __ SmiTag(left);
+      break;
+    }
+    case Token::kSHL: {
+      // Check if count too large for handling it inlined.
+      __ cmpl(right,
+          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
+      __ j(ABOVE_EQUAL, deopt);
+      Register right_temp = comp->locs()->temp(1).reg();
+      ASSERT(right_temp == ECX);  // Count must be in ECX
+      __ movl(right_temp, right);
+      __ SmiUntag(right_temp);
+      // Overflow test (preserve temp and right);
+      __ shll(left, right_temp);
+      __ sarl(left, right_temp);
+      __ cmpl(left, temp);
+      __ j(NOT_EQUAL, deopt);  // Overflow.
+      // Shift for result now we know there is no overflow.
+      __ shll(left, right_temp);
+      break;
+    }
+    case Token::kDIV: {
+      // Dispatches to 'Double./'.
+      // TODO(srdjan): Implement as conversion to double and double division.
+      UNREACHABLE();
+      break;
+    }
+    case Token::kMOD: {
+      // TODO(srdjan): Implement.
+      UNREACHABLE();
+      break;
+    }
+    case Token::kOR:
+    case Token::kAND: {
+      // Flow graph builder has dissected this operation to guarantee correct
+      // behavior (short-circuit evaluation).
+      UNREACHABLE();
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
+                               BinaryOpComp* comp) {
+  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
+  // for all intended operations.
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  __ pushl(left);
+  __ pushl(right);
+  InstanceCallComp* instance_call_comp = comp->instance_call();
+  instance_call_comp->EmitNativeCode(compiler);
+  __ MoveRegister(comp->locs()->out().reg(), EAX);
 }
 
 
 void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
-  // for all intended operations.
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ pushl(left);
-  __ pushl(right);
-  InstanceCallComp* instance_call_comp = instance_call();
-  instance_call_comp->EmitNativeCode(compiler);
-  if (locs()->out().reg() != EAX) {
-    __ movl(locs()->out().reg(), EAX);
+  switch (operands_type()) {
+    case kSmiOperands:
+      EmitSmiBinaryOp(compiler, this);
+      break;
+
+    case kDoubleOperands:
+      EmitDoubleBinaryOp(compiler, this);
+      break;
+
+    default:
+      UNREACHABLE();
   }
 }
 

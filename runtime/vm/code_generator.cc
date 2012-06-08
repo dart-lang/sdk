@@ -1394,6 +1394,49 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
 }
 
 
+static const char* DeoptReasonToText(intptr_t deopt_id) {
+  switch (deopt_id) {
+    case kDeoptUnknown: return "kDeoptUnknown";
+    case kDeoptIncrLocal: return "kDeoptIncrLocal";
+    case kDeoptIncrInstance: return "kDeoptIncrInstance";
+    case kDeoptIncrInstanceOneClass: return "kDeoptIncrInstanceOneClass";
+    case kDeoptInstanceGetterSameTarget:
+      return "kDeoptInstanceGetterSameTarget";
+    case kDeoptInstanceGetter: return "kDeoptInstanceGetter";
+    case kDeoptStoreIndexed: return "kDeoptStoreIndexed";
+    case kDeoptCheckedInstanceCallSmiOnly:
+      return "kDeoptCheckedInstanceCallSmiOnly";
+    case kDeoptCheckedInstanceCallSmiFail:
+      return "kDeoptCheckedInstanceCallSmiFail";
+    case kDeoptCheckedInstanceCallCheckFail:
+      return "kDeoptCheckedInstanceCallCheckFail";
+    case kDeoptIntegerToDouble: return "kDeoptIntegerToDouble";
+    case kDeoptDoubleToDouble: return "kDeoptDoubleToDouble";
+    case kDeoptSmiBinaryOp: return "kDeoptSmiBinaryOp";
+    case kDeoptMintBinaryOp: return "kDeoptMintBinaryOp";
+    case kDeoptDoubleBinaryOp: return "kDeoptDoubleBinaryOp";
+    case kDeoptInstanceSetterSameTarget:
+      return "kDeoptInstanceSetterSameTarget";
+    case kDeoptInstanceSetter: return "kDeoptInstanceSetter";
+    case kDeoptSmiEquality: return "kDeoptSmiEquality";
+    case kDeoptSmiCompareSmis: return "kDeoptSmiCompareSmis";
+    case kDeoptSmiCompareAny: return "kDeoptSmiCompareAny";
+    case kDeoptEqualityNoFeedback: return "kDeoptEqualityNoFeedback";
+    case kDeoptEqualityClassCheck: return "kDeoptEqualityClassCheck";
+    case kDeoptDoubleComparison: return "kDeoptDoubleComparison";
+    case kDeoptLoadIndexedFixedArray: return "kDeoptLoadIndexedFixedArray";
+    case kDeoptLoadIndexedGrowableArray:
+      return "kDeoptLoadIndexedGrowableArray";
+    case kDeoptNoTypeFeedback: return "kDeoptNoTypeFeedback";
+    case kDeoptSAR: return "kDeoptSAR";
+    case kDeoptUnaryOp: return "kDeoptUnaryOp";
+    default:
+      UNREACHABLE();
+      return "";
+  }
+}
+
+
 // The top Dart frame belongs to the optimized method that needs to be
 // deoptimized. The pc of the Dart frame points to the deoptimization point.
 // Find the node id of the deoptimization point and find the continuation
@@ -1430,9 +1473,10 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
       unoptimized_code.GetDeoptPcAtNodeId(deopt_node_id);
   ASSERT(continue_at_pc != 0);
   if (FLAG_trace_deopt) {
-    OS::Print("Deoptimizing (reason %d) at pc 0x%x id %d '%s' "
+    OS::Print("Deoptimizing (reason %d '%s') at pc 0x%x id %d '%s' "
         "-> continue at 0x%x \n",
         deoptimization_reason_id.Value(),
+        DeoptReasonToText(deoptimization_reason_id.Value()),
         caller_frame->pc(),
         deopt_node_id,
         function.ToFullyQualifiedCString(),

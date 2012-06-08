@@ -997,7 +997,7 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(
   __ LoadClassId(temp_reg, instance_reg);
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ cmpl(temp_reg, Immediate(class_ids[i]));
-    if (i == class_ids.length() - 1) {
+    if (i == (class_ids.length() - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
       __ j(EQUAL, &is_ok, Assembler::kNearJump);
