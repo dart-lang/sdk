@@ -95,3 +95,4 @@ list_sort_test: Skip # BUG(3304): Times out.
 reg_exp_all_matches_test: Skip # BUG(3304): Times out.
 sort_test: Skip # BUG(3304): Times out.
 string_base_vm_test: Skip # BUG(3304): Times out.
+core_runtime_types_test: Fail
