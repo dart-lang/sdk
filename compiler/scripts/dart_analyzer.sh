@@ -33,12 +33,24 @@ if [ $FOUND_SDK = 0 ] ; then
     if [ -d $DART_SDK_HOME ] ; then
       DART_SDK="--dart-sdk $DART_SDK_HOME"
     else
-      echo "Couldn't find Dart SDK. Specify with --dart-sdk cmdline argument"
+      DART_SDK_HOME=$(dirname $DART_SDK_HOME)/dart-sdk
+      if [ -d $DART_SDK_HOME ] ; then
+        DART_SDK="--dart-sdk $DART_SDK_HOME"
+      else
+        echo "Couldn't find Dart SDK. Specify with --dart-sdk cmdline argument"
+      fi
     fi
   fi
 fi
 
-DART_ANALYZER_LIBS=$DART_ANALYZER_HOME/util/analyzer
+if [ -f $DART_SDK_HOME/util/analyzer/dart_analyzer.jar ] ; then
+  DART_ANALYZER_LIBS=$DART_SDK_HOME/util/analyzer
+elif [ -f $DART_ANALYZER_HOME/util/analyzer/dart_analyzer.jar ] ; then
+  DART_ANALYZER_LIBS=$DART_ANALYZER_HOME/util/analyzer
+else
+  echo "Configuration problem. Couldn't find dart_analyzer.jar."
+  exit 1
+fi
 
 if [ -x /usr/libexec/java_home ]; then
   export JAVA_HOME=$(/usr/libexec/java_home -v '1.6+')
