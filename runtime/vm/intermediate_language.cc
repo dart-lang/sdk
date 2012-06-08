@@ -422,6 +422,11 @@ RawAbstractType* NativeCallComp::StaticType() const {
 }
 
 
+RawAbstractType* LoadIndexedComp::StaticType() const {
+  return Type::DynamicType();
+}
+
+
 RawAbstractType* StoreIndexedComp::StaticType() const {
   UNREACHABLE();
   return AbstractType::null();

@@ -266,6 +266,27 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
+}
+
+
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
   return LocationSummary::Make(kNumInputs, Location::NoLocation());

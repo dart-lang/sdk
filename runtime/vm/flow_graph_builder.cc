@@ -1951,15 +1951,13 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   ValueGraphVisitor for_index(owner(), for_array.temp_index());
   node->index_expr()->Visit(&for_index);
   Append(for_index);
-  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
-  arguments->Add(for_array.value());
-  arguments->Add(for_index.value());
-  const String& name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
-  InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
-      arguments, Array::ZoneHandle(), 1);
-  ReturnComputation(call);
+
+  LoadIndexedComp* load = new LoadIndexedComp(
+      node->token_index(),
+      owner()->try_index(),
+      for_array.value(),
+      for_index.value());
+  ReturnComputation(load);
 }
 
 

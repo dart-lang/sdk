@@ -330,6 +330,26 @@ void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {
 }
 
 
+void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
+  if (!comp->HasICData()) return;
+
+  const ICData& ic_data = *comp->ic_data();
+  if (ic_data.NumberOfChecks() == 0) return;
+  if (!HasOneTarget(ic_data)) return;
+
+  Function& target = Function::Handle();
+  Class& cls = Class::Handle();
+  ic_data.GetOneClassCheckAt(0, &cls, &target);
+
+  switch (cls.id()) {
+    case kArray:
+    case kImmutableArray:
+    case kGrowableObjectArray:
+      comp->set_receiver_type(static_cast<ObjectKind>(cls.id()));
+  }
+}
+
+
 void FlowGraphOptimizer::VisitDo(DoInstr* instr) {
   instr->computation()->Accept(this);
 }
