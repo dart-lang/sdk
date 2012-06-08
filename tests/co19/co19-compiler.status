@@ -273,6 +273,37 @@ LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise
 LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 
+# The following tests use the deprecated Date interface.
+LibTest/core/Date/Date_A02_t01: Fail, Pass
+LibTest/core/Date/Date.now_A02_t01: Fail, Pass
+LibTest/core/Date/add_A04_t01: Fail, Pass
+LibTest/core/Date/value_A01_t02: Fail, Pass
+LibTest/core/Date/value_A02_t01: Fail, Pass
+LibTest/core/Date/isLocalTime_A01_t01: Fail, Pass
+LibTest/core/Date/toString_A02_t01: Fail, Pass
+LibTest/core/Date/Date.fromString_A01_t03: Fail, Pass
+LibTest/core/Date/changeTimeZone_A01_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A02_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A03_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A04_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A05_t01: Fail, Pass
+LibTest/core/Date/isUtc_A01_t01: Fail, Pass
+LibTest/core/Date/timeZone_A01_t01: Fail, Pass
+LibTest/core/Date/timeZone_A01_t02: Fail, Pass
+LibTest/core/Date/timeZone_A01_t03: Fail, Pass
+LibTest/core/Date/difference_A01_t01: Fail, Pass
+LibTest/core/Date/difference_A01_t02: Fail, Pass
+LibTest/core/Date/subtract_A04_t01: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t02: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t01: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t01: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t02: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, Pass
+
+LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, Pass
+LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip

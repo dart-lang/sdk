@@ -166,18 +166,6 @@ class StringBase {
   }
 }
 
-class TimeZoneImplementation implements TimeZone {
-  const TimeZoneImplementation.utc() : isUtc = true;
-  TimeZoneImplementation.local() : isUtc = false;
-
-  bool operator ==(Object other) {
-    if (!(other is TimeZoneImplementation)) return false;
-    return isUtc == other.isUtc;
-  }
-
-  final bool isUtc;
-}
-
 class DateImplementation implements Date {
   final int value;
   final bool _isUtc;
@@ -195,17 +183,6 @@ class DateImplementation implements Date {
             years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
     _asJs();
   }
-
-  DateImplementation.withTimeZone(int years,
-                                  int month,
-                                  int day,
-                                  int hours,
-                                  int minutes,
-                                  int seconds,
-                                  int milliseconds,
-                                  TimeZoneImplementation timeZone)
-      : this(years, month, day, hours, minutes, seconds, milliseconds,
-             timeZone.isUtc);
 
   DateImplementation.now()
       : _isUtc = false,
@@ -294,13 +271,6 @@ class DateImplementation implements Date {
   Date toUtc() {
     if (isUtc()) return this;
     return new DateImplementation.fromEpoch(value, true);
-  }
-
-  Date changeTimeZone(TimeZone targetTimeZone) {
-    if (targetTimeZone === null) {
-      targetTimeZone = new TimeZoneImplementation.local();
-    }
-    return new Date.fromEpoch(value, targetTimeZone.isUtc);
   }
 
   String get timeZoneName() {
