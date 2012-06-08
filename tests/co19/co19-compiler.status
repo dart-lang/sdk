@@ -3,8 +3,166 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
+Language/03_Overview/1_Scoping_A02_t30: Fail # Please triage this failure.
+Language/03_Overview/1_Scoping_A02_t31: Fail # Please triage this failure.
+Language/05_Variables/05_Variables_A01_t01: Fail # Please triage this failure.
+Language/05_Variables/05_Variables_A04_t09: Fail # Please triage this failure.
+Language/05_Variables/05_Variables_A05_t03: Fail # Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # Please triage this failure.
+Language/07_Classes/07_Classes_A02_t01: Fail # Please triage this failure.
+Language/07_Classes/07_Classes_A04_t20: Fail # Please triage this failure.
+Language/07_Classes/07_Classes_A04_t24: Fail # Please triage this failure.
+Language/07_Classes/07_Classes_A04_t25: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t03: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t04: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail # Please triage this failure.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail # Please triage this failure.
+Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Please triage this failure.
+Language/07_Classes/4_Instance_Variables_A02_t06: Fail # Please triage this failure.
+Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Please triage this failure.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t04: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables_A01_t01: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables_A01_t05: Fail # Please triage this failure.
+Language/07_Classes/7_Static_Variables_A02_t01: Fail # Please triage this failure.
+Language/08_Interfaces/1_Methods_A06_t01: Fail # Please triage this failure.
+Language/08_Interfaces/1_Methods_A06_t02: Fail # Please triage this failure.
+Language/08_Interfaces/Interfaces_A01_t01: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A03_t01: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A05_t01: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A06_t01: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A10_t01: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A14_t01: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A15_t49: Fail # Please triage this failure.
+Language/10_Expressions/01_Constants_A18_t02: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t01: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Please triage this failure.
+Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Please triage this failure.
+Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Please triage this failure.
+Language/10_Expressions/16_Assignment_A05_t02: Fail # Please triage this failure.
+Language/10_Expressions/16_Assignment_A05_t04: Fail # Please triage this failure.
+Language/10_Expressions/16_Assignment_A05_t05: Fail # Please triage this failure.
+Language/10_Expressions/16_Assignment_A08_t04: Fail # Please triage this failure.
+Language/10_Expressions/20_Equality_A02_t02: Fail # Please triage this failure.
+Language/10_Expressions/20_Equality_A02_t03: Fail # Please triage this failure.
+Language/10_Expressions/20_Equality_A03_t01: Fail # Please triage this failure.
+Language/10_Expressions/20_Equality_A03_t02: Fail # Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t05: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t06: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t08: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t14: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t16: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # Please triage this failure.
+Language/10_Expressions/29_Type_Test_A04_t01: Fail # Please triage this failure.
+Language/11_Statements/05_For_A01_t11: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A01_t01: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A01_t19: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A05_t01: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A05_t02: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A06_t01: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A06_t02: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A06_t03: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A06_t04: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A08_t01: Fail # Please triage this failure.
+Language/11_Statements/08_Switch_A09_t01: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A02_t06: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A07_t09: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Please triage this failure.
+Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Please triage this failure.
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Please triage this failure.
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Please triage this failure.
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Please triage this failure.
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Please triage this failure.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t01: Fail # Please triage this failure.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t02: Fail # Please triage this failure.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t03: Fail # Please triage this failure.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail # Please triage this failure.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t05: Fail # Please triage this failure.
 
-Language/03_Overview/1_Scoping_A02_t05: Fail # Issue 2241 (co19 Issue)
+
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
 Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 2383 
@@ -13,7 +171,6 @@ Language/03_Overview/2_Privacy_A01_t10: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
-Language/05_Variables/05_Variables_A05_t04: Fail # Issue 961
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # Issue 963
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # Issue 2137,2493
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
@@ -39,7 +196,6 @@ Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail # co19 issue 132
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # Issue 2479
 Language/09_Generics/09_Generics_A04_t01: Fail # Issue 2480
 Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
-Language/10_Expressions/01_Constants_A15_t16: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
@@ -53,7 +209,6 @@ Language/10_Expressions/07_Maps_A02_t01: Fail # Issue 1483
 Language/10_Expressions/07_Maps_A02_t02: Fail # Issue 1483
 Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # Issue 2378
 Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # Issue 2378
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # co19 Issue 107
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
@@ -81,8 +236,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # Issue 2437
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
-Language/11_Statements/08_Switch_A02_t01: Fail # Issue 2149
-Language/11_Statements/08_Switch_A03_t01: Fail # Issue 2149
 Language/11_Statements/11_Labels_A01_t01: Fail # Issue 2440
 Language/11_Statements/11_Labels_A01_t03: Fail # Issue 1335
 Language/11_Statements/11_Labels_A03_t05: Fail # Issue 2441
@@ -110,24 +263,15 @@ Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
-Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
 Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
 
-LibTest/core/Dispatcher/*: Skip
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269
 LibTest/core/FallThroughError/toString_A01_t01: Fail # Issue 1269
-LibTest/core/Isolate/*: Skip # missing #import("dart:isolate") (co19 Issue #80)
 LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
-LibTest/core/Promise/*: Skip
-LibTest/core/Proxy/*: Skip
-LibTest/core/ReceivePort/*: Skip # missing #import("dart:isolate") (co19 Issue #80)
-LibTest/core/ReceivePort/receive_A01_t02: Fail # missing import co19 Issue 108
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail # (co19 issue #115)
-LibTest/core/SendPort/*: Skip # missing #import("dart:isolate") (co19 Issue #80)
 
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]

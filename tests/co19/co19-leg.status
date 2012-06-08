@@ -8,47 +8,158 @@ LibTest/core/Math/asin_A01_t01: Fail, OK
 LibTest/core/Math/atan_A01_t01: Fail, OK
 
 
-# These classes have been removed, co19 issue 79.
-[ $compiler == dart2js && $runtime == d8 ]
-LibTest/core/Dispatcher/*: Fail, OK
-LibTest/core/Proxy/*: Fail, OK
 [ $compiler == dart2js ]
-LibTest/core/List/every_A03_t01: Fail, OK
-LibTest/core/List/filter_A03_t01: Fail, OK
-LibTest/core/List/some_A03_t01: Fail, OK
-LibTest/core/Promise/*: Fail, OK
+Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
+Language/10_Expressions/09_This_A03_t04: Crash
+Language/11_Statements/05_For_A01_t13: Crash
+
+LibTest/core/Future/chain_A01_t07: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Future/transform_A01_t06: Fail # TODO(ahe): Please triage this failure.
 
 
-# missing #import("dart:isolate"), co19 issue 80
-LibTest/core/Isolate/*: Fail, OK
-LibTest/core/SendPort/*: Fail, OK
-LibTest/core/ReceivePort/*: Fail, OK
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t08: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t01: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t04: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail # Compile-time error: duplicate definition
+Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Compile-time error: duplicate definition
+Language/03_Overview/1_Scoping_A02_t05: Fail # Compile-time error: error: C is not a type
+Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Compile-time error: error: cannot resolve foo
+Language/10_Expressions/29_Type_Test_A04_t01: Fail # Compile-time error: error: cannot resolve type Undeclared
+Language/05_Variables/05_Variables_A05_t03: Fail # Compile-time error: error: not a compile-time constant
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Compile-time error: error: not a compile-time constant
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/01_Constants_A05_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/01_Constants_A06_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/01_Constants_A14_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Compile-time error: error: not a compile-time constant
+LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
+LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a compile-time constant
+LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant
+Language/05_Variables/05_Variables_A01_t01: Fail # Compile-time error: expected '(', but got '='
+Language/05_Variables/05_Variables_A04_t09: Fail # Compile-time error: expected '(', but got 'pi'
+Language/10_Expressions/28_Identifier_Reference_A08_t37: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t40: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t41: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t42: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t43: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t44: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t45: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t46: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t47: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/28_Identifier_Reference_A08_t48: Fail # Compile-time error: expected ';', but got ':'
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Compile-time error: expected an expression, but got '&&'
+Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Compile-time error: expected identifier, but got '!'
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Compile-time error: unexpected token '('
+Language/10_Expressions/28_Identifier_Reference_A08_t02: Fail # Compile-time error: unexpected token ';'
+Language/10_Expressions/28_Identifier_Reference_A08_t32: Fail # Compile-time error: unexpected token ';'
+Language/11_Statements/05_For_A01_t11: Fail # Compile-time error: unexpected token 'const'
+Language/07_Classes/1_Instance_Methods/2_Operators_A09_t01: Fail # Compile-time error: unexpected token 'equals'
+Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/01_Constants_A18_t03: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/20_Equality_A02_t02: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/20_Equality_A02_t03: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/20_Equality_A02_t04: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/20_Equality_A03_t01: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/20_Equality_A03_t02: Fail # Compile-time error: unexpected token 'equals'
+Language/10_Expressions/20_Equality_A03_t03: Fail # Compile-time error: unexpected token 'equals'
+LibTest/core/Futures/wait_A01_t02: Fail # Runtime error: 1
+Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Runtime error: Expect.equals(expected: <1.2>, actual: <1.1>) fails.
+Language/10_Expressions/16_Assignment_A05_t05: Fail # Runtime error: Expect.fail('Method noSuchMethod() was not properly executed!')
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail # Runtime error: Expect.fail('NoSuchMethodException expected.')
+LibTest/core/Future/chain_A03_t01: Fail # Runtime error: Expect.fail('exception handler should not be called')
+LibTest/core/Future/transform_A03_t01: Fail # Runtime error: Expect.fail('exception handler should not be called')
+Language/10_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
+Language/09_Generics/09_Generics_A04_t04: Fail # Runtime error: Expect.isFalse(true, 'Using malformed type in a type test expression should result in a run-time error!') fails.
+LibTest/core/Expect/throws_A01_t03: Fail # Runtime error: Expect.isTrue(false) fails.
+Language/11_Statements/08_Switch_A02_t01: Fail # Runtime error: Expect.throws() fails
+LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Runtime error: Expect.throws() fails
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Runtime error: NoSuchMethodException : method not found: '$call'
+Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Runtime error: NoSuchMethodException : method not found: 'get g3tt3r'
+Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'get v'
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Runtime error: NoSuchMethodException : method not found: 'm'
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'm'
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Runtime error: NoSuchMethodException : method not found: 'nonExistingMethod'
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Runtime error: NoSuchMethodException : method not found: 'nonExistingMethod'
+Language/10_Expressions/16_Assignment_A08_t04: Fail # Runtime error: NoSuchMethodException : method not found: 'operator$indexSet'
+Language/10_Expressions/16_Assignment_A05_t04: Fail # Runtime error: NoSuchMethodException : method not found: 'set nonExistingSetter'
+Language/10_Expressions/16_Assignment_A05_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'set setter'
+Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
+LibTest/core/Future/handleException_A01_t07: Fail # Runtime error: TypeError: Cannot call method '$call$1' of undefined
+LibTest/core/Future/then_A01_t05: Fail # Runtime error: TypeError: Cannot call method '$call$1' of undefined
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail # Runtime error: TypeError: Cannot call method '$call$2' of undefined
+LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+LibTest/isolate/Isolate/spawn_A01_t01: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+LibTest/isolate/Isolate/spawn_A01_t02: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+LibTest/isolate/Isolate/spawn_A01_t04: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+LibTest/isolate/Isolate/spawn_A01_t05: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+LibTest/isolate/Isolate/spawn_A01_t06: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail # Runtime error: TypeError: Object  has no method '$call$2'
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Runtime error: TypeError: Object #<A> has no method '$call$0'
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail # Runtime error: TypeError: Object 1 has no method '$call$0'
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # Runtime error: TypeError: Object 1 has no method '$call$0'
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail # Runtime error: TypeError: Object 1 has no method '$call$3'
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t02: Fail # Runtime error: TypeError: Object 1 has no method '$call$3'
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # Runtime error: TypeError: Object a1 has no method '$call$2'
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
+LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/SendPort/send_A02_t05: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/SendPort/send_A02_t06: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
 
-[ $compiler == dart2js ]
 
 # The following tests use the deprecated Date interface.
-LibTest/core/Date/Date_A02_t01: Fail
-LibTest/core/Date/Date.now_A02_t01: Fail
-LibTest/core/Date/add_A04_t01: Fail
+LibTest/core/Date/Date_A02_t01: Fail, OK
+LibTest/core/Date/Date.now_A02_t01: Fail, OK
+LibTest/core/Date/add_A04_t01: Fail, OK
 LibTest/core/Date/value_A01_t02: Skip
 LibTest/core/Date/value_A02_t01: Skip
-LibTest/core/Date/isLocalTime_A01_t01: Fail
+LibTest/core/Date/isLocalTime_A01_t01: Fail, OK
 LibTest/core/Date/toString_A02_t01: Skip
-LibTest/core/Date/Date.fromString_A01_t03: Fail
+LibTest/core/Date/Date.fromString_A01_t03: Fail, OK
 LibTest/core/Date/changeTimeZone_A01_t01: Skip
-LibTest/core/Date/changeTimeZone_A02_t01: Fail
-LibTest/core/Date/changeTimeZone_A03_t01: Fail
+LibTest/core/Date/changeTimeZone_A02_t01: Fail, OK
+LibTest/core/Date/changeTimeZone_A03_t01: Fail, OK
 LibTest/core/Date/changeTimeZone_A04_t01: Skip
-LibTest/core/Date/changeTimeZone_A05_t01: Fail
-LibTest/core/Date/isUtc_A01_t01: Fail
+LibTest/core/Date/changeTimeZone_A05_t01: Fail, OK
+LibTest/core/Date/isUtc_A01_t01: Fail, OK
 LibTest/core/Date/timeZone_A01_t01: Skip
-LibTest/core/Date/timeZone_A01_t02: Fail
-LibTest/core/Date/timeZone_A01_t03: Fail
+LibTest/core/Date/timeZone_A01_t02: Fail, OK
+LibTest/core/Date/timeZone_A01_t03: Fail, OK
 LibTest/core/Date/difference_A01_t01: Skip
 LibTest/core/Date/difference_A01_t02: Skip
-LibTest/core/Date/subtract_A04_t01: Fail
-LibTest/core/Date/Date.fromEpoch_A03_t01: Fail
-LibTest/core/Date/Date.fromEpoch_A01_t03: Fail
+LibTest/core/Date/subtract_A04_t01: Fail, OK
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, OK
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, OK
 LibTest/core/Date/Date.fromEpoch_A01_t02: Skip
 LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
 LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
@@ -76,7 +187,6 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -90,7 +200,6 @@ Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail, OK # Dart issue 2259.
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail, OK # Dart issue 2259.
 LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
@@ -102,14 +211,10 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail, OK # Assumes super scope comes before library scope.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
 LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
-LibTest/core/Match/group_A01_t01: Fail, OK # co19 issue 92.
-LibTest/core/Match/groups_A01_t01: Fail, OK # co19 issue 92.
-LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 92.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Match/str_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
@@ -118,14 +223,7 @@ LibTest/core/Math/pow_A11_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sin_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/tan_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail, OK # co19 issue 92.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail, OK # co19 issue 92.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 92.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail, OK # co19 issue 92.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail, OK # co19 issue 92.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail, OK # This is not rejected by V8.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail, OK # co19 issue 92.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 92.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 92.
 LibTest/core/RegExp/RegExp_A01_t03: Fail, OK # Expects exception from const constructor.
 LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const constructor.
@@ -190,7 +288,6 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A06_t04: Pass # internal error: 
 
 Language/03_Overview/1_Scoping_A02_t07: Fail # duplicate definition of f(var f){f();}
 Language/03_Overview/1_Scoping_A02_t12: Fail # duplicate definition of x=42
-Language/03_Overview/1_Scoping_A02_t13: Fail # duplicate definition of x=0
 Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessibleFuncType
 Language/03_Overview/2_Privacy_A01_t11: Fail # internal error: super property read not implemented
 Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=> _
@@ -240,7 +337,6 @@ Language/10_Expressions/01_Constants_A15_t24: Fail # test will change: issue 227
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # Unimplemented non-matching static call
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # internal error: super property store not implemented
 Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
 Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
 Language/10_Expressions/20_Equality_A08_t01: Fail # !== cannot be called on super
@@ -250,7 +346,6 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 [ $compiler == dart2js && $runtime == d8 ]
-Language/03_Overview/2_Privacy_A01_t16: Fail # Expect.equals(expected: <1>, actual: <54>) fails.
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
@@ -264,21 +359,13 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 
 Language/10_Expressions/06_Lists_A07_t02: Fail # generic type information is lost during canonicalization.
 Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost during canonicalization.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # Should throw ObjectNotClosure, not NoSuchMethodException.
-Language/10_Expressions/16_Assignment_A05_t06: Fail # Wrong name passed to noSuchMethod.
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
 Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
 Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # NoSuchMethodException : method not found: '-'
-
-[ $compiler == dart2js && $runtime == none ]
-Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # TODO(ahe): Please triage
-Language/12_Libraries_and_Scripts/3_Scripts_A03_t03: Fail # TODO(ahe): Please triage
-
 
 #
 # The following tests may be broken, but require further review.
@@ -313,6 +400,7 @@ Language/03_Overview/2_Privacy_A01_t20: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A01_t04: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A01_t05: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A01_t08: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A01_t15: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t01: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t02: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t03: Fail, OK # @compile-error
@@ -321,16 +409,37 @@ Language/05_Variables/05_Variables_A03_t05: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t06: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t07: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t08: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A03_t10: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A04_t03: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A04_t04: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A04_t07: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A04_t08: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A04_t10: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A05_t01: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A05_t04: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A07_t01: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A07_t02: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t01: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t02: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t03: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t04: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t05: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t06: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A08_t07: Fail, OK # @compile-error
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A02_t02: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A03_t02: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t03: Fail, OK # @compile-error
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t04: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t05: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t06: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t07: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t06: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t07: Fail, OK # @compile-error
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t01: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t02: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t03: Fail, OK # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t04: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A02_t02: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A02_t04: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A02_t05: Fail, OK # @compile-error
@@ -338,6 +447,13 @@ Language/07_Classes/07_Classes_A02_t07: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A02_t09: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A02_t10: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A02_t11: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t25: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t26: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t27: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t28: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t29: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t31: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A02_t33: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A03_t02: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A03_t03: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A03_t04: Fail, OK # @compile-error
@@ -347,6 +463,13 @@ Language/07_Classes/07_Classes_A03_t07: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A03_t08: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A03_t09: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A04_t18: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t19: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t20: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t21: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t22: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t23: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t24: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A04_t25: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A07_t01: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A07_t04: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A07_t07: Fail, OK # @compile-error
@@ -355,7 +478,6 @@ Language/07_Classes/07_Classes_A08_t01: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A09_t01: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A09_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t01: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail, OK # @compile-error
@@ -368,7 +490,6 @@ Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail, OK # @c
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A03_t01: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A03_t02: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t01: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A04_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A04_t03: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A04_t04: Fail, OK # @compile-error
@@ -441,21 +562,24 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail, OK #
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t05: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t06: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail, OK # @compile-error
-Language/07_Classes/7_Static_Variables_A06_t01: Fail, OK # @compile-error
-Language/07_Classes/7_Static_Variables_A06_t02: Fail, OK # @compile-error
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail, OK # @compile-error
+Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods_A01_t01: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods_A03_t01: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods_A03_t02: Fail, OK # @compile-error
@@ -489,6 +613,9 @@ Language/08_Interfaces/3_Factories_and_Constructors_A02_t10: Fail, OK # @compile
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t01: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t02: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t03: Fail, OK # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t04: Fail, OK # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t05: Fail, OK # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t06: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t01: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t02: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t03: Fail, OK # @compile-error
@@ -503,13 +630,9 @@ Language/08_Interfaces/3_Factories_and_Constructors_A10_t04: Fail, OK # @compile
 Language/08_Interfaces/3_Factories_and_Constructors_A10_t05: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A10_t06: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A01_t02: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A02_t01: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A02_t02: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A02_t03: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A02_t04: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A02_t05: Fail, OK # @compile-error
-Language/09_Generics/09_Generics_A01_t10: Fail, OK # @compile-error
-Language/10_Expressions/01_Constants_A15_t34: Fail, OK # @compile-error
+Language/08_Interfaces/Interfaces_A01_t06: Fail, OK # @compile-error
+Language/08_Interfaces/Interfaces_A01_t07: Fail, OK # @compile-error
+Language/10_Expressions/01_Constants_A15_t38: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, OK # @compile-error
 Language/10_Expressions/06_Lists_A04_t01: Fail, OK # @compile-error
 Language/10_Expressions/07_Maps_A03_t01: Fail, OK # @compile-error
@@ -517,8 +640,9 @@ Language/10_Expressions/08_Function_Expressions_A01_t03: Fail, OK # @compile-err
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail, OK # @compile-error
-Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A05_t05: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t16: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A05_t05: Fail, OK # @compile-error
+Language/10_Expressions/15_Getter_Invocation_A09_t03: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t15: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t16: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t17: Fail, OK # @compile-error
@@ -529,8 +653,67 @@ Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail, OK # @compile-e
 Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t01: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t02: Fail, OK # @compile-error
+Language/11_Statements/05_For_A01_t12: Fail, OK # @compile-error
+Language/11_Statements/08_Switch_A05_t01: Fail, OK # @compile-error
+Language/11_Statements/08_Switch_A05_t02: Fail, OK # @compile-error
+Language/11_Statements/08_Switch_A06_t01: Fail, OK # @compile-error
+Language/11_Statements/08_Switch_A06_t02: Fail, OK # @compile-error
+Language/11_Statements/08_Switch_A06_t03: Fail, OK # @compile-error
+Language/11_Statements/08_Switch_A06_t04: Fail, OK # @compile-error
 Language/11_Statements/09_Try_A01_t14: Fail, OK # @compile-error
 Language/11_Statements/09_Try_A01_t18: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
@@ -542,11 +725,14 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail, OK # @
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t17: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/1_Imports_A03_t05: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/1_Imports_A07_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/1_Imports_A07_t02: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Includes_A01_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Includes_A03_t03: Fail, OK # @compile-error
-Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A07_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A07_t02: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/3_Includes_A01_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/3_Includes_A03_t03: Fail, OK # @compile-error
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail, OK # @compile-error
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail, OK # @compile-error
 Language/13_Types/7_Type_Void_A01_t02: Fail, OK # @compile-error
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail, OK # @compile-error
+Language/14_Reference/1_Lexical_Rules_A02_t06: Fail, OK # @compile-error

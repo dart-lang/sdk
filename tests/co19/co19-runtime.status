@@ -11,27 +11,12 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # issue 1604 (c
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1604 (call operator not implemented)
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (call operator not implemented)
 Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
-Language/10_Expressions/01_Constants_A15_t01: Fail # co19 issue 100
-Language/10_Expressions/01_Constants_A15_t34: Fail # co19 issue 106
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # issue 1286. (This test may become obsolete)
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # issue 2014 (Evaluation order in ctor initializers)
-Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # co19 issue 93 (must import dart:isolate)
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail # co19 issue 116
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # co19 issue 116
 
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # issue 1604.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # issue 2024, 1244
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # issue 2024, 1244
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Fail # issue 2024, 1244
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # issue 2024, 1244
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # issue 2024, 1244
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t01: Fail # issue 2028
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # issue 2028
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # issue 2028
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # issue 2028
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # issue 2024, 1244
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # issue 1286 (function literals vs. function statements)
 Language/10_Expressions/20_Equality_A01_t01: Fail # issue 2033 (super call of !=, === etc)
 Language/10_Expressions/20_Equality_A05_t01: Fail # issue 2033 (super call of !=, === etc)
@@ -46,8 +31,6 @@ Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # issue 1288 (unary s
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # issue 1286 (function literals vs. function statements)
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # co19 issue 91: map literals illegal at statement beginning.
-Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail # co19 issue 116
-Language/10_Expressions/29_Type_Test_A04_t01: Fail # co19 issue 97.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/09_Try_A02_t02: Fail # co19 issue 119
@@ -55,16 +38,10 @@ Language/11_Statements/09_Try_A05_t06: Fail # issue 430
 Language/13_Types/5_Function_Types_A02_t01: Fail # issue 1604 (call operator not implemented)
 LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
 
-LibTest/core/Promise/*: Skip    # removed from corelib, (co19 issue #79)
-LibTest/core/Proxy/*: Skip      # removed from corelib, (co19 issue #79)
-LibTest/core/Dispatcher/*: Skip # removed from corelib, (co19 issue #79)
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # Promise removed (co19 issue #79)
 
-LibTest/core/Isolate/*: Skip # missing #import("dart:isolate") (co19 issue #80)
-LibTest/core/SendPort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
-LibTest/core/ReceivePort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
 
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
@@ -83,7 +60,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
-LibTest/core/Expect/throws_A01_t04: Fail # Issue co19 - 119
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
@@ -122,9 +98,7 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $checked ]
 Language/09_Generics/09_Generics_A04_t06: Fail # co19 issue 118
-LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
 LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
-Language/12_Libraries_and_Scripts/3_Scripts_A02_t01: Fail # Issue co19 - 110
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A01_t01: Fail # Issue co19 - 110
 
 
@@ -177,12 +151,10 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 # The following tests contain String operator + which is being removed
 # from the language. These tests pass or fail depending on whether support
 # for + is enabled or not.
-Language/05_Variables/05_Variables_A05_t04: Pass,Fail
 Language/11_Statements/10_Return_A02_t01: Pass,Fail
 Language/11_Statements/08_Switch_A02_t02: Pass,Fail
 Language/11_Statements/08_Switch_A01_t03: Pass,Fail
 Language/11_Statements/07_Do_A02_t02: Pass,Fail
-Language/11_Statements/05_For/2_Foreach_A01_t05: Pass,Fail
 Language/11_Statements/05_For/1_For_Loop_A01_t05: Pass,Fail
 Language/11_Statements/05_For/1_For_Loop_A01_t02: Pass,Fail
 Language/11_Statements/01_Blocks_A01_t03: Pass,Fail
@@ -190,9 +162,7 @@ Language/11_Statements/02_Expression_Statements_A01_t01: Pass,Fail
 Language/11_Statements/01_Blocks_A01_t01: Pass,Fail
 Language/10_Expressions/17_Conditional_A03_t01: Pass,Fail
 Language/10_Expressions/17_Conditional_A01_t01: Pass,Fail
-Language/10_Expressions/16_Assignment_A05_t06: Pass,Fail
 Language/10_Expressions/16_Assignment_A05_t03: Pass,Fail
-Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A04_t05: Pass,Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A04_t01: Pass,Fail
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Pass,Fail
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Pass,Fail
@@ -202,7 +172,6 @@ Language/10_Expressions/12_Property_Extraction_A01_t01: Pass,Fail
 Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Pass,Fail
 Language/10_Expressions/10_Instance_Creation/1_New_A13_t03: Pass,Fail
 Language/10_Expressions/10_Instance_Creation/1_New_A13_t01: Pass,Fail
-Language/10_Expressions/10_Instance_Creation/1_New_A10_t03: Pass,Fail
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t05: Pass,Fail
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Pass,Fail
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Pass,Fail
@@ -225,10 +194,6 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Pass,Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A06_t02: Pass,Fail
 LibTest/core/String/String_class_A02_t01: Pass,Fail
 LibTest/core/String/String_class_A01_t01: Pass,Fail
-LibTest/core/String/operator_addition_A01_t04: Pass,Fail
-LibTest/core/String/operator_addition_A01_t03: Pass,Fail
-LibTest/core/String/operator_addition_A01_t02: Pass,Fail
-LibTest/core/String/operator_addition_A01_t01: Pass,Fail
 LibTest/core/Stopwatch/start_A01_t02: Pass,Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: Pass,Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: Pass,Fail
@@ -244,9 +209,7 @@ LibTest/core/Date/Date_A01_t02: Pass,Fail
 LibTest/core/Date/Date.withTimeZone_A01_t02: Pass,Fail
 
 
-LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
-Language/03_Overview/1_Scoping_A02_t05: Fail # co19 issue 126
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
 Language/07_Classes/07_Classes_A02_t08: Fail
@@ -259,8 +222,6 @@ Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t02: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t03: Fail
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail  # co19 issue 379
-Language/07_Classes/1_Instance_Methods_A04_t02: Fail
-Language/07_Classes/1_Instance_Methods_A04_t03: Fail
 Language/07_Classes/2_Getters_A01_t02: Fail
 Language/07_Classes/3_Setters_A01_t02: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t02: Fail
@@ -279,11 +240,6 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail
-Language/08_Interfaces/Interfaces_A02_t01: Fail # co19 issue 123
-Language/08_Interfaces/Interfaces_A02_t02: Fail # co19 issue 123
-Language/08_Interfaces/Interfaces_A02_t03: Fail # co19 issue 123
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail # co19 issue 123
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t02: Fail # co19 issue 123
 Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail
@@ -302,20 +258,10 @@ Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail #co19 issue 131
 Language/08_Interfaces/4_Superinterfaces_A01_t02: Fail
-Language/13_Types/4_Interface_Types_A10_t04: Fail # co19 issue 127
 Language/13_Types/4_Interface_Types_A10_t09: Fail # co19 issue 127
 Language/13_Types/5_Function_Types_A01_t08: Fail # co19 issue 127
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t01: Fail
-LibTest/core/Match/group_A01_t01: Fail # co19 issue 92
-LibTest/core/Match/groups_A01_t01: Fail # co19 issue 92
-LibTest/core/ReceivePort/receive_A01_t02: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail # co19 issue 92
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail # co19 issue 92
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail # co19 issue 92
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # co19 issue 92
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # co19 issue 92
-LibTest/core/SendPort/send_A02_t01: Fail
 LibTest/core/String/contains_A01_t02: Fail
 LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
@@ -324,7 +270,6 @@ LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
 Language/03_Overview/2_Privacy_A01_t11: Fail # Related to issue 978
 Language/03_Overview/2_Privacy_A01_t16: Fail # Issue 2242
 Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 3206
 
 
 [ $runtime == vm && $arch == ia32 ]
@@ -332,8 +277,6 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 
 [ $runtime == vm && $unchecked ]
-Language/09_Generics/09_Generics_A04_t04: Fail # co19 issue 117
-Language/13_Types/1_Static_Types_A02_t08: Fail # co19 issue 128
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 
 
@@ -343,3 +286,165 @@ Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 
 [ $arch == arm ]
 *: Skip
+
+
+[ $runtime == vm ]
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail
+Language/07_Classes/07_Classes_A02_t29: Fail
+Language/07_Classes/07_Classes_A02_t31: Fail
+Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail
+Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail
+Language/10_Expressions/05_Strings_A20_t01: Fail
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t02: Fail
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail
+Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail
+Language/10_Expressions/29_Type_Test_A05_t01: Fail
+Language/10_Expressions/29_Type_Test_A05_t02: Fail
+Language/10_Expressions/29_Type_Test_A05_t03: Fail
+Language/11_Statements/08_Switch_A02_t01: Fail
+Language/11_Statements/08_Switch_A05_t01: Fail
+Language/11_Statements/08_Switch_A05_t02: Fail
+Language/11_Statements/08_Switch_A06_t01: Fail
+Language/11_Statements/08_Switch_A06_t02: Fail
+Language/11_Statements/08_Switch_A06_t03: Fail
+Language/11_Statements/08_Switch_A06_t04: Fail
+Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail
+Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail
+Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail
+LibTest/core/Future/handleException_A01_t07: Fail
+LibTest/core/Future/then_A01_t05: Fail
+LibTest/core/Futures/wait_A01_t02: Fail
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
+
+
+# 'case' or '}' expected
+Language/11_Statements/08_Switch_A01_t01: Fail
+
+
+# 'foo' is already defined
+Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail
+
+
+# class '?' overrides function '?' of super class '?' with incompatible parameters
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail
+Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail
+Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail
+Language/10_Expressions/16_Assignment_A05_t02: Fail
+Language/10_Expressions/16_Assignment_A05_t04: Fail
+Language/10_Expressions/16_Assignment_A05_t05: Fail
+Language/10_Expressions/16_Assignment_A08_t04: Fail
+
+
+# duplicate formal parameter 'f'
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail
+
+
+# function '?' not found in super class
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t01: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail
+
+
+# function '?' of class '?' conflicts with getter 'f' of super class '?'
+Language/07_Classes/1_Instance_Methods_A05_t02: Fail
+
+
+# function '?' of class '?' conflicts with setter 'f' of super class '?'
+Language/07_Classes/1_Instance_Methods_A05_t03: Fail
+
+
+# identifier expected
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t01: Fail
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail
+
+# initializer must be a compile time constant
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail
+Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail
+Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail
+Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail
+
+
+# invalid operator overloading
+Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail
+Language/07_Classes/1_Instance_Methods/2_Operators_A09_t01: Fail
+Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
+Language/10_Expressions/01_Constants_A18_t03: Fail
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail
+Language/10_Expressions/20_Equality_A02_t02: Fail
+Language/10_Expressions/20_Equality_A02_t03: Fail
+Language/10_Expressions/20_Equality_A02_t04: Fail
+Language/10_Expressions/20_Equality_A03_t01: Fail
+Language/10_Expressions/20_Equality_A03_t02: Fail
+Language/10_Expressions/20_Equality_A03_t03: Fail
+
+
+# keyword 'const' not allowed in field declaration
+Language/07_Classes/4_Instance_Variables_A02_t01: Fail
+Language/07_Classes/4_Instance_Variables_A02_t06: Fail
+Language/07_Classes/7_Static_Variables_A01_t01: Fail
+Language/07_Classes/7_Static_Variables_A01_t05: Fail
+
+
+# missing 'var', 'final' or type in field declaration
+Language/07_Classes/4_Instance_Variables_A03_t01: Fail
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t04: Fail
+Language/07_Classes/7_Static_Variables_A02_t01: Fail
+
+
+# parameter name or type expected
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail
+
+
+# prefix should be an identifier
+Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail
+
+
+# unexpected token '&&'
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail
+
+
+# unexpected token 'const'
+Language/05_Variables/05_Variables_A01_t01: Fail
+Language/05_Variables/05_Variables_A04_t09: Fail
+Language/05_Variables/05_Variables_A05_t03: Fail
+Language/10_Expressions/01_Constants_A05_t01: Fail
+Language/10_Expressions/01_Constants_A06_t01: Fail
+Language/10_Expressions/01_Constants_A18_t02: Fail
+
+
+# using 'x' in this context is invalid
+Language/11_Statements/05_For_A01_t11: Fail
