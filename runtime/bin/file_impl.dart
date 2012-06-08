@@ -38,6 +38,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   void _closeFile() {
+    if (available() == 0) _cancelScheduledDataCallback();
     if (!_openedFile.closed) {
       _openedFile.close().then((ignore) {
         _streamMarkedClosed = true;
