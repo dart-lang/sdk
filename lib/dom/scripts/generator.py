@@ -275,6 +275,8 @@ def AnalyzeConstructor(interface):
     return map(lambda arg: _DartArg([arg], interface, True),
                func_value.arguments)
 
+  if 'CustomConstructor' in interface.ext_attrs:
+    return None
   if 'Constructor' in interface.ext_attrs:
     name = None
     func_value = interface.ext_attrs.get('Constructor')

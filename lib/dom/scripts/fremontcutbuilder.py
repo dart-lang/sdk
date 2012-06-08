@@ -85,9 +85,6 @@ DEFAULT_FEATURE_DEFINES = [
     'ENABLE_XSLT',
 ]
 
-# TODO(antonm): Remove this filter.
-UNSUPPORTED_FEATURES = [ 'ENABLE_WEB_INTENTS' ]
-
 def build_database(idl_files, database_dir, feature_defines = None):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
@@ -113,8 +110,8 @@ def build_database(idl_files, database_dir, feature_defines = None):
 
   webkit_options = databasebuilder.DatabaseBuilderOptions(
       idl_syntax=idlparser.WEBKIT_SYNTAX,
-# TODO(vsm): What else should we define as on when processing IDL?
-      idl_defines=[define for define in webkit_defines + feature_defines if define not in UNSUPPORTED_FEATURES],
+      # TODO(vsm): What else should we define as on when processing IDL?
+      idl_defines=webkit_defines + feature_defines,
       source='WebKit',
       source_attributes={'revision': webkit_revision},
       type_rename_map={
