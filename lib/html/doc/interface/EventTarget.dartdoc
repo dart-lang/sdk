@@ -1,0 +1,36 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+interface EventListenerList {
+  EventListenerList add(EventListener handler, [bool useCapture]);
+
+  EventListenerList remove(EventListener handler, [bool useCapture]);
+
+  bool dispatch(Event evt);
+}
+
+interface Events {
+  EventListenerList operator [](String type);
+}
+
+/// @domName EventTarget
+interface EventTarget {
+
+  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
+  final Events on;
+
+  /** @domName EventTarget.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName EventTarget.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName EventTarget.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+}

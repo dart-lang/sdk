@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MutationEvent
+interface MutationEvent extends Event {
+
+  static final int ADDITION = 2;
+
+  static final int MODIFICATION = 1;
+
+  static final int REMOVAL = 3;
+
+  /** @domName MutationEvent.attrChange */
+  final int attrChange;
+
+  /** @domName MutationEvent.attrName */
+  final String attrName;
+
+  /** @domName MutationEvent.newValue */
+  final String newValue;
+
+  /** @domName MutationEvent.prevValue */
+  final String prevValue;
+
+  /** @domName MutationEvent.relatedNode */
+  final Node relatedNode;
+
+  /** @domName MutationEvent.initMutationEvent */
+  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}

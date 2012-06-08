@@ -1,0 +1,28 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Int16Array
+interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+
+  Int16Array(int length);
+
+  Int16Array.fromList(List<int> list);
+
+  Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+
+  static final int BYTES_PER_ELEMENT = 2;
+
+  /** @domName Int16Array.length */
+  final int length;
+
+  /** @domName Int16Array.setElements */
+  void setElements(Object array, [int offset]);
+
+  /** @domName Int16Array.subarray */
+  Int16Array subarray(int start, [int end]);
+}

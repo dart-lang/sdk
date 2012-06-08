@@ -1,0 +1,36 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGFEDisplacementMapElement
+interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_CHANNEL_A = 4;
+
+  static final int SVG_CHANNEL_B = 3;
+
+  static final int SVG_CHANNEL_G = 2;
+
+  static final int SVG_CHANNEL_R = 1;
+
+  static final int SVG_CHANNEL_UNKNOWN = 0;
+
+  /** @domName SVGFEDisplacementMapElement.in1 */
+  final SVGAnimatedString in1;
+
+  /** @domName SVGFEDisplacementMapElement.in2 */
+  final SVGAnimatedString in2;
+
+  /** @domName SVGFEDisplacementMapElement.scale */
+  final SVGAnimatedNumber scale;
+
+  /** @domName SVGFEDisplacementMapElement.xChannelSelector */
+  final SVGAnimatedEnumeration xChannelSelector;
+
+  /** @domName SVGFEDisplacementMapElement.yChannelSelector */
+  final SVGAnimatedEnumeration yChannelSelector;
+}

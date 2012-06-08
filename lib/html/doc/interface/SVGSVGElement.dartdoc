@@ -1,0 +1,125 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// @domName SVGSVGElement
+interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
+    default _SVGSVGElementFactoryProvider {
+  SVGSVGElement();
+
+
+  /** @domName SVGSVGElement.contentScriptType */
+  String contentScriptType;
+
+  /** @domName SVGSVGElement.contentStyleType */
+  String contentStyleType;
+
+  /** @domName SVGSVGElement.currentScale */
+  num currentScale;
+
+  /** @domName SVGSVGElement.currentTranslate */
+  final SVGPoint currentTranslate;
+
+  /** @domName SVGSVGElement.currentView */
+  final SVGViewSpec currentView;
+
+  /** @domName SVGSVGElement.height */
+  final SVGAnimatedLength height;
+
+  /** @domName SVGSVGElement.pixelUnitToMillimeterX */
+  final num pixelUnitToMillimeterX;
+
+  /** @domName SVGSVGElement.pixelUnitToMillimeterY */
+  final num pixelUnitToMillimeterY;
+
+  /** @domName SVGSVGElement.screenPixelToMillimeterX */
+  final num screenPixelToMillimeterX;
+
+  /** @domName SVGSVGElement.screenPixelToMillimeterY */
+  final num screenPixelToMillimeterY;
+
+  /** @domName SVGSVGElement.useCurrentView */
+  final bool useCurrentView;
+
+  /** @domName SVGSVGElement.viewport */
+  final SVGRect viewport;
+
+  /** @domName SVGSVGElement.width */
+  final SVGAnimatedLength width;
+
+  /** @domName SVGSVGElement.x */
+  final SVGAnimatedLength x;
+
+  /** @domName SVGSVGElement.y */
+  final SVGAnimatedLength y;
+
+  /** @domName SVGSVGElement.animationsPaused */
+  bool animationsPaused();
+
+  /** @domName SVGSVGElement.checkEnclosure */
+  bool checkEnclosure(SVGElement element, SVGRect rect);
+
+  /** @domName SVGSVGElement.checkIntersection */
+  bool checkIntersection(SVGElement element, SVGRect rect);
+
+  /** @domName SVGSVGElement.createSVGAngle */
+  SVGAngle createSVGAngle();
+
+  /** @domName SVGSVGElement.createSVGLength */
+  SVGLength createSVGLength();
+
+  /** @domName SVGSVGElement.createSVGMatrix */
+  SVGMatrix createSVGMatrix();
+
+  /** @domName SVGSVGElement.createSVGNumber */
+  SVGNumber createSVGNumber();
+
+  /** @domName SVGSVGElement.createSVGPoint */
+  SVGPoint createSVGPoint();
+
+  /** @domName SVGSVGElement.createSVGRect */
+  SVGRect createSVGRect();
+
+  /** @domName SVGSVGElement.createSVGTransform */
+  SVGTransform createSVGTransform();
+
+  /** @domName SVGSVGElement.createSVGTransformFromMatrix */
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix);
+
+  /** @domName SVGSVGElement.deselectAll */
+  void deselectAll();
+
+  /** @domName SVGSVGElement.forceRedraw */
+  void forceRedraw();
+
+  /** @domName SVGSVGElement.getCurrentTime */
+  num getCurrentTime();
+
+  /** @domName SVGSVGElement.getElementById */
+  Element getElementById(String elementId);
+
+  /** @domName SVGSVGElement.getEnclosureList */
+  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement);
+
+  /** @domName SVGSVGElement.getIntersectionList */
+  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement);
+
+  /** @domName SVGSVGElement.pauseAnimations */
+  void pauseAnimations();
+
+  /** @domName SVGSVGElement.setCurrentTime */
+  void setCurrentTime(num seconds);
+
+  /** @domName SVGSVGElement.suspendRedraw */
+  int suspendRedraw(int maxWaitMilliseconds);
+
+  /** @domName SVGSVGElement.unpauseAnimations */
+  void unpauseAnimations();
+
+  /** @domName SVGSVGElement.unsuspendRedraw */
+  void unsuspendRedraw(int suspendHandleId);
+
+  /** @domName SVGSVGElement.unsuspendRedrawAll */
+  void unsuspendRedrawAll();
+
+}

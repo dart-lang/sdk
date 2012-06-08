@@ -1,0 +1,26 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName DOMImplementation
+interface DOMImplementation {
+
+  /** @domName DOMImplementation.createCSSStyleSheet */
+  CSSStyleSheet createCSSStyleSheet(String title, String media);
+
+  /** @domName DOMImplementation.createDocument */
+  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype);
+
+  /** @domName DOMImplementation.createDocumentType */
+  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId);
+
+  /** @domName DOMImplementation.createHTMLDocument */
+  Document createHTMLDocument(String title);
+
+  /** @domName DOMImplementation.hasFeature */
+  bool hasFeature(String feature, String version);
+}

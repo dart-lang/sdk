@@ -1,0 +1,467 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName DOMWindow
+interface Window extends EventTarget {
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback);
+
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  void cancelAnimationFrame(int id);
+
+  IDBFactory get indexedDB();
+
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  WindowEvents get on();
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  /** @domName DOMWindow.applicationCache */
+  final DOMApplicationCache applicationCache;
+
+  /** @domName DOMWindow.clientInformation */
+  final Navigator clientInformation;
+
+  /** @domName DOMWindow.closed */
+  final bool closed;
+
+  /** @domName DOMWindow.console */
+  final Console console;
+
+  /** @domName DOMWindow.crypto */
+  final Crypto crypto;
+
+  /** @domName DOMWindow.defaultStatus */
+  String defaultStatus;
+
+  /** @domName DOMWindow.defaultstatus */
+  String defaultstatus;
+
+  /** @domName DOMWindow.devicePixelRatio */
+  final num devicePixelRatio;
+
+  /** @domName DOMWindow.document */
+  final Document document;
+
+  /** @domName DOMWindow.event */
+  final Event event;
+
+  /** @domName DOMWindow.frames */
+  final Window frames;
+
+  /** @domName DOMWindow.history */
+  final History history;
+
+  /** @domName DOMWindow.innerHeight */
+  final int innerHeight;
+
+  /** @domName DOMWindow.innerWidth */
+  final int innerWidth;
+
+  /** @domName DOMWindow.length */
+  final int length;
+
+  /** @domName DOMWindow.localStorage */
+  final Storage localStorage;
+
+  /** @domName DOMWindow.location */
+  Location location;
+
+  /** @domName DOMWindow.locationbar */
+  final BarInfo locationbar;
+
+  /** @domName DOMWindow.menubar */
+  final BarInfo menubar;
+
+  /** @domName DOMWindow.name */
+  String name;
+
+  /** @domName DOMWindow.navigator */
+  final Navigator navigator;
+
+  /** @domName DOMWindow.offscreenBuffering */
+  final bool offscreenBuffering;
+
+  /** @domName DOMWindow.opener */
+  final Window opener;
+
+  /** @domName DOMWindow.outerHeight */
+  final int outerHeight;
+
+  /** @domName DOMWindow.outerWidth */
+  final int outerWidth;
+
+  /** @domName DOMWindow.pagePopupController */
+  final PagePopupController pagePopupController;
+
+  /** @domName DOMWindow.pageXOffset */
+  final int pageXOffset;
+
+  /** @domName DOMWindow.pageYOffset */
+  final int pageYOffset;
+
+  /** @domName DOMWindow.parent */
+  final Window parent;
+
+  /** @domName DOMWindow.performance */
+  final Performance performance;
+
+  /** @domName DOMWindow.personalbar */
+  final BarInfo personalbar;
+
+  /** @domName DOMWindow.screen */
+  final Screen screen;
+
+  /** @domName DOMWindow.screenLeft */
+  final int screenLeft;
+
+  /** @domName DOMWindow.screenTop */
+  final int screenTop;
+
+  /** @domName DOMWindow.screenX */
+  final int screenX;
+
+  /** @domName DOMWindow.screenY */
+  final int screenY;
+
+  /** @domName DOMWindow.scrollX */
+  final int scrollX;
+
+  /** @domName DOMWindow.scrollY */
+  final int scrollY;
+
+  /** @domName DOMWindow.scrollbars */
+  final BarInfo scrollbars;
+
+  /** @domName DOMWindow.self */
+  final Window self;
+
+  /** @domName DOMWindow.sessionStorage */
+  final Storage sessionStorage;
+
+  /** @domName DOMWindow.status */
+  String status;
+
+  /** @domName DOMWindow.statusbar */
+  final BarInfo statusbar;
+
+  /** @domName DOMWindow.styleMedia */
+  final StyleMedia styleMedia;
+
+  /** @domName DOMWindow.toolbar */
+  final BarInfo toolbar;
+
+  /** @domName DOMWindow.top */
+  final Window top;
+
+  /** @domName DOMWindow.webkitIndexedDB */
+  final IDBFactory webkitIndexedDB;
+
+  /** @domName DOMWindow.webkitNotifications */
+  final NotificationCenter webkitNotifications;
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  final StorageInfo webkitStorageInfo;
+
+  /** @domName DOMWindow.window */
+  final Window window;
+
+  /** @domName DOMWindow.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName DOMWindow.alert */
+  void alert(String message);
+
+  /** @domName DOMWindow.atob */
+  String atob(String string);
+
+  /** @domName DOMWindow.blur */
+  void blur();
+
+  /** @domName DOMWindow.btoa */
+  String btoa(String string);
+
+  /** @domName DOMWindow.captureEvents */
+  void captureEvents();
+
+  /** @domName DOMWindow.clearInterval */
+  void clearInterval(int handle);
+
+  /** @domName DOMWindow.clearTimeout */
+  void clearTimeout(int handle);
+
+  /** @domName DOMWindow.close */
+  void close();
+
+  /** @domName DOMWindow.confirm */
+  bool confirm(String message);
+
+  /** @domName DOMWindow.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName DOMWindow.find */
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
+
+  /** @domName DOMWindow.focus */
+  void focus();
+
+  /** @domName DOMWindow.getComputedStyle */
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
+
+  /** @domName DOMWindow.getMatchedCSSRules */
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
+
+  /** @domName DOMWindow.getSelection */
+  DOMSelection getSelection();
+
+  /** @domName DOMWindow.matchMedia */
+  MediaQueryList matchMedia(String query);
+
+  /** @domName DOMWindow.moveBy */
+  void moveBy(num x, num y);
+
+  /** @domName DOMWindow.moveTo */
+  void moveTo(num x, num y);
+
+  /** @domName DOMWindow.open */
+  Window open(String url, String name, [String options]);
+
+  /** @domName DOMWindow.openDatabase */
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  /** @domName DOMWindow.postMessage */
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
+
+  /** @domName DOMWindow.print */
+  void print();
+
+  /** @domName DOMWindow.prompt */
+  String prompt(String message, String defaultValue);
+
+  /** @domName DOMWindow.releaseEvents */
+  void releaseEvents();
+
+  /** @domName DOMWindow.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName DOMWindow.resizeBy */
+  void resizeBy(num x, num y);
+
+  /** @domName DOMWindow.resizeTo */
+  void resizeTo(num width, num height);
+
+  /** @domName DOMWindow.scroll */
+  void scroll(int x, int y);
+
+  /** @domName DOMWindow.scrollBy */
+  void scrollBy(int x, int y);
+
+  /** @domName DOMWindow.scrollTo */
+  void scrollTo(int x, int y);
+
+  /** @domName DOMWindow.setInterval */
+  int setInterval(TimeoutHandler handler, int timeout);
+
+  /** @domName DOMWindow.setTimeout */
+  int setTimeout(TimeoutHandler handler, int timeout);
+
+  /** @domName DOMWindow.showModalDialog */
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
+
+  /** @domName DOMWindow.stop */
+  void stop();
+
+  /** @domName DOMWindow.webkitCancelAnimationFrame */
+  void webkitCancelAnimationFrame(int id);
+
+  /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
+  void webkitCancelRequestAnimationFrame(int id);
+
+  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
+  Point webkitConvertPointFromNodeToPage(Node node, Point p);
+
+  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
+  Point webkitConvertPointFromPageToNode(Node node, Point p);
+
+  /** @domName DOMWindow.webkitPostMessage */
+  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  /** @domName DOMWindow.webkitRequestFileSystem */
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
+
+  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
+
+}
+
+interface WindowEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get animationEnd();
+
+  EventListenerList get animationIteration();
+
+  EventListenerList get animationStart();
+
+  EventListenerList get beforeUnload();
+
+  EventListenerList get blur();
+
+  EventListenerList get canPlay();
+
+  EventListenerList get canPlayThrough();
+
+  EventListenerList get change();
+
+  EventListenerList get click();
+
+  EventListenerList get contentLoaded();
+
+  EventListenerList get contextMenu();
+
+  EventListenerList get deviceMotion();
+
+  EventListenerList get deviceOrientation();
+
+  EventListenerList get doubleClick();
+
+  EventListenerList get drag();
+
+  EventListenerList get dragEnd();
+
+  EventListenerList get dragEnter();
+
+  EventListenerList get dragLeave();
+
+  EventListenerList get dragOver();
+
+  EventListenerList get dragStart();
+
+  EventListenerList get drop();
+
+  EventListenerList get durationChange();
+
+  EventListenerList get emptied();
+
+  EventListenerList get ended();
+
+  EventListenerList get error();
+
+  EventListenerList get focus();
+
+  EventListenerList get hashChange();
+
+  EventListenerList get input();
+
+  EventListenerList get invalid();
+
+  EventListenerList get keyDown();
+
+  EventListenerList get keyPress();
+
+  EventListenerList get keyUp();
+
+  EventListenerList get load();
+
+  EventListenerList get loadStart();
+
+  EventListenerList get loadedData();
+
+  EventListenerList get loadedMetadata();
+
+  EventListenerList get message();
+
+  EventListenerList get mouseDown();
+
+  EventListenerList get mouseMove();
+
+  EventListenerList get mouseOut();
+
+  EventListenerList get mouseOver();
+
+  EventListenerList get mouseUp();
+
+  EventListenerList get mouseWheel();
+
+  EventListenerList get offline();
+
+  EventListenerList get online();
+
+  EventListenerList get pageHide();
+
+  EventListenerList get pageShow();
+
+  EventListenerList get pause();
+
+  EventListenerList get play();
+
+  EventListenerList get playing();
+
+  EventListenerList get popState();
+
+  EventListenerList get progress();
+
+  EventListenerList get rateChange();
+
+  EventListenerList get reset();
+
+  EventListenerList get resize();
+
+  EventListenerList get scroll();
+
+  EventListenerList get search();
+
+  EventListenerList get seeked();
+
+  EventListenerList get seeking();
+
+  EventListenerList get select();
+
+  EventListenerList get stalled();
+
+  EventListenerList get storage();
+
+  EventListenerList get submit();
+
+  EventListenerList get suspend();
+
+  EventListenerList get timeUpdate();
+
+  EventListenerList get touchCancel();
+
+  EventListenerList get touchEnd();
+
+  EventListenerList get touchMove();
+
+  EventListenerList get touchStart();
+
+  EventListenerList get transitionEnd();
+
+  EventListenerList get unload();
+
+  EventListenerList get volumeChange();
+
+  EventListenerList get waiting();
+}

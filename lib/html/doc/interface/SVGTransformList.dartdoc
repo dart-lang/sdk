@@ -1,0 +1,41 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGTransformList
+interface SVGTransformList {
+
+  /** @domName SVGTransformList.numberOfItems */
+  final int numberOfItems;
+
+  /** @domName SVGTransformList.appendItem */
+  SVGTransform appendItem(SVGTransform item);
+
+  /** @domName SVGTransformList.clear */
+  void clear();
+
+  /** @domName SVGTransformList.consolidate */
+  SVGTransform consolidate();
+
+  /** @domName SVGTransformList.createSVGTransformFromMatrix */
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix);
+
+  /** @domName SVGTransformList.getItem */
+  SVGTransform getItem(int index);
+
+  /** @domName SVGTransformList.initialize */
+  SVGTransform initialize(SVGTransform item);
+
+  /** @domName SVGTransformList.insertItemBefore */
+  SVGTransform insertItemBefore(SVGTransform item, int index);
+
+  /** @domName SVGTransformList.removeItem */
+  SVGTransform removeItem(int index);
+
+  /** @domName SVGTransformList.replaceItem */
+  SVGTransform replaceItem(SVGTransform item, int index);
+}

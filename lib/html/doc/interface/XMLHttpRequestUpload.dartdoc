@@ -1,0 +1,40 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName XMLHttpRequestUpload
+interface XMLHttpRequestUpload extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  XMLHttpRequestUploadEvents get on();
+
+  /** @domName XMLHttpRequestUpload.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName XMLHttpRequestUpload.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName XMLHttpRequestUpload.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface XMLHttpRequestUploadEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get error();
+
+  EventListenerList get load();
+
+  EventListenerList get loadEnd();
+
+  EventListenerList get loadStart();
+
+  EventListenerList get progress();
+}

@@ -1,0 +1,44 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName EntrySync
+interface EntrySync {
+
+  /** @domName EntrySync.filesystem */
+  final DOMFileSystemSync filesystem;
+
+  /** @domName EntrySync.fullPath */
+  final String fullPath;
+
+  /** @domName EntrySync.isDirectory */
+  final bool isDirectory;
+
+  /** @domName EntrySync.isFile */
+  final bool isFile;
+
+  /** @domName EntrySync.name */
+  final String name;
+
+  /** @domName EntrySync.copyTo */
+  EntrySync copyTo(DirectoryEntrySync parent, String name);
+
+  /** @domName EntrySync.getMetadata */
+  Metadata getMetadata();
+
+  /** @domName EntrySync.getParent */
+  EntrySync getParent();
+
+  /** @domName EntrySync.moveTo */
+  EntrySync moveTo(DirectoryEntrySync parent, String name);
+
+  /** @domName EntrySync.remove */
+  void remove();
+
+  /** @domName EntrySync.toURL */
+  String toURL();
+}

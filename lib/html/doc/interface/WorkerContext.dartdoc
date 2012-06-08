@@ -1,0 +1,85 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName WorkerContext
+interface WorkerContext extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  WorkerContextEvents get on();
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  /** @domName WorkerContext.location */
+  final WorkerLocation location;
+
+  /** @domName WorkerContext.navigator */
+  final WorkerNavigator navigator;
+
+  /** @domName WorkerContext.self */
+  final WorkerContext self;
+
+  /** @domName WorkerContext.webkitIndexedDB */
+  final IDBFactory webkitIndexedDB;
+
+  /** @domName WorkerContext.webkitNotifications */
+  final NotificationCenter webkitNotifications;
+
+  /** @domName WorkerContext.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName WorkerContext.clearInterval */
+  void clearInterval(int handle);
+
+  /** @domName WorkerContext.clearTimeout */
+  void clearTimeout(int handle);
+
+  /** @domName WorkerContext.close */
+  void close();
+
+  /** @domName WorkerContext.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName WorkerContext.importScripts */
+  void importScripts();
+
+  /** @domName WorkerContext.openDatabase */
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  /** @domName WorkerContext.openDatabaseSync */
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  /** @domName WorkerContext.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName WorkerContext.setInterval */
+  int setInterval(TimeoutHandler handler, int timeout);
+
+  /** @domName WorkerContext.setTimeout */
+  int setTimeout(TimeoutHandler handler, int timeout);
+
+  /** @domName WorkerContext.webkitRequestFileSystem */
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]);
+
+  /** @domName WorkerContext.webkitRequestFileSystemSync */
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size);
+
+  /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url);
+
+  /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
+}
+
+interface WorkerContextEvents extends Events {
+
+  EventListenerList get error();
+}

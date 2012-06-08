@@ -1,0 +1,89 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName DOMSelection
+interface DOMSelection {
+
+  /** @domName DOMSelection.anchorNode */
+  final Node anchorNode;
+
+  /** @domName DOMSelection.anchorOffset */
+  final int anchorOffset;
+
+  /** @domName DOMSelection.baseNode */
+  final Node baseNode;
+
+  /** @domName DOMSelection.baseOffset */
+  final int baseOffset;
+
+  /** @domName DOMSelection.extentNode */
+  final Node extentNode;
+
+  /** @domName DOMSelection.extentOffset */
+  final int extentOffset;
+
+  /** @domName DOMSelection.focusNode */
+  final Node focusNode;
+
+  /** @domName DOMSelection.focusOffset */
+  final int focusOffset;
+
+  /** @domName DOMSelection.isCollapsed */
+  final bool isCollapsed;
+
+  /** @domName DOMSelection.rangeCount */
+  final int rangeCount;
+
+  /** @domName DOMSelection.type */
+  final String type;
+
+  /** @domName DOMSelection.addRange */
+  void addRange(Range range);
+
+  /** @domName DOMSelection.collapse */
+  void collapse(Node node, int index);
+
+  /** @domName DOMSelection.collapseToEnd */
+  void collapseToEnd();
+
+  /** @domName DOMSelection.collapseToStart */
+  void collapseToStart();
+
+  /** @domName DOMSelection.containsNode */
+  bool containsNode(Node node, bool allowPartial);
+
+  /** @domName DOMSelection.deleteFromDocument */
+  void deleteFromDocument();
+
+  /** @domName DOMSelection.empty */
+  void empty();
+
+  /** @domName DOMSelection.extend */
+  void extend(Node node, int offset);
+
+  /** @domName DOMSelection.getRangeAt */
+  Range getRangeAt(int index);
+
+  /** @domName DOMSelection.modify */
+  void modify(String alter, String direction, String granularity);
+
+  /** @domName DOMSelection.removeAllRanges */
+  void removeAllRanges();
+
+  /** @domName DOMSelection.selectAllChildren */
+  void selectAllChildren(Node node);
+
+  /** @domName DOMSelection.setBaseAndExtent */
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset);
+
+  /** @domName DOMSelection.setPosition */
+  void setPosition(Node node, int offset);
+
+  /** @domName DOMSelection.toString */
+  String toString();
+}

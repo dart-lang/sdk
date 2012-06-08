@@ -1,0 +1,32 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// @domName DocumentFragment
+interface DocumentFragment extends Element default _DocumentFragmentFactoryProvider {
+
+  DocumentFragment();
+
+  DocumentFragment.html(String html);
+
+  // TODO(nweiz): enable this when XML is ported
+  // /** WARNING: Currently this doesn't work on Dartium (issue 649). */
+  // DocumentFragment.xml(String xml);
+
+  DocumentFragment.svg(String svg);
+
+  DocumentFragment clone(bool deep);
+
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  ElementEvents get on();
+
+  /** @domName DocumentFragment.querySelector */
+  Element $dom_querySelector(String selectors);
+
+  /** @domName DocumentFragment.querySelectorAll */
+  NodeList $dom_querySelectorAll(String selectors);
+
+}

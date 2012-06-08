@@ -1,0 +1,58 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName IDBDatabase
+interface IDBDatabase extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBDatabaseEvents get on();
+
+  /** @domName IDBDatabase.name */
+  final String name;
+
+  /** @domName IDBDatabase.objectStoreNames */
+  final List<String> objectStoreNames;
+
+  /** @domName IDBDatabase.version */
+  final String version;
+
+  /** @domName IDBDatabase.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName IDBDatabase.close */
+  void close();
+
+  /** @domName IDBDatabase.createObjectStore */
+  IDBObjectStore createObjectStore(String name, [Map options]);
+
+  /** @domName IDBDatabase.deleteObjectStore */
+  void deleteObjectStore(String name);
+
+  /** @domName IDBDatabase.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName IDBDatabase.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName IDBDatabase.setVersion */
+  IDBVersionChangeRequest setVersion(String version);
+
+  /** @domName IDBDatabase.transaction */
+  IDBTransaction transaction(storeName_OR_storeNames, String mode);
+}
+
+interface IDBDatabaseEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get error();
+
+  EventListenerList get versionChange();
+}

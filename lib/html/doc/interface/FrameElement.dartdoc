@@ -1,0 +1,53 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLFrameElement
+interface FrameElement extends Element {
+
+  /** @domName HTMLFrameElement.contentDocument */
+  final Document contentDocument;
+
+  /** @domName HTMLFrameElement.contentWindow */
+  final Window contentWindow;
+
+  /** @domName HTMLFrameElement.frameBorder */
+  String frameBorder;
+
+  /** @domName HTMLFrameElement.height */
+  final int height;
+
+  /** @domName HTMLFrameElement.location */
+  String location;
+
+  /** @domName HTMLFrameElement.longDesc */
+  String longDesc;
+
+  /** @domName HTMLFrameElement.marginHeight */
+  String marginHeight;
+
+  /** @domName HTMLFrameElement.marginWidth */
+  String marginWidth;
+
+  /** @domName HTMLFrameElement.name */
+  String name;
+
+  /** @domName HTMLFrameElement.noResize */
+  bool noResize;
+
+  /** @domName HTMLFrameElement.scrolling */
+  String scrolling;
+
+  /** @domName HTMLFrameElement.src */
+  String src;
+
+  /** @domName HTMLFrameElement.width */
+  final int width;
+
+  /** @domName HTMLFrameElement.getSVGDocument */
+  SVGDocument getSVGDocument();
+}

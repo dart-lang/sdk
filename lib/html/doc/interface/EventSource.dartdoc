@@ -1,0 +1,54 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName EventSource
+interface EventSource extends EventTarget default _EventSourceFactoryProvider {
+
+  EventSource(String scriptUrl);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  EventSourceEvents get on();
+
+  static final int CLOSED = 2;
+
+  static final int CONNECTING = 0;
+
+  static final int OPEN = 1;
+
+  /** @domName EventSource.URL */
+  final String URL;
+
+  /** @domName EventSource.readyState */
+  final int readyState;
+
+  /** @domName EventSource.url */
+  final String url;
+
+  /** @domName EventSource.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName EventSource.close */
+  void close();
+
+  /** @domName EventSource.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName EventSource.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface EventSourceEvents extends Events {
+
+  EventListenerList get error();
+
+  EventListenerList get message();
+
+  EventListenerList get open();
+}

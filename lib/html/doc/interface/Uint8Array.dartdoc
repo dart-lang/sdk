@@ -1,0 +1,28 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Uint8Array
+interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+
+  Uint8Array(int length);
+
+  Uint8Array.fromList(List<int> list);
+
+  Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+
+  static final int BYTES_PER_ELEMENT = 1;
+
+  /** @domName Uint8Array.length */
+  final int length;
+
+  /** @domName Uint8Array.setElements */
+  void setElements(Object array, [int offset]);
+
+  /** @domName Uint8Array.subarray */
+  Uint8Array subarray(int start, [int end]);
+}

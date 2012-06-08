@@ -1,0 +1,77 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MouseEvent
+interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
+
+  MouseEvent(String type, Window view, int detail, int screenX, int screenY,
+      int clientX, int clientY, int button, [bool canBubble, bool cancelable,
+      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
+      EventTarget relatedTarget]);
+
+
+  /** @domName MouseEvent.altKey */
+  final bool altKey;
+
+  /** @domName MouseEvent.button */
+  final int button;
+
+  /** @domName MouseEvent.clientX */
+  final int clientX;
+
+  /** @domName MouseEvent.clientY */
+  final int clientY;
+
+  /** @domName MouseEvent.ctrlKey */
+  final bool ctrlKey;
+
+  /** @domName MouseEvent.dataTransfer */
+  final Clipboard dataTransfer;
+
+  /** @domName MouseEvent.fromElement */
+  final Node fromElement;
+
+  /** @domName MouseEvent.metaKey */
+  final bool metaKey;
+
+  /** @domName MouseEvent.offsetX */
+  final int offsetX;
+
+  /** @domName MouseEvent.offsetY */
+  final int offsetY;
+
+  /** @domName MouseEvent.relatedTarget */
+  final EventTarget relatedTarget;
+
+  /** @domName MouseEvent.screenX */
+  final int screenX;
+
+  /** @domName MouseEvent.screenY */
+  final int screenY;
+
+  /** @domName MouseEvent.shiftKey */
+  final bool shiftKey;
+
+  /** @domName MouseEvent.toElement */
+  final Node toElement;
+
+  /** @domName MouseEvent.webkitMovementX */
+  final int webkitMovementX;
+
+  /** @domName MouseEvent.webkitMovementY */
+  final int webkitMovementY;
+
+  /** @domName MouseEvent.x */
+  final int x;
+
+  /** @domName MouseEvent.y */
+  final int y;
+
+  /** @domName MouseEvent.initMouseEvent */
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
+}

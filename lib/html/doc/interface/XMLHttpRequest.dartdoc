@@ -1,0 +1,111 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName XMLHttpRequest
+interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
+  // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
+  // not correctly implemented yet. (b/4970173)
+  XMLHttpRequest.get(String url, onSuccess(XMLHttpRequest request));
+
+  XMLHttpRequest();
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  XMLHttpRequestEvents get on();
+
+  static final int DONE = 4;
+
+  static final int HEADERS_RECEIVED = 2;
+
+  static final int LOADING = 3;
+
+  static final int OPENED = 1;
+
+  static final int UNSENT = 0;
+
+  /** @domName XMLHttpRequest.asBlob */
+  bool asBlob;
+
+  /** @domName XMLHttpRequest.readyState */
+  final int readyState;
+
+  /** @domName XMLHttpRequest.response */
+  final Object response;
+
+  /** @domName XMLHttpRequest.responseBlob */
+  final Blob responseBlob;
+
+  /** @domName XMLHttpRequest.responseText */
+  final String responseText;
+
+  /** @domName XMLHttpRequest.responseType */
+  String responseType;
+
+  /** @domName XMLHttpRequest.responseXML */
+  final Document responseXML;
+
+  /** @domName XMLHttpRequest.status */
+  final int status;
+
+  /** @domName XMLHttpRequest.statusText */
+  final String statusText;
+
+  /** @domName XMLHttpRequest.upload */
+  final XMLHttpRequestUpload upload;
+
+  /** @domName XMLHttpRequest.withCredentials */
+  bool withCredentials;
+
+  /** @domName XMLHttpRequest.abort */
+  void abort();
+
+  /** @domName XMLHttpRequest.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName XMLHttpRequest.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName XMLHttpRequest.getAllResponseHeaders */
+  String getAllResponseHeaders();
+
+  /** @domName XMLHttpRequest.getResponseHeader */
+  String getResponseHeader(String header);
+
+  /** @domName XMLHttpRequest.open */
+  void open(String method, String url, [bool async, String user, String password]);
+
+  /** @domName XMLHttpRequest.overrideMimeType */
+  void overrideMimeType(String override);
+
+  /** @domName XMLHttpRequest.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName XMLHttpRequest.send */
+  void send([data]);
+
+  /** @domName XMLHttpRequest.setRequestHeader */
+  void setRequestHeader(String header, String value);
+}
+
+interface XMLHttpRequestEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get error();
+
+  EventListenerList get load();
+
+  EventListenerList get loadEnd();
+
+  EventListenerList get loadStart();
+
+  EventListenerList get progress();
+
+  EventListenerList get readyStateChange();
+}

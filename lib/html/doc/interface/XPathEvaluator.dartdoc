@@ -1,0 +1,22 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName XPathEvaluator
+interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
+
+  XPathEvaluator();
+
+  /** @domName XPathEvaluator.createExpression */
+  XPathExpression createExpression(String expression, XPathNSResolver resolver);
+
+  /** @domName XPathEvaluator.createNSResolver */
+  XPathNSResolver createNSResolver(Node nodeResolver);
+
+  /** @domName XPathEvaluator.evaluate */
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult);
+}

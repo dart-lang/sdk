@@ -1,0 +1,36 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName TextTrackList
+interface TextTrackList extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  TextTrackListEvents get on();
+
+  /** @domName TextTrackList.length */
+  final int length;
+
+  /** @domName TextTrackList.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName TextTrackList.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName TextTrackList.item */
+  TextTrack item(int index);
+
+  /** @domName TextTrackList.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface TextTrackListEvents extends Events {
+
+  EventListenerList get addTrack();
+}

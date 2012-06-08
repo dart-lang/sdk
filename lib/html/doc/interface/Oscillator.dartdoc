@@ -1,0 +1,50 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Oscillator
+interface Oscillator extends AudioSourceNode {
+
+  static final int CUSTOM = 4;
+
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SCHEDULED_STATE = 1;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  static final int UNSCHEDULED_STATE = 0;
+
+  /** @domName Oscillator.detune */
+  final AudioParam detune;
+
+  /** @domName Oscillator.frequency */
+  final AudioParam frequency;
+
+  /** @domName Oscillator.playbackState */
+  final int playbackState;
+
+  /** @domName Oscillator.type */
+  int type;
+
+  /** @domName Oscillator.noteOff */
+  void noteOff(num when);
+
+  /** @domName Oscillator.noteOn */
+  void noteOn(num when);
+
+  /** @domName Oscillator.setWaveTable */
+  void setWaveTable(WaveTable waveTable);
+}

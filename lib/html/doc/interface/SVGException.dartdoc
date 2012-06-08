@@ -1,0 +1,29 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGException
+interface SVGException {
+
+  static final int SVG_INVALID_VALUE_ERR = 1;
+
+  static final int SVG_MATRIX_NOT_INVERTABLE = 2;
+
+  static final int SVG_WRONG_TYPE_ERR = 0;
+
+  /** @domName SVGException.code */
+  final int code;
+
+  /** @domName SVGException.message */
+  final String message;
+
+  /** @domName SVGException.name */
+  final String name;
+
+  /** @domName SVGException.toString */
+  String toString();
+}

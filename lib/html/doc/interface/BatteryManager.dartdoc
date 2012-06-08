@@ -1,0 +1,48 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName BatteryManager
+interface BatteryManager extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  BatteryManagerEvents get on();
+
+  /** @domName BatteryManager.charging */
+  final bool charging;
+
+  /** @domName BatteryManager.chargingTime */
+  final num chargingTime;
+
+  /** @domName BatteryManager.dischargingTime */
+  final num dischargingTime;
+
+  /** @domName BatteryManager.level */
+  final num level;
+
+  /** @domName BatteryManager.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName BatteryManager.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName BatteryManager.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface BatteryManagerEvents extends Events {
+
+  EventListenerList get chargingChange();
+
+  EventListenerList get chargingTimeChange();
+
+  EventListenerList get dischargingTimeChange();
+
+  EventListenerList get levelChange();
+}

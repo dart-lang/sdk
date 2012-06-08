@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGPointList
+interface SVGPointList {
+
+  /** @domName SVGPointList.numberOfItems */
+  final int numberOfItems;
+
+  /** @domName SVGPointList.appendItem */
+  SVGPoint appendItem(SVGPoint item);
+
+  /** @domName SVGPointList.clear */
+  void clear();
+
+  /** @domName SVGPointList.getItem */
+  SVGPoint getItem(int index);
+
+  /** @domName SVGPointList.initialize */
+  SVGPoint initialize(SVGPoint item);
+
+  /** @domName SVGPointList.insertItemBefore */
+  SVGPoint insertItemBefore(SVGPoint item, int index);
+
+  /** @domName SVGPointList.removeItem */
+  SVGPoint removeItem(int index);
+
+  /** @domName SVGPointList.replaceItem */
+  SVGPoint replaceItem(SVGPoint item, int index);
+}

@@ -1,0 +1,34 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLMeterElement
+interface MeterElement extends Element default _Elements {
+
+  MeterElement();
+
+  /** @domName HTMLMeterElement.high */
+  num high;
+
+  /** @domName HTMLMeterElement.labels */
+  final NodeList labels;
+
+  /** @domName HTMLMeterElement.low */
+  num low;
+
+  /** @domName HTMLMeterElement.max */
+  num max;
+
+  /** @domName HTMLMeterElement.min */
+  num min;
+
+  /** @domName HTMLMeterElement.optimum */
+  num optimum;
+
+  /** @domName HTMLMeterElement.value */
+  num value;
+}

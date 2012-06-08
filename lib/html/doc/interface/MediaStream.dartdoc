@@ -1,0 +1,48 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MediaStream
+interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
+
+  MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaStreamEvents get on();
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 1;
+
+  /** @domName MediaStream.audioTracks */
+  final MediaStreamTrackList audioTracks;
+
+  /** @domName MediaStream.label */
+  final String label;
+
+  /** @domName MediaStream.readyState */
+  final int readyState;
+
+  /** @domName MediaStream.videoTracks */
+  final MediaStreamTrackList videoTracks;
+
+  /** @domName MediaStream.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaStream.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName MediaStream.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface MediaStreamEvents extends Events {
+
+  EventListenerList get ended();
+}

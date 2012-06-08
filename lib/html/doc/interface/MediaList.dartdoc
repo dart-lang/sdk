@@ -1,0 +1,26 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MediaList
+interface MediaList extends List<String> {
+
+  /** @domName MediaList.length */
+  final int length;
+
+  /** @domName MediaList.mediaText */
+  String mediaText;
+
+  /** @domName MediaList.appendMedium */
+  void appendMedium(String newMedium);
+
+  /** @domName MediaList.deleteMedium */
+  void deleteMedium(String oldMedium);
+
+  /** @domName MediaList.item */
+  String item(int index);
+}

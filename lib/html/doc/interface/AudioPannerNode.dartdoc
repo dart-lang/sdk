@@ -1,0 +1,62 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName AudioPannerNode
+interface AudioPannerNode extends AudioNode {
+
+  static final int EQUALPOWER = 0;
+
+  static final int EXPONENTIAL_DISTANCE = 2;
+
+  static final int HRTF = 1;
+
+  static final int INVERSE_DISTANCE = 1;
+
+  static final int LINEAR_DISTANCE = 0;
+
+  static final int SOUNDFIELD = 2;
+
+  /** @domName AudioPannerNode.coneGain */
+  final AudioGain coneGain;
+
+  /** @domName AudioPannerNode.coneInnerAngle */
+  num coneInnerAngle;
+
+  /** @domName AudioPannerNode.coneOuterAngle */
+  num coneOuterAngle;
+
+  /** @domName AudioPannerNode.coneOuterGain */
+  num coneOuterGain;
+
+  /** @domName AudioPannerNode.distanceGain */
+  final AudioGain distanceGain;
+
+  /** @domName AudioPannerNode.distanceModel */
+  int distanceModel;
+
+  /** @domName AudioPannerNode.maxDistance */
+  num maxDistance;
+
+  /** @domName AudioPannerNode.panningModel */
+  int panningModel;
+
+  /** @domName AudioPannerNode.refDistance */
+  num refDistance;
+
+  /** @domName AudioPannerNode.rolloffFactor */
+  num rolloffFactor;
+
+  /** @domName AudioPannerNode.setOrientation */
+  void setOrientation(num x, num y, num z);
+
+  /** @domName AudioPannerNode.setPosition */
+  void setPosition(num x, num y, num z);
+
+  /** @domName AudioPannerNode.setVelocity */
+  void setVelocity(num x, num y, num z);
+}

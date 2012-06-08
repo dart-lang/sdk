@@ -1,0 +1,24 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SharedWorkerContext
+interface SharedWorkerContext extends WorkerContext {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  SharedWorkerContextEvents get on();
+
+  /** @domName SharedWorkerContext.name */
+  final String name;
+}
+
+interface SharedWorkerContextEvents extends WorkerContextEvents {
+
+  EventListenerList get connect();
+}

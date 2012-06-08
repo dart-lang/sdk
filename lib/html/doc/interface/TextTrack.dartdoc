@@ -1,0 +1,60 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName TextTrack
+interface TextTrack extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  TextTrackEvents get on();
+
+  static final int DISABLED = 0;
+
+  static final int HIDDEN = 1;
+
+  static final int SHOWING = 2;
+
+  /** @domName TextTrack.activeCues */
+  final TextTrackCueList activeCues;
+
+  /** @domName TextTrack.cues */
+  final TextTrackCueList cues;
+
+  /** @domName TextTrack.kind */
+  final String kind;
+
+  /** @domName TextTrack.label */
+  final String label;
+
+  /** @domName TextTrack.language */
+  final String language;
+
+  /** @domName TextTrack.mode */
+  int mode;
+
+  /** @domName TextTrack.addCue */
+  void addCue(TextTrackCue cue);
+
+  /** @domName TextTrack.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName TextTrack.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName TextTrack.removeCue */
+  void removeCue(TextTrackCue cue);
+
+  /** @domName TextTrack.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface TextTrackEvents extends Events {
+
+  EventListenerList get cueChange();
+}

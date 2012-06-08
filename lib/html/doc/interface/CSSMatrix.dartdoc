@@ -1,0 +1,109 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName WebKitCSSMatrix
+interface CSSMatrix default _CSSMatrixFactoryProvider {
+
+  CSSMatrix([String cssValue]);
+
+  /** @domName WebKitCSSMatrix.a */
+  num a;
+
+  /** @domName WebKitCSSMatrix.b */
+  num b;
+
+  /** @domName WebKitCSSMatrix.c */
+  num c;
+
+  /** @domName WebKitCSSMatrix.d */
+  num d;
+
+  /** @domName WebKitCSSMatrix.e */
+  num e;
+
+  /** @domName WebKitCSSMatrix.f */
+  num f;
+
+  /** @domName WebKitCSSMatrix.m11 */
+  num m11;
+
+  /** @domName WebKitCSSMatrix.m12 */
+  num m12;
+
+  /** @domName WebKitCSSMatrix.m13 */
+  num m13;
+
+  /** @domName WebKitCSSMatrix.m14 */
+  num m14;
+
+  /** @domName WebKitCSSMatrix.m21 */
+  num m21;
+
+  /** @domName WebKitCSSMatrix.m22 */
+  num m22;
+
+  /** @domName WebKitCSSMatrix.m23 */
+  num m23;
+
+  /** @domName WebKitCSSMatrix.m24 */
+  num m24;
+
+  /** @domName WebKitCSSMatrix.m31 */
+  num m31;
+
+  /** @domName WebKitCSSMatrix.m32 */
+  num m32;
+
+  /** @domName WebKitCSSMatrix.m33 */
+  num m33;
+
+  /** @domName WebKitCSSMatrix.m34 */
+  num m34;
+
+  /** @domName WebKitCSSMatrix.m41 */
+  num m41;
+
+  /** @domName WebKitCSSMatrix.m42 */
+  num m42;
+
+  /** @domName WebKitCSSMatrix.m43 */
+  num m43;
+
+  /** @domName WebKitCSSMatrix.m44 */
+  num m44;
+
+  /** @domName WebKitCSSMatrix.inverse */
+  CSSMatrix inverse();
+
+  /** @domName WebKitCSSMatrix.multiply */
+  CSSMatrix multiply(CSSMatrix secondMatrix);
+
+  /** @domName WebKitCSSMatrix.rotate */
+  CSSMatrix rotate(num rotX, num rotY, num rotZ);
+
+  /** @domName WebKitCSSMatrix.rotateAxisAngle */
+  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle);
+
+  /** @domName WebKitCSSMatrix.scale */
+  CSSMatrix scale(num scaleX, num scaleY, num scaleZ);
+
+  /** @domName WebKitCSSMatrix.setMatrixValue */
+  void setMatrixValue(String string);
+
+  /** @domName WebKitCSSMatrix.skewX */
+  CSSMatrix skewX(num angle);
+
+  /** @domName WebKitCSSMatrix.skewY */
+  CSSMatrix skewY(num angle);
+
+  /** @domName WebKitCSSMatrix.toString */
+  String toString();
+
+  /** @domName WebKitCSSMatrix.translate */
+  CSSMatrix translate(num x, num y, num z);
+}

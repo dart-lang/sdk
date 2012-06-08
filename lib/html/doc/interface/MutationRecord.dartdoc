@@ -1,0 +1,38 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MutationRecord
+interface MutationRecord {
+
+  /** @domName MutationRecord.addedNodes */
+  final NodeList addedNodes;
+
+  /** @domName MutationRecord.attributeName */
+  final String attributeName;
+
+  /** @domName MutationRecord.attributeNamespace */
+  final String attributeNamespace;
+
+  /** @domName MutationRecord.nextSibling */
+  final Node nextSibling;
+
+  /** @domName MutationRecord.oldValue */
+  final String oldValue;
+
+  /** @domName MutationRecord.previousSibling */
+  final Node previousSibling;
+
+  /** @domName MutationRecord.removedNodes */
+  final NodeList removedNodes;
+
+  /** @domName MutationRecord.target */
+  final Node target;
+
+  /** @domName MutationRecord.type */
+  final String type;
+}

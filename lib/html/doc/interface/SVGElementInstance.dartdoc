@@ -1,0 +1,132 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGElementInstance
+interface SVGElementInstance {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  SVGElementInstanceEvents get on();
+
+  /** @domName SVGElementInstance.childNodes */
+  final SVGElementInstanceList childNodes;
+
+  /** @domName SVGElementInstance.correspondingElement */
+  final SVGElement correspondingElement;
+
+  /** @domName SVGElementInstance.correspondingUseElement */
+  final SVGUseElement correspondingUseElement;
+
+  /** @domName SVGElementInstance.firstChild */
+  final SVGElementInstance firstChild;
+
+  /** @domName SVGElementInstance.lastChild */
+  final SVGElementInstance lastChild;
+
+  /** @domName SVGElementInstance.nextSibling */
+  final SVGElementInstance nextSibling;
+
+  /** @domName SVGElementInstance.parentNode */
+  final SVGElementInstance parentNode;
+
+  /** @domName SVGElementInstance.previousSibling */
+  final SVGElementInstance previousSibling;
+
+  /** @domName SVGElementInstance.addEventListener */
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName SVGElementInstance.dispatchEvent */
+  bool dispatchEvent(Event event);
+
+  /** @domName SVGElementInstance.removeEventListener */
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface SVGElementInstanceEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get beforeCopy();
+
+  EventListenerList get beforeCut();
+
+  EventListenerList get beforePaste();
+
+  EventListenerList get blur();
+
+  EventListenerList get change();
+
+  EventListenerList get click();
+
+  EventListenerList get contextMenu();
+
+  EventListenerList get copy();
+
+  EventListenerList get cut();
+
+  EventListenerList get doubleClick();
+
+  EventListenerList get drag();
+
+  EventListenerList get dragEnd();
+
+  EventListenerList get dragEnter();
+
+  EventListenerList get dragLeave();
+
+  EventListenerList get dragOver();
+
+  EventListenerList get dragStart();
+
+  EventListenerList get drop();
+
+  EventListenerList get error();
+
+  EventListenerList get focus();
+
+  EventListenerList get input();
+
+  EventListenerList get keyDown();
+
+  EventListenerList get keyPress();
+
+  EventListenerList get keyUp();
+
+  EventListenerList get load();
+
+  EventListenerList get mouseDown();
+
+  EventListenerList get mouseMove();
+
+  EventListenerList get mouseOut();
+
+  EventListenerList get mouseOver();
+
+  EventListenerList get mouseUp();
+
+  EventListenerList get mouseWheel();
+
+  EventListenerList get paste();
+
+  EventListenerList get reset();
+
+  EventListenerList get resize();
+
+  EventListenerList get scroll();
+
+  EventListenerList get search();
+
+  EventListenerList get select();
+
+  EventListenerList get selectStart();
+
+  EventListenerList get submit();
+
+  EventListenerList get unload();
+}

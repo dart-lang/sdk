@@ -1,0 +1,47 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName TreeWalker
+interface TreeWalker {
+
+  /** @domName TreeWalker.currentNode */
+  Node currentNode;
+
+  /** @domName TreeWalker.expandEntityReferences */
+  final bool expandEntityReferences;
+
+  /** @domName TreeWalker.filter */
+  final NodeFilter filter;
+
+  /** @domName TreeWalker.root */
+  final Node root;
+
+  /** @domName TreeWalker.whatToShow */
+  final int whatToShow;
+
+  /** @domName TreeWalker.firstChild */
+  Node firstChild();
+
+  /** @domName TreeWalker.lastChild */
+  Node lastChild();
+
+  /** @domName TreeWalker.nextNode */
+  Node nextNode();
+
+  /** @domName TreeWalker.nextSibling */
+  Node nextSibling();
+
+  /** @domName TreeWalker.parentNode */
+  Node parentNode();
+
+  /** @domName TreeWalker.previousNode */
+  Node previousNode();
+
+  /** @domName TreeWalker.previousSibling */
+  Node previousSibling();
+}

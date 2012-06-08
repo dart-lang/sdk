@@ -1,0 +1,74 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Navigator
+interface Navigator {
+
+  /** @domName Navigator.appCodeName */
+  final String appCodeName;
+
+  /** @domName Navigator.appName */
+  final String appName;
+
+  /** @domName Navigator.appVersion */
+  final String appVersion;
+
+  /** @domName Navigator.cookieEnabled */
+  final bool cookieEnabled;
+
+  /** @domName Navigator.geolocation */
+  final Geolocation geolocation;
+
+  /** @domName Navigator.language */
+  final String language;
+
+  /** @domName Navigator.mimeTypes */
+  final DOMMimeTypeArray mimeTypes;
+
+  /** @domName Navigator.onLine */
+  final bool onLine;
+
+  /** @domName Navigator.platform */
+  final String platform;
+
+  /** @domName Navigator.plugins */
+  final DOMPluginArray plugins;
+
+  /** @domName Navigator.product */
+  final String product;
+
+  /** @domName Navigator.productSub */
+  final String productSub;
+
+  /** @domName Navigator.userAgent */
+  final String userAgent;
+
+  /** @domName Navigator.vendor */
+  final String vendor;
+
+  /** @domName Navigator.vendorSub */
+  final String vendorSub;
+
+  /** @domName Navigator.webkitBattery */
+  final BatteryManager webkitBattery;
+
+  /** @domName Navigator.webkitPointer */
+  final PointerLock webkitPointer;
+
+  /** @domName Navigator.getStorageUpdates */
+  void getStorageUpdates();
+
+  /** @domName Navigator.javaEnabled */
+  bool javaEnabled();
+
+  /** @domName Navigator.registerProtocolHandler */
+  void registerProtocolHandler(String scheme, String url, String title);
+
+  /** @domName Navigator.webkitGetUserMedia */
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+}

@@ -1,0 +1,32 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MediaKeyEvent
+interface MediaKeyEvent extends Event {
+
+  /** @domName MediaKeyEvent.defaultURL */
+  final String defaultURL;
+
+  /** @domName MediaKeyEvent.errorCode */
+  final MediaKeyError errorCode;
+
+  /** @domName MediaKeyEvent.initData */
+  final Uint8Array initData;
+
+  /** @domName MediaKeyEvent.keySystem */
+  final String keySystem;
+
+  /** @domName MediaKeyEvent.message */
+  final Uint8Array message;
+
+  /** @domName MediaKeyEvent.sessionId */
+  final String sessionId;
+
+  /** @domName MediaKeyEvent.systemCode */
+  final int systemCode;
+}

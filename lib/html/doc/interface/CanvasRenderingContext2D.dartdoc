@@ -1,0 +1,206 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName CanvasRenderingContext2D
+interface CanvasRenderingContext2D extends CanvasRenderingContext {
+
+  /** @domName CanvasRenderingContext2D.fillStyle */
+  Dynamic fillStyle;
+
+  /** @domName CanvasRenderingContext2D.font */
+  String font;
+
+  /** @domName CanvasRenderingContext2D.globalAlpha */
+  num globalAlpha;
+
+  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
+  String globalCompositeOperation;
+
+  /** @domName CanvasRenderingContext2D.lineCap */
+  String lineCap;
+
+  /** @domName CanvasRenderingContext2D.lineJoin */
+  String lineJoin;
+
+  /** @domName CanvasRenderingContext2D.lineWidth */
+  num lineWidth;
+
+  /** @domName CanvasRenderingContext2D.miterLimit */
+  num miterLimit;
+
+  /** @domName CanvasRenderingContext2D.shadowBlur */
+  num shadowBlur;
+
+  /** @domName CanvasRenderingContext2D.shadowColor */
+  String shadowColor;
+
+  /** @domName CanvasRenderingContext2D.shadowOffsetX */
+  num shadowOffsetX;
+
+  /** @domName CanvasRenderingContext2D.shadowOffsetY */
+  num shadowOffsetY;
+
+  /** @domName CanvasRenderingContext2D.strokeStyle */
+  Dynamic strokeStyle;
+
+  /** @domName CanvasRenderingContext2D.textAlign */
+  String textAlign;
+
+  /** @domName CanvasRenderingContext2D.textBaseline */
+  String textBaseline;
+
+  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
+  final num webkitBackingStorePixelRatio;
+
+  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  bool webkitImageSmoothingEnabled;
+
+  /** @domName CanvasRenderingContext2D.webkitLineDash */
+  List webkitLineDash;
+
+  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
+  num webkitLineDashOffset;
+
+  /** @domName CanvasRenderingContext2D.arc */
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise);
+
+  /** @domName CanvasRenderingContext2D.arcTo */
+  void arcTo(num x1, num y1, num x2, num y2, num radius);
+
+  /** @domName CanvasRenderingContext2D.beginPath */
+  void beginPath();
+
+  /** @domName CanvasRenderingContext2D.bezierCurveTo */
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y);
+
+  /** @domName CanvasRenderingContext2D.clearRect */
+  void clearRect(num x, num y, num width, num height);
+
+  /** @domName CanvasRenderingContext2D.clearShadow */
+  void clearShadow();
+
+  /** @domName CanvasRenderingContext2D.clip */
+  void clip();
+
+  /** @domName CanvasRenderingContext2D.closePath */
+  void closePath();
+
+  /** @domName CanvasRenderingContext2D.createImageData */
+  ImageData createImageData(imagedata_OR_sw, [num sh]);
+
+  /** @domName CanvasRenderingContext2D.createLinearGradient */
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
+
+  /** @domName CanvasRenderingContext2D.createPattern */
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType);
+
+  /** @domName CanvasRenderingContext2D.createRadialGradient */
+  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
+
+  /** @domName CanvasRenderingContext2D.drawImage */
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect */
+  void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
+
+  /** @domName CanvasRenderingContext2D.fill */
+  void fill();
+
+  /** @domName CanvasRenderingContext2D.fillRect */
+  void fillRect(num x, num y, num width, num height);
+
+  /** @domName CanvasRenderingContext2D.fillText */
+  void fillText(String text, num x, num y, [num maxWidth]);
+
+  /** @domName CanvasRenderingContext2D.getImageData */
+  ImageData getImageData(num sx, num sy, num sw, num sh);
+
+  /** @domName CanvasRenderingContext2D.isPointInPath */
+  bool isPointInPath(num x, num y);
+
+  /** @domName CanvasRenderingContext2D.lineTo */
+  void lineTo(num x, num y);
+
+  /** @domName CanvasRenderingContext2D.measureText */
+  TextMetrics measureText(String text);
+
+  /** @domName CanvasRenderingContext2D.moveTo */
+  void moveTo(num x, num y);
+
+  /** @domName CanvasRenderingContext2D.putImageData */
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
+
+  /** @domName CanvasRenderingContext2D.quadraticCurveTo */
+  void quadraticCurveTo(num cpx, num cpy, num x, num y);
+
+  /** @domName CanvasRenderingContext2D.rect */
+  void rect(num x, num y, num width, num height);
+
+  /** @domName CanvasRenderingContext2D.restore */
+  void restore();
+
+  /** @domName CanvasRenderingContext2D.rotate */
+  void rotate(num angle);
+
+  /** @domName CanvasRenderingContext2D.save */
+  void save();
+
+  /** @domName CanvasRenderingContext2D.scale */
+  void scale(num sx, num sy);
+
+  /** @domName CanvasRenderingContext2D.setAlpha */
+  void setAlpha(num alpha);
+
+  /** @domName CanvasRenderingContext2D.setCompositeOperation */
+  void setCompositeOperation(String compositeOperation);
+
+  /** @domName CanvasRenderingContext2D.setFillColor */
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+
+  /** @domName CanvasRenderingContext2D.setLineCap */
+  void setLineCap(String cap);
+
+  /** @domName CanvasRenderingContext2D.setLineJoin */
+  void setLineJoin(String join);
+
+  /** @domName CanvasRenderingContext2D.setLineWidth */
+  void setLineWidth(num width);
+
+  /** @domName CanvasRenderingContext2D.setMiterLimit */
+  void setMiterLimit(num limit);
+
+  /** @domName CanvasRenderingContext2D.setShadow */
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+
+  /** @domName CanvasRenderingContext2D.setStrokeColor */
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+
+  /** @domName CanvasRenderingContext2D.setTransform */
+  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
+
+  /** @domName CanvasRenderingContext2D.stroke */
+  void stroke();
+
+  /** @domName CanvasRenderingContext2D.strokeRect */
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]);
+
+  /** @domName CanvasRenderingContext2D.strokeText */
+  void strokeText(String text, num x, num y, [num maxWidth]);
+
+  /** @domName CanvasRenderingContext2D.transform */
+  void transform(num m11, num m12, num m21, num m22, num dx, num dy);
+
+  /** @domName CanvasRenderingContext2D.translate */
+  void translate(num tx, num ty);
+
+  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh);
+
+  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
+}

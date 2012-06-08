@@ -1,0 +1,43 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLFieldSetElement
+interface FieldSetElement extends Element default _Elements {
+
+  FieldSetElement();
+
+  /** @domName HTMLFieldSetElement.disabled */
+  bool disabled;
+
+  /** @domName HTMLFieldSetElement.elements */
+  final HTMLCollection elements;
+
+  /** @domName HTMLFieldSetElement.form */
+  final FormElement form;
+
+  /** @domName HTMLFieldSetElement.name */
+  String name;
+
+  /** @domName HTMLFieldSetElement.type */
+  final String type;
+
+  /** @domName HTMLFieldSetElement.validationMessage */
+  final String validationMessage;
+
+  /** @domName HTMLFieldSetElement.validity */
+  final ValidityState validity;
+
+  /** @domName HTMLFieldSetElement.willValidate */
+  final bool willValidate;
+
+  /** @domName HTMLFieldSetElement.checkValidity */
+  bool checkValidity();
+
+  /** @domName HTMLFieldSetElement.setCustomValidity */
+  void setCustomValidity(String error);
+}

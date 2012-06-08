@@ -1,0 +1,46 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGFECompositeElement
+interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_IN = 2;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
+
+  /** @domName SVGFECompositeElement.in1 */
+  final SVGAnimatedString in1;
+
+  /** @domName SVGFECompositeElement.in2 */
+  final SVGAnimatedString in2;
+
+  /** @domName SVGFECompositeElement.k1 */
+  final SVGAnimatedNumber k1;
+
+  /** @domName SVGFECompositeElement.k2 */
+  final SVGAnimatedNumber k2;
+
+  /** @domName SVGFECompositeElement.k3 */
+  final SVGAnimatedNumber k3;
+
+  /** @domName SVGFECompositeElement.k4 */
+  final SVGAnimatedNumber k4;
+
+  /** @domName SVGFECompositeElement.operator */
+  final SVGAnimatedEnumeration operator;
+}
