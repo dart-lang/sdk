@@ -96,12 +96,6 @@ LibTest/core/Math/tan_A01_t01: Fail
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
-[ $runtime == vm && $checked ]
-Language/09_Generics/09_Generics_A04_t06: Fail # co19 issue 118
-LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A01_t01: Fail # Issue co19 - 110
-
-
 [ $runtime == vm && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail
 LibTest/core/double/round_A01_t01: Fail
@@ -336,7 +330,6 @@ LibTest/core/Future/transform_A01_t06: Fail
 LibTest/core/Future/transform_A03_t01: Fail
 LibTest/core/Futures/wait_A01_t02: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
-LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
 
@@ -437,10 +430,6 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail
 
 
-# unexpected token '&&'
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail
-
-
 # unexpected token 'const'
 Language/05_Variables/05_Variables_A01_t01: Fail
 Language/05_Variables/05_Variables_A04_t09: Fail
@@ -452,3 +441,15 @@ Language/10_Expressions/01_Constants_A18_t02: Fail
 
 # using 'x' in this context is invalid
 Language/11_Statements/05_For_A01_t11: Fail
+
+
+[ $runtime == vm && $unchecked ]
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # unexpected token '&&'
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
+
+
+[ $runtime == vm && $checked ]
+Language/03_Overview/1_Scoping_A02_t30: Fail
+Language/03_Overview/1_Scoping_A02_t31: Fail
+Language/10_Expressions/08_Function_Expressions_A03_t02: Fail
+Language/10_Expressions/08_Function_Expressions_A03_t05: Fail
