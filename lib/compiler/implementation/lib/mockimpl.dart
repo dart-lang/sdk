@@ -160,7 +160,7 @@ class StringBase {
     for (var string in strings) {
       checkNull(string);
       if (string is !String) throw new IllegalArgumentException(string);
-      result += string; // TODO(ahe): Use string buffer.
+      result = '$result$string'; // TODO(ahe): Use string buffer.
     }
     return result;
   }
