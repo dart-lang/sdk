@@ -59,7 +59,6 @@ super_closure_test: Fail # Issue 3197.
 gc_test: Skip  # Takes too long.
 
 [ $compiler == dartc ]
-abstract_syntax_test/01: Fail
 application_negative_test: Fail
 assert_keyword_negative_test: Fail
 assert_test: Fail             # Uses AssertError class. Bug 4385894.

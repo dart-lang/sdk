@@ -2093,6 +2093,64 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 8, 7, 3),
           errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 9, 7, 3));
   }
+
+  /**
+   * Ensure that "operator call()" is parsed, and "operator" is not considered as return type. This
+   * too weak test, but for now we are interested only in parsing.
+   */
+  public void test_callOperator_parsing() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator call() => 42;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * The spec in the section 10.28 says:
+   * "It is a compile-time error to use a built-in identifier other than Dynamic as a type annotation."
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3307
+   */
+  public void test_builtInIdentifier_asTypeAnnotation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  abstract   v01;",
+        "  assert     v02;",
+        "  call       v03;",
+        "  Dynamic    v04;",
+        "  equals     v05;",
+        "  factory    v06;",
+        "  get        v07;",
+        "  implements v08;",
+        "//  interface  v09;",
+        "  negate     v10;",
+        "  operator   v11;",
+        "  set        v12;",
+        "  static     v13;",
+        "//  typedef    v14;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 6),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 5, 3, 4),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 6),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 7),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 3, 3),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 3, 10),
+//        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 3, 8),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 12, 3, 6),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 13, 3, 8),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 14, 3, 3),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 6)
+//        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 16, 3, 7)
+    );
+  }
   
   public void test_supertypeHasField() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(

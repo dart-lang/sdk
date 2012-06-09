@@ -74,6 +74,7 @@ Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail # Please tr
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t05: Fail # Please triage this failure.
 
 
+Language/03_Overview/1_Scoping_A02_t26: Fail # co19 issue 133
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
 Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474
@@ -94,9 +95,6 @@ Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t01: Fail # Issue 3449
-Language/07_Classes/07_Classes_A04_t20: Fail # Issue 3475
-Language/07_Classes/07_Classes_A04_t24: Fail # Issue 3475
-Language/07_Classes/07_Classes_A04_t25: Fail # Issue 3475
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail # Issue 3449
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t03: Fail # Issue 3449
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t04: Fail # Issue 3449
@@ -224,16 +222,6 @@ Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail # Issue 3477
 Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail # Issue 3477
 Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # Issue 3477
 Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail # Issue 3477
-Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # Issue 3475
-Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # Issue 3475
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489

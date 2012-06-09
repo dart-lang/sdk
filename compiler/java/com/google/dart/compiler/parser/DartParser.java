@@ -5,6 +5,7 @@
 package com.google.dart.compiler.parser;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
@@ -164,6 +165,7 @@ public class DartParser extends CompletionHooksParserBase {
     STATIC_KEYWORD,
     TYPEDEF_KEYWORD
   };
+  public static final Set<String> PSEUDO_KEYWORDS_SET = ImmutableSet.copyOf(PSEUDO_KEYWORDS);
 
   public DartParser(Source source,
                     String sourceCode,
@@ -1112,6 +1114,10 @@ public class DartParser extends CompletionHooksParserBase {
         if (peek(0).equals(Token.LPAREN)) {
           return true;
         }
+        // operator call (
+        if (peekPseudoKeyword(0, CALL_KEYWORD) && peek(1).equals(Token.LPAREN)) {
+          return true;
+        }
         // operator equals (
         if (peekPseudoKeyword(0, EQUALS_KEYWORD) && peek(1).equals(Token.LPAREN)) {
           return true;
@@ -1248,7 +1254,11 @@ public class DartParser extends CompletionHooksParserBase {
           arity = 0;
         }
       } else if (operation == Token.IDENTIFIER
-                 && ctx.getTokenString().equals(EQUALS_KEYWORD)) {
+                 && ctx.getTokenString().equals(CALL_KEYWORD)) {
+        name = done(new DartIdentifier(CALL_KEYWORD));
+        arity = -1;
+      } else if (operation == Token.IDENTIFIER
+          && ctx.getTokenString().equals(EQUALS_KEYWORD)) {
         name = done(new DartIdentifier(EQUALS_KEYWORD));
         arity = 1;
       } else if (operation == Token.IDENTIFIER
