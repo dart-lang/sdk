@@ -38,7 +38,7 @@ class UnparseValidator extends CompilerTask {
 
     PartialFunctionElement originalFunction = element;
     FunctionExpression originalNode = originalFunction.parseNode(compiler);
-    String unparsed = originalNode.unparse(false);
+    String unparsed = originalNode.unparse();
 
     Token newTokens = new StringScanner(unparsed).tokenize();
 

@@ -60,7 +60,7 @@ class InvalidNodeError {
   InvalidNodeError(this.node, [this.message]);
 
   toString() {
-    String nodeString = new Unparser(true).unparse(node);
+    String nodeString = node.toDebugString();
     String result = 'invalid node: $nodeString';
     if (message !== null) result = '$result ($message)';
     return result;
