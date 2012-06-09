@@ -2168,7 +2168,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
   }  
-  
+
   public void test_supertypeHasGetterSetter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2184,7 +2184,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
-  }    
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3280
+   */
+  public void test_typeVariableExtendsFunctionAliasType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef void F();",
+        "class C<T extends F> {",
+        "  test() {",
+        "    new C<T>();",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
   
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));

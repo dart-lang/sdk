@@ -163,6 +163,13 @@ public class Types {
     if (isSubtypeOfInterface(t, s)) {
       return true;
     }
+    if (t.getKind() == TypeKind.VARIABLE) {
+      Type bound = ((TypeVariable) t).getTypeVariableElement().getBound();
+      if (bound != null) {
+        return isSubtype(bound, s);
+      }
+      return true;
+    }
     if (t.getKind().equals(TypeKind.FUNCTION_ALIAS)) {
       return isSubtypeOfFunction(asFunctionType((FunctionAliasType) t), asFunctionType(s));
     }
