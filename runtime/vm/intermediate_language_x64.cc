@@ -319,6 +319,7 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
     case Token::kLT: return BELOW;
     case Token::kGT: return ABOVE;
     case Token::kLTE: return BELOW_EQUAL;
+    case Token::kGTE: return ABOVE_EQUAL;
     default:
       UNREACHABLE();
       return OVERFLOW;
