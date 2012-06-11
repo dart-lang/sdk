@@ -12,8 +12,6 @@ Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A
 Language/07_Classes/7_Static_Variables_A01_t01: Fail # Please triage this failure.
 Language/07_Classes/7_Static_Variables_A01_t05: Fail # Please triage this failure.
 Language/07_Classes/7_Static_Variables_A02_t01: Fail # Please triage this failure.
-Language/08_Interfaces/1_Methods_A06_t01: Fail # Please triage this failure.
-Language/08_Interfaces/1_Methods_A06_t02: Fail # Please triage this failure.
 Language/08_Interfaces/Interfaces_A01_t01: Fail # Please triage this failure.
 Language/10_Expressions/01_Constants_A03_t01: Fail # Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # Please triage this failure.
@@ -91,14 +89,6 @@ Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # Issue 2493
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
-Language/07_Classes/07_Classes_A02_t01: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t03: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t04: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail # Issue 3449
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail # Issue 3449
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379

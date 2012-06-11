@@ -149,18 +149,6 @@ public class NegativeParserTest extends CompilerTestCase {
     assertEquals("foo", ((DartIdentifier) factory.getName()).getName());
   }
 
-  public void test_defaultParameterValue_inInterfaceMethod() {
-    parseExpectErrors(
-        "interface A { f(int a, [int b = 12345]); }",
-        errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE, 1, 33, 5));
-  }
-
-  public void test_defaultParameterValue_inAbstractMethod() {
-    parseExpectErrors(
-        "class A { abstract f(int a, [int b = 12345, int c]); }",
-        errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT, 1, 38, 5));
-  }
-
   public void test_defaultParameterValue_inClosureTypedef() {
     parseExpectErrors(
         "typedef void f(int a, [int b = 12345, inc c]);",

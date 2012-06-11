@@ -1351,20 +1351,6 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    // Interface method declaration can not have default values for named parameters.
-    if (isParsingInterface) {
-      validateNoDefaultParameterValues(
-          parameters,
-          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE);
-    }
-
-    // Abstract method declaration can not have default values for named parameters.
-    if (modifiers.isAbstract()) {
-      validateNoDefaultParameterValues(
-          parameters,
-          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT);
-    }
-
     // Parse initializer expressions for constructors.
     List<DartInitializer> initializers = new ArrayList<DartInitializer>();
     if (match(Token.COLON) && !(isParsingInterface || modifiers.isFactory())) {
