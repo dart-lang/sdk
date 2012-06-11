@@ -32,7 +32,7 @@ arithmetic_test: Fail
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail, OK
 
-[ $compiler == dart2js]
+[ $compiler == dart2js ]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
 exception_test: Fail # "throw null" throws NullPointerException.
@@ -110,7 +110,6 @@ abstract_syntax_test/01: Fail, OK # Negative language test.
 abstract_syntax_test/02: Fail, OK # Negative language test.
 assign_top_method_negative_test: Fail, OK # Negative language test.
 class_extends_negative_test: Fail, OK # Negative language test.
-class_override_negative_test: Fail, OK # Negative language test.
 const_constructor_syntax_test/01: Fail, OK # Negative language test.
 const_constructor_syntax_test/02: Fail, OK # Negative language test.
 const_constructor_syntax_test/03: Fail, OK # Negative language test.
@@ -165,8 +164,6 @@ operator1_negative_test: Fail, OK # Negative language test.
 override_field_method1_negative_test: Fail, OK # Negative language test.
 override_field_method2_negative_test: Fail, OK # Negative language test.
 override_field_method3_negative_test: Fail, OK # Negative language test.
-override_field_method4_negative_test: Fail, OK # Negative language test.
-override_field_method5_negative_test: Fail, OK # Negative language test.
 override_field_method6_negative_test: Fail, OK # Negative language test.
 override_field_test/01: Fail, OK # Negative language test.
 override_field_test/04: Fail, OK # Negative language test.
@@ -232,12 +229,17 @@ assign_top_method_negative_test: Crash
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 
+[ $compiler == dart2js && $runtime != ie ]
+class_override_negative_test: Fail, OK # Negative language test.
+override_field_method4_negative_test: Fail, OK # Negative language test.
+override_field_method5_negative_test: Fail, OK # Negative language test.
+
+
 [ $compiler == dart2js && $runtime == ff ]
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
 double_to_string_as_exponential_test: Fail
-label_test: Skip # Timeout
 
 
 [ $compiler == dart2js && $runtime == ie ]
@@ -293,8 +295,6 @@ unbound_getter_test: Fail # BUG(3304)
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
-arithmetic_test: Skip # Timeout
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-label_test: Skip # Timeout
