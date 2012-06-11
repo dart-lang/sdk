@@ -241,72 +241,72 @@ label_test: Skip # Timeout
 
 
 [ $compiler == dart2js && $runtime == ie ]
-arithmetic2_test: Skip # BUG(3304): Times out.
-assert_keyword_negative_test: Skip # BUG(3304): Times out.
-assign_instance_method_negative_test: Skip # BUG(3304): Times out.
-bad_named_parameters2_test: Skip # BUG(3304): Times out.
-bad_named_parameters_test: Skip # BUG(3304): Times out.
-call_through_getter_test: Skip # BUG(3304): Times out.
-call_through_null_getter_test: Skip # BUG(3304): Times out.
-class_override_negative_test: Skip # BUG(3304): Times out.
-closure3_test: Skip # BUG(3304): Times out.
-closure_call_wrong_argument_count_negative_test: Skip # BUG(3304): Times out.
-div_by_zero_test: Skip # BUG(3304): Times out.
-double_to_string_as_exponential_test: Skip # BUG(3304): Times out.
-dynamic_field_test: Skip # BUG(3304): Times out.
-exception_test: Skip # BUG(3304): Times out.
-execute_finally7_test: Skip # BUG(3304): Times out.
-expect_test: Skip # BUG(3304): Times out.
-factory3_test: Skip # BUG(3304): Times out.
-fannkuch_test: Skip # BUG(3304): Times out.
-field_method4_negative_test: Skip # BUG(3304): Times out.
-generics2_test: Skip # BUG(3304): Times out.
-hello_dart_test: Skip # BUG(3304): Times out.
-hello_script_test: Skip # BUG(3304): Times out.
-implicit_closure1_test: Skip # BUG(3304): Times out.
-implied_interface_test: Skip # BUG(3304): Times out.
-import_core_impl_no_prefix_test: Skip # BUG(3304): Times out.
-import_core_no_prefix_test: Skip # BUG(3304): Times out.
-instance_call_wrong_argument_count_negative_test: Skip # BUG(3304): Times out.
-interface_inherit_field_test: Skip # BUG(3304): Times out.
-label_test: Skip # BUG(3304): Times out.
-library_private_in_constructor_test: Skip # BUG(3304): Times out.
-list_test: Skip # BUG(3304): Times out.
-local_function3_test: Skip # BUG(3304): Times out.
-local_function_test: Skip # BUG(3304): Times out.
-method_invocation_test: Skip # BUG(3304): Times out.
-naming_test: Skip # BUG(3304): Times out.
-native_test: Skip # BUG(3304): Times out.
-no_such_method_negative_test: Skip # BUG(3304): Times out.
-null_pointer_exception_test: Skip # BUG(3304): Times out.
-override_field_method4_negative_test: Skip # BUG(3304): Times out.
-override_field_method5_negative_test: Skip # BUG(3304): Times out.
-prefix6_negative_test: Skip # BUG(3304): Times out.
-private2_test: Skip # BUG(3304): Times out.
-private3_test: Skip # BUG(3304): Times out.
-private_member1_negative_test: Skip # BUG(3304): Times out.
-private_member2_negative_test: Skip # BUG(3304): Times out.
-private_member3_negative_test: Skip # BUG(3304): Times out.
-reg_ex2_test: Skip # BUG(3304): Times out.
-reg_exp2_test: Skip # BUG(3304): Times out.
-savannah_test: Skip # BUG(3304): Times out.
-stack_overflow_test: Skip # BUG(3304): Times out.
-stack_trace_test: Skip # BUG(3304): Times out.
-static_field1a_run_negative_test: Skip # BUG(3304): Times out.
-static_field2a_run_negative_test: Skip # BUG(3304): Times out.
-string_interpolate_npe_test: Skip # BUG(3304): Times out.
-string_interpolate_test: Skip # BUG(3304): Times out.
-throw1_test: Skip # BUG(3304): Times out.
-throw2_test: Skip # BUG(3304): Times out.
-throw3_test: Skip # BUG(3304): Times out.
-throw4_test: Skip # BUG(3304): Times out.
-throw5_test: Skip # BUG(3304): Times out.
-throw6_test: Skip # BUG(3304): Times out.
-throw_test: Skip # BUG(3304): Times out.
-type_checks_in_factory_method_test: Skip # BUG(3304): Times out.
-typed_message_test: Skip # BUG(3304): Times out.
-unbound_getter_test: Skip # BUG(3304): Times out.
-unhandled_exception_negative_test: Skip # BUG(3304): Times out.
+arithmetic2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+assert_keyword_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+assign_instance_method_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+bad_named_parameters2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+bad_named_parameters_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+call_through_getter_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+call_through_null_getter_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+class_override_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+closure3_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+closure_call_wrong_argument_count_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+div_by_zero_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+double_to_string_as_exponential_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+dynamic_field_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+exception_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+execute_finally7_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+expect_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+factory3_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+fannkuch_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+field_method4_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+generics2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+hello_dart_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+hello_script_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+implicit_closure1_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+implied_interface_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+import_core_impl_no_prefix_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+import_core_no_prefix_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+instance_call_wrong_argument_count_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+interface_inherit_field_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+label_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+library_private_in_constructor_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+list_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+local_function3_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+local_function_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+method_invocation_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+naming_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+native_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+no_such_method_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+null_pointer_exception_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+override_field_method4_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+override_field_method5_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+prefix6_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+private2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+private3_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+private_member1_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+private_member2_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+private_member3_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+reg_ex2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+reg_exp2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+savannah_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+stack_overflow_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+stack_trace_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+static_field1a_run_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+static_field2a_run_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+string_interpolate_npe_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+string_interpolate_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw1_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw2_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw3_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw4_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw5_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw6_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+throw_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+type_checks_in_factory_method_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+typed_message_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+unbound_getter_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
+unhandled_exception_negative_test: Fail # BUG(3304): Maybe this doesn't time out anymore?
 double_to_string_as_fixed_test: Fail
 
 [ $compiler == dart2js && $runtime == safari ]
