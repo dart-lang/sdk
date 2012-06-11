@@ -132,6 +132,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
+  private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
   private static final String EXTENDS_KEYWORD = "extends";
   private static final String FACTORY_KEYWORD = "factory"; // TODO(zundel): remove
@@ -151,6 +152,7 @@ public class DartParser extends CompletionHooksParserBase {
     ABSTRACT_KEYWORD,
     ASSERT_KEYWORD,
     CALL_KEYWORD,
+    DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
     EXTENDS_KEYWORD,
     FACTORY_KEYWORD,
@@ -546,6 +548,9 @@ public class DartParser extends CompletionHooksParserBase {
   private DartTypeParameter parseTypeParameter() {
     beginTypeParameter();
     DartIdentifier name = parseIdentifier();
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    }
     // Try to parse bound.
     DartTypeNode bound = null;
     if (peek(0) != Token.EOS && peek(0) != Token.COMMA && peek(0) != Token.GT) {
@@ -630,6 +635,9 @@ public class DartParser extends CompletionHooksParserBase {
         parseBlock();
       }
       return done(null);
+    }
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
     }
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
 
@@ -820,6 +828,10 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     DartIdentifier name = parseIdentifier();
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    }
+
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
     List<DartParameter> params = parseFormalParameterList();
     expect(Token.SEMICOLON);

@@ -100,22 +100,9 @@ override_field_test/04: Fail             # Bug 5215249
 prefix6_negative_test: Fail	       # Issue 2383
 private_factory_resolution_negative_test: Fail # Issue 2275
 private_member3_negative_test: Fail       # Issue 2383
-pseudo_kw_illegal_test/01: Fail # Issue 356
-pseudo_kw_illegal_test/02: Fail # Issue 356
-pseudo_kw_illegal_test/03: Fail # Issue 356
-pseudo_kw_illegal_test/04: Fail # Issue 356
-pseudo_kw_illegal_test/05: Fail # Issue 356
-pseudo_kw_illegal_test/06: Fail # Issue 356
-pseudo_kw_illegal_test/07: Fail # Issue 356
 pseudo_kw_illegal_test/08: Fail # Issue 356
-pseudo_kw_illegal_test/09: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
-pseudo_kw_illegal_test/11: Fail # Issue 356
-pseudo_kw_illegal_test/12: Fail # Issue 356
-pseudo_kw_illegal_test/13: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
-pseudo_kw_illegal_test/15: Fail # Issue 356
-pseudo_kw_illegal_test/16: Fail # Issue 356
 pseudo_kw_test: Fail           # Issue 356
 scope_negative_test: Fail      # Bug 4207538.
 static_call_wrong_argument_count_negative_test: Fail

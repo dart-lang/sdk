@@ -789,7 +789,179 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.NATIVE_ONLY_CORE_LIB, 3, 15, 6));
   }
-  
+
+  /**
+   * The spec in the section 10.28 says:
+   * <p>
+   * It is a compile-time error if a built-in identifier is used as the declared name of a class,
+   * interface, type variable or type alias.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3477
+   */
+  public void test_builtInIdentifier_asClassName() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class abstract {}",
+            "class assert {}",
+            "class call {}",
+            "class Dynamic {}",
+            "class equals {}",
+            "class factory {}",
+            "class get {}",
+            "class implements {}",
+            "class interface {}",
+            "class negate {}",
+            "class operator {}",
+            "class set {}",
+            "class static {}",
+            "class typedef {}",
+            ""),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 7, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 7, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 4),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 7, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 7, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 7, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 7, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 7, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 7, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 7, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 7, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 7, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 7, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 15, 7, 7));
+  }
+
+  /**
+   * The spec in the section 10.28 says:
+   * <p>
+   * It is a compile-time error if a built-in identifier is used as the declared name of a class,
+   * interface, type variable or type alias.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3477
+   */
+  public void test_builtInIdentifier_asInterfaceName() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface abstract {}",
+            "interface assert {}",
+            "interface call {}",
+            "interface Dynamic {}",
+            "interface equals {}",
+            "interface factory {}",
+            "interface get {}",
+            "interface implements {}",
+            "interface interface {}",
+            "interface negate {}",
+            "interface operator {}",
+            "interface set {}",
+            "interface static {}",
+            "interface typedef {}",
+            ""),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 11, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 11, 4),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 11, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 11, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 11, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 15, 11, 7));
+  }
+
+  /**
+   * The spec in the section 10.28 says:
+   * <p>
+   * It is a compile-time error if a built-in identifier is used as the declared name of a class,
+   * interface, type variable or type alias.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3477
+   */
+  public void test_builtInIdentifier_asTypevariableName() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C01<abstract> {}",
+            "class C02<assert> {}",
+            "class C03<call> {}",
+            "class C04<Dynamic> {}",
+            "class C05<equals> {}",
+            "class C06<factory> {}",
+            "class C07<get> {}",
+            "class C08<implements> {}",
+            "class C09<interface> {}",
+            "class C10<negate> {}",
+            "class C11<operator> {}",
+            "class C12<set> {}",
+            "class C13<static> {}",
+            "class C14<typedef> {}",
+            ""),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 2, 11, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 3, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 4),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 5, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 6, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 7, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 8, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 9, 11, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 10, 11, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 11, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 12, 11, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 13, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 14, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 15, 11, 7));
+  }
+
+  /**
+   * The spec in the section 10.28 says:
+   * <p>
+   * It is a compile-time error if a built-in identifier is used as the declared name of a class,
+   * interface, type variable or type alias.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3477
+   */
+  public void test_builtInIdentifier_asTypedefName() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "typedef abstract();",
+            "typedef assert();",
+            "typedef call();",
+            "typedef Dynamic();",
+            "typedef equals();",
+            "typedef factory();",
+            "typedef get();",
+            "typedef implements();",
+            "typedef interface();",
+            "typedef negate();",
+            "typedef operator();",
+            "typedef set();",
+            "typedef static();",
+            "typedef typedef();",
+            ""),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 2, 9, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 3, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 4),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 5, 9, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 6, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 7, 9, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 9, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 9, 9, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 10, 9, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 11, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 12, 9, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 9, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 14, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 15, 9, 7));
+  }
+
   public void test_qualifiedType_inForIn() {
     parseExpectErrors(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
