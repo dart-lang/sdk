@@ -1685,6 +1685,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('.');
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      assert(type !== null);
+      world.registerFieldGetter(node.element.name, type);
     } else {
       use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
@@ -1698,6 +1701,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(name);
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      assert(type !== null);
+      world.registerFieldSetter(node.element.name, type);
     } else {
       declareInstruction(node.receiver);
     }
