@@ -985,6 +985,27 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(
   __ Bind(&is_ok);
 }
 
+
+void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
+                                             Register reg,
+                                             Register temp,
+                                             Label* not_double_or_smi) {
+  Label is_smi, done;
+  __ testl(reg, Immediate(kSmiTagMask));
+  __ j(ZERO, &is_smi);
+  __ LoadClassId(temp, reg);
+  __ cmpl(temp, Immediate(kDouble));
+  __ j(NOT_EQUAL, not_double_or_smi);
+  __ movsd(result, FieldAddress(reg, Double::value_offset()));
+  __ jmp(&done);
+  __ Bind(&is_smi);
+  __ movl(temp, reg);
+  __ SmiUntag(temp);
+  __ cvtsi2sd(result, temp);
+  __ Bind(&done);
+}
+
+
 #undef __
 
 }  // namespace dart

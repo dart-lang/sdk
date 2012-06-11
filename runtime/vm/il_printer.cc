@@ -223,6 +223,14 @@ void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().owner()).ToCString());
   for (intptr_t i = 0; i < arguments().length(); i++) {

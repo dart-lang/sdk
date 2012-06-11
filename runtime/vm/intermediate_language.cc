@@ -414,6 +414,11 @@ RawAbstractType* EqualityCompareComp::StaticType() const {
 }
 
 
+RawAbstractType* RelationalOpComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
 RawAbstractType* NativeCallComp::StaticType() const {
   // The result type of the native function is identical to the result type of
   // the enclosing native Dart function. However, we prefer to check the type
@@ -581,6 +586,12 @@ RawAbstractType* CloneContextComp::StaticType() const {
 
 
 RawAbstractType* CatchEntryComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CheckStackOverflowComp::StaticType() const {
   UNREACHABLE();
   return AbstractType::null();
 }

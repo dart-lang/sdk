@@ -41,8 +41,9 @@ class LocationSummary;
   M(StoreLocal, StoreLocalComp)                                                \
   M(StrictCompare, StrictCompareComp)                                          \
   M(EqualityCompare, EqualityCompareComp)                                      \
+  M(RelationalOp, RelationalOpComp)                                            \
   M(NativeCall, NativeCallComp)                                                \
-  M(LoadIndexed, LoadIndexedComp)                                            \
+  M(LoadIndexed, LoadIndexedComp)                                              \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
   M(StaticSetter, StaticSetterComp)                                            \
@@ -68,6 +69,7 @@ class LocationSummary;
   M(BinaryOp, BinaryOpComp)                                                    \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
+  M(CheckStackOverflow, CheckStackOverflowComp)                                \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -525,8 +527,8 @@ class EqualityCompareComp : public TemplateComputation<2> {
                       intptr_t try_index,
                       Value* left,
                       Value* right)
-    : token_index_(token_index),
-      try_index_(try_index) {
+      : token_index_(token_index),
+        try_index_(try_index) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -547,6 +549,51 @@ class EqualityCompareComp : public TemplateComputation<2> {
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
+};
+
+
+class RelationalOpComp : public TemplateComputation<2> {
+ public:
+  RelationalOpComp(intptr_t token_index,
+                   intptr_t try_index,
+                   Token::Kind kind,
+                   Value* left,
+                   Value* right)
+      : token_index_(token_index),
+        try_index_(try_index),
+        kind_(kind),
+        operands_class_id_(kObject) {
+    ASSERT(Token::IsRelationalOperator(kind));
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  DECLARE_COMPUTATION(RelationalOp)
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+  Token::Kind kind() const { return kind_; }
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  // TODO(srdjan): instead of class-id pass an enum that can differentiate
+  // between boxed and unboxed doubles and integers.
+  void set_operands_class_id(intptr_t value) {
+    operands_class_id_ = value;
+  }
+  intptr_t operands_class_id() const { return operands_class_id_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+ private:
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+  const Token::Kind kind_;
+  intptr_t operands_class_id_;  // class id of both operands.
+
+  DISALLOW_COPY_AND_ASSIGN(RelationalOpComp);
 };
 
 
@@ -1440,6 +1487,26 @@ class NumberNegateComp : public TemplateComputation<1> {
 
   DISALLOW_COPY_AND_ASSIGN(NumberNegateComp);
 };
+
+
+class CheckStackOverflowComp : public TemplateComputation<0> {
+ public:
+  CheckStackOverflowComp(intptr_t token_index, intptr_t try_index)
+      : token_index_(token_index),
+        try_index_(try_index) {}
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+
+  DECLARE_COMPUTATION(CheckStackOverflow)
+
+ private:
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowComp);
+};
+
 
 #undef DECLARE_COMPUTATION
 

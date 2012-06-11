@@ -70,6 +70,11 @@ class FlowGraphCompiler : public ValueObject {
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
 
+  void LoadDoubleOrSmiToXmm(XmmRegister result,
+                            Register reg,
+                            Register temp,
+                            Label* not_double_or_smi);
+
   // Returns 'true' if code generation for this function is complete, i.e.,
   // no fall-through to regular code is needed.
   bool TryIntrinsify();

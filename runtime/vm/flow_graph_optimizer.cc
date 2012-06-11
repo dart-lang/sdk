@@ -176,12 +176,12 @@ void FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
 static bool HasOneTarget(const ICData& ic_data) {
   ASSERT(ic_data.NumberOfChecks() > 0);
   Function& prev_target = Function::Handle();
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &prev_target);
+  GrowableArray<const Class*> classes;
+  ic_data.GetCheckAt(0, &classes, &prev_target);
   ASSERT(!prev_target.IsNull());
   Function& target = Function::Handle();
   for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    ic_data.GetCheckAt(i, &classes, &target);
     ASSERT(!target.IsNull());
     if (prev_target.raw() != target.raw()) {
       return false;
@@ -335,7 +335,9 @@ void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
 
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) return;
-  if (!HasOneTarget(ic_data)) return;
+  // TODO(vegorov): Add multiple receiver type support.
+  if (ic_data.NumberOfChecks() != 1) return;
+  ASSERT(HasOneTarget(ic_data));
 
   Function& target = Function::Handle();
   Class& cls = Class::Handle();
@@ -346,6 +348,23 @@ void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
     case kImmutableArray:
     case kGrowableObjectArray:
       comp->set_receiver_type(static_cast<ObjectKind>(cls.id()));
+  }
+}
+
+
+void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
+  if (!comp->HasICData()) return;
+
+  const ICData& ic_data = *comp->ic_data();
+  if (ic_data.NumberOfChecks() == 0) return;
+  // TODO(srdjan): Add multiple receiver type support.
+  if (ic_data.NumberOfChecks() != 1) return;
+  ASSERT(HasOneTarget(ic_data));
+
+  if (HasTwoSmi(ic_data)) {
+    comp->set_operands_class_id(kSmi);
+  } else if (HasTwoDouble(ic_data)) {
+    comp->set_operands_class_id(kDouble);
   }
 }
 

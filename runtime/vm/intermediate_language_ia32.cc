@@ -232,6 +232,141 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* RelationalOpComp::MakeLocationSummary() const {
+  if ((operands_class_id() == kSmi) || (operands_class_id() == kDouble)) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+  ASSERT(operands_class_id() == kObject);
+  return MakeCallSummary();
+}
+
+
+static Condition TokenKindToSmiCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQUAL;
+    case Token::kNE: return NOT_EQUAL;
+    case Token::kLT: return LESS;
+    case Token::kGT: return GREATER;
+    case Token::kLTE: return LESS_EQUAL;
+    case Token::kGTE: return  GREATER_EQUAL;
+    default:
+      UNREACHABLE();
+      return OVERFLOW;
+  }
+}
+
+
+static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
+                                RelationalOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register result = comp->locs()->out().reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptSmiCompareSmis,
+                                        left,
+                                        right);
+  __ movl(temp, left);
+  __ orl(temp, right);
+  __ testl(temp, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Condition condition = TokenKindToSmiCondition(comp->kind());
+
+  Label done, is_true;
+  __ cmpl(left, right);
+  __ j(condition, &is_true);
+  __ LoadObject(result, bool_false);
+  __ jmp(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, bool_true);
+  __ Bind(&done);
+}
+
+
+static Condition TokenKindToDoubleCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQUAL;
+    case Token::kLT: return BELOW;
+    case Token::kGT: return ABOVE;
+    case Token::kLTE: return BELOW_EQUAL;
+    default:
+      UNREACHABLE();
+      return OVERFLOW;
+  }
+}
+
+
+static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
+                                   RelationalOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register result = comp->locs()->out().reg();
+  // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
+  Register temp = comp->locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptDoubleComparison,
+                                        left,
+                                        right);
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Condition true_condition = TokenKindToDoubleCondition(comp->kind());
+  Label is_false, is_true, done;
+  __ comisd(XMM0, XMM1);
+  __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
+  __ j(true_condition, &is_true, Assembler::kNearJump);
+  __ Bind(&is_false);
+  __ LoadObject(result, bool_false);
+  __ jmp(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, bool_true);
+  __ Bind(&done);
+}
+
+
+
+void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (operands_class_id() == kSmi) {
+    EmitSmiRelationalOp(compiler, this);
+    return;
+  }
+  if (operands_class_id() == kDouble) {
+    EmitDoubleRelationalOp(compiler, this);
+    return;
+  }
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(kind())));
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 cid(),
+                                 token_index(),
+                                 try_index());
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumArgsChecked = 2;  // Type-feedback.
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
+  ASSERT(locs()->out().reg() == EAX);
+}
+
+
 LocationSummary* NativeCallComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(0, 3);
   locs->set_temp(0, Location::RegisterLocation(EAX));
@@ -769,6 +904,24 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
           kExceptionObjectReg);
   __ movl(Address(EBP, stacktrace_var().index() * kWordSize),
           kStackTraceObjectReg);
+}
+
+
+LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
+  return LocationSummary::Make(0, Location::NoLocation());
+}
+
+
+void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ cmpl(ESP,
+          Address::Absolute(Isolate::Current()->stack_limit_address()));
+  Label no_stack_overflow;
+  __ j(ABOVE, &no_stack_overflow);
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kStackOverflowRuntimeEntry);
+  __ Bind(&no_stack_overflow);
 }
 
 

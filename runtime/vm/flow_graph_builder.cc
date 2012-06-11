@@ -804,14 +804,12 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ValueGraphVisitor for_right_value(owner(), temp_index());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
-  arguments->Add(for_left_value.value());
-  arguments->Add(for_right_value.value());
-  const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
-  InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
-      arguments, Array::ZoneHandle(), 2);
-  ReturnComputation(call);
+  RelationalOpComp* comp = new RelationalOpComp(node->token_index(),
+                                                owner()->try_index(),
+                                                node->kind(),
+                                                for_left_value.value(),
+                                                for_right_value.value());
+  ReturnComputation(comp);
 }
 
 
@@ -1164,6 +1162,11 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   TargetEntryInstr* body_entry = new TargetEntryInstr();
   for_body.AddInstruction(body_entry);
   node->body()->Visit(&for_body);
+  if (for_body.is_open()) {
+    CheckStackOverflowComp* comp =
+        new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+    for_body.AddInstruction(new DoInstr(comp));
+  }
 
   // Join loop body, increment and compute their end instruction.
   ASSERT(!for_body.is_empty());
