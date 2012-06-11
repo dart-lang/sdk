@@ -238,6 +238,16 @@ public class SyntaxTest extends AbstractParserTest {
                            assertEquals(1, nodes.size());
   }
 
+  public void testMultipleLabels() {
+    DartUnit unit = parseUnit ("multiple_labels.dart",
+      Joiner.on("\n").join(
+        "class A {",
+        "  void foo() {",
+        "    a: b: foo();",
+        "  }",
+        "}"));
+  }
+
   public void testAdjacentStrings1() {
     DartUnit unit = parseUnit ("phony_adjacent_strings_1.dart",
                                Joiner.on("\n").join(

@@ -181,7 +181,6 @@ public class Resolver {
     private boolean inInitializer;
     private MethodElement innermostFunction;
     private ResolutionContext context;
-    private LabelElement currentLabel;
     private Set<LabelElement> referencedLabels = Sets.newHashSet();
     private Set<LabelElement> labelsInScopes = Sets.newHashSet();
     private Set<FieldElement> finalsNeedingInitializing = Sets.newHashSet();
@@ -744,8 +743,7 @@ public class Resolver {
 
     @Override
     public Element visitLabel(DartLabel x) {
-      LabelElement previousLabel = currentLabel;
-      currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
+      LabelElement currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
       recordElement(x.getLabel(), currentLabel);
       recordElement(x, currentLabel);
       x.visitChildren(this);
@@ -756,7 +754,6 @@ public class Resolver {
         // TODO(zundel): warning, not type error.
         // topLevelContext.typeError(x, DartCompilerErrorCode.UNREFERENCED_LABEL, x.getName());
       }
-      currentLabel = previousLabel;
       return null;
     }
 
@@ -872,12 +869,12 @@ public class Resolver {
     }
 
     private void addLabelToStatement(DartStatement x) {
-      if (currentLabel != null) {
-        DartNode parent = x.getParent();
-        if (parent instanceof DartLabel) {
-          getContext().getScope().setLabel(currentLabel);
-          labelsInScopes.add(currentLabel);
-        }
+      DartNode parent = x.getParent();
+      while (parent instanceof DartLabel) {
+        LabelElement currentLabel = ((DartLabel) parent).getElement();
+        getContext().getScope().addLabel(currentLabel);
+        labelsInScopes.add(currentLabel);
+        parent = parent.getParent();
       }
     }
 

@@ -226,7 +226,6 @@ Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/11_Labels_A01_t01: Fail # Issue 2440
-Language/11_Statements/11_Labels_A01_t03: Fail # Issue 1335
 Language/11_Statements/11_Labels_A03_t05: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t07: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t12: Fail # Issue 2441

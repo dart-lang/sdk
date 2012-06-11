@@ -946,6 +946,19 @@ public class ResolverTest extends ResolverTestCase {
         ErrorExpectation.errEx(ResolverErrorCode.CONST_MAP_WITH_TYPE_VARIABLE, 8, 19, 1));
   }
 
+  public void test_multipleLabels() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass<E> {",
+        "  foo() {",
+        "    a: b: while (true) { break a; } // ok",
+        "    a: b: while (true) { break b; } // ok",
+        "    a: b: while (true) { break c; } // error, no such label",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CANNOT_RESOLVE_LABEL, 6, 32, 1));
+  }
+
   public void test_new_noSuchType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

@@ -3291,14 +3291,17 @@ public class DartParser extends CompletionHooksParserBase {
    */
   @VisibleForTesting
   public DartStatement parseStatement() {
-    if (peek(0) == Token.IDENTIFIER && peek(1) == Token.COLON) {
+    List<DartIdentifier> labels = new ArrayList<DartIdentifier>();
+    while (peek(0) == Token.IDENTIFIER && peek(1) == Token.COLON) {
       beginLabel();
-      DartIdentifier label = parseIdentifier();
+      labels.add(parseIdentifier());
       expect(Token.COLON);
-      DartStatement statement = parseNonLabelledStatement();
-      return done(new DartLabel(label, statement));
     }
-    return parseNonLabelledStatement();
+    DartStatement statement = parseNonLabelledStatement();
+    for (int i = labels.size() - 1; i >= 0; i--) {
+      statement = done(new DartLabel(labels.get(i), statement));
+    }
+    return statement;
   }
 
   /**
