@@ -11,8 +11,6 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
-  final Map<SourceString, Set<Selector>> fieldGetters;
-  final Map<SourceString, Set<Selector>> fieldSetters;
   // TODO(ngeoffray): This should be a Set<Type>.
   final Set<Element> isChecks;
   final RuntimeTypeInformation rti;
@@ -25,8 +23,6 @@ class Universe {
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
-               fieldGetters = new Map<SourceString, Set<Selector>>(),
-               fieldSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<Element>(),
                rti = new RuntimeTypeInformation();
 
@@ -52,20 +48,12 @@ class Universe {
     return hasMatchingSelector(invokedNames[member.name], member, compiler);
   }
 
-  bool hasInvokedGetter(Element member, Compiler compiler) {
+  bool hasGetter(Element member, Compiler compiler) {
     return hasMatchingSelector(invokedGetters[member.name], member, compiler);
   }
 
-  bool hasInvokedSetter(Element member, Compiler compiler) {
+  bool hasSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(invokedSetters[member.name], member, compiler);
-  }
-
-  bool hasFieldGetter(Element member, Compiler compiler) {
-    return hasMatchingSelector(fieldGetters[member.name], member, compiler);
-  }
-
-  bool hasFieldSetter(Element member, Compiler compiler) {
-    return hasMatchingSelector(fieldSetters[member.name], member, compiler);
   }
 }
 

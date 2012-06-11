@@ -367,13 +367,13 @@ function(collectedClasses) {
 
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
-    return compiler.codegenWorld.hasInvokedGetter(member, compiler);
+    return compiler.codegenWorld.hasGetter(member, compiler);
   }
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
     return (member.modifiers === null || !member.modifiers.isFinal())
-        && compiler.codegenWorld.hasInvokedSetter(member, compiler);
+        && compiler.codegenWorld.hasSetter(member, compiler);
   }
 
   String compiledFieldName(Element member) {
@@ -823,7 +823,7 @@ function(collectedClasses) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.kind == ElementKind.FUNCTION) {
-      if (compiler.codegenWorld.hasInvokedGetter(member, compiler)) {
+      if (compiler.codegenWorld.hasGetter(member, compiler)) {
         emitDynamicFunctionGetter(member, defineInstanceMember);
       }
     }
