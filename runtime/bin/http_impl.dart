@@ -1104,6 +1104,10 @@ class _HttpInputStream extends _BaseDataInputStream implements InputStream {
     return result;
   }
 
+  void flush() {
+    // Nothing to do on a HTTP output stream.
+  }
+
   void _close() {
     // TODO(sgjesse): Handle this.
   }

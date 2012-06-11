@@ -476,7 +476,9 @@ Debugger::Debugger()
       code_breakpoints_(NULL),
       resume_action_(kContinue),
       last_bpt_line_(-1),
-      ignore_breakpoints_(false) {
+      ignore_breakpoints_(false),
+      pause_on_exception_(false),
+      pause_on_unhandled_exception_(false) {
 }
 
 
@@ -602,6 +604,61 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
     event.type = kBreakpointResolved;
     event.breakpoint = bpt;
     (*event_handler_)(&event);
+  }
+}
+
+
+DebuggerStackTrace* Debugger::CollectStackTrace() {
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+  DartFrameIterator iterator;
+  StackFrame* frame = iterator.NextFrame();
+  while (frame != NULL) {
+    ASSERT(frame->IsValid());
+    ASSERT(frame->IsDartFrame());
+    ActivationFrame* activation =
+        new ActivationFrame(frame->pc(), frame->fp(), frame->sp());
+    stack_trace->AddActivation(activation);
+    frame = iterator.NextFrame();
+  }
+  return stack_trace;
+}
+
+
+// TODO(hausner): Determine whether the exception is handled or not, and
+// check with the settings the user specified to determine whether the
+// debugger should pause or not.
+// For now, we just pause on TypeError and AssertionError exceptions.
+bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
+                                      const Object& exc) {
+  const Class& exc_class = Class::Handle(exc.clazz());
+  const String& class_name = String::Handle(exc_class.Name());
+  // TODO(hausner): Note the poor man's type test. Replace with check for
+  // actual class object or class id.
+  return class_name.Equals("TypeError") || class_name.Equals("AssertionError");
+}
+
+
+void Debugger::SignalExceptionThrown(const Object& exc) {
+  if (ignore_breakpoints_) {
+    return;
+  }
+  DebuggerStackTrace* stack_trace = CollectStackTrace();
+  if (!ShouldPauseOnException(stack_trace, exc)) {
+    return;
+  }
+  // No single-stepping possible after this pause event.
+  last_bpt_line_ = -1;
+  if (event_handler_ != NULL) {
+    ASSERT(stack_trace_ == NULL);
+    stack_trace_ = stack_trace;
+    ASSERT(obj_cache_ == NULL);
+    obj_cache_ = new RemoteObjectCache(64);
+    DebuggerEvent event;
+    event.type = kExceptionThrown;
+    event.exception = &exc;
+    (*event_handler_)(&event);
+    stack_trace_ = NULL;
+    obj_cache_ = NULL;  // Remote object cache is zone allocated.
   }
 }
 
@@ -980,43 +1037,32 @@ bool Debugger::IsDebuggable(const Function& func) {
 }
 
 
-void Debugger::BreakpointCallback() {
-  ASSERT(initialized_);
-
+void Debugger::SignalBpReached() {
   if (ignore_breakpoints_) {
     return;
   }
-  DartFrameIterator iterator;
-  StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL && frame->IsDartFrame());
-  CodeBreakpoint* bpt = GetCodeBreakpoint(frame->pc());
+  DebuggerStackTrace* stack_trace = CollectStackTrace();
+  ASSERT(stack_trace->Length() > 0);
+  ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
+  ASSERT(top_frame != NULL);
+  CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
   if (verbose) {
-    OS::Print(">>> %s breakpoint at %s:%d (Address %p)\n",
-              bpt->IsInternal() ? "hit internal" : "hit user",
-              bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
-              bpt ? bpt->LineNumber() : 0,
-              frame->pc());
+    OS::Print(">>> hit %s breakpoint at %s:%d (Address %p)\n",
+              bpt->IsInternal() ? "internal" : "user",
+              String::Handle(bpt->SourceUrl()).ToCString(),
+              bpt->LineNumber(),
+              top_frame->pc());
   }
 
   if (!bpt->IsInternal()) {
-    // This is a user-defined breakpoint, so we call the breakpoint callback
-    // even if it is on the same line as the previous breakpoint.
+    // This is a user-defined breakpoint so we call the breakpoint
+    // callback even if it is on the same line as the previous breakpoint.
     last_bpt_line_ = -1;
   }
 
   bool notify_frontend =
     (last_bpt_line_ < 0) || (last_bpt_line_ != bpt->LineNumber());
-
-  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-  while (frame != NULL) {
-    ASSERT(frame->IsValid());
-    ASSERT(frame->IsDartFrame());
-    ActivationFrame* activation =
-        new ActivationFrame(frame->pc(), frame->fp(), frame->sp());
-    stack_trace->AddActivation(activation);
-    frame = iterator.NextFrame();
-  }
 
   if (notify_frontend) {
     resume_action_ = kContinue;

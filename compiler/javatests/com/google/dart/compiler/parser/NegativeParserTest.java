@@ -5,6 +5,7 @@ package com.google.dart.compiler.parser;
 
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
@@ -385,6 +386,12 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 12, 3));
   }
 
+  public void test_incompleteExpressionInInterpolation() {
+    parseExpectErrors(
+        "var s = 'fib(3) = ${fib(3}';",
+        errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 1, 26, 1));
+  }
+
   public void test_interfaceMethodWithBody() {
     parseExpectErrors(
         Joiner.on("\n").join(
@@ -697,6 +704,21 @@ public class NegativeParserTest extends CompilerTestCase {
         "  operator call() {}",
         "}",
         ""));
+  }
+  
+  /**
+   * We can parse operator "equals" declaration.
+   */
+  public void test_operator_equals() {
+    DartParserRunner runner = parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator equals(other) => false;",
+        "}",
+        ""));
+    DartClass clazz = (DartClass) runner.getDartUnit().getTopLevelNodes().get(0);
+    DartMethodDefinition method = (DartMethodDefinition) clazz.getMembers().get(0);
+    assertTrue(method.getModifiers().isOperator());
   }
 
   /**

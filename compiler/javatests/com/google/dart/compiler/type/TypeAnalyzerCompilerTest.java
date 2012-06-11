@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -34,7 +31,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -44,11 +40,13 @@ import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -278,7 +276,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // "new I.foo()" - resolved, but we produce error.
     {
-      DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
+      DartNewExpression newExpression = findExpression(unit, "new I.foo(0)");
       DartNode constructorNode = newExpression.getElement().getNode();
       assertEquals(true, constructorNode.toSource().contains("F.foo("));
     }
@@ -579,6 +577,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  e.run();",
                 "}"));
     assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
+   * When we attempt to use function as type, we should report only one error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3309
+   */
+  public void test_useFunctionAsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "func() {}",
+        "main() {",
+        "  new func();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.NOT_A_TYPE, 4, 7, 4));
   }
 
   /**
@@ -1802,7 +1816,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "f() {",
+        "f(var arg) {",
         "  var v1 = 1 + 2;",
         "  var v2 = 1 - 2;",
         "  var v3 = 1 * 2;",
@@ -1819,6 +1833,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v14 = 1 / 2.0;",
         "  var v15 = 1.0 ~/ 2.0;",
         "  var v16 = 1.0 ~/ 2;",
+        "  var v17 = arg as int",
         "}",
         "");
     assertInferredElementTypeString(libraryResult, "v1", "int");
@@ -1837,6 +1852,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v14", "double");
     assertInferredElementTypeString(libraryResult, "v15", "double");
     assertInferredElementTypeString(libraryResult, "v16", "double");
+    assertInferredElementTypeString(libraryResult, "v17", "int");
   }
 
   /**
@@ -2015,37 +2031,179 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
   }
   
-  private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
-    return analyzeLibrary(getName(), makeCode(lines));
+  /**
+   * It is a static warning if the return type of the user-declared operator equals is explicitly
+   * declared and not bool.
+   */
+  public void test_equalsOperator_type() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  bool operator equals(other) {}",
+        "}",
+        "class B {",
+        "  String operator equals(other) {}",
+        "}",
+        "class C {",
+        "  Object operator equals(other) {}",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE, 6, 3, 6),
+        errEx(TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE, 9, 3, 6));
+  }
+
+  /**
+   * We should be able to resolve "a == b" to the "equals" operator.
+   */
+  public void test_equalsOperator_resolving() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C {",
+            "  operator equals(other) => false;",
+            "}",
+            "main() {",
+            "  new C() == new C();",
+            "}",
+            "");
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    // find == expression
+    DartExpression expression = findExpression(unit, "new C() == new C()");
+    assertNotNull(expression);
+    // validate == element
+    MethodElement equalsElement = (MethodElement) expression.getElement();
+    assertNotNull(equalsElement);
+  }
+
+  public void test_supertypeHasMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {}",
+            "interface I {",
+            "  foo();",
+            "  bar();",
+            "}",
+            "interface J extends I {",
+            "  get foo();",
+            "  set bar();",            
+            "}");
+      assertErrors(libraryResult.getTypeErrors(),
+          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 8, 7, 3),
+          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 9, 7, 3));
+  }
+
+  /**
+   * Ensure that "operator call()" is parsed, and "operator" is not considered as return type. This
+   * too weak test, but for now we are interested only in parsing.
+   */
+  public void test_callOperator_parsing() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator call() => 42;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * The spec in the section 10.28 says:
+   * "It is a compile-time error to use a built-in identifier other than Dynamic as a type annotation."
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3307
+   */
+  public void test_builtInIdentifier_asTypeAnnotation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  abstract   v01;",
+        "  assert     v02;",
+        "  call       v03;",
+        "  Dynamic    v04;",
+        "  equals     v05;",
+        "  factory    v06;",
+        "  get        v07;",
+        "  implements v08;",
+        "//  interface  v09;",
+        "  negate     v10;",
+        "  operator   v11;",
+        "  set        v12;",
+        "  static     v13;",
+        "//  typedef    v14;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 6),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 5, 3, 4),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 6),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 7),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 3, 3),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 3, 10),
+//        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 3, 8),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 12, 3, 6),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 13, 3, 8),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 14, 3, 3),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 6)
+//        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 16, 3, 7)
+    );
+  }
+  
+  public void test_supertypeHasField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "interface I {",
+        "  var foo;",
+        "  var bar;",
+        "}",
+        "interface J extends I {",
+        "  foo();",
+        "  bar();",            
+        "}");
+    assertErrors(libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
+  }  
+
+  public void test_supertypeHasGetterSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "interface I {",
+        "  get foo();",
+        "  set bar();",
+        "}",
+        "interface J extends I {",
+        "  foo();",
+        "  bar();",            
+        "}");
+    assertErrors(libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
   }
   
   /**
-   * @return the {@link DartNode} at the position of "pattern", with given {@link Class}.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3280
    */
-  private <T extends DartNode> T findIdentifier(
-      AnalyzeLibraryResult libraryResult,
-      String pattern,
-      int patternOffset,
-      final Class<T> clazz) {
-    String source = libraryResult.source;
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
-    // prepare index
-    assertTrue(source.contains(pattern));
-    final int index = source.indexOf(pattern) + patternOffset;
-    // find node
-    final AtomicReference<T> result = new AtomicReference<T>();
-    unit.accept(new ASTVisitor<Void>() {
-      @Override
-      public Void visitNode(DartNode node) {
-        SourceInfo sourceInfo = node.getSourceInfo();
-        if (sourceInfo.getOffset() <= index
-            && index < sourceInfo.getEnd()
-            && clazz.isInstance(node)) {
-          result.set(clazz.cast(node));
-        }
-        return super.visitNode(node);
-      }
-    });
-    return result.get();
+  public void test_typeVariableExtendsFunctionAliasType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef void F();",
+        "class C<T extends F> {",
+        "  test() {",
+        "    new C<T>();",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
+    return analyzeLibrary(getName(), makeCode(lines));
   }
 }

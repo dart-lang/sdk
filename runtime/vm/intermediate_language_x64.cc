@@ -21,7 +21,6 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
 
-
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
   __ pushq(locs()->out().reg());
@@ -278,6 +277,110 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  if (receiver_type() == kGrowableObjectArray) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  } else if (receiver_type() == kArray || receiver_type() == kImmutableArray) {
+    return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
+  } else {
+    ASSERT(receiver_type() == kIllegalObjectKind);
+    return MakeCallSummary();
+  }
+}
+
+
+static void EmitLoadIndexedGeneric(FlowGraphCompiler* compiler,
+                                   LoadIndexedComp* comp) {
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index());
+
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
+  compiler->GenerateInstanceCall(comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
+  ASSERT(comp->locs()->out().reg() == RAX);
+}
+
+
+void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (receiver_type() == kIllegalObjectKind) {
+    EmitLoadIndexedGeneric(compiler, this);
+    return;
+  }
+
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  const Class& receiver_class =
+      Class::ZoneHandle(Isolate::Current()->class_table()->At(
+          receiver_type()));
+
+  const DeoptReasonId deopt_reason = (receiver_type() == kGrowableObjectArray) ?
+      kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
+
+  Label* deopt = compiler->AddDeoptStub(cid(),
+                                        token_index(),
+                                        try_index(),
+                                        deopt_reason,
+                                        receiver,
+                                        index);
+
+  __ testq(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
+  __ j(ZERO, deopt);
+  __ CompareClassId(receiver, receiver_class.id());
+  __ j(NOT_EQUAL, deopt);
+
+  __ testq(index, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+
+  switch (receiver_type()) {
+    case kArray:
+    case kImmutableArray:
+      __ cmpq(index, FieldAddress(receiver, Array::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      // Note that index is Smi, i.e, times 4.
+      ASSERT(kSmiTagShift == 1);
+      __ movq(result, FieldAddress(receiver, index, TIMES_4, sizeof(RawArray)));
+      break;
+
+    case kGrowableObjectArray: {
+      Register temp = locs()->temp(0).reg();
+
+      __ cmpq(index,
+              FieldAddress(receiver, GrowableObjectArray::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      __ movq(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
+      // Note that index is Smi, i.e, times 4.
+      ASSERT(kSmiTagShift == 1);
+      __ movq(result, FieldAddress(temp, index, TIMES_4, sizeof(RawArray)));
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
   return LocationSummary::Make(kNumInputs, Location::NoLocation());
@@ -309,7 +412,7 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
+  return LocationSummary::Make(kNumInputs, Location::NoLocation());
   return NULL;
 }
 
@@ -317,18 +420,18 @@ LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
 void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register receiver = locs()->in(0).reg();
   Register value = locs()->in(1).reg();
-  Register result = locs()->out().reg();
 
   // Preserve the value (second argument) under the arguments as the result
   // of the computation, then call the setter.
   const String& function_name =
       String::ZoneHandle(Field::SetterSymbol(field_name()));
 
-  // Insert a copy of the second (last) argument under the arguments.
-  // TODO(fschneider): Avoid preserving the value if the result is not used.
-  __ pushq(value);
   __ pushq(receiver);
   __ pushq(value);
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 cid(),
+                                 token_index(),
+                                 try_index());
   const intptr_t kArgumentCount = 2;
   const intptr_t kCheckedArgumentCount = 1;
   compiler->GenerateInstanceCall(cid(),
@@ -338,7 +441,6 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  kArgumentCount,
                                  Array::ZoneHandle(),
                                  kCheckedArgumentCount);
-  __ popq(result);
 }
 
 
@@ -382,6 +484,19 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
+  if (class_ids() != NULL) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+                                          original()->token_index(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget,
+                                          instance,
+                                          kNoRegister);
+    // Smis do not have instance fields (Smi class is always first).
+    // Use 'result' as temporary register.
+    ASSERT(result != instance);
+    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+  }
   __ movq(result, FieldAddress(instance, field().Offset()));
 }
 
@@ -512,7 +627,8 @@ LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
 }
 
 
-void InstantiateTypeArgumentsComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void InstantiateTypeArgumentsComp::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
@@ -750,6 +866,19 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
+
+  if (operands_type() == kDoubleOperands) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::RegisterLocation(RAX));
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+
+  ASSERT(operands_type() == kSmiOperands);
+
   if (op_kind() == Token::kTRUNCDIV) {
     const intptr_t kNumTemps = 3;
     LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
@@ -790,24 +919,7 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
 }
 
 
-// TODO(srdjan): Implement variations.
-static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
-                               BinaryOpComp* comp) {
-  ASSERT((comp->ic_data() != NULL));
-  const ICData& ic_data = *comp->ic_data();
-  if (ic_data.IsNull()) return false;
-  if (ic_data.num_args_tested() != 2) return false;
-  if (ic_data.NumberOfChecks() != 1) return false;
-  Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
-  const Class& smi_class =
-      Class::Handle(Isolate::Current()->object_store()->smi_class());
-  if ((classes[0]->raw() != smi_class.raw()) ||
-      (classes[1]->raw() != smi_class.raw())) {
-    return false;
-  }
-  // TODO(srdjan): need to allocate a temporary register (now using r10)
+static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
   Register result = comp->locs()->out().reg();
@@ -879,17 +991,9 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
       __ SmiTag(result);
       break;
     }
-    case Token::kDIV: {
-      // Dispatches to 'Double./'.
-      // TODO(srdjan): Implement as conversion to double and double division.
-      return false;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
-      return false;
-    }
     case Token::kSHR: {
-      const Immediate kCountLimit = Immediate(0x1F);
+      // sarq operation masks the count to 6 bits.
+      const Immediate kCountLimit = Immediate(0x3F);
       __ cmpq(right, Immediate(0));
       __ j(LESS, deopt);
       __ SmiUntag(right);
@@ -898,7 +1002,7 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
       __ j(LESS, &count_ok, Assembler::kNearJump);
       __ movq(right, kCountLimit);
       __ Bind(&count_ok);
-      ASSERT(right == RCX);  // Count must be in ECX
+      ASSERT(right == RCX);  // Count must be in RCX
       __ SmiUntag(left);
       __ sarq(left, right);
       __ SmiTag(left);
@@ -922,35 +1026,89 @@ static bool TryEmitSmiBinaryOp(FlowGraphCompiler* compiler,
       __ shlq(left, right_temp);
       break;
     }
+    case Token::kDIV: {
+      // Dispatches to 'Double./'.
+      // TODO(srdjan): Implement as conversion to double and double division.
+      UNREACHABLE();
+      break;
+    }
+    case Token::kMOD: {
+      // TODO(srdjan): Implement.
+      UNREACHABLE();
+      break;
+    }
     case Token::kOR:
     case Token::kAND: {
       // Flow graph builder has dissected this operation to guarantee correct
       // behavior (short-circuit evaluation).
       UNREACHABLE();
-      return false;
+      break;
     }
     default:
       UNREACHABLE();
-      return false;
+      break;
   }
-  return true;
 }
 
-void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (TryEmitSmiBinaryOp(compiler, this)) {
-    // Operation inlined.
-    return;
-  }
-  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
-  // for all intended operations.
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
+
+static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
+                               BinaryOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Register result = comp->locs()->out().reg();
+
+
+  const Class& double_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
   __ pushq(left);
   __ pushq(right);
-  InstanceCallComp* instance_call_comp = instance_call();
-  instance_call_comp->EmitNativeCode(compiler);
-  if (locs()->out().reg() != RAX) {
-    __ movq(locs()->out().reg(), RAX);
+  compiler->GenerateCall(comp->instance_call()->token_index(),
+                         comp->instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  // Newly allocated object is now in the result register (RAX).
+  ASSERT(result == RAX);
+  __ popq(right);
+  __ popq(left);
+
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptDoubleBinaryOp,
+                                        left,
+                                        right);
+
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+
+  switch (comp->op_kind()) {
+    case Token::kADD: __ addsd(XMM0, XMM1); break;
+    case Token::kSUB: __ subsd(XMM0, XMM1); break;
+    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
+    case Token::kDIV: __ divsd(XMM0, XMM1); break;
+    default: UNREACHABLE();
+  }
+
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
+}
+
+
+void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (operands_type()) {
+    case kSmiOperands:
+      EmitSmiBinaryOp(compiler, this);
+      break;
+
+    case kDoubleOperands:
+      EmitDoubleBinaryOp(compiler, this);
+      break;
+
+    default:
+      UNREACHABLE();
   }
 }
 

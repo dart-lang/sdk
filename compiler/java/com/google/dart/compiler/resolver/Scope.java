@@ -7,7 +7,9 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.ast.DartIdentifier;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,7 +20,7 @@ public class Scope {
   private final Map<String, Element> elements = new LinkedHashMap<String, Element>();
   private final Scope parent;
   private final String name;
-  private LabelElement label;
+  private List<LabelElement> labels;
   private LibraryElement library;
 
   @VisibleForTesting
@@ -69,9 +71,13 @@ public class Scope {
   }
 
   public Element findLabel(String targetName, MethodElement innermostFunction) {
-    if (label != null && label.getName().equals(targetName)
-        && innermostFunction == label.getEnclosingFunction()) {
-        return label;
+    if (labels != null) {
+      for (LabelElement label : labels) {
+        if (label.getName().equals(targetName)
+          && innermostFunction == label.getEnclosingFunction()) {
+          return label;
+        }
+      }
     }
     return parent == null ? null :
       parent.findLabel(targetName, innermostFunction);
@@ -79,10 +85,6 @@ public class Scope {
 
   public Map<String, Element> getElements() {
     return elements;
-  }
-
-  public Element getLabel() {
-    return label;
   }
 
   public String getName() {
@@ -97,8 +99,11 @@ public class Scope {
     return elements.size() == 0;
   }
 
-  public void setLabel(LabelElement label) {
-    this.label = label;
+  public void addLabel(LabelElement label) {
+    if (labels == null) {
+      labels = new ArrayList<LabelElement>();
+    }
+    labels.add(label);
   }
 
   @Override

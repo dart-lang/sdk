@@ -51,6 +51,13 @@ interface OutputStream {
   bool writeString(String string, [Encoding encoding]);
 
   /**
+   * Flushes data from any internal buffers as soon as possible. Note
+   * that the actual meaning of calling [flush] will depend on the
+   * actual type of the underlying communication channel.
+   */
+  void flush();
+
+  /**
    * Indicate that all data has been written to the output
    * stream. When all data has been written to the communication
    * channel it will be closed.

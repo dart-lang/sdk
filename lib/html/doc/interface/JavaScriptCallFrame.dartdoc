@@ -1,0 +1,51 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName JavaScriptCallFrame
+interface JavaScriptCallFrame {
+
+  static final int CATCH_SCOPE = 4;
+
+  static final int CLOSURE_SCOPE = 3;
+
+  static final int GLOBAL_SCOPE = 0;
+
+  static final int LOCAL_SCOPE = 1;
+
+  static final int WITH_SCOPE = 2;
+
+  /** @domName JavaScriptCallFrame.caller */
+  final JavaScriptCallFrame caller;
+
+  /** @domName JavaScriptCallFrame.column */
+  final int column;
+
+  /** @domName JavaScriptCallFrame.functionName */
+  final String functionName;
+
+  /** @domName JavaScriptCallFrame.line */
+  final int line;
+
+  /** @domName JavaScriptCallFrame.scopeChain */
+  final List scopeChain;
+
+  /** @domName JavaScriptCallFrame.sourceID */
+  final int sourceID;
+
+  /** @domName JavaScriptCallFrame.thisObject */
+  final Object thisObject;
+
+  /** @domName JavaScriptCallFrame.type */
+  final String type;
+
+  /** @domName JavaScriptCallFrame.evaluate */
+  void evaluate(String script);
+
+  /** @domName JavaScriptCallFrame.scopeType */
+  int scopeType(int scopeIndex);
+}

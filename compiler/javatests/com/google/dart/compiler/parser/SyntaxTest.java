@@ -24,6 +24,7 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTryStatement;
+import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
@@ -180,6 +181,18 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(3, ((DartIntegerLiteral)array.getExpressions().get(2)).getValue().intValue());
   }
 
+  public void testAs() {
+    DartUnit unit = parseUnit("phony_cast.dart", "var x = 3 as int;");
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+    DartFieldDefinition f = (DartFieldDefinition)nodes.get(0);
+    DartField fieldX = f.getFields().get(0);
+    DartBinaryExpression cast = (DartBinaryExpression) fieldX.getValue();
+    assertTrue(cast.getArg1() instanceof DartIntegerLiteral);
+    assertEquals(Token.AS, cast.getOperator());
+    assertTrue(cast.getArg2() instanceof DartTypeExpression);
+  }
+
   public void testMapLiteral() {
     DartUnit unit = parseUnit("phony_map_literal.dart", "var x = <int>{'a':1,'b':2,'c':3};");
     List<DartNode> nodes = unit.getTopLevelNodes();
@@ -223,6 +236,16 @@ public class SyntaxTest extends AbstractParserTest {
                                    "}"));
                            List<DartNode> nodes = unit.getTopLevelNodes();
                            assertEquals(1, nodes.size());
+  }
+
+  public void testMultipleLabels() {
+    DartUnit unit = parseUnit ("multiple_labels.dart",
+      Joiner.on("\n").join(
+        "class A {",
+        "  void foo() {",
+        "    a: b: foo();",
+        "  }",
+        "}"));
   }
 
   public void testAdjacentStrings1() {
@@ -517,5 +540,25 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 11, 13,
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 13, 14,
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 15, 13);
+  }
+  
+  public void testBreakOutsideLoop() throws Exception {
+    parseUnit("phony_lone_super_expression1.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  method() {",
+            "    while (true) { break; }", // ok
+            "    break;",  // bad
+            "    L1: break L1;", // ok
+            "    while (true) { continue; }", // ok
+            "    continue;", // bad
+            "    L2: continue L2;", // bad
+            "    while (true) { int f() { break; }; }", // bad
+            "  }",
+            "}"),
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 4, 10,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 7, 13,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 18,
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);      
   }
 }

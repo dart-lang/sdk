@@ -115,19 +115,19 @@ class LiveEnvironment {
     // Special case the HCheck instruction to have the same live
     // interval as the instruction it is checking.
     if (instruction is HCheck) {
-      HInstruction input = instruction.checkedInput;
+      var input = instruction.checkedInput;
       while (input is HCheck) input = input.checkedInput;
       liveIntervals.putIfAbsent(input, () => new LiveInterval());
       liveIntervals.putIfAbsent(instruction, () => liveIntervals[input]);
-      return;
+    } else {
+      LiveInterval range = liveIntervals.putIfAbsent(
+          instruction, () => new LiveInterval());
+      int lastId = liveInstructions[instruction];
+      // If [lastId] is null, then this instruction is not being used.
+      range.add(new LiveRange(id, lastId == null ? id : lastId));
+      // The instruction is defined at [id].
+      range.start = id;
     }
-    LiveInterval range = liveIntervals.putIfAbsent(
-        instruction, () => new LiveInterval());
-    int lastId = liveInstructions[instruction];
-    // If [lastId] is null, then this instruction is not being used.
-    range.add(new LiveRange(id, lastId == null ? id : lastId));
-    // The instruction is defined at [id].
-    range.start = id;
     liveInstructions.remove(instruction);
   }
 
@@ -136,12 +136,17 @@ class LiveEnvironment {
    * already in the set, we save the id where it dies.
    */
   void add(HInstruction instruction, int userId) {
-    // Special case the HCheck instruction to use the actual checked
-    // instruction.
-    while (instruction is HCheck) instruction = instruction.checkedInput;
     // Note that we are visiting the grap in post-dominator order, so
     // the first time we see a variable is when it dies.
     liveInstructions.putIfAbsent(instruction, () => userId);
+    if (instruction is HCheck) {
+      // Special case the HCheck instruction to mark the actual
+      // checked instruction live.
+      liveInstructions.putIfAbsent(instruction, () => userId);
+      var input = instruction.checkedInput;
+      while (input is HCheck) input = input.checkedInput;
+      liveInstructions.putIfAbsent(input, () => userId);
+    }
   }
 
   /**
@@ -348,14 +353,21 @@ class VariableNames {
    * Name that is being used as a temporary to break cycles in
    * parallel copies. We make sure this name is not being used
    * anywhere by reserving it when we allocate names for instructions.
-   * TODO(ngeoffray): This isn't true for parameters, and we should
-   * rename the parameter name, to keep it simple.
    */
-  static final String SWAP_TEMP = 't0';
+  final String swapTemp;
 
-  VariableNames()
+  VariableNames(Map<Element, String> parameterNames)
     : ownName = new Map<HInstruction, String>(),
-      copyHandlers = new Map<HBasicBlock, CopyHandler>();
+      copyHandlers = new Map<HBasicBlock, CopyHandler>(),
+      swapTemp = computeSwapTemp(parameterNames);
+
+  static String computeSwapTemp(Map<Element, String> parameterNames) {
+    Set<String> parameters = new Set<String>.from(parameterNames.getValues());
+    String name = 't0';
+    int i = 1;
+    while (parameters.contains(name)) name = 't${i++}';
+    return name;
+  }
 
   String getName(HInstruction instruction) {
     return ownName[instruction];
@@ -387,12 +399,15 @@ class VariableNamer {
   final VariableNames names;
   final Set<String> usedNames;
   final Map<Element, String> parameterNames;
+  final List<String> freeTemporaryNames;
+  int temporaryIndex = 0;
 
   VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
-    : usedNames = new Set<String>() {
-    // [VariableNames.SWAP_TEMP] is being used when there is a cycle
+    : usedNames = new Set<String>(),
+      freeTemporaryNames = new List<String>() {
+    // [VariableNames.swapTemp] is being used when there is a cycle
     // in a copy handler. Therefore we make sure no one will use it.
-    usedNames.add(VariableNames.SWAP_TEMP);
+    usedNames.add(names.swapTemp);
 
     // All liveIns instructions must have a name at this point, so we
     // add them to the list of used names.
@@ -414,11 +429,12 @@ class VariableNamer {
   }
 
   String allocateTemporary() {
-    // Don't start at 0 because t0 is being used for
-    // [VariableNames.SWAP_TEMP].
-    int i = 1;
-    String name = 't${i++}';
-    while (usedNames.contains(name)) name = 't${i++}';
+    while (!freeTemporaryNames.isEmpty()) {
+      String name = freeTemporaryNames.removeLast();
+      if (!usedNames.contains(name)) return name;
+    }
+    String name = 't${temporaryIndex++}';
+    while (usedNames.contains(name)) name = 't${temporaryIndex++}';
     return name;
   }
 
@@ -434,21 +450,24 @@ class VariableNamer {
   String allocateName(HInstruction instruction) {
     String name;
     if (instruction is HCheck) {
-      // Special case the check instruction to use the name of its
-      // checked instruction.
-      HCheck check = instruction;
-      name = names.ownName[check.checkedInput];
-      // If the name is null, then the checked input is being
-      // generated at use site, and we don't need a name for the check
-      // instruction.
-      if (name == null) return null;
+      // Special case this instruction to use the name of its
+      // input if it has one.
+      var temp = instruction;
+      do {
+        temp = temp.checkedInput;
+        name = names.ownName[temp];
+      } while (name == null && temp is HCheck);
+      if (name !== null) return addAllocatedName(instruction, name);
     } else if (instruction is HParameterValue) {
       HParameterValue parameter = instruction;
       name = parameterNames[parameter.sourceElement];
       if (name == null) {
         name = allocateWithHint(parameter.sourceElement.name.slowToString());
       }
-    } else if (instruction.sourceElement !== null) {
+      return addAllocatedName(instruction, name);
+    }
+
+    if (instruction.sourceElement !== null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
     } else {
       // We could not find an element for the instruction. If the
@@ -461,6 +480,11 @@ class VariableNamer {
         name = allocateTemporary();
       }
     }
+
+    return addAllocatedName(instruction, name);
+  }
+
+  String addAllocatedName(HInstruction instruction, String name) {
     usedNames.add(name);
     names.ownName[instruction] = name;
     return name;
@@ -472,6 +496,14 @@ class VariableNamer {
   void freeName(HInstruction instruction) {
     String ownName = names.ownName[instruction];
     if (ownName != null) {
+      RegExp regexp = const RegExp('t[0-9]+');
+      // We check if we have already looked for temporary names
+      // because if we haven't, chances are the temporary we allocate
+      // in this block can match a phi with the same name in the
+      // successor block.
+      if (temporaryIndex != 0 && regexp.hasMatch(ownName)) {
+        freeTemporaryNames.addLast(ownName);
+      }
       usedNames.remove(ownName);
     }
   }
@@ -503,8 +535,9 @@ class SsaVariableAllocator extends HBaseVisitor {
                        this.liveInstructions,
                        this.liveIntervals,
                        this.generateAtUseSite,
-                       this.parameterNames)
-    : names = new VariableNames();
+                       parameterNames)
+    : this.names = new VariableNames(parameterNames),
+      this.parameterNames = parameterNames;
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -534,6 +567,13 @@ class SsaVariableAllocator extends HBaseVisitor {
     // them generate at use site to make things simpler.
     if (instruction is HParameterValue && instruction is !HThis) return true;
     if (generateAtUseSite.contains(instruction)) return false;
+    // A [HCheck] instruction that has control flow needs a name only if its
+    // checked input needs a name (e.g. a check [HConstant] does not
+    // need a name).
+    if (instruction is HCheck && instruction.isControlFlow()) {
+      HCheck check = instruction;
+      return needsName(instruction.checkedInput);
+    }
     return true;
   }
  

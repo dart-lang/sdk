@@ -195,13 +195,7 @@ static bool CompileWithNewCompiler(
       for (intptr_t i = length - 1; i >= 0; --i) {
         block_order.Add(graph_builder.postorder_block_entries()[i]);
       }
-      // TODO(fschneider): Temporarily disable on ia32 until all instructions
-      // produced by the FlowGraphOptimizer are implemented on ia32.
-#if defined(TARGET_ARCH_IA32)
-      if (optimized && !FLAG_use_new_compiler) {
-#else
       if (optimized) {
-#endif
         FlowGraphOptimizer optimizer(block_order);
         optimizer.ApplyICData();
       }

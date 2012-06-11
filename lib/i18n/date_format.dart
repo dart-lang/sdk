@@ -1,17 +1,17 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /**
- * Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
- * for details. All rights reserved. Use of this source code is governed by a
- * BSD-style license that can be found in the LICENSE file.
- *
- * DateFormat is for formatting and parsing dates in a locale-sensitive 
- * manner. 
+ * DateFormat is for formatting and parsing dates in a locale-sensitive
+ * manner.
  * It allows the user to choose from a set of standard date time formats as well
  * as specify a customized pattern under certain locales. Date elements that
- * vary across locales include month name, weekname, field, order, etc.
- * //TODO(efortuna): Customized pattern system -- suggested by i18n needs
- * // feedback on appropriateness.
- * We also allow the user to use any customized pattern to parse or format 
- * date-time strings under certain locales. Date elements that vary across 
+ * vary across locales include month name, week name, field order, etc.
+ * <!-- TODO(efortuna): Customized pattern system -- suggested by i18n needs
+ *feedback on appropriateness. -->
+ * We also allow the user to use any customized pattern to parse or format
+ * date-time strings under certain locales. Date elements that vary across
  * locales include month name, weekname, field, order, etc.
  *
  * This library uses the ICU/JDK date/time pattern specification as described
@@ -46,12 +46,13 @@
  * Items marked with '#' work differently than in Java.
  *
  * The count of pattern letters determine the format.
- * (Text): 4 or more pattern letters--use full form,
- *         less than 4--use short or abbreviated form if one exists.
- *         In parsing, we will always try long format, then short.
- *         (e.g., "EEEE" produces "Monday", "EEE" produces "Mon")
+ * **Text**: 
+ * * 4 or more pattern letters--use full form,
+ * * less than 4--use short or abbreviated form if one exists.
+ * In parsing, we will always try long format, then short.
+ * (e.g., "EEEE" produces "Monday", "EEE" produces "Mon")
  *
- * (Number): the minimum number of digits. Shorter numbers are zero-padded to
+ * **Number**: the minimum number of digits. Shorter numbers are zero-padded to
  * this amount (e.g. if "m" produces "6", "mm" produces "06"). Year is handled
  * specially; that is, if the count of 'y' is 2, the Year will be truncated to
  * 2 digits. (e.g., if "yyyy" produces "1997", "yy" produces "97".) Unlike other
@@ -70,12 +71,12 @@
  *
  *     Format Pattern                         Result
  *     --------------                         -------
- *     "yyyy.MM.dd G 'at' HH:mm:ss vvvv"->1996.07.10 AD at 15:08:56 Pacific Time
- *     "EEE, MMM d, ''yy"               ->Wed, July 10, '96
- *     "h:mm a"                         ->12:08 PM
- *     "hh 'o''clock' a, zzzz"          ->12 o'clock PM, Pacific Daylight Time
- *     "K:mm a, vvv"                    ->0:00 PM, PT
- *     "yyyyy.MMMMM.dd GGG hh:mm aaa"   ->01996.July.10 AD 12:08 PM
+ *     "yyyy.MM.dd G 'at' HH:mm:ss vvvv"->> 1996.07.10 AD at 15:08:56 Pacific Time
+ *     "EEE, MMM d, ''yy"               ->> Wed, July 10, '96
+ *     "h:mm a"                         ->> 12:08 PM
+ *     "hh 'o''clock' a, zzzz"          ->> 12 o'clock PM, Pacific Daylight Time
+ *     "K:mm a, vvv"                    ->> 0:00 PM, PT
+ *     "yyyyy.MMMMM.dd GGG hh:mm aaa"   ->> 01996.July.10 AD 12:08 PM
  *
  * When parsing a date string using the abbreviated year pattern ("yy"),
  * DateTimeParse must interpret the abbreviated year relative to some
@@ -105,32 +106,31 @@
  * that point, the parse of the run fails.
  */
 
-#library('DateFormat');
+#library('date_format');
 
 class DateFormat {
 
-  /** Definition of this object formats dates. */
-  var formatDefinition;
+  /** Definition of how this object formats dates. */
+  String _formatDefinition;
 
   /**
-   * String indicating the locale code with which the message is to be
-   * formatted (such as en-CA).
+   * The locale code with which the message is to be formatted (such as en-CA).
    */
   String _locale;
 
-  /** 
+  /**
    * Date/Time format "skeleton" patterns. Also specifiable by String, but
    * written this way so that they can be discoverable via autocomplete. These
    * follow the ICU syntax described at the top of the file. These skeletons can
    * be combined and we will attempt to find the best format for each locale
    * given the pattern.
-   * // TODO(efortuna): Hear back from i18n about Time Zones and the "core set"
-   * // of skeleton patterns.
    */
+   // TODO(efortuna): Hear back from i18n about Time Zones and the "core set"
+   // of skeleton patterns.
                                           // Example of how this looks in the US
                                           // locale.
   static final String Hm = 'Hm';          // HH:mm
-  static final String Hms = 'Hms';        // HH:mm:ss 
+  static final String Hms = 'Hms';        // HH:mm:ss
   static final String M = 'M';            // L
   static final String MEd = 'MEd';        // E, M/d
   static final String MMM = 'MMM';        // LLL
@@ -152,7 +152,7 @@ class DateFormat {
   static final String yQQQ = 'yQQQ';      // QQQ yyyy
 
   /** Date/Time format patterns. */
-  // TODO(efortuna): This are just guesses of what a full date, long date is. 
+  // TODO(efortuna): This are just guesses of what a full date, long date is.
   // Do the proper homework on ICU to find the proper set "Hms"/"yMMd"
   // applicable to each case.
   static final String fullDate = '$y$MMMMd';
@@ -164,56 +164,59 @@ class DateFormat {
   static final String mediumTime = Hms;
   static final String shortTime = Hm;
   static final String fullDateTime = '$fullDate$fullTime';
-  static final String longDateTime = '$logDate$longTime';
+  static final String longDateTime = '$longDate$longTime';
   static final String mediumDateTime = '$mediumDate$mediumTime';
   static final String shortDateTime = '$shortDate$shortTime';
-    
-  /**
-   * Named constructors for the above values.
-   */
-  DateFormat.Hm([this._locale]) : formatDefinition = Hm;
-  DateFormat.Hms([this._locale]) : formatDefinition = Hms;
-  DateFormat.M([this._locale]) : formatDefinition = M;
-  DateFormat.MEd([this._locale]) : formatDefinition = MEd;
-  DateFormat.MMM([this._locale]) : formatDefinition = MMM;
-  DateFormat.MMMEd([this._locale]) : formatDefinition = MMMEd;
-  DateFormat.MMMMEd([this._locale]) : formatDefinition = MMMMEd;
-  DateFormat.MMMMd([this._locale]) : formatDefinition = MMMMd;
-  DateFormat.MMMd([this._locale]) : formatDefinition = MMMd;
-  DateFormat.Md([this._locale]) : formatDefinition = Md;
-  DateFormat.d([this._locale]) : formatDefinition = d;
-  DateFormat.hm([this._locale]) : formatDefinition = hm;
-  DateFormat.ms([this._locale]) : formatDefinition = ms;
-  DateFormat.y([this._locale]) : formatDefinition = y;
-  DateFormat.yM([this._locale]) : formatDefinition = yM;
-  DateFormat.yMEd([this._locale]) : formatDefinition = yMEd;
-  DateFormat.yMMM([this._locale]) : formatDefinition = yMMM;
-  DateFormat.yMMMEd([this._locale]) : formatDefinition = yMMMEd;
-  DateFormat.yMMMM([this._locale]) : formatDefinition = yMMMM;
-  DateFormat.yQ([this._locale]) : formatDefinition = yQ;
-  DateFormat.yQQQ([this._locale]) : formatDefinition = yQQQ;
 
-  DateFormat.fullDate([this._locale]) : formatDefinition = fullDate;
-  DateFormat.longDate([this._locale]) : formatDefinition = longDate;
-  DateFormat.mediumDate([this._locale]) : formatDefinition = mediumDate;
-  DateFormat.shortDate([this._locale]) : formatDefinition = shortDate;
-  DateFormat.fullTime([this._locale]) : formatDefinition = fullTime;
-  DateFormat.longTime([this._locale]) : formatDefinition = longTime;
-  DateFormat.mediumTime([this._locale]) : formatDefinition = mediumTime;
-  DateFormat.shortTime([this._locale]) : formatDefinition = shortTime;
-  DateFormat.fullDateTime([this._locale]) : formatDefinition = fullDateTime;
-  DateFormat.longDateTime([this._locale]) : formatDefinition = longDateTime;
-  DateFormat.mediumDateTime([this._locale]) : formatDefinition = mediumDateTime;
-  DateFormat.shortDateTime([this._locale]) : formatDefinition = shortDateTime;
-  
+  /**
+   * Constructors for dates/times that use a default format.
+   */
+  DateFormat.Hm([this._locale]) : _formatDefinition = Hm;
+  DateFormat.Hms([this._locale]) : _formatDefinition = Hms;
+  DateFormat.M([this._locale]) : _formatDefinition = M;
+  DateFormat.MEd([this._locale]) : _formatDefinition = MEd;
+  DateFormat.MMM([this._locale]) : _formatDefinition = MMM;
+  DateFormat.MMMEd([this._locale]) : _formatDefinition = MMMEd;
+  DateFormat.MMMMEd([this._locale]) : _formatDefinition = MMMMEd;
+  DateFormat.MMMMd([this._locale]) : _formatDefinition = MMMMd;
+  DateFormat.MMMd([this._locale]) : _formatDefinition = MMMd;
+  DateFormat.Md([this._locale]) : _formatDefinition = Md;
+  DateFormat.d([this._locale]) : _formatDefinition = d;
+  DateFormat.hm([this._locale]) : _formatDefinition = hm;
+  DateFormat.ms([this._locale]) : _formatDefinition = ms;
+  DateFormat.y([this._locale]) : _formatDefinition = y;
+  DateFormat.yM([this._locale]) : _formatDefinition = yM;
+  DateFormat.yMEd([this._locale]) : _formatDefinition = yMEd;
+  DateFormat.yMMM([this._locale]) : _formatDefinition = yMMM;
+  DateFormat.yMMMEd([this._locale]) : _formatDefinition = yMMMEd;
+  DateFormat.yMMMM([this._locale]) : _formatDefinition = yMMMM;
+  DateFormat.yQ([this._locale]) : _formatDefinition = yQ;
+  DateFormat.yQQQ([this._locale]) : _formatDefinition = yQQQ;
+
+  DateFormat.fullDate([this._locale]) : _formatDefinition = fullDate;
+  DateFormat.longDate([this._locale]) : _formatDefinition = longDate;
+  DateFormat.mediumDate([this._locale]) : _formatDefinition = mediumDate;
+  DateFormat.shortDate([this._locale]) : _formatDefinition = shortDate;
+  DateFormat.fullTime([this._locale]) : _formatDefinition = fullTime;
+  DateFormat.longTime([this._locale]) : _formatDefinition = longTime;
+  DateFormat.mediumTime([this._locale]) : _formatDefinition = mediumTime;
+  DateFormat.shortTime([this._locale]) : _formatDefinition = shortTime;
+  DateFormat.fullDateTime([this._locale]) : _formatDefinition = fullDateTime;
+  DateFormat.longDateTime([this._locale]) : _formatDefinition = longDateTime;
+  DateFormat.mediumDateTime([this._locale]) : _formatDefinition = mediumDateTime;
+  DateFormat.shortDateTime([this._locale]) : _formatDefinition = shortDateTime;
+
   /**
    * Constructor accepts a [formatDefinition], which can be a String, one of the
    * predefined static forms, or a custom date format using the syntax described
-   * above. An optional [_locale] can be provided for specifics of the language
+   * above. An optional [locale] can be provided for specifics of the language
    * locale to be used, otherwise, we will attempt to infer it (acceptable if
    * Dart is running on the client, we can infer from the browser).
    */
-  DateFormat([this.formatDefinition = fullDate, this._locale]);
+  DateFormat([formatDefinition = fullDate, locale]) {
+    this._formatDefinition = formatDefinition;
+    this._locale = locale;
+  }
 
   /**
    * Given user input, attempt to parse the [inputString] into the anticipated
@@ -224,11 +227,11 @@ class DateFormat {
   }
 
  /**
-  * Format the given [date] object according to preset pattern and current 
+  * Format the given [date] object according to preset pattern and current
   * locale and return a formated string for the given date.
   */
-  String format(Date date, [TimeZone timeZone]) {
-    // TODO(efortuna): optional TimeZone argument? TimeZone is deprecated...
+  String format(Date date) {
+    // TODO(efortuna): readd optional TimeZone argument (or similar)?
     return date.toString();
   }
 
@@ -240,13 +243,13 @@ class DateFormat {
   String formatDuration(Date reference) {
     return '';
   }
-  
+
   /**
-   * Formats a String indicating how long ago (negative [duration]) or how far
+   * Formats a string indicating how long ago (negative [duration]) or how far
    * in the future (positive [duration]) some time is with respect to a
-   * reference [date]. The [duration] is expressed in miliseconds.
+   * reference [date].
    */
-  String formatDurationFrom(num duration, Date date) {
+  String formatDurationFrom(Duration duration, Date date) {
     return '';
   }
 }

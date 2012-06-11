@@ -59,7 +59,7 @@ class InterfacesSystem(systembase.System):
 
 # ------------------------------------------------------------------------------
 
-class DartInterfaceGenerator(object):
+class DartInterfaceGenerator(systembase.BaseGenerator):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
   def __init__(self, system, interface, emitter, template,
@@ -76,6 +76,7 @@ class DartInterfaceGenerator(object):
       source_filter -- if specified, rewrites the names of any superinterfaces
         that are not from these sources to use the common prefix.
     """
+    super(DartInterfaceGenerator, self).__init__(system._database)
     self._system = system
     self._interface = interface
     self._emitter = emitter
@@ -199,13 +200,6 @@ class DartInterfaceGenerator(object):
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))
 
-  def AddIndexer(self, element_type):
-    # Interface inherits all operations from List<element_type>.
-    pass
-
-  def AmendIndexer(self, element_type):
-    pass
-
   def AddOperation(self, info):
     """
     Arguments:
@@ -217,13 +211,3 @@ class DartInterfaceGenerator(object):
                                TYPE=info.type_name,
                                NAME=info.name,
                                PARAMS=info.ParametersInterfaceDeclaration())
-
-  def AddStaticOperation(self, info):
-    pass
-
-  # Interfaces get secondary members directly via the superinterfaces.
-  def AddSecondaryAttribute(self, interface, getter, setter):
-    pass
-
-  def AddSecondaryOperation(self, interface, attr):
-    pass

@@ -277,8 +277,8 @@ def main():
   # First we run all the regular tests.
   status = TestCompiler(compiler, runtime, mode, system, option, test_flags)
 
-  # BUG(3281): We do not run checked mode tests on dart2js.
-  if status == 0 and compiler != 'dart2js':
+  # We only run checked mode tests when the host is not in checked mode.
+  if status == 0 and option != 'checked' and runtime == 'd8':
     status = TestCompiler(compiler, runtime, mode, system, option,
                           test_flags + ['--checked'])
 

@@ -1,0 +1,74 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Console
+interface Console {
+
+  /** @domName Console.memory */
+  final MemoryInfo memory;
+
+  /** @domName Console.profiles */
+  final List<ScriptProfile> profiles;
+
+  /** @domName Console.assertCondition */
+  void assertCondition(bool condition, Object arg);
+
+  /** @domName Console.count */
+  void count();
+
+  /** @domName Console.debug */
+  void debug(Object arg);
+
+  /** @domName Console.dir */
+  void dir();
+
+  /** @domName Console.dirxml */
+  void dirxml();
+
+  /** @domName Console.error */
+  void error(Object arg);
+
+  /** @domName Console.group */
+  void group(Object arg);
+
+  /** @domName Console.groupCollapsed */
+  void groupCollapsed(Object arg);
+
+  /** @domName Console.groupEnd */
+  void groupEnd();
+
+  /** @domName Console.info */
+  void info(Object arg);
+
+  /** @domName Console.log */
+  void log(Object arg);
+
+  /** @domName Console.markTimeline */
+  void markTimeline();
+
+  /** @domName Console.profile */
+  void profile(String title);
+
+  /** @domName Console.profileEnd */
+  void profileEnd(String title);
+
+  /** @domName Console.time */
+  void time(String title);
+
+  /** @domName Console.timeEnd */
+  void timeEnd(String title, Object arg);
+
+  /** @domName Console.timeStamp */
+  void timeStamp(Object arg);
+
+  /** @domName Console.trace */
+  void trace(Object arg);
+
+  /** @domName Console.warn */
+  void warn(Object arg);
+}

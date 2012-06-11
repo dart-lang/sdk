@@ -1,0 +1,26 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName DatabaseSync
+interface DatabaseSync {
+
+  /** @domName DatabaseSync.lastErrorMessage */
+  final String lastErrorMessage;
+
+  /** @domName DatabaseSync.version */
+  final String version;
+
+  /** @domName DatabaseSync.changeVersion */
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
+
+  /** @domName DatabaseSync.readTransaction */
+  void readTransaction(SQLTransactionSyncCallback callback);
+
+  /** @domName DatabaseSync.transaction */
+  void transaction(SQLTransactionSyncCallback callback);
+}

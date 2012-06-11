@@ -1,0 +1,29 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGPathSegCurvetoCubicRel
+interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
+
+  /** @domName SVGPathSegCurvetoCubicRel.x */
+  num x;
+
+  /** @domName SVGPathSegCurvetoCubicRel.x1 */
+  num x1;
+
+  /** @domName SVGPathSegCurvetoCubicRel.x2 */
+  num x2;
+
+  /** @domName SVGPathSegCurvetoCubicRel.y */
+  num y;
+
+  /** @domName SVGPathSegCurvetoCubicRel.y1 */
+  num y1;
+
+  /** @domName SVGPathSegCurvetoCubicRel.y2 */
+  num y2;
+}

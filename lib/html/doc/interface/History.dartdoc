@@ -1,0 +1,32 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName History
+interface History {
+
+  /** @domName History.length */
+  final int length;
+
+  /** @domName History.state */
+  final Dynamic state;
+
+  /** @domName History.back */
+  void back();
+
+  /** @domName History.forward */
+  void forward();
+
+  /** @domName History.go */
+  void go(int distance);
+
+  /** @domName History.pushState */
+  void pushState(Object data, String title, [String url]);
+
+  /** @domName History.replaceState */
+  void replaceState(Object data, String title, [String url]);
+}

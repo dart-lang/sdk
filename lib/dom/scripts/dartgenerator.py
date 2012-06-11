@@ -11,8 +11,8 @@ import logging
 import os
 import re
 import shutil
+import systembase
 from generator import *
-from systembase import *
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -80,13 +80,10 @@ class DartGenerator(object):
       if database.HasInterface(old_name):
         _logger.info('renaming interface %s to %s' % (old_name, new_name))
         interface = database.GetInterface(old_name)
-        database.DeleteInterface(old_name)
         if not database.HasInterface(new_name):
           interface.id = new_name
+          database.DeleteInterface(old_name)
           database.AddInterface(interface)
-        else:
-          new_interface = database.GetInterface(new_name)
-          MergeNodes(new_interface, interface)
 
         if rename_javascript_binding_names:
           interface.javascript_binding_name = new_name
@@ -187,7 +184,7 @@ class DartGenerator(object):
     self.FilterMembersWithUnidentifiedTypes(database)
 
   def Generate(self, database, system, source_filter=None, super_database=None,
-      common_prefix=None, webkit_renames={}, html_renames={}):
+      common_prefix=None, webkit_renames={}):
     self._database = database
 
     # Collect interfaces
@@ -272,67 +269,9 @@ class DartGenerator(object):
       return
 
     generator.StartInterface()
-
-    for const in sorted(interface.constants, ConstantOutputOrder):
-      generator.AddConstant(const)
-
-    attributes = [attr for attr in interface.attributes
-                  if attr.type.id != 'EventListener']
-    for (getter, setter) in  _PairUpAttributes(attributes):
-      generator.AddAttribute(getter, setter)
-
-    # The implementation should define an indexer if the interface directly
-    # extends List.
-    (element_type, requires_indexer) = ListImplementationInfo(
-          interface, self._database)
-    if element_type:
-      if requires_indexer:
-        generator.AddIndexer(element_type)
-      else:
-        generator.AmendIndexer(element_type)
-    # Group overloaded operations by id
-    operationsById = {}
-    for operation in interface.operations:
-      if operation.id not in operationsById:
-        operationsById[operation.id] = []
-      operationsById[operation.id].append(operation)
-
-    # Generate operations
-    for id in sorted(operationsById.keys()):
-      operations = operationsById[id]
-      info = AnalyzeOperation(interface, operations)
-      if info.IsStatic():
-        generator.AddStaticOperation(info)
-      else:
-        generator.AddOperation(info)
-
-    # With multiple inheritance, attributes and operations of non-first
-    # interfaces need to be added.  Sometimes the attribute or operation is
-    # defined in the current interface as well as a parent.  In that case we
-    # avoid making a duplicate definition and pray that the signatures match.
-
-    for parent_interface in self._TransitiveSecondaryParents(interface):
-      if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
-        continue
-      attributes = [attr for attr in parent_interface.attributes
-                    if not FindMatchingAttribute(interface, attr)]
-      for (getter, setter) in _PairUpAttributes(attributes):
-        generator.AddSecondaryAttribute(parent_interface, getter, setter)
-
-      # Group overloaded operations by id
-      operationsById = {}
-      for operation in parent_interface.operations:
-        if operation.id not in operationsById:
-          operationsById[operation.id] = []
-        operationsById[operation.id].append(operation)
-
-      # Generate operations
-      for id in sorted(operationsById.keys()):
-        if not any(op.id == id for op in interface.operations):
-          operations = operationsById[id]
-          info = AnalyzeOperation(interface, operations)
-          generator.AddSecondaryOperation(parent_interface, info)
-
+    generator.AddMembers(interface)
+    secondary_parents = self._TransitiveSecondaryParents(interface)
+    generator.AddSecondaryMembers(interface, secondary_parents)
     generator.FinishInterface()
 
   def _TransitiveSecondaryParents(self, interface):
@@ -385,24 +324,9 @@ class DartGenerator(object):
                ('InterfaceType', ('ScopedName', 'EventTarget'))]
         interface.parents.append(idlnode.IDLParentInterface(ast))
 
-def _PairUpAttributes(attributes):
-  """Returns a list of (getter, setter) pairs sorted by name.
-
-  One element of the pair may be None.
-  """
-  names = sorted(set(attr.id for attr in attributes))
-  getters = {}
-  setters = {}
-  for attr in attributes:
-    if attr.is_fc_getter:
-      getters[attr.id] = attr
-    elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
-      setters[attr.id] = attr
-  return [(getters.get(id), setters.get(id)) for id in names]
-
 # ------------------------------------------------------------------------------
 
-class DummyImplementationSystem(System):
+class DummyImplementationSystem(systembase.System):
   """Generates a dummy implementation for use by the editor analysis.
 
   All the code comes from hand-written library files.
@@ -439,10 +363,11 @@ class DummyImplementationSystem(System):
 
 # ------------------------------------------------------------------------------
 
-class DummyInterfaceGenerator(object):
+class DummyInterfaceGenerator(systembase.BaseGenerator):
   """Generates dummy implementation."""
 
   def __init__(self, system, interface):
+    super(DummyInterfaceGenerator, self).__init__(system._database)
     self._system = system
     self._interface = interface
 
@@ -465,31 +390,7 @@ class DummyInterfaceGenerator(object):
   def FinishInterface(self):
     pass
 
-  def AddConstant(self, constant):
-    pass
-
-  def AddAttribute(self, getter, setter):
-    pass
-
-  def AddSecondaryAttribute(self, interface, getter, setter):
-    pass
-
-  def AddSecondaryOperation(self, interface, info):
-    pass
-
-  def AddIndexer(self, element_type):
-    pass
-
-  def AmendIndexer(sefl, element_type):
-    pass
-
   def AddTypedArrayConstructors(self, element_type):
-    pass
-
-  def AddOperation(self, info):
-    pass
-
-  def AddStaticOperation(self, info):
     pass
 
   def AddEventAttributes(self, event_attrs):

@@ -29,7 +29,7 @@ main() {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync(msg, _) {
       port.close();
-      expect(msg).equals('re: hi there');
+      expect(msg, equals('re: hi there'));
     });
 
     SendPort s = spawnFunction(child);

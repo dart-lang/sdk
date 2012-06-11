@@ -417,6 +417,99 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+// Gets the length of a ByteArray.
+bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ movl(EAX, FieldAddress(EAX, ByteArray::length_offset()));
+  __ ret();
+  return true;
+}
+
+
+// Assumes the first argument is a byte array, tests if the second
+// argument is a smi, tests if the smi is within bounds of the array
+// length, and jumps to label fall_through if any test fails.  Leaves
+// the second argument in EBX.
+static void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Array.
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, ByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
+}
+
+
+bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(EBX);
+  __ movsxb(EAX, FieldAddress(EAX,
+                              EBX,
+                              TIMES_1,
+                              Int8Array::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(EBX);
+  __ movzxb(EAX, FieldAddress(EAX,
+                              EBX,
+                              TIMES_1,
+                              Uint8Array::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movsxw(EAX, FieldAddress(EAX,
+                              EBX,
+                              TIMES_1,
+                              Int16Array::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movzxw(EAX, FieldAddress(EAX,
+                              EBX,
+                              TIMES_1,
+                              Uint16Array::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

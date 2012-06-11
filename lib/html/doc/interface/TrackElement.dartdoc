@@ -1,0 +1,42 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLTrackElement
+interface TrackElement extends Element default _Elements {
+
+  TrackElement();
+
+  static final int ERROR = 3;
+
+  static final int LOADED = 2;
+
+  static final int LOADING = 1;
+
+  static final int NONE = 0;
+
+  /** @domName HTMLTrackElement.defaultValue */
+  bool defaultValue;
+
+  /** @domName HTMLTrackElement.kind */
+  String kind;
+
+  /** @domName HTMLTrackElement.label */
+  String label;
+
+  /** @domName HTMLTrackElement.readyState */
+  final int readyState;
+
+  /** @domName HTMLTrackElement.src */
+  String src;
+
+  /** @domName HTMLTrackElement.srclang */
+  String srclang;
+
+  /** @domName HTMLTrackElement.track */
+  final TextTrack track;
+}

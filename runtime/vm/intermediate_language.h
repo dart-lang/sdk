@@ -42,6 +42,7 @@ class LocationSummary;
   M(StrictCompare, StrictCompareComp)                                          \
   M(EqualityCompare, EqualityCompareComp)                                      \
   M(NativeCall, NativeCallComp)                                                \
+  M(LoadIndexed, LoadIndexedComp)                                            \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
   M(StaticSetter, StaticSetterComp)                                            \
@@ -94,6 +95,9 @@ class Computation : public ZoneAllocated {
 
   ICData* ic_data() const { return ic_data_; }
   void set_ic_data(ICData* value) { ic_data_ = value; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -138,6 +142,24 @@ class Computation : public ZoneAllocated {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
   static LocationSummary* MakeCallSummary();
+
+  // Declare an enum value used to define type-test predicates.
+  enum ComputationType {
+#define DECLARE_COMPUTATION_TYPE(ShortName, ClassName) k##ShortName,
+
+  FOR_EACH_COMPUTATION(DECLARE_COMPUTATION_TYPE)
+
+#undef DECLARE_COMPUTATION_TYPE
+  };
+
+  virtual ComputationType computation_type() const = 0;
+
+  // Declare predicate for each computation.
+#define DECLARE_PREDICATE(ShortName, ClassName)                             \
+  inline bool Is##ShortName() const;                                        \
+  inline ClassName* As##ShortName();
+  FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
+#undef DECLARE_PREDICATE
 
  private:
   friend class Instruction;
@@ -236,13 +258,6 @@ class Value : public TemplateComputation<0> {
  public:
   Value() { }
 
-#define DEFINE_TESTERS(ShortName, ClassName)                                   \
-  virtual ClassName* As##ShortName() { return NULL; }                          \
-  bool Is##ShortName() { return As##ShortName() != NULL; }
-
-  FOR_EACH_VALUE(DEFINE_TESTERS)
-#undef DEFINE_TESTERS
-
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
@@ -251,6 +266,9 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual ComputationType computation_type() const {                           \
+    return Computation::k##ShortName;                                          \
+  }                                                                            \
   virtual const char* DebugName() const { return #ShortName; }                 \
   virtual RawAbstractType* StaticType() const;                                 \
   virtual LocationSummary* MakeLocationSummary() const;                        \
@@ -259,7 +277,6 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
   DECLARE_COMPUTATION(ShortName)                                               \
-  virtual ShortName##Val* As##ShortName() { return this; }                     \
   virtual void PrintTo(BufferFormatter* f) const;
 
 
@@ -516,7 +533,7 @@ class EqualityCompareComp : public TemplateComputation<2> {
     inputs_[1] = right;
   }
 
-  DECLARE_COMPUTATION(EqualityCompareComp)
+  DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
@@ -661,22 +678,29 @@ class NativeCallComp : public TemplateComputation<0> {
 
 class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
-  LoadInstanceFieldComp(LoadInstanceFieldNode* ast_node, Value* instance)
-      : ast_node_(*ast_node) {
+  LoadInstanceFieldComp(const Field& field,
+                        Value* instance,
+                        InstanceCallComp* original,  // Maybe NULL.
+                        ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
+      : field_(field), original_(original), class_ids_(class_ids) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
 
   DECLARE_COMPUTATION(LoadInstanceField)
 
-  const Field& field() const { return ast_node_.field(); }
-
+  const Field& field() const { return field_; }
   Value* instance() const { return inputs_[0]; }
+  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
+  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const LoadInstanceFieldNode& ast_node_;
+  const Field& field_;
+  const InstanceCallComp* original_;  // For optimizations.
+  // If non-NULL, the instruction is valid only for the class ids listed.
+  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -684,10 +708,12 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
 class StoreInstanceFieldComp : public TemplateComputation<2> {
  public:
-  StoreInstanceFieldComp(StoreInstanceFieldNode* ast_node,
+  StoreInstanceFieldComp(const Field& field,
                          Value* instance,
-                         Value* value)
-      : ast_node_(*ast_node) {
+                         Value* value,
+                         InstanceSetterComp* original,  // Maybe NULL.
+                         ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
+      : field_(field), original_(original), class_ids_(class_ids) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
     inputs_[0] = instance;
@@ -696,16 +722,21 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(StoreInstanceField)
 
-  intptr_t token_index() const { return ast_node_.token_index(); }
-  const Field& field() const { return ast_node_.field(); }
+  const Field& field() const { return field_; }
 
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
+  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
+  const InstanceSetterComp* original() const { return original_; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const StoreInstanceFieldNode& ast_node_;
+  const Field& field_;
+  const InstanceSetterComp* original_;  // For optimizations.
+  // If non-NULL, the instruction is valid only for the class ids listed.
+  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
@@ -748,6 +779,45 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
   const Field& field_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldComp);
+};
+
+
+class LoadIndexedComp : public TemplateComputation<2> {
+ public:
+  LoadIndexedComp(intptr_t token_index,
+                  intptr_t try_index,
+                  Value* array,
+                  Value* index)
+      : token_index_(token_index),
+        try_index_(try_index),
+        receiver_type_(kIllegalObjectKind) {
+    ASSERT(array != NULL);
+    ASSERT(index != NULL);
+    inputs_[0] = array;
+    inputs_[1] = index;
+  }
+
+  DECLARE_COMPUTATION(LoadIndexed)
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+  Value* array() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+
+  void set_receiver_type(ObjectKind receiver_type) {
+    receiver_type_ = receiver_type;
+  }
+
+  ObjectKind receiver_type() const {
+    return receiver_type_;
+  }
+
+ private:
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+  ObjectKind receiver_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadIndexedComp);
 };
 
 
@@ -1281,11 +1351,19 @@ class CatchEntryComp : public TemplateComputation<0> {
 
 class BinaryOpComp : public TemplateComputation<2> {
  public:
+  enum OperandsType {
+    kSmiOperands,
+    kDoubleOperands
+  };
+
   BinaryOpComp(Token::Kind op_kind,
+               OperandsType operands_type,
                InstanceCallComp* instance_call,
                Value* left,
                Value* right)
-      : op_kind_(op_kind), instance_call_(instance_call) {
+      : op_kind_(op_kind),
+        operands_type_(operands_type),
+        instance_call_(instance_call) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -1297,6 +1375,8 @@ class BinaryOpComp : public TemplateComputation<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
+  OperandsType operands_type() const { return operands_type_; }
+
   InstanceCallComp* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -1305,6 +1385,7 @@ class BinaryOpComp : public TemplateComputation<2> {
 
  private:
   const Token::Kind op_kind_;
+  const OperandsType operands_type_;
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
@@ -1361,6 +1442,19 @@ class NumberNegateComp : public TemplateComputation<1> {
 };
 
 #undef DECLARE_COMPUTATION
+
+
+// Implementation of type testers and cast functins.
+#define DEFINE_PREDICATE(ShortName, ClassName)                                 \
+bool Computation::Is##ShortName() const {                                      \
+  return computation_type() == k##ShortName;                                   \
+}                                                                              \
+ClassName* Computation::As##ShortName() {                                      \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<ClassName*>(this);                                        \
+}
+FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
+#undef DEFINE_PREDICATE
 
 
 // Instructions.

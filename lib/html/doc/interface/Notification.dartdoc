@@ -1,0 +1,58 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Notification
+interface Notification extends EventTarget default _NotificationFactoryProvider {
+
+  Notification(String title, [Map options]);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  NotificationEvents get on();
+
+  /** @domName Notification.dir */
+  String dir;
+
+  /** @domName Notification.replaceId */
+  String replaceId;
+
+  /** @domName Notification.tag */
+  String tag;
+
+  /** @domName Notification.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Notification.cancel */
+  void cancel();
+
+  /** @domName Notification.close */
+  void close();
+
+  /** @domName Notification.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName Notification.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Notification.show */
+  void show();
+}
+
+interface NotificationEvents extends Events {
+
+  EventListenerList get click();
+
+  EventListenerList get close();
+
+  EventListenerList get display();
+
+  EventListenerList get error();
+
+  EventListenerList get show();
+}

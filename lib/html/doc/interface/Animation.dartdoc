@@ -1,0 +1,56 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName WebKitAnimation
+interface Animation {
+
+  static final int DIRECTION_ALTERNATE = 1;
+
+  static final int DIRECTION_NORMAL = 0;
+
+  static final int FILL_BACKWARDS = 1;
+
+  static final int FILL_BOTH = 3;
+
+  static final int FILL_FORWARDS = 2;
+
+  static final int FILL_NONE = 0;
+
+  /** @domName WebKitAnimation.delay */
+  final num delay;
+
+  /** @domName WebKitAnimation.direction */
+  final int direction;
+
+  /** @domName WebKitAnimation.duration */
+  final num duration;
+
+  /** @domName WebKitAnimation.elapsedTime */
+  num elapsedTime;
+
+  /** @domName WebKitAnimation.ended */
+  final bool ended;
+
+  /** @domName WebKitAnimation.fillMode */
+  final int fillMode;
+
+  /** @domName WebKitAnimation.iterationCount */
+  final int iterationCount;
+
+  /** @domName WebKitAnimation.name */
+  final String name;
+
+  /** @domName WebKitAnimation.paused */
+  final bool paused;
+
+  /** @domName WebKitAnimation.pause */
+  void pause();
+
+  /** @domName WebKitAnimation.play */
+  void play();
+}

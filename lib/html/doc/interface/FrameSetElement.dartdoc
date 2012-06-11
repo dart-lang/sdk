@@ -1,0 +1,51 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLFrameSetElement
+interface FrameSetElement extends Element {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  FrameSetElementEvents get on();
+
+  /** @domName HTMLFrameSetElement.cols */
+  String cols;
+
+  /** @domName HTMLFrameSetElement.rows */
+  String rows;
+}
+
+interface FrameSetElementEvents extends ElementEvents {
+
+  EventListenerList get beforeUnload();
+
+  EventListenerList get blur();
+
+  EventListenerList get error();
+
+  EventListenerList get focus();
+
+  EventListenerList get hashChange();
+
+  EventListenerList get load();
+
+  EventListenerList get message();
+
+  EventListenerList get offline();
+
+  EventListenerList get online();
+
+  EventListenerList get popState();
+
+  EventListenerList get resize();
+
+  EventListenerList get storage();
+
+  EventListenerList get unload();
+}

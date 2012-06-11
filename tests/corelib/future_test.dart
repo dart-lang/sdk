@@ -393,6 +393,54 @@ testTransformTransformerFails() {
   Expect.equals(error, transformedFuture.exception);
 }
 
+// Tests [handleException] and [transform] on the same Future.
+// An earlier implementation of [transform] didn't support this, and behavior
+// depended on whether [handleException] or [transform] was called first.
+
+testTransformAndHandleException() {
+  final completer = new Completer<String>();
+  final error = new Exception("Oh no!");
+  var futureError;
+  var transformedFutureError;
+
+  completer.future.transform((x) => "** $x **").handleException((e) {
+    Expect.isNotNull(futureError);
+    transformedFutureError = e;
+    return true;
+  });
+  completer.future.handleException((e) {
+    Expect.isNull(transformedFutureError);
+    futureError = e;
+    return true;
+  });
+  completer.completeException(error);
+
+  Expect.equals(error, futureError);
+  Expect.equals(error, transformedFutureError);
+}
+
+testHandleExceptionAndTransform() {
+  final completer = new Completer<String>();
+  final error = new Exception("Oh no!");
+  var futureError;
+  var transformedFutureError;
+
+  completer.future.handleException((e) {
+    Expect.isNull(transformedFutureError);
+    futureError = e;
+    return true;
+  });
+  completer.future.transform((x) => "** $x **").handleException((e) {
+    Expect.isNotNull(futureError);
+    transformedFutureError = e;
+    return true;
+  });
+  completer.completeException(error);
+
+  Expect.equals(error, futureError);
+  Expect.equals(error, transformedFutureError);
+}
+
 // Tests for Future.chain
 
 testChainSuccess() {
@@ -447,6 +495,58 @@ testChainSecondFutureFails() {
   Expect.equals(error, chainedFuture.exception);
 }
 
+// Tests [handleException] and [chain] on the same Future.
+// An earlier implementation of [chain] didn't support this, and behavior
+// depended on whether [handleException] or [chain] was called first.
+
+testChainAndHandleException() {
+  final completer = new Completer<String>();
+  final error = new Exception("Oh no!");
+  var futureError;
+  var chainedFutureError;
+
+  var chainedFuture = completer.future
+      .chain((_) => new Future<int>.immediate(43));
+  chainedFuture.handleException((e) {
+    Expect.isNotNull(futureError);
+    chainedFutureError = e;
+    return true;
+  });
+  completer.future.handleException((e) {
+    Expect.isNull(chainedFutureError);
+    futureError = e;
+    return true;
+  });
+  completer.completeException(error);
+
+  Expect.equals(error, futureError);
+  Expect.equals(error, chainedFutureError);
+}
+
+testHandleExceptionAndChain() {
+  final completer = new Completer<String>();
+  final error = new Exception("Oh no!");
+  var futureError;
+  var chainedFutureError;
+
+  completer.future.handleException((e) {
+    Expect.isNull(chainedFutureError);
+    futureError = e;
+    return true;
+  });
+  var chainedFuture = completer.future
+      .chain((_) => new Future<int>.immediate(43));
+  chainedFuture.handleException((e) {
+    Expect.isNotNull(futureError);
+    chainedFutureError = e;
+    return true;
+  });
+  completer.completeException(error);
+
+  Expect.equals(error, futureError);
+  Expect.equals(error, chainedFutureError);
+}
+
 main() {
   testImmediate();
   testNeverComplete();
@@ -474,8 +574,12 @@ main() {
   testTransformSuccess();
   testTransformFutureFails();
   testTransformTransformerFails();
+  testTransformAndHandleException();
+  testHandleExceptionAndTransform();
   testChainSuccess();
   testChainFirstFutureFails();
   testChainTransformerFails();
   testChainSecondFutureFails();
+  testChainAndHandleException();
+  testHandleExceptionAndChain();
 }

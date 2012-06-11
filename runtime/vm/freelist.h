@@ -11,39 +11,55 @@
 
 namespace dart {
 
-// FreeListElement describes a freelist element that has the same size
-// as the smallest raw object. It uses the class_ field to point to a fake map
-// to enable basic traversing of the heap and to identify the type of freelist
-// element. It reuses the second word of the raw object to keep a next_
+// FreeListElement describes a freelist element.  Smallest FreeListElement is
+// two words in size.  Second word of the raw object is used to keep a next_
 // pointer to chain elements of the list together. For objects larger than the
-// minimal object size, the size of the element is embedded in the element at
-// the address following the next_ field.
+// object size encodable in tags field, the size of the element is embedded in
+// the element at the address following the next_ field.
 class FreeListElement {
  public:
   FreeListElement* next() const {
-    // Clear the FreeBit.
-    ASSERT((next_ & 1) == 1);
-    return reinterpret_cast<FreeListElement*>(next_ ^ 1);
-  }
-  void set_next(FreeListElement* next) {
-    // Set the FreeBit.
-    uword addr = reinterpret_cast<uword>(next);
-    ASSERT((addr & 1) == 0);
-    next_ = addr | 1;
+    return next_;
   }
 
-  intptr_t size() const {
-    return size_;
+  void set_next(FreeListElement* next) {
+    next_ = next;
+  }
+
+  intptr_t Size() {
+    intptr_t size = RawObject::SizeTag::decode(tags_);
+    if (size != 0) return size;
+    return *SizeAddress();
   }
 
   static FreeListElement* AsElement(uword addr, intptr_t size);
 
   static void InitOnce();
 
+  // Used to allocate class for free list elements in Object::InitOnce.
+  class FakeInstance {
+   public:
+    FakeInstance() { }
+    static cpp_vtable vtable() { return 0; }
+    static intptr_t InstanceSize() { return 0; }
+    static const ObjectKind kInstanceKind = kFreeListElement;
+    static bool IsInstance() { return true; }
+
+   private:
+    DISALLOW_ALLOCATION();
+    DISALLOW_COPY_AND_ASSIGN(FakeInstance);
+  };
+
  private:
   // This layout mirrors the layout of RawObject.
-  uword next_;
-  intptr_t size_;
+  uword tags_;
+  FreeListElement* next_;
+
+  // Returns the address of the embedded size.
+  intptr_t* SizeAddress() const {
+    uword addr = reinterpret_cast<uword>(&next_) + kWordSize;
+    return reinterpret_cast<intptr_t*>(addr);
+  }
 
   // FreeListElements cannot be allocated. Instead references to them are
   // created using the AsElement factory method.

@@ -165,7 +165,8 @@ class ActivationFrame : public ZoneAllocated {
 // Array of function activations on the call stack.
 class DebuggerStackTrace : public ZoneAllocated {
  public:
-  explicit DebuggerStackTrace(int capacity) : trace_(capacity) { }
+  explicit DebuggerStackTrace(int capacity)
+      : trace_(capacity) { }
 
   intptr_t Length() const { return trace_.length(); }
 
@@ -189,14 +190,16 @@ typedef void BreakpointHandler(SourceBreakpoint* bpt,
 class Debugger {
  public:
   enum EventType {
-    kPaused = 1,
+    kBreakpointReached = 1,
     kBreakpointResolved = 2,
+    kExceptionThrown = 3,
   };
   struct DebuggerEvent {
     EventType type;
     union {
       DebuggerStackTrace* stack_trace;
       SourceBreakpoint* breakpoint;
+      const Object* exception;
     };
   };
   typedef void EventHandler(DebuggerEvent *event);
@@ -253,6 +256,9 @@ class Debugger {
   RawObject* GetStaticField(const Class& cls,
                             const String& field_name);
 
+  void SignalBpReached();
+  void SignalExceptionThrown(const Object& exc);
+
  private:
   enum ResumeAction {
     kContinue,
@@ -279,11 +285,15 @@ class Debugger {
 
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
+  DebuggerStackTrace* CollectStackTrace();
   void SignalBpResolved(SourceBreakpoint *bpt);
 
   bool IsDebuggable(const Function& func);
 
   intptr_t nextId() { return next_id_++; }
+
+  bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
+                              const Object& exc);
 
   Isolate* isolate_;
   bool initialized_;
@@ -312,6 +322,10 @@ class Debugger {
   // Effectively this means ignoring breakpoints. Set when Dart code may
   // be run as a side effect of getting values of fields.
   bool ignore_breakpoints_;
+
+  // If true, notify debug client when (unhandled) exception is thrown.
+  bool pause_on_exception_;
+  bool pause_on_unhandled_exception_;
 
   friend class SourceBreakpoint;
   DISALLOW_COPY_AND_ASSIGN(Debugger);

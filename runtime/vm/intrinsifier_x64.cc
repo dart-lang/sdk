@@ -116,17 +116,69 @@ bool Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
 }
 
 
+// Access growable object array at specified index.
+// On stack: growable array (+2), index (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // GrowableArray.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check using _length field.
+  __ cmpq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));  // data.
+
+  // Note that RCX is Smi, i.e, times 4.
+  ASSERT(kSmiTagShift == 1);
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
+// Set value into growable object array at specified index.
+// On stack: growable array (+3), index (+2), value (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
+  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // GrowableArray.
+  Label fall_through;
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check using _length field.
+  __ cmpq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));  // data.
+  // Note that RCX is Smi, i.e, times 4.
+  ASSERT(kSmiTagShift == 1);
+  __ StoreIntoObject(RAX,
+                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     RDX);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
+// Set length of growable object array.
+// On stack: growable array (+2), length (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length.
+  __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
+  __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
+  __ j(ABOVE, &fall_through, Assembler::kNearJump);
+  __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()), RCX);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -142,6 +194,119 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   __ movq(FieldAddress(RAX, GrowableObjectArray::data_offset()), RBX);
   __ ret();
   return true;
+}
+
+
+bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, ByteArray::length_offset()));
+  __ ret();
+  // Generate enough code to satisfy patchability constraint.
+  intptr_t offset = __ CodeSize();
+  __ nop(JumpPattern::InstructionLength() - offset);
+  return true;
+}
+
+
+// Assumes the first argument is a byte array, tests if the second
+// argument is a smi, tests if the smi is within bounds of the array
+// length, and jumps to label fall_through if any test fails.  Leaves
+// the second argument in RBX.
+void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Array.
+  __ movq(RBX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ testq(RBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RBX, FieldAddress(RAX, ByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
+}
+
+
+bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(RBX);
+  __ movsxb(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Int8Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(RBX);
+  __ movzxb(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Uint8Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movsxw(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Int16Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movzxw(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_1,
+                              Uint16Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movsxl(RAX, FieldAddress(RAX,
+                              RBX,
+                              TIMES_2,
+                              Int32Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movl(RAX, FieldAddress(RAX,
+                            RBX,
+                            TIMES_2,
+                            Uint32Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
 
 

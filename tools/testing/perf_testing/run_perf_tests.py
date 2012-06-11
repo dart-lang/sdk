@@ -225,9 +225,6 @@ class TestRunner(object):
     for test in suites:
       test.run()
 
-    if not self.no_upload:
-      self.upload_to_app_engine(TestBuilder.available_suite_names())
-
 
 class Test(object):
   """The base class to provide shared code for different tests we will run and

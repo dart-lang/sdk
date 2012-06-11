@@ -1,0 +1,50 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGTextContentElement
+interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+
+  static final int LENGTHADJUST_SPACING = 1;
+
+  static final int LENGTHADJUST_SPACINGANDGLYPHS = 2;
+
+  static final int LENGTHADJUST_UNKNOWN = 0;
+
+  /** @domName SVGTextContentElement.lengthAdjust */
+  final SVGAnimatedEnumeration lengthAdjust;
+
+  /** @domName SVGTextContentElement.textLength */
+  final SVGAnimatedLength textLength;
+
+  /** @domName SVGTextContentElement.getCharNumAtPosition */
+  int getCharNumAtPosition(SVGPoint point);
+
+  /** @domName SVGTextContentElement.getComputedTextLength */
+  num getComputedTextLength();
+
+  /** @domName SVGTextContentElement.getEndPositionOfChar */
+  SVGPoint getEndPositionOfChar(int offset);
+
+  /** @domName SVGTextContentElement.getExtentOfChar */
+  SVGRect getExtentOfChar(int offset);
+
+  /** @domName SVGTextContentElement.getNumberOfChars */
+  int getNumberOfChars();
+
+  /** @domName SVGTextContentElement.getRotationOfChar */
+  num getRotationOfChar(int offset);
+
+  /** @domName SVGTextContentElement.getStartPositionOfChar */
+  SVGPoint getStartPositionOfChar(int offset);
+
+  /** @domName SVGTextContentElement.getSubStringLength */
+  num getSubStringLength(int offset, int length);
+
+  /** @domName SVGTextContentElement.selectSubString */
+  void selectSubString(int offset, int length);
+}

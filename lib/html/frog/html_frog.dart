@@ -6067,33 +6067,17 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  int get $dom_childElementCount() native "return this.childElementCount;";
-
   _HTMLCollectionImpl get $dom_children() native "return this.children;";
 
   String get $dom_className() native "return this.className;";
 
   void set $dom_className(String value) native "this.className = value;";
 
-  int get $dom_clientHeight() native "return this.clientHeight;";
-
-  int get $dom_clientLeft() native "return this.clientLeft;";
-
-  int get $dom_clientTop() native "return this.clientTop;";
-
-  int get $dom_clientWidth() native "return this.clientWidth;";
-
   String contentEditable;
-
-  final Map<String, String> dataset;
 
   String dir;
 
   bool draggable;
-
-  _ElementImpl get $dom_firstElementChild() native "return this.firstElementChild;";
 
   bool hidden;
 
@@ -6104,6 +6088,42 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   final bool isContentEditable;
 
   String lang;
+
+  final String outerHTML;
+
+  bool spellcheck;
+
+  int tabIndex;
+
+  String title;
+
+  bool translate;
+
+  String webkitdropzone;
+
+  void click() native;
+
+  _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
+
+  void insertAdjacentHTML(String where, String html) native;
+
+  void insertAdjacentText(String where, String text) native;
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
+  int get $dom_childElementCount() native "return this.childElementCount;";
+
+  int get $dom_clientHeight() native "return this.clientHeight;";
+
+  int get $dom_clientLeft() native "return this.clientLeft;";
+
+  int get $dom_clientTop() native "return this.clientTop;";
+
+  int get $dom_clientWidth() native "return this.clientWidth;";
+
+  final Map<String, String> dataset;
+
+  _ElementImpl get $dom_firstElementChild() native "return this.firstElementChild;";
 
   _ElementImpl get $dom_lastElementChild() native "return this.lastElementChild;";
 
@@ -6119,8 +6139,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   int get $dom_offsetWidth() native "return this.offsetWidth;";
 
-  final String outerHTML;
-
   final _ElementImpl previousElementSibling;
 
   int get $dom_scrollHeight() native "return this.scrollHeight;";
@@ -6135,25 +6153,13 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   int get $dom_scrollWidth() native "return this.scrollWidth;";
 
-  bool spellcheck;
-
   final _CSSStyleDeclarationImpl style;
-
-  int tabIndex;
 
   final String tagName;
 
-  String title;
-
-  bool translate;
-
   final String webkitRegionOverflow;
 
-  String webkitdropzone;
-
   void blur() native;
-
-  void click() native;
 
   void focus() native;
 
@@ -6168,12 +6174,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _NodeListImpl $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
   bool $dom_hasAttribute(String name) native "hasAttribute";
-
-  _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
-
-  void insertAdjacentHTML(String where, String html) native;
-
-  void insertAdjacentText(String where, String text) native;
 
   _ElementImpl $dom_querySelector(String selectors) native "querySelector";
 
@@ -7478,8 +7478,54 @@ class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithVal
 
   final Dynamic value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*IDBDatabase" {
+
+  _IDBTransactionImpl transaction(storeName_OR_storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new IllegalArgumentException(mode);
+    }
+
+    // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
+    // DOMStringList, and copy to JavaScript array if necessary.
+
+    if (_transaction_fn != null) {
+      return _transaction_fn(this, storeName_OR_storeNames, mode);
+    }
+
+    // Try and create a transaction with a string mode.  Browsers that expect a
+    // numeric mode tend to convert the string into a number.  This fails
+    // silently, resulting in zero ('readonly').
+    var txn = _transaction(storeName_OR_storeNames, mode);
+    if (_hasNumericMode(txn)) {
+      _transaction_fn = _transaction_numeric_mode;
+      txn = _transaction_fn(this, storeName_OR_storeNames, mode);
+    } else {
+      _transaction_fn = _transaction_string_mode;
+    }
+    return txn;
+  }
+
+  static var _transaction_fn;  // Assigned one of the following:
+
+  static _IDBTransactionImpl _transaction_string_mode(_IDBDatabaseImpl db, stores, mode) {
+    return db._transaction(stores, mode);
+  }
+
+  static _IDBTransactionImpl _transaction_numeric_mode(_IDBDatabaseImpl db, stores, mode) {
+    int intMode;
+    if (mode == 'readonly') intMode = IDBTransaction.READ_ONLY;
+    if (mode == 'readwrite') intMode = IDBTransaction.READ_WRITE;
+    return db._transaction(stores, intMode);
+  }
+
+  _IDBTransactionImpl _transaction(stores, mode) native 'transaction';
+
+  static bool _hasNumericMode(txn) native 'return typeof(txn.mode) === "number"';
+
 
   _IDBDatabaseEventsImpl get on() =>
     new _IDBDatabaseEventsImpl(this);
@@ -7503,8 +7549,6 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
-
-  _IDBTransactionImpl transaction(storeName_OR_storeNames, mode) native;
 }
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -16331,6 +16375,12 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 ''';
 
 
+  _IDBFactoryImpl get indexedDB() => _get_indexedDB();
+
+  _IDBFactoryImpl _get_indexedDB() native
+      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+
+
   _WindowEventsImpl get on() =>
     new _WindowEventsImpl(this);
 
@@ -22909,43 +22959,20 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementEvents get on();
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  /** @domName Element.childElementCount */
-  final int $dom_childElementCount;
-
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
 
   /** @domName HTMLElement.className */
   String $dom_className;
 
-  /** @domName Element.clientHeight */
-  final int $dom_clientHeight;
-
-  /** @domName Element.clientLeft */
-  final int $dom_clientLeft;
-
-  /** @domName Element.clientTop */
-  final int $dom_clientTop;
-
-  /** @domName Element.clientWidth */
-  final int $dom_clientWidth;
-
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
-
-  /** @domName Element.dataset */
-  final Map<String, String> dataset;
 
   /** @domName HTMLElement.dir */
   String dir;
 
   /** @domName HTMLElement.draggable */
   bool draggable;
-
-  /** @domName Element.firstElementChild */
-  final Element $dom_firstElementChild;
 
   /** @domName HTMLElement.hidden */
   bool hidden;
@@ -22961,6 +22988,59 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName HTMLElement.lang */
   String lang;
+
+  /** @domName HTMLElement.outerHTML */
+  final String outerHTML;
+
+  /** @domName HTMLElement.spellcheck */
+  bool spellcheck;
+
+  /** @domName HTMLElement.tabIndex */
+  int tabIndex;
+
+  /** @domName HTMLElement.title */
+  String title;
+
+  /** @domName HTMLElement.translate */
+  bool translate;
+
+  /** @domName HTMLElement.webkitdropzone */
+  String webkitdropzone;
+
+  /** @domName HTMLElement.click */
+  void click();
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element);
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html);
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text);
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
+  /** @domName Element.childElementCount */
+  final int $dom_childElementCount;
+
+  /** @domName Element.clientHeight */
+  final int $dom_clientHeight;
+
+  /** @domName Element.clientLeft */
+  final int $dom_clientLeft;
+
+  /** @domName Element.clientTop */
+  final int $dom_clientTop;
+
+  /** @domName Element.clientWidth */
+  final int $dom_clientWidth;
+
+  /** @domName Element.dataset */
+  final Map<String, String> dataset;
+
+  /** @domName Element.firstElementChild */
+  final Element $dom_firstElementChild;
 
   /** @domName Element.lastElementChild */
   final Element $dom_lastElementChild;
@@ -22983,9 +23063,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.offsetWidth */
   final int $dom_offsetWidth;
 
-  /** @domName HTMLElement.outerHTML */
-  final String outerHTML;
-
   /** @domName Element.previousElementSibling */
   final Element previousElementSibling;
 
@@ -23001,35 +23078,17 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.scrollWidth */
   final int $dom_scrollWidth;
 
-  /** @domName HTMLElement.spellcheck */
-  bool spellcheck;
-
   /** @domName Element.style */
   final CSSStyleDeclaration style;
-
-  /** @domName HTMLElement.tabIndex */
-  int tabIndex;
 
   /** @domName Element.tagName */
   final String tagName;
 
-  /** @domName HTMLElement.title */
-  String title;
-
-  /** @domName HTMLElement.translate */
-  bool translate;
-
   /** @domName Element.webkitRegionOverflow */
   final String webkitRegionOverflow;
 
-  /** @domName HTMLElement.webkitdropzone */
-  String webkitdropzone;
-
   /** @domName Element.blur */
   void blur();
-
-  /** @domName HTMLElement.click */
-  void click();
 
   /** @domName Element.focus */
   void focus();
@@ -23051,15 +23110,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
-
-  /** @domName HTMLElement.insertAdjacentElement */
-  Element insertAdjacentElement(String where, Element element);
-
-  /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html);
-
-  /** @domName HTMLElement.insertAdjacentText */
-  void insertAdjacentText(String where, String text);
 
   /** @domName Element.querySelector */
   Element $dom_querySelector(String selectors);
@@ -24587,7 +24637,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(storeName_OR_storeNames, mode);
+  IDBTransaction transaction(storeName_OR_storeNames, String mode);
 }
 
 interface IDBDatabaseEvents extends Events {
@@ -34908,6 +34958,8 @@ interface Window extends EventTarget {
 
   void cancelAnimationFrame(int id);
 
+  IDBFactory get indexedDB();
+
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -36535,6 +36587,28 @@ class _XMLHttpRequestUtils {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// IDBOpenRequest is not in WebKit but is needed for FireFox.  Dartium will not
+// implement this interface until it appears in the WebKit IDL.
+//
+// See:
+// http://www.w3.org/TR/IndexedDB/#request-api
+// http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#request-api
+
+interface IDBOpenDBRequest extends IDBRequest {
+
+  IDBOpenDBRequestEvents get on();
+}
+
+interface IDBOpenDBRequestEvents extends IDBRequestEvents {
+
+  EventListenerList get blocked();
+
+  EventListenerList get upgradeneeded();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef Object ComputeValue();
 
 class _MeasurementRequest<T> {
@@ -36885,6 +36959,33 @@ class _IDBKeyRangeFactoryProvider {
   static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) native
       '''return cls.bound(lower, upper, lowerOpen, upperOpen);''';
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// IDBOpenDBRequest.  IDBFactory.open returns a plain IDBRequest on Chrome and
+// Dartium but an IDBOpenDBRequest on Firefox.  Chrome/Dartium is expected to
+// change at some point as IDBOpenDBRequest is more standard.  When it appears
+// in the WebKit IDL we can remove this hand-written file.
+//
+// See:
+// http://www.w3.org/TR/IndexedDB/#request-api
+// http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#request-api
+
+class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest
+    native "*IDBOpenDBRequest" {
+
+  _IDBOpenDBRequestEventsImpl get on() =>
+    new _IDBOpenDBRequestEventsImpl(this);
+}
+
+class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
+  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked() => _get('blocked');
+
+  EventListenerList get upgradeneeded() => _get('upgradeneeded');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

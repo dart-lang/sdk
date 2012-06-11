@@ -14,7 +14,7 @@ main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      expect(msg).equals('re: hello'); // should be hi, not hello
+      expect(msg, equals('re: hello')); // should be hi, not hello
       port.close();
     }));
 

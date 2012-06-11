@@ -1,0 +1,15 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName EXTTextureFilterAnisotropic
+interface EXTTextureFilterAnisotropic {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+}

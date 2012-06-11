@@ -34,48 +34,6 @@ _webkit_renames = {
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
 
-_html_strip_webkit_prefix_classes = [
-    'Animation',
-    'AnimationEvent',
-    'AnimationList',
-    'BlobBuilder',
-    'CSSKeyframeRule',
-    'CSSKeyframesRule',
-    'CSSMatrix',
-    'CSSTransformValue',
-    'Flags',
-    'LoseContext',
-    'Point',
-    'TransitionEvent']
-
-def HasAncestor(interface, names_to_match, database):
-  for parent in interface.parents:
-    if (parent.type.id in names_to_match or
-        (database.HasInterface(parent.type.id) and
-        HasAncestor(database.GetInterface(parent.type.id), names_to_match,
-            database))):
-      return True
-  return False
-
-def _MakeHtmlRenames(common_database):
-  html_renames = {}
-
-  for interface in common_database.GetInterfaces():
-    if (interface.id.startswith("HTML") and
-        HasAncestor(interface, ['Element', 'Document'], common_database)):
-      html_renames[interface.id] = interface.id[4:]
-
-  for subclass in _html_strip_webkit_prefix_classes:
-    html_renames['WebKit' + subclass] = subclass
-
-  # TODO(jacobr): we almost want to add this commented out line back.
-  #    html_renames['HTMLCollection'] = 'ElementList'
-  #    html_renames['NodeList'] = 'ElementList'
-  #    html_renames['HTMLOptionsCollection'] = 'ElementList'
-  html_renames['DOMWindow'] = 'Window'
-
-  return html_renames
-
 def Generate(systems, database_dir, use_database_cache, dom_output_dir,
              html_output_dir):
   current_dir = os.path.dirname(__file__)
@@ -92,71 +50,63 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
     common_database.Load()
 
   generator.FilterMembersWithUnidentifiedTypes(common_database)
-  dom_database = common_database.Clone()
+  webkit_database = common_database.Clone()
 
   # Generate Dart interfaces for the WebKit DOM.
-  generator.FilterInterfaces(database = dom_database,
+  generator.FilterInterfaces(database = webkit_database,
                              or_annotations = ['WebKit', 'Dart'],
                              exclude_displaced = ['WebKit'],
                              exclude_suppressed = ['WebKit', 'Dart'])
-  generator.RenameTypes(dom_database, _webkit_renames, True)
-  generator.FixEventTargets(dom_database)
+  generator.RenameTypes(webkit_database, _webkit_renames, True)
+  generator.FixEventTargets(webkit_database)
 
   emitters = multiemitter.MultiEmitter()
-  html_renames = _MakeHtmlRenames(common_database)
-
-  html_database = None
-  if set(systems) & set(['htmlfrog', 'htmldartium']):
-    html_database = dom_database.Clone()
-    generator.RenameTypes(html_database, html_renames, False)
 
   for system in systems:
     if system in ['htmlfrog', 'htmldartium']:
-      target_database = html_database
+
       output_dir = html_output_dir
       interface_system = HtmlInterfacesSystem(
           TemplateLoader(template_dir, ['html/interface', 'html', '']),
-          target_database, emitters, output_dir)
+          webkit_database, emitters, output_dir)
     else:
-      target_database = dom_database
       output_dir = dom_output_dir
       interface_system = InterfacesSystem(
           TemplateLoader(template_dir, ['dom/interface', 'dom', '']),
-          target_database, emitters, output_dir)
+          webkit_database, emitters, output_dir)
 
     if system == 'dummy':
       implementation_system = dartgenerator.DummyImplementationSystem(
           TemplateLoader(template_dir, ['dom/dummy', 'dom', '']),
-          target_database, emitters, output_dir)
+          webkit_database, emitters, output_dir)
     elif system == 'frog':
       implementation_system = FrogSystem(
           TemplateLoader(template_dir, ['dom/frog', 'dom', '']),
-          target_database, emitters, output_dir)
+          webkit_database, emitters, output_dir)
     elif system == 'htmlfrog':
       implementation_system = HtmlFrogSystem(
           TemplateLoader(template_dir,
                          ['html/frog', 'html/impl', 'html', ''],
                          {'DARTIUM': False, 'FROG': True}),
-          target_database, emitters, output_dir)
+          webkit_database, emitters, output_dir)
     elif system == 'htmldartium':
       # Generate native wrappers.
       native_system = NativeImplementationSystem(
           TemplateLoader(template_dir, ['dom/native', 'html/dartium',
                                         'html/impl', ''],
                          {'DARTIUM': True, 'FROG': False}),
-          dom_database, html_database, html_renames, emitters, output_dir)
-      generator.Generate(dom_database, native_system,
+          webkit_database, emitters, output_dir)
+      generator.Generate(webkit_database, native_system,
                          source_filter=['WebKit', 'Dart'],
                          super_database=common_database,
                          common_prefix='common',
-                         webkit_renames=_webkit_renames,
-                         html_renames=html_renames)
+                         webkit_renames=_webkit_renames)
       dom_implementation_classes = native_system.DartImplementationFiles()
       implementation_system = HtmlDartiumSystem(
           TemplateLoader(template_dir,
                          ['html/dartium', 'html/impl', 'html', ''],
                          {'DARTIUM': True, 'FROG': False}),
-          target_database, emitters, auxiliary_dir, dom_implementation_classes,
+          webkit_database, emitters, auxiliary_dir, dom_implementation_classes,
           output_dir)
     else:
       raise Exception('Unsupported system %s' % system)
@@ -166,12 +116,11 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
     implementation_system._interface_system = interface_system
 
     for system in [interface_system, implementation_system]:
-      generator.Generate(target_database, system,
+      generator.Generate(webkit_database, system,
                          source_filter=['WebKit', 'Dart'],
                          super_database=common_database,
                          common_prefix='common',
-                         webkit_renames=_webkit_renames,
-                         html_renames=html_renames)
+                         webkit_renames=_webkit_renames)
 
   _logger.info('Flush...')
   emitters.Flush()

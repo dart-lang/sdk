@@ -1,0 +1,23 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGFEGaussianBlurElement
+interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  /** @domName SVGFEGaussianBlurElement.in1 */
+  final SVGAnimatedString in1;
+
+  /** @domName SVGFEGaussianBlurElement.stdDeviationX */
+  final SVGAnimatedNumber stdDeviationX;
+
+  /** @domName SVGFEGaussianBlurElement.stdDeviationY */
+  final SVGAnimatedNumber stdDeviationY;
+
+  /** @domName SVGFEGaussianBlurElement.setStdDeviation */
+  void setStdDeviation(num stdDeviationX, num stdDeviationY);
+}

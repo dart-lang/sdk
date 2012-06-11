@@ -14,7 +14,7 @@ main() {
   test('isolate fromUri - send and reply', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      expect(msg).equals('re: hi');
+      expect(msg, equals('re: hi'));
       port.close();
     }));
 

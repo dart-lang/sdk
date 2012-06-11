@@ -296,6 +296,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private String methodNameForBinaryOperator(Token operator) {
+      if (operator == Token.EQ) {
+        return "operator equals";
+      }
       return "operator " + operator.getSyntax();
     }
 
@@ -429,12 +432,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case GTE:
           return analyzeBinaryOperator(node, lhs, operator, lhsNode, rhsNode);
 
-       case EQ:
+        case EQ: {
+          // try to resolve "==" to "operator equals()", but don't complain if can not find it
+          String methodName = methodNameForBinaryOperator(operator);
+          InterfaceType itype = types.getInterfaceType(lhs);
+          if (itype != null) {
+            Member member = itype.lookupMember(methodName);
+            if (member != null) {
+              node.setElement(member.getElement());
+            }
+          }
+        }
        case NE:
        case EQ_STRICT:
        case NE_STRICT:
          nonVoidTypeOf(rhsNode);
          return boolType;
+
+       case AS:
+         return typeOf(rhsNode);
 
        case IS:
          if (rhsNode instanceof DartUnaryExpression) {
@@ -553,14 +569,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             @Override
             public Void visitBinaryExpression(DartBinaryExpression node) {
               // don't infer type if condition negated
-              if (!negation && node.getOperator() == Token.IS) {
+              if (!negation && (node.getOperator() == Token.IS || node.getOperator() == Token.AS)) {
                 DartExpression arg1 = node.getArg1();
                 DartExpression arg2 = node.getArg2();
                 if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
                     && arg2 instanceof DartTypeExpression) {
                   VariableElement variableElement = (VariableElement) arg1.getElement();
-                  Type isType = arg2.getType();
-                  Type varType = Types.makeInferred(isType);
+                  Type rhsType = arg2.getType();
+                  Type varType = Types.makeInferred(rhsType);
                   variableRestorer.setType(variableElement, varType);
                 }
               }
@@ -1575,13 +1591,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
       }
+      // operator "equals" should return "bool"
+      if (modifiers.isOperator() && methodElement.getName().equals("equals")
+          && returnTypeNode != null) {
+        Type returnType = node.getElement().getFunctionType().getReturnType();
+        if (!Objects.equal(returnType, boolType)) {
+          typeError(returnTypeNode, TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE);
+
+        }
+      }
       // operator "negate" should return numeric type
       if (modifiers.isOperator() && methodElement.getName().equals("negate")
           && returnTypeNode != null) {
         Type returnType = node.getElement().getFunctionType().getReturnType();
         if (!types.isSubtype(returnType, numType)) {
           typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
-
         }
       }
       // done
@@ -2392,7 +2416,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   checkOverride(node.getName(), field, element);
                   break;
                 case METHOD:
-                  typeError(node, TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
+                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
                             element.getEnclosingElement().getName());
                   break;
 
@@ -2420,7 +2444,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   break;
 
                 case FIELD:
-                  typeError(node, TypeErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
+                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
                             element.getEnclosingElement().getName());
                   break;
 

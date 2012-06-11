@@ -13,7 +13,7 @@ class Test {
   var db;
 
   start() {
-    var request = window.webkitIndexedDB.open(DB_NAME);
+    var request = window.indexedDB.open(DB_NAME);
     Expect.isNotNull(request);
     request.on.success.add(expectAsync1(initDb));
     request.on.error.add(fail('open'));

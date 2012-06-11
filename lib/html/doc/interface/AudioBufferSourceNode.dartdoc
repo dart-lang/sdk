@@ -1,0 +1,46 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName AudioBufferSourceNode
+interface AudioBufferSourceNode extends AudioSourceNode {
+
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
+  static final int SCHEDULED_STATE = 1;
+
+  static final int UNSCHEDULED_STATE = 0;
+
+  /** @domName AudioBufferSourceNode.buffer */
+  AudioBuffer buffer;
+
+  /** @domName AudioBufferSourceNode.gain */
+  final AudioGain gain;
+
+  /** @domName AudioBufferSourceNode.loop */
+  bool loop;
+
+  /** @domName AudioBufferSourceNode.looping */
+  bool looping;
+
+  /** @domName AudioBufferSourceNode.playbackRate */
+  final AudioParam playbackRate;
+
+  /** @domName AudioBufferSourceNode.playbackState */
+  final int playbackState;
+
+  /** @domName AudioBufferSourceNode.noteGrainOn */
+  void noteGrainOn(num when, num grainOffset, num grainDuration);
+
+  /** @domName AudioBufferSourceNode.noteOff */
+  void noteOff(num when);
+
+  /** @domName AudioBufferSourceNode.noteOn */
+  void noteOn(num when);
+}

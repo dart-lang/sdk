@@ -42,6 +42,7 @@ static const char* kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 
 cpp_vtable Object::handle_vtable_ = 0;
+cpp_vtable Object::builtin_vtables_[kNumPredefinedKinds] = { 0 };
 cpp_vtable Smi::handle_vtable_ = 0;
 
 // These are initialized to a value that will force a illegal memory access if
@@ -297,6 +298,10 @@ void Object::InitOnce() {
   cls = Class::New<Instance>(kNullClassId);
   cls.set_is_finalized();
   null_class_ = cls.raw();
+
+  // Allocate and initialize the free list element class.
+  cls = Class::New<FreeListElement::FakeInstance>(kFreeListElement);
+  cls.set_is_finalized();
 
   // Allocate and initialize the sentinel values of Null class.
   {
@@ -4147,17 +4152,25 @@ RawString* Field::SetterSymbol(const String& field_name) {
 
 RawString* Field::NameFromGetter(const String& getter_name) {
   String& str = String::Handle();
-  str = String::New(kGetterPrefix);
-  str = String::SubString(getter_name, str.Length());
+  str = String::SubString(getter_name, strlen(kGetterPrefix));
   return str.raw();
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
   String& str = String::Handle();
-  str = String::New(kSetterPrefix);
-  str = String::SubString(setter_name, str.Length());
+  str = String::SubString(setter_name, strlen(kSetterPrefix));
   return str.raw();
+}
+
+
+bool Field::IsGetterName(const String& function_name) {
+  return function_name.StartsWith(String::Handle(String::New(kGetterPrefix)));
+}
+
+
+bool Field::IsSetterName(const String& function_name) {
+  return function_name.StartsWith(String::Handle(String::New(kSetterPrefix)));
 }
 
 

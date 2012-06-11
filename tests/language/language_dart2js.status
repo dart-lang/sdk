@@ -25,11 +25,14 @@ type_variable_scope2_test: Fail
 assign_top_method_negative_test: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
+default_factory2_test/01: Fail # Type bounds for type variable not checked.
 
 arithmetic_test: Fail
 
+[ $compiler == dart2js && $unchecked ]
+assertion_test: Fail, OK
 
-[ $compiler == dart2js]
+[ $compiler == dart2js ]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
 exception_test: Fail # "throw null" throws NullPointerException.
@@ -85,7 +88,6 @@ switch_label_test: Fail # error: target of continue is not a loop or switch case
 
 
 # Implementation errors (library or generated code).
-assertion_test: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 generic_deep_test: Fail # Expect.isTrue(false) fails.
 generic_inheritance_test: Fail # Expect.isTrue(false) fails.
 generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
@@ -108,7 +110,6 @@ abstract_syntax_test/01: Fail, OK # Negative language test.
 abstract_syntax_test/02: Fail, OK # Negative language test.
 assign_top_method_negative_test: Fail, OK # Negative language test.
 class_extends_negative_test: Fail, OK # Negative language test.
-class_override_negative_test: Fail, OK # Negative language test.
 const_constructor_syntax_test/01: Fail, OK # Negative language test.
 const_constructor_syntax_test/02: Fail, OK # Negative language test.
 const_constructor_syntax_test/03: Fail, OK # Negative language test.
@@ -163,8 +164,6 @@ operator1_negative_test: Fail, OK # Negative language test.
 override_field_method1_negative_test: Fail, OK # Negative language test.
 override_field_method2_negative_test: Fail, OK # Negative language test.
 override_field_method3_negative_test: Fail, OK # Negative language test.
-override_field_method4_negative_test: Fail, OK # Negative language test.
-override_field_method5_negative_test: Fail, OK # Negative language test.
 override_field_method6_negative_test: Fail, OK # Negative language test.
 override_field_test/01: Fail, OK # Negative language test.
 override_field_test/04: Fail, OK # Negative language test.
@@ -230,89 +229,73 @@ assign_top_method_negative_test: Crash
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 
+[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $runtime == d8 || $runtime == drt || $runtime == chrome) ]
+class_override_negative_test: Fail, OK # Negative language test.
+override_field_method4_negative_test: Fail, OK # Negative language test.
+override_field_method5_negative_test: Fail, OK # Negative language test.
+
+
 [ $compiler == dart2js && $runtime == ff ]
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
 double_to_string_as_exponential_test: Fail
-label_test: Skip # Timeout
 
 
 [ $compiler == dart2js && $runtime == ie ]
-arithmetic2_test: Skip # BUG(3304): Times out.
-assert_keyword_negative_test: Skip # BUG(3304): Times out.
-assign_instance_method_negative_test: Skip # BUG(3304): Times out.
-bad_named_parameters2_test: Skip # BUG(3304): Times out.
-bad_named_parameters_test: Skip # BUG(3304): Times out.
-call_through_getter_test: Skip # BUG(3304): Times out.
-call_through_null_getter_test: Skip # BUG(3304): Times out.
-class_override_negative_test: Skip # BUG(3304): Times out.
-closure3_test: Skip # BUG(3304): Times out.
-closure_call_wrong_argument_count_negative_test: Skip # BUG(3304): Times out.
-div_by_zero_test: Skip # BUG(3304): Times out.
-double_to_string_as_exponential_test: Skip # BUG(3304): Times out.
-dynamic_field_test: Skip # BUG(3304): Times out.
-exception_test: Skip # BUG(3304): Times out.
-execute_finally7_test: Skip # BUG(3304): Times out.
-expect_test: Skip # BUG(3304): Times out.
-factory3_test: Skip # BUG(3304): Times out.
-fannkuch_test: Skip # BUG(3304): Times out.
-field_method4_negative_test: Skip # BUG(3304): Times out.
-generics2_test: Skip # BUG(3304): Times out.
-hello_dart_test: Skip # BUG(3304): Times out.
-hello_script_test: Skip # BUG(3304): Times out.
-implicit_closure1_test: Skip # BUG(3304): Times out.
-implied_interface_test: Skip # BUG(3304): Times out.
-import_core_impl_no_prefix_test: Skip # BUG(3304): Times out.
-import_core_no_prefix_test: Skip # BUG(3304): Times out.
-instance_call_wrong_argument_count_negative_test: Skip # BUG(3304): Times out.
-interface_inherit_field_test: Skip # BUG(3304): Times out.
-label_test: Skip # BUG(3304): Times out.
-library_private_in_constructor_test: Skip # BUG(3304): Times out.
-list_test: Skip # BUG(3304): Times out.
-local_function3_test: Skip # BUG(3304): Times out.
-local_function_test: Skip # BUG(3304): Times out.
-method_invocation_test: Skip # BUG(3304): Times out.
-naming_test: Skip # BUG(3304): Times out.
-native_test: Skip # BUG(3304): Times out.
-no_such_method_negative_test: Skip # BUG(3304): Times out.
-null_pointer_exception_test: Skip # BUG(3304): Times out.
-override_field_method4_negative_test: Skip # BUG(3304): Times out.
-override_field_method5_negative_test: Skip # BUG(3304): Times out.
-prefix6_negative_test: Skip # BUG(3304): Times out.
-private2_test: Skip # BUG(3304): Times out.
-private3_test: Skip # BUG(3304): Times out.
-private_member1_negative_test: Skip # BUG(3304): Times out.
-private_member2_negative_test: Skip # BUG(3304): Times out.
-private_member3_negative_test: Skip # BUG(3304): Times out.
-reg_ex2_test: Skip # BUG(3304): Times out.
-reg_exp2_test: Skip # BUG(3304): Times out.
-savannah_test: Skip # BUG(3304): Times out.
-stack_overflow_test: Skip # BUG(3304): Times out.
-stack_trace_test: Skip # BUG(3304): Times out.
-static_field1a_run_negative_test: Skip # BUG(3304): Times out.
-static_field2a_run_negative_test: Skip # BUG(3304): Times out.
-string_interpolate_npe_test: Skip # BUG(3304): Times out.
-string_interpolate_test: Skip # BUG(3304): Times out.
-throw1_test: Skip # BUG(3304): Times out.
-throw2_test: Skip # BUG(3304): Times out.
-throw3_test: Skip # BUG(3304): Times out.
-throw4_test: Skip # BUG(3304): Times out.
-throw5_test: Skip # BUG(3304): Times out.
-throw6_test: Skip # BUG(3304): Times out.
-throw_test: Skip # BUG(3304): Times out.
-type_checks_in_factory_method_test: Skip # BUG(3304): Times out.
-typed_message_test: Skip # BUG(3304): Times out.
-unbound_getter_test: Skip # BUG(3304): Times out.
-unhandled_exception_negative_test: Skip # BUG(3304): Times out.
+arithmetic2_test: Fail # BUG(3304)
+bad_named_parameters2_test: Fail # BUG(3304)
+bad_named_parameters_test: Fail # BUG(3304)
+call_through_getter_test: Fail # BUG(3304)
+call_through_null_getter_test: Fail # BUG(3304)
+div_by_zero_test: Fail # BUG(3304)
+double_to_string_as_exponential_test: Fail # BUG(3304)
 double_to_string_as_fixed_test: Fail
+dynamic_field_test: Fail # BUG(3304)
+exception_test: Fail # BUG(3304)
+execute_finally7_test: Fail # BUG(3304)
+expect_test: Fail # BUG(3304)
+factory3_test: Fail # BUG(3304)
+fannkuch_test: Fail # BUG(3304)
+generics2_test: Fail # BUG(3304)
+hello_dart_test: Fail # BUG(3304)
+hello_script_test: Fail # BUG(3304)
+implicit_closure1_test: Fail # BUG(3304)
+implied_interface_test: Fail # BUG(3304)
+import_core_impl_no_prefix_test: Fail # BUG(3304)
+import_core_no_prefix_test: Fail # BUG(3304)
+interface_inherit_field_test: Fail # BUG(3304)
+library_private_in_constructor_test: Fail # BUG(3304)
+list_test: Fail # BUG(3304)
+local_function3_test: Fail # BUG(3304)
+local_function_test: Fail # BUG(3304)
+naming_test: Fail # BUG(3304)
+native_test: Fail # BUG(3304)
+private2_test: Fail # BUG(3304)
+private3_test: Fail # BUG(3304)
+reg_ex2_test: Fail # BUG(3304)
+reg_exp2_test: Fail # BUG(3304)
+savannah_test: Fail # BUG(3304)
+stack_overflow_test: Fail # BUG(3304)
+stack_trace_test: Fail # BUG(3304)
+string_interpolate_test: Fail # BUG(3304)
+throw1_test: Fail # BUG(3304)
+throw2_test: Fail # BUG(3304)
+throw3_test: Fail # BUG(3304)
+throw4_test: Fail # BUG(3304)
+throw5_test: Fail # BUG(3304)
+throw6_test: Fail # BUG(3304)
+throw_test: Fail # BUG(3304)
+type_checks_in_factory_method_test: Fail # BUG(3304)
+typed_message_test: Fail # BUG(3304)
+unbound_getter_test: Fail # BUG(3304)
+
 
 [ $compiler == dart2js && $runtime == safari ]
+arithmetic_test: Skip # BUG(3492): Times out.
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
-arithmetic_test: Skip # Timeout
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-label_test: Skip # Timeout

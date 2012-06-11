@@ -761,7 +761,7 @@ validate(String description, String markdown, String html) {
       print('');
     }
 
-    expect(passed).isTrue();
+    expect(passed, isTrue);
   });
 }
 

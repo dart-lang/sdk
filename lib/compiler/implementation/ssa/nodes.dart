@@ -113,6 +113,7 @@ class HInstructionVisitor extends HGraphVisitor {
 class HGraph {
   HBasicBlock entry;
   HBasicBlock exit;
+  bool isRecursiveMethod = false;
   final List<HBasicBlock> blocks;
 
   // We canonicalize all constants used within a graph so we do not
@@ -947,6 +948,8 @@ class HInstruction implements Hashable {
    * so should always be generated at use site.
    */
   bool isCodeMotionInvariant() => false;
+
+  bool isStatement() => false;
 }
 
 class HBoolify extends HInstruction {
@@ -964,13 +967,17 @@ class HBoolify extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HCheck extends HInstruction {
+/**
+ * A [HCheck] instruction is an instruction that might do a dynamic
+ * check at runtime on another instruction. To have proper instruction
+ * dependencies in the graph, instructions that depend on the check
+ * being done reference the [HCheck] instruction instead of the
+ * instruction itself.
+ */
+abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
-
   HInstruction get checkedInput() => inputs[0];
+  bool isStatement() => true;
 }
 
 class HTypeGuard extends HCheck {
@@ -1064,6 +1071,7 @@ class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
   bool isControlFlow() => true;
+  bool isStatement() => true;
 }
 
 class HInvoke extends HInstruction {
@@ -1274,6 +1282,8 @@ class HFieldSet extends HFieldAccess {
     // TODO(ngeoffray): implement more fine grain side effects.
     setAllSideEffects();
   }
+
+  bool isStatement() => true;
 }
 
 class HForeign extends HInstruction {
@@ -1294,6 +1304,10 @@ class HForeign extends HInstruction {
   }
 
   HType get guaranteedType() => foreignType;
+
+  // Be conservative and treat all [HForeign] as statements, even
+  // though some are just expressions.
+  bool isStatement() => true;
 }
 
 class HForeignNew extends HForeign {
@@ -2118,6 +2132,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => 26;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
+  bool isStatement() => true;
 }
 
 class HLiteralList extends HInstruction {
@@ -2192,6 +2207,7 @@ class HIndexAssign extends HInvokeStatic {
   }
 
   bool get builtin() => receiver.isMutableArray() && index.isInteger();
+  bool isStatement() => !builtin;
 }
 
 class HIs extends HInstruction {

@@ -200,6 +200,17 @@ module storage {
     [DartName=continueFunction] void continue([Optional] in IDBKey key);
   };
   [Supplemental]
+  interface IDBDatabase {
+    // These variants are slated for removal from WebKit.  Suppress to bring our
+    // API in line with the most recent spec.
+    [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMStringList storeNames, in unsigned short mode)
+        raises (IDBDatabaseException);
+    [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString[] storeNames, in unsigned short mode)
+        raises (IDBDatabaseException);
+    [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode)
+        raises (IDBDatabaseException);
+  };
+  [Supplemental]
   interface IDBIndex {
     [DartName=getObject] IDBRequest get(in IDBKey key);
   };

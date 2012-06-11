@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -180,7 +181,6 @@ public class Resolver {
     private boolean inInitializer;
     private MethodElement innermostFunction;
     private ResolutionContext context;
-    private LabelElement currentLabel;
     private Set<LabelElement> referencedLabels = Sets.newHashSet();
     private Set<LabelElement> labelsInScopes = Sets.newHashSet();
     private Set<FieldElement> finalsNeedingInitializing = Sets.newHashSet();
@@ -743,8 +743,7 @@ public class Resolver {
 
     @Override
     public Element visitLabel(DartLabel x) {
-      LabelElement previousLabel = currentLabel;
-      currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
+      LabelElement currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
       recordElement(x.getLabel(), currentLabel);
       recordElement(x, currentLabel);
       x.visitChildren(this);
@@ -755,7 +754,6 @@ public class Resolver {
         // TODO(zundel): warning, not type error.
         // topLevelContext.typeError(x, DartCompilerErrorCode.UNREFERENCED_LABEL, x.getName());
       }
-      currentLabel = previousLabel;
       return null;
     }
 
@@ -871,12 +869,12 @@ public class Resolver {
     }
 
     private void addLabelToStatement(DartStatement x) {
-      if (currentLabel != null) {
-        DartNode parent = x.getParent();
-        if (parent instanceof DartLabel) {
-          getContext().getScope().setLabel(currentLabel);
-          labelsInScopes.add(currentLabel);
-        }
+      DartNode parent = x.getParent();
+      while (parent instanceof DartLabel) {
+        LabelElement currentLabel = ((DartLabel) parent).getElement();
+        getContext().getScope().addLabel(currentLabel);
+        labelsInScopes.add(currentLabel);
+        parent = parent.getParent();
       }
     }
 
@@ -1280,6 +1278,8 @@ public class Resolver {
 
 
       switch (ElementKind.of(element)) {
+        case DYNAMIC:
+          return null;
         case CLASS:
         // Check for default constructor.
         ClassElement classElement = (ClassElement) element;
@@ -1694,14 +1694,17 @@ public class Resolver {
       }
 
       InterfaceType type =
-          topLevelContext.instantiateParameterizedType(
+          context.instantiateParameterizedType(
               defaultLiteralMapType.getElement(),
               node,
               typeArgs,
-              inStaticContext(currentMethod),
+              inStaticContext(node),
               inFactoryContext(currentMethod),
               ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
+      if (node.isConst()) {
+        checkTypeArgumentsInConstLiteral(typeArgs, ResolverErrorCode.CONST_MAP_WITH_TYPE_VARIABLE);
+      }
       recordType(node, type);
       visit(node.getEntries());
       return null;
@@ -1711,17 +1714,29 @@ public class Resolver {
     public Element visitArrayLiteral(DartArrayLiteral node) {
       List<DartTypeNode> typeArgs = node.getTypeArguments();
       InterfaceType type =
-          topLevelContext.instantiateParameterizedType(
+          context.instantiateParameterizedType(
               rawArrayType.getElement(),
               node,
               typeArgs,
-              inStaticContext(currentMethod),
+              inStaticContext(node),
               inFactoryContext(currentMethod),
               ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
+      if (node.isConst()) {
+        checkTypeArgumentsInConstLiteral(typeArgs, ResolverErrorCode.CONST_ARRAY_WITH_TYPE_VARIABLE);
+      }
       recordType(node, type);
       visit(node.getExpressions());
       return null;
+    }
+
+    private void checkTypeArgumentsInConstLiteral(List<DartTypeNode> typeArgs, ErrorCode errorCode) {
+      for (DartTypeNode typeNode : typeArgs) {
+        Type type = typeNode.getType();
+        if (type != null && type.getKind() == TypeKind.VARIABLE) {
+          onError(typeNode, errorCode);
+        }
+      }
     }
 
     private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
@@ -1817,6 +1832,17 @@ public class Resolver {
 
     private void onError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
       context.onError(node, errorCode, arguments);
+    }
+
+    private boolean inStaticContext(DartNode node) {
+      DartNode ancestor = node;
+      while (ancestor != null) {
+        if (ancestor instanceof DartClassMember<?>) {
+          return ((DartClassMember<?>) ancestor).getModifiers().isStatic();
+        }
+        ancestor = ancestor.getParent();
+      }
+      return true;
     }
 
     private boolean inStaticContext(Element element) {

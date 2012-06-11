@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Screen
+interface Screen {
+
+  /** @domName Screen.availHeight */
+  final int availHeight;
+
+  /** @domName Screen.availLeft */
+  final int availLeft;
+
+  /** @domName Screen.availTop */
+  final int availTop;
+
+  /** @domName Screen.availWidth */
+  final int availWidth;
+
+  /** @domName Screen.colorDepth */
+  final int colorDepth;
+
+  /** @domName Screen.height */
+  final int height;
+
+  /** @domName Screen.pixelDepth */
+  final int pixelDepth;
+
+  /** @domName Screen.width */
+  final int width;
+}

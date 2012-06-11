@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName KeyboardEvent
+interface KeyboardEvent extends UIEvent {
+
+  /** @domName KeyboardEvent.altGraphKey */
+  final bool altGraphKey;
+
+  /** @domName KeyboardEvent.altKey */
+  final bool altKey;
+
+  /** @domName KeyboardEvent.ctrlKey */
+  final bool ctrlKey;
+
+  /** @domName KeyboardEvent.keyIdentifier */
+  final String keyIdentifier;
+
+  /** @domName KeyboardEvent.keyLocation */
+  final int keyLocation;
+
+  /** @domName KeyboardEvent.metaKey */
+  final bool metaKey;
+
+  /** @domName KeyboardEvent.shiftKey */
+  final bool shiftKey;
+
+  /** @domName KeyboardEvent.initKeyboardEvent */
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
+}

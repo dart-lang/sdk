@@ -1,0 +1,77 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLSelectElement
+interface SelectElement extends Element {
+
+  /** @domName HTMLSelectElement.autofocus */
+  bool autofocus;
+
+  /** @domName HTMLSelectElement.disabled */
+  bool disabled;
+
+  /** @domName HTMLSelectElement.form */
+  final FormElement form;
+
+  /** @domName HTMLSelectElement.labels */
+  final NodeList labels;
+
+  /** @domName HTMLSelectElement.length */
+  int length;
+
+  /** @domName HTMLSelectElement.multiple */
+  bool multiple;
+
+  /** @domName HTMLSelectElement.name */
+  String name;
+
+  /** @domName HTMLSelectElement.options */
+  final HTMLOptionsCollection options;
+
+  /** @domName HTMLSelectElement.required */
+  bool required;
+
+  /** @domName HTMLSelectElement.selectedIndex */
+  int selectedIndex;
+
+  /** @domName HTMLSelectElement.selectedOptions */
+  final HTMLCollection selectedOptions;
+
+  /** @domName HTMLSelectElement.size */
+  int size;
+
+  /** @domName HTMLSelectElement.type */
+  final String type;
+
+  /** @domName HTMLSelectElement.validationMessage */
+  final String validationMessage;
+
+  /** @domName HTMLSelectElement.validity */
+  final ValidityState validity;
+
+  /** @domName HTMLSelectElement.value */
+  String value;
+
+  /** @domName HTMLSelectElement.willValidate */
+  final bool willValidate;
+
+  /** @domName HTMLSelectElement.add */
+  void add(Element element, Element before);
+
+  /** @domName HTMLSelectElement.checkValidity */
+  bool checkValidity();
+
+  /** @domName HTMLSelectElement.item */
+  Node item(int index);
+
+  /** @domName HTMLSelectElement.namedItem */
+  Node namedItem(String name);
+
+  /** @domName HTMLSelectElement.setCustomValidity */
+  void setCustomValidity(String error);
+}

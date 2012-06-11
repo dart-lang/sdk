@@ -169,8 +169,8 @@ void testSocketClose() {
 
   HttpServer server = new HttpServer();
   server.listenOn(serverSocket);
-  void testContent(String request,
-                   String response,
+  void testContent(String requestString,
+                   String responseString,
                    [int okayFrom = 0,
                     bool expectError = true]) {
     // Inner callback to actually run a given setting.
@@ -197,11 +197,12 @@ void testSocketClose() {
         };
       }
 
-      serverSocket.spawnSocket(request, response, cutoff, closeAsError);
+      serverSocket.spawnSocket(requestString, responseString,
+                               cutoff, closeAsError);
       // TODO(ajohnsen): Validate HttpServers number of connections.
     }
-    for (int i = 1; i < response.length; i++) {
-      bool _expectError = expectError && i < response.length - okayFrom;
+    for (int i = 1; i < responseString.length; i++) {
+      bool _expectError = expectError && i < responseString.length - okayFrom;
       runSettings(i, false, _expectError);
       runSettings(i, true, _expectError);
     }

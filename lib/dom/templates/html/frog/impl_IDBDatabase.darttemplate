@@ -1,0 +1,49 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  _IDBTransactionImpl transaction(storeName_OR_storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new IllegalArgumentException(mode);
+    }
+
+    // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
+    // DOMStringList, and copy to JavaScript array if necessary.
+
+    if (_transaction_fn != null) {
+      return _transaction_fn(this, storeName_OR_storeNames, mode);
+    }
+
+    // Try and create a transaction with a string mode.  Browsers that expect a
+    // numeric mode tend to convert the string into a number.  This fails
+    // silently, resulting in zero ('readonly').
+    var txn = _transaction(storeName_OR_storeNames, mode);
+    if (_hasNumericMode(txn)) {
+      _transaction_fn = _transaction_numeric_mode;
+      txn = _transaction_fn(this, storeName_OR_storeNames, mode);
+    } else {
+      _transaction_fn = _transaction_string_mode;
+    }
+    return txn;
+  }
+
+  static var _transaction_fn;  // Assigned one of the following:
+
+  static _IDBTransactionImpl _transaction_string_mode($CLASSNAME db, stores, mode) {
+    return db._transaction(stores, mode);
+  }
+
+  static _IDBTransactionImpl _transaction_numeric_mode($CLASSNAME db, stores, mode) {
+    int intMode;
+    if (mode == 'readonly') intMode = IDBTransaction.READ_ONLY;
+    if (mode == 'readwrite') intMode = IDBTransaction.READ_WRITE;
+    return db._transaction(stores, intMode);
+  }
+
+  _IDBTransactionImpl _transaction(stores, mode) native 'transaction';
+
+  static bool _hasNumericMode(txn) native 'return typeof(txn.mode) === "number"';
+
+$!MEMBERS}

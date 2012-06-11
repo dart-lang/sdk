@@ -8,7 +8,8 @@
 #import('../util/util.dart');
 #import('../util/characters.dart');
 
-#source('nodes.dart');
 #source('dartstring.dart');
+#source('nodes.dart');
+#source('prettyprint.dart');
 #source('unparser.dart');
 #source('visitors.dart');

@@ -4276,7 +4276,7 @@ class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBD
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(storeName_OR_storeNames, mode) native;
+  _IDBTransactionJs transaction(storeName_OR_storeNames, String mode) native;
 }
 
 class _IDBDatabaseExceptionJs extends _DOMTypeJs implements IDBDatabaseException native "*IDBDatabaseException" {
@@ -17115,7 +17115,7 @@ interface IDBDatabase extends EventTarget {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(storeName_OR_storeNames, mode);
+  IDBTransaction transaction(storeName_OR_storeNames, String mode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

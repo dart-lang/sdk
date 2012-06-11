@@ -1,0 +1,74 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName DeprecatedPeerConnection
+interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
+
+  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  DeprecatedPeerConnectionEvents get on();
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  /** @domName DeprecatedPeerConnection.localStreams */
+  final MediaStreamList localStreams;
+
+  /** @domName DeprecatedPeerConnection.readyState */
+  final int readyState;
+
+  /** @domName DeprecatedPeerConnection.remoteStreams */
+  final MediaStreamList remoteStreams;
+
+  /** @domName DeprecatedPeerConnection.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName DeprecatedPeerConnection.addStream */
+  void addStream(MediaStream stream);
+
+  /** @domName DeprecatedPeerConnection.close */
+  void close();
+
+  /** @domName DeprecatedPeerConnection.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName DeprecatedPeerConnection.processSignalingMessage */
+  void processSignalingMessage(String message);
+
+  /** @domName DeprecatedPeerConnection.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName DeprecatedPeerConnection.removeStream */
+  void removeStream(MediaStream stream);
+
+  /** @domName DeprecatedPeerConnection.send */
+  void send(String text);
+}
+
+interface DeprecatedPeerConnectionEvents extends Events {
+
+  EventListenerList get addStream();
+
+  EventListenerList get connecting();
+
+  EventListenerList get message();
+
+  EventListenerList get open();
+
+  EventListenerList get removeStream();
+
+  EventListenerList get stateChange();
+}

@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName TouchEvent
+interface TouchEvent extends UIEvent {
+
+  /** @domName TouchEvent.altKey */
+  final bool altKey;
+
+  /** @domName TouchEvent.changedTouches */
+  final TouchList changedTouches;
+
+  /** @domName TouchEvent.ctrlKey */
+  final bool ctrlKey;
+
+  /** @domName TouchEvent.metaKey */
+  final bool metaKey;
+
+  /** @domName TouchEvent.shiftKey */
+  final bool shiftKey;
+
+  /** @domName TouchEvent.targetTouches */
+  final TouchList targetTouches;
+
+  /** @domName TouchEvent.touches */
+  final TouchList touches;
+
+  /** @domName TouchEvent.initTouchEvent */
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+}

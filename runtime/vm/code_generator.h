@@ -53,35 +53,40 @@ DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 
+#define DEOPT_REASONS(V) \
+  V(DeoptUnknown) \
+  V(DeoptIncrLocal) \
+  V(DeoptIncrInstance) \
+  V(DeoptIncrInstanceOneClass) \
+  V(DeoptInstanceGetterSameTarget) \
+  V(DeoptInstanceGetter) \
+  V(DeoptStoreIndexed) \
+  V(DeoptCheckedInstanceCallSmiOnly) \
+  V(DeoptCheckedInstanceCallSmiFail) \
+  V(DeoptCheckedInstanceCallCheckFail) \
+  V(DeoptIntegerToDouble) \
+  V(DeoptDoubleToDouble) \
+  V(DeoptSmiBinaryOp) \
+  V(DeoptMintBinaryOp) \
+  V(DeoptDoubleBinaryOp) \
+  V(DeoptInstanceSetterSameTarget) \
+  V(DeoptInstanceSetter) \
+  V(DeoptSmiEquality) \
+  V(DeoptSmiCompareSmis) \
+  V(DeoptSmiCompareAny) \
+  V(DeoptEqualityNoFeedback) \
+  V(DeoptEqualityClassCheck) \
+  V(DeoptDoubleComparison) \
+  V(DeoptLoadIndexedFixedArray) \
+  V(DeoptLoadIndexedGrowableArray) \
+  V(DeoptNoTypeFeedback) \
+  V(DeoptSAR) \
+  V(DeoptUnaryOp) \
+
 enum DeoptReasonId {
-  kDeoptUnknown,
-  kDeoptIncrLocal,
-  kDeoptIncrInstance,
-  kDeoptIncrInstanceOneClass,
-  kDeoptInstanceGetterSameTarget,
-  kDeoptInstanceGetter,
-  kDeoptStoreIndexed,
-  kDeoptCheckedInstanceCallSmiOnly,
-  kDeoptCheckedInstanceCallSmiFail,
-  kDeoptCheckedInstanceCallCheckFail,
-  kDeoptIntegerToDouble,
-  kDeoptDoubleToDouble,
-  kDeoptSmiBinaryOp,
-  kDeoptMintBinaryOp,
-  kDeoptDoubleBinaryOp,
-  kDeoptInstanceSetterSameTarget,
-  kDeoptInstanceSetter,
-  kDeoptSmiEquality,
-  kDeoptSmiCompareSmis,
-  kDeoptSmiCompareAny,
-  kDeoptEqualityNoFeedback,
-  kDeoptEqualityClassCheck,
-  kDeoptDoubleComparison,
-  kDeoptLoadIndexedFixedArray,
-  kDeoptLoadIndexedGrowableArray,
-  kDeoptNoTypeFeedback,
-  kDeoptSAR,
-  kDeoptUnaryOp,
+#define DEFINE_ENUM_LIST(name) k##name,
+DEOPT_REASONS(DEFINE_ENUM_LIST)
+#undef DEFINE_ENUM_LIST
 };
 
 // This class wraps around the array RawClass::functions_cache_.

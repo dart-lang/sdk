@@ -717,11 +717,11 @@ interface HttpClientConnection {
    * Set this property to [:true:] if this connection should
    * automatically follow redirects. The default is [:true:].
    */
-  bool followRedirect;
+  bool followRedirects;
 
   /**
    * Set this property to the maximum number of redirects to follow
-   * when [followRedirect] is [:true:]. If this number is exceeded the
+   * when [followRedirects] is [:true:]. If this number is exceeded the
    * [onError] callback will be called with a [RedirectLimitExceeded]
    * exception. The default value is 5.
    */
@@ -775,6 +775,12 @@ interface HttpClientRequest default _HttpClientRequest {
   List<Cookie> get cookies();
 
   /**
+   * Gets and sets the requested persistent connection state.
+   * The default value is [:true:].
+   */
+  bool persistentConnection;
+
+  /**
    * Returns the output stream for the request. This is used to write
    * the request data. When all request data has been written close
    * the stream to indicate the end of the request.
@@ -806,6 +812,11 @@ interface HttpClientResponse default _HttpClientResponse {
    * the request body is not known in advance this -1.
    */
   int get contentLength();
+
+  /**
+   * Gets the persistent connection state returned by the server.
+   */
+  bool get persistentConnection();
 
   /**
    * Returns whether the status code is one of the normal redirect

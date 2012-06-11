@@ -308,7 +308,7 @@ class LocalsHandler {
     params.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
-      parameter = builder.potentiallyCheckType(parameter, element);
+      builder.potentiallyCheckType(parameter, element);
       directLocals[element] = parameter;
     });
 
@@ -2281,6 +2281,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
   }
 
+  visitSend(Send node) {
+    Element element = elements[node];
+    if (element !== null && element === work.element) {
+      graph.isRecursiveMethod = true;
+    }
+    super.visitSend(node);
+  }
+
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
@@ -2372,6 +2380,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitStaticSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (element === compiler.assertMethod && !compiler.enableUserAssertions) {
+      stack.add(graph.addConstantNull());
+      return;
+    }
     compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
     HInstruction target = new HStatic(element);
     add(target);

@@ -69,7 +69,36 @@ void testOutputStreamNoPendingWrite() {
 }
 
 
+void testOutputStreamFlush() {
+  Directory tempDirectory = new Directory('').createTempSync();
+
+  // Create a port for waiting on the final result of this test.
+  ReceivePort done = new ReceivePort();
+  done.receive((message, replyTo) {
+    tempDirectory.deleteSync();
+    done.close();
+  });
+
+  tempDirectory.createTempSync();
+  String fileName = "${tempDirectory.path}/test";
+  File file = new File(fileName);
+  file.createSync();
+  OutputStream x = file.openOutputStream();
+  x.write([65, 66, 67]);
+  x.flush();
+  x.write([68, 69, 70]);
+  x.flush();
+  x.write([71, 72, 73]);
+  x.onClosed = () {
+    file.deleteSync();
+    done.toSendPort().send("done");
+  };
+  x.close();
+  x.onError = (e) => Expect.fail("No error expected");
+}
+
 main() {
   testOpenOutputStreamSync();
   testOutputStreamNoPendingWrite();
+  testOutputStreamFlush();
 }

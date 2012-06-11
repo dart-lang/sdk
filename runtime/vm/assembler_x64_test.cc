@@ -1107,6 +1107,20 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
+  __ movl(RDX, Immediate(6));
+  __ cvtsi2sd(XMM0, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(IntToDoubleConversion, entry) {
+  typedef double (*IntToDoubleConversionCode)();
+  double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
+  EXPECT_FLOAT_EQ(6.0, res, 0.001);
+}
+
+
 ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());

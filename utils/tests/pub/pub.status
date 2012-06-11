@@ -7,18 +7,21 @@
 pub_test: Skip
 version_test: Skip
 pubspec_test: Skip
+lock_file_test: Skip
 
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium ]
 pub_test: Skip
 version_test: Skip
 pubspec_test: Skip
+lock_file_test: Skip
 
 # Right now, Pub update creates symlinks which aren't supported on Windows.
 [ $system == windows ]
 pub_test: Skip
 version_test: Skip
 pubspec_test: Skip
+lock_file_test: Skip
 
 [ $compiler == frog ]
 yaml_test: Fail # Issue 3215

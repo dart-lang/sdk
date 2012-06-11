@@ -8,6 +8,7 @@ import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
@@ -712,8 +713,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var Bar;",
         "  create() { return new Bar();}",
         "}"),
-        ResolverErrorCode.NOT_A_TYPE,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode.NOT_A_TYPE);
   }
 
   public void testNewExpression4() {
@@ -919,6 +919,46 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.NO_SUCH_TYPE);
   }
 
+  public void test_const_array() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class int {}",
+        "class MyClass<E> {",
+        "  var a1 = <int>[];",
+        "  var a2 = <E>[];",
+        "  var a3 = const <int>[];",
+        "  var a4 = const <E>[];",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CONST_ARRAY_WITH_TYPE_VARIABLE, 7, 19, 1));
+  }
+
+  public void test_const_map() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class String {}",
+        "class int {}",
+        "class MyClass<E> {",
+        "  var a1 = <int>{};",
+        "  var a2 = <E>{};",
+        "  var a3 = const <int>{};",
+        "  var a4 = const <E>{};",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CONST_MAP_WITH_TYPE_VARIABLE, 8, 19, 1));
+  }
+
+  public void test_multipleLabels() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass<E> {",
+        "  foo() {",
+        "    a: b: while (true) { break a; } // ok",
+        "    a: b: while (true) { break b; } // ok",
+        "    a: b: while (true) { break c; } // error, no such label",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CANNOT_RESOLVE_LABEL, 6, 32, 1));
+  }
+
   public void test_new_noSuchType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -927,8 +967,7 @@ public class ResolverTest extends ResolverTestCase {
         "    new Unknown();",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_new_noSuchType_typeArgument() throws Exception {
@@ -1063,7 +1102,6 @@ public class ResolverTest extends ResolverTestCase {
         "  static bar() { T variable = 1; }",
         "}"),
         ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR,
         TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT);
   }
 

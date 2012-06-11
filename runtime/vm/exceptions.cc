@@ -6,6 +6,7 @@
 
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/flags.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
@@ -244,8 +245,12 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 
 
 void Exceptions::Throw(const Instance& exception) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->debugger()->IsActive()) {
+    isolate->debugger()->SignalExceptionThrown(exception);
+  }
   // Null object is a valid exception object.
-  ThrowExceptionHelper(exception, Instance::Handle());
+  ThrowExceptionHelper(exception, Instance::Handle(isolate));
 }
 
 

@@ -54,4 +54,8 @@ class ClassWithOperators {
   ClassWithOperators operator >=(ClassWithOperators operand) {
     return this;
   }
+
+  bool operator equals(other) {
+    return false;
+  }
 }

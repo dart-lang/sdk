@@ -176,8 +176,7 @@ window_open_test: Fail # TypeError: Object [object Window] has no method 'close$
 
 [ $compiler == dart2js && $runtime == chrome ]
 # TODO(sra): Triage incompatibility issue.
-indexeddb_3_test: Skip
-indexeddb_4_test: Skip
+indexeddb_3_test: Fail  # DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 element_test: Fail # method not found: 'get$add'

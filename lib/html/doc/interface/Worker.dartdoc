@@ -1,0 +1,32 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Worker
+interface Worker extends AbstractWorker default _WorkerFactoryProvider {
+
+  Worker(String scriptUrl);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  WorkerEvents get on();
+
+  /** @domName Worker.postMessage */
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
+
+  /** @domName Worker.terminate */
+  void terminate();
+
+  /** @domName Worker.webkitPostMessage */
+  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
+}
+
+interface WorkerEvents extends AbstractWorkerEvents {
+
+  EventListenerList get message();
+}

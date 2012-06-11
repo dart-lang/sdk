@@ -47,6 +47,7 @@ public enum TypeErrorCode implements ErrorCode {
   NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
+  OPERATOR_EQUALS_BOOL_RETURN_TYPE("operator 'equals' should return bool type"),
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
@@ -55,8 +56,8 @@ public enum TypeErrorCode implements ErrorCode {
   SETTER_TYPE_MUST_BE_ASSIGNABLE("Setter type '%s' must be assignable to getter type '%s'"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),
-  SUPERTYPE_HAS_FIELD("%s is a field in %s"),
-  SUPERTYPE_HAS_METHOD("%s is a method in %s"),
+  SUPERTYPE_HAS_FIELD(ErrorSeverity.ERROR, "%s is a field in %s"),
+  SUPERTYPE_HAS_METHOD(ErrorSeverity.ERROR, "%s is a method in %s"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),

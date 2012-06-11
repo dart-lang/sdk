@@ -409,14 +409,10 @@ void DebuggerConnectionHandler::HandleGetLibrariesCmd(const char* json_msg) {
 }
 
 
-static void FormatField(dart::TextBuffer* buf,
-                        Dart_Handle object_name,
-                        Dart_Handle object) {
-  ASSERT(Dart_IsString(object_name));
-  buf->Printf("{\"name\":\"%s\",", GetStringChars(object_name));
+static void FormatRemoteObj(dart::TextBuffer* buf, Dart_Handle object) {
   intptr_t obj_id = Dart_CacheObject(object);
   ASSERT(obj_id >= 0);
-  buf->Printf("\"value\":{\"objectId\":%d,", obj_id);
+  buf->Printf("{\"objectId\":%d,", obj_id);
   const char* kind = "object";
   if (Dart_IsInteger(object)) {
     kind = "integer";
@@ -440,7 +436,18 @@ static void FormatField(dart::TextBuffer* buf,
   } else {
     FormatEncodedString(buf, text);
   }
-  buf->Printf("}}");
+  buf->Printf("}");
+}
+
+
+static void FormatField(dart::TextBuffer* buf,
+                        Dart_Handle object_name,
+                        Dart_Handle object) {
+  ASSERT(Dart_IsString(object_name));
+  buf->Printf("{\"name\":\"%s\",", GetStringChars(object_name));
+  buf->Printf("\"value\":");
+  FormatRemoteObj(buf, object);
+  buf->Printf("}");
 }
 
 
@@ -748,10 +755,20 @@ void DebuggerConnectionHandler::HandleMessages() {
 }
 
 
-void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
-                                                    Dart_StackTrace trace) {
+void DebuggerConnectionHandler::WaitForConnection() {
+  MonitorLocker ml(&is_connected_);
+  while (!IsConnected()) {
+    printf("Waiting for debugger connection...\n");
+    dart::Monitor::WaitResult res = ml.Wait(dart::Monitor::kNoTimeout);
+    ASSERT(res == dart::Monitor::kNotified);
+  }
+}
+
+
+void DebuggerConnectionHandler::SendBreakpointEvent(Dart_StackTrace trace) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
+  msg.Printf("\"reason\": \"breakpoint\", ");
   FormatCallFrames(&msg, trace);
   msg.Printf("}}");
   SendMsg(&msg);
@@ -760,17 +777,42 @@ void DebuggerConnectionHandler::SendBreakpointEvent(Dart_Breakpoint bpt,
 
 void DebuggerConnectionHandler::BreakpointHandler(Dart_Breakpoint bpt,
                                                   Dart_StackTrace trace) {
-  {
-    MonitorLocker ml(&is_connected_);
-    while (!IsConnected()) {
-      printf("Waiting for debugger connection...\n");
-      dart::Monitor::WaitResult res = ml.Wait(dart::Monitor::kNoTimeout);
-      ASSERT(res == dart::Monitor::kNotified);
-    }
-  }
+  WaitForConnection();
   Dart_EnterScope();
   SendQueuedMsgs();
-  SendBreakpointEvent(bpt, trace);
+  SendBreakpointEvent(trace);
+  HandleMessages();
+  if (!msgbuf_->Alive()) {
+    CloseDbgConnection();
+  }
+  Dart_ExitScope();
+}
+
+
+void DebuggerConnectionHandler::SendExceptionEvent(
+                                    Dart_Handle exception,
+                                    Dart_StackTrace stack_trace) {
+  intptr_t exception_id = Dart_CacheObject(exception);
+  ASSERT(exception_id >= 0);
+  dart::TextBuffer msg(128);
+  msg.Printf("{ \"event\": \"paused\", \"params\": {");
+  msg.Printf("\"reason\": \"exception\", ");
+  msg.Printf("\"exception\":");
+  FormatRemoteObj(&msg, exception);
+  msg.Printf(", ");
+  FormatCallFrames(&msg, stack_trace);
+  msg.Printf("}}");
+  SendMsg(&msg);
+}
+
+
+void DebuggerConnectionHandler::ExceptionThrownHandler(
+                                    Dart_Handle exception,
+                                    Dart_StackTrace stack_trace) {
+  WaitForConnection();
+  Dart_EnterScope();
+  SendQueuedMsgs();
+  SendExceptionEvent(exception, stack_trace);
   HandleMessages();
   if (!msgbuf_->Alive()) {
     CloseDbgConnection();
@@ -829,6 +871,7 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
   DebuggerConnectionImpl::StartHandler(port_number);
   Dart_SetBreakpointHandler(BreakpointHandler);
   Dart_SetBreakpointResolvedHandler(BptResolvedHandler);
+  Dart_SetExceptionThrownHandler(ExceptionThrownHandler);
 }
 
 

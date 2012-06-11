@@ -4,6 +4,7 @@
 
 #include "vm/class_table.h"
 #include "vm/flags.h"
+#include "vm/freelist.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -27,6 +28,7 @@ ClassTable::ClassTable()
     for (intptr_t i = kObject; i < kInstance; i++) {
       table_[i] = vm_class_table->At(i);
     }
+    table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
     table_[kNullClassId] = vm_class_table->At(kNullClassId);
     table_[kDynamicClassId] = vm_class_table->At(kDynamicClassId);
     table_[kVoidClassId] = vm_class_table->At(kVoidClassId);
@@ -47,6 +49,14 @@ void ClassTable::Register(const Class& cls) {
     ASSERT(table_[index] == 0);
     ASSERT(index < capacity_);
     table_[index] = cls.raw();
+    // Add the vtable for this predefined class into the static vtable registry
+    // if it has not been setup yet.
+    cpp_vtable cls_vtable = cls.handle_vtable();
+    cpp_vtable table_entry = Object::builtin_vtables_[index];
+    ASSERT((table_entry == 0) || (table_entry == cls_vtable));
+    if (table_entry == 0) {
+      Object::builtin_vtables_[index] = cls_vtable;
+    }
   } else {
     if (top_ == capacity_) {
       // Grow the capacity of the class table.

@@ -1,0 +1,32 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName CSSStyleSheet
+interface CSSStyleSheet extends StyleSheet {
+
+  /** @domName CSSStyleSheet.cssRules */
+  final CSSRuleList cssRules;
+
+  /** @domName CSSStyleSheet.ownerRule */
+  final CSSRule ownerRule;
+
+  /** @domName CSSStyleSheet.rules */
+  final CSSRuleList rules;
+
+  /** @domName CSSStyleSheet.addRule */
+  int addRule(String selector, String style, [int index]);
+
+  /** @domName CSSStyleSheet.deleteRule */
+  void deleteRule(int index);
+
+  /** @domName CSSStyleSheet.insertRule */
+  int insertRule(String rule, int index);
+
+  /** @domName CSSStyleSheet.removeRule */
+  void removeRule(int index);
+}

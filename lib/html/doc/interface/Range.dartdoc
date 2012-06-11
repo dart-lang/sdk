@@ -1,0 +1,120 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Range
+interface Range {
+
+  static final int END_TO_END = 2;
+
+  static final int END_TO_START = 3;
+
+  static final int NODE_AFTER = 1;
+
+  static final int NODE_BEFORE = 0;
+
+  static final int NODE_BEFORE_AND_AFTER = 2;
+
+  static final int NODE_INSIDE = 3;
+
+  static final int START_TO_END = 1;
+
+  static final int START_TO_START = 0;
+
+  /** @domName Range.collapsed */
+  final bool collapsed;
+
+  /** @domName Range.commonAncestorContainer */
+  final Node commonAncestorContainer;
+
+  /** @domName Range.endContainer */
+  final Node endContainer;
+
+  /** @domName Range.endOffset */
+  final int endOffset;
+
+  /** @domName Range.startContainer */
+  final Node startContainer;
+
+  /** @domName Range.startOffset */
+  final int startOffset;
+
+  /** @domName Range.cloneContents */
+  DocumentFragment cloneContents();
+
+  /** @domName Range.cloneRange */
+  Range cloneRange();
+
+  /** @domName Range.collapse */
+  void collapse(bool toStart);
+
+  /** @domName Range.compareNode */
+  int compareNode(Node refNode);
+
+  /** @domName Range.comparePoint */
+  int comparePoint(Node refNode, int offset);
+
+  /** @domName Range.createContextualFragment */
+  DocumentFragment createContextualFragment(String html);
+
+  /** @domName Range.deleteContents */
+  void deleteContents();
+
+  /** @domName Range.detach */
+  void detach();
+
+  /** @domName Range.expand */
+  void expand(String unit);
+
+  /** @domName Range.extractContents */
+  DocumentFragment extractContents();
+
+  /** @domName Range.getBoundingClientRect */
+  ClientRect getBoundingClientRect();
+
+  /** @domName Range.getClientRects */
+  ClientRectList getClientRects();
+
+  /** @domName Range.insertNode */
+  void insertNode(Node newNode);
+
+  /** @domName Range.intersectsNode */
+  bool intersectsNode(Node refNode);
+
+  /** @domName Range.isPointInRange */
+  bool isPointInRange(Node refNode, int offset);
+
+  /** @domName Range.selectNode */
+  void selectNode(Node refNode);
+
+  /** @domName Range.selectNodeContents */
+  void selectNodeContents(Node refNode);
+
+  /** @domName Range.setEnd */
+  void setEnd(Node refNode, int offset);
+
+  /** @domName Range.setEndAfter */
+  void setEndAfter(Node refNode);
+
+  /** @domName Range.setEndBefore */
+  void setEndBefore(Node refNode);
+
+  /** @domName Range.setStart */
+  void setStart(Node refNode, int offset);
+
+  /** @domName Range.setStartAfter */
+  void setStartAfter(Node refNode);
+
+  /** @domName Range.setStartBefore */
+  void setStartBefore(Node refNode);
+
+  /** @domName Range.surroundContents */
+  void surroundContents(Node newParent);
+
+  /** @domName Range.toString */
+  String toString();
+}

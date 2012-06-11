@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('source_test');
+#library('pubspec_test');
 
 #import('../../../lib/unittest/unittest.dart');
 #import('../../pub/pubspec.dart');

@@ -1,0 +1,41 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName IDBIndex
+interface IDBIndex {
+
+  /** @domName IDBIndex.keyPath */
+  final Dynamic keyPath;
+
+  /** @domName IDBIndex.multiEntry */
+  final bool multiEntry;
+
+  /** @domName IDBIndex.name */
+  final String name;
+
+  /** @domName IDBIndex.objectStore */
+  final IDBObjectStore objectStore;
+
+  /** @domName IDBIndex.unique */
+  final bool unique;
+
+  /** @domName IDBIndex.count */
+  IDBRequest count([key_OR_range]);
+
+  /** @domName IDBIndex.get */
+  IDBRequest get(key);
+
+  /** @domName IDBIndex.getKey */
+  IDBRequest getKey(key);
+
+  /** @domName IDBIndex.openCursor */
+  IDBRequest openCursor([key_OR_range, direction]);
+
+  /** @domName IDBIndex.openKeyCursor */
+  IDBRequest openKeyCursor([key_OR_range, direction]);
+}

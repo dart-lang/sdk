@@ -76,7 +76,6 @@ final List<String> argv = const <String>[
 '../corelib/src/string.dart',
 '../corelib/src/string_buffer.dart',
 '../corelib/src/strings.dart',
-'../corelib/src/time_zone.dart',
 '../lib/json/json.dart',
 '../lib/utf/utf.dart',
 '../lib/utf/utf_core.dart',

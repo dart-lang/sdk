@@ -1,0 +1,27 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName EventException
+interface EventException {
+
+  static final int DISPATCH_REQUEST_ERR = 1;
+
+  static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
+
+  /** @domName EventException.code */
+  final int code;
+
+  /** @domName EventException.message */
+  final String message;
+
+  /** @domName EventException.name */
+  final String name;
+
+  /** @domName EventException.toString */
+  String toString();
+}

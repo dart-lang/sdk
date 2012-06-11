@@ -48,21 +48,6 @@ interface Date extends Comparable, Hashable default DateImplementation {
         bool isUtc]);
 
   /**
-   * Constructs a [Date] instance based on the individual parts.
-   * [timeZone] may not be [:null:].
-   *
-   * *DEPRECATED*
-   */
-  Date.withTimeZone(int year,
-                    int month,
-                    int day,
-                    int hours,
-                    int minutes,
-                    int seconds,
-                    int milliseconds,
-                    TimeZone timeZone);
-
-  /**
    * Constructs a new [Date] instance with current date time value in the
    * local time zone.
    */
@@ -127,17 +112,6 @@ interface Date extends Comparable, Hashable default DateImplementation {
    * [:new Date.fromEpoch(this.value, isUtc: true):].
    */
   Date toUtc();
-
-  /**
-   * Returns a new [Date] in the given [targetTimeZone] time zone. The
-   * [value] of the new instance is equal to [:this.value:].
-   *
-   * This call is equivalent to
-   *  [:new Date.fromEpoch(this.value, targetTimeZone):].
-   *
-   * *DEPRECATED*
-   */
-  Date changeTimeZone(TimeZone targetTimeZone);
 
   /**
    * Returns the abbreviated time-zone name.

@@ -9,6 +9,20 @@ Dart:html APIs from the IDL database."""
 from systemfrog import *
 from systeminterface import *
 
+_html_strip_webkit_prefix_classes = [
+    'Animation',
+    'AnimationEvent',
+    'AnimationList',
+    'BlobBuilder',
+    'CSSKeyframeRule',
+    'CSSKeyframesRule',
+    'CSSMatrix',
+    'CSSTransformValue',
+    'Flags',
+    'LoseContext',
+    'Point',
+    'TransitionEvent']
+
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
@@ -259,7 +273,26 @@ _html_library_custom = set([
     'IFrameElement.get:contentWindow',
     'Window.get:document',
     'Window.get:top',
+    'IDBDatabase.transaction',
     ])
+
+# This map controls merging of interfaces in dart:html library.
+# All constants, attributes, and operations of merged interface (key) are
+# added to target interface (value). All references to the merged interface
+# (e.g. parameter types, return types, parent interfaces) are replaced with
+# target interface. There are two important restrictions:
+# 1) Merged and target interfaces shouldn't have common members, otherwise there
+# would be duplicated declarations in generated Dart code.
+# 2) Merged interface should be direct child of target interface, so the
+# children of merged interface are not affected by the merge.
+# As a consequence, target interface implementation and its direct children
+# interface implementations should implement merged attribute accessors and
+# operations. For example, SVGElement and Element implementation classes should
+# implement HTMLElement.insertAdjacentElement(), HTMLElement.innerHTML, etc.
+_merged_html_interfaces = {
+   'HTMLDocument': 'Document',
+   'HTMLElement': 'Element'
+}
 
 # Events without onEventName attributes in the  IDL we want to support.
 # We can automatically extract most event event names by checking for
@@ -587,13 +620,48 @@ class HtmlSystemShared(object):
     self._seen_event_names = {}
     self._database = database
     self._inheritance_closure = _ComputeInheritanceClosure(database)
+    self._html_renames = self._MakeHtmlRenames()
+
+  def _HasAncestor(self, interface, names_to_match):
+    for parent in interface.parents:
+      if parent.type.id in names_to_match:
+        return True
+      if not self._database.HasInterface(parent.type.id):
+        continue
+      parent_interface = self._database.GetInterface(parent.type.id)
+      if self._HasAncestor(parent_interface, names_to_match):
+        return True
+    return False
+
+  def _MakeHtmlRenames(self):
+    html_renames = {}
+
+    for interface in self._database.GetInterfaces():
+      if (interface.id.startswith('HTML') and
+          self._HasAncestor(interface, ['Element', 'Document'])):
+        html_renames[interface.id] = interface.id[4:]
+
+    for subclass in _html_strip_webkit_prefix_classes:
+      html_renames['WebKit' + subclass] = subclass
+
+    # TODO(jacobr): we almost want to add this commented out line back.
+    #    html_renames['HTMLCollection'] = 'ElementList'
+    #    html_renames['NodeList'] = 'ElementList'
+    #    html_renames['HTMLOptionsCollection'] = 'ElementList'
+    html_renames['DOMWindow'] = 'Window'
+
+    return html_renames
+
+  def _HTMLInterfaceName(self, interface_name):
+    return self._html_renames.get(interface_name, interface_name)
 
   def _FindMatch(self, interface_name, member, member_prefix, candidates):
     for ancestor_name in self._AllAncestorInterfaces(interface_name):
-      name = ancestor_name + '.' + member
+      name = self._HTMLInterfaceName(ancestor_name) + '.' + member
       if name in candidates:
         return name
-      name = interface_name + '.' + member_prefix + member
+      name = (self._HTMLInterfaceName(interface_name) + '.' + member_prefix +
+              member)
       if name in candidates:
         return name
     return None
@@ -681,6 +749,10 @@ class HtmlSystemShared(object):
   def IsPrivate(self, name):
     return name.startswith('_')
 
+  def DartType(self, idl_type):
+    type_info = GetIDLTypeInfo(idl_type)
+    return self._HTMLInterfaceName(type_info.dart_type())
+
 class HtmlSystem(System):
 
   def __init__(self, templates, database, emitters, output_dir):
@@ -702,14 +774,18 @@ class HtmlInterfacesSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
-    interface_name = interface.id
-    dart_interface_file_path = self._FilePathForDartInterface(interface_name)
+    if interface.id in _merged_html_interfaces:
+      return None
+
+    html_interface_name = self._shared._HTMLInterfaceName(interface.id)
+    dart_interface_file_path = self._FilePathForDartInterface(
+        html_interface_name)
 
     self._dart_interface_file_paths.append(dart_interface_file_path)
 
     dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
 
-    template_file = 'interface_%s.darttemplate' % interface_name
+    template_file = 'interface_%s.darttemplate' % html_interface_name
     template = self._templates.TryLoad(template_file)
     if not template:
       template = self._templates.Load('interface.darttemplate')
@@ -748,9 +824,11 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     super(HtmlDartInterfaceGenerator, self).__init__(system, interface,
       emitter, template, common_prefix, super_interface, source_filter)
     self._shared = shared
+    self._html_interface_name = self._shared._HTMLInterfaceName(
+        self._interface.id)
 
   def StartInterface(self):
-    typename = self._interface.id
+    typename = self._html_interface_name
 
     extends = []
     suppressed_extends = []
@@ -759,14 +837,14 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(self._source_filter, parent):
         # Parent is a DOM type.
-        extends.append(DartType(parent.type.id))
+        extends.append(self._shared.DartType(parent.type.id))
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
-        extends.append(DartType(parent.type.id))
+        extends.append(self._shared.DartType(parent.type.id))
       else:
         suppressed_extends.append('%s.%s' %
-            (self._common_prefix, DartType(parent.type.id)))
+            (self._common_prefix, self._shared.DartType(parent.type.id)))
 
     comment = ' extends'
     extends_str = ''
@@ -812,8 +890,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       self._members_emitter.Emit(
           '\n'
           '  $CTOR($PARAMS);\n',
-          CTOR=constructor_info.ConstructorFullName(),
-          PARAMS=constructor_info.ParametersInterfaceDeclaration());
+          CTOR=self._shared.DartType(constructor_info.ConstructorFullName()),
+          PARAMS=constructor_info.ParametersInterfaceDeclaration(
+                     self._shared.DartType));
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
         self._interface, self._system._database)
@@ -827,7 +906,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
           '  $CTOR.fromBuffer(ArrayBuffer buffer,'
                             ' [int byteOffset, int length]);\n',
         CTOR=self._interface.id,
-        TYPE=DartType(element_type))
+        TYPE=self._shared.DartType(element_type))
 
     emit_events, events = self._shared.GetEventAttributes(self._interface)
     if not emit_events:
@@ -837,6 +916,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     else:
       self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
 
+    for merged_interface in _merged_html_interfaces:
+      if _merged_html_interfaces[merged_interface] == self._interface.id:
+        self.AddMembers(self._database.GetInterface(merged_interface))
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter)
@@ -860,15 +942,15 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         DOMINTERFACE=getter.doc_js_interface_name,
         DOMNAME=dom_name)
     if (getter and setter and
-        DartType(getter.type.id) == DartType(setter.type.id)):
+        getter.type.id == setter.type.id):
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
                                  NAME=html_getter_name,
-                                 TYPE=DartType(getter.type.id));
+                                 TYPE=self._shared.DartType(getter.type.id));
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
                                  NAME=html_getter_name,
-                                 TYPE=DartType(getter.type.id));
+                                 TYPE=self._shared.DartType(getter.type.id));
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))
@@ -888,9 +970,10 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
 
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
-                                 TYPE=info.type_name,
+                                 TYPE=self._shared.DartType(info.type_name),
                                  NAME=html_name,
-                                 PARAMS=info.ParametersInterfaceDeclaration())
+                                 PARAMS=info.ParametersInterfaceDeclaration(
+                                        self._shared.DartType))
 
   def FinishInterface(self):
     pass
@@ -899,9 +982,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     self._EmitConstant(self._members_emitter, constant)
 
   def AddEventAttributes(self, event_attrs):
-    event_attrs = DomToHtmlEvents(self._interface.id, event_attrs)
+    event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
     self._shared._event_classes.add(self._interface.id)
-    events_interface = self._interface.id + 'Events'
+    events_interface = self._html_interface_name + 'Events'
     self._EmitEventGetter(events_interface)
 
     events_members = self._emitter.Emit(
@@ -940,15 +1023,22 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     super(HtmlFrogClassGenerator, self).__init__(
         system, interface, template, super_interface, dart_code)
     self._shared = shared
+    self._html_interface_name = self._shared._HTMLInterfaceName(
+        self._interface.id)
 
   def _ImplClassName(self, type_name):
     return self._shared._ImplClassName(type_name)
+
+  def _NarrowToImplementationType(self, type_name):
+    if self._ShouldNarrowToImplementationType(type_name):
+      return self._ImplClassName(self._shared.DartType(type_name))
+    return self._shared.DartType(type_name)
 
   def StartInterface(self):
     interface = self._interface
     interface_name = interface.id
 
-    self._class_name = self._ImplClassName(interface_name)
+    self._class_name = self._ImplClassName(self._html_interface_name)
 
     base = None
     if interface.parents:
@@ -959,17 +1049,17 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       elif IsPureInterface(supertype):
         pass
       else:
-        base = self._ImplClassName(supertype)
+        base = self._ImplClassName(self._shared._HTMLInterfaceName(supertype))
 
     native_spec = MakeNativeSpec(interface.javascript_binding_name)
 
     extends = ' extends ' + base if base else ''
 
     # TODO: Include all implemented interfaces, including other Lists.
-    implements = [interface_name]
+    implements = [self._html_interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
-      implements.append('List<%s>' % DartType(element_type))
+      implements.append('List<%s>' % self._shared.DartType(element_type))
 
     self._members_emitter = self._dart_code.Emit(
         self._template,
@@ -987,9 +1077,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     # Emit a factory provider class for the constructor.
     constructor_info = AnalyzeConstructor(interface)
     if constructor_info:
-      self._EmitFactoryProvider(interface_name, constructor_info)
+      self._EmitFactoryProvider(constructor_info)
 
-    infos = HtmlElementConstructorInfos(interface_name)
+    infos = HtmlElementConstructorInfos(self._html_interface_name)
     if infos:
       self._EmitHtmlElementFactoryConstructors(infos)
 
@@ -1002,20 +1092,25 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       parent_events_class = self._shared.GetParentEventsClass(self._interface)
       self._EmitEventGetter('_' + parent_events_class + 'Impl')
 
-  def _EmitFactoryProvider(self, interface_name, constructor_info):
-    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    for merged_interface in _merged_html_interfaces:
+      if _merged_html_interfaces[merged_interface] == self._interface.id:
+        self.AddMembers(self._database.GetInterface(merged_interface))
+
+  def _EmitFactoryProvider(self, constructor_info):
+    template_file = ('factoryprovider_%s.darttemplate' %
+                     self._html_interface_name)
     template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('factoryprovider.darttemplate')
 
-    factory_provider = '_' + interface_name + 'FactoryProvider'
+    factory_provider = '_' + self._html_interface_name + 'FactoryProvider'
     emitter = self._system._ImplFileEmitter(factory_provider)
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
-        CONSTRUCTOR=interface_name,
+        CONSTRUCTOR=self._html_interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
-        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
+        NAMED_CONSTRUCTOR=constructor_info.name or self._html_interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
   def _EmitHtmlElementFactoryConstructors(self, infos):
@@ -1023,7 +1118,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         self._system._EmitterForFactoryProviderBody(
             infos[0].factory_provider_name),
         infos,
-        self._interface.id, self._class_name)
+        self._html_interface_name, self._class_name)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -1071,7 +1166,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if self._interface.id != 'NodeList':
       template_file = 'immutable_list_mixin.darttemplate'
       template = self._system._templates.Load(template_file)
-      self._members_emitter.Emit(template, E=DartType(element_type))
+      self._members_emitter.Emit(template, E=self._shared.DartType(element_type))
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter or setter)
@@ -1106,11 +1201,11 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
     # If the (getter, setter) pair is shadowing, we can't generate a shadowing
     # field (Issue 1633).
-    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter)
-    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
+    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter, _merged_html_interfaces)
+    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter, _merged_html_interfaces)
     if super_getter or super_setter:
       if getter and not setter and super_getter and not super_setter:
-        if DartType(getter.type.id) == DartType(super_getter.type.id):
+        if getter.type.id == super_getter.type.id:
           # Compatible getter, use the superclass property.  This works because
           # JavaScript will do its own dynamic dispatch.
           output_type = getter and self._NarrowOutputType(getter.type.id)
@@ -1118,7 +1213,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               '\n'
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
-              SUPER=super_getter_interface.id,
+              SUPER=super_getter_interface,
               NAME=DartDomNameOfAttribute(getter),
               TYPE=output_type)
           return
@@ -1208,9 +1303,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               lambda type_name: self._NarrowInputType(type_name)))
 
   def AddEventAttributes(self, event_attrs):
-    event_attrs = DomToHtmlEvents(self._interface.id, event_attrs)
-    events_class = '_' + self._interface.id + 'EventsImpl'
-    events_interface = self._interface.id + 'Events'
+    event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
+    events_class = '_' + self._html_interface_name + 'EventsImpl'
+    events_interface = self._html_interface_name + 'Events'
     self._EmitEventGetter(events_class)
 
     self._shared._event_classes.add(self._interface.id)
@@ -1258,14 +1353,19 @@ class HtmlFrogSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
+    if interface.id in _merged_html_interfaces:
+      return None
+
     if IsPureInterface(interface.id):
       return
-    template_file = 'impl_%s.darttemplate' % interface.id
+
+    html_interface_name = self._shared._HTMLInterfaceName(interface.id)
+    template_file = 'impl_%s.darttemplate' % html_interface_name
     template = self._templates.TryLoad(template_file)
     if not template:
       template = self._templates.Load('frog_impl.darttemplate')
 
-    dart_code = self._ImplFileEmitter(interface.id)
+    dart_code = self._ImplFileEmitter(html_interface_name)
     return HtmlFrogClassGenerator(self, interface, template,
                                   super_interface_name, dart_code, self._shared)
 

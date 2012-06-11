@@ -324,7 +324,10 @@ void Assembler::movq(const Address& dst, const Immediate& imm) {
 
 
 void Assembler::movsxl(Register dst, const Address& src) {
-  UNIMPLEMENTED();
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, src, REX_W);
+  EmitUint8(0x63);
+  EmitOperand(dst & 7, src);
 }
 
 
@@ -543,6 +546,18 @@ void Assembler::xorpd(XmmRegister dst, const Address& src) {
   EmitUint8(0x0F);
   EmitUint8(0x57);
   EmitOperand(dst & 7, src);
+}
+
+
+void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(dst <= XMM7);
+  Operand operand(src);
+  EmitUint8(0xF2);
+  EmitOperandREX(0, operand, REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0x2A);
+  EmitOperand(dst, operand);
 }
 
 

@@ -1,0 +1,124 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Node
+interface Node extends EventTarget {
+  NodeList get nodes();
+
+  void set nodes(Collection<Node> value);
+
+  /**
+   * Replaces this node with another node.
+   * @domName Node.replaceChild
+   */
+  Node replaceWith(Node otherNode);
+
+  /**
+   * Removes this node from the DOM.
+   * @domName Node.removeChild
+   */
+  Node remove();
+
+
+  static final int ATTRIBUTE_NODE = 2;
+
+  static final int CDATA_SECTION_NODE = 4;
+
+  static final int COMMENT_NODE = 8;
+
+  static final int DOCUMENT_FRAGMENT_NODE = 11;
+
+  static final int DOCUMENT_NODE = 9;
+
+  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+
+  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
+
+  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
+
+  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
+
+  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
+
+  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
+
+  static final int DOCUMENT_TYPE_NODE = 10;
+
+  static final int ELEMENT_NODE = 1;
+
+  static final int ENTITY_NODE = 6;
+
+  static final int ENTITY_REFERENCE_NODE = 5;
+
+  static final int NOTATION_NODE = 12;
+
+  static final int PROCESSING_INSTRUCTION_NODE = 7;
+
+  static final int TEXT_NODE = 3;
+
+  /** @domName Node.attributes */
+  final NamedNodeMap $dom_attributes;
+
+  /** @domName Node.childNodes */
+  final NodeList $dom_childNodes;
+
+  /** @domName Node.firstChild */
+  final Node $dom_firstChild;
+
+  /** @domName Node.lastChild */
+  final Node $dom_lastChild;
+
+  /** @domName Node.nextSibling */
+  final Node nextNode;
+
+  /** @domName Node.nodeType */
+  final int $dom_nodeType;
+
+  /** @domName Node.ownerDocument */
+  final Document document;
+
+  /** @domName Node.parentNode */
+  final Node parent;
+
+  /** @domName Node.previousSibling */
+  final Node previousNode;
+
+  /** @domName Node.textContent */
+  String text;
+
+  /** @domName Node.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Node.appendChild */
+  Node $dom_appendChild(Node newChild);
+
+  /** @domName Node.cloneNode */
+  Node clone(bool deep);
+
+  /** @domName Node.contains */
+  bool contains(Node other);
+
+  /** @domName Node.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName Node.hasChildNodes */
+  bool hasChildNodes();
+
+  /** @domName Node.insertBefore */
+  Node insertBefore(Node newChild, Node refChild);
+
+  /** @domName Node.removeChild */
+  Node $dom_removeChild(Node oldChild);
+
+  /** @domName Node.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Node.replaceChild */
+  Node $dom_replaceChild(Node newChild, Node oldChild);
+
+}

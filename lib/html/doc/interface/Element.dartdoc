@@ -1,0 +1,375 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+interface ElementList extends List<Element> {
+  // TODO(jacobr): add element batch manipulation methods.
+  ElementList filter(bool f(Element element));
+
+  ElementList getRange(int start, int length);
+
+  Element get first();
+  // TODO(jacobr): add insertAt
+}
+
+/**
+ * All your attribute manipulation needs in one place.
+ * Extends the regular Map interface by automatically coercing non-string
+ * values to strings.
+ */
+interface AttributeMap extends Map<String, String> {
+  void operator []=(String key, value);
+}
+
+/**
+ * All your element measurement needs in one place
+ */
+interface ElementRect {
+  // Relative to offsetParent
+  ClientRect get client();
+  ClientRect get offset();
+  ClientRect get scroll();
+  // In global coords
+  ClientRect get bounding();
+  // In global coords
+  List<ClientRect> get clientRects();
+}
+
+interface NodeSelector {
+  Element query(String selectors);
+  NodeList queryAll(String selectors);
+}
+
+/// @domName Element
+interface Element extends Node, NodeSelector default _ElementFactoryProvider {
+  Element.html(String html);
+  Element.tag(String tag);
+
+  AttributeMap get attributes();
+  void set attributes(Map<String, String> value);
+
+  /**
+   * @domName childElementCount, firstElementChild, lastElementChild,
+   *   children, Node.nodes.add
+   */
+  ElementList get elements();
+
+  void set elements(Collection<Element> value);
+
+  /** @domName className, classList */
+  Set<String> get classes();
+
+  void set classes(Collection<String> value);
+
+  AttributeMap get dataAttributes();
+  void set dataAttributes(Map<String, String> value);
+
+  /**
+   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
+   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
+   * scrollHeight, scrollWidth, scrollTop, scrollLeft
+   */
+  Future<ElementRect> get rect();
+
+  /** @domName Window.getComputedStyle */
+  Future<CSSStyleDeclaration> get computedStyle();
+
+  /** @domName Window.getComputedStyle */
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
+
+  Element clone(bool deep);
+
+  Element get parent();
+
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  ElementEvents get on();
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
+  /** @domName Element.childElementCount */
+  final int $dom_childElementCount;
+
+  /** @domName HTMLElement.children */
+  final HTMLCollection $dom_children;
+
+  /** @domName HTMLElement.className */
+  String $dom_className;
+
+  /** @domName Element.clientHeight */
+  final int $dom_clientHeight;
+
+  /** @domName Element.clientLeft */
+  final int $dom_clientLeft;
+
+  /** @domName Element.clientTop */
+  final int $dom_clientTop;
+
+  /** @domName Element.clientWidth */
+  final int $dom_clientWidth;
+
+  /** @domName HTMLElement.contentEditable */
+  String contentEditable;
+
+  /** @domName Element.dataset */
+  final Map<String, String> dataset;
+
+  /** @domName HTMLElement.dir */
+  String dir;
+
+  /** @domName HTMLElement.draggable */
+  bool draggable;
+
+  /** @domName Element.firstElementChild */
+  final Element $dom_firstElementChild;
+
+  /** @domName HTMLElement.hidden */
+  bool hidden;
+
+  /** @domName HTMLElement.id */
+  String id;
+
+  /** @domName HTMLElement.innerHTML */
+  String innerHTML;
+
+  /** @domName HTMLElement.isContentEditable */
+  final bool isContentEditable;
+
+  /** @domName HTMLElement.lang */
+  String lang;
+
+  /** @domName Element.lastElementChild */
+  final Element $dom_lastElementChild;
+
+  /** @domName Element.nextElementSibling */
+  final Element nextElementSibling;
+
+  /** @domName Element.offsetHeight */
+  final int $dom_offsetHeight;
+
+  /** @domName Element.offsetLeft */
+  final int $dom_offsetLeft;
+
+  /** @domName Element.offsetParent */
+  final Element offsetParent;
+
+  /** @domName Element.offsetTop */
+  final int $dom_offsetTop;
+
+  /** @domName Element.offsetWidth */
+  final int $dom_offsetWidth;
+
+  /** @domName HTMLElement.outerHTML */
+  final String outerHTML;
+
+  /** @domName Element.previousElementSibling */
+  final Element previousElementSibling;
+
+  /** @domName Element.scrollHeight */
+  final int $dom_scrollHeight;
+
+  /** @domName Element.scrollLeft */
+  int $dom_scrollLeft;
+
+  /** @domName Element.scrollTop */
+  int $dom_scrollTop;
+
+  /** @domName Element.scrollWidth */
+  final int $dom_scrollWidth;
+
+  /** @domName HTMLElement.spellcheck */
+  bool spellcheck;
+
+  /** @domName Element.style */
+  final CSSStyleDeclaration style;
+
+  /** @domName HTMLElement.tabIndex */
+  int tabIndex;
+
+  /** @domName Element.tagName */
+  final String tagName;
+
+  /** @domName HTMLElement.title */
+  String title;
+
+  /** @domName HTMLElement.translate */
+  bool translate;
+
+  /** @domName Element.webkitRegionOverflow */
+  final String webkitRegionOverflow;
+
+  /** @domName HTMLElement.webkitdropzone */
+  String webkitdropzone;
+
+  /** @domName Element.blur */
+  void blur();
+
+  /** @domName HTMLElement.click */
+  void click();
+
+  /** @domName Element.focus */
+  void focus();
+
+  /** @domName Element.getAttribute */
+  String $dom_getAttribute(String name);
+
+  /** @domName Element.getBoundingClientRect */
+  ClientRect $dom_getBoundingClientRect();
+
+  /** @domName Element.getClientRects */
+  ClientRectList $dom_getClientRects();
+
+  /** @domName Element.getElementsByClassName */
+  NodeList $dom_getElementsByClassName(String name);
+
+  /** @domName Element.getElementsByTagName */
+  NodeList $dom_getElementsByTagName(String name);
+
+  /** @domName Element.hasAttribute */
+  bool $dom_hasAttribute(String name);
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element);
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html);
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text);
+
+  /** @domName Element.querySelector */
+  Element $dom_querySelector(String selectors);
+
+  /** @domName Element.querySelectorAll */
+  NodeList $dom_querySelectorAll(String selectors);
+
+  /** @domName Element.removeAttribute */
+  void $dom_removeAttribute(String name);
+
+  /** @domName Element.scrollByLines */
+  void scrollByLines(int lines);
+
+  /** @domName Element.scrollByPages */
+  void scrollByPages(int pages);
+
+  /** @domName Element.scrollIntoViewIfNeeded */
+  void scrollIntoView([bool centerIfNeeded]);
+
+  /** @domName Element.setAttribute */
+  void $dom_setAttribute(String name, String value);
+
+  /** @domName Element.webkitMatchesSelector */
+  bool matchesSelector(String selectors);
+
+  /** @domName Element.webkitRequestFullScreen */
+  void webkitRequestFullScreen(int flags);
+
+  /** @domName Element.webkitRequestFullscreen */
+  void webkitRequestFullscreen();
+
+}
+
+interface ElementEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get beforeCopy();
+
+  EventListenerList get beforeCut();
+
+  EventListenerList get beforePaste();
+
+  EventListenerList get blur();
+
+  EventListenerList get change();
+
+  EventListenerList get click();
+
+  EventListenerList get contextMenu();
+
+  EventListenerList get copy();
+
+  EventListenerList get cut();
+
+  EventListenerList get doubleClick();
+
+  EventListenerList get drag();
+
+  EventListenerList get dragEnd();
+
+  EventListenerList get dragEnter();
+
+  EventListenerList get dragLeave();
+
+  EventListenerList get dragOver();
+
+  EventListenerList get dragStart();
+
+  EventListenerList get drop();
+
+  EventListenerList get error();
+
+  EventListenerList get focus();
+
+  EventListenerList get fullscreenChange();
+
+  EventListenerList get fullscreenError();
+
+  EventListenerList get input();
+
+  EventListenerList get invalid();
+
+  EventListenerList get keyDown();
+
+  EventListenerList get keyPress();
+
+  EventListenerList get keyUp();
+
+  EventListenerList get load();
+
+  EventListenerList get mouseDown();
+
+  EventListenerList get mouseMove();
+
+  EventListenerList get mouseOut();
+
+  EventListenerList get mouseOver();
+
+  EventListenerList get mouseUp();
+
+  EventListenerList get mouseWheel();
+
+  EventListenerList get paste();
+
+  EventListenerList get reset();
+
+  EventListenerList get scroll();
+
+  EventListenerList get search();
+
+  EventListenerList get select();
+
+  EventListenerList get selectStart();
+
+  EventListenerList get submit();
+
+  EventListenerList get touchCancel();
+
+  EventListenerList get touchEnd();
+
+  EventListenerList get touchEnter();
+
+  EventListenerList get touchLeave();
+
+  EventListenerList get touchMove();
+
+  EventListenerList get touchStart();
+
+  EventListenerList get transitionEnd();
+}

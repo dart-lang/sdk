@@ -4,9 +4,8 @@
 
 class Unparser implements Visitor {
   StringBuffer sb;
-  final bool printDebugInfo;
 
-  Unparser([this.printDebugInfo = false]);
+  Unparser();
 
   String unparse(Node node) {
     sb = new StringBuffer();
@@ -19,13 +18,7 @@ class Unparser implements Visitor {
   }
 
   visit(Node node) {
-    if (node !== null) {
-      if (printDebugInfo) sb.add('[${node.getObjectDescription()}: ');
-      node.accept(this);
-      if (printDebugInfo) sb.add(']');
-    } else if (printDebugInfo) {
-      sb.add('[null]');
-    }
+    if (node !== null) node.accept(this);
   }
 
   visitBlock(Block node) {
@@ -107,6 +100,7 @@ class Unparser implements Visitor {
     visit(node.thenPart);
     if (node.hasElsePart) {
       add(node.elseToken.value);
+      sb.add(' ');
       visit(node.elsePart);
     }
   }
@@ -333,7 +327,9 @@ class Unparser implements Visitor {
     add(node.forToken.value);
     sb.add(' (');
     visit(node.declaredIdentifier);
+    sb.add(' ');
     add(node.inToken.value);
+    sb.add(' ');
     visit(node.expression);
     sb.add(') ');
     visit(node.body);

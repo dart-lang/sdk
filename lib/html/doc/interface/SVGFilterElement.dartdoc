@@ -1,0 +1,38 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGFilterElement
+interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+
+  /** @domName SVGFilterElement.filterResX */
+  final SVGAnimatedInteger filterResX;
+
+  /** @domName SVGFilterElement.filterResY */
+  final SVGAnimatedInteger filterResY;
+
+  /** @domName SVGFilterElement.filterUnits */
+  final SVGAnimatedEnumeration filterUnits;
+
+  /** @domName SVGFilterElement.height */
+  final SVGAnimatedLength height;
+
+  /** @domName SVGFilterElement.primitiveUnits */
+  final SVGAnimatedEnumeration primitiveUnits;
+
+  /** @domName SVGFilterElement.width */
+  final SVGAnimatedLength width;
+
+  /** @domName SVGFilterElement.x */
+  final SVGAnimatedLength x;
+
+  /** @domName SVGFilterElement.y */
+  final SVGAnimatedLength y;
+
+  /** @domName SVGFilterElement.setFilterRes */
+  void setFilterRes(int filterResX, int filterResY);
+}

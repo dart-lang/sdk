@@ -28,7 +28,10 @@ class InternalError {
 // TODO(ahe): VM specfic exception?
 class StaticResolutionException implements Exception {}
 
-void assert(condition) {}
+void assert(condition) {
+  if (condition is Function) condition = condition();
+  if (!condition) throw new AssertionError();
+}
 
 // TODO(ahe): Not sure ByteArray belongs in the core library.
 interface Uint8List extends List default _InternalByteArray {

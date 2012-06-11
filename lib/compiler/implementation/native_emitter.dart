@@ -148,7 +148,7 @@ function(cls, fields, methods) {
     emitter.emitClassFields(classElement, fieldBuffer);
 
     StringBuffer methodBuffer = new StringBuffer();
-    emitter.emitInstanceMembers(classElement, methodBuffer);
+    emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
     if (methodBuffer.isEmpty() && fieldBuffer.isEmpty()) return;
 

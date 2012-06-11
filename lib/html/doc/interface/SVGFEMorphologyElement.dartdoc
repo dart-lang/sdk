@@ -1,0 +1,32 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGFEMorphologyElement
+interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
+
+  static final int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
+
+  static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
+
+  /** @domName SVGFEMorphologyElement.in1 */
+  final SVGAnimatedString in1;
+
+  /** @domName SVGFEMorphologyElement.operator */
+  final SVGAnimatedEnumeration operator;
+
+  /** @domName SVGFEMorphologyElement.radiusX */
+  final SVGAnimatedNumber radiusX;
+
+  /** @domName SVGFEMorphologyElement.radiusY */
+  final SVGAnimatedNumber radiusY;
+
+  /** @domName SVGFEMorphologyElement.setRadius */
+  void setRadius(num radiusX, num radiusY);
+}

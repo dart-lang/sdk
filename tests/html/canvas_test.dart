@@ -34,7 +34,7 @@ main() {
     gradient.addColorStop(1,'blue');
     context.fillStyle = gradient;
     context.fillRect(0, 0, 20, 20);
-    expect(context.fillStyle is CanvasGradient).isTrue();
+    expect(context.fillStyle is CanvasGradient, isTrue);
   });
   test('SetFillColor', () {
     // With floats.

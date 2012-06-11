@@ -10,6 +10,7 @@ String GetHtmlContents(String title,
 <!DOCTYPE html>
 <html>
 <head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title> Test $title </title>
   <style>
      .unittest-table { font-family:monospace; border:1px; }

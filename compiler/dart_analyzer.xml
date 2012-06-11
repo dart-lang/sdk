@@ -1,0 +1,172 @@
+<!--
+  Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+  for details. All rights reserved. Use of this source code is governed by a
+  BSD-style license that can be found in the LICENSE file.
+ -->
+<project default="dist">
+  <import file="sources.xml"/>
+  <import file="test_sources.xml"/>
+
+  <!--
+    The file build.properties does not exist. If provided, properties can be customized.
+  -->
+  <property file="build.properties" />
+
+  <!--
+    Configuration properties.
+  -->
+  <property name="build.dir" value="out"/>
+
+  <property name="build.classes.dir" value="${build.dir}/classes"/>
+
+  <property name="build.test.classes.dir" value="${build.dir}/test/classes"/>
+
+  <property name="dart_analyzer.jar" value="${build.dir}/dart_analyzer.jar"/>
+
+  <property name="dist.dir" value="${build.dir}/dist"/>
+
+  <property name="test.report.dir" value="${build.dir}/test"/>
+
+  <property name="third_party.dir" value="../third_party"/>
+
+  <property name="test_py" location="../tools/test.py"/>
+
+  <!--
+    Define buildtime and runtime classpaths.
+  -->
+  <path id="classpath.compile">
+    <pathelement location="${third_party.dir}/args4j/2.0.12/args4j-2.0.12.jar"/>
+    <pathelement location="${third_party.dir}/guava/r09/guava-r09.jar"/>
+    <pathelement location="${third_party.dir}/json/r2_20080312/json.jar"/>
+  </path>
+
+  <path id="classpath.runtime">
+    <path refid="classpath.compile"/>
+  </path>
+
+  <path id="classpath.compile.tests">
+    <path refid="classpath.compile"/>
+    <pathelement location="${build.classes.dir}"/>
+    <pathelement location="${third_party.dir}/junit/v4_8_2/junit.jar"/>
+  </path>
+
+  <path id="classpath.run.tests">
+    <path refid="classpath.compile.tests"/>
+    <pathelement location="${build.test.classes.dir}"/>
+    <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar"/>
+    <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar"/>
+    <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar"/>
+    <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar"/>
+    <pathelement location="${third_party.dir}/fest/fest-util-1.1.6.jar"/>
+    <pathelement location="${third_party.dir}/fest/fest-assert-1.4.jar"/>
+  </path>
+
+  <target name="compile" description="Compiles all of the java source and copies resources to the classes directory.">
+    <!--
+      Ensure the necessary subdirectories exist.
+    -->
+    <mkdir dir="${build.classes.dir}"/>
+
+    <javac destdir="${build.classes.dir}"
+           sourcepath=""
+           srcdir="java"
+           includes="${java_sources}"
+           fork="true"
+           debug="true">
+      <classpath refid="classpath.compile"/>
+    </javac>
+    <!--
+      Copy all non-java resources.
+    -->
+    <copy todir="${build.classes.dir}">
+      <filelist refid="java_resources"/>
+    </copy>
+  </target>
+
+  <!--
+    We rely on GYP to call these targets when dependencies change, hence this
+    ant file cannot be used standalone.
+  -->
+  <target name="compile-tests" depends="compile" description="Compiles all of the java tests and copies the resources to the test classes directory." >
+    <mkdir dir="${build.test.classes.dir}"/>
+    <javac destdir="${build.test.classes.dir}"
+           sourcepath=""
+           srcdir="javatests"
+           includes="${javatests_sources}"
+           excludes="com/google/dart/compiler/vm/**"
+           fork="true"
+           debug="true">
+      <classpath refid="classpath.compile.tests"/>
+    </javac>
+    <!--
+      Copy the non-java resources.
+    -->
+    <copy todir="${build.test.classes.dir}">
+      <filelist refid="javatests_resources"/>
+    </copy>
+  </target>
+
+  <target name="dart_analyzer.jar" depends="compile" description="Creates a jar without bundling the dependencies.">
+    <jar destfile="${dart_analyzer.jar}" basedir="${build.classes.dir}" 
+        manifest="dart_analyzer.mf"/>
+  </target>
+
+  <target name="dist" depends="dart_analyzer.jar" 
+      description="Create a directory with a standalone distribution.">
+    <!--
+      Ensure the necessary subdirectories exist.
+    -->
+    <mkdir dir="${dist.dir}/bin"/>
+    <mkdir dir="${dist.dir}/util"/>
+    <mkdir dir="${dist.dir}/util/analyzer"/>
+
+    <!--
+      Copy the dart jar to the lib folder.
+    -->
+    <copy file="${dart_analyzer.jar}" todir="${dist.dir}/util/analyzer"/>
+
+    <!--
+      Re-root the classpaths from third_party into the util folder of the distro.
+    -->
+    <pathconvert property="analyzer.classpath.runtime.unix" targetos="unix" refid="classpath.runtime">
+      <regexpmapper from="${third_party.dir}/(.*)" to="$DART_ANALYZER_LIBS/\1"/>
+    </pathconvert>
+
+    <copy file="scripts/dart_analyzer.sh" tofile="${dist.dir}/bin/dart_analyzer">
+      <filterset>
+        <filter token="CLASSPATH" value="$DART_ANALYZER_LIBS/dart_analyzer.jar:${analyzer.classpath.runtime.unix}"/>
+      </filterset>
+    </copy>
+    <chmod file="${dist.dir}/bin/dart_analyzer" perm="a+rx"/>
+
+   <!--
+      TODO: The following files are not strictly due to dist, move them out.
+    -->
+    <copy todir="${build.dir}">
+      <fileset dir="scripts">
+        <include name="analyzer_metrics.sh"/>
+      </fileset>
+      <filterset>
+        <filter token="CLASSPATH" value="$DART_ANALYZER_LIBS/dart_analyzer.jar:${analyzer.classpath.runtime.unix}"/>
+      </filterset>
+    </copy>
+    <chmod file="${build.dir}/analyzer_metrics.sh" perm="a+rx"/>
+
+    <!--
+      Copy of all dependencies to the util folder.
+    -->
+    <copy todir="${dist.dir}/util/analyzer">
+      <path refid="classpath.runtime"/>
+      <regexpmapper from="${third_party.dir}/(.*)" to="\1"/>
+    </copy>
+  </target>
+
+  <target name="clean" description="Deletes the build output directory.">
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+  </target>
+
+  <target name="tests.jar" depends="compile-tests">
+    <jar destfile="${build.dir}/tests.jar" basedir="${build.test.classes.dir}"/>
+  </target>
+</project>

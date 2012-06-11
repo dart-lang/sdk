@@ -1,0 +1,28 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLStyleElement
+interface StyleElement extends Element default _Elements {
+
+  StyleElement();
+
+  /** @domName HTMLStyleElement.disabled */
+  bool disabled;
+
+  /** @domName HTMLStyleElement.media */
+  String media;
+
+  /** @domName HTMLStyleElement.scoped */
+  bool scoped;
+
+  /** @domName HTMLStyleElement.sheet */
+  final StyleSheet sheet;
+
+  /** @domName HTMLStyleElement.type */
+  String type;
+}

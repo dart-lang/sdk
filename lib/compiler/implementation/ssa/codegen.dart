@@ -126,6 +126,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   static final int STATE_DECLARATION = 4;
 
   /**
+   * When analyzing a [HStatementGraph] we try to recognize if it has
+   * the following properties.
+   */
+  static final int ONE_STATEMENT = 0;
+  static final int ONE_EXPRESSION = 1;
+  static final int EMPTY = 2;
+  static final int MULTIPLE_STATEMENTS = 3;
+
+  /**
    * Returned by [expressionType] to tell how code can be generated for
    * a subgraph.
    * - [TYPE_STATEMENT] means that the graph must be generated as a statement,
@@ -147,7 +156,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final String parameters;
 
   final Set<HInstruction> generateAtUseSite;
-  final Set<HInstruction> logicalOperations;
+  final Set<HInstruction> controlFlowOperators;
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
   final Map<Element, String> parameterNames;
@@ -206,7 +215,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       delayedVariableDeclarations = new Set<String>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
-      logicalOperations = new Set<HInstruction>(),
+      controlFlowOperators = new Set<HInstruction>(),
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>(),
       unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
@@ -225,13 +234,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   abstract beginLoop(HBasicBlock block);
   abstract endLoop(HBasicBlock block);
   abstract handleLoopCondition(HLoopBranch node);
-
-  abstract startIf(HIf node);
-  abstract endIf(HIf node);
-  abstract startThen(HIf node);
-  abstract endThen(HIf node);
-  abstract startElse(HIf node);
-  abstract endElse(HIf node);
 
   abstract preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
   abstract startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
@@ -252,7 +254,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite,
-                           logicalOperations).visitGraph(graph);
+                           controlFlowOperators).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(compiler);
     intervalBuilder.visitGraph(graph);
@@ -335,7 +337,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         basicBlock = basicBlock.successors[0];
       } else if (current is HConditionalBranch) {
         if (generateAtUseSite.contains(current)) {
-          // Short-circuit logical operator trickery.
+          // Short-circuit control flow operator trickery.
           // Check the second half, which will continue into the join.
           // (The first half is [inputs[0]], the second half is [successors[0]],
           // and [successors[1]] is the join-block).
@@ -526,13 +528,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (variableNames.getName(left) == name) {
         if (instruction is HAdd && right.constant.value == 1) {
           buffer.add('++');
-          declareInstruction(instruction);
+          declareVariable(name);
         } else if (instruction is HSubtract && right.constant.value == 1) {
           buffer.add('--');
-          declareInstruction(instruction);
+          declareVariable(name);
         } else {
           var operation = instruction.operation.name;
-          declareInstruction(instruction);
+          declareVariable(name);
           buffer.add(' ${operation}= ${value}');
         }
         return true;
@@ -541,15 +543,27 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
+  // For simple type checks like i = intTypeCheck(i), we don't have to
+  // emit an assignment, because the intTypeCheck just returns its
+  // argument.
+  bool handleTypeConversion(instruction, name) {
+    if (instruction is !HTypeConversion) return false;
+    String inputName = variableNames.getName(instruction.checkedInput);
+    if (name != inputName) return false;
+    visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+    return true;
+  }
+
   void define(HInstruction instruction) {
     if (isGeneratingExpression()) {
       addExpressionSeparator();
     } else {
       addIndentation();
     }
-    if (instruction is !HCheck && variableNames.hasName(instruction)) {
+    if (!instruction.isControlFlow() && variableNames.hasName(instruction)) {
       var name = variableNames.getName(instruction);
-      if (!handleSimpleUpdateDefinition(instruction, name)) {
+      if (!handleSimpleUpdateDefinition(instruction, name)
+          && !handleTypeConversion(instruction, name)) {
         declareInstruction(instruction);
         buffer.add(" = ");
         visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -563,9 +577,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void use(HInstruction argument, int expectedPrecedenceForArgument) {
     if (isGenerateAtUseSite(argument)) {
       visit(argument, expectedPrecedenceForArgument);
-    } else if (argument is HCheck) {
+    } else if (argument is HCheck && argument.isControlFlow()) {
+      // A [HCheck] that has control flow can never be used as an
+      // expression and may not have a name. Therefore we just use the
+      // checked instruction.
       HCheck check = argument;
-      use(argument.checkedInput, expectedPrecedenceForArgument);
+      use(check.checkedInput, expectedPrecedenceForArgument);
     } else {
       buffer.add(variableNames.getName(argument));
     }
@@ -596,42 +613,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(";\n");
   }
 
-  bool visitIfInfo(HIfBlockInformation info) {
-    // If the [HIf] instruction is actually a logical operation, we
-    // let the flow-based traversal handle it.
-    if (logicalOperations.contains(info.condition.end.last)) return false;
-    HInstruction condition = info.condition.conditionExpression;
-    if (condition.isConstant()) {
-      // If the condition is constant, only generate one branch (if any).
-      HConstant constantCondition = condition;
-      Constant constant = constantCondition.constant;
-      generateStatements(info.condition);
-      if (constant.isTrue()) {
-        generateStatements(info.thenGraph);
-      } else if (info.elseGraph !== null) {
-        generateStatements(info.elseGraph);
-      }
-    } else {
-      generateStatements(info.condition);
-      addIndented("if (");
-      use(condition, JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add(") {\n");
-      indent++;
-      generateStatements(info.thenGraph);
-      indent--;
-      addIndented("}");
-      HSubGraphBlockInformation elseGraph = info.elseGraph;
-      if (elseGraph !== null && !isEmptyElse(elseGraph.start, elseGraph.end)) {
-        buffer.add(" else {\n");
-        indent++;
-        generateStatements(elseGraph);
-        indent--;
-        addIndented("}");
-      }
-      buffer.add("\n");
-    }
-    return true;
-  }
+  // The regular [visitIf] method implements the needed logic.
+  bool visitIfInfo(HIfBlockInformation info) => false;
 
   bool visitSwitchInfo(HSwitchBlockInformation info) {
     bool isExpression = isJSExpression(info.expression);
@@ -1075,7 +1058,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // cycle that we break by using a temporary name.
       if (currentLocation[current] !== null
           && current != currentLocation[initialValue[current]]) {
-        String tempName = VariableNames.SWAP_TEMP;
+        String tempName = variableNames.swapTemp;
         emitAssignment(tempName, current);
         currentLocation[current] = tempName;
         // [current] can now be safely updated. Copies of [current]
@@ -1097,9 +1080,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         addIndentation();
       }
-      declareVariable(variableNames.getName(copy.destination));
-      buffer.add(' = ');
-      use(copy.source, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      String name = variableNames.getName(copy.destination);
+      if (!handleSimpleUpdateDefinition(copy.source, name)) {
+        declareVariable(name);
+        buffer.add(' = ');
+        use(copy.source, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      }
       if (!isGeneratingExpression()) {
         buffer.add(';\n');
       }
@@ -1333,39 +1319,213 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     compiler.internalError('visitTry should not be called', instruction: node);
   }
 
-  bool isEmptyElse(HBasicBlock start, HBasicBlock end) {
-    if (start !== end) return false;
-    if (start.last is !HGoto) {
-      return false;
+  /** 
+   * Analyzes the given [graph] to know whether it is empty, or
+   * contains one statement, one expression, or multiple statements.
+   */
+  int analyzeGraphForCodegen(HStatementInformation graph) {
+    HBasicBlock start = graph.start;
+    HBasicBlock end = graph.end;
+    // Only deal with single blocks for now. TODO(ngeoffray): analyze
+    // all blocks.
+    if (start !== end) return MULTIPLE_STATEMENTS;
+    
+    int kind = EMPTY;
+    bool updateKind(int newKind) {
+      if (kind != EMPTY) return false;
+      kind = newKind;
+      return true;
     }
+
     for (HInstruction instruction = start.first;
          instruction != start.last;
          instruction = instruction.next) {
-      // Instructions generated at use site are okay because they do
-      // not generate code in this else block.
-      if (!isGenerateAtUseSite(instruction)) return false;
+      if (instruction.isStatement()) {
+        if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
+      } else if (!isGenerateAtUseSite(instruction)) {
+        if (!updateKind(ONE_EXPRESSION)) return MULTIPLE_STATEMENTS;
+      }
     }
+
+    HInstruction last = start.last;
+    if (last is !HGoto) {
+      if (!updateKind(last.isStatement() ? ONE_STATEMENT : ONE_EXPRESSION)) {
+        return MULTIPLE_STATEMENTS;
+      }
+    }
+
     CopyHandler handler = variableNames.getCopyHandler(start);
-    if (handler == null || handler.isEmpty()) return true;
-    if (!handler.assignments.isEmpty()) return false;
-    // If the block has a copy where the destination and source are
-    // different, we will emit that copy, and therefore the block is
-    // not empty.
-    for (Copy copy in handler.copies) {
-      String sourceName = variableNames.getName(copy.source);
-      String destinationName = variableNames.getName(copy.destination);
-      if (sourceName != destinationName) return false;
+    if (handler !== null && !handler.isEmpty()) {
+      if (handler.assignments.length > 1) return MULTIPLE_STATEMENTS;
+      if (handler.assignments.length == 1) {
+        if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
+      }
+      // If the block has a copy where the destination and source are
+      // different, we will emit that copy, and therefore the block is
+      // not empty.
+      for (Copy copy in handler.copies) {
+        String sourceName = variableNames.getName(copy.source);
+        String destinationName = variableNames.getName(copy.destination);
+        if (sourceName != destinationName) {
+          if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
+        }
+      }
     }
+    return kind;
+  }
+
+  bool tryControlFlowOperation(HIf node) {
+    if (!controlFlowOperators.contains(node)) return false;
+    HPhi phi = node.joinBlock.phis.first;
+    bool atUseSite = isGenerateAtUseSite(phi);
+    // Don't generate a conditional operator in this situation:
+    // i = condition ? bar() : i;
+    // But generate this instead:
+    // if (condition) i = bar();
+    // Usually, the variable name is longer than 'if' and it takes up
+    // more space to duplicate the name.
+    if (!atUseSite
+        && variableNames.getName(phi) == variableNames.getName(phi.inputs[1])) {
+      return false;
+    }
+    if (!atUseSite) define(phi);
+    visitBasicBlock(node.joinBlock);
     return true;
   }
 
-  visitIf(HIf node) {
-    if (logicalOperations.contains(node)) {
-      HPhi phi = node.joinBlock.phis.first;
-      if (!isGenerateAtUseSite(phi)) define(phi);
-      visitBasicBlock(node.joinBlock);
-      return;
+  void generateIf(HIf node, HIfBlockInformation info) {
+    HStatementInformation thenGraph = info.thenGraph;
+    HStatementInformation elseGraph = info.elseGraph;
+    int thenKind = analyzeGraphForCodegen(thenGraph);
+    int elseKind = analyzeGraphForCodegen(elseGraph);
+
+    void visitWithoutIndent(HStatementInformation toVisit) {
+      int oldIndent = indent;
+      indent = 0;
+      generateStatements(toVisit);
+      indent = oldIndent;
     }
+
+    void visitWithIndent(HStatementInformation toVisit) {
+      buffer.add('{\n');
+      indent++;
+      generateStatements(toVisit);
+      indent--;
+      addIndented('}');
+    }
+
+    void emitIf() {
+      addIndented('if (');
+      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      buffer.add(') ');
+    }
+
+    JSBinaryOperatorPrecedence operatorPrecedence = JSPrecedence.binary['&&'];
+    void generateAnd(HStatementInformation toVisit, Function condition) {
+      addIndentation();
+      beginExpression(operatorPrecedence.precedence);
+      condition();
+      buffer.add(" && ");
+      var oldPrecedence = expectedPrecedence;
+      expectedPrecedence = operatorPrecedence.right;
+      visitWithoutIndent(toVisit);
+      expectedPrecedence = oldPrecedence;
+      endExpression(operatorPrecedence.precedence);
+    }
+
+    switch (thenKind) {
+      case EMPTY:
+        switch (elseKind) {
+          case EMPTY:
+            if (isGenerateAtUseSite(node.inputs[0])) {
+              addIndentation();
+              use(node.inputs[0], JSPrecedence.STATEMENT_PRECEDENCE);
+              buffer.add(';\n');
+            }
+            break;
+
+          case ONE_EXPRESSION:
+            generateAnd(elseGraph, () { generateNot(node.inputs[0]); });
+            break;
+
+          case ONE_STATEMENT:
+            addIndented('if (');
+            generateNot(node.inputs[0]);
+            buffer.add(') ');
+            visitWithoutIndent(elseGraph);
+            break;
+
+          case MULTIPLE_STATEMENTS:
+            addIndented('if (');
+            generateNot(node.inputs[0]);
+            buffer.add(') ');
+            visitWithIndent(elseGraph);
+            buffer.add('\n');
+            break;
+        }
+
+        break;
+
+      case ONE_EXPRESSION:
+      case ONE_STATEMENT:
+        switch (elseKind) {
+          case EMPTY:
+            if (thenKind == ONE_EXPRESSION) {
+              int precedence = operatorPrecedence.left;
+              generateAnd(thenGraph, () { use(node.inputs[0], precedence); });
+            } else {
+              emitIf();
+              visitWithoutIndent(thenGraph);
+            }
+            break;
+
+          case ONE_EXPRESSION:
+          case ONE_STATEMENT:
+            // TODO(ngeoffray): Generate a conditional.
+            emitIf();
+            visitWithoutIndent(thenGraph);
+            addIndented('else ');
+            visitWithoutIndent(elseGraph);
+            break;
+
+          case MULTIPLE_STATEMENTS:
+            emitIf();
+            visitWithoutIndent(thenGraph);
+            addIndented('else ');
+            visitWithIndent(elseGraph);
+            buffer.add('\n');
+            break;
+        }
+        break;
+
+      case MULTIPLE_STATEMENTS:
+        emitIf();
+        visitWithIndent(thenGraph);
+
+        switch (elseKind) {
+          case EMPTY:
+            buffer.add('\n');
+            break;
+
+          case ONE_EXPRESSION:
+          case ONE_STATEMENT:
+            buffer.add(' else ');
+            visitWithoutIndent(elseGraph);
+            break;
+
+          case MULTIPLE_STATEMENTS:
+            buffer.add(' else ');
+            visitWithIndent(elseGraph);
+            buffer.add('\n');
+            break;
+        }
+        break;
+    }
+  }
+
+
+  visitIf(HIf node) {
+    if (tryControlFlowOperation(node)) return;
 
     if (subGraph !== null && node.block === subGraph.end) {
       if (isGeneratingExpression()) {
@@ -1375,40 +1535,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     HInstruction condition = node.inputs[0];
-    int preVisitedBlocks = 0;
-    List<HBasicBlock> dominated = node.block.dominatedBlocks;
     HIfBlockInformation info = node.blockInformation.body;
-    HBasicBlock joinBlock = node.joinBlock;
+
     if (condition.isConstant()) {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
         generateStatements(info.thenGraph);
-      } else if (node.hasElse) {
+      } else {
         generateStatements(info.elseGraph);
       }
-      // We ignore the other branch, even if it isn't visited.
-      preVisitedBlocks = node.hasElse ? 2 : 1;
     } else {
-      startIf(node);
-      assert(!isGenerateAtUseSite(node));
-      startThen(node);
-      assert(node.thenBlock === dominated[0]);
-      generateStatements(info.thenGraph);
-      preVisitedBlocks++;
-      endThen(node);
-      HBasicBlock endBlock =
-          (joinBlock == null || joinBlock.predecessors.length != 2)
-              ? null
-              : joinBlock.predecessors[1];
-      if (node.hasElse && !isEmptyElse(node.elseBlock, endBlock)) {
-        startElse(node);
-        assert(node.elseBlock === dominated[1]);
-        generateStatements(info.elseGraph);
-        preVisitedBlocks++;
-        endElse(node);
-      }
-      endIf(node);
+      generateIf(node, info);
     }
+
+    HBasicBlock joinBlock = node.joinBlock;
     if (joinBlock !== null && joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
@@ -1420,11 +1560,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // branches, and is not the join block.
     // Depending on how the then/else branches terminate
     // (e.g., return/throw/break) there can be any number of these.
-    int dominatedCount = dominated.length;
-    for (int i = preVisitedBlocks; i < dominatedCount; i++) {
-      HBasicBlock dominatedBlock = dominated[i];
-      assert(dominatedBlock.dominator === node.block);
-      visitBasicBlock(dominatedBlock);
+    List<HBasicBlock> dominated = node.block.dominatedBlocks;
+    for (int i = node.hasElse ? 2 : 1; i < dominated.length; i++) {
+      visitBasicBlock(dominated[i]);
     }
   }
 
@@ -1564,7 +1702,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('.');
       buffer.add(name);
     } else {
-      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
+      declareInstruction(node.receiver);
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1724,17 +1862,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitPhi(HPhi node) {
-    HBasicBlock ifBlock = node.block.predecessors[0].predecessors[0];
     // This method is only called for phis that are generated at use
     // site. A phi can be generated at use site only if it is the
-    // result of a logical operation.
-    assert(logicalOperations.contains(ifBlock.last));
+    // result of a control flow operation.
+    HBasicBlock ifBlock = node.block.dominator;
+    assert(controlFlowOperators.contains(ifBlock.last));
     HInstruction input = ifBlock.last.inputs[0];
     if (input.isConstantFalse()) {
       use(node.inputs[1], expectedPrecedence);
     } else if (input.isConstantTrue()) {
       use(node.inputs[0], expectedPrecedence);
-    } else {
+    } else if (node.inputs[1].isConstantBoolean()) {
       String operation = node.inputs[1].isConstantFalse() ? '&&' : '||';
       JSBinaryOperatorPrecedence operatorPrecedence =
           JSPrecedence.binary[operation];
@@ -1751,6 +1889,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(" $operation ");
       use(node.inputs[0], operatorPrecedence.right);
       endExpression(operatorPrecedence.precedence);
+    } else {
+      beginExpression(JSPrecedence.CONDITIONAL_PRECEDENCE);
+      use(input, JSPrecedence.LOGICAL_OR_PRECEDENCE);
+      buffer.add(' ? ');
+      use(node.inputs[0], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      buffer.add(' : ');
+      use(node.inputs[1], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      endExpression(JSPrecedence.CONDITIONAL_PRECEDENCE);
     }
   }
 
@@ -1858,13 +2004,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringConcat(HStringConcat node) {
     if (isEmptyString(node.left)) {
-      beginExpression(JSPrecedence.CALL_PRECEDENCE);
-      useStringified(node.right, JSPrecedence.EXPRESSION_PRECEDENCE);
-      endExpression(JSPrecedence.CALL_PRECEDENCE);
+      useStringified(node.right, expectedPrecedence);
    } else if (isEmptyString(node.right)) {
-      beginExpression(JSPrecedence.CALL_PRECEDENCE);
-      useStringified(node.left, JSPrecedence.EXPRESSION_PRECEDENCE);
-      endExpression(JSPrecedence.CALL_PRECEDENCE);
+      useStringified(node.left, expectedPrecedence);
     } else {
       JSBinaryOperatorPrecedence operatorPrecedences = JSPrecedence.binary['+'];
       beginExpression(operatorPrecedences.precedence);
@@ -2413,32 +2555,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add(') break;\n');
   }
 
-  void startIf(HIf node) {
-  }
-
-  void endIf(HIf node) {
-    indent--;
-    addIndented('}\n');
-  }
-
-  void startThen(HIf node) {
-    addIndented('if (');
-    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
-    buffer.add(') {\n');
-    indent++;
-  }
-
-  void endThen(HIf node) {
-  }
-
-  void startElse(HIf node) {
-    indent--;
-    addIndented('} else {\n');
-    indent++;
-  }
-
-  void endElse(HIf node) {
-  }
 
   void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
   }
@@ -2497,19 +2613,23 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('  }\n');
   }
 
-  // For instructions that reference a guard or a check, we change that
-  // reference to the instruction they guard against. Therefore, we must
-  // use that instruction when restoring the environment.
-  HInstruction unwrap(argument) {
-    while (argument is HCheck) argument = argument.checkedInput;
-    return argument;
-  }
-
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
   bool visitIfInfo(HIfBlockInformation info) => false;
   bool visitLoopInfo(HLoopBlockInformation info) => false;
   bool visitTryInfo(HTryBlockInformation info) => false;
   bool visitSequenceInfo(HStatementSequenceInformation info) => false;
+
+  // If argument is a [HCheck] and it does not have a name, we try to
+  // find the name of its checked input. Note that there must be a
+  // name, otherwise the instruction would not be in the live
+  // environment.
+  HInstruction unwrap(argument) {	
+    while (argument is HCheck && !variableNames.hasName(argument)) {
+      argument = argument.checkedInput;
+    }
+    assert(variableNames.hasName(argument));
+    return argument;	
+  }
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;
@@ -2599,65 +2719,50 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add(') break ${currentLabel()};\n');
   }
 
-  void startIf(HIf node) {
-    bool hasGuards = node.thenBlock.hasGuards()
-        || (node.hasElse && node.elseBlock.hasGuards());
-    if (hasGuards) {
-      startBailoutCase(node.thenBlock.guards,
-          node.hasElse ? node.elseBlock.guards : const <HTypeGuard>[]);
-    }
-  }
+  void generateIf(HIf node, HIfBlockInformation info) {
+    HStatementInformation thenGraph = info.thenGraph;
+    HStatementInformation elseGraph = info.elseGraph;
+    bool thenHasGuards = thenGraph.start.hasGuards();
+    bool elseHasGuards = node.hasElse && elseGraph.start.hasGuards();
+    bool hasGuards = thenHasGuards || elseHasGuards;
+    if (!hasGuards) return super.generateIf(node, info);
 
-  void endIf(HIf node) {
-    indent--;
-    addIndented('}\n');
-  }
+    int elseKind = analyzeGraphForCodegen(elseGraph);
+    bool emptyElse = !node.hasElse || elseKind == SsaCodeGenerator.EMPTY;
 
-  void startThen(HIf node) {
-    bool hasGuards = node.thenBlock.hasGuards()
-        || (node.hasElse && node.elseBlock.hasGuards());
+    startBailoutCase(thenGraph.start.guards,
+        node.hasElse ? elseGraph.start.guards : const <HTypeGuard>[]);
+
     addIndented('if (');
     int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
-    if (hasGuards) {
-      // TODO(ngeoffray): Put the condition initialization in the
-      // [setup] buffer.
-      List<HTypeGuard> guards = node.thenBlock.guards;
-      for (int i = 0, len = guards.length; i < len; i++) {
-        buffer.add('state == ${guards[i].state} || ');
-      }
-      buffer.add('(state == 0 && ');
-      precedence = JSPrecedence.BITWISE_OR_PRECEDENCE;
+    // TODO(ngeoffray): Put the condition initialization in the
+    // [setup] buffer.
+    List<HTypeGuard> guards = node.thenBlock.guards;
+    for (int i = 0, len = guards.length; i < len; i++) {
+      buffer.add('state == ${guards[i].state} || ');
     }
+    buffer.add('(state == 0 && ');
+    precedence = JSPrecedence.BITWISE_OR_PRECEDENCE;
     use(node.inputs[0], precedence);
-    if (hasGuards) {
-      buffer.add(')');
-    }
-    buffer.add(') {\n');
+
+    buffer.add(')) {\n');
+
     indent++;
-    if (node.thenBlock.hasGuards()) {
-      startBailoutSwitch();
-    }
-  }
-
-  void endThen(HIf node) {
-    if (node.thenBlock.hasGuards()) {
-      endBailoutSwitch();
-    }
-  }
-
-  void startElse(HIf node) {
+    if (thenHasGuards) startBailoutSwitch();
+    generateStatements(thenGraph);
+    if (thenHasGuards) endBailoutSwitch();
     indent--;
-    addIndented('} else {\n');
-    indent++;
-    if (node.elseBlock.hasGuards()) {
-      startBailoutSwitch();
-    }
-  }
 
-  void endElse(HIf node) {
-    if (node.elseBlock.hasGuards()) {
-      endBailoutSwitch();
+    if (!emptyElse) {
+      addIndented('} else {\n');
+      indent++;
+      if (elseHasGuards) startBailoutSwitch();
+      generateStatements(elseGraph);
+      if (elseHasGuards) endBailoutSwitch();
+      indent--;
     }
+
+    addIndented('}\n');
   }
 
   void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {

@@ -18,7 +18,7 @@ class Package {
    * Loads the package whose root directory is [packageDir].
    */
   static Future<Package> load(String packageDir, SourceRegistry sources) {
-    var pubspecPath = join(packageDir, 'pubspec');
+    var pubspecPath = join(packageDir, 'pubspec.yaml');
 
     return fileExists(pubspecPath).chain((exists) {
       if (exists) {

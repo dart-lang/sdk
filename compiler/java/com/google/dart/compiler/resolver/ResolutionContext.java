@@ -23,10 +23,12 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.type.TypeVariable;
+import com.google.dart.compiler.type.Types;
 
 import java.util.Arrays;
 import java.util.List;
@@ -214,6 +216,15 @@ public class ResolutionContext implements ResolutionErrorListener {
 
   Type resolveType(DartNode diagnosticNode, DartNode identifier, List<DartTypeNode> typeArguments,
                    boolean isStatic, boolean isFactory, ErrorCode errorCode) {
+    // Built-in identifier can not be used as a type annotation.
+    if (identifier instanceof DartIdentifier) {
+      String name = ((DartIdentifier) identifier).getName();
+      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name)) {
+        onError(identifier, ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, name);
+        return Types.newDynamicType();
+      }
+    }
+    // OK, valid name for type.
     Element element = resolveName(identifier);
     ElementKind elementKind = ElementKind.of(element);
     switch (elementKind) {

@@ -1,0 +1,53 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName Location
+interface Location {
+
+  /** @domName Location.ancestorOrigins */
+  final List<String> ancestorOrigins;
+
+  /** @domName Location.hash */
+  String hash;
+
+  /** @domName Location.host */
+  String host;
+
+  /** @domName Location.hostname */
+  String hostname;
+
+  /** @domName Location.href */
+  String href;
+
+  /** @domName Location.origin */
+  final String origin;
+
+  /** @domName Location.pathname */
+  String pathname;
+
+  /** @domName Location.port */
+  String port;
+
+  /** @domName Location.protocol */
+  String protocol;
+
+  /** @domName Location.search */
+  String search;
+
+  /** @domName Location.assign */
+  void assign(String url);
+
+  /** @domName Location.reload */
+  void reload();
+
+  /** @domName Location.replace */
+  void replace(String url);
+
+  /** @domName Location.toString */
+  String toString();
+}

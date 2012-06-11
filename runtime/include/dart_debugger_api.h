@@ -22,6 +22,10 @@ typedef void Dart_BreakpointResolvedHandler(
                  Dart_Handle url,
                  intptr_t line_number);
 
+typedef void Dart_ExceptionThrownHandler(
+                 Dart_Handle exception_object,
+                 Dart_StackTrace stack_trace);
+
 
 /**
  * Caches a given \object and returns an object id. The object id is only
@@ -252,6 +256,14 @@ DART_EXPORT void Dart_SetBreakpointHandler(
 DART_EXPORT void Dart_SetBreakpointResolvedHandler(
                             Dart_BreakpointResolvedHandler handler);
 
+/**
+ * Installs a callback function that gets called by the VM when
+ * an exception has been thrown.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_SetExceptionThrownHandler(
+                            Dart_ExceptionThrownHandler handler);
 
 /**
  * Returns in \trace the the current stack trace, or NULL if the

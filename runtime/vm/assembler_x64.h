@@ -371,6 +371,7 @@ class Assembler : public ValueObject {
   void divsd(XmmRegister dst, XmmRegister src);
 
   void comisd(XmmRegister a, XmmRegister b);
+  void cvtsi2sd(XmmRegister a, Register b);
 
   void xchgl(Register dst, Register src);
   void xchgq(Register dst, Register src);

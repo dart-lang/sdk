@@ -1,0 +1,50 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLMarqueeElement
+interface MarqueeElement extends Element {
+
+  /** @domName HTMLMarqueeElement.behavior */
+  String behavior;
+
+  /** @domName HTMLMarqueeElement.bgColor */
+  String bgColor;
+
+  /** @domName HTMLMarqueeElement.direction */
+  String direction;
+
+  /** @domName HTMLMarqueeElement.height */
+  String height;
+
+  /** @domName HTMLMarqueeElement.hspace */
+  int hspace;
+
+  /** @domName HTMLMarqueeElement.loop */
+  int loop;
+
+  /** @domName HTMLMarqueeElement.scrollAmount */
+  int scrollAmount;
+
+  /** @domName HTMLMarqueeElement.scrollDelay */
+  int scrollDelay;
+
+  /** @domName HTMLMarqueeElement.trueSpeed */
+  bool trueSpeed;
+
+  /** @domName HTMLMarqueeElement.vspace */
+  int vspace;
+
+  /** @domName HTMLMarqueeElement.width */
+  String width;
+
+  /** @domName HTMLMarqueeElement.start */
+  void start();
+
+  /** @domName HTMLMarqueeElement.stop */
+  void stop();
+}

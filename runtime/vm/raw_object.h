@@ -272,12 +272,12 @@ class RawObject {
   intptr_t Size() const {
     uword tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
-    if ((result != 0) && !FreeBit::decode(tags)) {
+    if (result != 0) {
       ASSERT(result == SizeFromClass());
       return result;
     }
     result = SizeFromClass();
-    ASSERT((result > SizeTag::kMaxSizeTag) || FreeBit::decode(tags));
+    ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
 
@@ -336,13 +336,12 @@ class RawObject {
 
   intptr_t GetClassId() const {
     uword tags = ptr()->tags_;
-    // TODO(vegorov): stop destroying tags_ when creating FreeListElement.
-    ASSERT(!FreeBit::decode(tags));
     return ClassIdTag::decode(tags);
   }
 
   friend class Api;
   friend class Array;
+  friend class FreeListElement;
   friend class Heap;
   friend class MarkingVisitor;
   friend class Object;
@@ -403,7 +402,6 @@ class RawClass : public RawObject {
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;
-  friend RawClass* AllocateFakeClass();
   friend class SnapshotReader;
 };
 

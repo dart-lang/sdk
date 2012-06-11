@@ -289,8 +289,7 @@ void testCookie() {
   Cookie cookie;
   cookie = new Cookie("name", "value");
   Expect.equals("name=value", cookie.toString());
-  TimeZone utc = new TimeZone.utc();
-  Date date = new Date.withTimeZone(2014, Date.JAN, 5, 23, 59, 59, 0, utc);
+  Date date = new Date(2014, Date.JAN, 5, 23, 59, 59, 0, isUtc: true);
   cookie.expires = date;
   checkCookie(cookie, "name=value"
                       "; Expires=Sun, 5 Jan 2014 23:59:59 GMT");

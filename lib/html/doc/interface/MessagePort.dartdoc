@@ -1,0 +1,42 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName MessagePort
+interface MessagePort extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MessagePortEvents get on();
+
+  /** @domName MessagePort.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MessagePort.close */
+  void close();
+
+  /** @domName MessagePort.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName MessagePort.postMessage */
+  void postMessage(String message, [List messagePorts]);
+
+  /** @domName MessagePort.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MessagePort.start */
+  void start();
+
+  /** @domName MessagePort.webkitPostMessage */
+  void webkitPostMessage(String message, [List transfer]);
+}
+
+interface MessagePortEvents extends Events {
+
+  EventListenerList get message();
+}

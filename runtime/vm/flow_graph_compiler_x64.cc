@@ -24,10 +24,9 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_ast);
-DECLARE_FLAG(bool, code_comments);
 
 
-void DeoptimizationStub::GenerateCode(FlowGraphCompilerShared* compiler) {
+void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -46,16 +45,6 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompilerShared* compiler) {
 #undef __
 }
 
-
-FlowGraphCompiler::FlowGraphCompiler(
-    Assembler* assembler,
-    const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>& block_order,
-    bool is_optimizing)
-    : FlowGraphCompilerShared(assembler,
-                              parsed_function,
-                              block_order,
-                              is_optimizing) {}
 
 #define __ assembler()->
 
@@ -659,44 +648,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
-void FlowGraphCompiler::VisitBlocks() {
-  for (intptr_t i = 0; i < block_order().length(); ++i) {
-    __ Comment("B%d", i);
-    // Compile the block entry.
-    set_current_block(block_order()[i]);
-    current_block()->PrepareEntry(this);
-    Instruction* instr = current_block()->StraightLineSuccessor();
-    // Compile all successors until an exit, branch, or a block entry.
-    while ((instr != NULL) && !instr->IsBlockEntry()) {
-      if (FLAG_code_comments) EmitComment(instr);
-      ASSERT(instr->locs() != NULL);
-      EmitInstructionPrologue(instr);
-      instr->EmitNativeCode(this);
-      instr = instr->StraightLineSuccessor();
-    }
-
-    BlockEntryInstr* successor =
-        (instr == NULL) ? NULL : instr->AsBlockEntry();
-    if (successor != NULL) {
-      // Block ended with a "goto".  We can fall through if it is the
-      // next block in the list.  Otherwise, we need a jump.
-      if ((i == block_order().length() - 1) ||
-          (block_order()[i + 1] != successor)) {
-        __ jmp(GetBlockLabel(successor));
-      }
-    }
-  }
-}
-
-
-void FlowGraphCompiler::EmitComment(Instruction* instr) {
-  char buffer[80];
-  BufferFormatter f(buffer, sizeof(buffer));
-  instr->PrintTo(&f);
-  __ Comment("@%d: %s", instr->cid(), buffer);
-}
-
-
 // Copied from CodeGenerator::CopyParameters (CodeGenerator will be deprecated).
 void FlowGraphCompiler::CopyParameters() {
   const Function& function = parsed_function().function();
@@ -1028,6 +979,50 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
                                             const RuntimeEntry& entry) {
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, cid, token_index, try_index);
+}
+
+
+// Checks class id of instance against all 'class_ids'. Jump to 'deopt' label
+// if no match or instance is Smi.
+void FlowGraphCompiler::EmitClassChecksNoSmi(
+    const ZoneGrowableArray<intptr_t>& class_ids,
+    Register instance_reg,
+    Register temp_reg,
+    Label* deopt) {
+  Label ok;
+  ASSERT(class_ids[0] != kSmi);
+  __ testq(instance_reg, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+  Label is_ok;
+  __ LoadClassId(temp_reg, instance_reg);
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ cmpl(temp_reg, Immediate(class_ids[i]));
+    if (i == (class_ids.length() - 1)) {
+      __ j(NOT_EQUAL, deopt);
+    } else {
+      __ j(EQUAL, &is_ok, Assembler::kNearJump);
+    }
+  }
+  __ Bind(&is_ok);
+}
+
+
+void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
+                                             Register reg,
+                                             Register temp,
+                                             Label* not_double_or_smi) {
+  Label is_smi, done;
+  __ testq(reg, Immediate(kSmiTagMask));
+  __ j(ZERO, &is_smi);
+  __ CompareClassId(reg, kDouble);
+  __ j(NOT_EQUAL, not_double_or_smi);
+  __ movsd(result, FieldAddress(reg, Double::value_offset()));
+  __ jmp(&done);
+  __ Bind(&is_smi);
+  __ movq(temp, reg);
+  __ SmiUntag(temp);
+  __ cvtsi2sd(result, temp);
+  __ Bind(&done);
 }
 
 

@@ -113,6 +113,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
     begin();
   }
 
+  protected void beginCastExpression() {
+    begin();
+  }
+
   protected void beginCatchClause() {
     begin();
   }

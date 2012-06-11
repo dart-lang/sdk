@@ -17,6 +17,7 @@ class DateTest {
       }
     }
     Expect.equals(true, timeMovedForward);
+    Expect.isFalse(t1.isUtc());
   }
 
   static void testValue() {

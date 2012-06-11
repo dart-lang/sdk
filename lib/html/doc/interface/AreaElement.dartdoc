@@ -1,0 +1,55 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName HTMLAreaElement
+interface AreaElement extends Element default _Elements {
+
+  AreaElement();
+
+  /** @domName HTMLAreaElement.alt */
+  String alt;
+
+  /** @domName HTMLAreaElement.coords */
+  String coords;
+
+  /** @domName HTMLAreaElement.hash */
+  final String hash;
+
+  /** @domName HTMLAreaElement.host */
+  final String host;
+
+  /** @domName HTMLAreaElement.hostname */
+  final String hostname;
+
+  /** @domName HTMLAreaElement.href */
+  String href;
+
+  /** @domName HTMLAreaElement.noHref */
+  bool noHref;
+
+  /** @domName HTMLAreaElement.pathname */
+  final String pathname;
+
+  /** @domName HTMLAreaElement.ping */
+  String ping;
+
+  /** @domName HTMLAreaElement.port */
+  final String port;
+
+  /** @domName HTMLAreaElement.protocol */
+  final String protocol;
+
+  /** @domName HTMLAreaElement.search */
+  final String search;
+
+  /** @domName HTMLAreaElement.shape */
+  String shape;
+
+  /** @domName HTMLAreaElement.target */
+  String target;
+}

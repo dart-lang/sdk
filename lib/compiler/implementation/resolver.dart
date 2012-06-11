@@ -1052,6 +1052,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       AbstractFieldElement field = target;
       target = field.getter;
     }
+    // TODO(ngeoffray): We should do the check in
+    // visitExpressionStatement instead.
+    if (target === compiler.assertMethod && !node.isCall) {
+      // We can only use assert by calling it.
+      if (!inInstanceContext) {
+        error(node, MessageKind.MISSING_ARGUMENTS_TO_ASSERT, [node]);
+      }
+      target = null;
+    }
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
     useElement(node, target);

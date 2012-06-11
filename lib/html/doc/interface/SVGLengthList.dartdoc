@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName SVGLengthList
+interface SVGLengthList {
+
+  /** @domName SVGLengthList.numberOfItems */
+  final int numberOfItems;
+
+  /** @domName SVGLengthList.appendItem */
+  SVGLength appendItem(SVGLength item);
+
+  /** @domName SVGLengthList.clear */
+  void clear();
+
+  /** @domName SVGLengthList.getItem */
+  SVGLength getItem(int index);
+
+  /** @domName SVGLengthList.initialize */
+  SVGLength initialize(SVGLength item);
+
+  /** @domName SVGLengthList.insertItemBefore */
+  SVGLength insertItemBefore(SVGLength item, int index);
+
+  /** @domName SVGLengthList.removeItem */
+  SVGLength removeItem(int index);
+
+  /** @domName SVGLengthList.replaceItem */
+  SVGLength replaceItem(SVGLength item, int index);
+}

@@ -65,7 +65,7 @@ class FrogSystem(System):
 
 # ------------------------------------------------------------------------------
 
-class FrogInterfaceGenerator(object):
+class FrogInterfaceGenerator(BaseGenerator):
   """Generates a Frog class for a DOM IDL interface."""
 
   def __init__(self, system, interface, template, super_interface, dart_code):
@@ -82,6 +82,7 @@ class FrogInterfaceGenerator(object):
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
+    super(FrogInterfaceGenerator, self).__init__(system._database)
     self._system = system
     self._interface = interface
     self._template = template
@@ -161,21 +162,26 @@ class FrogInterfaceGenerator(object):
         NAMEDCONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
-  def _NarrowToImplementationType(self, type_name):
+  def _ShouldNarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.
     if type_name == 'EventListener':
       # Callbacks are typedef functions so don't have a class.
-      return type_name
+      return False
     if self._system._database.HasInterface(type_name):
       interface = self._system._database.GetInterface(type_name)
       if RecognizeCallback(interface):
         # Callbacks are typedef functions so don't have a class.
-        return type_name
+        return False
       elif type_name == 'MediaQueryListListener':
         # Somewhat like a callback.  See Issue 3338.
-        return type_name
+        return False
       else:
-        return self._ImplClassName(type_name)
+        return True
+    return False
+
+  def _NarrowToImplementationType(self, type_name):
+    if self._ShouldNarrowToImplementationType(type_name):
+      return self._ImplClassName(type_name)
     return type_name
 
   def _NarrowInputType(self, type_name):
@@ -222,7 +228,7 @@ class FrogInterfaceGenerator(object):
               '\n'
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
-              SUPER=super_getter_interface.id,
+              SUPER=super_getter_interface,
               NAME=DartDomNameOfAttribute(getter),
               TYPE=output_type)
           return
@@ -276,7 +282,7 @@ class FrogInterfaceGenerator(object):
         NATIVE_NAME=attr.id,
         OPT_TYPE=TypeOrNothing(self._NarrowInputType(attr.type.id)))
 
-  def _FindShadowedAttribute(self, attr):
+  def _FindShadowedAttribute(self, attr, merged_interfaces={}):
     """Returns (attribute, superinterface) or (None, None)."""
     def FindInParent(interface):
       """Returns matching attribute in parent, or None."""
@@ -287,11 +293,29 @@ class FrogInterfaceGenerator(object):
         if IsPureInterface(parent.type.id):
           return (None, None)
         if self._system._database.HasInterface(parent.type.id):
-          parent_interface = self._system._database.GetInterface(parent.type.id)
-          attr2 = FindMatchingAttribute(parent_interface, attr)
-          if attr2:
-            return (attr2, parent_interface)
-          return FindInParent(parent_interface)
+          interfaces_to_search_in = []
+          if parent.type.id in merged_interfaces:
+            # IDL parent was merged into another interface, which became a
+            # parent interface in Dart.
+            interfaces_to_search_in.append(parent.type.id)
+            parent_interface_name = merged_interfaces[parent.type.id]
+          else:
+            parent_interface_name = parent.type.id
+
+          for interface_name in merged_interfaces:
+            if merged_interfaces[interface_name] == parent_interface_name:
+              # IDL parent has another interface that was merged into it.
+              interfaces_to_search_in.append(interface_name)
+
+          interfaces_to_search_in.append(parent_interface_name)
+          for interface_name in interfaces_to_search_in:
+            interface = self._system._database.GetInterface(interface_name)
+            attr2 = FindMatchingAttribute(interface, attr)
+            if attr2:
+              return (attr2, parent_interface_name)
+
+          return FindInParent(
+              self._system._database.GetInterface(parent_interface_name))
       return (None, None)
 
     return FindInParent(self._interface) if attr else (None, None)
@@ -353,9 +377,6 @@ class FrogInterfaceGenerator(object):
     template = self._system._templates.Load(template_file)
     self._members_emitter.Emit(template, E=DartType(element_type))
 
-  def AmendIndexer(self, element_type):
-    pass
-
   def AddOperation(self, info):
     """
     Arguments:
@@ -381,6 +402,3 @@ class FrogInterfaceGenerator(object):
         NAME=info.name,
         PARAMS=params,
         NATIVESTRING=native_string)
-
-  def AddStaticOperation(self, info):
-    pass

@@ -48,5 +48,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
    this.cancelAnimationFrame = function(id) { clearTimeout(id); }
 ''';
 
+
+  _IDBFactoryImpl get indexedDB() => _get_indexedDB();
+
+  _IDBFactoryImpl _get_indexedDB() native
+      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+
 $!MEMBERS
 }

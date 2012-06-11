@@ -275,6 +275,8 @@ def AnalyzeConstructor(interface):
     return map(lambda arg: _DartArg([arg], interface, True),
                func_value.arguments)
 
+  if 'CustomConstructor' in interface.ext_attrs:
+    return None
   if 'Constructor' in interface.ext_attrs:
     name = None
     func_value = interface.ext_attrs.get('Constructor')
@@ -385,11 +387,11 @@ class OperationInfo(object):
     param_infos: A list of ParamInfo.
   """
 
-  def ParametersInterfaceDeclaration(self):
+  def ParametersInterfaceDeclaration(self, rename_type=lambda x: x):
     """Returns a formatted string declaring the parameters for the interface."""
     return self._FormatParams(
         self.param_infos, None,
-        lambda param: TypeOrNothing(param.dart_type, param.type_id))
+        lambda param: TypeOrNothing(rename_type(param.dart_type), param.type_id))
 
   def ParametersImplementationDeclaration(
       self, rename_type=None, default_value='null'):

@@ -90,14 +90,22 @@ class Node implements Hashable {
 
   abstract visitChildren(Visitor visitor);
 
-  toString() => unparse(false);
+  /**
+   * Returns this node unparsed to Dart source string.
+   */
+  toString() => unparse();
 
-  toDebugString() => unparse(true);
+  /**
+   * Returns Xml-like tree representation of this node.
+   */
+  toDebugString() {
+    return PrettyPrinter.prettyPrint(this);
+  }
 
   String getObjectDescription() => super.toString();
 
-  String unparse(bool printDebugInfo) {
-    Unparser unparser = new Unparser(printDebugInfo);
+  String unparse() {
+    Unparser unparser = new Unparser();
     try {
       return unparser.unparse(this);
     } catch (var e, var trace) {
@@ -270,6 +278,7 @@ class Send extends Expression {
   bool get isPostfix() => argumentsNode is Postfix;
   bool get isIndex() =>
       isOperator && selector.asOperator().source.stringValue === '[]';
+  bool get isCall() => !isOperator && !isPropertyAccess;
 
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();

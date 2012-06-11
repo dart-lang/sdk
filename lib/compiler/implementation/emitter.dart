@@ -31,6 +31,7 @@ class CodeEmitterTask extends CompilerTask {
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
+  String classesCollector;
   final Map<int, String> boundClosureCache;
 
   CodeEmitterTask(Compiler compiler)
@@ -135,7 +136,13 @@ function(cls, superclass, fields, prototype) {
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
     return '''
-function() {
+function(collectedClasses) {
+  for (var collected in collectedClasses) {
+    if (Object.prototype.hasOwnProperty.call(collectedClasses, collected)) {
+      var desc = collectedClasses[collected];
+      $defineClassName(collected, desc.super, desc[''], desc);
+    }
+  }
   var pendingClasses = $pendingClassesName;
 '''/* FinishClasses can be called multiple times. This means that we need to
       clear the pendingClasses property. */'''
@@ -169,6 +176,7 @@ function() {
       hosOwnProperty instead. */'''
       var hasOwnProperty = Object.prototype.hasOwnProperty;
       for (var member in prototype) {
+        if (member == '' || member == 'super') continue;
         if (hasOwnProperty.call(prototype, member)) {
           newPrototype[member] = prototype[member];
         }
@@ -471,11 +479,13 @@ function() {
         includeSuperMembers: isInstantiated && !classElement.isNative());
   }
 
-  void emitInstanceMembers(ClassElement classElement, StringBuffer buffer) {
-    bool isFirst = true;
+  void emitInstanceMembers(ClassElement classElement,
+                           StringBuffer buffer,
+                           bool needsLeadingComma) {
+    bool needsComma = needsLeadingComma;
     void defineInstanceMember(String name, String value) {
-      if (!isFirst) buffer.add(',');
-      isFirst = false;
+      if (needsComma) buffer.add(',');
+      needsComma = true;
       buffer.add('\n');
       buffer.add(' $name: $value');
     }
@@ -525,11 +535,16 @@ function() {
     }
     String constructorName = namer.safeName(classElement.name.slowToString());
 
-    buffer.add('$defineClassName("$className", "$superName", [');
+    buffer.add('$classesCollector.$className = {"":\n');
+    buffer.add(' [');
     emitClassFields(classElement, buffer);
-    buffer.add('], {');
-    emitInstanceMembers(classElement, buffer);
-    buffer.add('\n});\n\n');
+    buffer.add('],\n');
+    // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
+    // That does currently not work because the native classes have a different
+    // syntax.
+    buffer.add(' super: "$superName"');
+    emitInstanceMembers(classElement, buffer, true);
+    buffer.add('\n};\n\n');
   }
 
   void generateTypeTests(ClassElement cls,
@@ -588,7 +603,11 @@ function() {
   }
 
   void emitFinishClassesInvocationIfNecessary(StringBuffer buffer) {
-    if (needsDefineClass) buffer.add("$finishClassesName();\n");
+    if (needsDefineClass) {
+      buffer.add("$finishClassesName($classesCollector);\n");
+      // Reset the map.
+      buffer.add("$classesCollector = {};\n");
+    }
   }
 
   void emitStaticFunctionsWithNamer(StringBuffer buffer,
@@ -967,6 +986,9 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
     measure(() {
       mainBuffer.add('function ${namer.ISOLATE}() {}\n');
       mainBuffer.add('init();\n\n');
+      // Shorten the code by using "$$" as temporary.
+      classesCollector = @"$$";
+      mainBuffer.add('var $classesCollector = {};\n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolateProperties = namer.CURRENT_ISOLATE;
       mainBuffer.add('var $isolateProperties = $isolatePropertiesName;\n');
@@ -990,6 +1012,9 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       mainBuffer.add('var ${namer.CURRENT_ISOLATE} = null;\n');
       mainBuffer.add(boundClosureBuffer);
       emitFinishClassesInvocationIfNecessary(mainBuffer);
+      // After this assignment we will produce invalid JavaScript code if we use
+      // the classesCollector variable.
+      classesCollector = 'classesCollector should not be used from now on';
 
       emitFinishIsolateConstructorInvocation(mainBuffer);
       mainBuffer.add(

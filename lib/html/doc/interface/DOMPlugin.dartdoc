@@ -1,0 +1,29 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING:
+//   This file contains documentation that is merged into the real source.
+//   Do not make code changes here.
+
+/// @domName DOMPlugin
+interface DOMPlugin {
+
+  /** @domName DOMPlugin.description */
+  final String description;
+
+  /** @domName DOMPlugin.filename */
+  final String filename;
+
+  /** @domName DOMPlugin.length */
+  final int length;
+
+  /** @domName DOMPlugin.name */
+  final String name;
+
+  /** @domName DOMPlugin.item */
+  DOMMimeType item(int index);
+
+  /** @domName DOMPlugin.namedItem */
+  DOMMimeType namedItem(String name);
+}

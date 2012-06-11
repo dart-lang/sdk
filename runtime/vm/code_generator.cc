@@ -872,7 +872,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
   ASSERT(arguments.Count() ==
       kBreakpointStaticHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->BreakpointCallback();
+  isolate->debugger()->SignalBpReached();
   // Make sure the static function that is about to be called is
   // compiled. The stub will jump to the entry point without any
   // further tests.
@@ -892,7 +892,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
   ASSERT(arguments.Count() ==
          kBreakpointReturnHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->BreakpointCallback();
+  isolate->debugger()->SignalBpReached();
 }
 
 
@@ -901,7 +901,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
   ASSERT(arguments.Count() ==
      kBreakpointDynamicHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->BreakpointCallback();
+  isolate->debugger()->SignalBpReached();
 }
 
 
@@ -1394,6 +1394,18 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
 }
 
 
+static const char* DeoptReasonToText(intptr_t deopt_id) {
+  switch (deopt_id) {
+#define DEOPT_REASON_ID_TO_TEXT(name) case k##name: return #name;
+DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
+#undef DEOPT_REASON_ID_TO_TEXT
+    default:
+      UNREACHABLE();
+      return "";
+  }
+}
+
+
 // The top Dart frame belongs to the optimized method that needs to be
 // deoptimized. The pc of the Dart frame points to the deoptimization point.
 // Find the node id of the deoptimization point and find the continuation
@@ -1430,9 +1442,10 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
       unoptimized_code.GetDeoptPcAtNodeId(deopt_node_id);
   ASSERT(continue_at_pc != 0);
   if (FLAG_trace_deopt) {
-    OS::Print("Deoptimizing (reason %d) at pc 0x%x id %d '%s' "
+    OS::Print("Deoptimizing (reason %d '%s') at pc 0x%x id %d '%s' "
         "-> continue at 0x%x \n",
         deoptimization_reason_id.Value(),
+        DeoptReasonToText(deoptimization_reason_id.Value()),
         caller_frame->pc(),
         deopt_node_id,
         function.ToFullyQualifiedCString(),

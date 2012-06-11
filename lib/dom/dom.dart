@@ -5126,7 +5126,7 @@ interface IDBDatabase extends EventTarget {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(storeName_OR_storeNames, mode);
+  IDBTransaction transaction(storeName_OR_storeNames, String mode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -410,7 +410,15 @@ class Primitives {
   static final int DOLLAR_CHAR_VALUE = 36;
 
   static String objectToString(Object object) {
-    String name = getTypeNameOf(object);
+    String name = constructorNameFallback(object);
+    if (name == 'Object') {
+      // Try to decompile the constructor by turning it into a string
+      // and get the name out of that. If the decompiled name is a
+      // string, we use that instead of the very generic 'Object'.
+      var decompiled = JS('var', @'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+                          JS('var', @'String(#.constructor)', object));
+      if (decompiled is String) name = decompiled;
+    }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
     if (name.charCodeAt(0) === DOLLAR_CHAR_VALUE) name = name.substring(1);
@@ -806,9 +814,9 @@ unwrapException(ex) {
     }
 
     // If we cannot determine what kind of error this is, we fall back
-    // to reporting this as a TypeError even though that may be
-    // inaccurate. It's probably better than nothing.
-    return new TypeError(message is String ? message : '');
+    // to reporting this as a generic exception. It's probably better
+    // than nothing.
+    return new Exception(message is String ? message : '');
   }
 
   if (JS('bool', @'# instanceof RangeError', ex)) {

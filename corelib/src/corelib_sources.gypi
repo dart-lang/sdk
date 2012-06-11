@@ -31,6 +31,5 @@
     'string.dart',
     'strings.dart',
     'string_buffer.dart',
-    'time_zone.dart',
   ],
 }
