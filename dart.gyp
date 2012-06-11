@@ -54,18 +54,16 @@
           'message': 'Creating SDK.',
         },
       ],
-# TODO(zundel): uncomment once build machines have prerequisite
-# software installed.  Also update create_sdk.py
-#      'conditions' : [
-#        ['OS=="linux"', {
-#          'dependencies': [
-#            'compiler',
-#          ],
-#          'inputs' : [
-#            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
-#          ],
-#        }],
-#      ],
+      'conditions' : [
+        ['OS=="linux"', {
+          'dependencies': [
+            'compiler',
+          ],
+          'inputs' : [
+            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
+          ],
+        }],
+      ],
     },
     {
       # Upload the SDK. This target is separate from create_sdk as the
