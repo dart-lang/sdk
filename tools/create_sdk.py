@@ -96,7 +96,8 @@ def Copy(src, dest):
 # TODO(zundel): this excludes the analyzer from the sdk build until builders
 # have all prerequisite software installed.  Also update dart.gyp.
 def ShouldCopyAnalyzer():
-  return utils.GuessOS() == 'linux'
+  # return utils.GuessOS() == 'linux'
+  return False
   
 
 def CopyShellScript(src_file, dest_dir):
