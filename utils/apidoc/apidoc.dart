@@ -104,6 +104,19 @@ void main() {
   HtmlDiff.initialize();
   _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
+
+  // Process handwritten HTML documentation.
+  world.reset();
+  world.getOrAddLibrary('${doc.scriptDir}/../../lib/html/doc/html.dartdoc');
+  world.process();
+  final htmldoc = new Htmldoc();
+  htmldoc.document();
+  print('Processing handwritten HTML documentation...');
+
+  // Process libraries.
+
+  // Note, Frog has global internal state.  We need to clear away the
+  // HTML documentation classes above first.
   world.reset();
 
   // Add all of the core libraries.
@@ -121,16 +134,125 @@ void main() {
   world.process();
 
   print('Generating docs...');
-  final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache);
+  final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
 
   Futures.wait([scriptCompiled, copiedStatic, copiedApiDocStatic]).then((_) {
     apidoc.document();
   });
 }
 
+/**
+ * This class is purely here to scrape handwritten HTML documentation.
+ * This scraped documentation will later be merged with the generated
+ * HTML library.
+ */
+class Htmldoc extends doc.Dartdoc {
+  String libraryComment;
+  Map<String, String> typeComments;
+  Map<String, Map<String, String>> memberComments;
+
+  Htmldoc() {
+    typeComments = new Map<String, String>();
+    memberComments = new Map<String, Map<String, String>>();
+  }
+
+  // Suppress any actual writing to file.  This is only for analysis.
+  void endFile() {
+  }
+
+  void write(String s) {
+  }
+
+  String getRecordedLibraryComment(Library library) {
+    if (library.name == 'html') {
+      return libraryComment;
+    }
+    return null;
+  }
+
+  String getRecordedTypeComment(Type type) {
+    if (type.library.name == 'html') {
+      if (typeComments.containsKey(type.name)) {
+        return typeComments[type.name];
+      }
+    }
+    return null;
+  }
+
+  String getRecordedMemberComment(Member member) {
+    if (member.library.name == 'html') {
+      String typeName;
+      if (member.declaringType != null) {
+        typeName = member.declaringType.name;
+      }
+      if (typeName == null) {
+        typeName = '';
+      }
+      if (memberComments.containsKey(typeName)) {
+        Map<String, String> memberMap = memberComments[typeName];
+        if (memberMap.containsKey(member.name)) {
+          return memberMap[member.name];
+        }
+      }
+    }
+    return null;
+  }
+
+  // These methods are subclassed and used for internal processing.
+  // Do not invoke outside of this class.
+  String getLibraryComment(Library library) {
+    String comment = super.getLibraryComment(library);
+    libraryComment = comment;
+    return comment;
+  }
+
+  String getTypeComment(Type type) {
+    String comment = super.getTypeComment(type);
+    recordTypeComment(type, comment);
+    return comment;
+  }
+
+  String getMethodComment(MethodMember method) {
+    String comment = super.getMethodComment(method);
+    recordMemberComment(method, comment);
+    return comment;
+  }
+
+  String getFieldComment(FieldMember field) {
+    String comment = super.getFieldComment(field);
+    recordMemberComment(field, comment);
+    return comment;
+  }
+
+  void recordTypeComment(Type type, String comment) {
+    if (comment != null && comment.contains('@domName')) {
+      // This is not a handwritten comment.
+      return;
+    }
+    typeComments[type.name] = comment;
+  }
+
+  void recordMemberComment(Member member, String comment) {
+    if (comment != null && comment.contains('@domName')) {
+      // This is not a handwritten comment.
+      return;
+    }
+    String typeName = member.declaringType.name;
+    if (typeName == null)
+      typeName = '';
+    if (!memberComments.containsKey(typeName)) {
+      memberComments[typeName] = new Map<String, String>();
+    }
+    Map<String, String> memberMap = memberComments[typeName];
+    memberMap[member.name] = comment;
+  }
+}
+
 class Apidoc extends doc.Dartdoc {
   /** Big ball of JSON containing the scraped MDN documentation. */
   final Map mdn;
+
+  final Htmldoc htmldoc;
 
   static final disqusShortname = 'dartapidocs';
 
@@ -141,7 +263,8 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl;
 
-  Apidoc(this.mdn, String outputDir, int mode, bool generateAppCache) {
+  Apidoc(this.mdn, this.htmldoc, String outputDir, int mode,
+         bool generateAppCache) {
     this.outputDir = outputDir;
     this.mode = mode;
     this.generateAppCache = generateAppCache;
@@ -253,27 +376,43 @@ class Apidoc extends doc.Dartdoc {
         comment.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"), ''));
   }
 
+  String getLibraryComment(Library library) {
+    if (library.name == 'html') {
+      return htmldoc.libraryComment;
+    }
+    return super.getLibraryComment(library);
+  }
+
   String getTypeComment(Type type) {
     return _mergeDocs(
-        includeMdnTypeComment(type), super.getTypeComment(type));
+        includeMdnTypeComment(type), super.getTypeComment(type),
+        htmldoc.getRecordedTypeComment(type));
   }
 
   String getMethodComment(MethodMember method) {
     return _mergeDocs(
-        includeMdnMemberComment(method), super.getMethodComment(method));
+        includeMdnMemberComment(method), super.getMethodComment(method),
+        htmldoc.getRecordedMemberComment(method));
   }
 
   String getFieldComment(FieldMember field) {
     return _mergeDocs(
-        includeMdnMemberComment(field), super.getFieldComment(field));
+        includeMdnMemberComment(field), super.getFieldComment(field),
+        htmldoc.getRecordedMemberComment(field));
   }
 
   bool isNonEmpty(String string) => (string != null) && (string.trim() != '');
 
-  String _mergeDocs(String mdnComment, String dartComment) {
-    // Prefer hand-written Dart comments over stuff from MDN.
-    if (isNonEmpty(dartComment)) return dartComment;
+  String _mergeDocs(String mdnComment, String fileComment,
+                    String handWrittenComment) {
+    // Prefer the hand-written comment first.
+    if (isNonEmpty(handWrittenComment)) return handWrittenComment;
 
+    // Otherwise, prefer comment from the (possibly generated) Dart
+    // file.
+    if (isNonEmpty(fileComment)) return fileComment;
+
+    // Finally, fallback on MDN if available.
     if (isNonEmpty(mdnComment)) {
       // Wrap it so we can highlight it and so we handle MDN scraped content
       // that lacks a top-level block tag.

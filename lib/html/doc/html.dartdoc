@@ -4,8 +4,8 @@
 
 // Fake dart:html library for documentation.
 
-/// Library level documentation goes here.
-#library("dart:html");
+/// The Dart HTML5 Library.
+#library("html");
 
 #source('interface/AbstractWorker.dartdoc');
 #source('interface/AnchorElement.dartdoc');
@@ -598,8 +598,14 @@
 
 // Global definitions.
 
+/**
+ * The top-level Window object.
+ */
 Window get window() => null;
 
+/**
+ * The top-level Document object.
+ */
 Document get document() => null;
 
 typedef void EventListener(Event event);

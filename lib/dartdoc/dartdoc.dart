@@ -636,10 +636,9 @@ class Dartdoc {
     writeln('<h2><strong>${library.name}</strong> library</h2>');
 
     // Look for a comment for the entire library.
-    final comment = _comments.findLibrary(library.baseSource);
+    final comment = getLibraryComment(library);
     if (comment != null) {
-      final html = md.markdownToHtml(comment);
-      writeln('<div class="doc">$html</div>');
+      writeln('<div class="doc">$comment</div>');
     }
 
     // Document the top-level members.
@@ -1051,6 +1050,17 @@ class Dartdoc {
     }
 
     writeln('</div>');
+  }
+
+
+  /** Get the doc comment associated with the given library. */
+  String getLibraryComment(Library library) {
+    // Look for a comment for the entire library.
+    final comment = _comments.findLibrary(library.baseSource);
+    if (comment != null) {
+      return md.markdownToHtml(comment);
+    }
+    return null;
   }
 
   /** Get the doc comment associated with the given type. */
