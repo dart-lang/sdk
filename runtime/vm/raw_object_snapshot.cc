@@ -41,7 +41,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     } else {
       cls = Class::GetClass(object_kind);
     }
-    reader->AddBackwardReference(object_id, &cls);
+    reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
     // Set the object tags.
     cls.set_tags(tags);
@@ -65,7 +65,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      *(cls.raw()->from() + i) = reader->ReadObject();
+      *(cls.raw()->from() + i) = reader->ReadObjectRef();
     }
   } else {
     cls ^= reader->ReadClassId(object_id);
@@ -118,7 +118,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   // Allocate parameterized type object.
   UnresolvedClass& unresolved_class = UnresolvedClass::ZoneHandle(
       reader->isolate(), NEW_OBJECT(UnresolvedClass));
-  reader->AddBackwardReference(object_id, &unresolved_class);
+  reader->AddBackRef(object_id, &unresolved_class, kIsDeserialized);
 
   // Set the object tags.
   unresolved_class.set_tags(tags);
@@ -132,7 +132,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (unresolved_class.raw()->to() -
                        unresolved_class.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(unresolved_class.raw()->from() + i) = reader->ReadObject();
+    *(unresolved_class.raw()->from() + i) = reader->ReadObjectRef();
   }
   return unresolved_class.raw();
 }
@@ -184,7 +184,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // Allocate parameterized type object.
   Type& parameterized_type = Type::ZoneHandle(
       reader->isolate(), NEW_OBJECT(Type));
-  reader->AddBackwardReference(object_id, &parameterized_type);
+  reader->AddBackRef(object_id, &parameterized_type, kIsDeserialized);
 
   // Set the object tags.
   parameterized_type.set_tags(tags);
@@ -199,7 +199,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (parameterized_type.raw()->to() -
                        parameterized_type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(parameterized_type.raw()->from() + i) = reader->ReadObject();
+    *(parameterized_type.raw()->from() + i) = reader->ReadObjectImpl();
   }
 
   // If object needs to be a canonical object, Canonicalize it.
@@ -226,7 +226,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, false);
   visitor.VisitPointers(from(), to());
 }
 
@@ -240,7 +240,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   // Allocate type parameter object.
   TypeParameter& type_parameter = TypeParameter::ZoneHandle(
           reader->isolate(), NEW_OBJECT(TypeParameter));
-  reader->AddBackwardReference(object_id, &type_parameter);
+  reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set the object tags.
   type_parameter.set_tags(tags);
@@ -256,7 +256,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (type_parameter.raw()->to() -
                        type_parameter.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(type_parameter.raw()->from() + i) = reader->ReadObject();
+    *(type_parameter.raw()->from() + i) = reader->ReadObjectImpl();
   }
 
   return type_parameter.raw();
@@ -281,7 +281,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, false);
   visitor.VisitPointers(from(), to());
 }
 
@@ -314,11 +314,11 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
       reader->isolate(), NEW_OBJECT_WITH_LEN(TypeArguments, len));
-  reader->AddBackwardReference(object_id, &type_arguments);
+  reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
   // Now set all the object fields.
   for (intptr_t i = 0; i < len; i++) {
-    *reader->TypeHandle() ^= reader->ReadObject();
+    *reader->TypeHandle() ^= reader->ReadObjectImpl();
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
@@ -353,7 +353,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObject(ptr()->types_[i]);
+    writer->WriteObjectImpl(ptr()->types_[i]);
   }
 }
 
@@ -370,7 +370,7 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
   InstantiatedTypeArguments& instantiated_type_arguments =
       InstantiatedTypeArguments::ZoneHandle(reader->isolate(),
                                             InstantiatedTypeArguments::New());
-  reader->AddBackwardReference(object_id, &instantiated_type_arguments);
+  reader->AddBackRef(object_id, &instantiated_type_arguments, kIsDeserialized);
 
   // Set the object tags.
   instantiated_type_arguments.set_tags(tags);
@@ -381,7 +381,7 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
   intptr_t num_flds = (instantiated_type_arguments.raw()->to() -
                        instantiated_type_arguments.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(instantiated_type_arguments.raw()->from() + i) = reader->ReadObject();
+    *(instantiated_type_arguments.raw()->from() + i) = reader->ReadObjectImpl();
   }
   return instantiated_type_arguments.raw();
 }
@@ -401,7 +401,7 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
                             writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, false);
   visitor.VisitPointers(from(), to());
 }
 
@@ -416,7 +416,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // Allocate function object.
   Function& func = Function::ZoneHandle(
       reader->isolate(), NEW_OBJECT(Function));
-  reader->AddBackwardReference(object_id, &func);
+  reader->AddBackRef(object_id, &func, kIsDeserialized);
 
   // Set the object tags.
   func.set_tags(tags);
@@ -438,7 +438,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (func.raw()->to() - func.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(func.raw()->from() + i) = reader->ReadObject();
+    *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
   return func.raw();
@@ -486,7 +486,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
 
   // Allocate field object.
   Field& field = Field::ZoneHandle(reader->isolate(), NEW_OBJECT(Field));
-  reader->AddBackwardReference(object_id, &field);
+  reader->AddBackRef(object_id, &field, kIsDeserialized);
 
   // Set the object tags.
   field.set_tags(tags);
@@ -502,7 +502,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (field.raw()->to() - field.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(field.raw()->from() + i) = reader->ReadObject();
+    *(field.raw()->from() + i) = reader->ReadObjectRef();
   }
 
   return field.raw();
@@ -544,7 +544,7 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   // Create the literal token object.
   LiteralToken& literal_token = LiteralToken::ZoneHandle(
       reader->isolate(), NEW_OBJECT(LiteralToken));
-  reader->AddBackwardReference(object_id, &literal_token);
+  reader->AddBackRef(object_id, &literal_token, kIsDeserialized);
 
   // Set the object tags.
   literal_token.set_tags(tags);
@@ -552,9 +552,9 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   // Read the token attributes.
   Token::Kind token_kind = static_cast<Token::Kind>(reader->ReadIntptrValue());
   literal_token.set_kind(token_kind);
-  *reader->StringHandle() ^= reader->ReadObject();
+  *reader->StringHandle() ^= reader->ReadObjectImpl();
   literal_token.set_literal(*reader->StringHandle());
-  *reader->ObjectHandle() = reader->ReadObject();
+  *reader->ObjectHandle() = reader->ReadObjectImpl();
   literal_token.set_value(*reader->ObjectHandle());
 
   return literal_token.raw();
@@ -578,8 +578,8 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   writer->Write<intptr_t>(ptr()->kind_);
 
   // Write out literal and value fields.
-  writer->WriteObject(ptr()->literal_);
-  writer->WriteObject(ptr()->value_);
+  writer->WriteObjectImpl(ptr()->literal_);
+  writer->WriteObjectImpl(ptr()->value_);
 }
 
 
@@ -596,14 +596,14 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Create the token stream object.
   TokenStream& token_stream = TokenStream::ZoneHandle(
       reader->isolate(), NEW_OBJECT_WITH_LEN(TokenStream, len));
-  reader->AddBackwardReference(object_id, &token_stream);
+  reader->AddBackRef(object_id, &token_stream, kIsDeserialized);
 
   // Set the object tags.
   token_stream.set_tags(tags);
 
   // Read the token stream into the TokenStream.
   for (intptr_t i = 0; i < len; i++) {
-    *reader->ObjectHandle() = reader->ReadObject();
+    *reader->ObjectHandle() = reader->ReadObjectImpl();
     token_stream.SetTokenAt(i, *reader->ObjectHandle());
   }
   return token_stream.raw();
@@ -630,7 +630,7 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   // Write out the token stream (token kind and literal).
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < TokenStream::StreamLength(len); i++) {
-    writer->WriteObject(ptr()->data_[i]);
+    writer->WriteObjectImpl(ptr()->data_[i]);
   }
 }
 
@@ -644,7 +644,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
 
   // Allocate script object.
   Script& script = Script::ZoneHandle(reader->isolate(), NEW_OBJECT(Script));
-  reader->AddBackwardReference(object_id, &script);
+  reader->AddBackRef(object_id, &script, kIsDeserialized);
 
   // Set the object tags.
   script.set_tags(tags);
@@ -652,12 +652,12 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
-  *reader->StringHandle() ^= reader->ReadObject();
+  *reader->StringHandle() ^= reader->ReadObjectImpl();
   script.set_url(*reader->StringHandle());
   *reader->StringHandle() ^= String::null();
   script.set_source(*reader->StringHandle());
   TokenStream& stream = TokenStream::Handle();
-  stream ^= reader->ReadObject();
+  stream ^= reader->ReadObjectImpl();
   script.set_tokens(stream);
 
   return script.raw();
@@ -679,8 +679,8 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kScriptClass, writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  writer->WriteObject(ptr()->url_);
-  writer->WriteObject(ptr()->tokens_);
+  writer->WriteObjectImpl(ptr()->url_);
+  writer->WriteObjectImpl(ptr()->tokens_);
 }
 
 
@@ -692,12 +692,12 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage);
 
   Library& library = Library::ZoneHandle(reader->isolate(), Library::null());
-  reader->AddBackwardReference(object_id, &library);
+  reader->AddBackRef(object_id, &library, kIsDeserialized);
 
   if (RawObject::IsCreatedFromSnapshot(tags)) {
     ASSERT(kind != Snapshot::kFull);
     // Lookup the object as it should already exist in the heap.
-    *reader->StringHandle() ^= reader->ReadObject();
+    *reader->StringHandle() ^= reader->ReadObjectImpl();
     library = Library::LookupLibrary(*reader->StringHandle());
   } else {
     // Allocate library object.
@@ -727,7 +727,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (library.raw()->to() - library.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      *(library.raw()->from() + i) = reader->ReadObject();
+      *(library.raw()->from() + i) = reader->ReadObjectRef();
     }
     if (kind != Snapshot::kFull) {
       library.Register();
@@ -752,7 +752,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   if (RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
     ASSERT(kind != Snapshot::kFull);
     // Write out library URL so that it can be looked up when reading.
-    writer->WriteObject(ptr()->url_);
+    writer->WriteObjectImpl(ptr()->url_);
   } else {
     // Write out all non object fields.
     writer->WriteIntptrValue(ptr()->index_);
@@ -786,7 +786,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   // Allocate library prefix object.
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(
       reader->isolate(), NEW_OBJECT(LibraryPrefix));
-  reader->AddBackwardReference(object_id, &prefix);
+  reader->AddBackRef(object_id, &prefix, kIsDeserialized);
 
   // Set the object tags.
   prefix.set_tags(tags);
@@ -799,7 +799,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (prefix.raw()->to() - prefix.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(prefix.raw()->from() + i) = reader->ReadObject();
+    *(prefix.raw()->from() + i) = reader->ReadObjectRef();
   }
 
   return prefix.raw();
@@ -941,7 +941,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   } else {
     context = Context::New(num_vars);
   }
-  reader->AddBackwardReference(object_id, &context);
+  reader->AddBackRef(object_id, &context, kIsDeserialized);
 
   // Set the object tags.
   context.set_tags(tags);
@@ -954,7 +954,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (context.raw()->to(num_vars) - context.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(context.raw()->from() + i) = reader->ReadObject();
+    *(context.raw()->from() + i) = reader->ReadObjectRef();
   }
 
   return context.raw();
@@ -994,7 +994,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   intptr_t num_vars = reader->ReadIntptrValue();
   ContextScope& scope = ContextScope::ZoneHandle(reader->isolate(),
                                                  ContextScope::New(num_vars));
-  reader->AddBackwardReference(object_id, &scope);
+  reader->AddBackRef(object_id, &scope, kIsDeserialized);
 
   // Set the object tags.
   scope.set_tags(tags);
@@ -1004,7 +1004,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (scope.raw()->to(num_vars) - scope.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(scope.raw()->from() + i) = reader->ReadObject();
+    *(scope.raw()->from() + i) = reader->ReadObjectRef();
   }
 
   return scope.raw();
@@ -1181,7 +1181,7 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
       mint = Mint::New(value, Heap::kNew);
     }
   }
-  reader->AddBackwardReference(object_id, &mint);
+  reader->AddBackRef(object_id, &mint, kIsDeserialized);
 
   // Set the object tags.
   mint.set_tags(tags);
@@ -1229,7 +1229,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     obj ^= obj.Canonicalize();
   }
-  reader->AddBackwardReference(object_id, &obj);
+  reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Set the object tags.
   obj.set_tags(tags);
@@ -1301,7 +1301,7 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
       dbl = Double::New(value, Heap::kNew);
     }
   }
-  reader->AddBackwardReference(object_id, &dbl);
+  reader->AddBackRef(object_id, &dbl, kIsDeserialized);
 
   // Set the object tags.
   dbl.set_tags(tags);
@@ -1394,7 +1394,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   } else {
     ReadFromImpl<OneByteString, uint8_t>(reader, &str_obj, len, tags);
   }
-  reader->AddBackwardReference(object_id, &str_obj);
+  reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return str_obj.raw();
 }
 
@@ -1425,7 +1425,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   } else {
     ReadFromImpl<TwoByteString, uint16_t>(reader, &str_obj, len, tags);
   }
-  reader->AddBackwardReference(object_id, &str_obj);
+  reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return str_obj.raw();
 }
 
@@ -1456,7 +1456,7 @@ RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
   } else {
     ReadFromImpl<FourByteString, uint32_t>(reader, &str_obj, len, tags);
   }
-  reader->AddBackwardReference(object_id, &str_obj);
+  reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return str_obj.raw();
 }
 
@@ -1625,26 +1625,6 @@ void RawBool::WriteTo(SnapshotWriter* writer,
 }
 
 
-static void ArrayReadFrom(SnapshotReader* reader,
-                          const Array& result,
-                          intptr_t len,
-                          intptr_t tags) {
-  ASSERT(reader != NULL);
-
-  // Set the object tags.
-  result.set_tags(tags);
-
-  // Setup the object fields.
-  *reader->TypeArgumentsHandle() ^= reader->ReadObject();
-  result.SetTypeArguments(*reader->TypeArgumentsHandle());
-
-  for (intptr_t i = 0; i < len; i++) {
-    *reader->ObjectHandle() = reader->ReadObject();
-    result.SetAt(i, *reader->ObjectHandle());
-  }
-}
-
-
 RawArray* Array::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           intptr_t tags,
@@ -1653,11 +1633,15 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   intptr_t len = reader->ReadSmiValue();
-  Array& array = Array::ZoneHandle(reader->isolate(),
-                                   NEW_OBJECT_WITH_LEN(Array, len));
-  reader->AddBackwardReference(object_id, &array);
-  ArrayReadFrom(reader, array, len, tags);
-  return array.raw();
+  Array* array = reinterpret_cast<Array*>(
+      reader->GetBackRef(object_id));
+  if (array == NULL) {
+    array = &(Array::ZoneHandle(reader->isolate(),
+                                NEW_OBJECT_WITH_LEN(Array, len)));
+    reader->AddBackRef(object_id, array, kIsDeserialized);
+  }
+  reader->ArrayReadFrom(*array, len, tags);
+  return array->raw();
 }
 
 
@@ -1669,69 +1653,39 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   intptr_t len = reader->ReadSmiValue();
-  ImmutableArray& array = ImmutableArray::ZoneHandle(
-      reader->isolate(), NEW_OBJECT_WITH_LEN(ImmutableArray, len));
-  reader->AddBackwardReference(object_id, &array);
-  ArrayReadFrom(reader, array, len, tags);
-  return array.raw();
-}
-
-
-static void ArrayWriteTo(SnapshotWriter* writer,
-                         intptr_t object_id,
-                         Snapshot::Kind kind,
-                         intptr_t array_kind,
-                         intptr_t tags,
-                         RawSmi* length,
-                         RawAbstractTypeArguments* type_arguments,
-                         RawObject* data[]) {
-  ASSERT(writer != NULL);
-  intptr_t len = Smi::Value(length);
-
-  // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
-
-  // Write out the class and tags information.
-  writer->WriteObjectHeader(array_kind, tags);
-
-  // Write out the length field.
-  writer->Write<RawObject*>(length);
-
-  // Write out the type arguments.
-  writer->WriteObject(type_arguments);
-
-  // Write out the individual objects.
-  for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObject(data[i]);
+  ImmutableArray* array = reinterpret_cast<ImmutableArray*>(
+      reader->GetBackRef(object_id));
+  if (array == NULL) {
+    array = &(ImmutableArray::ZoneHandle(
+        reader->isolate(), NEW_OBJECT_WITH_LEN(ImmutableArray, len)));
+    reader->AddBackRef(object_id, array, kIsDeserialized);
   }
+  reader->ArrayReadFrom(*array, len, tags);
+  return array->raw();
 }
 
 
 void RawArray::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
-  ArrayWriteTo(writer,
-               object_id,
-               kind,
-               ObjectStore::kArrayClass,
-               writer->GetObjectTags(this),
-               ptr()->length_,
-               ptr()->type_arguments_,
-               ptr()->data());
+  writer->ArrayWriteTo(object_id,
+                       ObjectStore::kArrayClass,
+                       writer->GetObjectTags(this),
+                       ptr()->length_,
+                       ptr()->type_arguments_,
+                       ptr()->data());
 }
 
 
 void RawImmutableArray::WriteTo(SnapshotWriter* writer,
                                 intptr_t object_id,
                                 Snapshot::Kind kind) {
-  ArrayWriteTo(writer,
-               object_id,
-               kind,
-               ObjectStore::kImmutableArrayClass,
-               writer->GetObjectTags(this),
-               ptr()->length_,
-               ptr()->type_arguments_,
-               ptr()->data());
+  writer->ArrayWriteTo(object_id,
+                       ObjectStore::kImmutableArrayClass,
+                       writer->GetObjectTags(this),
+                       ptr()->length_,
+                       ptr()->type_arguments_,
+                       ptr()->data());
 }
 
 
@@ -1749,11 +1703,11 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   } else {
     array = GrowableObjectArray::New(0);
   }
-  reader->AddBackwardReference(object_id, &array);
+  reader->AddBackRef(object_id, &array, kIsDeserialized);
   intptr_t length = reader->ReadSmiValue();
   array.SetLength(length);
   Array& contents = Array::Handle();
-  contents ^= reader->ReadObject();
+  contents ^= reader->ReadObjectImpl();
   array.SetData(contents);
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(contents.GetTypeArguments());
@@ -1778,7 +1732,7 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->length_);
 
   // Write out the Array object.
-  writer->WriteObject(ptr()->data_);
+  writer->WriteObjectImpl(ptr()->data_);
 }
 
 
@@ -1802,7 +1756,7 @@ RawT* ByteArray::ReadFromImpl(SnapshotReader* reader,
   Heap::Space space = (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew;
   HandleT& result =
       HandleT::ZoneHandle(reader->isolate(), HandleT::New(len, space));
-  reader->AddBackwardReference(object_id, &result);
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   // Set the object tags.
   result.set_tags(tags);
@@ -1975,14 +1929,14 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   JSRegExp& regex = JSRegExp::ZoneHandle(
       reader->isolate(),
       JSRegExp::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
-  reader->AddBackwardReference(object_id, &regex);
+  reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Set the object tags.
   regex.set_tags(tags);
 
   // Read and Set all the other fields.
   regex.raw_ptr()->num_bracket_expressions_ = reader->ReadAsSmi();
-  *reader->StringHandle() ^= reader->ReadObject();
+  *reader->StringHandle() ^= reader->ReadObjectImpl();
   regex.raw_ptr()->pattern_ = (*reader->StringHandle()).raw();
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();
   regex.raw_ptr()->flags_ = reader->ReadIntptrValue();
@@ -2011,7 +1965,7 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
 
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
-  writer->WriteObject(ptr()->pattern_);
+  writer->WriteObjectImpl(ptr()->pattern_);
   writer->WriteIntptrValue(ptr()->type_);
   writer->WriteIntptrValue(ptr()->flags_);
 

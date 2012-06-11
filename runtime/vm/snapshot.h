@@ -18,11 +18,13 @@ namespace dart {
 // Forward declarations.
 class AbstractType;
 class AbstractTypeArguments;
+class Array;
 class Class;
 class Heap;
 class Library;
 class Object;
 class ObjectStore;
+class RawAbstractTypeArguments;
 class RawArray;
 class RawBigint;
 class RawClass;
@@ -81,6 +83,18 @@ class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
 class SerializedHeaderData : public BitField<intptr_t,
                                              kHeaderTagBits,
                                              kObjectIdTagBits> {
+};
+
+
+enum DeserializeState {
+  kIsDeserialized = 0,
+  kIsNotDeserialized = 1,
+};
+
+
+enum SerializeState {
+  kIsSerialized = 0,
+  kIsNotSerialized = 1,
 };
 
 
@@ -355,10 +369,11 @@ class SnapshotReader : public BaseReader {
   // Reads an object.
   RawObject* ReadObject();
 
-  RawClass* ReadClassId(intptr_t object_id);
-
   // Add object to backward references.
-  void AddBackwardReference(intptr_t id, Object* obj);
+  void AddBackRef(intptr_t id, Object* obj, DeserializeState state);
+
+  // Get an object from the backward references list.
+  Object* GetBackRef(intptr_t id);
 
   // Read a full snap shot.
   void ReadFullSnapshot();
@@ -390,11 +405,28 @@ class SnapshotReader : public BaseReader {
   RawGrowableObjectArray* NewGrowableObjectArray();
 
  private:
+  class BackRefNode : public ZoneAllocated {
+   public:
+    BackRefNode(Object* reference, DeserializeState state)
+        : reference_(reference), state_(state) {}
+    Object* reference() const { return reference_; }
+    bool is_deserialized() const { return state_ == kIsDeserialized; }
+    void set_state(DeserializeState state) { state_ = state; }
+
+   private:
+    Object* reference_;
+    DeserializeState state_;
+
+    DISALLOW_COPY_AND_ASSIGN(BackRefNode);
+  };
+
   // Allocate uninitialized objects, this is used when reading a full snapshot.
   RawObject* AllocateUninitialized(const Class& cls, intptr_t size);
 
-  // Internal implementation of ReadObject once the header value is read.
+  RawClass* ReadClassId(intptr_t object_id);
+  RawObject* ReadObjectImpl();
   RawObject* ReadObjectImpl(intptr_t header);
+  RawObject* ReadObjectRef();
 
   // Read an object that was serialized as an Id (singleton, object store,
   // or an object that was already serialized before).
@@ -406,6 +438,8 @@ class SnapshotReader : public BaseReader {
   // Based on header field check to see if it is an internal VM class.
   RawClass* LookupInternalClass(intptr_t class_header);
 
+  void ArrayReadFrom(const Array& result, intptr_t len, intptr_t tags);
+
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
   Class& cls_;  // Temporary Class handle.
@@ -414,8 +448,27 @@ class SnapshotReader : public BaseReader {
   Library& library_;  // Temporary library handle.
   AbstractType& type_;  // Temporary type handle.
   AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
-  GrowableArray<Object*> backward_references_;
+  GrowableArray<BackRefNode*> backward_references_;
 
+  friend class Array;
+  friend class Class;
+  friend class Context;
+  friend class ContextScope;
+  friend class Field;
+  friend class Function;
+  friend class GrowableObjectArray;
+  friend class ImmutableArray;
+  friend class InstantiatedTypeArguments;
+  friend class JSRegExp;
+  friend class Library;
+  friend class LibraryPrefix;
+  friend class LiteralToken;
+  friend class Script;
+  friend class TokenStream;
+  friend class Type;
+  friend class TypeArguments;
+  friend class TypeParameter;
+  friend class UnresolvedClass;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -508,11 +561,6 @@ class SnapshotWriter : public BaseWriter {
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
 
-  void WriteClassId(RawClass* cls);
-
-  // Unmark all objects that were marked as forwarded for serializing.
-  void UnmarkAll();
-
   // Writes a full snapshot of the Isolate.
   void WriteFullSnapshot();
 
@@ -521,22 +569,37 @@ class SnapshotWriter : public BaseWriter {
  private:
   class ForwardObjectNode : public ZoneAllocated {
    public:
-    ForwardObjectNode(RawObject* raw, uword tags) : raw_(raw), tags_(tags) {}
+    ForwardObjectNode(RawObject* raw, uword tags, SerializeState state)
+        : raw_(raw), tags_(tags), state_(state) {}
     RawObject* raw() const { return raw_; }
     uword tags() const { return tags_; }
+    bool is_serialized() const { return state_ == kIsSerialized; }
+    void set_state(SerializeState value) { state_ = value; }
 
    private:
     RawObject* raw_;
     uword tags_;
+    SerializeState state_;
 
     DISALLOW_COPY_AND_ASSIGN(ForwardObjectNode);
   };
 
-  intptr_t MarkObject(RawObject* raw);
+  intptr_t MarkObject(RawObject* raw, SerializeState state);
+  void UnmarkAll();
 
   bool CheckAndWritePredefinedObject(RawObject* raw);
 
+  void WriteObjectRef(RawObject* raw);
+  void WriteClassId(RawClass* cls);
+  void WriteObjectImpl(RawObject* raw);
   void WriteInlinedObject(RawObject* raw);
+  void WriteForwardedObjects();
+  void ArrayWriteTo(intptr_t object_id,
+                    intptr_t array_kind,
+                    intptr_t tags,
+                    RawSmi* length,
+                    RawAbstractTypeArguments* type_arguments,
+                    RawObject* data[]);
 
   ObjectStore* object_store() const { return object_store_; }
 
@@ -545,6 +608,17 @@ class SnapshotWriter : public BaseWriter {
   ClassTable* class_table_;  // Class table for the class index to class lookup.
   GrowableArray<ForwardObjectNode*> forward_list_;
 
+  friend class RawArray;
+  friend class RawClass;
+  friend class RawGrowableObjectArray;
+  friend class RawImmutableArray;
+  friend class RawJSRegExp;
+  friend class RawLibrary;
+  friend class RawLiteralToken;
+  friend class RawScript;
+  friend class RawTokenStream;
+  friend class RawTypeArguments;
+  friend class SnapshotWriterVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
 };
 
@@ -571,12 +645,20 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
   explicit SnapshotWriterVisitor(SnapshotWriter* writer)
-      : ObjectPointerVisitor(Isolate::Current()), writer_(writer) {}
+      : ObjectPointerVisitor(Isolate::Current()),
+        writer_(writer),
+        as_references_(true) {}
+
+  SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
+      : ObjectPointerVisitor(Isolate::Current()),
+        writer_(writer),
+        as_references_(as_references) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
  private:
   SnapshotWriter* writer_;
+  bool as_references_;
 
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriterVisitor);
 };
