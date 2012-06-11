@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -78,6 +78,45 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "}"),
             errEx(ResolverErrorCode.CIRCULAR_REFERENCE, 3, 20, 1),
             errEx(ResolverErrorCode.CIRCULAR_REFERENCE, 4, 20, 1));
+  }
+  
+  public void test_topLevelFunctionReference() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "m() {}",
+        "class A {",
+        "  static final V1 = m;",
+        "}",
+        "final V2 = m;",
+        ""));
+  }
+  
+  public void test_staticMethodReference() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "class A {",
+        "  static m() {}",
+        "  static final V1 = m;",
+        "}",
+        "final V2 = A.m;",
+        ""));
+  }
+  
+  public void test_instanceMethodReference() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  m() {}",
+            "  static final V1 = m;",
+            "}",
+            "final V2 = A.m;",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 21, 1),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 7, 12, 3));
   }
 
   public void testConstantBinaryExpression12() {
@@ -523,17 +562,6 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "main() { topLevel(); }"),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 14),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 1, 39));
-  }
-
-  public void testInvalidDefaultParameterWithFunction() {
-    resolveAndTestCtConstExpectErrors(
-        Joiner.on("\n").join(
-            "class Object {}",
-            "class Function {}",
-            "qwerty() => () {};",
-            "topLevel([var x = qwerty]) { x(); }",
-            "main() { topLevel(); }"),
-        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 6));
   }
   
   /** 

@@ -359,9 +359,14 @@ public class CompileTimeConstantAnalyzer {
 
           rememberInferredType(x, inferredType);
           break;
+          
+        case METHOD:
+          if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
+            expectedConstant(x);
+          }
+          return null;
 
         case NONE:
-        case METHOD:
           expectedConstant(x);
           return null;
 
@@ -429,7 +434,6 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitPropertyAccess(DartPropertyAccess x) {
-      x.visitChildren(this);
       switch (ElementKind.of(x.getQualifier().getElement())) {
         case CLASS:
         case LIBRARY_PREFIX:
@@ -442,9 +446,20 @@ public class CompileTimeConstantAnalyzer {
       }
 
       Element element = x.getName().getElement();
-      if (element != null && !element.getModifiers().isConstant()) {
+      while (element != null) {
+        // OK. Static method reference.
+        if (ElementKind.of(element) == ElementKind.METHOD && element.getModifiers().isStatic()) {
+          break;
+        }
+        // OK. Constant field.
+        if (element.getModifiers().isConstant()) {
+          break;
+        }
+        // Fail.
         expectedConstant(x);
+        return null;
       }
+      x.visitChildren(this);
       Type type = getMostSpecificType(x.getName());
       rememberInferredType(x, type);
       return null;
