@@ -97,6 +97,9 @@ interface Future<T> default FutureImpl<T> {
    *
    * If an exception occurs (received by this future, or thrown by
    * [transformation]) then the returned future will receive the exception.
+   *  
+   * You must not add exception handlers to [this] future prior to calling 
+   * transform, and any you add afterwards will not be invoked.
    */
   Future transform(transformation(T value));
 
@@ -111,6 +114,9 @@ interface Future<T> default FutureImpl<T> {
     * If an exception occurs (received by this future, thrown by
     * [transformation], or received by the future returned by [transformation])
     * then the returned future will receive the exception.
+    *
+    * You must not add exception handlers to [this] future prior to calling 
+    * chain, and any you add afterwards will not be invoked.
     */
    Future chain(Future transformation(T value));
 }
