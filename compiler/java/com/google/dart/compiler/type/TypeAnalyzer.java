@@ -2535,11 +2535,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (namedIterator.hasNext()) {
             VariableElement parameter = namedIterator.next();
             if (Objects.equal(parameter.getName(), superParameter.getName())) {
-              if (!Objects.equal(ObjectUtils.toString(parameter.getDefaultValue()),
-                  ObjectUtils.toString(superParameter.getDefaultValue()))) {
+              DartExpression superDefValue = superParameter.getDefaultValue();
+              DartExpression defValue = parameter.getDefaultValue();
+              if (superDefValue != null
+                  && !Objects.equal(ObjectUtils.toString(defValue),
+                      ObjectUtils.toString(superDefValue))) {
                 onError(parameter.getSourceInfo(),
                     TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
-                    superParameter.getDefaultValue());
+                    superDefValue);
               }
               continue;
             }
