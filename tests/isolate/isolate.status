@@ -78,7 +78,3 @@ constructor_test: Fail, OK # dart2js does not support subclassing Isolate
 
 [ $compiler == dart2js && $browser ]
 v2_compute_this_script_browser_test: Fail, OK # dart2js does not support APIv2
-
-[ $compiler == dart2js && $runtime == ie ]
-mint_maker_test: Fail # BUG(3304): Maybe this doesn't time out?
-nested_spawn2_test: Fail # BUG(3304): Maybe this doesn't time out?
