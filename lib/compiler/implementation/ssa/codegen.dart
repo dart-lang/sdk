@@ -1411,7 +1411,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       indent++;
       generateStatements(toVisit);
       indent--;
-      addIndented('}\n');
+      addIndented('}');
     }
 
     void emitIf() {
@@ -1460,6 +1460,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             generateNot(node.inputs[0]);
             buffer.add(') ');
             visitWithIndent(elseGraph);
+            buffer.add('\n');
             break;
         }
 
@@ -1492,6 +1493,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             visitWithoutIndent(thenGraph);
             addIndented('else ');
             visitWithIndent(elseGraph);
+            buffer.add('\n');
             break;
         }
         break;
@@ -1514,6 +1516,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           case MULTIPLE_STATEMENTS:
             buffer.add(' else ');
             visitWithIndent(elseGraph);
+            buffer.add('\n');
             break;
         }
         break;
