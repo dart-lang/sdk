@@ -292,6 +292,7 @@ unbound_getter_test: Fail # BUG(3304)
 
 
 [ $compiler == dart2js && $runtime == safari ]
+arithmetic_test: Skip # BUG(3492): Times out.
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
