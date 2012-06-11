@@ -22,7 +22,7 @@ class DateImplementation implements Date {
   }
 
   DateImplementation.now()
-      : _isUtc = true,
+      : _isUtc = false,
         value = _getCurrentMs() {
   }
 
