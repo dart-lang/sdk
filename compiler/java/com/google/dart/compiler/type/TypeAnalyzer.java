@@ -2144,7 +2144,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression value = node.getValue();
           if (value != null) {
             Type valueType = value.getType();
-            if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
+            if (valueType != null && TypeKind.of(valueType) != TypeKind.DYNAMIC) {
               Type varType = Types.makeInferred(valueType);
               Elements.setType(element, varType);
               node.getName().setType(varType);

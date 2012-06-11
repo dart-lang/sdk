@@ -1497,6 +1497,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v", "<dynamic>");
   }
+  
+  /**
+   * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
+   */
+  public void test_typesPropagation_assign_newUnknownType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v1 = new Unknown();",
+        "  var v2 = new Unknown.name();",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+  }
 
   public void test_typesPropagation_ifIsType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
@@ -1975,7 +1990,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       @Override
       public Void visitIdentifier(DartIdentifier node) {
         Element element = node.getElement();
-        if (element.getName().equals(name)) {
+        if (element != null && element.getName().equals(name)) {
           result[0] = element;
         }
         return super.visitIdentifier(node);
