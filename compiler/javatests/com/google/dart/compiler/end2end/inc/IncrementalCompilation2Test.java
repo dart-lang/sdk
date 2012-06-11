@@ -734,6 +734,32 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 9),
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 5, 15));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3340
+   */
+  public void test_useImportPrefix_asVariableName() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'prf');",
+            "main() {",
+            "  var prf;",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
+  }
 
   private void assertAppBuilt() {
     didWrite(APP, EXTENSION_DEPS);

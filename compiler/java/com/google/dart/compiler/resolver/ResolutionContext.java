@@ -92,10 +92,9 @@ public class ResolutionContext implements ResolutionErrorListener {
             && !Elements.isArtificialAssertMethod(existingElement)) {
           SourceInfo nameSourceInfo = element.getNameLocation();
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
-          // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
-          // http://code.google.com/p/dart/issues/detail?id=1060
-          if (!Elements.isLibrarySource(element.getSourceInfo().getSource(), "html.dart")
-              && !Elements.isLibrarySource(element.getSourceInfo().getSource(), "dom.dart")) {
+          if (existingElement.getKind() == ElementKind.LIBRARY_PREFIX) {
+            onError(nameSourceInfo, ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, name);
+          } else {
             onError(nameSourceInfo, warningCode, name, existingElement, existingLocation);
           }
         }

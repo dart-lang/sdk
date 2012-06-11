@@ -97,7 +97,6 @@ map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail
 no_such_method_negative_test: Fail
 override_field_test/04: Fail             # Bug 5215249
-prefix6_negative_test: Fail	       # Issue 2383
 private_factory_resolution_negative_test: Fail # Issue 2275
 private_member3_negative_test: Fail       # Issue 2383
 pseudo_kw_illegal_test/08: Fail # Issue 356

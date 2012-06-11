@@ -27,6 +27,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
   CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
       "Cannot declare a non-factory named constructor of another class."),
+  CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(

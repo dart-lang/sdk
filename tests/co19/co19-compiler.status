@@ -4,6 +4,7 @@
 
 [ $compiler == dartc ]
 
+Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Please triage this failure.
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Please triage this failure.
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Please triage this failure.
@@ -58,7 +59,6 @@ Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Please triage this f
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Please triage this failure.
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Please triage this failure.
 Language/12_Libraries_and_Scripts/2_Imports_A07_t09: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail # Please triage this failure.
 Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Please triage this failure.
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Please triage this failure.
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Please triage this failure.
