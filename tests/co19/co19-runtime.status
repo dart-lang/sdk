@@ -322,12 +322,8 @@ Language/11_Statements/08_Switch_A06_t04: Fail
 Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail
 Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail
-LibTest/core/Future/chain_A01_t07: Fail
-LibTest/core/Future/chain_A03_t01: Fail
 LibTest/core/Future/handleException_A01_t07: Fail
 LibTest/core/Future/then_A01_t05: Fail
-LibTest/core/Future/transform_A01_t06: Fail
-LibTest/core/Future/transform_A03_t01: Fail
 LibTest/core/Futures/wait_A01_t02: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash

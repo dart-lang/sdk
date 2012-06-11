@@ -13,9 +13,6 @@ Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
 Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
 
-LibTest/core/Future/chain_A01_t07: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Future/transform_A01_t06: Fail # TODO(ahe): Please triage this failure.
-
 
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
@@ -75,8 +72,6 @@ LibTest/core/Futures/wait_A01_t02: Fail # Runtime error: 1
 Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Runtime error: Expect.equals(expected: <1.2>, actual: <1.1>) fails.
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Runtime error: Expect.fail('Method noSuchMethod() was not properly executed!')
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail # Runtime error: Expect.fail('NoSuchMethodException expected.')
-LibTest/core/Future/chain_A03_t01: Fail # Runtime error: Expect.fail('exception handler should not be called')
-LibTest/core/Future/transform_A03_t01: Fail # Runtime error: Expect.fail('exception handler should not be called')
 Language/10_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
 Language/09_Generics/09_Generics_A04_t04: Fail # Runtime error: Expect.isFalse(true, 'Using malformed type in a type test expression should result in a run-time error!') fails.
 LibTest/core/Expect/throws_A01_t03: Fail # Runtime error: Expect.isTrue(false) fails.
