@@ -21121,10 +21121,10 @@ class _Elements {
     return _e;
   }
 
-  factory CanvasElement([int height, int width]) {
+  factory CanvasElement([int width, int height]) {
     CanvasElement _e = _document.$dom_createElement("canvas");
-    if (height != null) _e.height = height;
     if (width != null) _e.width = width;
+    if (height != null) _e.height = height;
     return _e;
   }
 
@@ -21203,11 +21203,11 @@ class _Elements {
     return _e;
   }
 
-  factory ImageElement([String src, int height, int width]) {
+  factory ImageElement([String src, int width, int height]) {
     ImageElement _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
-    if (height != null) _e.height = height;
     if (width != null) _e.width = width;
+    if (height != null) _e.height = height;
     return _e;
   }
 
@@ -24831,7 +24831,7 @@ interface CSSValueList extends CSSValue {
 /// @domName HTMLCanvasElement
 interface CanvasElement extends Element default _Elements {
 
-  CanvasElement([int height, int width]);
+  CanvasElement([int width, int height]);
 
   /** @domName HTMLCanvasElement.height */
   int height;
@@ -28891,7 +28891,7 @@ interface ImageData {
 /// @domName HTMLImageElement
 interface ImageElement extends Element default _Elements {
 
-  ImageElement([String src, int height, int width]);
+  ImageElement([String src, int width, int height]);
 
   /** @domName HTMLImageElement.align */
   String align;
