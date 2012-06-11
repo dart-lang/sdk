@@ -15,7 +15,7 @@ void sendData(List<int> data, int port) {
 }
 
 class EarlyCloseTest {
-  EarlyCloseTest(Object this.data,
+  EarlyCloseTest(this.data,
                  String this.exception,
                  [bool this.expectRequest = false]);
 
@@ -32,7 +32,7 @@ class EarlyCloseTest {
           calledOnRequest = true;
         };
     ReceivePort port = new ReceivePort();
-    server.onError = (Exception error) {
+    server.onError = (error) {
       Expect.isFalse(calledOnError);
       Expect.equals(exception, error.message);
       Expect.equals(expectRequest, calledOnRequest);
@@ -50,7 +50,7 @@ class EarlyCloseTest {
     return c.future;
   }
 
-  final Object data;
+  final data;
   final String exception;
   final bool expectRequest;
 }

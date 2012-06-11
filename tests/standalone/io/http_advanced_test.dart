@@ -92,35 +92,11 @@ class TestServerStatus {
 
 
 class TestServer extends Isolate {
-  // Echo the request content back to the response.
-  void _echoHandler(HttpRequest request, HttpResponse response) {
-    Expect.equals("POST", request.method);
-    response.contentLength = request.contentLength;
-    request.inputStream.pipe(response.outputStream);
-  }
-
-  // Echo the request content back to the response.
-  void _zeroToTenHandler(HttpRequest request, HttpResponse response) {
-    Expect.equals("GET", request.method);
-    request.inputStream.onData = () {};
-    request.inputStream.onClosed = () {
-      response.outputStream.writeString("01234567890");
-      response.outputStream.close();
-    };
-  }
-
   // Return a 404.
   void _notFoundHandler(HttpRequest request, HttpResponse response) {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.outputStream.writeString("Page not found");
-    response.outputStream.close();
-  }
-
-  // Return a 301 with a custom reason phrase.
-  void _reasonForMovingHandler(HttpRequest request, HttpResponse response) {
-    response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-    response.reasonPhrase = "Don't come looking here any more";
     response.outputStream.close();
   }
 
@@ -178,8 +154,7 @@ class TestServer extends Isolate {
     Expect.equals(0, request.cookies.length);
 
     Cookie cookie1 = new Cookie("name1", "value1");
-    TimeZone utc = new TimeZone.utc();
-    Date date = new Date.withTimeZone(2014, Date.JAN, 5, 23, 59, 59, 0, utc);
+    Date date = new Date(2014, Date.JAN, 5, 23, 59, 59, 0, isUtc: true);
     cookie1.expires = date;
     cookie1.domain = "www.example.com";
     cookie1.httpOnly = true;
@@ -201,17 +176,6 @@ class TestServer extends Isolate {
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
-    _requestHandlers["/echo"] = (HttpRequest request, HttpResponse response) {
-      _echoHandler(request, response);
-    };
-    _requestHandlers["/0123456789"] =
-        (HttpRequest request, HttpResponse response) {
-          _zeroToTenHandler(request, response);
-        };
-    _requestHandlers["/reasonformoving"] =
-        (HttpRequest request, HttpResponse response) {
-          _reasonForMovingHandler(request, response);
-        };
     _requestHandlers["/host"] =
         (HttpRequest request, HttpResponse response) {
           _hostHandler(request, response);
@@ -276,232 +240,6 @@ class TestServer extends Isolate {
   Map _requestHandlers;
   bool _chunkedEncoding = false;
 }
-
-
-void testStartStop() {
-  TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler((int port) {
-    testServerMain.shutdown();
-  });
-  testServerMain.start();
-}
-
-
-void testGET() {
-  TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler((int port) {
-    HttpClient httpClient = new HttpClient();
-    HttpClientConnection conn =
-        httpClient.get("127.0.0.1", port, "/0123456789");
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
-      StringInputStream stream = new StringInputStream(response.inputStream);
-      StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () {
-        Expect.equals("01234567890", body.toString());
-        httpClient.shutdown();
-        testServerMain.shutdown();
-      };
-    };
-  });
-  testServerMain.start();
-}
-
-
-void testPOST(bool chunkedEncoding) {
-  String data = "ABCDEFGHIJKLMONPQRSTUVWXYZ";
-  final int kMessageCount = 10;
-
-  TestServerMain testServerMain = new TestServerMain();
-
-  void runTest(int port) {
-    int count = 0;
-    HttpClient httpClient = new HttpClient();
-    void sendRequest() {
-      HttpClientConnection conn =
-          httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
-        if (chunkedEncoding) {
-          request.outputStream.writeString(data.substring(0, 10));
-          request.outputStream.writeString(data.substring(10, data.length));
-        } else {
-          request.contentLength = data.length;
-          request.outputStream.write(data.charCodes());
-        }
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        StringInputStream stream = new StringInputStream(response.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          Expect.equals(data, body.toString());
-          count++;
-          if (count < kMessageCount) {
-            sendRequest();
-          } else {
-            httpClient.shutdown();
-            testServerMain.shutdown();
-          }
-        };
-      };
-    }
-
-    sendRequest();
-  }
-
-  testServerMain.setServerStartedHandler(runTest);
-  if (chunkedEncoding) {
-    testServerMain.chunkedEncoding();
-  }
-  testServerMain.start();
-}
-
-
-void testReadInto(bool chunkedEncoding) {
-  String data = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  final int kMessageCount = 10;
-
-  TestServerMain testServerMain = new TestServerMain();
-
-  void runTest(int port) {
-    int count = 0;
-    HttpClient httpClient = new HttpClient();
-    void sendRequest() {
-      HttpClientConnection conn =
-          httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
-        if (chunkedEncoding) {
-          request.outputStream.writeString(data.substring(0, 10));
-          request.outputStream.writeString(data.substring(10, data.length));
-        } else {
-          request.contentLength = data.length;
-          request.outputStream.write(data.charCodes());
-        }
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        InputStream stream = response.inputStream;
-        List<int> body = new List<int>();
-        stream.onData = () {
-          List tmp = new List(3);
-          int bytes = stream.readInto(tmp);
-          body.addAll(tmp.getRange(0, bytes));
-        };
-        stream.onClosed = () {
-          Expect.equals(data, new String.fromCharCodes(body));
-          count++;
-          if (count < kMessageCount) {
-            sendRequest();
-          } else {
-            httpClient.shutdown();
-            testServerMain.shutdown();
-          }
-        };
-      };
-    }
-
-    sendRequest();
-  }
-
-  testServerMain.setServerStartedHandler(runTest);
-  if (chunkedEncoding) {
-    testServerMain.chunkedEncoding();
-  }
-  testServerMain.start();
-}
-
-
-void testReadShort(bool chunkedEncoding) {
-  String data = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  final int kMessageCount = 10;
-
-  TestServerMain testServerMain = new TestServerMain();
-
-  void runTest(int port) {
-    int count = 0;
-    HttpClient httpClient = new HttpClient();
-    void sendRequest() {
-      HttpClientConnection conn =
-          httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
-        if (chunkedEncoding) {
-          request.outputStream.writeString(data.substring(0, 10));
-          request.outputStream.writeString(data.substring(10, data.length));
-        } else {
-          request.contentLength = data.length;
-          request.outputStream.write(data.charCodes());
-        }
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        InputStream stream = response.inputStream;
-        List<int> body = new List<int>();
-        stream.onData = () {
-          List tmp = stream.read(2);
-          body.addAll(tmp);
-        };
-        stream.onClosed = () {
-          Expect.equals(data, new String.fromCharCodes(body));
-          count++;
-          if (count < kMessageCount) {
-            sendRequest();
-          } else {
-            httpClient.shutdown();
-            testServerMain.shutdown();
-          }
-        };
-      };
-    }
-
-    sendRequest();
-  }
-
-  testServerMain.setServerStartedHandler(runTest);
-  if (chunkedEncoding) {
-    testServerMain.chunkedEncoding();
-  }
-  testServerMain.start();
-}
-
-
-void test404() {
-  TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler((int port) {
-    HttpClient httpClient = new HttpClient();
-    HttpClientConnection conn =
-        httpClient.get("127.0.0.1", port, "/thisisnotfound");
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
-      httpClient.shutdown();
-      testServerMain.shutdown();
-    };
-  });
-  testServerMain.start();
-}
-
-
-void testReasonPhrase() {
-  TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler((int port) {
-    HttpClient httpClient = new HttpClient();
-    HttpClientConnection conn =
-        httpClient.get("127.0.0.1", port, "/reasonformoving");
-    conn.followRedirects = false;
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
-      Expect.equals("Don't come looking here any more", response.reasonPhrase);
-      httpClient.shutdown();
-      testServerMain.shutdown();
-    };
-  });
-  testServerMain.start();
-}
-
 
 void testHost() {
   TestServerMain testServerMain = new TestServerMain();
@@ -633,9 +371,7 @@ void testCookies() {
       response.cookies.forEach((cookie) {
         if (cookie.name == "name1") {
           Expect.equals("value1", cookie.value);
-          TimeZone utc = new TimeZone.utc();
-          Date date =
-              new Date.withTimeZone(2014, Date.JAN, 5, 23, 59, 59, 0, utc);
+          Date date = new Date(2014, Date.JAN, 5, 23, 59, 59, 0, isUtc: true);
           Expect.equals(date, cookie.expires);
           Expect.equals("www.example.com", cookie.domain);
           Expect.isTrue(cookie.httpOnly);
@@ -655,7 +391,7 @@ void testCookies() {
         request.cookies.add(response.cookies[1]);
         request.outputStream.close();
       };
-      conn2.onResponse = (HttpClientRequest request) {
+      conn2.onResponse = (HttpClientResponse ignored) {
         httpClient.shutdown();
         testServerMain.shutdown();
       };
@@ -665,16 +401,6 @@ void testCookies() {
 }
 
 void main() {
-  testStartStop();
-  testGET();
-  testPOST(true);
-  testPOST(false);
-  testReadInto(true);
-  testReadInto(false);
-  testReadShort(true);
-  testReadShort(false);
-  test404();
-  testReasonPhrase();
   testHost();
   testExpires();
   testContentType();
