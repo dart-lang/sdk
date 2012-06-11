@@ -177,7 +177,25 @@ public class Types {
   }
 
   private boolean isSubtypeOfTypeVariable(Type t, TypeVariable sv) {
-    return sv.equals(t);
+    // May be same type variable.
+    if (sv.equals(t)) {
+      return true;
+    }
+    // May be "T extends S".
+    if (t.getKind() == TypeKind.VARIABLE) {
+      TypeVariable tv = (TypeVariable) t;
+      Type tBound = tv.getTypeVariableElement().getBound();
+      if (tBound != null && tBound.getKind() == TypeKind.VARIABLE) {
+        // Prevent cycle.
+        if (tBound.equals(t)) {
+          return false;
+        }
+        // Check bound.
+        return isSubtype(tBound, sv);
+      }
+    }
+    // no
+    return false;
   }
 
   private boolean isSubtypeOfInterface(Type t, InterfaceType s) {

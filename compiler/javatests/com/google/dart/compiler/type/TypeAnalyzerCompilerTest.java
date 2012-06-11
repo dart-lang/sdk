@@ -2202,6 +2202,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
   }
   
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3344
+   */
+  public void test_typeVariableExtendsTypeVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T, U extends T> {",
+        "  f1(U u) {",
+        "    T t = u;",
+        "  }",
+        "  f2(T t) {",
+        "    U u = t;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }
