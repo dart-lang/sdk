@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
@@ -17,6 +14,7 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -35,6 +33,9 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.FunctionAliasType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.util.LinkedList;
@@ -811,7 +812,13 @@ public class ResolverCompilerTest extends CompilerTestCase {
       }
       {
         DartFieldDefinition fieldDef = (DartFieldDefinition) classA.getMembers().get(1);
-        assertDeclarationNameElement(fieldDef.getFields().get(0), "a2");
+        // since this is a getter, its actually a method element different from the original.
+        DartField f = fieldDef.getFields().get(0);
+        assertNotNull(f);
+        Element e = f.getElement();
+        assertNotNull(e);
+        assertTrue(f.getName().getName().equals("a2"));
+        assertTrue(e.getName().equals("a2"));
       }
       {
         DartMethodDefinition constructor = (DartMethodDefinition) classA.getMembers().get(2);
