@@ -39,6 +39,14 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     assertEquals(classBar, classFoo.getSupertype().getElement());
   }
 
+  public void test_operator_indexAssign() {
+    Map<String, ClassNodeElement> source = loadSource(
+        "class A {",
+        "int operator []=(int index, var value) {}",
+        "}");
+    analyzeClasses(source, TypeErrorCode.OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE);
+  }
+
   public void testArrayLiteral() {
     analyze("['x'];");
     analyze("<String>['x'];");

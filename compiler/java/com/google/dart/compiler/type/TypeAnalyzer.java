@@ -1615,6 +1615,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
         }
       }
+      // operator "[]=" should return void
+      if (modifiers.isOperator() && methodElement.getName().equals("[]=")
+          && returnTypeNode != null) {
+        Type returnType = node.getElement().getFunctionType().getReturnType();
+        if (TypeKind.of(returnType) != TypeKind.VOID) {
+          typeError(returnTypeNode, TypeErrorCode.OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE);
+        }
+      }
       // done
       return typeAsVoid(node);
     }

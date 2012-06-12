@@ -52,6 +52,7 @@ public enum TypeErrorCode implements ErrorCode {
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
   OPERATOR_EQUALS_BOOL_RETURN_TYPE("operator 'equals' should return bool type"),
+  OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE("operator '[]=' must have a return type of 'void'"),
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
