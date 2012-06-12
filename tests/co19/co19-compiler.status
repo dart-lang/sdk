@@ -5,7 +5,6 @@
 [ $compiler == dartc ]
 
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
-Language/03_Overview/1_Scoping_A02_t26: Fail # co19 issue 133
 Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474
@@ -125,6 +124,11 @@ Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # Issue 2437
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # co19 issue 140
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # co19 issue 140
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # co19 issue 140
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
+Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # Issue 3282
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
@@ -158,7 +162,6 @@ Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Issue 3530
 Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Issue 3530
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
-Language/12_Libraries_and_Scripts/2_Imports_A07_t09: Fail # Issue 3531
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
 Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Issue 3532
@@ -171,8 +174,7 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Issue 3534
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
 Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
-Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail # Issue 2387
-Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t05: Fail # Issue 2387
+
 
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269
 LibTest/core/FallThroughError/toString_A01_t01: Fail # Issue 1269

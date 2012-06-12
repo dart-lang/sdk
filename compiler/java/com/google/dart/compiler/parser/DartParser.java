@@ -130,12 +130,12 @@ public class DartParser extends CompletionHooksParserBase {
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
+  private static final String AS_KEYWORD = "as";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
-  private static final String EXTENDS_KEYWORD = "extends";
-  private static final String FACTORY_KEYWORD = "factory"; // TODO(zundel): remove
+  private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
   private static final String IMPLEMENTS_KEYWORD = "implements";
   private static final String INTERFACE_KEYWORD = "interface";
@@ -150,24 +150,53 @@ public class DartParser extends CompletionHooksParserBase {
 
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
+    AS_KEYWORD,
     ASSERT_KEYWORD,
-    CALL_KEYWORD,
     DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
-    EXTENDS_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
     IMPLEMENTS_KEYWORD,
     INTERFACE_KEYWORD,
     NEGATE_KEYWORD,
-    NATIVE_KEYWORD,
     OPERATOR_KEYWORD,
-    PREFIX_KEYWORD,
     SETTER_KEYWORD,
     STATIC_KEYWORD,
     TYPEDEF_KEYWORD
   };
   public static final Set<String> PSEUDO_KEYWORDS_SET = ImmutableSet.copyOf(PSEUDO_KEYWORDS);
+  
+  public static final String[] RESERVED_WORDS = {
+      "break",
+      "case",
+      "catch",
+      "class",
+      "const",
+      "continue",
+      "default",
+      "do",
+      "else",
+      "extends",
+      "false",
+      "final",
+      "finally",
+      "for",
+      "if",
+      "in",
+      "is",
+      "new",
+      "null",
+      "return",
+      "super",
+      "switch",
+      "this",
+      "throw",
+      "true",
+      "try",
+      "var",
+      "void",
+      "while"};
+  public static final Set<String> RESERVED_WORDS_SET = ImmutableSet.copyOf(RESERVED_WORDS);
 
   public DartParser(Source source,
                     String sourceCode,
@@ -554,8 +583,8 @@ public class DartParser extends CompletionHooksParserBase {
     // Try to parse bound.
     DartTypeNode bound = null;
     if (peek(0) != Token.EOS && peek(0) != Token.COMMA && peek(0) != Token.GT) {
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
-        // OK, this is EXTENDS_KEYWORD, parse type.
+      if (optional(Token.EXTENDS)) {
+        // OK, this is EXTENDS, parse type.
         bound = parseTypeAnnotation();
       } else if (looksLikeTopLevelKeyword()) {
         return done(new DartTypeParameter(name, bound));
@@ -645,11 +674,11 @@ public class DartParser extends CompletionHooksParserBase {
     DartTypeNode superType = null;
     List<DartTypeNode> interfaces = null;
     if (isParsingInterface) {
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
+      if (optional(Token.EXTENDS)) {
         interfaces = parseTypeAnnotationList();
       }
     } else {
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
+      if (optional(Token.EXTENDS)) {
         superType = parseTypeAnnotation();
       }
       if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
@@ -792,6 +821,7 @@ public class DartParser extends CompletionHooksParserBase {
             nestingLevel -= 2;
             break;
           case COMMA:
+          case EXTENDS:
           case IDENTIFIER:
             break;
           default:

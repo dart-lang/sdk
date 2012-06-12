@@ -335,6 +335,13 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 7));
   }
 
+  public void test_useExtendsInTypedef() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef ParameterizedFun1<T, U extends bool, V>(T t, U u);",
+        ""));
+  }
+  
   public void test_abstractTopLevel_class() {
     parseExpectErrors(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -792,7 +799,6 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class abstract {}",
             "class assert {}",
-            "class call {}",
             "class Dynamic {}",
             "class equals {}",
             "class factory {}",
@@ -805,20 +811,19 @@ public class NegativeParserTest extends CompilerTestCase {
             "class static {}",
             "class typedef {}",
             ""),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 7, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 7, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 4),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 7, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 7, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 7, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 7, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 7, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 7, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 7, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 7, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 7, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 7, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 15, 7, 7));
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 7, 8),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 7, 6),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 7),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 7, 6),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 7, 7),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 7, 3),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 7, 10),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 7, 9),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 7, 6),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 7, 8),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 7, 3),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 7, 6),
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 7, 7));
   }
 
   /**
@@ -835,7 +840,6 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "interface abstract {}",
             "interface assert {}",
-            "interface call {}",
             "interface Dynamic {}",
             "interface equals {}",
             "interface factory {}",
@@ -850,18 +854,17 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 11, 8),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 11, 4),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 11, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 11, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 11, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 15, 11, 7));
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 11, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 11, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 11, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 11, 7));
   }
 
   /**
@@ -878,7 +881,6 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class C01<abstract> {}",
             "class C02<assert> {}",
-            "class C03<call> {}",
             "class C04<Dynamic> {}",
             "class C05<equals> {}",
             "class C06<factory> {}",
@@ -893,18 +895,17 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 2, 11, 8),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 3, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 4),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 5, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 6, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 7, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 8, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 9, 11, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 10, 11, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 11, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 12, 11, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 13, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 14, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 15, 11, 7));
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 5, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 6, 11, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 7, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 8, 11, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 9, 11, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 10, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 11, 11, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 12, 11, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 13, 11, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 14, 11, 7));
   }
 
   /**
@@ -921,7 +922,6 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "typedef abstract();",
             "typedef assert();",
-            "typedef call();",
             "typedef Dynamic();",
             "typedef equals();",
             "typedef factory();",
@@ -936,18 +936,17 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 2, 9, 8),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 3, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 4),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 5, 9, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 6, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 7, 9, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 9, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 9, 9, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 10, 9, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 11, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 12, 9, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 9, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 14, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 15, 9, 7));
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 5, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 6, 9, 7),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 7, 9, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 9, 10),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 9, 9, 9),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 10, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 11, 9, 8),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 12, 9, 3),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 9, 6),
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 14, 9, 7));
   }
 
   public void test_qualifiedType_inForIn() {

@@ -620,6 +620,15 @@ public class DartCompiler {
           continue;
         }
 
+        // Validate import prefixes.
+        for (LibraryNode importNode : lib.getImportPaths()) {
+          String prefix = importNode.getPrefix();
+          if (DartParser.PSEUDO_KEYWORDS_SET.contains(prefix)) {
+            context.onError(new DartCompilationError(importNode.getSourceInfo(),
+                ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, prefix));
+          }
+        }
+
         // check that each imported library has a library directive
         for (LibraryUnit importedLib : lib.getImports()) {
 

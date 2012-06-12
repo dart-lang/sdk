@@ -13,6 +13,7 @@ import com.google.dart.compiler.SubSystem;
 public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
+  BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Build-in identifier '%s' cannot be used as a import prefix"),
   BUILT_IN_IDENTIFIER_AS_TYPE("Build-in identifier '%s' cannot be used as a type annotation"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
