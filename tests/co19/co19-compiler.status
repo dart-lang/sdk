@@ -4,73 +4,9 @@
 
 [ $compiler == dartc ]
 
-Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t04: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables_A01_t01: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables_A01_t05: Fail # Please triage this failure.
-Language/07_Classes/7_Static_Variables_A02_t01: Fail # Please triage this failure.
-Language/08_Interfaces/Interfaces_A01_t01: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A03_t01: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A05_t01: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A06_t01: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A10_t01: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A14_t01: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A15_t49: Fail # Please triage this failure.
-Language/10_Expressions/01_Constants_A18_t02: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t01: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Please triage this failure.
-Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Please triage this failure.
-Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Please triage this failure.
-Language/10_Expressions/16_Assignment_A05_t02: Fail # Please triage this failure.
-Language/10_Expressions/16_Assignment_A05_t04: Fail # Please triage this failure.
-Language/10_Expressions/16_Assignment_A05_t05: Fail # Please triage this failure.
-Language/10_Expressions/16_Assignment_A08_t04: Fail # Please triage this failure.
-Language/10_Expressions/20_Equality_A02_t02: Fail # Please triage this failure.
-Language/10_Expressions/20_Equality_A02_t03: Fail # Please triage this failure.
-Language/10_Expressions/20_Equality_A03_t01: Fail # Please triage this failure.
-Language/10_Expressions/20_Equality_A03_t02: Fail # Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # Please triage this failure.
-Language/10_Expressions/29_Type_Test_A04_t01: Fail # Please triage this failure.
-Language/11_Statements/05_For_A01_t11: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A01_t01: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A01_t19: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A05_t01: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A05_t02: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A06_t01: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A06_t02: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A06_t03: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A06_t04: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A08_t01: Fail # Please triage this failure.
-Language/11_Statements/08_Switch_A09_t01: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t06: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A07_t09: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Please triage this failure.
-Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Please triage this failure.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Please triage this failure.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Please triage this failure.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Please triage this failure.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Please triage this failure.
-Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail # Please triage this failure.
-Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t05: Fail # Please triage this failure.
-
-
-Language/03_Overview/1_Scoping_A02_t26: Fail # co19 issue 133
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
+Language/03_Overview/1_Scoping_A02_t26: Fail # co19 issue 133
+Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
@@ -98,6 +34,7 @@ Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Issue 3323
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t02: Fail # Issue 2474
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail  # Issue 2478
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t01: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail # Issue 2477
@@ -105,18 +42,33 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail # Issue
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Issue 3476
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Issue 3476
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Issue 3476
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t04: Fail # Issue 3476
+Language/07_Classes/7_Static_Variables_A01_t01: Fail # Issue 3323
+Language/07_Classes/7_Static_Variables_A01_t05: Fail # Issue 3323
+Language/07_Classes/7_Static_Variables_A02_t01: Fail # Issue 3323
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail # Issue 976
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail # co19 issue 132
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # Issue 2479
+Language/08_Interfaces/Interfaces_A01_t01: Fail # Issue 3522
 Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
+Language/10_Expressions/01_Constants_A03_t01: Fail # Issue 1483
+Language/10_Expressions/01_Constants_A05_t01: Fail # Issue 3323
+Language/10_Expressions/01_Constants_A06_t01: Fail # Issue 3323
+Language/10_Expressions/01_Constants_A10_t01: Fail # Issue 3521
+Language/10_Expressions/01_Constants_A14_t01: Fail # Issue 3519
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 134
+Language/10_Expressions/01_Constants_A15_t49: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
+Language/10_Expressions/01_Constants_A18_t02: Fail # Issue 3323
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # Issue 2376
 Language/10_Expressions/05_Strings_A01_t06: Fail # Issue 2377
 Language/10_Expressions/05_Strings_A01_t07: Fail # Issue 2377
@@ -130,16 +82,36 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Issue 3523
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t01: Fail # Issue 3523
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail # Issue 3523
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
+Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Issue 3524
+Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Issue 3524
+Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
+Language/10_Expressions/16_Assignment_A05_t04: Fail # Issue 3524
+Language/10_Expressions/16_Assignment_A05_t05: Fail # Issue 3525
+Language/10_Expressions/16_Assignment_A08_t04: Fail # Issue 3524
 Language/10_Expressions/17_Conditional_A01_t01: Fail # Issue 2371
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # Issue 1489
 Language/10_Expressions/20_Equality_A01_t01: Fail # Issue 1489
+Language/10_Expressions/20_Equality_A02_t02: Fail # co19 issue 136
+Language/10_Expressions/20_Equality_A02_t03: Fail # co19 issue 136
+Language/10_Expressions/20_Equality_A03_t01: Fail # co19 issue 136
+Language/10_Expressions/20_Equality_A03_t02: Fail # co19 issue 136
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # Issue 1489
 Language/10_Expressions/22_Shift_A01_t01: Fail # Issue 1489
 Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # Issue 2437
 Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # Issue 2437
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # Issue 2437
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # Issue 2437
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # Issue 3526
 Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # Issue 2437
 Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # Issue 2437
 Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # Issue 2437
@@ -154,8 +126,20 @@ Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
+Language/10_Expressions/29_Type_Test_A04_t01: Fail # Issue 3282
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
+Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
+Language/11_Statements/08_Switch_A01_t01: Fail # Issue 2441
+Language/11_Statements/08_Switch_A01_t19: Fail # Issue 3527
+Language/11_Statements/08_Switch_A05_t01: Fail # Issue 3528
+Language/11_Statements/08_Switch_A05_t02: Fail # Issue 3528
+Language/11_Statements/08_Switch_A06_t01: Fail # Issue 3528
+Language/11_Statements/08_Switch_A06_t02: Fail # Issue 3528
+Language/11_Statements/08_Switch_A06_t03: Fail # Issue 3528
+Language/11_Statements/08_Switch_A06_t04: Fail # Issue 3528
+Language/11_Statements/08_Switch_A08_t01: Fail # Issue 3529
+Language/11_Statements/08_Switch_A09_t01: Fail # Issue 3529
 Language/11_Statements/11_Labels_A01_t01: Fail # Issue 2440
 Language/11_Statements/11_Labels_A03_t05: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t07: Fail # Issue 2441
@@ -169,12 +153,26 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue
 Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
+Language/12_Libraries_and_Scripts/2_Imports_A02_t06: Fail # Issue 3530
+Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Issue 3530
+Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Issue 3530
+Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
+Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
+Language/12_Libraries_and_Scripts/2_Imports_A07_t09: Fail # Issue 3531
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
+Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Issue 3532
+Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Issue 3534
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Issue 3534
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Issue 3534
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Issue 3534
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
 Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail # Issue 2387
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t05: Fail # Issue 2387
 
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269
 LibTest/core/FallThroughError/toString_A01_t01: Fail # Issue 1269
