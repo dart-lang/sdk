@@ -118,7 +118,7 @@ class _IsAnything extends BaseMatcher {
  */
 class isInstanceOf<T> extends BaseMatcher {
   final String _name;
-  const isInstanceOf([this._name = 'specified type']);
+  const isInstanceOf([name = 'specified type']) : this._name = name;
   bool matches(obj) => obj is T;
   // The description here is lame :-(
   Description describe(Description description) =>
@@ -158,7 +158,7 @@ final Matcher returnsNormally = const _ReturnsNormally();
 class _Throws extends BaseMatcher {
   final Matcher _matcher;
 
-  const _Throws([Matcher this._matcher = null]);
+  const _Throws([Matcher matcher = null]) : this._matcher = matcher;
 
   bool matches(item) {
     try {
@@ -255,7 +255,7 @@ Matcher hasLength(matcher) =>
 
 class _HasLength extends BaseMatcher {
   final Matcher _matcher;
-  const _HasLength([Matcher this._matcher = null]);
+  const _HasLength([Matcher matcher = null]) : this._matcher = matcher;
 
   bool matches(item) {
     return _matcher.matches(item.length);
@@ -325,7 +325,7 @@ class _DeepMatcher extends BaseMatcher {
   final int _limit;
   var count;
 
-  _DeepMatcher(this._expected, [this._limit = 1000]);
+  _DeepMatcher(this._expected, [limit = 1000]) : this._limit = limit;
 
   String _recursiveMatch(expected, actual, String location) {
     String reason = null;

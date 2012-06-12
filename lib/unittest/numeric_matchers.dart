@@ -95,7 +95,8 @@ class _OrderingComparison extends BaseMatcher {
     this._lessThanValue,
     this._greaterThanValue,
     this._comparisonDescription,
-    [this._valueInDescription = true]);
+    [valueInDescription = true]) : 
+      this._valueInDescription = valueInDescription;
 
   bool matches(item) {
     if (item == _value) {
