@@ -731,6 +731,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   }
 
   void closeSync() {
+    _checkNotClosed();
     var id = _FileUtils.close(_id);
     if (id == -1) {
       throw new FileIOException("Cannot close file '$_name'");
