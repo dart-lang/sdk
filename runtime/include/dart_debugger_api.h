@@ -48,7 +48,7 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
 
 
 /**
- * DEPRECATED -- use Gart_GetLibraryIds instead.
+ * DEPRECATED -- use Dart_GetLibraryIds instead.
  *
  * Returns a list of urls (strings) of all the libraries loaded in the
  * current isolate.

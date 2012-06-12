@@ -60,6 +60,10 @@ const char* CanonicalFunction(const char* func) {
 
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
+//
+// TODO(turnidge): Make this function return an error handle directly
+// rather than returning an error string.  The current behavior can
+// cause compilation errors to appear to be api errors.
 const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
   bool success = true;
   if (!ClassFinalizer::AllClassesFinalized()) {
@@ -263,6 +267,26 @@ DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
 }
 
 
+DART_EXPORT bool Dart_IsApiError(Dart_Handle object) {
+  return Api::ClassId(object) == kApiError;
+}
+
+
+DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
+  return Api::ClassId(object) == kUnhandledException;
+}
+
+
+DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
+  return Api::ClassId(object) == kLanguageError;
+}
+
+
+DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
+  return Api::ClassId(object) == kUnwindError;
+}
+
+
 DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -321,8 +345,8 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
 }
 
 
-// TODO(turnidge): This clones Api::NewError.  I need to use va_copy to
-// fix this but not sure if it available on all of our builds.
+// Deprecated.
+// TODO(turnidge): Remove all uses and delete.
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -340,6 +364,40 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
 
   const String& message = String::Handle(isolate, String::New(buffer));
   return Api::NewHandle(isolate, ApiError::New(message));
+}
+
+
+// TODO(turnidge): This clones Api::NewError.  I need to use va_copy to
+// fix this but not sure if it available on all of our builds.
+DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  const String& message = String::Handle(isolate, String::New(buffer));
+  return Api::NewHandle(isolate, ApiError::New(message));
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Instance& obj = Api::UnwrapInstanceHandle(isolate, exception);
+  if (obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  }
+  const Instance& stacktrace = Instance::Handle(isolate);
+  return Api::NewHandle(isolate, UnhandledException::New(obj, stacktrace));
 }
 
 
@@ -1112,10 +1170,32 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 }
 
 
+// --- Instances ----
+
+
+DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  return obj.IsInstance();
+}
+
+
+// TODO(turnidge): Technically, null has a class.  Should we allow it?
+DART_EXPORT Dart_Handle Dart_InstanceGetClass(Dart_Handle instance) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Instance& obj = Api::UnwrapInstanceHandle(isolate, instance);
+  if (obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, instance, Instance);
+  }
+  return Api::NewHandle(isolate, obj.clazz());
+}
+
+
 // --- Numbers ----
 
 
-// TODO(iposva): The argument should be an instance.
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
   return RawObject::IsNumberClassId(Api::ClassId(object));
 }
@@ -1677,6 +1757,10 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
+  if (obj.IsError()) {
+    // Pass through errors.
+    return list;
+  }
   if (obj.IsByteArray()) {
     GET_LIST_LENGTH(isolate, ByteArray, obj, len);
   }
@@ -1690,7 +1774,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
   if (instance.IsNull()) {
-    return Api::NewError("Object does not implement the List inteface");
+    return Api::NewError("Object does not implement the List interface");
   }
   String& name = String::Handle(isolate, String::New("length"));
   name = Field::GetterName(name);
@@ -2287,6 +2371,133 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 }
 
 
+// --- Classes and Interfaces ---
+
+
+DART_EXPORT bool Dart_IsClass(Dart_Handle handle) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
+  if (obj.IsClass()) {
+    Class& cls = Class::Handle(isolate);
+    cls ^= obj.raw();
+    return !cls.is_interface();
+  }
+  return false;
+}
+
+
+DART_EXPORT bool Dart_IsInterface(Dart_Handle handle) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
+  if (obj.IsClass()) {
+    Class& cls = Class::Handle(isolate);
+    cls ^= obj.raw();
+    return cls.is_interface();
+  }
+  return false;
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle(isolate);
+  cls ^= Api::UnwrapClassHandle(isolate, clazz).raw();
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+  return Api::NewHandle(isolate, cls.Name());
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle(isolate);
+  cls ^= Api::UnwrapClassHandle(isolate, clazz).raw();
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+  return Api::NewHandle(isolate, cls.library());
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle(isolate);
+  cls ^= Api::UnwrapClassHandle(isolate, clazz).raw();
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+
+  // Finalize all classes.
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::NewError(msg);
+  }
+
+  if (cls.HasFactoryClass() && cls.HasResolvedFactoryClass()) {
+    return Api::NewHandle(isolate, cls.FactoryClass());
+  }
+  return Api::Null(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
+                                                    intptr_t* count) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle(isolate);
+  cls ^= Api::UnwrapClassHandle(isolate, clazz).raw();
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+
+  const Array& interface_types = Array::Handle(isolate, cls.interfaces());
+  if (interface_types.IsNull()) {
+    *count = 0;
+  } else {
+    *count = interface_types.Length();
+  }
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
+                                                 intptr_t index) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle(isolate);
+  cls ^= Api::UnwrapClassHandle(isolate, clazz).raw();
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+
+  // Finalize all classes.
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::NewError(msg);
+  }
+
+  const Array& interface_types = Array::Handle(isolate, cls.interfaces());
+  if (index < 0 || index >= interface_types.Length()) {
+    return Api::NewError("%s: argument 'index' out of bounds.", CURRENT_FUNC);
+  }
+  Type& interface_type = Type::Handle(isolate);
+  interface_type ^= interface_types.At(index);
+  if (interface_type.HasResolvedTypeClass()) {
+    return Api::NewHandle(isolate, interface_type.type_class());
+  }
+  const String& type_name =
+      String::Handle(isolate, interface_type.TypeClassName());
+  return Api::NewError("%s: internal error: found unresolved type class '%s'.",
+                       CURRENT_FUNC, type_name.ToCString());
+}
+
+
 // --- Constructors, Methods, and Fields ---
 
 
@@ -2445,7 +2656,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
         return Api::NewHandle(isolate, arg.raw());
       } else {
         return Api::NewError(
-            "%s expects argument %d to be an instance of Object.",
+            "%s expects arguments[%d] to be an Instance handle.",
             CURRENT_FUNC, i);
       }
     }
@@ -2495,7 +2706,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
         return Api::NewHandle(isolate, arg.raw());
       } else {
         return Api::NewError(
-            "%s expects argument %d to be an instance of Object.",
+            "%s expects arguments[%d] to be an Instance handle.",
             CURRENT_FUNC, i);
       }
     }
@@ -3246,6 +3457,28 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
   const String& url = String::Handle(isolate, lib.url());
   ASSERT(!url.IsNull());
   return Api::NewHandle(isolate, url.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  ClassDictionaryIterator it(lib);
+  Class& cls = Class::Handle();
+  String& name = String::Handle();
+  while (it.HasNext()) {
+    cls = it.GetNextClass();
+    name = cls.Name();
+    names.Add(name);
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(names));
 }
 
 

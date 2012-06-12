@@ -17,7 +17,7 @@ namespace dart {
 // Only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
-TEST_CASE(ErrorHandles) {
+TEST_CASE(ErrorHandleBasics) {
   const char* kScriptChars =
       "void testMain() {\n"
       "  throw new Exception(\"bad news\");\n"
@@ -55,6 +55,59 @@ TEST_CASE(ErrorHandles) {
   EXPECT(Dart_IsError(Dart_ErrorGetStacktrace(instance)));
   EXPECT(Dart_IsError(Dart_ErrorGetStacktrace(error)));
   EXPECT_VALID(Dart_ErrorGetStacktrace(exception));
+}
+
+
+TEST_CASE(ErrorHandleTypes) {
+  Isolate* isolate = Isolate::Current();
+  const String& compile_message = String::Handle(String::New("CompileError"));
+  const String& fatal_message = String::Handle(String::New("FatalError"));
+
+  Dart_Handle not_error = Dart_NewString("NotError");
+  Dart_Handle api_error = Dart_NewApiError("Api%s", "Error");
+  Dart_Handle exception_error =
+      Dart_NewUnhandledExceptionError(Dart_NewString("ExceptionError"));
+  Dart_Handle compile_error =
+      Api::NewHandle(isolate, LanguageError::New(compile_message));
+  Dart_Handle fatal_error =
+      Api::NewHandle(isolate, UnwindError::New(fatal_message));
+
+  EXPECT(!Dart_IsError(not_error));
+  EXPECT(Dart_IsError(api_error));
+  EXPECT(Dart_IsError(exception_error));
+  EXPECT(Dart_IsError(compile_error));
+  EXPECT(Dart_IsError(fatal_error));
+
+  EXPECT(!Dart_IsApiError(not_error));
+  EXPECT(Dart_IsApiError(api_error));
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(!Dart_IsApiError(compile_error));
+  EXPECT(!Dart_IsApiError(fatal_error));
+
+  EXPECT(!Dart_IsUnhandledExceptionError(not_error));
+  EXPECT(!Dart_IsUnhandledExceptionError(api_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(!Dart_IsUnhandledExceptionError(compile_error));
+  EXPECT(!Dart_IsUnhandledExceptionError(fatal_error));
+
+  EXPECT(!Dart_IsCompilationError(not_error));
+  EXPECT(!Dart_IsCompilationError(api_error));
+  EXPECT(!Dart_IsCompilationError(exception_error));
+  EXPECT(Dart_IsCompilationError(compile_error));
+  EXPECT(!Dart_IsCompilationError(fatal_error));
+
+  EXPECT(!Dart_IsFatalError(not_error));
+  EXPECT(!Dart_IsFatalError(api_error));
+  EXPECT(!Dart_IsFatalError(exception_error));
+  EXPECT(!Dart_IsFatalError(compile_error));
+  EXPECT(Dart_IsFatalError(fatal_error));
+
+  EXPECT_STREQ("", Dart_GetError(not_error));
+  EXPECT_STREQ("ApiError", Dart_GetError(api_error));
+  EXPECT_SUBSTRING("Unhandled exception:\nExceptionError",
+                   Dart_GetError(exception_error));
+  EXPECT_STREQ("CompileError", Dart_GetError(compile_error));
+  EXPECT_STREQ("FatalError", Dart_GetError(fatal_error));
 }
 
 
@@ -182,6 +235,41 @@ TEST_CASE(ObjectEquals) {
 }
 
 #endif
+
+
+TEST_CASE(InstanceValues) {
+  EXPECT(Dart_IsInstance(Dart_NewString("test")));
+  EXPECT(Dart_IsInstance(Dart_True()));
+
+  // By convention, our Is*() functions exclude null.
+  EXPECT(!Dart_IsInstance(Dart_Null()));
+}
+
+
+TEST_CASE(InstanceGetClass) {
+  // Get the handle from a valid instance handle.
+  Dart_Handle instance = Dart_True();
+  Dart_Handle cls = Dart_InstanceGetClass(instance);
+  EXPECT_VALID(cls);
+  EXPECT(Dart_IsClass(cls));
+  Dart_Handle cls_name = Dart_ClassName(cls);
+  EXPECT_VALID(cls_name);
+  const char* cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
+  EXPECT_STREQ("Bool", cls_name_cstr);
+
+  // Errors propagate.
+  Dart_Handle error = Dart_NewApiError("MyError");
+  Dart_Handle error_cls = Dart_InstanceGetClass(error);
+  EXPECT_ERROR(error_cls, "MyError");
+
+  // Get the handle from a non-instance handle
+  ASSERT(Dart_IsClass(cls));
+  Dart_Handle cls_cls = Dart_InstanceGetClass(cls);
+  EXPECT_ERROR(cls_cls,
+               "Dart_InstanceGetClass expects argument 'instance' to be of "
+               "type Instance.");
+}
 
 
 TEST_CASE(BooleanValues) {
@@ -2181,6 +2269,159 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 
+TEST_CASE(ClassBasics) {
+  const char* kScriptChars =
+      "class MyClass {\n"
+      "}\n"
+      "class MyDefault {\n"
+      "}\n"
+      "interface MyInterface default MyDefault {\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("MyClass"));
+  Dart_Handle interface = Dart_GetClass(lib, Dart_NewString("MyInterface"));
+
+  // Test Dart_IsClass and Dart_IsInterface.
+  EXPECT(Dart_IsClass(cls));
+  EXPECT(!Dart_IsClass(interface));
+  EXPECT(!Dart_IsClass(Dart_True()));
+
+  EXPECT(!Dart_IsInterface(cls));
+  EXPECT(Dart_IsInterface(interface));
+  EXPECT(!Dart_IsInterface(Dart_True()));
+
+  EXPECT(!Dart_IsInterface(cls));
+  EXPECT(Dart_IsInterface(interface));
+  EXPECT(!Dart_IsInterface(Dart_True()));
+
+  // Test Dart_ClassName
+  Dart_Handle cls_name = Dart_ClassName(cls);
+  EXPECT_VALID(cls_name);
+  const char* cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
+  EXPECT_STREQ("MyClass", cls_name_cstr);
+
+  cls_name = Dart_ClassName(interface);
+  EXPECT_VALID(cls_name);
+  cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
+  EXPECT_STREQ("MyInterface", cls_name_cstr);
+
+  EXPECT_ERROR(Dart_ClassName(Dart_True()),
+               "Dart_ClassName expects argument 'clazz' to be of type Class.");
+  EXPECT_ERROR(Dart_ClassName(Dart_NewApiError("MyError")), "MyError");
+
+  // Test Dart_ClassGetLibrary
+  Dart_Handle cls_lib = Dart_ClassGetLibrary(cls);
+  Dart_Handle cls_lib_name = Dart_LibraryName(cls_lib);
+  EXPECT_VALID(cls_lib_name);
+  const char* cls_lib_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_lib_name, &cls_lib_name_cstr));
+  EXPECT_STREQ(TestCase::url(), cls_lib_name_cstr);
+
+  EXPECT_ERROR(
+      Dart_ClassGetLibrary(Dart_True()),
+      "Dart_ClassGetLibrary expects argument 'clazz' to be of type Class.");
+  EXPECT_ERROR(Dart_ClassGetLibrary(Dart_NewApiError("MyError")), "MyError");
+
+
+  Dart_Handle dflt = Dart_ClassGetDefault(interface);
+  EXPECT_VALID(dflt);
+  EXPECT(Dart_IsClass(dflt));
+  Dart_Handle dflt_name = Dart_ClassName(dflt);
+  EXPECT_VALID(dflt_name);
+  const char* dflt_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(dflt_name, &dflt_name_cstr));
+  EXPECT_STREQ("MyDefault", dflt_name_cstr);
+
+  EXPECT(Dart_IsNull(Dart_ClassGetDefault(cls)));
+  EXPECT_ERROR(
+      Dart_ClassGetDefault(Dart_True()),
+      "Dart_ClassGetDefault expects argument 'clazz' to be of type Class.");
+  EXPECT_ERROR(Dart_ClassGetDefault(Dart_NewApiError("MyError")), "MyError");
+}
+
+
+#define CHECK_INTERFACE(handle, name)                                   \
+  {                                                                     \
+    Dart_Handle tmp = (handle);                                         \
+    EXPECT_VALID(tmp);                                                  \
+    EXPECT(Dart_IsInterface(tmp));                                      \
+    Dart_Handle intf_name = Dart_ClassName(tmp);                        \
+    EXPECT_VALID(intf_name);                                            \
+    const char* intf_name_cstr = "";                                    \
+    EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));     \
+    EXPECT_STREQ((name), intf_name_cstr);                               \
+  }
+
+
+TEST_CASE(ClassGetInterfaces) {
+  const char* kScriptChars =
+      "class MyClass0 {\n"
+      "}\n"
+      "\n"
+      "class MyClass1 implements MyInterface1 {\n"
+      "}\n"
+      "\n"
+      "class MyClass2 implements MyInterface0, MyInterface1 {\n"
+      "}\n"
+      "\n"
+      "interface MyInterface0 {\n"
+      "}\n"
+      "\n"
+      "interface MyInterface1 extends MyInterface0 {\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle cls0 = Dart_GetClass(lib, Dart_NewString("MyClass0"));
+  Dart_Handle cls1 = Dart_GetClass(lib, Dart_NewString("MyClass1"));
+  Dart_Handle cls2 = Dart_GetClass(lib, Dart_NewString("MyClass2"));
+  Dart_Handle intf0 = Dart_GetClass(lib, Dart_NewString("MyInterface0"));
+  Dart_Handle intf1 = Dart_GetClass(lib, Dart_NewString("MyInterface1"));
+
+  intptr_t len = -1;
+  EXPECT_VALID(Dart_ClassGetInterfaceCount(cls0, &len));
+  EXPECT_EQ(0, len);
+
+  EXPECT_ERROR(Dart_ClassGetInterfaceAt(cls0, 0),
+               "Dart_ClassGetInterfaceAt: argument 'index' out of bounds");
+
+  len = -1;
+  EXPECT_VALID(Dart_ClassGetInterfaceCount(cls1, &len));
+  EXPECT_EQ(1, len);
+  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
+
+  EXPECT_ERROR(Dart_ClassGetInterfaceAt(cls1, -1),
+               "Dart_ClassGetInterfaceAt: argument 'index' out of bounds");
+  EXPECT_ERROR(Dart_ClassGetInterfaceAt(cls1, 1),
+               "Dart_ClassGetInterfaceAt: argument 'index' out of bounds");
+
+  len = -1;
+  EXPECT_VALID(Dart_ClassGetInterfaceCount(cls2, &len));
+  EXPECT_EQ(2, len);
+
+  // TODO(turnidge): The test relies on the ordering here.  Sort this.
+  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
+  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
+
+  len = -1;
+  EXPECT_VALID(Dart_ClassGetInterfaceCount(intf0, &len));
+  EXPECT_EQ(0, len);
+
+  len = -1;
+  EXPECT_VALID(Dart_ClassGetInterfaceCount(intf1, &len));
+  EXPECT_EQ(1, len);
+  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
+
+  // Error cases.
+  EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_True(), &len),
+               "Dart_ClassGetInterfaceCount expects argument 'clazz' to be of "
+               "type Class.");
+  EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_NewApiError("MyError"), &len),
+               "MyError");
+}
+
+
 static void TestFieldOk(Dart_Handle container,
                         Dart_Handle name,
                         bool final,
@@ -3355,7 +3596,7 @@ TEST_CASE(Invoke_FunnyArgs) {
   args[0] = lib;
   result = Dart_Invoke(lib, func_name, 1, args);
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_Invoke expects argument 0 to be an instance of Object.",
+  EXPECT_STREQ("Dart_Invoke expects arguments[0] to be an Instance handle.",
                Dart_GetError(result));
 
   // Pass an error handle as a parameter.  The error is propagated.
@@ -4041,6 +4282,42 @@ TEST_CASE(LibraryUrl) {
   const char* cstr = NULL;
   EXPECT_VALID(Dart_StringToCString(result, &cstr));
   EXPECT_STREQ("library1_url", cstr);
+}
+
+
+TEST_CASE(LibraryGetClassNames) {
+  const char* kLibraryChars =
+      "#library('library_name');\n"
+      "\n"
+      "class A {}\n"
+      "class B {}\n"
+      "class D {}\n"
+      "interface C {}\n"
+      "interface E {}\n"
+      "\n"
+      "_compare(String a, String b) => a.compareTo(b);\n"
+      "sort(list) => list.sort(_compare);\n";
+
+  Dart_Handle url = Dart_NewString("library_url");
+  Dart_Handle source = Dart_NewString(kLibraryChars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+
+  Dart_Handle list = Dart_LibraryGetClassNames(lib);
+  EXPECT_VALID(list);
+  EXPECT(Dart_IsList(list));
+
+  // Sort the list.
+  const int kNumArgs = 1;
+  Dart_Handle args[1];
+  args[0] = list;
+  EXPECT_VALID(Dart_Invoke(lib, Dart_NewString("sort"), kNumArgs, args));
+
+  Dart_Handle list_string = Dart_ToString(list);
+  EXPECT_VALID(list_string);
+  const char* list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
+  EXPECT_STREQ("[A, B, C, D, E]", list_cstr);
 }
 
 

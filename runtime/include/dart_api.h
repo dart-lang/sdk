@@ -72,17 +72,93 @@ typedef unsigned __int64 uint64_t;
  * indicate successful completion. Note that a valid handle may in
  * some cases refer to the null object.
  *
+ * --- Error handles ---
+ *
  * When a function encounters a problem that prevents it from
  * completing normally, it returns an error handle (See Dart_IsError).
  * An error handle has an associated error message that gives more
  * details about the problem (See Dart_GetError).
  *
- * When an unhandled exception occurs, it is returned as an error
- * handle that has additional information about the exception (See
- * Dart_ErrorHasException). This error handle retains information
- * about the exception and the stack trace (See
- * Dart_ErrorGetException, Dart_ErrorGetStacktrace,
- * Dart_RethrowException).
+ * There are four kinds of error handles that can be produced,
+ * depending on what goes wrong:
+ *
+ * - Api error handles are produced when an api function is misused.
+ *   This happens when a Dart embedding api function is called with
+ *   invalid arguments or in an invalid context.
+ *
+ * - Unhandled exception error handles are produced when, during the
+ *   execution of Dart code, an exception is thrown but not caught.
+ *   Prototypically this would occur during a call to Dart_Invoke, but
+ *   it can occur in any function which triggers the execution of Dart
+ *   code (for example, Dart_ToString).
+ *
+ *   An unhandled exception error provides access to an exception and
+ *   stacktrace via the functions Dart_ErrorGetException and
+ *   Dart_ErrorGetStacktrace.
+ *
+ * - Compilation error handles are produced when, during the execution
+ *   of Dart code, a compile-time error occurs.  As above, this can
+ *   occur in any function which triggers the execution of Dart code.
+ *
+ * - Fatal error handles are produced when the system wants to shut
+ *   down the current isolate.
+ *
+ * --- Propagating errors ---
+ *
+ * When an error handle is returned from the top level invocation of
+ * Dart code in a program, the embedder must handle the error as they
+ * see fit.  Often, the embedder will print the error message produced
+ * by Dart_Error and exit the program.
+ *
+ * When an error is returned while in the body of a native function,
+ * it can be propagated by calling Dart_PropagateError.  Errors should
+ * be propagated unless there is a specific reason not to.  If an
+ * error is not propagated then it is ignored.  For example, if an
+ * unhandled exception error is ignored, that effectively "catches"
+ * the unhandled exception.  Fatal errors must always be propagated.
+ *
+ * Note that a call to Dart_PropagateError never returns.  Instead it
+ * transfers control non-locally using a setjmp-like mechanism.  This
+ * can be inconvenient if you have resources that you need to clean up
+ * before propagating the error.  When an error is propagated, any
+ * current scopes created by Dart_EnterScope will be exited.
+ *
+ * To deal with this inconvenience, we often return error handles
+ * rather than propagating them from helper functions.  Consider the
+ * following contrived example:
+ *
+ * 1    Dart_Handle isLongStringHelper(Dart_Handle arg) {
+ * 2      intptr_t* length = 0;
+ * 3      result = Dart_StringLength(arg, &length);
+ * 4      if (Dart_IsError(result)) {
+ * 5        return result
+ * 6      }
+ * 7      return Dart_NewBoolean(length > 100);
+ * 8    }
+ * 9
+ * 10   void NativeFunction_isLongString(Dart_NativeArguments args) {
+ * 11     Dart_EnterScope();
+ * 12     AllocateMyResource();
+ * 13     Dart_Handle arg = Dart_GetNativeArgument(args, 0);
+ * 14     Dart_Handle result = isLongStringHelper(arg);
+ * 15     if (Dart_IsError(result)) {
+ * 16       FreeMyResource();
+ * 17       Dart_PropagateError(result);
+ * 18       abort();  // will not reach here
+ * 19     }
+ * 20     Dart_SetReturnValue(result);
+ * 21     FreeMyResource();
+ * 22     Dart_ExitScope();
+ * 23   }
+ *
+ * In this example, we have a native function which calls a helper
+ * function to do its work.  On line 5, the helper function could call
+ * Dart_PropagateError, but that would not give the native function a
+ * chance to call FreeMyResource(), causing a leak.  Instead, the
+ * helper function returns the error handle to the caller, giving the
+ * caller a chance to clean up before propagating the error handle.
+ *
+ * --- Local and persistent handles ---
  *
  * Local handles are allocated within the current scope (see
  * Dart_EnterScope) and go away when the current scope exits. Unless
@@ -106,6 +182,52 @@ typedef void (*Dart_PeerFinalizer)(void* peer);
  * Requires there to be a current isolate.
  */
 DART_EXPORT bool Dart_IsError(Dart_Handle handle);
+
+/**
+ * Is this an api error handle?
+ *
+ * Api error handles are produced when an api function is misused.
+ * This happens when a Dart embedding api function is called with
+ * invalid arguments or in an invalid context.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsApiError(Dart_Handle handle);
+
+/**
+ * Is this an unhandled exception error handle?
+ *
+ * Unhandled exception error handles are produced when, during the
+ * execution of Dart code, an exception is thrown but not caught.
+ * This can occur in any function which triggers the execution of Dart
+ * code.
+ *
+ * See Dart_ErrorGetException and Dart_ErrorGetStacktrace.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle handle);
+
+/**
+ * Is this a compilation error handle?
+ *
+ * Compilation error handles are produced when, during the execution
+ * of Dart code, a compile-time error occurs.  This can occur in any
+ * function which triggers the execution of Dart code.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsCompilationError(Dart_Handle handle);
+
+/**
+ * Is this a fatal error handle?
+ *
+ * Fatal error handles are produced when the system wants to shut down
+ * the current isolate.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsFatalError(Dart_Handle handle);
 
 /**
  * Gets the error message from an error handle.
@@ -135,37 +257,52 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle);
 DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle);
 
 /**
- * Produces an error handle with the provided error message.
+ * Produces an api error handle with the provided error message.
  *
  * Requires there to be a current isolate.
  *
- * \param error A C string containing an error message.
+ * \param format A printf style format specifier used to construct the
+ *   error message.
  */
+DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...);
+
+/**
+ * Produces a new unhandled exception error handle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param exception An instance of a Dart object to be thrown.
+ */
+DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
+
+// Deprecated.
+// TODO(turnidge): Remove all uses and delete.
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
 
 /**
  * Propagates an error.
  *
- * It only makes sense to call this function when there are dart
- * frames on the stack.  That is, this function should only be called
- * in the C implementation of a native function which has been called
- * from Dart code.  If this function is called in the top-level
- * embedder code, it will return an error, as there is no way to
- * further propagate the error.
+ * If the provided handle is an unhandled exception error, this
+ * function will cause the unhandled exception to be rethrown.
  *
- * The provided handle must be an error handle.  (See Dart_IsError.)
+ * If the error is not an unhandled exception error, we will unwind
+ * the stack to the next C frame.  Any intervening Dart frames will
+ * be discarded.
  *
- * If the provided handle is an unhandled exception, this function
- * will cause the unhandled exception to be rethrown.  Otherwise, the
- * error will be propagated to the caller, discarding any active dart
- * frames up to the next C frame.
+ * In either case, when an error is propagated any current scopes
+ * created by Dart_EnterScope will be exited.
  *
- * \param An error handle.
+ * See the additonal discussion under "Propagating Errors" at the
+ * beginning of this file.
+ *
+ * \param An error handle (See Dart_IsError)
  *
  * \return On success, this function does not return.  On failure, an
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle);
+// TODO(turnidge): Should this really return an error handle?
+// Consider just terminating.
 
 // Internal routine used for reporting error handles.
 DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
@@ -904,7 +1041,7 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
 /**
  * Is this object an instance of some type?
  *
- * The result of the test is returned through the 'instanceif' parameter.
+ * The result of the test is returned through the 'instanceof' parameter.
  * The return value itself is used to indicate success or failure.
  *
  * \param object An object.
@@ -916,6 +1053,29 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
 DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* instanceof);
+
+// --- Instances ----
+// For the purposes of the embedding api, not all objects returned are
+// Dart language objects.  Within the api, we use the term 'Instance'
+// to indicate handles which refer to true Dart language objects.
+//
+// TODO(turnidge): Reorganize the "Object" section above, pulling down
+// any functions that more properly belong here.
+
+/**
+ * Does this handle refer to some Dart language object?
+ */
+DART_EXPORT bool Dart_IsInstance(Dart_Handle object);
+
+/**
+ * Gets the class for some Dart language object.
+ *
+ * \param instance Some Dart object.
+ *
+ * \return If no error occurs, the class is returned. Otherwise an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_InstanceGetClass(Dart_Handle instance);
 
 // --- Numbers ----
 
@@ -1747,6 +1907,70 @@ DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object);
 // DEPRECATED: The API below is a temporary hack.
 DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
 
+// --- Classes and Interfaces ---
+
+/**
+ * Is this a class handle?
+ *
+ * Most parts of the dart embedding api do not distinguish between
+ * classes and interfaces.  For example, Dart_GetClass can return a
+ * class or an interface and Dart_New can instantiate a class or an
+ * interface.  The exceptions are Dart_IsClass and Dart_IsInterface,
+ * which can be used to distinguish whether a handle refers to a class
+ * or an interface.
+ */
+DART_EXPORT bool Dart_IsClass(Dart_Handle handle);
+
+/**
+ * Is this an interface handle?
+ *
+ * Most parts of the dart embedding api do not distinguish between
+ * classes and interfaces.  For example, Dart_GetClass can return a
+ * class or an interface and Dart_New can instantiate a class or an
+ * interface.  The exceptions are Dart_IsClass and Dart_IsInterface,
+ * which can be used to distinguish whether a handle refers to a class
+ * or an interface.
+ */
+DART_EXPORT bool Dart_IsInterface(Dart_Handle handle);
+
+/**
+ * Returns the class name for the provided class or interface.
+ */
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz);
+
+/**
+ * Returns the library for the provided class or interface.
+ */
+DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz);
+
+/**
+ * Returns the default factory class for the provided class or
+ * interface.
+ *
+ * Only interfaces may have default fadctory classes.  If the class or
+ * interface has no default factory class, this function returns
+ * Dart_Null().
+ */
+DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz);
+
+/**
+ * Returns the number of interfaces directly implemented by some class
+ * or interface.
+ *
+ * TODO(turnidge): Finish documentation.
+ */
+DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
+                                                    intptr_t* count);
+
+/**
+ * Returns the interface at some index in the list of interfaces some
+ * class or inteface.
+ *
+ * TODO(turnidge): Finish documentation.
+ */
+DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
+                                                 intptr_t index);
+
 // --- Constructors, Methods, and Fields ---
 
 /**
@@ -1877,6 +2101,8 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t value);
 
 // --- Exceptions ----
+// TODO(turnidge): Remove these functions from the api and replace all
+// uses with Dart_NewUnhandledExceptionError.
 
 /**
  * Throws an exception.
@@ -2077,6 +2303,15 @@ DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library);
  * Returns the url from which a library was loaded.
  */
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
+
+/**
+ * Returns a list of the names of all classes and interfaces declared
+ * in a library.
+ *
+ * \return If no error occurs, a list of strings is returned.
+ *   Otherwise an erorr handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library);
 
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 // TODO(turnidge): Consider returning Dart_Null() when the library is
