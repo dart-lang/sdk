@@ -1433,6 +1433,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       endExpression(operatorPrecedence.precedence);
     }
 
+    List<HBasicBlock> thenSuccessors = thenGraph.end.successors;
+    bool thenGraphHasSuccessor = thenSuccessors.length != 0
+        && thenSuccessors[0] !== currentGraph.exit;
+
     switch (thenKind) {
       case EMPTY:
         switch (elseKind) {
@@ -1484,16 +1488,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             // TODO(ngeoffray): Generate a conditional.
             emitIf();
             visitWithoutIndent(thenGraph);
-            addIndented('else ');
-            visitWithoutIndent(elseGraph);
+            if (thenGraphHasSuccessor) {
+              addIndented('else ');
+              visitWithoutIndent(elseGraph);
+            } else {
+              generateStatements(elseGraph);
+            }
             break;
 
           case MULTIPLE_STATEMENTS:
             emitIf();
             visitWithoutIndent(thenGraph);
-            addIndented('else ');
-            visitWithIndent(elseGraph);
-            buffer.add('\n');
+            if (thenGraphHasSuccessor) {
+              addIndented('else ');
+              visitWithIndent(elseGraph);
+              buffer.add('\n');
+            } else {
+              generateStatements(elseGraph);
+            }
             break;
         }
         break;
@@ -1509,14 +1521,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
           case ONE_EXPRESSION:
           case ONE_STATEMENT:
-            buffer.add(' else ');
-            visitWithoutIndent(elseGraph);
+            if (thenGraphHasSuccessor) {
+              buffer.add(' else ');
+              visitWithoutIndent(elseGraph);
+            } else {
+              buffer.add('\n');
+              generateStatements(elseGraph);
+            }
             break;
 
           case MULTIPLE_STATEMENTS:
-            buffer.add(' else ');
-            visitWithIndent(elseGraph);
-            buffer.add('\n');
+            if (thenGraphHasSuccessor) {
+              buffer.add(' else ');
+              visitWithIndent(elseGraph);
+              buffer.add('\n');
+            } else {
+              buffer.add('\n');
+              generateStatements(elseGraph);
+            }
             break;
         }
         break;
