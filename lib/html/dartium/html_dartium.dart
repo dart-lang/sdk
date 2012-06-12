@@ -5163,8 +5163,6 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
   NotificationCenter get webkitNotifications() native "DOMWindow_webkitNotifications_Getter";
 
-  StorageInfo get webkitStorageInfo() native "DOMWindow_webkitStorageInfo_Getter";
-
   Window get window() native "DOMWindow_window_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "DOMWindow_addEventListener_Callback";
@@ -5269,6 +5267,8 @@ class _DataTransferItemImpl extends _DOMWrapperBase implements DataTransferItem 
   Blob getAsFile() native "DataTransferItem_getAsFile_Callback";
 
   void getAsString([StringCallback callback = null]) native "DataTransferItem_getAsString_Callback";
+
+  Entry webkitGetAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6083,6 +6083,8 @@ class _DocumentEventsImpl extends _EventsImpl implements DocumentEvents {
   EventListenerList get mouseUp() => _get('mouseup');
   EventListenerList get mouseWheel() => _get('mousewheel');
   EventListenerList get paste() => _get('paste');
+  EventListenerList get pointerLockChange() => _get('webkitpointerlockchange');
+  EventListenerList get pointerLockError() => _get('webkitpointerlockerror');
   EventListenerList get readyStateChange() => _get('readystatechange');
   EventListenerList get reset() => _get('reset');
   EventListenerList get scroll() => _get('scroll');
@@ -11232,9 +11234,9 @@ class _IDBFactoryImpl extends _DOMWrapperBase implements IDBFactory {
 
   IDBVersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  IDBRequest getDatabaseNames() native "IDBFactory_getDatabaseNames_Callback";
-
   IDBRequest open(String name) native "IDBFactory_open_Callback";
+
+  IDBRequest webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13669,23 +13671,6 @@ class _OESVertexArrayObjectImpl extends _DOMWrapperBase implements OESVertexArra
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent {
 
   AudioBuffer get renderedBuffer() native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _OperationNotAllowedExceptionImpl extends _DOMWrapperBase implements OperationNotAllowedException {
-
-  int get code() native "OperationNotAllowedException_code_Getter";
-
-  String get message() native "OperationNotAllowedException_message_Getter";
-
-  String get name() native "OperationNotAllowedException_name_Getter";
-
-  String toString() native "OperationNotAllowedException_toString_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18153,6 +18138,10 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
 
+  bool get resetStyleInheritance() native "ShadowRoot_resetStyleInheritance_Getter";
+
+  void set resetStyleInheritance(bool) native "ShadowRoot_resetStyleInheritance_Setter";
+
   Element getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
   NodeList getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
@@ -18552,19 +18541,6 @@ class _StorageImpl extends _DOMWrapperBase implements Storage {
   void $dom_removeItem(String key) native "Storage_removeItem_Callback";
 
   void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _StorageInfoImpl extends _DOMWrapperBase implements StorageInfo {
-
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native "StorageInfo_queryUsageAndQuota_Callback";
-
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) native "StorageInfo_requestQuota_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25923,6 +25899,9 @@ interface DataTransferItem {
 
   /** @domName DataTransferItem.getAsString */
   void getAsString([StringCallback callback]);
+
+  /** @domName DataTransferItem.webkitGetAsEntry */
+  Entry webkitGetAsEntry();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26535,6 +26514,10 @@ interface DocumentEvents extends ElementEvents {
   EventListenerList get mouseWheel();
 
   EventListenerList get paste();
+
+  EventListenerList get pointerLockChange();
+
+  EventListenerList get pointerLockError();
 
   EventListenerList get readyStateChange();
 
@@ -28470,6 +28453,8 @@ interface IDBDatabaseException {
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
+  static final int TYPE_ERR = 21;
+
   static final int UNKNOWN_ERR = 1;
 
   static final int VER_ERR = 12;
@@ -28501,11 +28486,11 @@ interface IDBFactory {
   /** @domName IDBFactory.deleteDatabase */
   IDBVersionChangeRequest deleteDatabase(String name);
 
-  /** @domName IDBFactory.getDatabaseNames */
-  IDBRequest getDatabaseNames();
-
   /** @domName IDBFactory.open */
   IDBRequest open(String name);
+
+  /** @domName IDBFactory.webkitGetDatabaseNames */
+  IDBRequest webkitGetDatabaseNames();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31073,29 +31058,6 @@ interface OfflineAudioCompletionEvent extends Event {
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
   final AudioBuffer renderedBuffer;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName OperationNotAllowedException
-interface OperationNotAllowedException {
-
-  static final int NOT_ALLOWED_ERR = 1;
-
-  /** @domName OperationNotAllowedException.code */
-  final int code;
-
-  /** @domName OperationNotAllowedException.message */
-  final String message;
-
-  /** @domName OperationNotAllowedException.name */
-  final String name;
-
-  /** @domName OperationNotAllowedException.toString */
-  String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35689,6 +35651,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
+  /** @domName ShadowRoot.resetStyleInheritance */
+  bool resetStyleInheritance;
+
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -36085,46 +36050,6 @@ interface StorageEvent extends Event {
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName StorageInfo
-interface StorageInfo {
-
-  static final int PERSISTENT = 1;
-
-  static final int TEMPORARY = 0;
-
-  /** @domName StorageInfo.queryUsageAndQuota */
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
-
-  /** @domName StorageInfo.requestQuota */
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoErrorCallback(DOMException error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -38904,9 +38829,6 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.webkitNotifications */
   final NotificationCenter webkitNotifications;
-
-  /** @domName DOMWindow.webkitStorageInfo */
-  final StorageInfo webkitStorageInfo;
 
   /** @domName DOMWindow.window */
   final Window window;
