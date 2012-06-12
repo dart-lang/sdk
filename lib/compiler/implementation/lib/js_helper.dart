@@ -567,6 +567,22 @@ class Primitives {
     if (value.isNaN()) throw new IllegalArgumentException(str);
     return value;
   }
+
+  static getProperty(object, key) {
+    checkNull(object);
+    if (object is bool || object is num || object is String) {
+      throw new IllegalArgumentException(object);
+    }
+    return JS('var', '#[#]', object, key);
+  }
+
+  static void setProperty(object, key, value) {
+    checkNull(object);
+    if (object is bool || object is num || object is String) {
+      throw new IllegalArgumentException(object);
+    }
+    JS('void', '#[#] = #', object, key, value);
+  }
 }
 
 /**
