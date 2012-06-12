@@ -151,6 +151,15 @@ DART_EXPORT void Dart_SetExceptionThrownHandler(
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
+                            Dart_ExceptionPauseInfo pause_info) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  isolate->debugger()->SetExceptionPauseInfo(pause_info);
+  return Api::True(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);

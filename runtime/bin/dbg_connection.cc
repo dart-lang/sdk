@@ -625,6 +625,28 @@ void DebuggerConnectionHandler::HandleSetBpCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandlePauseOnExcCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  char* exc_chars = msgbuf_->GetStringParam("exceptions");
+  Dart_ExceptionPauseInfo info = kNoPauseOnExceptions;
+  if (strcmp(exc_chars, "none") == 0) {
+    info = kNoPauseOnExceptions;
+  } else if (strcmp(exc_chars, "all") == 0) {
+    info = kPauseOnAllExceptions;
+  } else if (strcmp(exc_chars, "unhandled") == 0) {
+    info = kPauseOnUnhandledExceptions;
+  } else {
+    SendError(msg_id, "illegal value for parameter 'exceptions'");
+    return;
+  }
+  Dart_Handle res = Dart_SetExceptionPauseInfo(info);
+  ASSERT_NOT_ERROR(res);
+  dart::TextBuffer msg(32);
+  msg.Printf("{ \"id\": %d }", msg_id);
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleRemBpCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   int bpt_id = msgbuf_->GetIntParam("breakpointId");
@@ -707,6 +729,7 @@ void DebuggerConnectionHandler::HandleMessages() {
     { "getScriptSource", HandleGetSourceCmd },
     { "getStackTrace", HandleGetStackTraceCmd },
     { "setBreakpoint", HandleSetBpCmd },
+    { "setPauseOnException", HandlePauseOnExcCmd },
     { "removeBreakpoint", HandleRemBpCmd },
     { "stepInto", HandleStepIntoCmd },
     { "stepOut", HandleStepOutCmd },

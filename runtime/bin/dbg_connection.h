@@ -66,6 +66,7 @@ class DebuggerConnectionHandler {
   static void HandleGetScriptURLsCmd(const char* json_msg);
   static void HandleGetSourceCmd(const char* json_msg);
   static void HandleGetStackTraceCmd(const char* json_msg);
+  static void HandlePauseOnExcCmd(const char* json_msg);
   static void HandleSetBpCmd(const char* json_msg);
   static void HandleRemBpCmd(const char* json_msg);
   static void HandleUnknownMsg(const char* json_msg);

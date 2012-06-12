@@ -477,8 +477,7 @@ Debugger::Debugger()
       resume_action_(kContinue),
       last_bpt_line_(-1),
       ignore_breakpoints_(false),
-      pause_on_exception_(false),
-      pause_on_unhandled_exception_(false) {
+      exc_pause_info_(kNoPauseOnExceptions) {
 }
 
 
@@ -624,17 +623,32 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
 }
 
 
-// TODO(hausner): Determine whether the exception is handled or not, and
-// check with the settings the user specified to determine whether the
-// debugger should pause or not.
-// For now, we just pause on TypeError and AssertionError exceptions.
+void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
+  exc_pause_info_ = pause_info;
+}
+
+
+// TODO(hausner): Determine whether the exception is handled or not.
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                                       const Object& exc) {
+  if (exc_pause_info_ == kNoPauseOnExceptions) {
+    return false;
+  }
+  if ((exc_pause_info_ & kPauseOnAllExceptions) != 0) {
+    return true;
+  }
+  // Assume TypeError and AssertionError exceptions are unhandled.
   const Class& exc_class = Class::Handle(exc.clazz());
   const String& class_name = String::Handle(exc_class.Name());
-  // TODO(hausner): Note the poor man's type test. Replace with check for
-  // actual class object or class id.
-  return class_name.Equals("TypeError") || class_name.Equals("AssertionError");
+  // TODO(hausner): Note the poor man's type test. This code will go
+  // away when we have a way to determine whether an exception is unhandled.
+  if (class_name.Equals("TypeError")) {
+    return true;
+  }
+  if (class_name.Equals("AssertionError")) {
+    return true;
+  }
+  return false;
 }
 
 
