@@ -78,6 +78,12 @@ List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
   // TODO(ahe): Remove this option.
   options = ' --allow_string_plus=false$options';
 
+  // Tell the VM to grow the heap more aggressively. This should only
+  // be necessary temporarily until the VM is better at detecting how
+  // applications use memory.
+  // TODO(ahe): Remove this option.
+  options = ' --heap_growth_rate=32$options';
+
   return [
 '''
 #!/bin/sh

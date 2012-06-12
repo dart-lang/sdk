@@ -349,8 +349,10 @@ class InitializerResolver {
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass !== null);
       assert(superClass.isResolved);
-      resolveSuperOrThis(constructor, true, true, const SourceString(''),
-                         Selector.INVOCATION_0, functionNode);
+      var element = resolveSuperOrThis(constructor, true, true,
+                                       const SourceString(''),
+                                       Selector.INVOCATION_0, functionNode);
+      visitor.world.registerStaticUse(element);
     }
   }
 
@@ -724,6 +726,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
+  Enqueuer get world() => compiler.enqueuer.resolution;
+
   Element lookup(Node node, SourceString name) {
     Element result = context.lookup(name);
     if (!inInstanceContext && result != null && result.isInstanceMember()) {
@@ -803,7 +807,26 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element useElement(Node node, Element element) {
     if (element === null) return null;
-    return mapping[node] = element;
+    mapping[node] = element;
+    if (element.isTopLevel() || element.isMember()) {
+      if (element.isInstanceMember()) {
+        var send = node.asSend();
+        if (send !== null) {
+          Selector selector = mapping.getSelector(send);
+          if (selector !== null) {
+            world.registerDynamicInvocation(element.name, selector);
+          }
+        }
+      } else {
+        if (!element.isPrefix() &&
+            !element.isClass() &&
+            !element.isTypedef() &&
+            !element.isTypeVariable()) {
+          world.registerStaticUse(element);
+        }
+      }
+    }
+    return element;
   }
 
   Type useType(TypeAnnotation annotation, Type type) {
@@ -1064,6 +1087,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
     useElement(node, target);
+    if (target === null) handleDynamicSend(node);
     if (node.isPropertyAccess) return target;
   }
 
@@ -1099,7 +1123,50 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     mapping.setSelector(node, selector);
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
+    handleDynamicSend(node);
     return useElement(node, setter);
+  }
+
+  handleDynamicSend(Send node) {
+    Identifier id = node.selector.asIdentifier();
+    if (id === null) return;
+    SourceString name = node.selector.asIdentifier().source;
+    if (node.isIndex && !node.arguments.tail.isEmpty()) {
+      name = Elements.constructOperatorName(
+          const SourceString('operator'),
+          const SourceString('[]='));
+    } else if (node.selector.asOperator() != null) {
+      switch (name.stringValue) {
+        case '===':
+        case '!==':
+        case '!':
+        case '&&':
+        case '||':
+        case 'is':
+        case '>>>':
+          return null;
+      }
+      name = Elements.constructOperatorName(
+          const SourceString('operator'),
+          name,
+          node.argumentsNode is Prefix);
+    }
+    Selector selector = mapping.getSelector(node);
+    if (Selector.GETTER === selector) {
+      world.registerDynamicGetter(name, selector);
+    } else if (Selector.SETTER === selector) {
+      world.registerDynamicSetter(name, selector);
+      // Also register the getter for compound assignments.
+      world.registerDynamicGetter(name, Selector.GETTER);
+    } else {
+      world.registerDynamicInvocation(name, selector);
+    }
+    var interceptor = new Interceptors(compiler).getStaticInterceptor(
+        name,
+        node.argumentCount());
+    if (interceptor !== null) {
+      world.registerStaticUse(interceptor);
+    }
   }
 
   visitLiteralInt(LiteralInt node) {
@@ -1169,6 +1236,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // List constructor.
     }
     useElement(node.send, constructor);
+    compiler.withCurrentElement(constructor, () {
+      FunctionExpression tree = constructor.parseNode(compiler);
+      compiler.resolver.resolveConstructorImplementation(constructor, tree);
+    });
+    world.registerStaticUse(constructor.defaultImplementation);
+    ClassElement cls = constructor.defaultImplementation.enclosingElement;
+    world.registerInstantiatedClass(cls);
+    cls.forEachInstanceField(
+        includeBackendMembers: false,
+        includeSuperMembers: true,
+        f: (ClassElement enclosingClass, Element member) {
+          world.addToWorkList(member);
+        });
     return null;
   }
 

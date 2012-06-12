@@ -264,7 +264,7 @@ class Send extends Expression {
     if (argumentsNode !== null) argumentsNode.accept(visitor);
   }
 
-  int argumentCount() => argumentsNode.length();
+  int argumentCount() => (argumentsNode === null) ? -1 : argumentsNode.length();
 
   bool get isSuperCall() {
     return receiver !== null &&

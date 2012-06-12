@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+/**
+ * If true, print a warning for each method that was resolved, but not
+ * compiled.
+ */
+final bool REPORT_EXCESS_RESOLUTION = false;
+
 class WorkItem {
   final Element element;
   TreeElements resolutionTree;
@@ -15,8 +22,8 @@ class WorkItem {
   String run(Compiler compiler, Enqueuer world) {
     String code = world.universe.generatedCode[element];
     if (code !== null) return code;
-    if (!isAnalyzed()) compiler.analyze(this);
-    return compiler.codegen(this);
+    resolutionTree = compiler.analyze(this, world);
+    return compiler.codegen(this, world);
   }
 }
 
@@ -25,6 +32,13 @@ class Backend {
 
   Backend(this.compiler);
 
+  void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
+    lib.forEachExport((Element e) {
+      if (e.isFunction()) world.addToWorkList(e);
+    });
+  }
+
+  abstract void enqueueHelpers(Enqueuer world);
   abstract String codegen(WorkItem work);
   abstract void processNativeClasses(world, libraries);
   abstract void assembleProgram();
@@ -47,6 +61,17 @@ class JavaScriptBackend extends Backend {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
+  }
+
+  void enqueueHelpers(Enqueuer world) {
+    enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
+    enqueueAllTopLevelFunctions(compiler.interceptorsLibrary, world);
+    for (var helper in [const SourceString('Closure'),
+                        const SourceString('ConstantMap'),
+                        const SourceString('ConstantProtoMap')]) {
+      var e = compiler.findHelper(helper);
+      if (e !== null) world.registerInstantiatedClass(e);
+    }
   }
 
   String codegen(WorkItem work) {
@@ -205,6 +230,8 @@ class Compiler implements DiagnosticListener {
 
   void cancel([String reason, Node node, Token token,
                HInstruction instruction, Element element]) {
+    assembledCode = null; // Compilation failed. Make sure that we
+                          // don't return a bogus result.
     SourceSpan span = const SourceSpan(null, null, null);
     if (node !== null) {
       span = spanFromNode(node);
@@ -248,15 +275,25 @@ class Compiler implements DiagnosticListener {
   void enableNoSuchMethod(Element element) {
     // TODO(ahe): Move this method to Enqueuer.
     if (enabledNoSuchMethod) return;
-    if (element.enclosingElement == objectClass) return;
+    if (element.enclosingElement === objectClass) {
+      enqueuer.resolution.registerDynamicInvocationOf(element);
+      return;
+    }
     enabledNoSuchMethod = true;
+    enqueuer.resolution.registerInvocation(NO_SUCH_METHOD,
+                                           Selector.INVOCATION_2);
     enqueuer.codegen.registerInvocation(NO_SUCH_METHOD,
-                                        new Selector.invocation(2));
+                                        Selector.INVOCATION_2);
   }
 
   void enableIsolateSupport(LibraryElement element) {
     // TODO(ahe): Move this method to Enqueuer.
     isolateLibrary = element;
+    enqueuer.resolution.addToWorkList(element.find(START_ROOT_ISOLATE));
+    enqueuer.resolution.addToWorkList(
+        element.find(const SourceString('_currentIsolate')));
+    enqueuer.resolution.addToWorkList(
+        element.find(const SourceString('_callInIsolate')));
     enqueuer.codegen.addToWorkList(element.find(START_ROOT_ISOLATE));
   }
 
@@ -366,50 +403,118 @@ class Compiler implements DiagnosticListener {
     // should know this.
     world.populate(this, libraries.getValues());
 
-    // Not yet ready to process the enqueuer.resolution queue...
-    // processQueue(enqueuer.resolution);
+    log('Resolving...');
+    backend.enqueueHelpers(enqueuer.resolution);
+    processQueue(enqueuer.resolution, main);
+    log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
+
+    log('Compiling...');
     processQueue(enqueuer.codegen, main);
+    log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     backend.assembleProgram();
-    if (!enqueuer.codegen.queue.isEmpty()) {
-      internalErrorOnElement(enqueuer.codegen.queue.first().element,
-                             "work list is not empty");
-    }
+
+    checkQueues();
   }
 
   processQueue(Enqueuer world, Element main) {
     backend.processNativeClasses(world, libraries.getValues());
     world.addToWorkList(main);
     codegenProgress.reset();
-    while (!world.queue.isEmpty()) {
-      WorkItem work = world.queue.removeLast();
+    world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
-    }
+    });
     world.queueIsClosed = true;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     world.registerFieldClosureInvocations();
   }
 
+  /**
+   * Perform various checks of the queues. This includes checking that
+   * the queues are empty (nothing was added after we stopped
+   * processing the quese). Also compute the number of methods that
+   * were resolved, but not compiled (aka excess resolution).
+   */
+  checkQueues() {
+    for (var world in [enqueuer.resolution, enqueuer.codegen]) {
+      world.forEach((WorkItem work) {
+        internalErrorOnElement(work.element, "Work list is not empty.");
+      });
+    }
+    var resolved = new Set.from(enqueuer.resolution.resolvedElements.getKeys());
+    for (Element e in codegenWorld.generatedCode.getKeys()) {
+      resolved.remove(e);
+    }
+    for (Element e in new Set.from(resolved)) {
+      if (e.isClass() ||
+          e.isField() ||
+          e.isTypeVariable() ||
+          e.isTypedef() ||
+          e.kind === ElementKind.ABSTRACT_FIELD) {
+        resolved.remove(e);
+      }
+      if (e.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+        if (e.enclosingElement.isInterface()) {
+          resolved.remove(e);
+        }
+        resolved.remove(e);
+
+      }
+      if (e.getLibrary() === jsHelperLibrary) {
+        resolved.remove(e);
+      }
+      if (e.getLibrary() === interceptorsLibrary) {
+        resolved.remove(e);
+      }
+    }
+    log('Excess resolution work: ${resolved.length}.');
+    if (!REPORT_EXCESS_RESOLUTION) return;
+    for (Element e in resolved) {
+      SourceSpan span = spanFromElement(e);
+      reportDiagnostic(span, 'Warning: $e resolved but not compiled.', false);
+    }
+  }
+
   TreeElements analyzeElement(Element element) {
+    TreeElements elements = enqueuer.resolution.getCachedElements(element);
+    if (elements !== null) return elements;
+    if (element is AbstractFieldElement) {
+      return null;
+    }
+    final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
+                        | ElementCategory.FACTORY;
+    if (!element.isAccessor() && (element.kind.category & allowed) == 0) {
+      return null;
+    }
     assert(parser !== null);
     Node tree = parser.parse(element);
     validator.validate(tree);
     unparseValidator.check(element);
-    TreeElements elements = resolver.resolve(element);
+    elements = resolver.resolve(element);
     checker.check(tree, elements);
     return elements;
   }
 
-  TreeElements analyze(WorkItem work) {
-    work.resolutionTree = analyzeElement(work.element);
-    return work.resolutionTree;
+  TreeElements analyze(WorkItem work, Enqueuer world) {
+    if (work.isAnalyzed()) return work.resolutionTree;
+    Element element = work.element;
+    TreeElements result = world.getCachedElements(element);
+    if (result !== null) return result;
+    if (world !== enqueuer.resolution) {
+      internalErrorOnElement(element,
+                             'Internal error: unresolved element: $element.');
+    }
+    result = analyzeElement(element);
+    enqueuer.resolution.resolvedElements[element] = result;
+    return result;
   }
 
-  String codegen(WorkItem work) {
+  String codegen(WorkItem work, Enqueuer world) {
+    if (world !== enqueuer.codegen) return null;
     if (codegenProgress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('compiled ${codegenWorld.generatedCode.length} methods');
+      log('Compiled ${codegenWorld.generatedCode.length} methods.');
       codegenProgress.reset();
     }
     if (work.element.kind.category == ElementCategory.VARIABLE) {
@@ -479,14 +584,16 @@ class Compiler implements DiagnosticListener {
 
   abstract void reportDiagnostic(SourceSpan span, String message, bool fatal);
 
-  SourceSpan spanFromTokens(Token begin, Token end) {
+  SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
     if (begin === null || end === null) {
       // TODO(ahe): We can almost always do better. Often it is only
       // end that is null. Otherwise, we probably know the current
       // URI.
-      throw 'cannot find tokens to produce error message';
+      throw 'Cannot find tokens to produce error message.';
     }
-    Uri uri = currentElement.getCompilationUnit().script.uri;
+    if (uri === null) {
+      uri = currentElement.getCompilationUnit().script.uri;
+    }
     return SourceSpan.withOffsets(begin, end, (beginOffset, endOffset) =>
         new SourceSpan(uri, beginOffset, endOffset));
   }
@@ -509,11 +616,10 @@ class Compiler implements DiagnosticListener {
       element = currentElement;
     }
     Token position = element.position();
-    if (position === null) {
-      Uri uri = element.getCompilationUnit().script.uri;
-      return new SourceSpan(uri, 0, 0);
-    }
-    return spanFromTokens(position, position);
+    Uri uri = element.getCompilationUnit().script.uri;
+    return (position === null)
+        ? new SourceSpan(uri, 0, 0)
+        : spanFromTokens(position, position, uri);
   }
 
   Script readScript(Uri uri, [ScriptTag node]) {

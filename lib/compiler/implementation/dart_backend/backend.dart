@@ -96,6 +96,10 @@ class DartBackend extends Backend {
 
   DartBackend(Compiler compiler) : super(compiler);
 
+  void enqueueHelpers(Enqueuer world) {
+    // TODO(antonm): Implement this method, if needed.
+  }
+
   String codegen(WorkItem work) {
     // Traverse AST to populate sets of reachable classes and functions.
     log('codegen(${work.element})');

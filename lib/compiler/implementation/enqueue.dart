@@ -23,6 +23,7 @@ class Enqueuer {
   final Set<ClassElement> seenClasses;
   final Universe universe;
   final Queue<WorkItem> queue;
+  final Map<Element, TreeElements> resolvedElements;
   bool queueIsClosed = false;
   EnqueueTask task;
 
@@ -30,19 +31,38 @@ class Enqueuer {
     : instanceMembersByName = new Map<String, Link<Element>>(),
       seenClasses = new Set<ClassElement>(),
       universe = new Universe(),
-      queue = new Queue<WorkItem>();
+      queue = new Queue<WorkItem>(),
+      resolvedElements = new Map<Element, TreeElements>();
+
+  bool get isFirstQueue() => compiler.enqueuer.resolution === this;
+
+  TreeElements getCachedElements(Element element) {
+    Element owner = element.getOutermostEnclosingMemberOrTopLevel();
+    return compiler.enqueuer.resolution.resolvedElements[owner];
+  }
 
   void addToWorkList(Element element, [TreeElements elements]) {
+    if (element.isForeign()) return;
     if (queueIsClosed) {
+      if (isFirstQueue && getCachedElements(element) !== null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (!isFirstQueue && element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
+    }
+    if (elements === null) {
+      elements = getCachedElements(element);
     }
     queue.add(new WorkItem(element, elements));
   }
 
   void registerInstantiatedClass(ClassElement cls) {
+    if (cls.isInterface()) {
+      compiler.internalErrorOnElement(
+          // Use the current element, as this is where cls is referenced from.
+          compiler.currentElement,
+          'Expected a class, but $cls is an interface.');
+    }
     universe.instantiatedClasses.add(cls);
     onRegisterInstantiatedClass(cls);
   }
@@ -86,6 +106,7 @@ class Enqueuer {
 
   void processInstantiatedClassMember(Element member) {
     if (universe.generatedCode.containsKey(member)) return;
+    if (resolvedElements[member] !== null) return;
 
     if (!member.isInstanceMember()) return;
     if (member.isField()) return;
@@ -242,5 +263,11 @@ class Enqueuer {
   // TODO(ngeoffray): This should get a type.
   void registerIsCheck(Element element) {
     universe.isChecks.add(element);
+  }
+
+  void forEach(f(WorkItem work)) {
+    while (!queue.isEmpty()) {
+      f(queue.removeLast());
+    }
   }
 }
