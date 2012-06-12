@@ -1465,62 +1465,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
-
-  public void test_setterGetterAssignable1() throws Exception {
-    AnalyzeLibraryResult result =
-        analyzeLibrary(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {} ",
-            "A topGetterField; ",
-            "var topSetterField; ",
-            "A get topField() { return topGetterField; }",
-            "void set topField(arg) { topSetterField = arg; }",
-            "class C {",
-            "  A getterField; ",
-            "  var setterField; ",
-            "  A get field() { return getterField; }",
-            "  void set field(arg) { setterField = arg; }",
-            "}");
-    assertErrors(result.getErrors()); 
-  }
-  
-  public void test_setterGetterAssignable2() throws Exception {
-    AnalyzeLibraryResult result =
-        analyzeLibrary(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {} ",
-            "var topGetterField; ",
-            "A topSetterField; ",
-            "get topField() { return topGetterField; }",
-            "void set topField(A arg) { topSetterField = arg; }",
-            "class C {",
-            "  var getterField; ",
-            "  A setterField; ",
-            "  get field() { return getterField; }",
-            "  void set field(A arg) { setterField = arg; }",
-            "}");
-    assertErrors(result.getErrors()); 
-  }  
-  
   public void test_setterGetterNotAssignable() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {} ",
             "class B {}",
-            "A topGetterField; ",
-            "B topSetterField; ",
-            "A get topField() { return topGetterField; }",
-            "void set topField(B arg) { topSetterField = arg; }",
             "class C {",
             "  A getterField; ",
             "  B setterField; ",
             "  A get field() { return getterField; }",
             "  void set field(B arg) { setterField = arg; }",
             "}");
-    assertErrors(result.getErrors(), 
-        errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 7, 19, 5),
-        errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 12, 18, 5));
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
   }
 
   /**

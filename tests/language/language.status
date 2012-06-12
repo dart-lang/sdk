@@ -85,6 +85,7 @@ field_method4_negative_test: Fail
 final_syntax_test/*: Skip  # can't handle base case
 function_type_alias_negative_test: Fail  # Bug 5231617.
 generic_parameterized_extends_test: Skip  # Bug 5392297
+getters_setters_type3_test: Fail # Issue 2351
 instance_call_wrong_argument_count_negative_test: Fail
 instanceof3_test: Fail # Issue 2571
 library4_negative_test: Fail   # Bug 5406175
