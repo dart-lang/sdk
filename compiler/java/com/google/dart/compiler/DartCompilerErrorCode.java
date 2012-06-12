@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
       + "#source directive, so cannot itself contain directives"),
   IO("Input/Output error: %s"),
   MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a #library directive: %s"),
-  MISSING_SOURCE("Cannot find referenced source: %s");
+  MISSING_SOURCE("Cannot find referenced source: %s"),
+  UNIT_WAS_ALREADY_INCLUDED("Unit '%s' was already included");
   private final ErrorSeverity severity;
   private final String message;
 

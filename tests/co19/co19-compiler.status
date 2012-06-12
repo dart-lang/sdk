@@ -164,7 +164,6 @@ Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
-Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Issue 3532
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # co19 issue 141

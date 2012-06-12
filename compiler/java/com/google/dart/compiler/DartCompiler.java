@@ -619,6 +619,20 @@ public class DartCompiler {
         if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
           continue;
         }
+        
+        // check for #source uniqueness
+        {
+          Set<URI> includedSourceUris = Sets.newHashSet();
+          for (LibraryNode sourceNode : lib.getSourcePaths()) {
+            String path = sourceNode.getText();
+            URI uri = lib.getSource().getSourceFor(path).getUri();
+            if (includedSourceUris.contains(uri)) {
+              context.onError(new DartCompilationError(sourceNode.getSourceInfo(),
+                  DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, uri));
+            }
+            includedSourceUris.add(uri);
+          }
+        }
 
         // Validate import prefixes.
         for (LibraryNode importNode : lib.getImportPaths()) {
@@ -682,6 +696,7 @@ public class DartCompiler {
                 continue;
               }
               DartSource dartSource = (DartSource) unit.getSourceInfo().getSource();
+              // check for directives
               if (dartSource.getRelativePath().equals(sourceNode.getText())) {
                 context.onError(new DartCompilationError(unit.getDirectives().get(0),
                     DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT,

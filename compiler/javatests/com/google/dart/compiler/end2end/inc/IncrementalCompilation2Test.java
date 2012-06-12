@@ -671,6 +671,28 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // should not cause exception
     assertFalse(source.exists());
   }
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3532
+   */
+  public void test_includeSameUnitTwice() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#source('A.dart');",
+            "#source('A.dart');",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors, errEx(DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, 4, 1, 18));
+  }
 
   /**
    * There was bug that we added <code>null</code> into {@link LibraryUnit#getImports()}. Here trick
