@@ -40510,63 +40510,63 @@ class _TypedArrayFactoryProvider {
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
       _F32(buffer, byteOffset, length);
-  static _F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";
+  static _F32(arg0, [arg1, arg2]) native "Float32Array_constructor_Callback";
 
   factory Float64Array(int length) => _F64(length);
   factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
       _F64(buffer, byteOffset, length);
-  static _F64(_arg0, [_arg1, _arg2]) native "Float64Array_constructor_Callback";
+  static _F64(arg0, [arg1, arg2]) native "Float64Array_constructor_Callback";
 
   factory Int8Array(int length) => _I8(length);
   factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) =>
       _I8(buffer, byteOffset, length);
-  static _I8(_arg0, [_arg1, _arg2]) native "Int8Array_constructor_Callback";
+  static _I8(arg0, [arg1, arg2]) native "Int8Array_constructor_Callback";
 
   factory Int16Array(int length) => _I16(length);
   factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       _I16(buffer, byteOffset, length);
-  static _I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
+  static _I16(arg0, [arg1, arg2]) native "Int16Array_constructor_Callback";
 
   factory Int32Array(int length) => _I32(length);
   factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       _I32(buffer, byteOffset, length);
-  static _I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
+  static _I32(arg0, [arg1, arg2]) native "Int32Array_constructor_Callback";
 
   factory Uint8Array(int length) => _U8(length);
   factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       _U8(buffer, byteOffset, length);
-  static _U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
+  static _U8(arg0, [arg1, arg2]) native "Uint8Array_constructor_Callback";
 
   factory Uint16Array(int length) => _U16(length);
   factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
       _U16(buffer, byteOffset, length);
-  static _U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
+  static _U16(arg0, [arg1, arg2]) native "Uint16Array_constructor_Callback";
 
   factory Uint32Array(int length) => _U32(length);
   factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
       _U32(buffer, byteOffset, length);
-  static _U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
+  static _U32(arg0, [arg1, arg2]) native "Uint32Array_constructor_Callback";
 
   factory Uint8ClampedArray(int length) => _U8C(length);
   factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) =>
       _U8C(buffer, byteOffset, length);
-  static _U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
+  static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }
