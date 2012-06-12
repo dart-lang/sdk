@@ -551,8 +551,8 @@ int Process::Start(const char* path,
 }
 
 
-bool Process::Kill(intptr_t id) {
-  int result = TEMP_FAILURE_RETRY(kill(id, SIGKILL));
+bool Process::Kill(intptr_t id, int signal) {
+  int result = TEMP_FAILURE_RETRY(kill(id, signal));
   if (result == -1) {
     return false;
   }

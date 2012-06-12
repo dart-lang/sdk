@@ -28,7 +28,7 @@ class Process {
                    int os_error_message_len);
 
   // Kill a process with a given pid.
-  static bool Kill(intptr_t id);
+  static bool Kill(intptr_t id, int signal);
 
   // Terminate the exit code handler thread. Does not return before
   // the thread has terminated.

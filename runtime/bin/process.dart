@@ -91,11 +91,14 @@ class Process {
   abstract void set onError(void callback(e));
 
   /**
-   * Kills the process. When the process terminates as a result of
-   * calling [kill] [onExit] is called. If the kill operation fails,
+   * On Windows, [kill] kills the process, ignoring the [signal] flag. On
+   * Posix systems, [kill] sends [signal] to the process. Depending on the
+   * signal giving, it'll have different meanings. The default [signal] to
+   * send is [:ProcessSignal.SIGTERM:]. When the process terminates as a result
+   * of calling [kill] [onExit] is called. If the kill operation fails,
    * [onError] is called.
    */
-  abstract void kill();
+  abstract void kill([ProcessSignal signal]);
 
   /**
    * Terminates the streams of a process. [close] must be called on a
@@ -176,6 +179,44 @@ class ProcessOptions {
    * code-points outside the ASCII range is passed in.
    */
   Map<String, String> environment;
+}
+
+/**
+ * On Posix systems, [ProcessSignal] is used to send a specific signal
+ * to a child process, see [:Process.kill:].
+ */
+class ProcessSignal {
+  static final ProcessSignal SIGHUP = const ProcessSignal._signal(1);
+  static final ProcessSignal SIGINT = const ProcessSignal._signal(2);
+  static final ProcessSignal SIGQUIT = const ProcessSignal._signal(3);
+  static final ProcessSignal SIGILL = const ProcessSignal._signal(4);
+  static final ProcessSignal SIGTRAP = const ProcessSignal._signal(5);
+  static final ProcessSignal SIGABRT = const ProcessSignal._signal(6);
+  static final ProcessSignal SIGBUS = const ProcessSignal._signal(7);
+  static final ProcessSignal SIGFPE = const ProcessSignal._signal(8);
+  static final ProcessSignal SIGKILL = const ProcessSignal._signal(9);
+  static final ProcessSignal SIGUSR1 = const ProcessSignal._signal(10);
+  static final ProcessSignal SIGSEGV = const ProcessSignal._signal(11);
+  static final ProcessSignal SIGUSR2 = const ProcessSignal._signal(12);
+  static final ProcessSignal SIGPIPE = const ProcessSignal._signal(13);
+  static final ProcessSignal SIGALRM = const ProcessSignal._signal(14);
+  static final ProcessSignal SIGTERM = const ProcessSignal._signal(15);
+  static final ProcessSignal SIGCHLD = const ProcessSignal._signal(17);
+  static final ProcessSignal SIGCONT = const ProcessSignal._signal(18);
+  static final ProcessSignal SIGSTOP = const ProcessSignal._signal(19);
+  static final ProcessSignal SIGTSTP = const ProcessSignal._signal(20);
+  static final ProcessSignal SIGTTIN = const ProcessSignal._signal(21);
+  static final ProcessSignal SIGTTOU = const ProcessSignal._signal(22);
+  static final ProcessSignal SIGURG = const ProcessSignal._signal(23);
+  static final ProcessSignal SIGXCPU = const ProcessSignal._signal(24);
+  static final ProcessSignal SIGXFSZ = const ProcessSignal._signal(25);
+  static final ProcessSignal SIGVTALRM = const ProcessSignal._signal(26);
+  static final ProcessSignal SIGPROF = const ProcessSignal._signal(27);
+  static final ProcessSignal SIGPOLL = const ProcessSignal._signal(29);
+  static final ProcessSignal SIGSYS = const ProcessSignal._signal(31);
+
+  const ProcessSignal._signal(int this._signalNumber);
+  final int _signalNumber;
 }
 
 
