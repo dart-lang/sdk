@@ -72,7 +72,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     future.then((read) {
       _filePosition += read;
       if (read != _data.length) {
-        _data.removeRange(read, _data.length - read);
+        _data = _data.getRange(0, read);
       }
       _position = 0;
 
