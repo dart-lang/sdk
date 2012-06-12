@@ -928,8 +928,8 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   // Generate stack overflow check.
-  __ movq(TMP, Immediate(Isolate::Current()->stack_limit_address()));
-  __ cmpq(RSP, Address(TMP, 0));
+  __ movq(RDI, Immediate(Isolate::Current()->stack_limit_address()));
+  __ cmpq(RSP, Address(RDI, 0));
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
   GenerateCallRuntime(AstNode::kNoId,

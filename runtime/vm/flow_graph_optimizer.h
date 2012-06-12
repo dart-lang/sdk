@@ -19,6 +19,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ApplyICData();
 
+  virtual void VisitStaticCall(StaticCallComp* comp);
   virtual void VisitInstanceCall(InstanceCallComp* comp);
   virtual void VisitInstanceSetter(InstanceSetterComp* comp);
   virtual void VisitLoadIndexed(LoadIndexedComp* comp);
@@ -35,6 +36,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void TryInlineInstanceGetter(InstanceCallComp* comp);
   void TryInlineInstanceSetter(InstanceSetterComp* comp);
+
+  void TryInlineInstanceMethod(InstanceCallComp* comp);
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };

@@ -262,15 +262,16 @@ static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
   Register result = comp->locs()->out().reg();
+  Register temp =  comp->locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_index(),
                                         comp->try_index(),
                                         kDeoptSmiCompareSmis,
                                         left,
                                         right);
-  __ movq(TMP, left);
-  __ orq(TMP, right);
-  __ testq(TMP, Immediate(kSmiTagMask));
+  __ movq(temp, left);
+  __ orq(temp, right);
+  __ testq(temp, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -290,11 +291,12 @@ static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
 LocationSummary* RelationalOpComp::MakeLocationSummary() const {
   if (operands_class_id() == kSmi) {
     const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
   if (operands_class_id() == kDouble) {
@@ -754,10 +756,23 @@ LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
 
 
 void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
+  Register instance = locs()->in(0).reg();
   Register result = locs()->out().reg();
+  if (class_ids() != NULL) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+                                          original()->token_index(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget,
+                                          instance,
+                                          kNoRegister);
+    // Smis do not have instance fields (Smi class is always first).
+    // Use 'result' as temporary register.
+    ASSERT(result != instance);
+    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+  }
 
-  __ movq(result, FieldAddress(obj, offset_in_bytes()));
+  __ movq(result, FieldAddress(instance, offset_in_bytes()));
 }
 
 
@@ -1225,7 +1240,6 @@ static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
   Register right = comp->locs()->in(1).reg();
   Register temp = comp->locs()->temp(0).reg();
   Register result = comp->locs()->out().reg();
-
 
   const Class& double_class =
       Class::ZoneHandle(Isolate::Current()->object_store()->double_class());

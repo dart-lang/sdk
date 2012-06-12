@@ -1164,9 +1164,28 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   LoadVMFieldComp(Value* value,
                   intptr_t offset_in_bytes,
                   const AbstractType& type)
-      : offset_in_bytes_(offset_in_bytes), type_(type) {
+      : offset_in_bytes_(offset_in_bytes),
+        type_(type),
+        original_(NULL),
+        class_ids_(NULL) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    inputs_[0] = value;
+  }
+
+  LoadVMFieldComp(Value* value,
+                  intptr_t offset_in_bytes,
+                  const AbstractType& type,
+                  InstanceCallComp* original,
+                  ZoneGrowableArray<intptr_t>* class_ids)
+      : offset_in_bytes_(offset_in_bytes),
+        type_(type),
+        original_(original),
+        class_ids_(class_ids) {
+    ASSERT(value != NULL);
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    ASSERT(original != NULL);
+    ASSERT(class_ids != NULL);
     inputs_[0] = value;
   }
 
@@ -1175,12 +1194,17 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
+  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
+  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
+  const InstanceCallComp* original_;  // For optimizations.
+  // If non-NULL, the instruction is valid only for the class ids listed.
+  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };

@@ -14,6 +14,64 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, trace_optimization);
 
+// TODO(srdjan): Add _ByteArrayBase, get:length.
+
+#define RECOGNIZED_LIST(V)                                                     \
+  V(ObjectArray, get:length, ObjectArrayLength)                                \
+  V(ImmutableArray, get:length, ImmutableArrayLength)                          \
+  V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
+  V(StringBase, get:length, StringBaseLength)                                  \
+  V(IntegerImplementation, toDouble, IntegerToDouble)                          \
+  V(Double, toDouble, DoubleToDouble)                                          \
+  V(Math, sqrt, MathSqrt)                                                      \
+
+// Class that recognizes the name and owner of a function and returns the
+// corresponding enum. See RECOGNIZED_LIST above for list of recognizable
+// functions.
+class MethodRecognizer : public AllStatic {
+ public:
+  enum Kind {
+    kUnknown,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
+RECOGNIZED_LIST(DEFINE_ENUM_LIST)
+#undef DEFINE_ENUM_LIST
+  };
+
+  static Kind RecognizeKind(const Function& function) {
+    // Only core library methods can be recognized.
+    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    const Class& function_class = Class::Handle(function.owner());
+    if ((function_class.library() != core_lib.raw()) &&
+        (function_class.library() != core_impl_lib.raw())) {
+      return kUnknown;
+    }
+    const String& recognize_name = String::Handle(function.name());
+    const String& recognize_class = String::Handle(function_class.Name());
+    String& test_function_name = String::Handle();
+    String& test_class_name = String::Handle();
+#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
+    test_function_name = String::NewSymbol(#function_name);                    \
+    test_class_name = String::NewSymbol(#class_name);                          \
+    if (recognize_name.Equals(test_function_name) &&                           \
+        recognize_class.Equals(test_class_name)) {                             \
+      return k##enum_name;                                                     \
+    }
+RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
+#undef RECOGNIZE_FUNCTION
+    return kUnknown;
+  }
+
+  static const char* KindToCString(Kind kind) {
+#define KIND_TO_STRING(class_name, function_name, enum_name)                   \
+    if (kind == k##enum_name) return #enum_name;
+RECOGNIZED_LIST(KIND_TO_STRING)
+#undef KIND_TO_STRING
+    return "?";
+  }
+};
+
+
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
   if (FLAG_print_flow_graph) {
@@ -173,6 +231,7 @@ void FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
 
 
 // Returns true if all targets are the same.
+// TODO(srdjan): if targets are native use their C_function to compare.
 static bool HasOneTarget(const ICData& ic_data) {
   ASSERT(ic_data.NumberOfChecks() > 0);
   Function& prev_target = Function::Handle();
@@ -239,31 +298,133 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
-    // No type feedback collected
-    return;
-  }
-  if (!HasOneTarget(ic_data)) {
-    // TODO(srdjan): Implement when not all targets are the sa,e.
+    // No type feedback collected.
     return;
   }
   Function& target = Function::Handle();
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
-  if (target.kind() != RawFunction::kImplicitGetter) {
-    // Not an implicit getter.
-    // TODO(srdjan): Inline special getters (e.g., array length).
+  GrowableArray<const Class*> classes;
+  ic_data.GetCheckAt(0, &classes, &target);
+  ASSERT(classes.length() == 1);
+
+  if (target.kind() == RawFunction::kImplicitGetter) {
+    if (!HasOneTarget(ic_data)) {
+      // TODO(srdjan): Implement for mutiple targets.
+      return;
+    }
+    // Inline implicit instance getter.
+    const String& field_name =
+        String::Handle(Field::NameFromGetter(comp->function_name()));
+    const Field& field = Field::Handle(GetField(*classes[0], field_name));
+    ASSERT(!field.IsNull());
+    LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
+        field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
+    // Replace 'comp' with 'load'.
+    load->set_instr(comp->instr());
+    comp->instr()->replace_computation(load);
     return;
   }
-  // Inline implicit instance getter.
-  const String& field_name =
-      String::Handle(Field::NameFromGetter(comp->function_name()));
-  const Field& field = Field::Handle(GetField(cls, field_name));
-  ASSERT(!field.IsNull());
-  LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-      field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
-  // Replace 'comp' with 'load'.
-  load->set_instr(comp->instr());
-  comp->instr()->replace_computation(load);
+
+  // Not an implicit getter.
+  MethodRecognizer::Kind recognized_kind =
+      MethodRecognizer::RecognizeKind(target);
+
+  // VM objects length getter.
+  if ((recognized_kind == MethodRecognizer::kObjectArrayLength) ||
+      (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
+      (recognized_kind == MethodRecognizer::kGrowableArrayLength)) {
+    if (!HasOneTarget(ic_data)) {
+      // TODO(srdjan): Implement for mutiple targets.
+      return;
+    }
+    intptr_t length_offset = -1;
+    switch (recognized_kind) {
+      case MethodRecognizer::kObjectArrayLength:
+      case MethodRecognizer::kImmutableArrayLength:
+        length_offset = Array::length_offset();
+        break;
+      case MethodRecognizer::kGrowableArrayLength:
+        length_offset = GrowableObjectArray::length_offset();
+        break;
+      default:
+        UNREACHABLE();
+    }
+    LoadVMFieldComp* load = new LoadVMFieldComp(
+        comp->InputAt(0),
+        Array::length_offset(),
+        Type::ZoneHandle(Type::IntInterface()),
+        comp,
+        ExtractClassIds(ic_data));
+    load->set_instr(comp->instr());
+    comp->instr()->replace_computation(load);
+    return;
+  }
+
+  if (recognized_kind == MethodRecognizer::kStringBaseLength) {
+    ASSERT(HasOneTarget(ic_data));
+    LoadVMFieldComp* load = new LoadVMFieldComp(
+        comp->InputAt(0),
+        String::length_offset(),
+        Type::ZoneHandle(Type::IntInterface()),
+        comp,
+        ExtractClassIds(ic_data));
+    load->set_instr(comp->instr());
+    comp->instr()->replace_computation(load);
+    return;
+  }
+}
+
+
+// Inline only simple, frequently called core library methods.
+void FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  if ((ic_data.NumberOfChecks() == 0) || !HasOneTarget(ic_data)) {
+    // No type feedback collected.
+    return;
+  }
+  Function& target = Function::Handle();
+  GrowableArray<const Class*> classes;
+  ic_data.GetCheckAt(0, &classes, &target);
+  ASSERT(classes.length() == 1);
+  MethodRecognizer::Kind recognized_kind =
+      MethodRecognizer::RecognizeKind(target);
+  if (recognized_kind == MethodRecognizer::kDoubleToDouble) {
+    // TODO(srdjan): Implement.
+  }
+  if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
+    // TODO(srdjan): Implement.
+  }
+}
+
+
+void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
+  if (comp->HasICData()) {
+    const String& function_name = comp->function_name();
+    Token::Kind op_kind = Token::GetBinaryOp(function_name);
+    if (op_kind != Token::kILLEGAL) {
+      TryReplaceWithBinaryOp(comp, op_kind);
+      return;
+    }
+    op_kind = Token::GetUnaryOp(function_name);
+    if (op_kind != Token::kILLEGAL) {
+      TryReplaceWithUnaryOp(comp, op_kind);
+      return;
+    }
+    if (Field::IsGetterName(function_name)) {
+      TryInlineInstanceGetter(comp);
+      return;
+    }
+    TryInlineInstanceMethod(comp);
+  }
+}
+
+
+void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp) {
+  MethodRecognizer::Kind recognized_kind =
+      MethodRecognizer::RecognizeKind(comp->function());
+  if (recognized_kind == MethodRecognizer::kMathSqrt) {
+    // TODO(srdjan): Implement this.
+  }
 }
 
 
@@ -271,7 +432,7 @@ void FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
-    // No type feedback collected
+    // No type feedback collected.
     return;
   }
   if (!HasOneTarget(ic_data)) {
@@ -300,26 +461,6 @@ void FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
   comp->instr()->replace_computation(store);
 }
 
-
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
-  if (comp->HasICData()) {
-    const String& function_name = comp->function_name();
-    Token::Kind op_kind = Token::GetBinaryOp(function_name);
-    if (op_kind != Token::kILLEGAL) {
-      TryReplaceWithBinaryOp(comp, op_kind);
-      return;
-    }
-    op_kind = Token::GetUnaryOp(function_name);
-    if (op_kind != Token::kILLEGAL) {
-      TryReplaceWithUnaryOp(comp, op_kind);
-      return;
-    }
-    if (Field::IsGetterName(function_name)) {
-      TryInlineInstanceGetter(comp);
-      return;
-    }
-  }
-}
 
 
 void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {

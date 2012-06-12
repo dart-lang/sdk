@@ -300,6 +300,7 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
     case Token::kLT: return BELOW;
     case Token::kGT: return ABOVE;
     case Token::kLTE: return BELOW_EQUAL;
+    case Token::kGTE: return ABOVE_EQUAL;
     default:
       UNREACHABLE();
       return OVERFLOW;
@@ -648,10 +649,23 @@ LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
 
 
 void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
+  Register instance = locs()->in(0).reg();
   Register result = locs()->out().reg();
+  if (class_ids() != NULL) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+                                          original()->token_index(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget,
+                                          instance,
+                                          kNoRegister);
+    // Smis do not have instance fields (Smi class is always first).
+    // Use 'result' as temporary register.
+    ASSERT(result != instance);
+    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+  }
 
-  __ movl(result, FieldAddress(obj, offset_in_bytes()));
+  __ movl(result, FieldAddress(instance, offset_in_bytes()));
 }
 
 
@@ -927,12 +941,13 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
   if (operands_type() == kDoubleOperands) {
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(Location::RegisterLocation(EAX));
+    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
   ASSERT(operands_type() == kSmiOperands);
@@ -1110,15 +1125,46 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 
 static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
                                BinaryOpComp* comp) {
-  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
-  // for all intended operations.
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Register result = comp->locs()->out().reg();
+
+  const Class& double_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
   __ pushl(left);
   __ pushl(right);
-  InstanceCallComp* instance_call_comp = comp->instance_call();
-  instance_call_comp->EmitNativeCode(compiler);
-  __ MoveRegister(comp->locs()->out().reg(), EAX);
+  compiler->GenerateCall(comp->instance_call()->token_index(),
+                         comp->instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  // Newly allocated object is now in the result register (RAX).
+  ASSERT(result == EAX);
+  __ popl(right);
+  __ popl(left);
+
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptDoubleBinaryOp,
+                                        left,
+                                        right);
+
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+
+  switch (comp->op_kind()) {
+    case Token::kADD: __ addsd(XMM0, XMM1); break;
+    case Token::kSUB: __ subsd(XMM0, XMM1); break;
+    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
+    case Token::kDIV: __ divsd(XMM0, XMM1); break;
+    default: UNREACHABLE();
+  }
+
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
 }
 
 
