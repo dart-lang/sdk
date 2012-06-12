@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart core library.
-
-
 /**
  * A [Future] is used to obtain a value sometime in the future.  Receivers of a
- * [Future] can obtain the value by passing a callback to [then].
- * For example:
+ * [Future] can obtain the value by passing a callback to [then]. For example:
  *
- *   Future<int> future = getFutureFromSomewhere();
- *   future.then((value) {
- *     print("I received the number $value");
- *   });
- * 
+ *     Future<int> future = getFutureFromSomewhere();
+ *     future.then((value) {
+ *       print("I received the number $value");
+ *     });
+ *
  * A future may complete by *succeeding* (producing a value) or *failing*
  * (producing an exception, which may be handled with [handleException]).
  * Callbacks passed to [onComplete] will be invoked in either case.
@@ -45,6 +41,14 @@ interface Future<T> default FutureImpl<T> {
    * completes.
    */
   Object get exception();
+
+  /**
+   * The stack trace object associated with the exception that occurred. This
+   * throws a [FutureNotCompleteException] if it is used before the future
+   * completes. Returns [:null:] if the future completed successfully or a
+   * stack trace wasn't provided with the exception when it occurred.
+   */
+  Object get stackTrace();
 
   /**
    * Whether the future is complete (either the value is available or there was
@@ -97,8 +101,8 @@ interface Future<T> default FutureImpl<T> {
    *
    * If an exception occurs (received by this future, or thrown by
    * [transformation]) then the returned future will receive the exception.
-   *  
-   * You must not add exception handlers to [this] future prior to calling 
+   *
+   * You must not add exception handlers to [this] future prior to calling
    * transform, and any you add afterwards will not be invoked.
    */
   Future transform(transformation(T value));
@@ -115,7 +119,7 @@ interface Future<T> default FutureImpl<T> {
     * [transformation], or received by the future returned by [transformation])
     * then the returned future will receive the exception.
     *
-    * You must not add exception handlers to [this] future prior to calling 
+    * You must not add exception handlers to [this] future prior to calling
     * chain, and any you add afterwards will not be invoked.
     */
    Future chain(Future transformation(T value));
@@ -154,9 +158,11 @@ interface Completer<T> default CompleterImpl<T> {
 
   /**
    * Indicate in [future] that an exception occured while trying to produce its
-   * value. The argument [exception] should not be [:null:].
+   * value. The argument [exception] should not be [:null:]. A [stackTrace]
+   * object can be provided as well to give the user information about where
+   * the error occurred. If omitted, it will be [:null:].
    */
-  void completeException(Object exception);
+  void completeException(Object exception, [Object stackTrace]);
 }
 
 /** Thrown when reading a future's properties before it is complete. */

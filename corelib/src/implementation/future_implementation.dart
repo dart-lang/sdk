@@ -17,6 +17,11 @@ class FutureImpl<T> implements Future<T> {
   Object _exception;
 
   /**
+   * Stack trace associated with [_exception], if one was provided.
+   */
+  Object _stackTrace;
+
+  /**
    * true, if any onException handler handled the exception.
    */
   bool _exceptionHandled = false;
@@ -62,6 +67,13 @@ class FutureImpl<T> implements Future<T> {
       throw new FutureNotCompleteException();
     }
     return _exception;
+  }
+
+  Object get stackTrace() {
+    if (!isComplete) {
+      throw new FutureNotCompleteException();
+    }
+    return _stackTrace;
   }
 
   bool get isComplete() {
@@ -132,7 +144,7 @@ class FutureImpl<T> implements Future<T> {
         try {
           listener(this);
         } catch (final e) {}
-      }      
+      }
     }
   }
 
@@ -144,15 +156,16 @@ class FutureImpl<T> implements Future<T> {
     _complete();
   }
 
-  void _setException(var exception) {
+  void _setException(Object exception, Object stackTrace) {
     if (exception === null) {
-      // null is not a legal value for the exception of a Future
+      // null is not a legal value for the exception of a Future.
       throw new IllegalArgumentException(null);
     }
     if (_isComplete) {
       throw new FutureAlreadyCompleteException();
     }
     _exception = exception;
+    _stackTrace = stackTrace;
     _complete();
   }
 
@@ -166,8 +179,8 @@ class FutureImpl<T> implements Future<T> {
       var transformed = null;
       try {
         transformed = transformation(v);
-      } catch (final e) {
-        completer.completeException(e);
+      } catch (final ex, final stackTrace) {
+        completer.completeException(ex, stackTrace);
         return;
       }
       completer.complete(transformed);
@@ -185,8 +198,8 @@ class FutureImpl<T> implements Future<T> {
       var future = null;
       try {
         future = transformation(v);
-      } catch (final e) {
-        completer.completeException(e);
+      } catch (final ex, final stackTrace) {
+        completer.completeException(ex, stackTrace);
         return;
       }
       future.handleException((e) {
@@ -213,7 +226,7 @@ class CompleterImpl<T> implements Completer<T> {
     _futureImpl._setValue(value);
   }
 
-  void completeException(var exception) {
-    _futureImpl._setException(exception);
+  void completeException(Object exception, [Object stackTrace]) {
+    _futureImpl._setException(exception, stackTrace);
   }
 }

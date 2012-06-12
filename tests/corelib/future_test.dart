@@ -206,7 +206,7 @@ testException() {
   final ex = new Exception();
   future.then((_) {}); // exception is thrown if we plan to use the value
   Expect.throws(
-      () { completer.completeException(ex); }, 
+      () { completer.completeException(ex); },
       check: (e) => e == ex);
 }
 
@@ -262,7 +262,7 @@ testExceptionHandlerReturnsFalse() {
   future.handleException((e) { return false; });
   future.handleException((e) { reached = true; return false; }); // overshadowed
   Expect.throws(
-      () { completer.completeException(ex); }, 
+      () { completer.completeException(ex); },
       check: (e) => e == ex);
   Expect.isTrue(reached);
 }
@@ -301,6 +301,54 @@ testExceptionHandlerAfterCompleteReturnsFalseThenThrows() {
   future.handleException((e) { ex2 = e; return false; });
   Expect.throws(() { future.then((e) { }); });
   Expect.equals(ex, ex2);
+}
+
+// Tests for accessing the exception call stack.
+
+testCallStackThrowsIfNotComplete() {
+  var exception;
+  try {
+    new Completer().future.callStack;
+  } catch (var ex) {
+    exception = ex;
+  }
+
+  Expect.isTrue(exception is FutureNotCompleteException);
+}
+
+testCallStackIsNullIfCompletedSuccessfully() {
+  Expect.isNull(new Future.immediate('blah').callStack);
+}
+
+testCallStackReturnsCallstackPassedToCompleteException() {
+  final completer = new Completer();
+  final future = completer.future;
+
+  final callstack = 'fake call stack';
+  completer.completeException(new Exception(), callstack);
+  Expect.equals(callstack, future.callStack);
+}
+
+testCallStackIsCapturedIfTransformCallbackThrows() {
+  final completer = new Completer();
+  final transformed = completer.future.transform((_) {
+    throw 'whoops!';
+  });
+
+  final callstack = 'fake call stack';
+  completer.complete('blah');
+  Expect.isNotNull(transformed.callStack);
+}
+
+testCallStackIsCapturedIfChainCallbackThrows() {
+  final completer = new Completer();
+  final chained = completer.future.chain((_) {
+    throw 'whoops!';
+  });
+
+  final callstack = 'fake call stack';
+  completer.complete('blah');
+  Expect.isNotNull(chained.callStack);
 }
 
 // Tests for mixed usage of [onComplete], [then], and [handleException]
@@ -470,6 +518,11 @@ main() {
   testExceptionHandlerReturnsFalse2();
   testExceptionHandlerAfterCompleteThenNotCalled();
   testExceptionHandlerAfterCompleteReturnsFalseThenThrows();
+  testCallStackThrowsIfNotComplete();
+  testCallStackIsNullIfCompletedSuccessfully();
+  testCallStackReturnsCallstackPassedToCompleteException();
+  testCallStackIsCapturedIfTransformCallbackThrows();
+  testCallStackIsCapturedIfChainCallbackThrows();
   testCompleteWithCompletionAndSuccessHandlers();
   testExceptionWithCompletionAndSuccessHandlers();
   testExceptionWithCompletionAndSuccessAndExceptionHandlers();
