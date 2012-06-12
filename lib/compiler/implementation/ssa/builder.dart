@@ -139,6 +139,9 @@ class SsaBuilderTask extends CompilerTask {
   final Interceptors interceptors;
   final Map<Node, ClosureData> closureDataCache;
   final CodeEmitterTask emitter;
+  // Loop tracking information.
+  final Set<FunctionElement> functionsCalledInLoop;
+  final Map<SourceString, Selector> selectorsCalledInLoop;
 
   String get name() => 'SSA builder';
 
@@ -146,6 +149,8 @@ class SsaBuilderTask extends CompilerTask {
     : interceptors = new Interceptors(backend.compiler),
       closureDataCache = new HashMap<Node, ClosureData>(),
       emitter = backend.emitter,
+      functionsCalledInLoop = new Set<FunctionElement>(),
+      selectorsCalledInLoop = new Map<SourceString, Selector>(),
       super(backend.compiler);
 
   HGraph build(WorkItem work) {
@@ -166,6 +171,12 @@ class SsaBuilderTask extends CompilerTask {
           break;
       }
       assert(graph.isValid());
+      bool inLoop = functionsCalledInLoop.contains(element);
+      if (!inLoop) {
+        Selector selector = selectorsCalledInLoop[element.name];
+        inLoop = selector !== null && selector.applies(element, compiler);
+      }
+      graph.calledInLoop = inLoop;
       if (compiler.tracer.enabled) {
         String name;
         if (element.enclosingElement !== null &&

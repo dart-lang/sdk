@@ -1607,13 +1607,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(compiler.namer.instanceMethodInvocationName(
           currentLibrary, node.name, node.selector));
       visitArguments(node.inputs);
+      bool inLoop = node.block.enclosingLoopHeader !== null;
       if (node.element !== null) {
         // If we know we're calling a specific method, register that
         // method only.
+        if (inLoop) {
+          backend.builder.functionsCalledInLoop.add(node.element);
+        }
         world.registerDynamicInvocationOf(node.element);
       } else {
+        if (inLoop) {
+          backend.builder.selectorsCalledInLoop[node.name] = node.selector;
+        }
         world.registerDynamicInvocation(
-            node.name, getOptimizedSelectorFor(node, node.selector));
+            node.name,
+            getOptimizedSelectorFor(node, node.selector));
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);

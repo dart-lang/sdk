@@ -81,12 +81,10 @@ class Environment {
  * inconsistent way. No further analysis should rely on them.
  */
 class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
-  static final int SMALL_METHOD_BLOCK_LIMIT = 5;
-
   final Compiler compiler;
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
-  bool smallMethodNoLoops = false;
+  bool calledInLoop = false;
   bool isRecursiveMethod = false;
   int stateId = 1;
 
@@ -94,15 +92,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
   void visitGraph(HGraph graph) {
     isRecursiveMethod = graph.isRecursiveMethod;
-    var blocks = graph.blocks;
-    if (blocks.length < SMALL_METHOD_BLOCK_LIMIT) {
-      smallMethodNoLoops = true;
-      for (var i = 0; i < blocks.length; i++) {
-        if (blocks[i].enclosingLoopHeader !== null) {
-          smallMethodNoLoops = false;
-        }
-      }
-    }
+    calledInLoop = graph.calledInLoop;
     work.guards = <HTypeGuard>[];
     visitDominatorTree(graph);
   }
@@ -163,14 +153,9 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
       if (isNested(userLoopHeader, currentLoopHeader)) return true;
     }
 
-    // Insert type guards for small methods with no loops and multiple
-    // uses. These are expected to be helper methods that could
-    // benefit from type guards. If there is a loop, we expect the
-    // loop to take most of the time and that inserting a type guard
-    // for something not used in the loop will not be valuable.
-    if (smallMethodNoLoops && instruction.usedBy.length > 2) return true;
-
-    return false;
+    // Insert type guards if the method is likely to be called in a
+    // loop.
+    return calledInLoop;
   }
 
   bool shouldInsertTypeGuard(HInstruction instruction) {
