@@ -109,7 +109,7 @@ class Enqueuer {
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (universe.hasGetter(member, compiler)) {
+      if (universe.hasInvokedGetter(member, compiler)) {
         // We will emit a closure, so make sure the closure class is
         // generated.
         compiler.closureClass.ensureResolved(compiler);
@@ -117,7 +117,7 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
-      if (universe.hasGetter(member, compiler)) {
+      if (universe.hasInvokedGetter(member, compiler)) {
         return addToWorkList(member);
       }
       // We don't know what selectors the returned closure accepts. If
@@ -126,7 +126,7 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind === ElementKind.SETTER) {
-      if (universe.hasSetter(member, compiler)) {
+      if (universe.hasInvokedSetter(member, compiler)) {
         return addToWorkList(member);
       }
     }
@@ -163,13 +163,13 @@ class Enqueuer {
     });
   }
 
-  void registerGetter(SourceString getterName, Selector selector) {
+  void registerInvokedGetter(SourceString getterName, Selector selector) {
     task.measure(() {
       registerNewSelector(getterName, selector, universe.invokedGetters);
     });
   }
 
-  void registerSetter(SourceString setterName, Selector selector) {
+  void registerInvokedSetter(SourceString setterName, Selector selector) {
     task.measure(() {
       registerNewSelector(setterName, selector, universe.invokedSetters);
     });
@@ -216,11 +216,27 @@ class Enqueuer {
   }
 
   void registerDynamicGetter(SourceString methodName, Selector selector) {
-    registerGetter(methodName, selector);
+    registerInvokedGetter(methodName, selector);
   }
 
   void registerDynamicSetter(SourceString methodName, Selector selector) {
-    registerSetter(methodName, selector);
+    registerInvokedSetter(methodName, selector);
+  }
+
+  void registerFieldGetter(SourceString getterName, Type type) {
+    task.measure(() {
+      registerNewSelector(getterName,
+                          new TypedSelector(type, Selector.GETTER),
+                          universe.fieldGetters);
+    });
+  }
+
+  void registerFieldSetter(SourceString setterName, Type type) {
+    task.measure(() {
+      registerNewSelector(setterName,
+                          new TypedSelector(type, Selector.SETTER),
+                          universe.fieldSetters);
+    });
   }
 
   // TODO(ngeoffray): This should get a type.

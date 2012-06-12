@@ -1319,7 +1319,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     compiler.internalError('visitTry should not be called', instruction: node);
   }
 
-  /** 
+  /**
    * Analyzes the given [graph] to know whether it is empty, or
    * contains one statement, one expression, or multiple statements.
    */
@@ -1329,7 +1329,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Only deal with single blocks for now. TODO(ngeoffray): analyze
     // all blocks.
     if (start !== end) return MULTIPLE_STATEMENTS;
-    
+
     int kind = EMPTY;
     bool updateKind(int newKind) {
       if (kind != EMPTY) return false;
@@ -1710,6 +1710,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('.');
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldGetter(node.element.name, type);
+      }
     } else {
       use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
@@ -1723,6 +1727,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(name);
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldSetter(node.element.name, type);
+      }
     } else {
       declareInstruction(node.receiver);
     }
@@ -2645,12 +2653,12 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   // find the name of its checked input. Note that there must be a
   // name, otherwise the instruction would not be in the live
   // environment.
-  HInstruction unwrap(argument) {	
+  HInstruction unwrap(argument) {
     while (argument is HCheck && !variableNames.hasName(argument)) {
       argument = argument.checkedInput;
     }
     assert(variableNames.hasName(argument));
-    return argument;	
+    return argument;
   }
 
   void visitTypeGuard(HTypeGuard node) {
