@@ -168,15 +168,19 @@ function(cls, fields, methods) {
   }
 
   void potentiallyConvertDartClosuresToJs(StringBuffer code,
-                                          FunctionElement member) {
+                                          FunctionElement member,
+                                          List<String> argumentsBuffer) {
     FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
         compiler.findHelper(const SourceString('convertDartClosureToJS'));
     String closureConverter = compiler.namer.isolateAccess(converter);
     parameters.forEachParameter((Element parameter) {
+      String name = parameter.name.slowToString();
+      // If [name] is not in [argumentsBuffer], then the parameter is
+      // an optional parameter that was not provided for that stub.
+      if (argumentsBuffer.indexOf(name) == -1) return;
       Type type = parameter.computeType(compiler);
       if (type is FunctionType) {
-        String name = parameter.name.slowToString();
         int arity = type.computeArity();
         code.add('  $name = $closureConverter($name, $arity);\n');
       }
@@ -206,7 +210,7 @@ function(cls, fields, methods) {
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
     StringBuffer code = new StringBuffer();
-    potentiallyConvertDartClosuresToJs(code, member);
+    potentiallyConvertDartClosuresToJs(code, member, argumentsBuffer);
 
     if (!nativeMethods.contains(member)) {
       // When calling a method that has a native body, we call it
