@@ -4,7 +4,7 @@
 
 class _FileInputStream extends _BaseDataInputStream implements InputStream {
   _FileInputStream(String name)
-      : _data = [],
+      : _data = const [],
         _position = 0,
         _filePosition = 0 {
     var file = new File(name);
@@ -17,7 +17,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   _FileInputStream.fromStdio(int fd)
-      : _data = [],
+      : _data = const [],
         _position = 0,
         _filePosition = 0 {
     assert(fd == 0);
@@ -65,8 +65,14 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
       _closeFile();
       return;
     }
+    // If there is currently a _fillBuffer call waiting on readList,
+    // let it fill the buffer instead of us.
+    if (_activeFillBufferCall) return;
+    _activeFillBufferCall = true;
     if (_data.length != size) {
       _data = new Uint8List(size);
+      // Maintain the invariant signalling that the buffer is empty.
+      _position = _data.length;
     }
     var future = _openedFile.readList(_data, 0, _data.length);
     future.then((read) {
@@ -75,11 +81,17 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
         _data = _data.getRange(0, read);
       }
       _position = 0;
+      _activeFillBufferCall = false;
 
       if (_fileLength == _filePosition) {
         _closeFile();
       }
       _checkScheduleCallbacks();
+    });
+    future.handleException((e) {
+      _activeFillBufferCall = false;
+      _reportError(e);
+      return true;
     });
   }
 
@@ -103,7 +115,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     List<int> result;
     if (_position == 0 && bytesToRead == _data.length) {
       result = _data;
-      _data = [];
+      _data = const [];
     } else {
       result = new Uint8List(bytesToRead);
       result.setRange(0, bytesToRead, _data, _position);
@@ -121,7 +133,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   void _close() {
-    _data = [];
+    _data = const [];
     _position = 0;
     _filePosition = 0;
     _fileLength = 0;
@@ -135,6 +147,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   int _position;
   int _filePosition;
   int _fileLength;
+  bool _activeFillBufferCall = false;
 }
 
 
