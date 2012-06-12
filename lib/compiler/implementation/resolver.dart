@@ -156,7 +156,7 @@ class ResolverTask extends CompilerTask {
 
   void resolveConstructorImplementation(FunctionElement constructor,
                                         FunctionExpression node) {
-    assert(constructor.defaultImplementation === constructor);
+    if (constructor.defaultImplementation !== constructor) return;
     ClassElement intrface = constructor.enclosingElement;
     if (!intrface.isInterface()) return;
     Type defaultType = intrface.defaultClass;
