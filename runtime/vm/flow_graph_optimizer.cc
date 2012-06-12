@@ -350,7 +350,7 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     }
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->InputAt(0),
-        Array::length_offset(),
+        length_offset,
         Type::ZoneHandle(Type::IntInterface()),
         comp,
         ExtractClassIds(ic_data));
