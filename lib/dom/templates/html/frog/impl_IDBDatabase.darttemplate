@@ -29,8 +29,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return txn;
   }
 
-  static var _transaction_fn;  // Assigned one of the following:
-
   static _IDBTransactionImpl _transaction_string_mode($CLASSNAME db, stores, mode) {
     return db._transaction(stores, mode);
   }
@@ -47,3 +45,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   static bool _hasNumericMode(txn) native 'return typeof(txn.mode) === "number"';
 
 $!MEMBERS}
+
+// TODO(sra): This should be a static member of _IDBTransactionImpl but frog
+// can't handle that.  Move it back after frog is completely done.
+var _transaction_fn;  // Assigned one of the static methods.

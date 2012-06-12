@@ -7515,8 +7515,6 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
     return txn;
   }
 
-  static var _transaction_fn;  // Assigned one of the following:
-
   static _IDBTransactionImpl _transaction_string_mode(_IDBDatabaseImpl db, stores, mode) {
     return db._transaction(stores, mode);
   }
@@ -7556,6 +7554,10 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 }
+
+// TODO(sra): This should be a static member of _IDBTransactionImpl but frog
+// can't handle that.  Move it back after frog is completely done.
+var _transaction_fn;  // Assigned one of the static methods.
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
   _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
