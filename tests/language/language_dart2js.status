@@ -289,6 +289,7 @@ throw_test: Fail # BUG(3304)
 type_checks_in_factory_method_test: Fail # BUG(3304)
 typed_message_test: Fail # BUG(3304)
 unbound_getter_test: Fail # BUG(3304)
+is_nan_test: Fail # BUG(3542)
 
 
 [ $compiler == dart2js && $runtime == safari ]
