@@ -625,12 +625,15 @@ public class DartCompiler {
           Set<URI> includedSourceUris = Sets.newHashSet();
           for (LibraryNode sourceNode : lib.getSourcePaths()) {
             String path = sourceNode.getText();
-            URI uri = lib.getSource().getSourceFor(path).getUri();
-            if (includedSourceUris.contains(uri)) {
-              context.onError(new DartCompilationError(sourceNode.getSourceInfo(),
-                  DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, uri));
+            DartSource source = lib.getSource().getSourceFor(path);
+            if (source != null) {
+              URI uri = source.getUri();
+              if (includedSourceUris.contains(uri)) {
+                context.onError(new DartCompilationError(sourceNode.getSourceInfo(),
+                    DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, uri));
+              }
+              includedSourceUris.add(uri);
             }
-            includedSourceUris.add(uri);
           }
         }
 
