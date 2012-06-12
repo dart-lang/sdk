@@ -10,49 +10,13 @@
 
 namespace dart {
 
-bool OS::GmTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) return false;
-  errno_t error_code = gmtime_s(tm_result, &seconds);
-  return error_code == 0;
-}
-
-
 // As a side-effect sets the globals _timezone, _daylight and _tzname.
-bool OS::LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
+static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
   // localtime_s implicitly sets _timezone, _daylight and _tzname.
   errno_t error_code = localtime_s(tm_result, &seconds);
   return error_code == 0;
-}
-
-
-bool OS::MkGmTime(tm* tm, int64_t* seconds_result) {
-  // Disable daylight saving.
-  tm->tm_isdst = 0;
-  // Set wday to an impossible day, so that we can catch bad input.
-  tm->tm_wday = -1;
-  time_t seconds = _mkgmtime(tm);
-  if ((seconds == -1) && (tm->tm_wday == -1)) {
-    return false;
-  }
-  *seconds_result = seconds;
-  return true;
-}
-
-
-bool OS::MkTime(tm* tm, int64_t* seconds_result) {
-  // Let the libc figure out if daylight saving is active.
-  tm->tm_isdst = -1;
-  // Set wday to an impossible day, so that we can catch bad input.
-  tm->tm_wday = -1;
-  time_t seconds = mktime(tm);
-  if ((seconds == -1) && (tm->tm_wday == -1)) {
-    return false;
-  }
-  *seconds_result = seconds;
-  return true;
 }
 
 
@@ -67,39 +31,43 @@ static int GetDaylightSavingBiasInSeconds() {
   }
 }
 
-bool OS::GetTimeZoneName(int64_t seconds_since_epoch,
-                         const char** name_result) {
+
+const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   // LocalTime will set _tzname.
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
+  ASSERT(succeeded);
   int inDaylightSavingsTime = decomposed.tm_isdst;
-  if (inDaylightSavingsTime != 0 && inDaylightSavingsTime != 1) {
-    return false;
-  }
-  *name_result = _tzname[inDaylightSavingsTime];
-  return true;
+  ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
+  return _tzname[inDaylightSavingsTime];
 }
 
 
-bool OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch,
-                                    int* offset_result) {
+int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
   // LocalTime will set _timezone.
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
+  ASSERT(succeeded);
   int inDaylightSavingsTime = decomposed.tm_isdst;
-  if (inDaylightSavingsTime != 0 && inDaylightSavingsTime != 1) {
-    return false;
-  }
+  ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
   // Dart and Windows disagree on the sign of the bias.
-  *offset_result = static_cast<int>(-_timezone);
+  int offset = static_cast<int>(-_timezone);
   if (inDaylightSavingsTime == 1) {
     static int daylight_bias = GetDaylightSavingBiasInSeconds();
     // Subtract because windows and Dart disagree on the sign.
-    *offset_result = *offset_result - daylight_bias;
+    offset = offset - daylight_bias;
   }
-  return true;
+  return offset;
+}
+
+
+int OS::GetLocalTimeZoneAdjustmentInSeconds() {
+  tm decomposed;
+  // LocalTime will set _timezone.
+  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
+  ASSERT(succeeded);
+  // Dart and Windows disagree on the sign of the bias.
+  return static_cast<int>(-_timezone);
 }
 
 

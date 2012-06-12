@@ -206,6 +206,64 @@ class DateTest {
         dt.year, dt.month, dt.day, dt.hours, dt.minutes, dt.seconds,
         dt.milliseconds);
     Expect.equals(dt.value, dt2.value);
+    dt = new Date.fromEpoch(2100000000 * 1000, isUtc: true);
+    Expect.equals(2036, dt.year);
+    Expect.equals(7, dt.month);
+    Expect.equals(18, dt.day);
+    Expect.equals(13, dt.hours);
+    Expect.equals(20, dt.minutes);
+    Expect.equals(0, dt.seconds);
+    Expect.equals(0, dt.milliseconds);
+    // Internally this will use the maximum value for the native calls.
+    dt = new Date(2036, 7, 18, 13, 20);
+    Expect.equals(2036, dt.year);
+    Expect.equals(7, dt.month);
+    Expect.equals(18, dt.day);
+    Expect.equals(13, dt.hours);
+    Expect.equals(20, dt.minutes);
+    Expect.equals(0, dt.seconds);
+    Expect.equals(0, dt.milliseconds);
+    Expect.equals("2036-07-18 13:20:00.000", dt.toString());
+  }
+
+  static void testExtremes() {
+    var dt = new Date.fromEpoch(8640000000000000, isUtc: true);
+    Expect.equals(275760, dt.year);
+    Expect.equals(9, dt.month);
+    Expect.equals(13, dt.day);
+    Expect.equals(0, dt.hours);
+    Expect.equals(0, dt.minutes);
+    Expect.equals(0, dt.seconds);
+    Expect.equals(0, dt.milliseconds);
+    dt = new Date.fromEpoch(-8640000000000000, isUtc: true);
+    Expect.equals(-271821, dt.year);
+    Expect.equals(4, dt.month);
+    Expect.equals(20, dt.day);
+    Expect.equals(0, dt.hours);
+    Expect.equals(0, dt.minutes);
+    Expect.equals(0, dt.seconds);
+    Expect.equals(0, dt.milliseconds);
+    // Make sure that we can build the extreme dates in local too.
+    dt = new Date.fromEpoch(8640000000000000);
+    dt = new Date(dt.year, dt.month, dt.day, dt.hours, dt.minutes);
+    Expect.equals(8640000000000000, dt.value);
+    dt = new Date.fromEpoch(-8640000000000000);
+    dt = new Date(dt.year, dt.month, dt.day, dt.hours, dt.minutes);
+    Expect.equals(-8640000000000000, dt.value);
+    Expect.throws(() => new Date.fromEpoch(8640000000000001, isUtc: true));
+    Expect.throws(() => new Date.fromEpoch(-8640000000000001, isUtc: true));
+    Expect.throws(() => new Date.fromEpoch(8640000000000001));
+    Expect.throws(() => new Date.fromEpoch(-8640000000000001));
+    dt = new Date.fromEpoch(8640000000000000);
+    Expect.throws(() => new Date(dt.year, dt.month, dt.day,
+                                 dt.hours, dt.minutes, 0, 1));
+    dt = new Date.fromEpoch(-8640000000000000);
+    // TODO(floitsch): Update comment after refactoring.
+    // This test currently fails because the arguments must not be negative.
+    // However we are going to allow negative (and overflowing) arguments and
+    // this line will then throw for the correct reason.
+    Expect.throws(() => new Date(dt.year, dt.month, dt.day,
+                                 dt.hours, dt.minutes, 0, -1));
   }
 
   static void testUTCGetters() {
@@ -252,7 +310,11 @@ class DateTest {
   }
 
   static void testConstructors() {
+    var dt0 = new Date(2011, 5, 11, 18, 58, 35, 0, isUtc: true);
+    Expect.equals(1305140315000, dt0.value);
     var dt1 = new Date.fromEpoch(1305140315000);
+    Expect.equals(dt1.value, dt0.value);
+    Expect.equals(true, dt1 == dt0);
     var dt3 = new Date(dt1.year, dt1.month, dt1.day, dt1.hours, dt1.minutes,
                        dt1.seconds, dt1.milliseconds);
     Expect.equals(dt1.value, dt3.value);
@@ -260,9 +322,6 @@ class DateTest {
     dt3 = new Date(
         dt1.year, dt1.month, dt1.day, dt1.hours, dt1.minutes,
         dt1.seconds, dt1.milliseconds);
-    Expect.equals(dt1.value, dt3.value);
-    Expect.equals(true, dt1 == dt3);
-    dt3 = new Date(2011, 5, 11, 18, 58, 35, 0, isUtc: true);
     Expect.equals(dt1.value, dt3.value);
     Expect.equals(true, dt1 == dt3);
     var dt2 = dt1.toLocal();
@@ -283,6 +342,42 @@ class DateTest {
     Expect.equals(12, dt3.seconds);
     Expect.equals(0, dt3.milliseconds);
     Expect.equals(true, dt3.isUtc());
+    var dt4 = new Date(99, 1, 2);
+    Expect.equals(99, dt4.year);
+    Expect.equals(1, dt4.month);
+    Expect.equals(2, dt4.day);
+    Expect.equals(0, dt4.hours);
+    Expect.equals(0, dt4.minutes);
+    Expect.equals(0, dt4.seconds);
+    Expect.equals(0, dt4.milliseconds);
+    Expect.isFalse(dt4.isUtc());
+    var dt5 = new Date(99, 1, 2, isUtc: true);
+    Expect.equals(99, dt5.year);
+    Expect.equals(1, dt5.month);
+    Expect.equals(2, dt5.day);
+    Expect.equals(0, dt5.hours);
+    Expect.equals(0, dt5.minutes);
+    Expect.equals(0, dt5.seconds);
+    Expect.equals(0, dt5.milliseconds);
+    Expect.isTrue(dt5.isUtc());
+    var dt6 = new Date(2012, 2, 27, 13, 27, 0);
+    Expect.equals(2012, dt6.year);
+    Expect.equals(2, dt6.month);
+    Expect.equals(27, dt6.day);
+    Expect.equals(13, dt6.hours);
+    Expect.equals(27, dt6.minutes);
+    Expect.equals(0, dt6.seconds);
+    Expect.equals(0, dt6.milliseconds);
+    Expect.isFalse(dt6.isUtc());
+    var dt7 = new Date(2012, 2, 27, 13, 27, 0, isUtc: true);
+    Expect.equals(2012, dt7.year);
+    Expect.equals(2, dt7.month);
+    Expect.equals(27, dt7.day);
+    Expect.equals(13, dt7.hours);
+    Expect.equals(27, dt7.minutes);
+    Expect.equals(0, dt7.seconds);
+    Expect.equals(0, dt7.milliseconds);
+    Expect.isTrue(dt7.isUtc());
   }
 
   static void testChangeTimeZone() {
@@ -529,13 +624,14 @@ class DateTest {
   static void testMain() {
     testNow();
     testValue();
+    testConstructors();
     testUTCGetters();
     testLocalGetters();
-    testConstructors();
     testChangeTimeZone();
     testSubAdd();
     testDateStrings();
     testEquivalentYears();
+    testExtremes();
     testFarAwayDates();
     testWeekday();
   }
