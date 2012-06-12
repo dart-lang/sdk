@@ -994,15 +994,18 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(
   __ testq(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
-  bool jump_style = (class_ids.length() < 5) ?
-      Assembler::kNearJump : Assembler::kFarJump;
+  bool use_near_jump = class_ids.length() < 5;
   __ LoadClassId(temp_reg, instance_reg);
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ cmpl(temp_reg, Immediate(class_ids[i]));
     if (i == (class_ids.length() - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
-      __ j(EQUAL, &is_ok, jump_style);
+      if (use_near_jump) {
+        __ j(EQUAL, &is_ok, Assembler::kNearJump);
+      } else {
+        __ j(EQUAL, &is_ok);
+      }
     }
   }
   __ Bind(&is_ok);
