@@ -448,6 +448,8 @@ _html_event_names = {
   'webkitkeyerror': 'keyError',
   'webkitkeymessage': 'keyMessage',
   'webkitneedkey': 'needKey',
+  'webkitpointerlockchange': 'pointerLockChange',
+  'webkitpointerlockerror': 'pointerLockError',
   'webkitSpeechChange': 'speechChange',
   'webkitsourceclose': 'sourceClose',
   'webkitsourceended': 'sourceEnded',
