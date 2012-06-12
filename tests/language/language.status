@@ -83,9 +83,6 @@ factory5_test/00: Fail # issue 3079
 field3a_negative_test: Fail
 field_method4_negative_test: Fail
 final_syntax_test/*: Skip  # can't handle base case
-function_type_alias5_test/00: Fail # Legally self referencing typedef
-function_type_alias5_test/01: Fail # Legally self referencing typedef
-function_type_alias5_test/02: Fail # Legally self referencing typedef
 function_type_alias_negative_test: Fail  # Bug 5231617.
 generic_parameterized_extends_test: Skip  # Bug 5392297
 getters_setters_type3_test: Fail # Issue 2351

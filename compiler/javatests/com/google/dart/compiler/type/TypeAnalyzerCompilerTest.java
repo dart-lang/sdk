@@ -71,6 +71,52 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.MAIN_FUNCTION_PARAMETERS, 2, 1, 4));
   }
+
+  /**
+   * It is a compile-time error if a typedef refers to itself via a chain of references that does
+   * not include a class or interface type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3534
+   */
+  public void test_functionTypeAlias_selfRerences_direct() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef A A();",
+        "typedef B(B b);",
+        "typedef C([C c]);",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 2, 1, 14),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 3, 1, 15),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 17));
+  }
+  
+  /**
+   * It is a compile-time error if a typedef refers to itself via a chain of references that does
+   * not include a class or interface type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3534
+   */
+  public void test_functionTypeAlias_selfRerences_indirect() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef B1 A1();",
+        "typedef A1 B1();",
+        "typedef B2 A2();",
+        "typedef B2(A2 a);",
+        "typedef B3 A3();",
+        "typedef B3([A3 a]);",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 2, 1, 16),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 3, 1, 16),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 16),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 17),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 6, 1, 16),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 7, 1, 19));
+  }
   
   /**
    * It is a compile-time error if initializer list contains an initializer for a variable that

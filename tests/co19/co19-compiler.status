@@ -167,10 +167,7 @@ Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
 Language/12_Libraries_and_Scripts/3_Includes_A02_t02: Fail # Issue 3532
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Issue 3534
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Issue 3534
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Issue 3534
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Issue 3534
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # co19 issue 141
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
 Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130

@@ -111,6 +111,7 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
@@ -1398,9 +1399,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-      if (TypeKind.of(node.getElement().getType()).equals(TypeKind.FUNCTION_ALIAS)) {
-        FunctionAliasType type = node.getElement().getType();
+      FunctionAliasElement element = node.getElement();
+      FunctionAliasType type = element.getType();
+      if (TypeKind.of(type) == TypeKind.FUNCTION_ALIAS) {
         checkCyclicBounds(type.getElement().getTypeParameters());
+        if (hasFunctionTypeAliasSelfReference(element)) {
+          onError(node, TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+        }
       }
       return typeAsVoid(node);
     }
@@ -2267,6 +2272,64 @@ public class TypeAnalyzer implements DartCompilationPhase {
         checkAssignable(node.getElement().getType(), value);
       }
       return voidType;
+    }
+
+    /**
+     * @return <code>true</code> if given {@link FunctionAliasElement} has direct or indirect
+     *         reference to itself using other {@link FunctionAliasElement}s.
+     */
+    private boolean hasFunctionTypeAliasSelfReference(FunctionAliasElement target) {
+      Set<FunctionAliasElement> visited = Sets.newHashSet();
+      return hasFunctionTypeAliasReference(visited, target, target);
+    }
+
+    /**
+     * Checks if "target" is referenced by "current".
+     */
+    private boolean hasFunctionTypeAliasReference(Set<FunctionAliasElement> visited,
+        FunctionAliasElement target, FunctionAliasElement current) {
+      FunctionType type = current.getFunctionType();
+      // prepare Types directly referenced by "current"
+      Set<Type> referencedTypes = Sets.newHashSet();
+      if (type != null) {
+        // return type
+        referencedTypes.add(type.getReturnType());
+        // parameters
+        referencedTypes.addAll(type.getParameterTypes());
+        referencedTypes.addAll(type.getNamedParameterTypes().values());
+      }
+      // check that referenced types do not have references on "target"
+      for (Type referencedType : referencedTypes) {
+        if (referencedType != null
+            && hasFunctionTypeAliasReference(visited, target, referencedType.getElement())) {
+          return true;
+        }
+      }
+      // no
+      return false;
+    }
+
+    /**
+     * Checks if "target" is referenced by "current".
+     */
+    private boolean hasFunctionTypeAliasReference(Set<FunctionAliasElement> visited,
+        FunctionAliasElement target, Element currentElement) {
+      // only if "current" in function type alias
+      if (!(currentElement instanceof FunctionAliasElement)) {
+        return false;
+      }
+      FunctionAliasElement current = (FunctionAliasElement) currentElement;
+      // found "target"
+      if (Objects.equal(target, current)) {
+        return true;
+      }
+      // prevent recursion
+      if (visited.contains(current)) {
+        return false;
+      }
+      visited.add(current);
+      // check type of "current" function type alias
+      return hasFunctionTypeAliasReference(visited, target, current);
     }
 
     @Override
