@@ -18,19 +18,40 @@ class Isolate;
 // Interface to the underlying OS platform.
 class OS {
  public:
+  // Takes the seconds since epoch (midnight, January 1, 1970 UTC) and breaks it
+  // down into date and time in the UTC timezone.
+  // The returned year is offset by 1900. The returned month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool GmTime(int64_t seconds_since_epoch, tm* tm_result);
+
+  // Takes the seconds since epoch (midnight, January 1, 1970 UTC) and breaks it
+  // down into date and time in the local time.
+  // The returned year is offset by 1900. The returned month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result);
+
+  // Takes the broken down date and time in UTC timezone and computes the
+  // seconds since epoch (midnight, January 1, 1970 UTC).
+  // The given year is offset by 1900. The given month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool MkGmTime(tm* tm, int64_t* seconds_result);
+
+  // Takes the broken down date and time in local timezone and computes the
+  // seconds since epoch (midnight, January 1, 1970 UTC).
+  // The given year is offset by 1900. The given month is 0-based.
+  // Returns true if the conversion succeeds, false otherwise.
+  static bool MkTime(tm* tm, int64_t* seconds_result);
+
   // Returns the abbreviated time-zone name for the given instant.
   // For example "CET" or "CEST".
-  static const char* GetTimeZoneName(int64_t seconds_since_epoch);
+  static bool GetTimeZoneName(int64_t seconds_since_epoch,
+                              const char** name_result);
 
   // Returns the difference in seconds between local time and UTC for the given
   // instant.
   // For example 3600 for CET, and 7200 for CEST.
-  static int GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch);
-
-  // Returns the difference in seconds between local time and UTC when no
-  // daylight saving is active.
-  // For example 3600 in CET and CEST.
-  static int GetLocalTimeZoneAdjustmentInSeconds();
+  static bool GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch,
+                                         int* offset_result);
 
   // Returns the current time in milliseconds measured
   // from midnight January 1, 1970 UTC.

@@ -243,12 +243,8 @@ class DateImplementation implements Date {
     }
   }
 
-  static final int _MAX_VALUE = 8640000000000000;
-
   DateImplementation.fromEpoch(this.value, [bool isUtc = false])
-      : _isUtc = checkNull(isUtc) {
-    if (value.abs() > _MAX_VALUE) throw new IllegalArgumentException(value);
-  }
+      : _isUtc = checkNull(isUtc);
 
   bool operator ==(other) {
     if (!(other is DateImplementation)) return false;
