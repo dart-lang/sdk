@@ -15,14 +15,18 @@ void testStringInputStreamSync() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
+  int linesRead = 0;
   StringInputStream x = new StringInputStream(file.openInputStream());
   x.onLine = () {
-    // The file input stream is known (for now) to have read the whole
-    // file when the data handler is called.
     String line = x.readLine();
-    Expect.equals("Hello Dart", line);
-    line = x.readLine();
-    Expect.equals("wassup!", line);
+    linesRead++;
+    if (linesRead == 1) {
+      Expect.equals("Hello Dart", line);
+    } else if (linesRead == 2) {
+      Expect.equals("wassup!", line);
+    } else {
+      Expect.fail("More or less than 2 lines read ($linesRead lines read).");
+    }
   };
 }
 
@@ -40,7 +44,6 @@ void testInputStreamAsync() {
     Expect.equals(expected.length, byteCount);
   };
 }
-
 
 void testStringInputStreamAsync(String name, int length) {
   String fileName = getFilename("tests/standalone/io/$name");
@@ -61,7 +64,6 @@ void testStringInputStreamAsync(String name, int length) {
     Expect.equals(10, lineCount);
   };
 }
-
 
 void testChunkedInputStream() {
   // Force the test to timeout if it does not finish.
@@ -91,6 +93,26 @@ void testChunkedInputStream() {
   };
 }
 
+void testUnreadyInputStream() {
+  String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
+  var expected = "Hello Dart\nwassup!\n".charCodes();
+  InputStream x = (new File(fileName)).openInputStream();
+  List<int> buffer = new List<int>(100);
+
+  x.onData = () {
+    Expect.fail("Input stream closed before opening called onData handler.");
+  };
+
+  x.onClosed = () { };
+
+  // Called before stream is ready.
+  int read = x.readInto(buffer);
+  Expect.equals(0, read);
+
+  // Called before stream is ready.
+  x.close();
+}
+
 
 main() {
   testStringInputStreamSync();
@@ -101,4 +123,5 @@ main() {
   testStringInputStreamAsync("readline_test1.dat", 111);
   testStringInputStreamAsync("readline_test2.dat", 114);
   testChunkedInputStream();
+  testUnreadyInputStream();
 }

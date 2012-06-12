@@ -3,88 +3,138 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileInputStream extends _BaseDataInputStream implements InputStream {
-  _FileInputStream(String name) {
+  _FileInputStream(String name)
+      : _data = [],
+        _position = 0,
+        _filePosition = 0 {
     var file = new File(name);
-    _data = [];
-    _position = 0;
-    var chained = file.open(FileMode.READ).chain((openedFile) {
-      return _readDataFromFile(openedFile);
-    });
-    chained.handleException((e) {
+    var future = file.open(FileMode.READ);
+    future.handleException((e) {
       _reportError(e);
       return true;
     });
+    future.then(_setupOpenedFile);
   }
 
-  _FileInputStream.fromStdio(int fd) {
+  _FileInputStream.fromStdio(int fd)
+      : _data = [],
+        _position = 0,
+        _filePosition = 0 {
     assert(fd == 0);
-    var file = _File._openStdioSync(fd);
-    _data = [];
-    _position = 0;
-    _readDataFromFile(file).handleException((e) {
+    _setupOpenedFile(_File._openStdioSync(fd));
+  }
+
+  void _setupOpenedFile(RandomAccessFile openedFile) {
+    _openedFile = openedFile;
+    if (_streamMarkedClosed) {
+      // This input stream has already been closed.
+      _fileLength = 0;
+      _closeFile();
+      return;
+    }
+    var futureOpen = _openedFile.length();
+    futureOpen.then((len) {
+      _fileLength = len;
+      _fillBuffer();
+    });
+    futureOpen.handleException((e) {
       _reportError(e);
       return true;
     });
   }
 
-  Future<RandomAccessFile> _closeAfterRead(RandomAccessFile openedFile) {
-    return openedFile.close().transform((ignore) {
+  void _closeFile() {
+    if (_openedFile == null) {
       _streamMarkedClosed = true;
-      _checkScheduleCallbacks();
-      return openedFile;
-    });
+      return;
+    }
+    if (available() == 0) _cancelScheduledDataCallback();
+    if (!_openedFile.closed) {
+      _openedFile.close().then((ignore) {
+        _streamMarkedClosed = true;
+        _checkScheduleCallbacks();
+      });
+    }
   }
 
-  Future<RandomAccessFile> _readDataFromFile(RandomAccessFile openedFile) {
-    return openedFile.length().chain((length) {
-      var contents = new Uint8List(length);
-      if (length != 0) {
-        return openedFile.readList(contents, 0, length).chain((read) {
-          if (read != length) {
-            throw new FileIOException(
-                'Failed reading file contents in FileInputStream');
-          } else {
-            _data = contents;
-          }
-          return _closeAfterRead(openedFile);
-        });
-      } else {
-        return _closeAfterRead(openedFile);
+  void _fillBuffer() {
+    Expect.equals(_position, _data.length);
+    if (_openedFile == null) return;  // Called before the file is opened.
+    int size = Math.min(_bufferLength, _fileLength - _filePosition);
+    if (size == 0) {
+      _closeFile();
+      return;
+    }
+    if (_data.length != size) {
+      _data = new Uint8List(size);
+    }
+    var future = _openedFile.readList(_data, 0, _data.length);
+    future.then((read) {
+      _filePosition += read;
+      if (read != _data.length) {
+        _data.removeRange(read, _data.length - read);
       }
+      _position = 0;
+
+      if (_fileLength == _filePosition) {
+        _closeFile();
+      }
+      _checkScheduleCallbacks();
     });
   }
 
   int available() {
-    return _closed ? 0 : _data.length - _position;
+    return closed ? 0 : _data.length - _position;
   }
 
   void pipe(OutputStream output, [bool close = true]) {
     _pipe(this, output, close: close);
   }
 
+  void _finishRead() {
+    if (_position == _data.length && !_streamMarkedClosed) {
+      _fillBuffer();
+    } else {
+      _checkScheduleCallbacks();
+    }
+  }
+
   List<int> _read(int bytesToRead) {
-    List<int> result = new Uint8List(bytesToRead);
-    result.setRange(0, bytesToRead, _data, _position);
-    _position += bytesToRead;
-    _checkScheduleCallbacks();
+    List<int> result;
+    if (_position == 0 && bytesToRead == _data.length) {
+      result = _data;
+      _data = [];
+    } else {
+      result = new Uint8List(bytesToRead);
+      result.setRange(0, bytesToRead, _data, _position);
+      _position += bytesToRead;
+    }
+    _finishRead();
     return result;
   }
 
   int _readInto(List<int> buffer, int offset, int len) {
     buffer.setRange(offset, len, _data, _position);
     _position += len;
-    _checkScheduleCallbacks();
+    _finishRead();
     return len;
   }
 
   void _close() {
-    if (_closed) return;
-    _closed = true;
+    _data = [];
+    _position = 0;
+    _filePosition = 0;
+    _fileLength = 0;
+    _closeFile();
   }
 
+  static final int _bufferLength = 64 * 1024;
+
+  RandomAccessFile _openedFile;
   List<int> _data;
   int _position;
-  bool _closed = false;
+  int _filePosition;
+  int _fileLength;
 }
 
 
@@ -712,13 +762,13 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   Future<RandomAccessFile> close() {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     _ensureFileService();
     List request = new List(2);
     request[0] = _FileUtils.CLOSE_REQUEST;
     request[1] = _id;
     // Set the id_ to 0 (NULL) to ensure the no more async requests
-    // can be issues for this file.
+    // can be issued for this file.
     _id = 0;
     return _fileService.call(request).transform((result) {
       if (result != -1) {
@@ -742,7 +792,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<int> readByte() {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.READ_BYTE_REQUEST;
     request[1] = _id;
@@ -777,7 +827,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       });
       return completer.future;
     };
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.READ_LIST_REQUEST;
     request[1] = _id;
@@ -827,7 +877,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       });
       return completer.future;
     }
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.WRITE_BYTE_REQUEST;
     request[1] = _id;
@@ -868,7 +918,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       });
       return completer.future;
     }
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
 
     List result;
     try {
@@ -922,7 +972,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
                                        [Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.WRITE_STRING_REQUEST;
     request[1] = _id;
@@ -948,7 +998,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<int> position() {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.POSITION_REQUEST;
     request[1] = _id;
@@ -973,7 +1023,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> setPosition(int position) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.SET_POSITION_REQUEST;
     request[1] = _id;
@@ -998,7 +1048,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> truncate(int length) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(3);
     request[0] = _FileUtils.TRUNCATE_REQUEST;
     request[1] = _id;
@@ -1023,7 +1073,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<int> length() {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.LENGTH_REQUEST;
     request[1] = _id;
@@ -1048,7 +1098,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> flush() {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (_isClosed) return _completeWithClosedException(completer);
+    if (closed) return _completeWithClosedException(completer);
     List request = new List(2);
     request[0] = _FileUtils.FLUSH_REQUEST;
     request[1] = _id;
@@ -1077,10 +1127,10 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
   }
 
-  bool get _isClosed() => _id == 0;
+  bool get closed() => _id == 0;
 
   void _checkNotClosed() {
-    if (_isClosed) {
+    if (closed) {
       throw new FileIOException("File closed '$_name'");
     }
   }
