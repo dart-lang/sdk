@@ -1948,13 +1948,53 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v2", "bool");
   }
 
-  public void test_getType_getterInSwitch() throws Exception {
+  public void test_getType_getterInSwitch_default() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "int get foo() {}",
         "f() {",
         "  switch (true) {",
         "    default:",
         "      int v = foo;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3515
+   */
+  public void test_getType_getterInSwitchExpression_topLevel() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int get foo() => 42;",
+        "f() {",
+        "  switch (foo) {",
+        "    case 2:",
+        "      break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3515
+   */
+  public void test_getType_getterInSwitchExpression_inClass() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  T get foo() => null;",
+        "}",
+        "f() {",
+        "  A<int> a = new A<int>();",
+        "  switch (a.foo) {",
+        "    case 2:",
+        "      break;",
         "  }",
         "}",
         "");

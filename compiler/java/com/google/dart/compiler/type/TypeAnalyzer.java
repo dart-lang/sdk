@@ -1436,12 +1436,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (Elements.inGetterContext(node)) {
               MethodElement getter = fieldElement.getGetter();
               if (getter != null) {
+                node.setType(type);
                 node.setElement(getter);
               }
             }
             if (Elements.inSetterContext(node)) {
               MethodElement setter = fieldElement.getSetter();
               if (setter != null) {
+                node.setType(voidType);
                 node.setElement(setter);
               }
             }
@@ -1887,6 +1889,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
           }
+          node.setType(result);
           return result;
 
         default:
