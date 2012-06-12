@@ -9,6 +9,7 @@ class Namer {
   final Compiler compiler;
 
   static final CLOSURE_INVOCATION_NAME = const SourceString('\$call');
+  static final STATIC_CLOSURE_NAME_NAME = '\$name';
   static final OPERATOR_EQUALS = const SourceString('operator\$eq');
 
   static Set<String> _jsReserved = null;

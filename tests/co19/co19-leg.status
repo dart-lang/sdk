@@ -123,15 +123,15 @@ LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Runtime error: UnsupportedO
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
-LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/SendPort/send_A02_t05: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/SendPort/send_A02_t06: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Runtime error: UnsupportedOperationException: only top-level functions can be spawned.
+LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/SendPort/send_A02_t05: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/SendPort/send_A02_t06: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Runtime error: Expect.throws() fails.
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
 
 
 # The following tests use the deprecated Date interface.

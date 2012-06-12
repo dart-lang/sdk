@@ -523,28 +523,7 @@ class _IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f)
-    // Comments on the code, outside of the string so they won't bulk up
-    // the native output:
-    //
-    // Are we in a browser that implements the non-standard but
-    // oh-so-convenient function .name property?  If not, parse the name
-    // out of toString().
-    //
-    // When there is a match, our capture is element 1 of the results list.
-    // If there is no match, match() returns null; we || this to a list
-    // whose element 1 is null so everything lines up without error.
-    //
-    // TODO(eub): remove the toString workaround by attaching names to
-    // functions where they could be needed.  For a simple
-    // conservative approximation of "needed", see Siggi's option (c)
-    // in discussion on the CL, 9416119.
-    native @"""
-    if (typeof(f.name) === 'undefined') {
-      return (f.toString().match(/function (.+)\(/) || [, (void 0)])[1];
-    } else {
-      return f.name || (void 0);
-    }
-  """;
+    native @"return f.$name || (void 0);";
 
   /** Create a new JavaScript object instance given its constructor. */
   static Dynamic _allocate(var ctor) native "return new ctor();";

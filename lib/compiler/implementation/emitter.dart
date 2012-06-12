@@ -650,6 +650,10 @@ function(collectedClasses) {
       addParameterStubs(callElement, (String name, String value) {
         buffer.add('$fieldAccess.$name = $value;\n');
       });
+      // If a static function is used as a closure we need to add its name
+      // in case it is used in spawnFunction.
+      String fieldName = Namer.STATIC_CLOSURE_NAME_NAME;
+      buffer.add('$fieldAccess.$fieldName = "$staticName";\n');
     }
   }
 
