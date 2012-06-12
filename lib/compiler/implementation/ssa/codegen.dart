@@ -628,7 +628,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         buffer.add(":");
       }
     }
-    addIndented("switch (");
+    buffer.add("switch (");
     if (isExpression) {
       generateExpression(info.expression);
     } else {
