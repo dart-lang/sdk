@@ -353,7 +353,7 @@ isNaN(receiver) {
   if (receiver is num) {
     return JS('bool', @'isNaN(#)', receiver);
   } else {
-    return UNINTERCEPTED(receiver.isNegative());
+    return UNINTERCEPTED(receiver.isNaN());
   }
 }
 
