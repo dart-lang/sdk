@@ -209,25 +209,74 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * It is a static warning if the type of "switch expression" may not be assigned to the type of
+   * "case expression".
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3269
    */
-  public void test_switchExpression_case_typeMismatch() throws Exception {
+  public void test_switchExpression_case_switchTypeMismatch() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  int v = 1;",
         "  switch (v) {",
         "    case 0: break;",
+        "  }",
+        "  switch (v) {",
         "    case 'a': break;",
-        "    case 12.3: break;",
         "  }",
         "}",
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 10, 3),
-        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 10, 4));
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 8, 10, 3));
+  }
+
+  /**
+   * It is a compile-time error if the values of the case expressions do not all have the same type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3528
+   */
+  public void test_switchExpression_case_notIntString() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "  switch (v) {",
+        "    case 0: break;",
+        "  }",
+        "  switch (v) {",
+        "    case '0': break;",
+        "  }",
+        "  switch (v) {",
+        "    case 0.0: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, 11, 10, 3));
+  }
+  
+  /**
+   * It is a compile-time error if the values of the case expressions do not all have the same type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3528
+   */
+  public void test_switchExpression_case_differentTypes() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "  switch (v) {",
+        "    case 0: break;",
+        "    case 'a': break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 6, 10, 3));
   }
 
   /**

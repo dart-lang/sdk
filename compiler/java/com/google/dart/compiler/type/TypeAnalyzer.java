@@ -1934,11 +1934,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression expression = node.getExpression();
       Type switchType = nonVoidTypeOf(expression);
       // check "case" expressions compatibility
+      Type sameCaseType = null;
       for (DartSwitchMember switchMember : node.getMembers()) {
         if (switchMember instanceof DartCase) {
           DartCase caseMember = (DartCase) switchMember;
           DartExpression caseExpr = caseMember.getExpr();
           Type caseType = nonVoidTypeOf(caseExpr);
+          // should be "int" or "String"
+          if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, stringType)) {
+            onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, caseType);
+            continue;
+          }
+          // all "case expressions" should be same type
+          if (sameCaseType == null) {
+            sameCaseType = caseType;
+          }
+          if (!Objects.equal(caseType, sameCaseType)) {
+            onError(caseExpr, TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, sameCaseType,
+                caseType);
+          }
+          // compatibility of "switch expression" and "case expression" types
           checkAssignable(caseExpr, switchType, caseType);
         }
       }

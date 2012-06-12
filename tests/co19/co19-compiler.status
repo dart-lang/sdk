@@ -136,16 +136,12 @@ Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A01_t01: Fail # Issue 2441
 Language/11_Statements/08_Switch_A01_t19: Fail # Issue 3527
-Language/11_Statements/08_Switch_A05_t01: Fail # Issue 3528
-Language/11_Statements/08_Switch_A05_t02: Fail # Issue 3528
-Language/11_Statements/08_Switch_A06_t01: Fail # Issue 3528
-Language/11_Statements/08_Switch_A06_t02: Fail # Issue 3528
-Language/11_Statements/08_Switch_A06_t03: Fail # Issue 3528
-Language/11_Statements/08_Switch_A06_t04: Fail # Issue 3528
 Language/11_Statements/08_Switch_A08_t01: Fail # Issue 3529
 Language/11_Statements/08_Switch_A09_t01: Fail # Issue 3529
 Language/11_Statements/11_Labels_A01_t01: Fail # Issue 2440
+Language/11_Statements/11_Labels_A03_t04: Fail # co19 issue 137
 Language/11_Statements/11_Labels_A03_t05: Fail # Issue 2441
+Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
 Language/11_Statements/13_Continue_A02_t07: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t12: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t13: Fail # Issue 2441
@@ -174,9 +170,13 @@ Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
 
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269
 LibTest/core/FallThroughError/toString_A01_t01: Fail # Issue 1269
+LibTest/core/FallThroughError/toString_A01_t02: Fail # co19 issue 139
 LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
+
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # co19 issue 139
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 139
 
 # The following tests use the deprecated Date interface.
 LibTest/core/Date/Date_A02_t01: Fail, Pass
