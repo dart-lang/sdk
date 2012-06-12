@@ -308,7 +308,7 @@ testExceptionHandlerAfterCompleteReturnsFalseThenThrows() {
 testCallStackThrowsIfNotComplete() {
   var exception;
   try {
-    new Completer().future.callStack;
+    new Completer().future.stackTrace;
   } catch (var ex) {
     exception = ex;
   }
@@ -317,16 +317,16 @@ testCallStackThrowsIfNotComplete() {
 }
 
 testCallStackIsNullIfCompletedSuccessfully() {
-  Expect.isNull(new Future.immediate('blah').callStack);
+  Expect.isNull(new Future.immediate('blah').stackTrace);
 }
 
 testCallStackReturnsCallstackPassedToCompleteException() {
   final completer = new Completer();
   final future = completer.future;
 
-  final callstack = 'fake call stack';
-  completer.completeException(new Exception(), callstack);
-  Expect.equals(callstack, future.callStack);
+  final stackTrace = 'fake stack trace';
+  completer.completeException(new Exception(), stackTrace);
+  Expect.equals(stackTrace, future.stackTrace);
 }
 
 testCallStackIsCapturedIfTransformCallbackThrows() {
@@ -335,9 +335,9 @@ testCallStackIsCapturedIfTransformCallbackThrows() {
     throw 'whoops!';
   });
 
-  final callstack = 'fake call stack';
+  final stackTrace = 'fake stack trace';
   completer.complete('blah');
-  Expect.isNotNull(transformed.callStack);
+  Expect.isNotNull(transformed.stackTrace);
 }
 
 testCallStackIsCapturedIfChainCallbackThrows() {
@@ -346,9 +346,9 @@ testCallStackIsCapturedIfChainCallbackThrows() {
     throw 'whoops!';
   });
 
-  final callstack = 'fake call stack';
+  final stackTrace = 'fake stack trace';
   completer.complete('blah');
-  Expect.isNotNull(chained.callStack);
+  Expect.isNotNull(chained.stackTrace);
 }
 
 // Tests for mixed usage of [onComplete], [then], and [handleException]
