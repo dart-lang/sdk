@@ -137,6 +137,8 @@ class FlowGraphCompiler : public ValueObject {
                             const Array& arguments_descriptor,
                             intptr_t argument_count);
 
+  void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
+
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.

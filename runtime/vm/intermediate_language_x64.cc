@@ -442,32 +442,10 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
 }
 
 
-static void EmitLoadIndexedGeneric(FlowGraphCompiler* compiler,
-                                   LoadIndexedComp* comp) {
-  const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
-
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 comp->cid(),
-                                 comp->token_index(),
-                                 comp->try_index());
-
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->GenerateInstanceCall(comp->cid(),
-                                 comp->token_index(),
-                                 comp->try_index(),
-                                 function_name,
-                                 kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked);
-  ASSERT(comp->locs()->out().reg() == RAX);
-}
-
-
 void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_type() == kIllegalObjectKind) {
-    EmitLoadIndexedGeneric(compiler, this);
+    compiler->EmitLoadIndexedGeneric(this);
+    ASSERT(locs()->out().reg() == RAX);
     return;
   }
 

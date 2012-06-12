@@ -364,4 +364,28 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
   assembler()->Comment("@%d: %s", instr->cid(), buffer);
 }
 
+
+void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+
+  AddCurrentDescriptor(PcDescriptors::kDeopt,
+                       comp->cid(),
+                       comp->token_index(),
+                       comp->try_index());
+
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
+  GenerateInstanceCall(comp->cid(),
+                       comp->token_index(),
+                       comp->try_index(),
+                       function_name,
+                       kNumArguments,
+                       Array::ZoneHandle(),  // No optional arguments.
+                       kNumArgsChecked);
+}
+
+
+
+
 }  // namespace dart

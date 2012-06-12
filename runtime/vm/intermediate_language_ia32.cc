@@ -403,23 +403,85 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 2;
+  if ((receiver_type() == kGrowableObjectArray) ||
+      (receiver_type() == kArray) ||
+      (receiver_type() == kImmutableArray)) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  } else {
+    ASSERT(receiver_type() == kIllegalObjectKind);
+    return MakeCallSummary();
+  }
 }
 
 
-void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
 
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
-                                 function_name,
-                                 kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked);
+void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (receiver_type() == kIllegalObjectKind) {
+    compiler->EmitLoadIndexedGeneric(this);
+    ASSERT(locs()->out().reg() == EAX);
+    return;
+  }
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  Register temp = locs()->temp(0).reg();
+
+  const Class& receiver_class =
+      Class::ZoneHandle(Isolate::Current()->class_table()->At(
+          receiver_type()));
+
+  const DeoptReasonId deopt_reason = (receiver_type() == kGrowableObjectArray) ?
+      kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
+
+  Label* deopt = compiler->AddDeoptStub(cid(),
+                                        token_index(),
+                                        try_index(),
+                                        deopt_reason,
+                                        receiver,
+                                        index);
+
+  __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
+  __ j(ZERO, deopt);
+  __ CompareClassId(receiver, receiver_class.id(), temp);
+  __ j(NOT_EQUAL, deopt);
+
+  __ testl(index, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+
+  switch (receiver_type()) {
+    case kArray:
+    case kImmutableArray:
+      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ movl(result, FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)));
+      break;
+
+    case kGrowableObjectArray: {
+      Register temp = locs()->temp(0).reg();
+
+      __ cmpl(index,
+              FieldAddress(receiver, GrowableObjectArray::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ movl(result, FieldAddress(temp, index, TIMES_2, sizeof(RawArray)));
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
 }
 
 
