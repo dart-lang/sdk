@@ -135,6 +135,7 @@ LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Runtime error: TypeErr
 
 
 # The following tests use the deprecated Date interface.
+# Issue co19 - 125
 LibTest/core/Date/Date_A02_t01: Fail, OK
 LibTest/core/Date/Date.now_A02_t01: Fail, OK
 LibTest/core/Date/add_A04_t01: Fail, OK

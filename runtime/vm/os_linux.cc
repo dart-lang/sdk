@@ -17,15 +17,7 @@
 
 namespace dart {
 
-bool OS::GmTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) return false;
-  struct tm* error_code = gmtime_r(&seconds, tm_result);
-  return error_code != NULL;
-}
-
-
-bool OS::LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
+static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
   struct tm* error_code = localtime_r(&seconds, tm_result);
@@ -33,50 +25,29 @@ bool OS::LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
 }
 
 
-bool OS::MkGmTime(tm* tm, int64_t* seconds_result) {
-  // Set wday to an impossible day, so that we can catch bad input.
-  tm->tm_wday = -1;
-  time_t seconds = timegm(tm);
-  if ((seconds == -1) && (tm->tm_wday == -1)) {
-    return false;
-  }
-  *seconds_result = seconds;
-  return true;
-}
-
-
-bool OS::MkTime(tm* tm, int64_t* seconds_result) {
-  // Let the libc figure out if daylight saving is active.
-  tm->tm_isdst = -1;
-  // Set wday to an impossible day, so that we can catch bad input.
-  tm->tm_wday = -1;
-  time_t seconds = mktime(tm);
-  if ((seconds == -1) && (tm->tm_wday == -1)) {
-    return false;
-  }
-  *seconds_result = seconds;
-  return true;
-}
-
-
-bool OS::GetTimeZoneName(int64_t seconds_since_epoch,
-                         const char** name_result) {
+const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
-  *name_result = decomposed.tm_zone;
-  return true;
+  ASSERT(succeeded);
+  return decomposed.tm_zone;
 }
 
 
-bool OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch,
-                                    int* offset_result) {
+int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (!succeeded) return false;
+  ASSERT(succeeded);
   // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  *offset_result = static_cast<int>(decomposed.tm_gmtoff);
-  return true;
+  return static_cast<int>(decomposed.tm_gmtoff);
+}
+
+
+int OS::GetLocalTimeZoneAdjustmentInSeconds() {
+  // TODO(floitsch): avoid excessive calls to tzset?
+  tzset();
+  // Even if the offset was 24 hours it would still easily fit into 32 bits.
+  // Note that Unix and Dart disagree on the sign.
+  return static_cast<int>(-timezone);
 }
 
 
