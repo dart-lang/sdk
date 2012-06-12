@@ -489,7 +489,7 @@ class Primitives {
       value = JS('num', @'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
-    if (value.isNaN()) throw new IllegalArgumentException();
+    if (value.isNaN()) throw new IllegalArgumentException('');
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
   }

@@ -108,7 +108,6 @@ LibTest/core/int/operator_remainder_A01_t02: Fail
 [ $runtime == vm ]
 
 # The following tests use the deprecated Date interface.
-# Issue co19 - 125
 LibTest/core/Date/Date_A02_t01: Fail
 LibTest/core/Date/Date.now_A02_t01: Fail
 LibTest/core/Date/add_A04_t01: Fail
@@ -136,7 +135,7 @@ LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
 LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
 LibTest/core/Date/Date.withTimeZone_A01_t02: Skip
 LibTest/core/Date/Date.withTimeZone_A01_t03: Skip
-LibTest/core/Date/year_A01_t01: Fail, Pass
+
 LibTest/core/TimeZone/TimeZone.local_A01_t01: Skip
 LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 
