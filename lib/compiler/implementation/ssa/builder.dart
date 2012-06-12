@@ -463,12 +463,9 @@ class LocalsHandler {
    * closure then the method generates code to set the value.
    */
   void updateLocal(Element element, HInstruction value) {
+    assert(!isStoredInClosureField(element));
     if (isAccessedDirectly(element)) {
       directLocals[element] = value;
-    } else if (isStoredInClosureField(element)) {
-      Element redirect = redirectionMapping[element];
-      HInstruction receiver = readLocal(closureData.closureElement);
-      builder.add(new HFieldSet(redirect.name, receiver, value));
     } else if (isBoxed(element)) {
       Element redirect = redirectionMapping[element];
       // The box itself could be captured, or be local. A local variable that
