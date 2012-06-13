@@ -72,6 +72,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
+      new SsaBailoutPropagator(compiler).visitGraph(graph);
 
       Map<Element, String> parameterNames = getParameterNames(work);
       String parameters = Strings.join(parameterNames.getValues(), ', ');
@@ -79,9 +80,17 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
+      StringBuffer newParameters = new StringBuffer();
+      if (!parameterNames.isEmpty()) newParameters.add('$parameters, ');
+      newParameters.add('state');
+
+      for (int i = 0; i < codegen.maxBailoutParameters; i++) {
+        newParameters.add(', env$i');
+      }
+
+      Element element = work.element;
       String body = '${codegen.setup}${codegen.buffer}';
-      return buildJavaScriptFunction(
-          work.element, codegen.newParameters.toString(), body);
+      return buildJavaScriptFunction(element, newParameters.toString(), body);
     });
   }
 
@@ -264,8 +273,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentGraph = graph;
     indent++;  // We are already inside a function.
     subGraph = new SubGraph(graph.entry, graph.exit);
-    HBasicBlock start = beginGraph(graph);
-    visitBasicBlock(start);
+    beginGraph(graph);
+    visitBasicBlock(graph.entry);
     if (!delayedVariableDeclarations.isEmpty()) {
       addIndented("var ");
       buffer.add(Strings.join(
@@ -2454,7 +2463,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   int maxBailoutParameters;
 
-  HBasicBlock beginGraph(HGraph graph) => graph.entry;
+  void beginGraph(HGraph graph) {}
   void endGraph(HGraph graph) {}
 
   void bailout(HTypeGuard guard, String reason) {
@@ -2478,7 +2487,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     } else {
       buffer.add(namer.isolateBailoutAccess(element));
     }
-    buffer.add('(${guard.state}');
+    int parametersCount = parameterNames.length;
+    buffer.add('($parameters');
+    if (parametersCount != 0) buffer.add(', ');
+    buffer.add('${guard.state}');
     // TODO(ngeoffray): try to put a variable at a deterministic
     // location, so that multiple bailout calls put the variable at
     // the same parameter index.
@@ -2595,18 +2607,13 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   final StringBuffer setup;
-  final StringBuffer newParameters;
   final List<String> labels;
   int labelId = 0;
   int maxBailoutParameters = 0;
 
-  SsaBailoutPropagator propagator;
-  HInstruction savedFirstInstruction;
-
   SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameters, parameterNames),
       setup = new StringBuffer(),
-      newParameters = new StringBuffer(),
       labels = <String>[];
 
   String pushLabel() {
@@ -2623,33 +2630,38 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     return labels.last();
   }
 
-  HBasicBlock beginGraph(HGraph graph) {
-    propagator = new SsaBailoutPropagator(compiler, generateAtUseSite);
-    propagator.visitGraph(graph);
+  void beginGraph(HGraph graph) {
+    if (!graph.entry.hasGuards()) return;
+    addIndented('switch (state) {\n');
+    indent++;
+    addIndented('case 0:\n');
+    indent++;
 
-    if (propagator.hasComplexTypeGuards) {
-      startBailoutSwitch();
-
-      // The setup phase of a bailout function sets up the environment for
-      // each bailout target. Each bailout target will populate this
-      // setup phase. It is put at the beginning of the function.
-      setup.add('  switch (state) {\n');
-      return graph.entry;
-    } else {
-      // We change the first instruction of the first guard to be the
-      // guard. We will change it back in the call to [endGraph].
-      HBasicBlock block = propagator.firstTypeGuard.block;
-      savedFirstInstruction = block.first;
-      block.first = propagator.firstTypeGuard;
-      return block;
-    }
+    // The setup phase of a bailout function sets up the environment for
+    // each bailout target. Each bailout target will populate this
+    // setup phase. It is put at the beginning of the function.
+    setup.add('  switch (state) {\n');
   }
+
+  void endGraph(HGraph graph) {
+    if (!graph.entry.hasGuards()) return;
+    indent--; // Close original case.
+    indent--;
+    addIndented('}\n');  // Close 'switch'.
+    setup.add('  }\n');
+  }
+
+  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
+  bool visitIfInfo(HIfBlockInformation info) => false;
+  bool visitLoopInfo(HLoopBlockInformation info) => false;
+  bool visitTryInfo(HTryBlockInformation info) => false;
+  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
   // If argument is a [HCheck] and it does not have a name, we try to
   // find the name of its checked input. Note that there must be a
   // name, otherwise the instruction would not be in the live
   // environment.
-  HInstruction unwrap(HInstruction argument) {
+  HInstruction unwrap(argument) {
     while (argument is HCheck && !variableNames.hasName(argument)) {
       argument = argument.checkedInput;
     }
@@ -2657,48 +2669,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     return argument;
   }
 
-  void endGraph(HGraph graph) {
-    // TODO(ngeoffray): We could avoid generating the state at the
-    // call site for non-complex bailout methods.
-    newParameters.add('state');
-
-    if (!propagator.hasComplexTypeGuards) {
-      propagator.firstTypeGuard.block.first = savedFirstInstruction;
-      for (HInstruction input in propagator.firstTypeGuard.inputs) {
-        input = unwrap(input);
-        newParameters.add(', ${variableNames.getName(input)}');
-      }
-    } else {
-      for (int i = 0; i < maxBailoutParameters; i++) {
-        newParameters.add(', env$i');
-      }
-      indent--; // Close original case.
-      indent--;
-      addIndented('}\n');  // Close 'switch'.
-      setup.add('  }\n');
-    }
-  }
-
-  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
-
-  bool visitIfInfo(HIfBlockInformation info) {
-    if (info.thenGraph.start.hasGuards()) return false;
-    if (info.elseGraph.start.hasGuards()) return false;
-    return super.visitIfInfo(info);
-  }
-
-  bool visitLoopInfo(HLoopBlockInformation info) {
-    if (info.start.hasGuards()) return false;
-    if (info.loopHeader.hasGuards()) return false;
-    return super.visitLoopInfo(info);
-  }
-
-  bool visitTryInfo(HTryBlockInformation info) => false;
-  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
-
   void visitTypeGuard(HTypeGuard node) {
-    if (!propagator.hasComplexTypeGuards) return;
-
     indent--;
     addIndented('case ${node.state}:\n');
     indent++;
@@ -2707,9 +2678,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('    case ${node.state}:\n');
     int i = 0;
     for (HInstruction input in node.inputs) {
-      input = unwrap(input);
-      String name = variableNames.getName(input);
-      setup.add('      $name = env$i;\n');
+      HInstruction instruction = unwrap(input);
+      setup.add('      ${variableNames.getName(instruction)} = env$i;\n');
       i++;
     }
     if (i > maxBailoutParameters) maxBailoutParameters = i;
@@ -2744,6 +2714,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void beginLoop(HBasicBlock block) {
+    // TODO(ngeoffray): Don't put labels on loops that don't bailout.
     String newLabel = pushLabel();
     if (block.hasGuards()) {
       startBailoutCase(block.guards, const <HTypeGuard>[]);
