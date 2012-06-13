@@ -189,20 +189,69 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(2, 0);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  if (!is_fused_with_branch()) {
-    locs->set_out(Location::RegisterLocation(EAX));
+  const intptr_t kNumInputs = 2;
+  if (operands_class_id() == kSmi) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    if (!is_fused_with_branch()) {
+      locs->set_out(Location::RequiresRegister());
+    }
+    return locs;
   }
-  return locs;
+  if (operands_class_id() == kObject) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    if (!is_fused_with_branch()) {
+      locs->set_out(Location::RegisterLocation(EAX));
+    }
+    return locs;
+  }
+  UNREACHABLE();
+  return NULL;
 }
 
 
-void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
+static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
+                                   EqualityCompareComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  // TODO(srdjan): Should we always include NULL test (common case)?
+  Register result = comp->locs()->out().reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptSmiCompareSmis,
+                                        left,
+                                        right);
+  __ movl(temp, left);
+  __ orl(temp, right);
+  __ testl(temp, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+  __ cmpl(left, right);
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  } else {
+    Label load_true, done;
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
 
+
+static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
+                                       EqualityCompareComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label done, non_null_compare;
@@ -210,16 +259,16 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
   __ cmpl(left, right);
-  if (!is_fused_with_branch()) {
-    Register result = locs()->out().reg();
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  } else {
+    Register result = comp->locs()->out().reg();
     Label load_true;
     __ j(EQUAL, &load_true, Assembler::kNearJump);
     __ LoadObject(result, compiler->bool_false());
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&load_true);
     __ LoadObject(result, compiler->bool_true());
-  } else {
-    fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
   }
   __ jmp(&done);
 
@@ -231,21 +280,33 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
 
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
+  compiler->GenerateInstanceCall(comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index(),
                                  operator_name,
                                  kNumberOfArguments,
                                  kNoArgumentNames,
                                  kNumArgumentsChecked);
-  ASSERT(fused_with_branch() != NULL || locs()->out().reg() == EAX);
+  ASSERT(comp->is_fused_with_branch() || (comp->locs()->out().reg() == EAX));
 
-  if (fused_with_branch() != NULL) {
+  if (comp->is_fused_with_branch()) {
     __ CompareObject(EAX, compiler->bool_true());
-    fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
   }
-
   __ Bind(&done);
+}
+
+
+void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (operands_class_id() == kSmi) {
+    EmitSmiEqualityCompare(compiler, this);
+    return;
+  }
+  if (operands_class_id() == kObject) {
+    EmitGenericEqualityCompare(compiler, this);
+    return;
+  }
+  UNREACHABLE();
 }
 
 

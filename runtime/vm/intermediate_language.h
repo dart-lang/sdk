@@ -36,6 +36,7 @@ class LocationSummary;
   M(StoreContext, StoreContextComp)                                            \
   M(ClosureCall, ClosureCallComp)                                              \
   M(InstanceCall, InstanceCallComp)                                            \
+  M(PolymorphicInstanceCall, PolymorphicInstanceCallComp)                      \
   M(StaticCall, StaticCallComp)                                                \
   M(LoadLocal, LoadLocalComp)                                                  \
   M(StoreLocal, StoreLocalComp)                                                \
@@ -146,6 +147,8 @@ class Computation : public ZoneAllocated {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
   static LocationSummary* MakeCallSummary();
+
+  void ReplaceWith(Computation* other);
 
   // Declare an enum value used to define type-test predicates.
   enum ComputationType {
@@ -504,6 +507,41 @@ class InstanceCallComp : public Computation {
 };
 
 
+class PolymorphicInstanceCallComp : public Computation {
+ public:
+  PolymorphicInstanceCallComp(InstanceCallComp* comp,
+                              const ZoneGrowableArray<intptr_t>& class_ids,
+                              const ZoneGrowableArray<Function*>& targets)
+      : instance_call_(comp),
+        class_ids_(class_ids),
+        targets_(targets) {
+    ASSERT(instance_call_ != NULL);
+  }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+  const ZoneGrowableArray<intptr_t>& class_ids() const { return class_ids_; }
+  const ZoneGrowableArray<Function*>& targets() const { return targets_; }
+
+  virtual intptr_t InputCount() const { return instance_call()->InputCount(); }
+  virtual Value* InputAt(intptr_t i) const {
+    return instance_call()->ArgumentAt(i);
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const {
+    instance_call()->PrintOperandsTo(f);
+  }
+
+  DECLARE_COMPUTATION(PolymorphicInstanceCall)
+
+ private:
+  InstanceCallComp* instance_call_;
+  const ZoneGrowableArray<intptr_t>& class_ids_;
+  const ZoneGrowableArray<Function*>& targets_;
+
+  DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallComp);
+};
+
+
 class ComparisonComp : public TemplateComputation<2> {
  public:
   ComparisonComp(Value* left, Value* right)
@@ -519,6 +557,7 @@ class ComparisonComp : public TemplateComputation<2> {
   }
 
   BranchInstr* fused_with_branch() const {
+    ASSERT(is_fused_with_branch());
     return fused_with_branch_;
   }
 
@@ -562,19 +601,25 @@ class EqualityCompareComp : public ComparisonComp {
                       Value* right)
       : ComparisonComp(left, right),
         token_index_(token_index),
-        try_index_(try_index) {
+        try_index_(try_index),
+        operands_class_id_(kObject) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
+  void set_operands_class_id(intptr_t value) {
+    operands_class_id_ = value;
+  }
+  intptr_t operands_class_id() const { return operands_class_id_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
+  intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };

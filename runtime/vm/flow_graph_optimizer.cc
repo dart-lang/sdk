@@ -158,11 +158,11 @@ static bool HasTwoDouble(const ICData& ic_data) {
 }
 
 
-void FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
+bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
   if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
-    return;
+    return false;
   }
 
   BinaryOpComp::OperandsType operands_type;
@@ -171,7 +171,7 @@ void FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
     if (op_kind == Token::kDIV ||
         op_kind == Token::kMOD) {
       // TODO(srdjan): Not yet supported.
-      return;
+      return false;
     }
 
     operands_type = BinaryOpComp::kSmiOperands;
@@ -181,13 +181,13 @@ void FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
         op_kind != Token::kMUL &&
         op_kind != Token::kDIV) {
       // TODO(vegorov): Not yet supported.
-      return;
+      return false;
     }
 
     operands_type = BinaryOpComp::kDoubleOperands;
   } else {
     // TODO(srdjan): Not yet supported.
-    return;
+    return false;
   }
 
   ASSERT(comp->instr() != NULL);
@@ -200,18 +200,17 @@ void FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                        comp,
                        left,
                        right);
-  ASSERT(bin_op->ic_data() == NULL);
   bin_op->set_ic_data(comp->ic_data());
-  bin_op->set_instr(comp->instr());
-  comp->instr()->replace_computation(bin_op);
+  comp->ReplaceWith(bin_op);
+  return true;
 }
 
 
-void FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
-                                              Token::Kind op_kind) {
+bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
+                                               Token::Kind op_kind) {
   if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
-    return;
+    return false;
   }
   ASSERT(comp->instr() != NULL);
   ASSERT(comp->InputCount() == 1);
@@ -222,11 +221,11 @@ void FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
     unary_op = new NumberNegateComp(comp, comp->InputAt(0));
   }
   if (unary_op != NULL) {
-    ASSERT(unary_op->ic_data() == NULL);
     unary_op->set_ic_data(comp->ic_data());
-    unary_op->set_instr(comp->instr());
-    comp->instr()->replace_computation(unary_op);
+    comp->ReplaceWith(unary_op);
+    return true;
   }
+  return false;
 }
 
 
@@ -266,40 +265,80 @@ static RawField* GetField(const Class& field_class, const String& field_name) {
 }
 
 
+// Returns all receiver class-ids and corresponding tagets for the given
+// 'ic_data', sorted so that a smi class id is at index[0] if it exists.
+// 'targets' can be NULL in which case it is not collected,
+static void ExtractClassIdsAndTargets(const ICData& ic_data,
+                                      ZoneGrowableArray<intptr_t>* class_ids,
+                                      ZoneGrowableArray<Function*>* targets) {
+  ASSERT(class_ids != NULL);
+  class_ids->Clear();
+  if (targets != NULL) {
+    targets->Clear();
+  }
+  intptr_t smi_index = -1;
+  Function& target = Function::Handle();
+  GrowableArray<const Class*> classes;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetCheckAt(i, &classes, &target);
+    // Collect receiver class only.
+    const intptr_t class_id = (*classes[0]).id();
+    if (ic_data.num_args_tested() > 1) {
+      // Check if we have not already entered the class-id.
+      intptr_t duplicate_class_id = -1;
+      for (intptr_t k = 0; k < class_ids->length(); k++) {
+        if ((*class_ids)[k] == class_id) {
+          duplicate_class_id = k;
+          break;
+        }
+      }
+      if (duplicate_class_id >= 0)  {
+        ASSERT((targets == NULL) ||
+               ((*targets)[duplicate_class_id]->raw() == target.raw()));
+        continue;
+      }
+    }
+    if (class_id == kSmi) {
+      ASSERT(smi_index < 0);  // Classes entered only once in ic_data.
+      smi_index = class_ids->length();
+    }
+    class_ids->Add(class_id);
+    if (targets != NULL) {
+      targets->Add(&Function::ZoneHandle(target.raw()));
+    }
+  }
+  if (smi_index >= 0) {
+    // Smi class id must be at index 0.
+    intptr_t temp_id = (*class_ids)[0];
+    (*class_ids)[0] =  (*class_ids)[smi_index];
+    (*class_ids)[smi_index] = temp_id;
+    if (targets != NULL) {
+      Function* temp_func = (*targets)[0];
+      (*targets)[0] =  (*targets)[smi_index];
+      (*targets)[smi_index] = temp_func;
+    }
+  }
+}
+
+
 // Returns array of all class ids that are in ic_data. The result is
 // normalized so that a smi class is at index 0 if it exists in the ic_data.
 static ZoneGrowableArray<intptr_t>*  ExtractClassIds(const ICData& ic_data) {
   if (ic_data.NumberOfChecks() == 0) return NULL;
   ZoneGrowableArray<intptr_t>* result =
       new ZoneGrowableArray<intptr_t>(ic_data.NumberOfChecks());
-  intptr_t smi_index = -1;
-  Function& target = Function::Handle();
-  Class& cls = Class::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
-    result->Add(cls.id());
-    if (cls.id() == kSmi) {
-      ASSERT(smi_index < 0);  // Classes entered only once in ic_data.
-      smi_index = i;
-    }
-  }
-  if (smi_index >= 0) {
-    // Smi class id must be at index 0.
-    intptr_t temp = (*result)[0];
-    (*result)[0] =  (*result)[smi_index];
-    (*result)[smi_index] = temp;
-  }
+  ExtractClassIdsAndTargets(ic_data, result, NULL);
   return result;
 }
 
 
 // Only unique implicit instance getters can be currently handled.
-void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
+bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
-    return;
+    return false;
   }
   Function& target = Function::Handle();
   GrowableArray<const Class*> classes;
@@ -309,7 +348,7 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
   if (target.kind() == RawFunction::kImplicitGetter) {
     if (!HasOneTarget(ic_data)) {
       // TODO(srdjan): Implement for mutiple targets.
-      return;
+      return false;
     }
     // Inline implicit instance getter.
     const String& field_name =
@@ -318,10 +357,8 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     ASSERT(!field.IsNull());
     LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
         field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
-    // Replace 'comp' with 'load'.
-    load->set_instr(comp->instr());
-    comp->instr()->replace_computation(load);
-    return;
+    comp->ReplaceWith(load);
+    return true;
   }
 
   // Not an implicit getter.
@@ -334,7 +371,7 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
       (recognized_kind == MethodRecognizer::kGrowableArrayLength)) {
     if (!HasOneTarget(ic_data)) {
       // TODO(srdjan): Implement for mutiple targets.
-      return;
+      return false;
     }
     intptr_t length_offset = -1;
     switch (recognized_kind) {
@@ -354,9 +391,8 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
         Type::ZoneHandle(Type::IntInterface()),
         comp,
         ExtractClassIds(ic_data));
-    load->set_instr(comp->instr());
-    comp->instr()->replace_computation(load);
-    return;
+    comp->ReplaceWith(load);
+    return true;
   }
 
   if (recognized_kind == MethodRecognizer::kStringBaseLength) {
@@ -367,25 +403,24 @@ void FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
         Type::ZoneHandle(Type::IntInterface()),
         comp,
         ExtractClassIds(ic_data));
-    load->set_instr(comp->instr());
-    comp->instr()->replace_computation(load);
-    return;
+    comp->ReplaceWith(load);
+    return true;
   }
+  return false;
 }
 
 
 // Inline only simple, frequently called core library methods.
-void FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
+bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if ((ic_data.NumberOfChecks() == 0) || !HasOneTarget(ic_data)) {
     // No type feedback collected.
-    return;
+    return false;
   }
   Function& target = Function::Handle();
   GrowableArray<const Class*> classes;
   ic_data.GetCheckAt(0, &classes, &target);
-  ASSERT(classes.length() == 1);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
@@ -395,38 +430,48 @@ void FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
   } else if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
     from_kind = kSmi;
   } else {
-    return;
+    return false;
   }
 
   if (classes[0]->id() != from_kind) {
-    return;
+    return false;
   }
-
   ToDoubleComp* coerce = new ToDoubleComp(
       comp->InputAt(0), from_kind, comp);
   coerce->set_instr(comp->instr());
   comp->instr()->replace_computation(coerce);
+  return true;
 }
 
 
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
-  if (comp->HasICData()) {
+  if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
     const String& function_name = comp->function_name();
     Token::Kind op_kind = Token::GetBinaryOp(function_name);
-    if (op_kind != Token::kILLEGAL) {
-      TryReplaceWithBinaryOp(comp, op_kind);
+    if ((op_kind != Token::kILLEGAL) && TryReplaceWithBinaryOp(comp, op_kind)) {
       return;
     }
     op_kind = Token::GetUnaryOp(function_name);
-    if (op_kind != Token::kILLEGAL) {
-      TryReplaceWithUnaryOp(comp, op_kind);
+    if ((op_kind != Token::kILLEGAL) && TryReplaceWithUnaryOp(comp, op_kind)) {
       return;
     }
-    if (Field::IsGetterName(function_name)) {
-      TryInlineInstanceGetter(comp);
+    if ((Field::IsGetterName(function_name)) && TryInlineInstanceGetter(comp)) {
       return;
     }
-    TryInlineInstanceMethod(comp);
+    if (TryInlineInstanceMethod(comp)) {
+      return;
+    }
+    const intptr_t kMaxChecks = 4;
+    if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
+      ZoneGrowableArray<intptr_t>* class_ids =
+          new ZoneGrowableArray<intptr_t>();
+      ZoneGrowableArray<Function*>* targets =
+          new ZoneGrowableArray<Function*>();
+      ExtractClassIdsAndTargets(*comp->ic_data(), class_ids, targets);
+      PolymorphicInstanceCallComp* call =
+          new PolymorphicInstanceCallComp(comp, *class_ids, *targets);
+      comp->ReplaceWith(call);
+    }
   }
 }
 
@@ -440,16 +485,16 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp) {
 }
 
 
-void FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
+bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
-    return;
+    return false;
   }
   if (!HasOneTarget(ic_data)) {
     // TODO(srdjan): Implement when not all targets are the sa,e.
-    return;
+    return false;
   }
   Function& target = Function::Handle();
   Class& cls = Class::Handle();
@@ -457,7 +502,7 @@ void FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
   if (target.kind() != RawFunction::kImplicitSetter) {
     // Not an implicit setter.
     // TODO(srdjan): Inline special setters.
-    return;
+    return false;
   }
   // Inline implicit instance setter.
   const Field& field = Field::Handle(GetField(cls, comp->field_name()));
@@ -468,9 +513,8 @@ void FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
       comp->InputAt(1),
       comp,
       ExtractClassIds(ic_data));
-  // Replace 'comp' with 'store'.
-  store->set_instr(comp->instr());
-  comp->instr()->replace_computation(store);
+  comp->ReplaceWith(store);
+  return true;
 }
 
 

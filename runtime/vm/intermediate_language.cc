@@ -56,6 +56,15 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
+void Computation::ReplaceWith(Computation* other) {
+  ASSERT(other->instr() == NULL);
+  ASSERT(instr() != NULL);
+  other->set_instr(other->instr());
+  instr()->replace_computation(other);
+  set_instr(NULL);
+}
+
+
 intptr_t InstanceCallComp::InputCount() const {
   return ArgumentCount();
 }
@@ -463,6 +472,11 @@ RawAbstractType* ClosureCallComp::StaticType() const {
 
 
 RawAbstractType* InstanceCallComp::StaticType() const {
+  return Type::DynamicType();
+}
+
+
+RawAbstractType* PolymorphicInstanceCallComp::StaticType() const {
   return Type::DynamicType();
 }
 
@@ -976,6 +990,29 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  ArgumentCount(),
                                  argument_names(),
                                  checked_argument_count());
+}
+
+
+LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(srdjan): Add checked calls, a series of checks each issuing
+  // a direct call to the target if check succeeds.
+  ASSERT(VerifyCallComputation(instance_call()));
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 instance_call()->cid(),
+                                 instance_call()->token_index(),
+                                 instance_call()->try_index());
+  compiler->GenerateInstanceCall(instance_call()->cid(),
+                                 instance_call()->token_index(),
+                                 instance_call()->try_index(),
+                                 instance_call()->function_name(),
+                                 instance_call()->ArgumentCount(),
+                                 instance_call()->argument_names(),
+                                 instance_call()->checked_argument_count());
 }
 
 
