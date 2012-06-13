@@ -38,12 +38,12 @@ void _fillStatics(context) native @"""
   $static_init();
 """;
 
-ReceivePort _lazy_port;
+ReceivePort _lazyPort;
 ReceivePort get _port() {
-  if (_lazy_port === null) {
-    _lazy_port = new ReceivePort();
+  if (_lazyPort === null) {
+    _lazyPort = new ReceivePort();
   }
-  return _lazy_port;
+  return _lazyPort;
 }
 
 SendPort _spawnFunction(void topLevelFunction()) {
@@ -605,7 +605,7 @@ class _IsolateNatives {
 
   static void _startIsolate2(Function topLevel, SendPort replyTo) {
     _fillStatics(_globalState.currentContext);
-    __port = new ReceivePort();
+    _lazyPort = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
     topLevel();
   }
