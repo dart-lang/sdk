@@ -347,6 +347,9 @@ class Compiler implements DiagnosticListener {
     if (!coreLibValid) {
       cancel('core library does not contain required classes');
     }
+
+    jsIndexingBehaviorInterface =
+        findHelper(const SourceString('JavaScriptIndexingBehavior'));
   }
 
   void scanBuiltinLibraries() {
@@ -373,9 +376,6 @@ class Compiler implements DiagnosticListener {
     assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
-
-    jsIndexingBehaviorInterface =
-        findHelper(const SourceString('JavaScriptIndexingBehavior'));
   }
 
   /** Define the JS helper functions in the given library. */
