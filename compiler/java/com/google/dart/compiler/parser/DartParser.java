@@ -4120,13 +4120,21 @@ public class DartParser extends CompletionHooksParserBase {
     // Check for unary minus operator.
     Token token = peek(0);
     if (token.isUnaryOperator() || token == Token.SUB) {
-      beginUnaryExpression();
-      consume(token);
-      DartExpression unary = parseUnaryExpression();
-      if (token.isCountOperator()) {
-        ensureAssignable(unary);
+      if (token == Token.DEC && peek(1) == Token.SUPER) {
+        beginUnaryExpression();
+        beginUnaryExpression();
+        consume(token);
+        DartExpression unary = parseUnaryExpression();
+        return done(new DartUnaryExpression(Token.SUB, done(new DartUnaryExpression(Token.SUB, unary, true)), true));
+      } else {
+        beginUnaryExpression();
+        consume(token);
+        DartExpression unary = parseUnaryExpression();
+        if (token.isCountOperator()) {
+          ensureAssignable(unary);
+        }
+        return done(new DartUnaryExpression(token, unary, true));
       }
-      return done(new DartUnaryExpression(token, unary, true));
     } else {
       return parsePostfixExpression();
     }

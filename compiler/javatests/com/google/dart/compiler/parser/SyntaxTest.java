@@ -20,12 +20,14 @@ import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
 
@@ -434,6 +436,24 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("[]", ((DartIdentifier)F_access.getName()).getName());
     DartMethodDefinition F_access_assign = (DartMethodDefinition)F.getMembers().get(3);
     assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());
+  }
+
+  public void test_super_operator() {
+    DartUnit unit = parseUnit("phony_super.dart", Joiner.on("\n").join(
+        "class A {",
+        "  void m() {",
+        "    --super;",
+        "  }",
+        "}"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+    DartClass A = (DartClass) nodes.get(0);
+    DartMethodDefinition m = (DartMethodDefinition) A.getMembers().get(0);
+    DartExprStmt statement = (DartExprStmt) m.getFunction().getBody().getStatements().get(0);
+    DartUnaryExpression value = (DartUnaryExpression) statement.getExpression();
+    assertEquals(Token.SUB, value.getOperator());
+    DartUnaryExpression inner = (DartUnaryExpression) value.getArg();
+    assertEquals(Token.SUB, inner.getOperator());
   }
 
   /**

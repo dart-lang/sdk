@@ -110,7 +110,6 @@ Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # Issue 2437
 Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # Issue 2437
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # Issue 2437
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # Issue 2437
-Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # Issue 3526
 Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # Issue 2437
 Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # Issue 2437
 Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # Issue 2437
