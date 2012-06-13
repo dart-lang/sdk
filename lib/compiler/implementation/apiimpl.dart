@@ -43,16 +43,12 @@ class Compiler extends leg.Compiler {
   }
 
   leg.Script readScript(Uri uri, [tree.Node node]) {
-    if (uri.scheme == 'dart') {
-      uri = translateDartUri(uri, node);
-    } else if (uri.scheme == 'package') {
-      uri = translatePackageUri(uri, node);
-    }
+    var translated = translateUri(uri, node);
     String text = "";
     try {
       // TODO(ahe): We expect the future to be complete and call value
       // directly. In effect, we don't support truly asynchronous API.
-      text = provider(uri).value;
+      text = provider(translated).value;
     } catch (var exception) {
       if (node !== null) {
         cancel("$exception", node: node);
@@ -66,7 +62,15 @@ class Compiler extends leg.Compiler {
     return new leg.Script(uri, sourceFile);
   }
 
-  translateDartUri(Uri uri, tree.Node node) {
+  Uri translateUri(Uri uri, tree.Node node) {
+    switch (uri.scheme) {
+      case 'dart': return translateDartUri(uri, node);
+      case 'package': return translatePackageUri(uri, node);
+      default: return uri;
+    }
+  }
+
+  Uri translateDartUri(Uri uri, tree.Node node) {
     String path = DART2JS_LIBRARY_MAP[uri.path];
     if (path === null || uri.path.startsWith('_')) {
       reportError(node, 'library not found ${uri}');
@@ -95,7 +99,8 @@ class Compiler extends leg.Compiler {
     if (span === null) {
       handler(null, null, null, message, fatal);
     } else {
-      handler(span.uri, span.begin, span.end, message, fatal);
+      handler(translateUri(span.uri, null), span.begin, span.end,
+              message, fatal);
     }
   }
 
