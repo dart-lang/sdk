@@ -1367,7 +1367,19 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     // Parse the parameters definitions.
-    List<DartParameter> parameters = parseFormalParameterList();
+    List<DartParameter> parameters;
+    if (modifiers.isGetter() && peek(0) != Token.LPAREN) {
+      // TODO: For now the parameters are optional so that both the old and new style will be
+      // accepted, but eventually parameters should be disallowed.
+      parameters = new ArrayList<DartParameter>();
+    } else {
+      if (modifiers.isSetter()) {
+        // TODO: For now we optionally allow an equal sign before the formal parameter list, but
+        // eventually it should be required.
+        optional(Token.ASSIGN);
+      }
+      parameters = parseFormalParameterList();
+    }
 
     if (arity != -1) {
       if (parameters.size() != arity) {

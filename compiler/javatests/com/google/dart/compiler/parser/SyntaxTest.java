@@ -20,7 +20,6 @@ import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
-import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -34,6 +33,26 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
+
+  public void test_getter() {
+    DartUnit unit = parseUnit("getter.dart", Joiner.on("\n").join(
+        "class G {",
+        "  // Old getter syntax",
+        "  int get g1() => 1;",
+        "  // New getter syntax",
+        "  int get g2 => 2;",
+        "}"));
+  }
+
+  public void test_setter() {
+    DartUnit unit = parseUnit("setter.dart", Joiner.on("\n").join(
+        "class G {",
+        "  // Old setter syntax",
+        "  void set g1(int v) {}",
+        "  // New setter syntax",
+        "  void set g2=(int v) {}",
+        "}"));
+  }
 
   /**
    * There was bug when "identA.identB" always considered as constructor declaration. But it can be
