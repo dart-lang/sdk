@@ -1098,3 +1098,11 @@ listSuperNativeTypeCheck(value, property) {
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeError(value, property);
 }
+
+/**
+ * Special interface recognized by the compiler and implemented by DOM
+ * objects that support integer indexing. This interface is not
+ * visible to anyone, and is only injected into special libraries.
+ */
+interface JavaScriptIndexingBehavior {
+}

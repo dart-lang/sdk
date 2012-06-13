@@ -130,6 +130,13 @@ class Compiler implements DiagnosticListener {
   ClassElement listClass;
   Element assertMethod;
 
+  /**
+   * Interface used to determine if an object has the JavaScript
+   * indexing behavior. The interface is only visible to specific
+   * libraries.
+   */
+  ClassElement jsIndexingBehaviorInterface;
+
   Element get currentElement() => _currentElement;
   withCurrentElement(Element element, f()) {
     Element old = currentElement;
@@ -366,6 +373,9 @@ class Compiler implements DiagnosticListener {
     assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
+
+    jsIndexingBehaviorInterface =
+        findHelper(const SourceString('JavaScriptIndexingBehavior'));
   }
 
   /** Define the JS helper functions in the given library. */

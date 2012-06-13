@@ -2285,6 +2285,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, Element element) {
+    world.registerIsCheck(element);
     bool requiresNativeIsCheck =
         backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
     if (!requiresNativeIsCheck) buffer.add('!!');
@@ -2335,7 +2336,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (element.kind === ElementKind.TYPEDEF) {
       compiler.unimplemented("visitIs for typedefs", instruction: node);
     }
-    world.registerIsCheck(type.element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
@@ -2511,6 +2511,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void visitTypeGuard(HTypeGuard node) {
     addIndentation();
     HInstruction input = node.guarded;
+    Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
     if (node.isInteger()) {
       buffer.add('if (');
       checkInt(input, '!==');
@@ -2543,17 +2544,21 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     } else if (node.isMutableArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkArray(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkImmutableArray(input);
+      buffer.add(' || !');
+      checkType(input, indexingBehavior);
       buffer.add(') ');
       bailout(node, 'Not a mutable array');
     } else if (node.isReadableArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkArray(input, '!==');
+      buffer.add(' || !');
+      checkType(input, indexingBehavior);
       buffer.add(') ');
       bailout(node, 'Not an array');
     } else if (node.isIndexablePrimitive()) {
@@ -2561,8 +2566,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkString(input, '!==');
       buffer.add(' && (');
       checkObject(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkArray(input, '!==');
+      buffer.add(' || !');
+      checkType(input, indexingBehavior);
       buffer.add(')) ');
       bailout(node, 'Not a string or array');
     } else {

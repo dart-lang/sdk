@@ -83,6 +83,9 @@ void maybeEnableNative(Compiler compiler,
     library.define(new ForeignElement(
         const SourceString('native'), library), compiler);
     library.canUseNative = true;
+    if (compiler.jsIndexingBehaviorInterface !== null) {
+      library.define(compiler.jsIndexingBehaviorInterface, compiler);
+    }
   }
 
   // Additionaly, if this is a test, we allow access to foreign functions.
