@@ -154,11 +154,13 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        intptr_t try_index,
                                        DeoptReasonId reason,
                                        Register reg1,
-                                       Register reg2) {
+                                       Register reg2,
+                                       Register reg3) {
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, deopt_token_index, try_index, reason);
-  stub->Push(reg1);
-  stub->Push(reg2);
+  if (reg1 != kNoRegister) stub->Push(reg1);
+  if (reg2 != kNoRegister) stub->Push(reg2);
+  if (reg3 != kNoRegister) stub->Push(reg3);
   deopt_stubs_.Add(stub);
   return stub->entry_label();
 }

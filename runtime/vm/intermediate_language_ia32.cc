@@ -487,30 +487,101 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  return LocationSummary::Make(kNumInputs, Location::NoLocation());
+  if (receiver_type() == kGrowableObjectArray || receiver_type() == kArray) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_in(2, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::NoLocation());
+    return locs;
+  } else {
+    ASSERT(receiver_type() == kIllegalObjectKind);
+    return MakeCallSummary();
+  }
 }
 
 
-void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
-  Register value = locs()->in(2).reg();
 
+static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
+                                    StoreIndexedComp* comp) {
   const String& function_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
 
-  __ pushl(receiver);
-  __ pushl(index);
-  __ pushl(value);
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index());
+
   const intptr_t kNumArguments = 3;
   const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
+  compiler->GenerateInstanceCall(comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index(),
                                  function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
                                  kNumArgsChecked);
+}
+
+
+void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (receiver_type() == kIllegalObjectKind) {
+    EmitStoreIndexedGeneric(compiler, this);
+    return;
+  }
+
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register value = locs()->in(2).reg();
+  Register temp = locs()->temp(0).reg();
+
+  Label* deopt = compiler->AddDeoptStub(cid(),
+                                        token_index(),
+                                        try_index(),
+                                        kDeoptStoreIndexed,
+                                        receiver,
+                                        index,
+                                        value);
+
+  __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
+  __ j(ZERO, deopt);
+  __ CompareClassId(receiver, receiver_type(), temp);
+  __ j(NOT_EQUAL, deopt);
+
+  __ testl(index, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+
+  switch (receiver_type()) {
+    case kArray:
+    case kImmutableArray:
+      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ StoreIntoObject(receiver,
+          FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
+          value);
+      break;
+
+    case kGrowableObjectArray: {
+      __ cmpl(index,
+              FieldAddress(receiver, GrowableObjectArray::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ StoreIntoObject(temp,
+          FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
+          value);
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
 }
 
 
@@ -593,8 +664,7 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance,
-                                          kNoRegister);
+                                          instance);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
     ASSERT(result != instance);
@@ -719,8 +789,7 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance,
-                                          kNoRegister);
+                                          instance);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
     ASSERT(result != instance);
@@ -1273,8 +1342,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
-                                        value,
-                                        kNoRegister);
+                                        value);
   if (test_class.id() == kSmi) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
@@ -1325,8 +1393,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
-                                        value,
-                                        kNoRegister);
+                                        value);
   if (test_class.id() == kDouble) {
     Register temp = locs()->temp(0).reg();
     ASSERT(result != temp);
@@ -1382,8 +1449,7 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         deopt_reason,
-                                        value,
-                                        kNoRegister);
+                                        value);
 
   if (from() == kDouble) {
     Register temp = locs()->temp(0).reg();

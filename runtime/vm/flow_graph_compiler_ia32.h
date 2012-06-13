@@ -164,8 +164,9 @@ class FlowGraphCompiler : public ValueObject {
                       intptr_t deopt_token_index,
                       intptr_t try_index_,
                       DeoptReasonId reason,
-                      Register reg1,
-                      Register reg2);
+                      Register reg1 = kNoRegister,
+                      Register reg2 = kNoRegister,
+                      Register reg3 = kNoRegister);
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);

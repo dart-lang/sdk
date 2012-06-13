@@ -23,6 +23,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitInstanceCall(InstanceCallComp* comp);
   virtual void VisitInstanceSetter(InstanceSetterComp* comp);
   virtual void VisitLoadIndexed(LoadIndexedComp* comp);
+  virtual void VisitStoreIndexed(StoreIndexedComp* comp);
   virtual void VisitRelationalOp(RelationalOpComp* comp);
 
   virtual void VisitDo(DoInstr* instr);

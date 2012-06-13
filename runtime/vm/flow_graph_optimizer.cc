@@ -483,24 +483,49 @@ void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
-  if (!comp->HasICData()) return;
+enum IndexedAccessType {
+  kIndexedLoad,
+  kIndexedStore
+};
+
+
+static intptr_t ReceiverClassId(Computation* comp) {
+  if (!comp->HasICData()) return kIllegalObjectKind;
 
   const ICData& ic_data = *comp->ic_data();
-  if (ic_data.NumberOfChecks() == 0) return;
+
+  if (ic_data.NumberOfChecks() == 0) return kIllegalObjectKind;
   // TODO(vegorov): Add multiple receiver type support.
-  if (ic_data.NumberOfChecks() != 1) return;
+  if (ic_data.NumberOfChecks() != 1) return kIllegalObjectKind;
   ASSERT(HasOneTarget(ic_data));
 
   Function& target = Function::Handle();
   Class& cls = Class::Handle();
   ic_data.GetOneClassCheckAt(0, &cls, &target);
 
-  switch (cls.id()) {
+  return cls.id();
+}
+
+
+void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
+  const intptr_t class_id = ReceiverClassId(comp);
+  switch (class_id) {
     case kArray:
     case kImmutableArray:
     case kGrowableObjectArray:
-      comp->set_receiver_type(static_cast<ObjectKind>(cls.id()));
+      comp->set_receiver_type(static_cast<ObjectKind>(class_id));
+  }
+}
+
+
+void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp) {
+  if (FLAG_enable_type_checks) return;
+
+  const intptr_t class_id = ReceiverClassId(comp);
+  switch (class_id) {
+    case kArray:
+    case kGrowableObjectArray:
+      comp->set_receiver_type(static_cast<ObjectKind>(class_id));
   }
 }
 

@@ -879,7 +879,8 @@ class StoreIndexedComp : public TemplateComputation<3> {
                    Value* index,
                    Value* value)
       : token_index_(token_index),
-        try_index_(try_index) {
+        try_index_(try_index),
+        receiver_type_(kIllegalObjectKind) {
     inputs_[0] = array;
     inputs_[1] = index;
     inputs_[2] = value;
@@ -893,9 +894,18 @@ class StoreIndexedComp : public TemplateComputation<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
+  void set_receiver_type(ObjectKind receiver_type) {
+    receiver_type_ = receiver_type;
+  }
+
+  ObjectKind receiver_type() const {
+    return receiver_type_;
+  }
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
+  ObjectKind receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
