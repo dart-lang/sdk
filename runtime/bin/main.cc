@@ -190,7 +190,8 @@ static int ParseArguments(int argc,
                           CommandLineOptions* vm_options,
                           char** executable_name,
                           char** script_name,
-                          CommandLineOptions* dart_options) {
+                          CommandLineOptions* dart_options,
+                          bool* print_flags_seen) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
@@ -205,6 +206,12 @@ static int ParseArguments(int argc,
     if (ProcessMainOptions(argv[i])) {
       i++;
     } else {
+      const char* kPrintFlags1 = "--print-flags";
+      const char* kPrintFlags2 = "--print_flags";
+      if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
+          (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
+        *print_flags_seen = true;
+      }
       vm_options->AddArgument(argv[i]);
       i++;
     }
@@ -684,6 +691,7 @@ int main(int argc, char** argv) {
   CommandLineOptions dart_options(argc);
   CommandLineOptions import_map(argc);
   import_map_options = &import_map;
+  bool print_flags_seen = false;
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
@@ -696,9 +704,17 @@ int main(int argc, char** argv) {
                      &vm_options,
                      &executable_name,
                      &script_name,
-                     &dart_options) < 0) {
-    PrintUsage();
-    return kErrorExitCode;
+                     &dart_options,
+                     &print_flags_seen) < 0) {
+    if (print_flags_seen) {
+      // Will set the VM flags, print them out and then we exit as no
+      // script was specified on the command line.
+      Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+      return 0;
+    } else {
+      PrintUsage();
+      return kErrorExitCode;
+    }
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
@@ -721,7 +737,7 @@ int main(int argc, char** argv) {
     free(const_cast<char*>(original_working_directory));
     free(error);
     delete [] isolate_name;
-    return 255;  // Indicates we encountered an error.
+    return kErrorExitCode;  // Indicates we encountered an error.
   }
   delete [] isolate_name;
 
