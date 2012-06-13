@@ -56,6 +56,9 @@ Document get document() {
 
 Document get _document() => _window.document;
 
+Element query(String selector) => _document.query(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
+
 class _Null {
   const _Null();
 }

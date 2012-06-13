@@ -39,6 +39,9 @@ Document get document() {
 
 Document get _document() => _window.document;
 
+Element query(String selector) => _document.query(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
+
 class _Null {
   const _Null();
 }
@@ -8644,8 +8647,6 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
   int get height() native "HTMLCanvasElement_height_Getter";
@@ -8660,6 +8661,8 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
   String toDataURL(String type) native "HTMLCanvasElement_toDataURL_Callback";
 
+
+  CanvasRenderingContext2D get context2d() => getContext('2d');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24820,6 +24823,8 @@ interface CanvasElement extends Element default _Elements {
 
   /** @domName HTMLCanvasElement.toDataURL */
   String toDataURL(String type);
+
+  final CanvasRenderingContext2D context2d;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

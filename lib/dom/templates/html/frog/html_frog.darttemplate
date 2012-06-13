@@ -36,6 +36,9 @@ Document get document() native "return document;";
 
 _DocumentImpl get _document() native "return document;";
 
+Element query(String selector) => _document.query(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
+
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {

@@ -19,6 +19,9 @@ Document get document() native "return document;";
 
 _DocumentImpl get _document() native "return document;";
 
+Element query(String selector) => _document.query(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
+
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
@@ -3778,6 +3781,9 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList native "*C
 
   _CSSValueImpl item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _CanvasElementImpl extends _ElementImpl implements CanvasElement native "*HTMLCanvasElement" {
 
@@ -3788,6 +3794,9 @@ class _CanvasElementImpl extends _ElementImpl implements CanvasElement native "*
   Object getContext(String contextId) native;
 
   String toDataURL(String type) native;
+
+
+  _CanvasRenderingContext2DImpl get context2d() => getContext('2d');
 }
 
 class _CanvasGradientImpl implements CanvasGradient native "*CanvasGradient" {
@@ -21039,6 +21048,8 @@ interface CanvasElement extends Element default _Elements {
 
   /** @domName HTMLCanvasElement.toDataURL */
   String toDataURL(String type);
+
+  final CanvasRenderingContext2D context2d;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

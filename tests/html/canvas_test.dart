@@ -14,7 +14,7 @@ main() {
   canvas.attributes['height'] = height;
   document.body.nodes.add(canvas);
 
-  context = canvas.getContext('2d');
+  context = canvas.context2d;
 
   useHtmlConfiguration();
   test('FillStyle', () {
