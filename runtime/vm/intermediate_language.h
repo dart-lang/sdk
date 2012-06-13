@@ -79,6 +79,7 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 
 // Forward declarations.
 class BufferFormatter;
+class BranchInstr;
 class Instruction;
 class Value;
 
@@ -503,20 +504,46 @@ class InstanceCallComp : public Computation {
 };
 
 
-class StrictCompareComp : public TemplateComputation<2> {
+class ComparisonComp : public TemplateComputation<2> {
  public:
-  StrictCompareComp(Token::Kind kind, Value* left, Value* right)
-      : kind_(kind) {
-    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
+  ComparisonComp(Value* left, Value* right)
+      : fused_with_branch_(NULL) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
+  }
+
+  void MarkFusedWithBranch(BranchInstr* branch) {
+    fused_with_branch_ = branch;
+  }
+
+  BranchInstr* fused_with_branch() const {
+    return fused_with_branch_;
+  }
+
+  bool is_fused_with_branch() const {
+    return fused_with_branch_ != NULL;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+ private:
+  BranchInstr* fused_with_branch_;
+};
+
+
+class StrictCompareComp : public ComparisonComp {
+ public:
+  StrictCompareComp(Token::Kind kind, Value* left, Value* right)
+      : ComparisonComp(left, right), kind_(kind) {
+    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
   }
 
   DECLARE_COMPUTATION(StrictCompare)
 
   Token::Kind kind() const { return kind_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -527,26 +554,21 @@ class StrictCompareComp : public TemplateComputation<2> {
 };
 
 
-class EqualityCompareComp : public TemplateComputation<2> {
+class EqualityCompareComp : public ComparisonComp {
  public:
   EqualityCompareComp(intptr_t token_index,
                       intptr_t try_index,
                       Value* left,
                       Value* right)
-      : token_index_(token_index),
+      : ComparisonComp(left, right),
+        token_index_(token_index),
         try_index_(try_index) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -558,22 +580,19 @@ class EqualityCompareComp : public TemplateComputation<2> {
 };
 
 
-class RelationalOpComp : public TemplateComputation<2> {
+class RelationalOpComp : public ComparisonComp {
  public:
   RelationalOpComp(intptr_t token_index,
                    intptr_t try_index,
                    Token::Kind kind,
                    Value* left,
                    Value* right)
-      : token_index_(token_index),
+      : ComparisonComp(left, right),
+        token_index_(token_index),
         try_index_(try_index),
         kind_(kind),
         operands_class_id_(kObject) {
     ASSERT(Token::IsRelationalOperator(kind));
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
   }
 
   DECLARE_COMPUTATION(RelationalOp)
@@ -581,14 +600,13 @@ class RelationalOpComp : public TemplateComputation<2> {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Token::Kind kind() const { return kind_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
 
   // TODO(srdjan): instead of class-id pass an enum that can differentiate
   // between boxed and unboxed doubles and integers.
   void set_operands_class_id(intptr_t value) {
     operands_class_id_ = value;
   }
+
   intptr_t operands_class_id() const { return operands_class_id_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2216,7 +2234,8 @@ class BranchInstr : public InstructionWithInputs {
       : InstructionWithInputs(),
         value_(value),
         true_successor_(NULL),
-        false_successor_(NULL) { }
+        false_successor_(NULL),
+        is_fused_with_comparison_(false) { }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -2245,10 +2264,20 @@ class BranchInstr : public InstructionWithInputs {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
+  void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                             Condition true_condition);
+
+  void MarkFusedWithComparison() {
+    is_fused_with_comparison_ = true;
+  }
+
+  bool is_fused_with_comparison() const { return is_fused_with_comparison_; }
+
  private:
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
+  bool is_fused_with_comparison_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

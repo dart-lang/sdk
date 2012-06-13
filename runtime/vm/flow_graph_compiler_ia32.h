@@ -176,6 +176,9 @@ class FlowGraphCompiler : public ValueObject {
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
+  const Bool& bool_true() const { return bool_true_; }
+  const Bool& bool_false() const { return bool_false_; }
+
  private:
   friend class DeoptimizationStub;
 
@@ -262,6 +265,9 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+
+  const Bool& bool_true_;
+  const Bool& bool_false_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

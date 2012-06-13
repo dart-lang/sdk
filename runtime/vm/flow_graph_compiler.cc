@@ -37,7 +37,9 @@ FlowGraphCompiler::FlowGraphCompiler(
       stackmap_builder_(NULL),
       block_info_(block_order.length()),
       deopt_stubs_(),
-      is_optimizing_(is_optimizing) {
+      is_optimizing_(is_optimizing),
+      bool_true_(Bool::ZoneHandle(Bool::True())),
+      bool_false_(Bool::ZoneHandle(Bool::False())) {
   ASSERT(assembler != NULL);
 }
 

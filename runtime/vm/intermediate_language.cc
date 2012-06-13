@@ -824,26 +824,59 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
-  const int kNumInputs = 1;
-  const int kNumTemps = 0;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
-  locs->set_in(0, Location::RequiresRegister());
-  return locs;
+  if (is_fused_with_comparison()) {
+    return LocationSummary::Make(0, Location::NoLocation());
+  } else {
+    const int kNumInputs = 1;
+    const int kNumTemps = 0;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    return locs;
+  }
 }
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  __ CompareObject(value,  Bool::ZoneHandle(Bool::True()));
+  // If branch was fused with a comparision then no code needs to be emitted.
+  if (!is_fused_with_comparison()) {
+    Register value = locs()->in(0).reg();
+    __ CompareObject(value, compiler->bool_true());
+    EmitBranchOnCondition(compiler, EQUAL);
+  }
+}
+
+
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return NOT_EQUAL;
+    case NOT_EQUAL:     return EQUAL;
+    case LESS:          return GREATER_EQUAL;
+    case LESS_EQUAL:    return GREATER;
+    case GREATER:       return LESS_EQUAL;
+    case GREATER_EQUAL: return LESS;
+    case BELOW:         return ABOVE_EQUAL;
+    case BELOW_EQUAL:   return ABOVE;
+    case ABOVE:         return BELOW_EQUAL;
+    case ABOVE_EQUAL:   return BELOW;
+    default:
+      OS::Print("Error %d\n", condition);
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
+void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                        Condition true_condition) {
   if (compiler->IsNextBlock(false_successor())) {
-    // If the next block is the false successor we will fall through to it if
-    // comparison with true fails.
-    __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
+    // If the next block is the false successor we will fall through to it.
+    __ j(true_condition, compiler->GetBlockLabel(true_successor()));
   } else {
-    ASSERT(compiler->IsNextBlock(true_successor()));
     // If the next block is the true successor we negate comparison and fall
     // through to it.
-    __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
+    ASSERT(compiler->IsNextBlock(true_successor()));
+    Condition false_condition = NegateCondition(true_condition);
+    __ j(false_condition, compiler->GetBlockLabel(false_successor()));
   }
 }
 
@@ -874,31 +907,34 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::SameAsFirstInput());
+  if (!is_fused_with_branch()) {
+    return LocationSummary::Make(2, Location::SameAsFirstInput());
+  } else {
+    return LocationSummary::Make(2, Location::NoLocation());
+  }
 }
 
 
 void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  Register result = locs()->out().reg();
 
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ CompareRegisters(left, right);
-  Label load_true, done;
-  if (kind() == Token::kEQ_STRICT) {
-    __ j(EQUAL, &load_true, Assembler::kNearJump);
+
+  if (!is_fused_with_branch()) {
+    Register result = locs()->out().reg();
+    Label load_true, done;
+    __ j(true_condition, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
   } else {
-    ASSERT(kind() == Token::kNE_STRICT);
-    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
+    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
   }
-  __ LoadObject(result, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, bool_true);
-  __ Bind(&done);
 }
 
 
@@ -1012,13 +1048,11 @@ void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label done;
-  __ LoadObject(result, bool_true);
+  __ LoadObject(result, compiler->bool_true());
   __ CompareRegisters(result, value);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(result, bool_false);
+  __ LoadObject(result, compiler->bool_false());
   __ Bind(&done);
 }
 

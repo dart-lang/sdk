@@ -26,6 +26,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitStoreIndexed(StoreIndexedComp* comp);
   virtual void VisitRelationalOp(RelationalOpComp* comp);
 
+  virtual void VisitStrictCompareComp(StrictCompareComp* comp);
+  virtual void VisitEqualityCompare(EqualityCompareComp* comp);
+
   virtual void VisitDo(DoInstr* instr);
   virtual void VisitBind(BindInstr* instr);
 

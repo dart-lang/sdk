@@ -530,6 +530,20 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp) {
 }
 
 
+static void TryFuseComparisonWithBranch(ComparisonComp* comp) {
+  Instruction* instr = comp->instr();
+  Instruction* next_instr = instr->StraightLineSuccessor();
+  if (next_instr != NULL && next_instr->IsBranch()) {
+    BranchInstr* branch = next_instr->AsBranch();
+    UseVal* use = branch->value()->AsUse();
+    if (instr == use->definition()) {
+      comp->MarkFusedWithBranch(branch);
+      branch->MarkFusedWithComparison();
+    }
+  }
+}
+
+
 void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
   if (!comp->HasICData()) return;
 
@@ -543,7 +557,30 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
     comp->set_operands_class_id(kSmi);
   } else if (HasTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDouble);
+  } else {
+    return;
   }
+
+  // For smi and double comparisons if the next instruction is a conditional
+  // branch that uses the value of this comparison mark them as fused together
+  // to avoid materializing a boolean value.
+  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
+  // and a branch.
+  TryFuseComparisonWithBranch(comp);
+}
+
+
+void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
+  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
+  // and a branch.
+  TryFuseComparisonWithBranch(comp);
+}
+
+
+void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
+  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
+  // and a branch.
+  TryFuseComparisonWithBranch(comp);
 }
 
 

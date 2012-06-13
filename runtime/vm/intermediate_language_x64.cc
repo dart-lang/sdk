@@ -23,7 +23,13 @@ DECLARE_FLAG(bool, trace_functions);
 
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
-  __ pushq(locs()->out().reg());
+  if (locs()->out().kind() == Location::kRegister) {
+    // TODO(vegorov): this should really happen only for comparisons fused
+    // with branches.  Currrently IR does not provide an easy way to remove
+    // instructions from the graph so we just leave fused comparison in it
+    // but change its result location to be NoLocation.
+    __ pushq(locs()->out().reg());
+  }
 }
 
 
@@ -172,9 +178,9 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Check that the type of the value is allowed in conditional context.
   // Call the runtime if the object is not bool::true or bool::false.
   Label done;
-  __ CompareObject(obj, Bool::ZoneHandle(Bool::True()));
+  __ CompareObject(obj, compiler->bool_true());
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(obj, Bool::ZoneHandle(Bool::False()));
+  __ CompareObject(obj, compiler->bool_false());
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ pushq(Immediate(Smi::RawValue(token_index())));  // Source location.
@@ -195,7 +201,9 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(2, 0);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, Location::RequiresRegister());
-  locs->set_out(Location::RegisterLocation(RAX));
+  if (!is_fused_with_branch()) {
+    locs->set_out(Location::RegisterLocation(RAX));
+  }
   return locs;
 }
 
@@ -203,25 +211,28 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  Register result = locs()->out().reg();
-  ASSERT(locs()->out().reg() == RAX);
 
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done, load_true, non_null_compare;
+  Label done, non_null_compare;
 
   __ cmpq(left, raw_null);
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
   __ cmpq(left, right);
-  __ j(EQUAL, &load_true, Assembler::kNearJump);
-  __ LoadObject(result, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, bool_true);
+  if (!is_fused_with_branch()) {
+    Register result = locs()->out().reg();
+    Label load_true;
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+  } else {
+    fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  }
   __ jmp(&done);
+
 
   __ Bind(&non_null_compare);
   __ pushq(left);
@@ -238,7 +249,33 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  kNumberOfArguments,
                                  kNoArgumentNames,
                                  kNumArgumentsChecked);
+  ASSERT(fused_with_branch() != NULL || locs()->out().reg() == RAX);
+
+  if (fused_with_branch() != NULL) {
+    __ CompareObject(RAX, compiler->bool_true());
+    fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  }
+
   __ Bind(&done);
+}
+
+
+LocationSummary* RelationalOpComp::MakeLocationSummary() const {
+  if (operands_class_id() == kSmi || operands_class_id() == kDouble) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    if (!is_fused_with_branch()) {
+      summary->set_out(Location::RequiresRegister());
+    }
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+  ASSERT(!is_fused_with_branch());
+  ASSERT(operands_class_id() == kObject);
+  return MakeCallSummary();
 }
 
 
@@ -261,7 +298,6 @@ static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
                                 RelationalOpComp* comp) {
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
-  Register result = comp->locs()->out().reg();
   Register temp =  comp->locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_index(),
@@ -273,46 +309,23 @@ static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
   __ orq(temp, right);
   __ testq(temp, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  Condition condition = TokenKindToSmiCondition(comp->kind());
 
-  Label done, is_true;
+  Condition true_condition = TokenKindToSmiCondition(comp->kind());
   __ cmpq(left, right);
-  __ j(condition, &is_true);
-  __ LoadObject(result, bool_false);
-  __ jmp(&done);
-  __ Bind(&is_true);
-  __ LoadObject(result, bool_true);
-  __ Bind(&done);
-}
 
-
-LocationSummary* RelationalOpComp::MakeLocationSummary() const {
-  if (operands_class_id() == kSmi) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::RequiresRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    return summary;
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label done, is_true;
+    __ j(true_condition, &is_true);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
   }
-  if (operands_class_id() == kDouble) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::RequiresRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    return summary;
-  }
-  ASSERT(operands_class_id() == kObject);
-  return MakeCallSummary();
 }
-
 
 
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
@@ -333,7 +346,6 @@ static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
                                    RelationalOpComp* comp) {
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
-  Register result = comp->locs()->out().reg();
   // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
   Register temp = comp->locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
@@ -344,19 +356,26 @@ static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
                                         right);
   compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
   compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
   Condition true_condition = TokenKindToDoubleCondition(comp->kind());
-  Label is_false, is_true, done;
   __ comisd(XMM0, XMM1);
-  __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
-  __ j(true_condition, &is_true, Assembler::kNearJump);
-  __ Bind(&is_false);
-  __ LoadObject(result, bool_false);
-  __ jmp(&done);
-  __ Bind(&is_true);
-  __ LoadObject(result, bool_true);
-  __ Bind(&done);
+
+  if (comp->is_fused_with_branch()) {
+    BranchInstr* branch = comp->fused_with_branch();
+    __ j(PARITY_EVEN, compiler->GetBlockLabel(branch->false_successor()));
+    branch->EmitBranchOnCondition(compiler, true_condition);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label is_false, is_true, done;
+    __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);
+    __ j(true_condition, &is_true, Assembler::kNearJump);
+    __ Bind(&is_false);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
 }
 
 
@@ -1455,8 +1474,8 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ToDoubleComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
   if (from() == kDouble) {
+    const intptr_t kNumTemps = 0;
     LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_out(Location::SameAsFirstInput());

@@ -167,6 +167,9 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
 
+  const Bool& bool_true() const { return bool_true_; }
+  const Bool& bool_false() const { return bool_false_; }
+
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
  private:
@@ -265,6 +268,9 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+
+  const Bool& bool_true_;
+  const Bool& bool_false_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };
