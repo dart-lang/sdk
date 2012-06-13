@@ -52,15 +52,19 @@
             '<(PRODUCT_DIR)/dart-sdk',
           ],
           'message': 'Creating SDK.',
+          'conditions' : [
+            ['OS=="linux"', {
+              'inputs' : [
+                '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
+              ],
+            }],
+          ],
         },
       ],
       'conditions' : [
         ['OS=="linux"', {
           'dependencies': [
             'compiler',
-          ],
-          'inputs' : [
-            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
           ],
         }],
       ],
