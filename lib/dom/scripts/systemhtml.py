@@ -273,6 +273,8 @@ _html_library_custom = set([
     'IFrameElement.get:contentWindow',
     'Window.get:document',
     'Window.get:top',
+    'Window.get:location',
+    'Window.set:location',
     'IDBDatabase.transaction',
     ])
 
