@@ -19,22 +19,20 @@ class Person {
 }
 
 main() {
-  Intl intl = new Intl();
-
   test('Trivial Message', () {
-    hello() => intl.message('Hello, world!',
+    hello() => Intl.message('Hello, world!',
         desc: 'hello world string');
     expect(hello(), equals('Hello, world!'));
   });
 
   test('Message with one parameter', () {
-    lucky(number) => intl.message('Your lucky number is $number',
+    lucky(number) => Intl.message('Your lucky number is $number',
         desc: 'number str', examples: {'number': 2});
     expect(lucky(3), equals('Your lucky number is 3'));
   });
 
   test('Message with multiple plural cases (whole message)', () {
-    emails(number) => intl.message(
+    emails(number) => Intl.message(
         Intl.plural(number,
           {'0': 'There are no emails left.',
            '1': 'There is one email left.',
@@ -47,7 +45,7 @@ main() {
   });
 
   test('Message with multiple plural cases (partial message)', () {
-    emails(number) => intl.message(
+    emails(number) => Intl.message(
       "There ${Intl.plural(number,
         {'0': 'are',
          '1': 'is',
@@ -60,7 +58,7 @@ main() {
   });
 
   test('Message with dictionary parameter', () {
-    hello(dict) => intl.message(
+    hello(dict) => Intl.message(
         "Hello, my name is ${dict['first']} ${dict['last']}",
         desc: "States a person's name.",
         examples: {'first': 'Ford', 'last': 'Prefect'});
@@ -69,11 +67,23 @@ main() {
   });
 
   test('Message with object parameter', () {
-    hello(person) => intl.message(
+    hello(person) => Intl.message(
         "Hello, my name is ${person.firstName} ${person.lastName}.",
         desc: "States a person's name.",
         examples: {'first': 'Ford', 'last' : 'Prefect'});
     var ford = new Person('Ford', 'Prefect');
     expect(hello(ford), equals('Hello, my name is Ford Prefect.'));
+  });
+
+  test('WithLocale test', () {
+    hello() => Intl.message('locale=${Intl.getCurrentLocale()}',
+        desc: 'explains the locale');
+    expect(Intl.withLocale('en-US', () => hello()), equals('locale=en-US'));
+  });
+
+  test('Test passing locale', () {
+    hello(a_locale) => Intl.message('locale=${Intl.getCurrentLocale()}',
+        desc: 'explains the locale', locale: a_locale);
+    expect(hello('en-US'), equals('locale=en-US'));
   });
 }

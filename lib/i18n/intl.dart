@@ -18,7 +18,7 @@ class Intl {
    * String indicating the locale code with which the message is to be
    * formatted (such as en-CA).
    */
-  String _locale;
+  static String _locale;
 
   IntlMessage intlMsg;
 
@@ -30,7 +30,9 @@ class Intl {
    * Dart is running on the client, we can infer from the browser/client
    * preferences).
    */
-  Intl([this._locale]) {
+  Intl([a_locale]) {
+    _locale = a_locale;
+    if (_locale == null) _locale = _getDefaultLocale();
     intlMsg = new IntlMessage(_locale);
     date = new DateFormat(_locale);
   }
@@ -41,15 +43,17 @@ class Intl {
    * based on one or more variables, a [desc] providing a description of usage
    * for the [message_str], and a map of [examples] for each data element to be
    * substituted into the message. For example, if message="Hello, $name", then
-   * examples = {'name': 'Sparky'}. The values of [desc] and [examples] are
-   * not used at run-time but are only made available to the translators, so
-   * they MUST be simple Strings available at compile time: no String
-   * interpolation or concatenation.
+   * examples = {'name': 'Sparky'}. If not using the user's default locale, or
+   * if the locale is not easily detectable, explicitly pass [locale].
+   * The values of [desc] and [examples] are not used at run-time but are only
+   * made available to the translators, so they MUST be simple Strings available
+   * at compile time: no String interpolation or concatenation.
    * The expected usage of this is inside a function that takes as parameters
-   * the variables used in the interpolated string.
+   * the variables used in the interpolated string, and additionally also a
+   * locale (optional).
    */
-  String message(String message_str, [final String desc='',
-                 final Map examples=const {}]) {
+  static String message(String message_str, [final String desc='',
+                        final Map examples=const {}, String locale='']) {
     return message_str;
   }
 
@@ -59,9 +63,24 @@ class Intl {
    */
   static String plural(var howMany, Map cases, [num offset=0]) {
     // TODO(efortuna): Deal with "few" and "many" cases, offset, and others!
-    // TODO(alanknight): Should we have instance methods instead/as well?
-    // Or have the others as statics?
     return select(howMany.toString(), cases);
+  }
+
+  /**
+   * Format the given function with a specific [locale], given a
+   * [msg_function] that takes no parameters and returns a String. We
+   * basically delay calling the message function proper until after the proper
+   * locale has been set.
+   */
+  static String withLocale(String locale, Function msg_function) {
+    // We have to do this silliness because Locale is not known at compile time,
+    // but must be a static variable.
+    if (_locale == null) _locale = _getDefaultLocale();
+    var oldLocale = _locale;
+    _locale = locale;
+    var result = msg_function();
+    _locale = oldLocale;
+    return result;
   }
 
   /**
@@ -76,5 +95,23 @@ class Intl {
     } else {
       return '';
     }
+  }
+
+  /**
+   * Helper to detect the locale as defined at runtime.
+   */
+  static String _getDefaultLocale() {
+    // TODO(efortuna): Detect the default locale given the user preferences.
+    // Yay, hard-coding for now!
+    return 'en-US';
+  }
+
+  /**
+   * Accessor for the current locale. This should always == the default locale,
+   * unless for some reason this gets called inside a message that resets the
+   * locale.
+   */
+  static String getCurrentLocale() {
+    return _locale;
   }
 }
