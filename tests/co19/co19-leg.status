@@ -102,13 +102,6 @@ Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail # 
 LibTest/core/Future/handleException_A01_t07: Fail # Runtime error: TypeError: Cannot call method '$call$1' of undefined
 LibTest/core/Future/then_A01_t05: Fail # Runtime error: TypeError: Cannot call method '$call$1' of undefined
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail # Runtime error: TypeError: Cannot call method '$call$2' of undefined
-LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
-LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
-LibTest/isolate/Isolate/spawn_A01_t01: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
-LibTest/isolate/Isolate/spawn_A01_t02: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
-LibTest/isolate/Isolate/spawn_A01_t04: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
-LibTest/isolate/Isolate/spawn_A01_t05: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
-LibTest/isolate/Isolate/spawn_A01_t06: Fail # Runtime error: TypeError: Cannot call method 'receive$1' of undefined
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail # Runtime error: TypeError: Object  has no method '$call$2'
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Runtime error: TypeError: Object #<A> has no method '$call$0'
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail # Runtime error: TypeError: Object 1 has no method '$call$0'
@@ -124,14 +117,7 @@ LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Runtime error: UnsupportedO
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
 LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
-LibTest/isolate/SendPort/send_A02_t05: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
-LibTest/isolate/SendPort/send_A02_t06: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
-LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
-LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
-LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
-LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Runtime error: Expect.throws() fails.
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
 
 
 # The following tests use the deprecated Date interface.
@@ -207,7 +193,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
-Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
