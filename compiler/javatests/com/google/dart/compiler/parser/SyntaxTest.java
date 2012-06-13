@@ -601,6 +601,28 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);
   }
 
+  public void testContinueNoLabelInsideCase() throws Exception {
+    parseUnit("phony_lone_super_expression1.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  method() {",
+            "    switch(1) {",
+            "      case 1: continue;", // error
+            "    }",
+            "    while (1) {",
+            "      switch(1) {",
+            "        case 1: continue;", // ok, refers to the while loop.
+            "      }",
+            "    }",
+            "    L: switch(1) {",
+            "     case 1: var result = f() { continue L; };", // bad
+            "    }",
+            "  }",
+            "}"),
+            ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL, 4, 23,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 12, 42);
+  }
+
   public void testBogusEscapedNewline() throws Exception {
     parseUnit("phony_bogus_escaped_newline.dart",
         Joiner.on("\n").join(

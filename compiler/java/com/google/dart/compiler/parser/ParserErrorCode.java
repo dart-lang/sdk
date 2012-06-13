@@ -24,6 +24,7 @@ public enum ParserErrorCode implements ErrorCode {
   BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME("Built-in identifier can not be used as type alias name"),
   BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME("Built-in identifier can not be used as type variable name"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
+  CONTINUE_IN_CASE_MUST_HAVE_LABEL("'continue' in case statement must have a label as a target."),
   CONTINUE_OUTSIDE_OF_LOOP("'continue' used outside of loop or case statement"),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE(
       "Default values cannot be specified in closure parameter"),

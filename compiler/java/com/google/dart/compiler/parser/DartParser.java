@@ -165,7 +165,7 @@ public class DartParser extends CompletionHooksParserBase {
     TYPEDEF_KEYWORD
   };
   public static final Set<String> PSEUDO_KEYWORDS_SET = ImmutableSet.copyOf(PSEUDO_KEYWORDS);
-  
+
   public static final String[] RESERVED_WORDS = {
       "break",
       "case",
@@ -254,15 +254,16 @@ public class DartParser extends CompletionHooksParserBase {
    * {@link #setAllowFunctionExpression(boolean)}.
    */
   private boolean allowFunctionExpression = true;
-  
+
   /**
-   * 'break' (with no labels) and 'continue' stmts are not valid 
-   * just anywhere, they must be inside a loop or a case stmt.  
-   * 
+   * 'break' (with no labels) and 'continue' stmts are not valid
+   * just anywhere, they must be inside a loop or a case stmt.
+   *
    * A break with a label may be valid and is allowed through and
    * checked in the resolver.
    */
-  private boolean inLoopOrCaseStatement = false;
+  private boolean inLoopStatement = false;
+  private boolean inCaseStatement = false;
 
   /**
    * Set the {@link #allowFunctionExpression} flag indicating whether function expressions are
@@ -3154,8 +3155,9 @@ public class DartParser extends CompletionHooksParserBase {
   private DartBlock parseFunctionStatementBody(boolean requireSemicolonForArrow) {
     // A break inside a function body should have nothing to do with a loop in
     // the code surrounding the definition.
-    boolean oldInLoopOrCaseStatement = inLoopOrCaseStatement;
-    inLoopOrCaseStatement = false;
+    boolean oldInLoopStatement = inLoopStatement;
+    boolean oldInCaseStatement = inCaseStatement;
+    inLoopStatement = inCaseStatement = false;
     DartBlock result;
     if (isDietParse) {
       result = dietParseFunctionStatementBody();
@@ -3174,7 +3176,8 @@ public class DartParser extends CompletionHooksParserBase {
         result = done(parseBlock());
       }
     }
-    inLoopOrCaseStatement = oldInLoopOrCaseStatement;
+    inLoopStatement = oldInLoopStatement;
+    inCaseStatement = oldInCaseStatement;
     return result;
   }
 
@@ -3272,9 +3275,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartIdentifier label = null;
     if (match(Token.IDENTIFIER)) {
       label = parseIdentifier();
-    } else if (!inLoopOrCaseStatement) {
+    } else if (!inLoopStatement && !inCaseStatement) {
       // The validation of matching of labels to break statements is done later.
-      reportErrorWithoutAdvancing(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);      
+      reportErrorWithoutAdvancing(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
     }
     expectStatmentTerminator();
     return done(new DartBreakStatement(label));
@@ -3284,11 +3287,13 @@ public class DartParser extends CompletionHooksParserBase {
     beginContinueStatement();
     expect(Token.CONTINUE);
     DartIdentifier label = null;
-    if (!inLoopOrCaseStatement) {
-      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);      
+    if (!inLoopStatement && !inCaseStatement) {
+      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
     }
     if (peek(0) == Token.IDENTIFIER) {
       label = parseIdentifier();
+    } else if (!inLoopStatement && inCaseStatement) {
+      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL);
     }
     expectStatmentTerminator();
     return done(new DartContinueStatement(label));
@@ -3753,7 +3758,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
-    DartStatement body = parseLoopOrCaseStatement();
+    DartStatement body = parseLoopStatement();
     return done(new DartWhileStatement(condition, body));
   }
 
@@ -3769,7 +3774,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartDoWhileStatement parseDoWhileStatement() {
     beginDoStatement();
     expect(Token.DO);
-    DartStatement body = parseLoopOrCaseStatement();
+    DartStatement body = parseLoopStatement();
     expect(Token.WHILE);
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
@@ -3779,16 +3784,16 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
-   * Use this wrapper to parse the body of a loop or case statement.
-   * 
-   * Sets up flag variables to make sure continue and break are properly 
-   * marked as errors when in wrong context. 
+   * Use this wrapper to parse the body of a loop
+   *
+   * Sets up flag variables to make sure continue and break are properly
+   * marked as errors when in wrong context.
    */
-  private DartStatement parseLoopOrCaseStatement() {
-    boolean oldInBreakable = inLoopOrCaseStatement;
-    inLoopOrCaseStatement = true;
+  private DartStatement parseLoopStatement() {
+    boolean oldInLoop = inLoopStatement;
+    inLoopStatement = true;
     DartStatement stmt = parseStatement();
-    inLoopOrCaseStatement = oldInBreakable;
+    inLoopStatement = oldInLoop;
     return stmt;
   }
 
@@ -3859,7 +3864,7 @@ public class DartParser extends CompletionHooksParserBase {
       DartExpression iterable = parseExpression();
       expectCloseParen();
 
-      DartStatement body = parseLoopOrCaseStatement();
+      DartStatement body = parseLoopStatement();
       return done(new DartForInStatement(setup, iterable, body));
 
     } else if (optional(Token.SEMICOLON)) {
@@ -3878,7 +3883,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       expectCloseParen();
 
-      DartStatement body = parseLoopOrCaseStatement();
+      DartStatement body = parseLoopStatement();
       return done(new DartForStatement(setup, condition, next, body));
     } else {
       reportUnexpectedToken(position(), null, peek(0));
@@ -3926,9 +3931,14 @@ public class DartParser extends CompletionHooksParserBase {
         case EOS:
           return statements;
         default:
-          if ((statement = parseLoopOrCaseStatement()) == null) {
+          boolean oldInCaseStatement = inCaseStatement;
+          inCaseStatement = true;
+          statement = parseStatement();
+          inCaseStatement = oldInCaseStatement;
+          if (statement == null) {
             return statements;
           }
+
           statements.add(statement);
           if (statement.isAbruptCompletingStatement()) {
             /*

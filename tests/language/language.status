@@ -105,7 +105,6 @@ static_field1a_run_negative_test: Fail # issue 1662
 static_field2_run_negative_test: Fail  # issue 1662
 static_field2a_run_negative_test: Fail # issue 1662
 string_interpolation8_test: Fail # Issue 2126.
-switch3_negative_test: Fail # issue 1663
 switch7_negative_test: Fail    # Bug 4208467.
 switch_label_test: Fail        # Bug 4208467.
 syntax_test: Skip             # Bug 2107  Static type warnings in none case

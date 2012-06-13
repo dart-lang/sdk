@@ -144,7 +144,6 @@ Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
 Language/11_Statements/13_Continue_A02_t07: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t12: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t13: Fail # Issue 2441
-Language/11_Statements/13_Continue_A02_t16: Fail # Issue 2441
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
