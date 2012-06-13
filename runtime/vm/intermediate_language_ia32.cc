@@ -220,8 +220,6 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
                                    EqualityCompareComp* comp) {
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
-  // TODO(srdjan): Should we always include NULL test (common case)?
-  Register result = comp->locs()->out().reg();
   Register temp = comp->locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_index(),
@@ -229,6 +227,7 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
                                         kDeoptSmiCompareSmis,
                                         left,
                                         right);
+  // TODO(srdjan): Should we always include NULL test (common case)?
   __ movl(temp, left);
   __ orl(temp, right);
   __ testl(temp, Immediate(kSmiTagMask));
@@ -237,6 +236,7 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
   if (comp->is_fused_with_branch()) {
     comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
   } else {
+    Register result = comp->locs()->out().reg();
     Label load_true, done;
     __ j(EQUAL, &load_true, Assembler::kNearJump);
     __ LoadObject(result, compiler->bool_false());
@@ -275,10 +275,14 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ Bind(&non_null_compare);
   __ pushl(left);
   __ pushl(right);
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index());
   const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
-  const int kNumArgumentsChecked = 1;
+  const int kNumArgumentsChecked = 2;
 
   compiler->GenerateInstanceCall(comp->cid(),
                                  comp->token_index(),

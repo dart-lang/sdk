@@ -622,6 +622,15 @@ void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
+  if (!comp->HasICData()) return;
+  const ICData& ic_data = *comp->ic_data();
+  if (ic_data.NumberOfChecks() != 1) return;
+  ASSERT(HasOneTarget(ic_data));
+  if (HasTwoSmi(ic_data)) {
+    comp->set_operands_class_id(kSmi);
+  } else {
+    return;
+  }
   // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
   // and a branch.
   TryFuseComparisonWithBranch(comp);
