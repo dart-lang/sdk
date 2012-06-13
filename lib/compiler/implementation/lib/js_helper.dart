@@ -396,13 +396,23 @@ class ListIterator<T> implements Iterator<T> {
 }
 
 class Primitives {
+  /**
+   * This is the low-level method that is used to implement
+   * [print]. It is possible to override this function from JavaScript
+   * by defining a function in JavaScript called "dartPrint".
+   */
   static void printString(String string) {
-    var hasConsole = JS('bool', @'typeof console == "object"');
-    if (hasConsole) {
-      JS('void', @'console.log(#)', string);
+    var hasDartPrint = JS('bool', @'typeof dartPrint == "function"');
+    if (hasDartPrint) {
+      JS('void', @'dartPrint(#)', string);
     } else {
-      JS('void', @'write(#)', string);
-      JS('void', @'write("\n")');
+      var hasConsole = JS('bool', @'typeof console == "object"');
+      if (hasConsole) {
+        JS('void', @'console.log(#)', string);
+      } else {
+        JS('void', @'write(#)', string);
+        JS('void', @'write("\n")');
+      }
     }
   }
 
