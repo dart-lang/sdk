@@ -2319,6 +2319,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // prepare Types directly referenced by "current"
       Set<Type> referencedTypes = Sets.newHashSet();
       if (type != null) {
+        // type parameters
+        for (Type typeParameter : current.getTypeParameters()) {
+          if (typeParameter instanceof TypeVariable) {
+            TypeVariable typeVariable = (TypeVariable) typeParameter;
+            Type bound = typeVariable.getTypeVariableElement().getBound();
+            referencedTypes.add(bound);
+          }
+        }
         // return type
         referencedTypes.add(type.getReturnType());
         // parameters

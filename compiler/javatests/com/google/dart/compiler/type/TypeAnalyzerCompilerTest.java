@@ -84,12 +84,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "typedef A A();",
         "typedef B(B b);",
         "typedef C([C c]);",
+        "typedef D<T extends D>();",
         "");
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 2, 1, 14),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 3, 1, 15),
-        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 17));
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 17),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 25));
   }
   
   /**
@@ -107,6 +109,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "typedef B2(A2 a);",
         "typedef B3 A3();",
         "typedef B3([A3 a]);",
+        "typedef A4<T extends B4>();",
+        "typedef B4(A4 a);",
         "");
     assertErrors(
         libraryResult.getErrors(),
@@ -115,7 +119,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 16),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 17),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 6, 1, 16),
-        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 7, 1, 19));
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 7, 1, 19),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1, 27),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 9, 1, 17));
   }
   
   /**
