@@ -298,6 +298,10 @@ DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
     intptr_t len = strlen(str) + 1;
     char* str_copy = reinterpret_cast<char*>(Api::Allocate(isolate, len));
     strncpy(str_copy, str, len);
+    // Strip a possible trailing '\n'.
+    if ((len > 1) && (str_copy[len - 2] == '\n')) {
+      str_copy[len - 2] = '\0';
+    }
     return str_copy;
   } else {
     return "";
