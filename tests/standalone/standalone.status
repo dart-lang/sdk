@@ -22,7 +22,7 @@ io/many_echo_server_test: Skip        # Bug 5103754
 # These tests fail, crash, and timeout to test the testing infrastructure.
 io/test_extension_test: Fail  # shared library in wrong place (issue 1817)
 # This test fails intermittently.
-io/http_basic_test: Fail, OK     # Issue 3599
+io/http_basic_test: Pass, Fail     # Issue 3599
 
 
 [ $runtime == vm && $system == macos]
