@@ -20,8 +20,6 @@ Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
 Language/05_Variables/05_Variables_A05_t03: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # Issue 963
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # Issue 2137,2493
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # Issue 2493
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379

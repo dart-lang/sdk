@@ -1264,4 +1264,32 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 5, 5, 7));
   }
+  
+  public void testUndercoreInNamedParameterMethodDefinition() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "method([_foo]) {}",
+        "class Foo {",
+        "  var _bar;",
+        "  Foo([this._bar]){}",        
+        "  method([_foo]){}",
+        "}"),
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 9, 4),
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 5, 8, 9), 
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 6, 11, 4)); 
+  }
+
+  public void testUndercoreInNamedParameterFunctionDefinition() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "var f = func([_foo]) {};"),
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 15, 4)); 
+  }    
+
+  public void testUndercoreInNamedParameterFunctionAlias() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "typedef Object func([_foo]);"),
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 22, 4)); 
+  }      
 }

@@ -76,6 +76,7 @@ method_override2_test/00: Fail # accepts illegal override
 method_override2_test/01: Fail # accepts illegal override
 method_override2_test/02: Fail # accepts illegal override
 method_override2_test/03: Fail # accepts illegal override
+parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
 named_parameters4_test: Fail # Unimplemented non-matching static call

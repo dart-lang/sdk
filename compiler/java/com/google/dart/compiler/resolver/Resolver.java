@@ -231,10 +231,15 @@ public class Resolver {
         if (parameter.getQualifier() instanceof DartThisExpression) {
           onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
         } else {
-            getContext().declare(
-                parameter.getElement(),
-                ResolverErrorCode.DUPLICATE_PARAMETER,
-                ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
+          if (parameter.getModifiers().isNamed() 
+              && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
+            onError(parameter.getName(), 
+                ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER); 
+          }        
+          getContext().declare(
+              parameter.getElement(),
+              ResolverErrorCode.DUPLICATE_PARAMETER,
+              ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
         }
         if (parameter.getDefaultExpr() != null) {
           onError(parameter.getDefaultExpr(), ResolverErrorCode.DEFAULT_VALUE_IN_TYPEDEF);
@@ -597,6 +602,7 @@ public class Resolver {
       // scope of the default expressions so we can report better errors.
       for (DartParameter parameter : parameters) {
         assert parameter.getElement() != null;
+
         if (!(parameter.getQualifier() instanceof DartThisExpression)) {
           getContext().declare(
               parameter.getElement(),

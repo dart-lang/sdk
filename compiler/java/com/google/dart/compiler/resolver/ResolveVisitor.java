@@ -9,8 +9,10 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.type.DynamicType;
@@ -49,6 +51,14 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     FunctionType type = Types.makeFunctionType(getContext(), functionElement,
                                                element.getParameters(), returnType);
     Elements.setType(element, type);
+    for (DartParameter parameter : node.getParameters()) {
+      if (//!(parameter.getQualifier() instanceof DartThisExpression) && 
+          parameter.getModifiers().isNamed() && 
+          DartIdentifier.isPrivateName(parameter.getElement().getName())) {
+        getContext().onError(parameter.getName(), 
+            ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+      }
+    }                
     return element;
   }
 

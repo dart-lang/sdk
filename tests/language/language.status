@@ -48,6 +48,7 @@ constructor_redirect_test/01: Fail # Issue 2103.
 
 closure_with_super_send_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
+parameter_initializer6_negative_test: Fail # Issue 3502
 
 # DartC or Frog specific tests that should not be run by the VM
 *dartc_test: Skip
@@ -90,6 +91,7 @@ library4_negative_test: Fail   # Bug 5406175
 list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail
+named_parameters_with_object_property_names_test: Fail # Issue 2137
 no_such_method_negative_test: Fail
 override_field_test/04: Fail             # Bug 5215249
 private_factory_resolution_negative_test: Fail # Issue 2275
