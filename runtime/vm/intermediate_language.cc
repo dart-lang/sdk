@@ -613,6 +613,11 @@ RawAbstractType* NumberNegateComp::StaticType() const {
 }
 
 
+RawAbstractType* ToDoubleComp::StaticType() const {
+  return Type::DoubleInterface();
+}
+
+
 // Shared code generation methods (EmitNativeCode, MakeLocationSummary, and
 // PrepareEntry). Only assembly code that can be shared across all architectures
 // can be used. Machine specific register allocation and code generation

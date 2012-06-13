@@ -1383,6 +1383,73 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+
+LocationSummary* ToDoubleComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  if (from() == kDouble) {
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_out(Location::SameAsFirstInput());
+    return locs;
+  } else {
+    ASSERT(from() == kSmi);
+    return LocationSummary::Make(kNumInputs, Location::RegisterLocation(RAX));
+  }
+}
+
+
+void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  const DeoptReasonId deopt_reason = (from() == kDouble) ?
+      kDeoptDoubleToDouble : kDeoptIntegerToDouble;
+  Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
+                                        instance_call()->token_index(),
+                                        instance_call()->try_index(),
+                                        deopt_reason,
+                                        value,
+                                        kNoRegister);
+
+  if (from() == kDouble) {
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);  // Deoptimize if Smi.
+    __ CompareClassId(value, kDouble);
+    __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
+    ASSERT(value == result);
+    return;
+  }
+
+  ASSERT(from() == kSmi);
+
+  // TODO(vegorov): allocate a single ZoneHandle in FlowGraphCompiler for
+  // double class.
+  const Class& double_class =
+    Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+
+  // TODO(vegorov): allocate box in the driver loop to avoid pushing and poping.
+  __ pushq(value);
+  compiler->GenerateCall(instance_call()->token_index(),
+                         instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  ASSERT(result == RAX);
+  __ popq(value);
+
+  __ testq(value, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);  // Deoptimize if not Smi.
+  __ SmiUntag(value);
+  __ cvtsi2sd(XMM0, value);
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
+}
+
+
 }  // namespace dart
 
 #undef __

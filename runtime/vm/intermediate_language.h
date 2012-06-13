@@ -70,6 +70,7 @@ class LocationSummary;
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
+  M(ToDouble, ToDoubleComp)                                                    \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -1529,6 +1530,33 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowComp);
+};
+
+
+class ToDoubleComp : public TemplateComputation<1> {
+ public:
+  ToDoubleComp(Value* value,
+               ObjectKind from,
+               InstanceCallComp* instance_call)
+      : from_(from), instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  ObjectKind from() const { return from_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(ToDouble)
+
+ private:
+  const ObjectKind from_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(ToDoubleComp);
 };
 
 

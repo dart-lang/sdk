@@ -323,6 +323,13 @@ void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
+  ASSERT(from() == kDouble || from() == kSmi);
+  f->Print("%s ", from() == kDouble ? "double2double" : "smi2double");
+  value()->PrintTo(f);
+}
+
+
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
 }

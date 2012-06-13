@@ -388,12 +388,24 @@ void FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
   ASSERT(classes.length() == 1);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
+
+  ObjectKind from_kind;
   if (recognized_kind == MethodRecognizer::kDoubleToDouble) {
-    // TODO(srdjan): Implement.
+    from_kind = kDouble;
+  } else if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
+    from_kind = kSmi;
+  } else {
+    return;
   }
-  if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
-    // TODO(srdjan): Implement.
+
+  if (classes[0]->id() != from_kind) {
+    return;
   }
+
+  ToDoubleComp* coerce = new ToDoubleComp(
+      comp->InputAt(0), from_kind, comp);
+  coerce->set_instr(comp->instr());
+  comp->instr()->replace_computation(coerce);
 }
 
 
