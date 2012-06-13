@@ -30,6 +30,7 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'dart2js',
+        'compiler',
       ],
       'actions': [
         {
@@ -38,6 +39,7 @@
             '<!@(["python", "tools/list_files.py", "\\.dart$", "lib"])',
             'frog/scripts/bootstrap/frogc',
             'tools/create_sdk.py',
+            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
             '<(PRODUCT_DIR)/frog/bin/frog',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js',
@@ -53,16 +55,6 @@
           ],
           'message': 'Creating SDK.',
         },
-      ],
-      'conditions' : [
-        ['OS=="linux"', {
-          'dependencies': [
-            'compiler',
-          ],
-          'inputs' : [
-            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
-          ],
-        }],
       ],
     },
     {
