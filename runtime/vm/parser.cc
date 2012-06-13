@@ -54,6 +54,7 @@ static const char* kInterpolateName = "_interpolate";
 static const char* kThisName = "this";
 static const char* kPhaseParameterName = ":phase";
 static const char* kGetIteratorName = "iterator";
+static const char* kNoSuchMethodName = "noSuchMethod";
 
 #if defined(DEBUG)
 
@@ -1211,23 +1212,71 @@ static RawFunction* ResolveDynamicFunction(const Class& cls,
   return func.raw();
 }
 
-
+// Resolve and return the dynamic function of the given name in the superclass.
+// If it is not found, return noSuchMethod and set is_no_such_method to true.
 RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
-                                      const String& name) {
+                                      const String& name,
+                                      bool* is_no_such_method) {
   const Class& super_class = Class::Handle(current_class().SuperClass());
   if (super_class.IsNull()) {
     ErrorMsg(token_pos, "class '%s' does not have a superclass",
              String::Handle(current_class().Name()).ToCString());
   }
 
-  const Function& super_func =
+  Function& super_func =
       Function::Handle(ResolveDynamicFunction(super_class, name));
   if (super_func.IsNull()) {
-    ErrorMsg(token_pos, "function '%s' not found in super class",
-             name.ToCString());
+    const String& no_such_method_name =
+        String::ZoneHandle(String::NewSymbol(kNoSuchMethodName));
+    super_func = ResolveDynamicFunction(super_class, no_such_method_name);
+    ASSERT(!super_func.IsNull());
+    *is_no_such_method = true;
+  } else {
+    *is_no_such_method = false;
   }
   CheckFunctionIsCallable(token_pos, super_func);
   return super_func.raw();
+}
+
+
+// Lookup class in the corelib implementation which contains various VM
+// helper methods and classes.
+static RawClass* LookupImplClass(const String& class_name) {
+  return Library::Handle(Library::CoreImplLibrary()).LookupClass(class_name);
+}
+
+
+// Lookup class in the corelib which also contains various VM
+// helper methods and classes. Allow look up of private classes.
+static RawClass* LookupCoreClass(const String& class_name) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  String& name = String::Handle(class_name.raw());
+  if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+    // Private identifiers are mangled on a per script basis.
+    name = String::Concat(name, String::Handle(core_lib.private_key()));
+    name = String::NewSymbol(name);
+  }
+  return core_lib.LookupClass(name);
+}
+
+
+ArgumentListNode* Parser::BuildNoSuchMethodArguments(
+    const String& function_name,
+    const ArgumentListNode& function_args) {
+  ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
+  const intptr_t args_pos = function_args.token_index();
+  ArgumentListNode* arguments = new ArgumentListNode(args_pos);
+  arguments->Add(function_args.NodeAt(0));
+  // The second argument is the original function name.
+  // TODO(regis): This will change once mirrors are supported.
+  arguments->Add(new LiteralNode(args_pos, function_name));
+  // The third argument is an array containing the original function arguments.
+  ArrayNode* args_array = new ArrayNode(args_pos, TypeArguments::ZoneHandle());
+  for (intptr_t i = 1; i < function_args.length(); i++) {
+    args_array->AddElement(function_args.NodeAt(i));
+  }
+  arguments->Add(args_array);
+  return arguments;
 }
 
 
@@ -1236,14 +1285,18 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   ASSERT(CurrentToken() == Token::kLPAREN);
   const intptr_t supercall_pos = token_index_;
 
+  bool is_no_such_method = false;
   const Function& super_function = Function::ZoneHandle(
-      GetSuperFunction(supercall_pos, function_name));
+      GetSuperFunction(supercall_pos, function_name, &is_no_such_method));
 
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // 'this' parameter is the first argument to super call.
   AstNode* receiver = LoadReceiver(supercall_pos);
   arguments->Add(receiver);
   ParseActualParameters(arguments, kAllowConst);
+  if (is_no_such_method) {
+    arguments = BuildNoSuchMethodArguments(function_name, *arguments);
+  }
   return new StaticCallNode(supercall_pos, super_function, arguments);
 }
 
@@ -1288,14 +1341,21 @@ AstNode* Parser::ParseSuperOperator() {
     // Resolve the [] operator function in the superclass.
     const String& index_operator_name =
         String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+    bool is_no_such_method = false;
     const Function& index_operator = Function::ZoneHandle(
-        GetSuperFunction(operator_pos, index_operator_name));
+        GetSuperFunction(operator_pos,
+                         index_operator_name,
+                         &is_no_such_method));
 
     ArgumentListNode* index_op_arguments = new ArgumentListNode(operator_pos);
     AstNode* receiver = LoadReceiver(operator_pos);
     index_op_arguments->Add(receiver);
     index_op_arguments->Add(index_expr);
 
+    if (is_no_such_method) {
+      index_op_arguments = BuildNoSuchMethodArguments(index_operator_name,
+                                                      *index_op_arguments);
+    }
     super_op = new StaticCallNode(
         operator_pos, index_operator, index_op_arguments);
 
@@ -1309,14 +1369,21 @@ AstNode* Parser::ParseSuperOperator() {
       // Resolve the []= operator function in the superclass.
       const String& assign_index_operator_name = String::ZoneHandle(
           String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+      bool is_no_such_method = false;
       const Function& assign_index_operator = Function::ZoneHandle(
-          GetSuperFunction(operator_pos, assign_index_operator_name));
+          GetSuperFunction(operator_pos,
+                           assign_index_operator_name,
+                           &is_no_such_method));
 
       ArgumentListNode* operator_args = new ArgumentListNode(operator_pos);
       operator_args->Add(LoadReceiver(operator_pos));
       operator_args->Add(index_expr);
       operator_args->Add(value);
 
+      if (is_no_such_method) {
+        operator_args = BuildNoSuchMethodArguments(assign_index_operator_name,
+                                                   *operator_args);
+      }
       super_op = new StaticCallNode(
           operator_pos, assign_index_operator, operator_args);
     }
@@ -1327,8 +1394,11 @@ AstNode* Parser::ParseSuperOperator() {
     // Resolve the operator function in the superclass.
     const String& operator_function_name =
         String::Handle(String::NewSymbol(Token::Str(op)));
+    bool is_no_such_method = false;
     const Function& super_operator = Function::ZoneHandle(
-        GetSuperFunction(operator_pos, operator_function_name));
+        GetSuperFunction(operator_pos,
+                         operator_function_name,
+                         &is_no_such_method));
 
     ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
     AstNode* other_operand = ParseBinaryExpr(Token::Precedence(op) + 1);
@@ -1339,6 +1409,10 @@ AstNode* Parser::ParseSuperOperator() {
     op_arguments->Add(other_operand);
 
     CheckFunctionIsCallable(operator_pos, super_operator);
+    if (is_no_such_method) {
+      op_arguments = BuildNoSuchMethodArguments(operator_function_name,
+                                                *op_arguments);
+    }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
   }
   return super_op;
@@ -4931,27 +5005,6 @@ AstNode* Parser::ParseForStatement(String* label_name) {
                      condition,
                      NodeAsSequenceNode(incr_pos, increment, incr_scope),
                      body);
-}
-
-
-// Lookup class in the corelib implementation which contains various VM
-// helper methods and classes.
-static RawClass* LookupImplClass(const String& class_name) {
-  return Library::Handle(Library::CoreImplLibrary()).LookupClass(class_name);
-}
-
-
-// Lookup class in the corelib which also contains various VM
-// helper methods and classes. Allow look up of private classes.
-static RawClass* LookupCoreClass(const String& class_name) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  String& name = String::Handle(class_name.raw());
-  if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
-    // Private identifiers are mangled on a per script basis.
-    name = String::Concat(name, String::Handle(core_lib.private_key()));
-    name = String::NewSymbol(name);
-  }
-  return core_lib.LookupClass(name);
 }
 
 

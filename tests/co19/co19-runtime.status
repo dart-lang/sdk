@@ -343,8 +343,8 @@ Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3622
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3622
 Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail
 Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail
 Language/10_Expressions/16_Assignment_A05_t02: Fail
@@ -357,16 +357,9 @@ Language/10_Expressions/16_Assignment_A08_t04: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail
 
 
-# function '?' not found in super class
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t01: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail
+# function 'func' not found in super class, getter 'func' should be invoked first.
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t01: Fail # Issue 3621
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail # Issue 3621
 
 
 # function '?' of class '?' conflicts with getter 'f' of super class '?'
