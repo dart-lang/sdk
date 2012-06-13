@@ -69,8 +69,6 @@ Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A18_t02: Fail # Issue 3323
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # Issue 2376
-Language/10_Expressions/05_Strings_A01_t06: Fail # Issue 2377
-Language/10_Expressions/05_Strings_A01_t07: Fail # Issue 2377
 Language/10_Expressions/06_Lists_A03_t01: Fail # Issue 1473
 Language/10_Expressions/07_Maps_A01_t01: Fail # Issue 1489
 Language/10_Expressions/07_Maps_A02_t01: Fail # Issue 1483

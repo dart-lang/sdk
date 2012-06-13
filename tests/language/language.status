@@ -105,8 +105,6 @@ static_field1_run_negative_test: Fail  # issue 1662
 static_field1a_run_negative_test: Fail # issue 1662
 static_field2_run_negative_test: Fail  # issue 1662
 static_field2a_run_negative_test: Fail # issue 1662
-string_escape1_negative_test: Fail # Issue 1351.
-string_escape4_negative_test: Fail # Issue 1351.
 string_interpolation8_test: Fail # Issue 2126.
 switch3_negative_test: Fail # issue 1663
 switch7_negative_test: Fail    # Bug 4208467.

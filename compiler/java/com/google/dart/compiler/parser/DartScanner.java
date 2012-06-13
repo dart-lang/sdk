@@ -946,6 +946,14 @@ public class DartScanner {
         c = lookahead(0);
         advance();
         switch (c) {
+          case '\n':
+            if (!multiLine) {
+              // TODO(zundel): better way to report error?
+              internalState.resetModes();
+              return Token.ILLEGAL;
+            }
+            c = '\n';
+            break;
           case 'b':
             c = 0x08;
             break;

@@ -541,7 +541,7 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 13, 14,
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 15, 13);
   }
-  
+
   public void testBreakOutsideLoop() throws Exception {
     parseUnit("phony_lone_super_expression1.dart",
         Joiner.on("\n").join(
@@ -559,6 +559,17 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 4, 10,
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 7, 13,
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 18,
-            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);      
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);
+  }
+
+  public void testBogusEscapedNewline() throws Exception {
+    parseUnit("phony_bogus_escaped_newline.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  var foo = \"not really multiline\\\n",
+            "\";",
+            "}"),
+            ParserErrorCode.UNEXPECTED_TOKEN,  2, 13,
+            ParserErrorCode.EXPECTED_TOKEN,  4, 1);
   }
 }
