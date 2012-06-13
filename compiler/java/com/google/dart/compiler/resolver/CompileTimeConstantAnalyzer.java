@@ -201,8 +201,6 @@ public class CompileTimeConstantAnalyzer {
           }
           break;
 
-        case BIT_NOT:
-        case TRUNC:
         case BIT_XOR:
         case BIT_AND:
         case BIT_OR:
@@ -229,6 +227,7 @@ public class CompileTimeConstantAnalyzer {
           checkMathExpression(x, lhs, rhs, lhsType, rhsType);
           break;
         case MOD:
+        case TRUNC:
           if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
             rememberInferredType(x, intType);
           }
