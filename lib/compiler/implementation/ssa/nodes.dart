@@ -985,6 +985,8 @@ class HTypeGuard extends HCheck {
   final int state;
   final HType guardedType;
   bool isOn = false;
+  int checkedInputIndex = 0;
+
   HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
 
   void prepareGvn() {
@@ -992,7 +994,7 @@ class HTypeGuard extends HCheck {
     setUseGvn();
   }
 
-  HInstruction get guarded() => inputs.last();
+  HInstruction get guarded() => inputs[checkedInputIndex];
   HInstruction get checkedInput() => guarded;
 
   HType computeTypeFromInputTypes() {
@@ -1006,7 +1008,9 @@ class HTypeGuard extends HCheck {
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
-  bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
+  bool dataEquals(HTypeGuard other) {
+    return guarded == other.guarded && guardedType == other.guardedType;
+  }
 }
 
 class HBoundsCheck extends HCheck {
@@ -2489,6 +2493,10 @@ class HLoopBlockInformation implements HStatementInformation {
       return body.start;
     }
     return condition.start;
+  }
+
+  HBasicBlock get loopHeader() {
+    return kind == DO_WHILE_LOOP ? body.start : condition.start;
   }
 
   HBasicBlock get end() {

@@ -26,7 +26,18 @@ class Environment {
   }
 
   void add(HInstruction instruction) {
-    if (!instruction.isCodeMotionInvariant()) {
+    // If the instruction is a type guard, we add its checked input
+    // instead. This allows sharing the same environment between
+    // different type guards.
+    // 
+    // Also, we don't need to add code motion invariant instructions
+    // in the live set (because we generate them at use-site), except
+    // for parameters that are not 'this', which is always passed as
+    // the receiver.
+    if (instruction is HTypeGuard) {
+      add(instruction.checkedInput);
+    } else if (!instruction.isCodeMotionInvariant()
+               || (instruction is HParameterValue && instruction is !HThis)) {
       lives.add(instruction);
     } else {
       for (int i = 0, len = instruction.inputs.length; i < len; i++) {
@@ -46,27 +57,6 @@ class Environment {
   void addAll(Environment other) {
     lives.addAll(other.lives);
     loopMarkers.addAll(other.loopMarkers);
-  }
-
-  /**
-   * Stores all live variables in the guard. The guarded instruction will be the
-   * last input in the guard's input list.
-   */
-  void storeInGuard(HTypeGuard guard) {
-    HInstruction guarded = guard.guarded;
-    List<HInstruction> inputs = guard.inputs;
-    assert(inputs.length == 1);
-    inputs.clear();
-    // Remove the guarded from the environment, so that we are sure it is last
-    // when we add it again.
-    remove(guarded);
-    inputs.addAll(lives);
-    inputs.addLast(guarded);
-    add(guarded);
-    for (int i = 0; i < inputs.length - 1; i++) {
-      HInstruction input = inputs[i];
-      input.usedBy.add(guard);
-    }
   }
 
   bool isEmpty() => lives.isEmpty() && loopMarkers.isEmpty();
@@ -184,13 +174,33 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     HType speculativeType = instruction.propagatedType;
     if (shouldInsertTypeGuard(instruction)) {
       List<HInstruction> inputs = <HInstruction>[instruction];
-      HTypeGuard guard = new HTypeGuard(speculativeType, stateId++, inputs);
+      HInstruction insertionPoint;
+      if (instruction is HPhi) {
+        insertionPoint = instruction.block.first;
+      } else if (instruction is HParameterValue) {
+        // We insert the type guard at the end of the entry block
+        // because if a parameter is live, it must be kept in the live
+        // environment. Not doing so would mean we could visit a
+        // parameter and remove it from the environment before
+        // visiting a type guard.
+        insertionPoint = instruction.block.last;
+      } else {
+        insertionPoint = instruction.next;
+      }
+      // If the previous instruction is also a type guard, then both
+      // guards have the same environment, and can therefore share the
+      // same state id.
+      int state;
+      if (insertionPoint.previous is HTypeGuard) {
+        HTypeGuard other = insertionPoint.previous;
+        state = other.state;
+      } else {
+        state = stateId++;
+      }
+      HTypeGuard guard = new HTypeGuard(speculativeType, state, inputs);
       guard.propagatedType = speculativeType;
       work.guards.add(guard);
       instruction.block.rewrite(instruction, guard);
-      HInstruction insertionPoint = (instruction is HPhi)
-          ? instruction.block.first
-          : instruction.next;
       insertionPoint.block.addBefore(insertionPoint, guard);
     }
   }
@@ -310,9 +320,43 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
   }
 
   void insertCapturedEnvironments() {
+    Map<int, HTypeGuard> seenGuardStates = new Map<int, HTypeGuard>();
     capturedEnvironments.forEach((HTypeGuard guard, Environment env) {
-      env.storeInGuard(guard);
+      storeInGuard(guard, env.lives, seenGuardStates);
     });
+  }
+
+  /**
+   * Stores all live variables in the guard.
+   */
+  void storeInGuard(HTypeGuard guard,
+                    Set<HInstruction> lives,
+                    Map<int, HTypeGuard> seenGuardStates) {
+    HInstruction guarded = guard.guarded;
+    List<HInstruction> inputs = guard.inputs;
+    assert(inputs.length == 1);
+    inputs.clear();
+    HTypeGuard other = seenGuardStates[guard.state];
+    if (other !== null) {
+      // The guards are sharing the same state. Also share the same
+      // environment, in the same order.
+      inputs.addAll(other.inputs);
+      assert(inputs.length == lives.length);
+    } else {
+      seenGuardStates[guard.state] = guard;
+      inputs.addAll(lives);
+    }
+
+    for (int i = 0; i < inputs.length; i++) {
+      HInstruction input = inputs[i];
+      if (input == guarded) {
+        guard.checkedInputIndex = i;
+        // No need to update [input.usedBy], the guard is already
+        // there.
+      } else {
+        input.usedBy.add(guard);
+      }
+    }
   }
 }
 
@@ -325,17 +369,34 @@ class SsaBailoutPropagator extends HBaseVisitor {
   final Compiler compiler;
   final List<HBasicBlock> blocks;
   final List<HLabeledBlockInformation> labeledBlockInformations;
+  final Set<HInstruction> generateAtUseSite;
   SubGraph subGraph;
 
-  SsaBailoutPropagator(Compiler this.compiler)
+  /**
+   * If set to true, the graph has either multiple bailouts in
+   * different places, or a bailout inside an if or a loop. For such a
+   * graph, the code generator will emit a generic switch.
+   */
+  bool hasComplexTypeGuards = false;
+
+  /**
+   * The first type guard in the graph.
+   */
+  HTypeGuard firstTypeGuard;
+
+  /**
+   * If set, it is the first block in the graph where we generate
+   * code. Blocks before this one are dead code in the bailout
+   * version.
+   */
+
+  SsaBailoutPropagator(this.compiler, this.generateAtUseSite)
       : blocks = <HBasicBlock>[],
         labeledBlockInformations = <HLabeledBlockInformation>[];
 
   void visitGraph(HGraph graph) {
     subGraph = new SubGraph(graph.entry, graph.exit);
-    blocks.addLast(graph.entry);
     visitBasicBlock(graph.entry);
-    blocks.removeLast();
     if (!blocks.isEmpty()) {
       compiler.internalError('Bailout propagation',
           node: compiler.currentElement.parseNode(compiler));
@@ -348,7 +409,8 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
     if (block.isLoopHeader()) {
       blocks.addLast(block);
-    } else if (block.isLabeledBlock() && blocks.last() !== block) {
+    } else if (block.isLabeledBlock()
+               && (blocks.isEmpty() || blocks.last() !== block)) {
       HLabeledBlockInformation info = block.blockFlow.body;
       visitStatements(info.body);
       return;
@@ -446,8 +508,17 @@ class SsaBailoutPropagator extends HBaseVisitor {
   }
 
   visitTypeGuard(HTypeGuard guard) {
-    blocks.forEach((HBasicBlock block) {
-      block.guards.add(guard);
-    });
+    if (blocks.isEmpty()) {
+      if (firstTypeGuard === null || firstTypeGuard.state === guard.state) {
+        firstTypeGuard = guard;
+      } else {
+        hasComplexTypeGuards = true;
+      }
+    } else {
+      hasComplexTypeGuards = true;
+      blocks.forEach((HBasicBlock block) {
+        block.guards.add(guard);
+      });
+    }
   }
 }
