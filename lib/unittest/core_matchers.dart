@@ -126,25 +126,40 @@ class isInstanceOf<T> extends BaseMatcher {
 }
 
 /**
- * A matcher that matches functions that throw exceptions when called.
- * The value passed to expect() should be a reference to the function.
- * Note that the function cannot take arguments; to handle this
- * a wrapper will have to be created.
- * The function will be called once upon success, or twice upon failure
- * (the second time to get the failure description).
+ * This can be used to match two kinds of objects:
+ *
+ *   * A [Function] that throws an exception when called. The function cannot
+ *     take any arguments. If you want to test that a function expecting
+ *     arguments throws, wrap it in another zero-argument function that calls
+ *     the one you want to test. The function will be called once upon success,
+ *     or twice upon failure (the second time to get the failure description).
+ *
+ *   * A [Future] that completes with an exception. Note that this creates an
+ *     asynchronous expectation. The call to `expect()` that includes this will
+ *     return immediately and execution will continue. Later, when the future
+ *     completes, the actual expectation will run.
  */
 final Matcher throws = const _Throws();
 
 /**
- * Returns a matcher that matches a function call against an exception,
- * which is in turn constrained by a [matcher].
- * The value passed to expect() should be a reference to the function.
- * Note that the function cannot take arguments; to handle this
- * a wrapper will have to be created.
- * The function will be called once upon success, or twice upon failure
- * (the second time to get the failure description).
+ * This can be used to match two kinds of objects:
+ *
+ *   * A [Function] that throws an exception when called. The function cannot
+ *     take any arguments. If you want to test that a function expecting
+ *     arguments throws, wrap it in another zero-argument function that calls
+ *     the one you want to test. The function will be called once upon success,
+ *     or twice upon failure (the second time to get the failure description).
+ *
+ *   * A [Future] that completes with an exception. Note that this creates an
+ *     asynchronous expectation. The call to `expect()` that includes this will
+ *     return immediately and execution will continue. Later, when the future
+ *     completes, the actual expectation will run.
+ *
+ * In both cases, when an exception is thrown, this will test that the exception
+ * object matches [matcher]. If [matcher] is not an instance of [Matcher], it
+ * will implicitly be treated as `equals(matcher)`.
  */
-Matcher throwsA(Matcher matcher) => new _Throws(matcher);
+Matcher throwsA(matcher) => new _Throws(wrapMatcher(matcher));
 
 /**
  * A matcher that matches a function call against no exception.
@@ -161,6 +176,22 @@ class _Throws extends BaseMatcher {
   const _Throws([Matcher matcher = null]) : this._matcher = matcher;
 
   bool matches(item) {
+    if (item is Future) {
+      // Queue up an asynchronous expectation that validates when the future
+      // completes.
+      item.onComplete(expectAsync1((future) {
+        if (future.hasValue) {
+          expect(false,
+              "Expected future to fail, but succeeded with '${future.value}'.");
+        } else if (_matcher != null) {
+          expect(future.exception, _matcher);
+        }
+      }));
+
+      // It hasn't failed yet.
+      return true;
+    }
+
     try {
       item();
       return false;
