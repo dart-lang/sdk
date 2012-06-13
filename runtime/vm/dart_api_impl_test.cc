@@ -45,7 +45,7 @@ TEST_CASE(ErrorHandleBasics) {
   EXPECT_STREQ(
       "Unhandled exception:\n"
       "Exception: bad news\n"
-      " 0. Function: '::testMain' url: 'dart:test-lib' line:2 col:3\n",
+      " 0. Function: '::testMain' url: 'dart:test-lib' line:2 col:3",
       Dart_GetError(exception));
 
   EXPECT(Dart_IsError(Dart_ErrorGetException(instance)));
@@ -4659,7 +4659,7 @@ TEST_CASE(ImportLibrary1) {
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
-               " 'library2.dart' and 'dart:test-lib'\n",
+               " 'library2.dart' and 'dart:test-lib'",
                Dart_GetError(result));
 }
 
@@ -4730,7 +4730,7 @@ TEST_CASE(ImportLibrary3) {
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
-               " 'library2.dart' and 'library1.dart'\n",
+               " 'library2.dart' and 'library1.dart'",
                Dart_GetError(result));
 }
 
@@ -4802,7 +4802,7 @@ TEST_CASE(ImportLibrary4) {
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Duplicate definition : 'fooC' is defined in"
-               " 'libraryC.dart' and 'libraryF.dart'\n",
+               " 'libraryC.dart' and 'libraryF.dart'",
                Dart_GetError(result));
 }
 
