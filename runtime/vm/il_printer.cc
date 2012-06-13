@@ -337,6 +337,23 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [join]", block_id());
+  if (phis_ != NULL) {
+    for (intptr_t i = 0; i < phis_->length(); ++i) {
+      if ((*phis_)[i] == NULL) continue;
+      f->Print("\n");
+      (*phis_)[i]->PrintTo(f);
+    }
+  }
+}
+
+
+void PhiInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("     phi(");
+  for (intptr_t i = 0; i < inputs_.length(); ++i) {
+    if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
+    if (i < inputs_.length() - 1) f->Print(",");
+  }
+  f->Print(")");
 }
 
 
@@ -473,9 +490,21 @@ void FlowGraphVisualizer::PrintFunction() {
         BEGIN("states");  // Required section.
         {
           BEGIN("locals");  // Required section.
-          // TODO(fschneider): Insert phi-instructions here.
-          intptr_t num_phis = 0;
+          JoinEntryInstr* join = entry->AsJoinEntry();
+          intptr_t num_phis = (join != NULL && join->phi_count())
+              ? join->phis()->length()
+              : 0;
           Print("%s %d\n", "size", num_phis);
+          for (intptr_t j = 0; j < num_phis; ++j) {
+            PhiInstr* phi = (*join->phis())[j];
+            if (phi != NULL) {
+              Print("%d ", j);  // Print variable index.
+              char buffer[120];
+              BufferFormatter formatter(buffer, sizeof(buffer));
+              phi->PrintToVisualizer(&formatter);
+              Print("%s\n", buffer);
+            }
+          }
           END("locals");
         }
         END("states");
@@ -520,6 +549,16 @@ void GraphEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ [join]");
+}
+
+
+void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
+  // TODO(fschneider): Print operands when SSA renaming is implemented.
+  f->Print("v [");
+  for (intptr_t i = 0; i < InputCount(); ++i) {
+    f->Print(" v ");
+  }
+  f->Print("]");
 }
 
 

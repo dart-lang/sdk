@@ -91,8 +91,23 @@ intptr_t BranchInstr::InputCount() const {
 }
 
 
+Value* BranchInstr::InputAt(intptr_t i) const {
+  if (i == 0) return value();
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t ReThrowInstr::InputCount() const {
   return 2;
+}
+
+
+Value* ReThrowInstr::InputAt(intptr_t i) const {
+  if (i == 0) return exception();
+  if (i == 1) return stack_trace();
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -101,8 +116,22 @@ intptr_t ThrowInstr::InputCount() const {
 }
 
 
+Value* ThrowInstr::InputAt(intptr_t i) const {
+  if (i == 0) return exception();
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t ReturnInstr::InputCount() const {
   return 1;
+}
+
+
+Value* ReturnInstr::InputAt(intptr_t i) const {
+  if (i == 0) return value();
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -111,8 +140,28 @@ intptr_t BindInstr::InputCount() const {
 }
 
 
+Value* BindInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
+}
+
+
+intptr_t PhiInstr::InputCount() const {
+  return inputs_.length();
+}
+
+
+Value* PhiInstr::InputAt(intptr_t i) const {
+  return inputs_[i];
+}
+
+
 intptr_t DoInstr::InputCount() const {
   return computation()->InputCount();
+}
+
+
+Value* DoInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
 }
 
 
@@ -121,13 +170,31 @@ intptr_t GraphEntryInstr::InputCount() const {
 }
 
 
+Value* GraphEntryInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t TargetEntryInstr::InputCount() const {
   return 0;
 }
 
 
+Value* TargetEntryInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t JoinEntryInstr::InputCount() const {
   return 0;
+}
+
+
+Value* JoinEntryInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -139,7 +206,7 @@ void Computation::RecordAssignedVars(BitVector* assigned_vars) {
 
 void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
   if (!local().is_captured()) {
-    assigned_vars->Add(local().BitIndexIn(assigned_vars));
+    assigned_vars->Add(local().BitIndexIn(assigned_vars->length()));
   }
 }
 
@@ -280,6 +347,23 @@ void BranchInstr::DiscoverBlocks(
                                    parent, assigned_vars, variable_count);
   true_successor_->DiscoverBlocks(current_block, preorder, postorder,
                                   parent, assigned_vars, variable_count);
+}
+
+
+void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
+  // Lazily initialize the array of phis.
+  // Currently, phis are stored in a sparse array that holds the phi
+  // for variable with index i at position i.
+  // TODO(fschneider): Store phis in a more compact way.
+  if (phis_ == NULL) {
+    phis_ = new ZoneGrowableArray<PhiInstr*>(var_count);
+    for (intptr_t i = 0; i < var_count; i++) {
+      phis_->Add(NULL);
+    }
+  }
+  ASSERT((*phis_)[var_index] == NULL);
+  (*phis_)[var_index] = new PhiInstr(PredecessorCount());
+  phi_count_++;
 }
 
 

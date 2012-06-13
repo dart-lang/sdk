@@ -283,18 +283,23 @@ class Value : public TemplateComputation<0> {
   virtual void PrintTo(BufferFormatter* f) const;
 
 
+class Definition;
 class BindInstr;
+class PhiInstr;
 
 class UseVal : public Value {
  public:
-  explicit UseVal(BindInstr* definition) : definition_(definition) {}
+  explicit UseVal(Definition* definition) : definition_(definition) {}
 
   DECLARE_VALUE(Use)
 
-  BindInstr* definition() const { return definition_; }
+  Definition* definition() const { return definition_; }
+  void set_definition(Definition* definition) {
+    definition_ = definition;
+  }
 
  private:
-  BindInstr* definition_;
+  Definition* definition_;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -1604,6 +1609,7 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(TargetEntry)                                                               \
   M(Do)                                                                        \
   M(Bind)                                                                      \
+  M(Phi)                                                                       \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -1625,6 +1631,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
+  virtual Value* InputAt(intptr_t i) const;                                    \
   virtual const char* DebugName() const { return #type; }                      \
   virtual void PrintTo(BufferFormatter* f) const;                              \
   virtual void PrintToVisualizer(BufferFormatter* f) const;
@@ -1648,12 +1655,11 @@ class Instruction : public ZoneAllocated {
   BlockEntryInstr* AsBlockEntry() {
     return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
   }
-  virtual bool IsBindInstr() const { return false; }
-  virtual BindInstr* AsBindInstr() {
-    return NULL;
-  }
+  virtual bool IsDefinition() const { return false; }
+  virtual Definition* AsDefinition() { return NULL; }
 
   virtual intptr_t InputCount() const = 0;
+  virtual Value* InputAt(intptr_t i) const = 0;
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -1780,6 +1786,14 @@ class BlockEntryInstr : public Instruction {
   BlockEntryInstr* dominator() const { return dominator_; }
   void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
+  const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
+    return dominated_blocks_;
+  }
+
+  void AddDominatedBlock(BlockEntryInstr* block) {
+    dominated_blocks_.Add(block);
+  }
+
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
@@ -1797,6 +1811,7 @@ class BlockEntryInstr : public Instruction {
         postorder_number_(-1),
         block_id_(-1),
         dominator_(NULL),
+        dominated_blocks_(1),
         last_instruction_(NULL) { }
 
  private:
@@ -1804,6 +1819,8 @@ class BlockEntryInstr : public Instruction {
   intptr_t postorder_number_;
   intptr_t block_id_;
   BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
+  // TODO(fschneider): Optimize the case of one child to save space.
+  GrowableArray<BlockEntryInstr*> dominated_blocks_;
   Instruction* last_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
@@ -1855,7 +1872,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   JoinEntryInstr()
       : BlockEntryInstr(),
         predecessors_(2),  // Two is the assumed to be the common case.
-        successor_(NULL) { }
+        successor_(NULL),
+        phis_(NULL),
+        phi_count_(0) { }
 
   DECLARE_INSTRUCTION(JoinEntry)
 
@@ -1875,11 +1894,19 @@ class JoinEntryInstr : public BlockEntryInstr {
     successor_ = instr;
   }
 
+  ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
+
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+  void InsertPhi(intptr_t var_index, intptr_t var_count);
+
+  intptr_t phi_count() const { return phi_count_; }
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
   Instruction* successor_;
+  ZoneGrowableArray<PhiInstr*>* phis_;
+  intptr_t phi_count_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -1982,21 +2009,33 @@ class DoInstr : public Instruction {
 };
 
 
-class BindInstr : public Instruction {
+// Abstract super-class of all instructions that define a value (Bind, Phi).
+class Definition : public Instruction {
+ public:
+  Definition() : temp_index_(-1) { }
+
+  virtual bool IsDefinition() const { return true; }
+  virtual Definition* AsDefinition() { return this; }
+
+  intptr_t temp_index() const { return temp_index_; }
+  void set_temp_index(intptr_t index) { temp_index_ = index; }
+
+ private:
+  intptr_t temp_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(Definition);
+};
+
+
+class BindInstr : public Definition {
  public:
   explicit BindInstr(Computation* computation)
-      : temp_index_(-1), computation_(computation), successor_(NULL) {
+      : computation_(computation), successor_(NULL) {
     ASSERT(computation != NULL);
     computation->set_instr(this);
   }
 
   DECLARE_INSTRUCTION(Bind)
-
-  virtual bool IsBindInstr() const { return true; }
-  virtual BindInstr* AsBindInstr() { return this; }
-
-  intptr_t temp_index() const { return temp_index_; }
-  void set_temp_index(intptr_t index) { temp_index_ = index; }
 
   Computation* computation() const { return computation_; }
   virtual void replace_computation(Computation* value) { computation_ = value; }
@@ -2024,12 +2063,37 @@ class BindInstr : public Instruction {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
-  intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
+
+
+class PhiInstr: public Definition {
+ public:
+  explicit PhiInstr(intptr_t num_inputs) : inputs_(num_inputs) {
+    for (intptr_t i = 0; i < num_inputs; ++i) {
+      inputs_.Add(NULL);
+    }
+  }
+
+  DECLARE_INSTRUCTION(Phi)
+
+  void SetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
+
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+ private:
+  GrowableArray<Value*> inputs_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInstr);
+};
+
+
 
 
 class ReturnInstr : public InstructionWithInputs {

@@ -63,6 +63,12 @@ class BitVector: public ZoneAllocated {
     data_[i / kBitsPerWord] |= (static_cast<uword>(1) << (i % kBitsPerWord));
   }
 
+  bool Contains(int i) const {
+    ASSERT(i >= 0 && i < length());
+    uword block = data_[i / kBitsPerWord];
+    return (block & (static_cast<uword>(1) << (i % kBitsPerWord))) != 0;
+  }
+
   void Clear() {
     for (intptr_t i = 0; i < data_length_; i++) {
       data_[i] = 0;

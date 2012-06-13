@@ -52,6 +52,11 @@ class FlowGraphBuilder: public ValueObject {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
+  void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
+                  const GrowableArray<BitVector*>& assigned_vars,
+                  const intptr_t var_count,
+                  const GrowableArray<BitVector*>& dom_frontier);
+
   const ParsedFunction& parsed_function_;
   GrowableArray<BlockEntryInstr*> preorder_block_entries_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;

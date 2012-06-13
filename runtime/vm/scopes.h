@@ -74,7 +74,9 @@ class LocalVariable : public ZoneAllocated {
 
   // Map the frame index to a bit-vector index.  Assumes the variable is
   // allocated to the frame.
-  int BitIndexIn(BitVector* vector) const;
+  // var_count is the total number of stack-allocated variables including
+  // all parameters.
+  int BitIndexIn(intptr_t var_count) const;
 
  private:
   static const int kUnitializedIndex = INT_MIN;
