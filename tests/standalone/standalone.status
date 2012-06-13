@@ -21,6 +21,9 @@ io/directory_fuzz_test: Skip
 io/many_echo_server_test: Skip        # Bug 5103754
 # These tests fail, crash, and timeout to test the testing infrastructure.
 io/test_extension_test: Fail  # shared library in wrong place (issue 1817)
+# This test fails intermittently.
+io/http_basic_test: Fail, OK     # Issue 3599
+
 
 [ $runtime == vm && $system == macos]
 # This test fails with "Too many open files" on the Mac OS buildbot.
