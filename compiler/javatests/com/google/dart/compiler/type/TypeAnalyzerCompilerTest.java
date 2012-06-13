@@ -93,7 +93,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 17),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 25));
   }
-  
+
   /**
    * It is a compile-time error if a typedef refers to itself via a chain of references that does
    * not include a class or interface type.
@@ -123,7 +123,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1, 27),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 9, 1, 17));
   }
-  
+
   /**
    * It is a compile-time error if initializer list contains an initializer for a variable that
    * is not an instance variable declared in the immediately surrounding class.
@@ -142,7 +142,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS, 4, 9, 1));
   }
-  
+
   /**
    * Tests that we correctly provide {@link Element#getEnclosingElement()} for method of class.
    */
@@ -263,7 +263,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, 11, 10, 3));
   }
-  
+
   /**
    * It is a compile-time error if the values of the case expressions do not all have the same type.
    * <p>
@@ -1023,7 +1023,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   public void test_assert_asLocalVariable() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1061,7 +1061,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 12, 9, 3),
         errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 13, 9, 3));
   }
-  
+
   /**
    * If "this.field" parameter has declared type, it should be assignable to the field.
    * <p>
@@ -1487,9 +1487,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  A get field() { return getterField; }",
             "  void set field(arg) { setterField = arg; }",
             "}");
-    assertErrors(result.getErrors()); 
+    assertErrors(result.getErrors());
   }
-  
+
   public void test_setterGetterAssignable2() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
@@ -1505,9 +1505,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  get field() { return getterField; }",
             "  void set field(A arg) { setterField = arg; }",
             "}");
-    assertErrors(result.getErrors()); 
-  }  
-  
+    assertErrors(result.getErrors());
+  }
+
   public void test_setterGetterNotAssignable() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
@@ -1524,7 +1524,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  A get field() { return getterField; }",
             "  void set field(B arg) { setterField = arg; }",
             "}");
-    assertErrors(result.getErrors(), 
+    assertErrors(result.getErrors(),
         errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 7, 19, 5),
         errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 12, 18, 5));
   }
@@ -1621,7 +1621,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertInferredElementTypeString(libraryResult, "v" + i, expectedTypeString);
     }
   }
-  
+
   public void test_typesPropagation_secondAssign_sameType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",
@@ -1631,7 +1631,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v", "bool");
   }
-  
+
   public void test_typesPropagation_secondAssign_differentType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",
@@ -1641,7 +1641,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v", "<dynamic>");
   }
-  
+
   /**
    * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
    */
@@ -1697,7 +1697,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "a2", "int");
     assertInferredElementTypeString(libraryResult, "b1", "int");
   }
-  
+
   /**
    * When single variable has conflicting type constraints, right now we don't try to unify them,
    * instead we fall back to "Dynamic".
@@ -1744,7 +1744,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "a1", "String");
     assertInferredElementTypeString(libraryResult, "b1", "List<String>");
   }
-  
+
   public void test_typesPropagation_ifIsType_or() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",
@@ -1759,7 +1759,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
     assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
-  
+
   public void test_typesPropagation_whileIsType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",
@@ -1856,7 +1856,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
   }
-  
+
   public void test_typesPropagation_ifIsNotType_otherThen() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",
@@ -1868,7 +1868,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
   }
-  
+
   public void test_typesPropagation_ifIsNotType_hasThenThrow_withCatch() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",
@@ -1883,7 +1883,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
   }
-  
+
   public void test_typesPropagation_ifIsNotType_or() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var p1, var p2) {",
@@ -1921,7 +1921,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
   }
-  
+
   public void test_typesPropagation_ifIsNotType_not2() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",
@@ -2197,7 +2197,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   /**
    * It is a static warning if the return type of the user-declared operator negate is explicitly
    * declared and not a numerical type.
@@ -2228,7 +2228,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 12, 3, 6),
         errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
   }
-  
+
   /**
    * It is a static warning if the return type of the user-declared operator equals is explicitly
    * declared and not bool.
@@ -2285,7 +2285,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}",
             "interface J extends I {",
             "  get foo();",
-            "  set bar();",            
+            "  set bar();",
             "}");
       assertErrors(libraryResult.getTypeErrors(),
           errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 8, 7, 3),
@@ -2347,7 +2347,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 //        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 7)
     );
   }
-  
+
   public void test_supertypeHasField() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2358,12 +2358,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "interface J extends I {",
         "  foo();",
-        "  bar();",            
+        "  bar();",
         "}");
     assertErrors(libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
-  }  
+  }
 
   public void test_supertypeHasGetterSetter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
@@ -2375,13 +2375,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "interface J extends I {",
         "  foo();",
-        "  bar();",            
+        "  bar();",
         "}");
     assertErrors(libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3280
@@ -2398,7 +2398,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3344
@@ -2417,7 +2417,30 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
+  public void test_staticMemberAccessThroughInstance() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static var x;",
+        "  static y() {}",
+        "  static method() {",
+        "    var a = new A();",
+        "    a.x = 1;",
+        "    var foo = a.x;",
+        "    a.y();",
+        "    a.y = 1;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors(),
+        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 7, 7, 1),
+        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 8, 17, 1),
+        errEx(TypeErrorCode.IS_STATIC_METHOD_IN, 9, 7, 1),
+        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 10, 7, 1));
+
+  }
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

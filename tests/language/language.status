@@ -100,10 +100,6 @@ pseudo_kw_illegal_test/14: Fail # Issue 356
 pseudo_kw_test: Fail           # Issue 356
 scope_negative_test: Fail      # Bug 4207538.
 static_call_wrong_argument_count_negative_test: Fail
-static_field1_run_negative_test: Fail  # issue 1662
-static_field1a_run_negative_test: Fail # issue 1662
-static_field2_run_negative_test: Fail  # issue 1662
-static_field2a_run_negative_test: Fail # issue 1662
 string_interpolation8_test: Fail # Issue 2126.
 switch7_negative_test: Fail    # Bug 4208467.
 switch_label_test: Fail        # Bug 4208467.
