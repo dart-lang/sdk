@@ -31,25 +31,31 @@ class ClassScope extends Scope {
     InterfaceType superclass = classElement.getSupertype();
     if (superclass != null) {
       Element enclosing = superclass.getElement().getEnclosingElement();
-      ClassScope scope = new ClassScope(superclass.getElement(),
-                                        new Scope("library", (LibraryElement) enclosing));
-      element = scope.findElement(inLibrary, name);
-      switch (ElementKind.of(element)) {
-        case TYPE_VARIABLE:
-          return null;
-        case NONE:
-          break;
-        default:
-          return element;
+      ClassElement superclassElement = superclass.getElement();
+      if (superclassElement != classElement) {
+        ClassScope scope = new ClassScope(superclassElement,
+                                          new Scope("library", (LibraryElement) enclosing));
+        element = scope.findElement(inLibrary, name);
+        switch (ElementKind.of(element)) {
+          case TYPE_VARIABLE:
+            return null;
+          case NONE:
+            break;
+          default:
+            return element;
+        }
       }
     }
     for (InterfaceType supertype : classElement.getInterfaces()) {
       Element enclosing = supertype.getElement().getEnclosingElement();
-      ClassScope scope = new ClassScope(supertype.getElement(),
-                                        new Scope("library", (LibraryElement) enclosing));
-      element = scope.findElement(inLibrary, name);
-      if (element != null) {
-        return element;
+      ClassElement superclassElement = supertype.getElement();
+      if (superclassElement != classElement) {
+        ClassScope scope = new ClassScope(superclassElement,
+                                          new Scope("library", (LibraryElement) enclosing));
+        element = scope.findElement(inLibrary, name);
+        if (element != null) {
+          return element;
+        }
       }
     }
     return null;
