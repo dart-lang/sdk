@@ -319,7 +319,7 @@ class LocalsHandler {
     params.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
-      builder.potentiallyCheckType(parameter, element);
+      builder.parameters[element] = parameter;
       directLocals[element] = parameter;
     });
 
@@ -447,9 +447,9 @@ class LocalsHandler {
     // If the element is a parameter, we already have a
     // HParameterValue for it. We cannot create another one because
     // it could then have another name than the real parameter. And
-    // the other one would not not it is just a copy of the real
+    // the other one would not know it is just a copy of the real
     // parameter.
-    if (element.isParameter()) return directLocals[element];
+    if (element.isParameter()) return builder.parameters[element];
 
     return builder.activationVariables.putIfAbsent(element, () {
       HParameterValue parameter = new HParameterValue(element);
@@ -793,6 +793,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HGraph graph;
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
+  Map<Element, HParameterValue> parameters;
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
@@ -827,6 +828,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack = new List<HInstruction>(),
       activationVariables = new Map<Element, HParameterValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
+      parameters = new Map<Element, HParameterValue>(),
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
@@ -1076,6 +1078,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     close(new HGoto()).addSuccessor(block);
 
     open(block);
+
+    // Put the type checks in the first successor of the entry,
+    // because that is where the type guards will also be inserted.
+    // This way we ensure that a type guard will dominate the type
+    // check.
+    FunctionSignature params = functionElement.computeSignature(compiler);
+    params.forEachParameter((Element element) {
+      HInstruction newParameter = potentiallyCheckType(
+          localsHandler.directLocals[element], element);
+      localsHandler.directLocals[element] = newParameter;
+    });
   }
 
   HInstruction potentiallyCheckType(HInstruction original,
