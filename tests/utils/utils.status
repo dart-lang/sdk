@@ -33,7 +33,7 @@ markdown_test: Skip
 dummy_compiler_test: Fail # Issue 2264.
 
 [ $compiler == dartc ]
-dummy_compiler_test: Fail # Issue 2263.
+dummy_compiler_test: Fail # Issue 3529.
 
 [ $compiler == dart2js && $browser ]
 *: Skip

@@ -1173,7 +1173,7 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
         errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
   }
-  
+
   public void test_const_requiresValue() {
     resolveAndTest(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1214,7 +1214,7 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 17, 5, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 18, 14, 7));
   }
-  
+
   public void testErrorInUnqualifiedInvocation1() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1238,7 +1238,7 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.DID_YOU_MEAN_NEW, 5, 2, 5));
   }
-  
+
   public void testErrorInUnqualifiedInvocation3() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1246,12 +1246,12 @@ public class ResolverTest extends ResolverTestCase {
         "class Foo<T> {",
         "  method() {",
         "   T();",
-        "  }",        
+        "  }",
         "}"),
         errEx(ResolverErrorCode.DID_YOU_MEAN_NEW, 5, 4, 3));
-  }  
+  }
 
-    
+
   public void testErrorInUnqualifiedInvocation4() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1262,7 +1262,7 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 5, 2, 5));
   }
-  
+
   public void testErrorInUnqualifiedInvocation5() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1274,32 +1274,50 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 5, 5, 7));
   }
-  
+
   public void testUndercoreInNamedParameterMethodDefinition() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "method([_foo]) {}",
         "class Foo {",
         "  var _bar;",
-        "  Foo([this._bar]){}",        
+        "  Foo([this._bar]){}",
         "  method([_foo]){}",
         "}"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 9, 4),
-        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 5, 8, 9), 
-        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 6, 11, 4)); 
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 5, 8, 9),
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 6, 11, 4));
   }
 
   public void testUndercoreInNamedParameterFunctionDefinition() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "var f = func([_foo]) {};"),
-        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 15, 4)); 
-  }    
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 15, 4));
+  }
 
   public void testUndercoreInNamedParameterFunctionAlias() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "typedef Object func([_foo]);"),
-        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 22, 4)); 
-  }      
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 22, 4));
+  }
+
+  public void testRedirectConstructor() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "int topLevel() {}",
+        "class A {",
+        "  method() {}",
+        "}",
+        "class C {",
+        "  C(arg){}",
+        "  C.named1() : this(topLevel());", // ok
+        "  C.named2() : this(method());", // error, not a static method
+        "  C.named3() : this(new A().method());", // ok
+        "  method() {}",
+        "}"),
+        errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT, 10, 21, 8));
+  }
 }

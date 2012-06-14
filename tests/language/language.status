@@ -113,7 +113,6 @@ third_test: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 throw7_negative_test: Fail     # Bug 4208459.
 type_dartc_test: Fail          # Issue 2348
 type_variable_bounds_test/00: Fail # issue 3079
-constructor_redirect_test/01: Fail # For the wrong reason - Issue 2105.
 
 #
 # Add new dartc annotations above in alphabetical order

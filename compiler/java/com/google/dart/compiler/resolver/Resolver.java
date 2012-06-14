@@ -206,7 +206,7 @@ public class Resolver {
     ResolutionContext getContext() {
       return context;
     }
-    
+
     @Override
     protected EnclosingElement getEnclosingElement() {
       return enclosingElement;
@@ -231,11 +231,11 @@ public class Resolver {
         if (parameter.getQualifier() instanceof DartThisExpression) {
           onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
         } else {
-          if (parameter.getModifiers().isNamed() 
+          if (parameter.getModifiers().isNamed()
               && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
-            onError(parameter.getName(), 
-                ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER); 
-          }        
+            onError(parameter.getName(),
+                ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+          }
           getContext().declare(
               parameter.getElement(),
               ResolverErrorCode.DUPLICATE_PARAMETER,
@@ -621,11 +621,11 @@ public class Resolver {
 
       DartBlock body = functionNode.getBody();
       boolean isInterface = false;
-      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS) 
+      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)
           && ((ClassElement) member.getEnclosingElement()).isInterface()) {
         isInterface =true;
       }
-      if (body == null 
+      if (body == null
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
           && !isInterface) {
@@ -633,7 +633,7 @@ public class Resolver {
       }
       resolve(functionNode.getBody());
 
-      if (Elements.isNonFactoryConstructor(member) 
+      if (Elements.isNonFactoryConstructor(member)
           && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
         // Test for missing final initialized fields
@@ -676,7 +676,7 @@ public class Resolver {
         } else if (isStatic) {
           onError(node, ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
         } else if (isTopLevel) {
-          onError(node, ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE);          
+          onError(node, ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE);
         } else {
           // If a final instance field wasn't initialized at declaration, we must check
           // at construction time.
@@ -1092,8 +1092,8 @@ public class Resolver {
                 if (field.getSetter() == null && field.getGetter() != null) {
                   onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
                 }
-              }              
-              
+              }
+
               break;
 
             case NONE:
@@ -1442,17 +1442,17 @@ public class Resolver {
         case NONE:
           switch (ElementKind.of(classOrLibrary)) {
             case CLASS:
-              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, name, 
+              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, name,
                       classOrLibrary.getName());
               break;
             case LIBRARY:
-              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_LIBRARY, name, 
+              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_LIBRARY, name,
                       classOrLibrary.getName());
-              break;              
+              break;
             default:
               onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
           }
-          
+
           break;
 
         case CONSTRUCTOR:
@@ -1506,11 +1506,11 @@ public class Resolver {
         case FUNCTION_TYPE_ALIAS:
           onError(node, ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS);
           break;
-          
+
         case LIBRARY_PREFIX:
           onError(node, ResolverErrorCode.CANNOT_CALL_LIBRARY_PREFIX);
           break;
-          
+
         default:
           throw context.internalError(node, "Unexpected kind of element: %s", kind);
       }
@@ -1591,6 +1591,7 @@ public class Resolver {
 
     @Override
     public Element visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
+
       visit(x.getArguments());
       String name = x.getName() != null ? x.getName().getName() : "";
       ConstructorElement element = Elements.lookupConstructor((ClassElement) currentHolder, name);
@@ -1795,13 +1796,28 @@ public class Resolver {
     private void checkInvocationTarget(DartInvocation node,
                                        MethodElement callSite,
                                        Element target) {
-      if (callSite != null
-          && callSite.isStatic()
-          && ElementKind.of(target).equals(ElementKind.METHOD)) {
-        if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
-          onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_STATIC);
+
+      if (ElementKind.of(target).equals(ElementKind.METHOD)) {
+        if (callSite != null && callSite.isStatic())
+          if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
+            onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_STATIC);
+          }
+        if (calledFromRedirectConstructor(node)) {
+          if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
+            onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT);
+          }
         }
       }
+    }
+
+    private boolean calledFromRedirectConstructor(DartNode node) {
+      do {
+        if (node instanceof DartRedirectConstructorInvocation) {
+          return true;
+        }
+        node = node.getParent();
+      } while (node != null);
+      return false;
     }
 
     private void checkVariableStatement(DartVariableStatement node,
@@ -1923,12 +1939,12 @@ public class Resolver {
     }
     return false;
   }
-  
+
   private ConstructorNodeElement getNextConstructorInvocation(ConstructorNodeElement constructor) {
     List<DartInitializer> inits = ((DartMethodDefinition) constructor.getNode()).getInitializers();
     // Parser ensures that redirected constructors can be the only item in the initialization list.
     if (inits.size() == 1) {
-      Element element = (Element) inits.get(0).getValue().getElement();
+      Element element = inits.get(0).getValue().getElement();
       if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
         ConstructorElement nextConstructorElement = (ConstructorElement) element;
         ClassElement nextClass = (ClassElement) nextConstructorElement.getEnclosingElement();
