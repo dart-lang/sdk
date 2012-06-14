@@ -843,19 +843,27 @@ public class TypeAnalyzer implements DartCompilationPhase {
                                 Iterator<Type> argumentTypes, FunctionType ftype) {
       int argumentIndex = 0;
       // Check positional parameters.
-      List<Type> parameterTypes = ftype.getParameterTypes();
-      for (Type parameterType : parameterTypes) {
-        parameterType.getClass(); // quick null check
-        if (argumentTypes.hasNext()) {
-          Type argumentType = argumentTypes.next();
-          argumentType.getClass(); // quick null check
-          checkAssignable(argumentNodes.get(argumentIndex), parameterType, argumentType);
-          argumentIndex++;
-        } else {
-          onError(diagnosticNode, TypeErrorCode.MISSING_ARGUMENT, parameterType);
-          return ftype.getReturnType();
+      {
+        List<Type> parameterTypes = ftype.getParameterTypes();
+        for (Type parameterType : parameterTypes) {
+          parameterType.getClass(); // quick null check
+          if (argumentTypes.hasNext()) {
+            Type argumentType = argumentTypes.next();
+            argumentType.getClass(); // quick null check
+            DartExpression argumentNode = argumentNodes.get(argumentIndex);
+            if (argumentNode instanceof DartNamedExpression) {
+              onError(argumentNode, TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, parameterType);
+              return ftype.getReturnType();
+            }
+            checkAssignable(argumentNodes.get(argumentIndex), parameterType, argumentType);
+            argumentIndex++;
+          } else {
+            onError(diagnosticNode, TypeErrorCode.MISSING_ARGUMENT, parameterType);
+            return ftype.getReturnType();
+          }
         }
       }
+
       // Check named parameters.
       {
         Set<String> usedNamedParametersPositional = Sets.newHashSet();

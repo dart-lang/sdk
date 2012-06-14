@@ -29,6 +29,7 @@ public enum TypeErrorCode implements ErrorCode {
       "Case expression should be compiler-time constant of type 'int' or 'String', '%s' found"),
   CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE(ErrorSeverity.ERROR,
       "All case expressions should be compiler-time constants of the same type - 'int' or 'String'. '%s' expected but '%s' found"),
+  EXPECTED_POSITIONAL_ARGUMENT("Expected positional argument of type %s before named arguments"),
   EXTRA_ARGUMENT("extra argument"),
   FIELD_HAS_NO_GETTER("Field '%s' has no getter"),
   FIELD_HAS_NO_SETTER("Field '%s' has no setter"),
@@ -63,7 +64,8 @@ public enum TypeErrorCode implements ErrorCode {
       "static member %s of %s cannot be accessed through an instance"),
   SUPERTYPE_HAS_FIELD(ErrorSeverity.ERROR, "%s is a field in %s"),
   SUPERTYPE_HAS_METHOD(ErrorSeverity.ERROR, "%s is a method in %s"),
-  TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(ErrorSeverity.ERROR, "Type alias cannot reference itself directly of via other typedefs"),
+  TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(ErrorSeverity.ERROR,
+      "Type alias cannot reference itself directly of via other typedefs"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
@@ -91,7 +93,7 @@ public enum TypeErrorCode implements ErrorCode {
   private TypeErrorCode(ErrorSeverity severity, String message) {
     this(severity, message, false);
   }
-  
+
   private TypeErrorCode(ErrorSeverity severity, String message, boolean needsRecompilation) {
     this.severity = severity;
     this.message = message;

@@ -66,8 +66,6 @@ application_negative_test: Fail
 assert_keyword_negative_test: Fail
 assert_test: Fail             # Uses AssertError class. Bug 4385894.
 assign_instance_method_negative_test: Fail
-bad_named_parameters_test: Fail      # Issue 1941
-bad_named_parameters2_test: Fail     # Issue 1941
 body_less_constructor_wrong_arg_negative_test: Fail
 call_operator_test: Pass # Issue 1355
 char_escape_test: Pass # Issue 1654

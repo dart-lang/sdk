@@ -1992,7 +1992,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v2", "double");
     assertInferredElementTypeString(libraryResult, "v3", "double");
   }
-  
+
   public void test_typesPropagation_FunctionAliasType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2473,6 +2473,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.IS_STATIC_METHOD_IN, 9, 7, 1),
         errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 10, 7, 1));
 
+  }
+
+  public void testExpectedPositionalArgument() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method1(a, [b]) {}",
+        "method2() {",
+        "  method1(b:1);",
+        "}");
+    assertErrors(libraryResult.getErrors(),
+        errEx(TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, 4, 11, 3));
   }
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
