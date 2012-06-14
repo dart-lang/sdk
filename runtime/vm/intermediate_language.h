@@ -502,6 +502,8 @@ class InstanceCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  bool VerifyComputation();
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;

@@ -993,26 +993,8 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // TODO(srdjan): Add checked calls, a series of checks each issuing
-  // a direct call to the target if check succeeds.
-  ASSERT(VerifyCallComputation(instance_call()));
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 instance_call()->cid(),
-                                 instance_call()->token_index(),
-                                 instance_call()->try_index());
-  compiler->GenerateInstanceCall(instance_call()->cid(),
-                                 instance_call()->token_index(),
-                                 instance_call()->try_index(),
-                                 instance_call()->function_name(),
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 instance_call()->checked_argument_count());
+bool InstanceCallComp::VerifyComputation() {
+  return VerifyCallComputation(this);
 }
 
 
@@ -1157,6 +1139,7 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          PcDescriptors::kOther);
   __ Drop(2);  // Discard type arguments and receiver.
 }
+
 
 #undef __
 

@@ -61,9 +61,9 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptInstanceGetterSameTarget) \
   V(DeoptInstanceGetter) \
   V(DeoptStoreIndexed) \
-  V(DeoptCheckedInstanceCallSmiOnly) \
-  V(DeoptCheckedInstanceCallSmiFail) \
-  V(DeoptCheckedInstanceCallCheckFail) \
+  V(DeoptPolymorphicInstanceCallSmiOnly) \
+  V(DeoptPolymorphicInstanceCallSmiFail) \
+  V(DeoptPolymorphicInstanceCallTestFail) \
   V(DeoptIntegerToDouble) \
   V(DeoptDoubleToDouble) \
   V(DeoptSmiBinaryOp) \

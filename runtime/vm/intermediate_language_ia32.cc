@@ -1585,6 +1585,55 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(instance_call()->VerifyComputation());
+  ASSERT(class_ids().length() == targets().length());
+  ASSERT(class_ids().length() > 0);
+  Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
+                                        instance_call()->token_index(),
+                                        instance_call()->try_index(),
+                                        kDeoptPolymorphicInstanceCallTestFail);
+  Label handle_smi;
+  Label* is_smi_label = class_ids()[0] == kSmi ?  &handle_smi : deopt;
+  // Load receiver into EAX.
+  __ movl(EAX,
+      Address(ESP, (instance_call()->ArgumentCount() - 1) * kWordSize));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, is_smi_label);
+  Label done;
+  __ LoadClassId(EDI, EAX);
+  for (intptr_t i = 0; i < class_ids().length(); i++) {
+    Label next_test;
+    __ cmpl(EDI, Immediate(class_ids()[i]));
+    __ j(NOT_EQUAL, &next_test);
+    compiler->GenerateStaticCall(instance_call()->cid(),
+                                 instance_call()->token_index(),
+                                 instance_call()->try_index(),
+                                 *targets()[i],
+                                 instance_call()->ArgumentCount(),
+                                 instance_call()->argument_names());
+    __ jmp(&done);
+    __ Bind(&next_test);
+  }
+  __ jmp(deopt);
+  if (is_smi_label == &handle_smi) {
+    __ Bind(&handle_smi);
+    compiler->GenerateStaticCall(instance_call()->cid(),
+                                 instance_call()->token_index(),
+                                 instance_call()->try_index(),
+                                 *targets()[0],
+                                 instance_call()->ArgumentCount(),
+                                 instance_call()->argument_names());
+  }
+  __ Bind(&done);
+}
+
+
 }  // namespace dart
 
 #undef __

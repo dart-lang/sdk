@@ -2608,7 +2608,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     if (classes.length() == 1) {
       // Only Smi test.
       DeoptimizationBlob* deopt_blob =
-          AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallSmiOnly);
+          AddDeoptimizationBlob(node, kDeoptPolymorphicInstanceCallSmiOnly);
       __ j(NOT_ZERO, deopt_blob->label());
       GenerateDirectCall(node->id(),
                          token_index,
@@ -2628,7 +2628,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     __ Bind(&not_smi);  // Continue with other test below.
   } else if (NodeMayBeSmi(receiver)) {
     DeoptimizationBlob* deopt_blob =
-        AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallSmiFail);
+        AddDeoptimizationBlob(node, kDeoptPolymorphicInstanceCallSmiFail);
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
   } else {
@@ -2642,7 +2642,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     if (i == (classes.length() - 1)) {
       // Last check.
       DeoptimizationBlob* deopt_blob =
-          AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallCheckFail);
+          AddDeoptimizationBlob(node, kDeoptPolymorphicInstanceCallTestFail);
       __ j(NOT_EQUAL, deopt_blob->label());
       GenerateDirectCall(node->id(),
                          token_index,
