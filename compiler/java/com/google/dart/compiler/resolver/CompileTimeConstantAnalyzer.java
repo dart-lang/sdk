@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -548,9 +549,16 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitField(DartField node) {
-      Type type = checkConstantExpression(node.getValue());
-      if (node.getElement().getType().equals(dynamicType)) {
-        node.getElement().setConstantType(type);
+      if (node.getParent() != null) {
+        DartNode pp = node.getParent().getParent();
+        boolean isFinalTopLevelField = node.getModifiers().isFinal() && pp instanceof DartUnit;
+        boolean isInstanceField = pp instanceof DartClass;
+        if (isFinalTopLevelField || isInstanceField) {
+          Type type = checkConstantExpression(node.getValue());
+          if (node.getElement().getType().equals(dynamicType)) {
+            node.getElement().setConstantType(type);
+          }
+        }
       }
       return null;
     }

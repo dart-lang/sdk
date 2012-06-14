@@ -785,9 +785,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "var a1 = new A();",
                 "var a2 = new A.foo();",
                 ""));
-    assertErrors(libraryResult.getCompilationErrors());
-    assertErrors(libraryResult.getCompilationWarnings());
-    assertErrors(libraryResult.getTypeErrors());
+    assertErrors(libraryResult.getErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     // new A()
     {
