@@ -127,24 +127,29 @@ intptr_t Utf8::Length(const String& str) {
 }
 
 
-void Utf8::Encode(int32_t ch, char* dst) {
+intptr_t Utf8::Encode(int32_t ch, char* dst) {
   static const int kMask = ~(1 << 6);
   if (ch <= kMaxOneByteChar) {
     dst[0] = ch;
-  } else if (ch <= kMaxTwoByteChar) {
+    return 1;
+  }
+  if (ch <= kMaxTwoByteChar) {
     dst[0] = 0xC0 | (ch >> 6);
     dst[1] = 0x80 | (ch & kMask);
-  } else if (ch <= kMaxThreeByteChar) {
+    return 2;
+  }
+  if (ch <= kMaxThreeByteChar) {
     dst[0] = 0xE0 | (ch >> 12);
     dst[1] = 0x80 | ((ch >> 6) & kMask);
     dst[2] = 0x80 | (ch & kMask);
-  } else {
-    ASSERT(ch <= kMaxFourByteChar);
-    dst[0] = 0xF0 | (ch >> 18);
-    dst[1] = 0x80 | ((ch >> 12) & kMask);
-    dst[2] = 0x80 | ((ch >> 6) & kMask);
-    dst[3] = 0x80 | (ch & kMask);
+    return 3;
   }
+  ASSERT(ch <= kMaxFourByteChar);
+  dst[0] = 0xF0 | (ch >> 18);
+  dst[1] = 0x80 | ((ch >> 12) & kMask);
+  dst[2] = 0x80 | ((ch >> 6) & kMask);
+  dst[3] = 0x80 | (ch & kMask);
+  return 4;
 }
 
 

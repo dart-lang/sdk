@@ -147,6 +147,9 @@ enum {
   static intptr_t Visit##object##Pointers(Raw##object* raw_obj,                \
                                           ObjectPointerVisitor* visitor);
 
+#define HEAP_PROFILER_SUPPORT()                                                \
+  friend class HeapProfiler;                                                   \
+
 #define RAW_OBJECT_IMPLEMENTATION(object)                                      \
  private:  /* NOLINT */                                                        \
   VISITOR_SUPPORT(object)                                                      \
@@ -165,6 +168,7 @@ enum {
           reinterpret_cast<uword>(this) - kHeapObjectTag);                     \
     }                                                                          \
     SNAPSHOT_WRITER_SUPPORT()                                                  \
+    HEAP_PROFILER_SUPPORT()                                                    \
 
 
 // RawObject is the base class of all raw objects, even though it carries the
@@ -339,10 +343,14 @@ class RawObject {
     return ClassIdTag::decode(tags);
   }
 
+  ObjectKind GetObjectKind() const;
+
   friend class Api;
   friend class Array;
   friend class FreeListElement;
   friend class Heap;
+  friend class HeapProfiler;
+  friend class HeapProfilerRootVisitor;
   friend class MarkingVisitor;
   friend class Object;
   friend class RawInstructions;
@@ -388,11 +396,11 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t instance_size_;
+  intptr_t instance_size_;  // Size if fixed length or 0 if variable length.
   ObjectKind instance_kind_;
   intptr_t id_;  // Class Id, also index in the class table.
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
-  intptr_t next_field_offset_;  // Offset of then next instance field.
+  intptr_t next_field_offset_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_index_;
   int8_t class_state_;  // Of type ClassState.

@@ -670,6 +670,18 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
 }
 
 
+DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
+                                         void* stream) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (callback == NULL) {
+    return Api::NewError("%s expects argument 'callback' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  isolate->heap()->Profile(callback, stream);
+  return Api::Success(isolate);
+}
+
 // --- Initialization and Globals ---
 
 

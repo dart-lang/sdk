@@ -8,11 +8,13 @@
 #include "platform/utils.h"
 #include "vm/compiler_stats.h"
 #include "vm/flags.h"
+#include "vm/heap_profiler.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
+#include "vm/stack_frame.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
 
@@ -217,6 +219,28 @@ void Heap::PrintSizes() const {
                (new_space_->in_use() / KB), (new_space_->capacity() / KB),
                (old_space_->in_use() / KB), (old_space_->capacity() / KB),
                (code_space_->in_use() / KB), (code_space_->capacity() / KB));
+}
+
+
+void Heap::Profile(Dart_HeapProfileWriteCallback callback, void* stream) const {
+  HeapProfiler profiler(callback, stream);
+
+  // Dump the root set.
+  HeapProfilerRootVisitor root_visitor(&profiler);
+  Isolate* isolate = Isolate::Current();
+  Isolate* vm_isolate = Dart::vm_isolate();
+  isolate->VisitObjectPointers(&root_visitor, false,
+                               StackFrameIterator::kDontValidateFrames);
+  HeapProfilerWeakRootVisitor weak_root_visitor(&root_visitor);
+  isolate->VisitWeakPersistentHandles(&weak_root_visitor, true);
+
+  // Dump the current and VM isolate heaps.
+  HeapProfilerObjectVisitor object_visitor(&profiler);
+  isolate->heap()->new_space_->VisitObjects(&object_visitor);
+  isolate->heap()->old_space_->VisitObjects(&object_visitor);
+  isolate->heap()->code_space_->VisitObjects(&object_visitor);
+  vm_isolate->heap()->new_space_->VisitObjects(&object_visitor);
+  vm_isolate->heap()->old_space_->VisitObjects(&object_visitor);
 }
 
 

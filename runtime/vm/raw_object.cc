@@ -244,6 +244,19 @@ intptr_t RawObject::SizeFromClass() const {
 }
 
 
+ObjectKind RawObject::GetObjectKind() const {
+  intptr_t class_id = GetClassId();
+  ObjectKind kind;
+  if (class_id < kNumPredefinedKinds) {
+    kind = static_cast<ObjectKind>(class_id);
+  } else {
+    RawClass* raw_class = Isolate::Current()->class_table()->At(class_id);
+    kind = raw_class->ptr()->instance_kind_;
+  }
+  return kind;
+}
+
+
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   intptr_t size = 0;
   NoHandleScope no_handles(visitor->isolate());

@@ -451,7 +451,7 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
                                                  Dart_Handle* values,
                                                  intptr_t num_values);
 
-// --- Garbage Collection Callbacks --
+// --- Garbage Collection Callbacks ---
 
 /**
  * Callbacks signal the beginning and end of a garbage collection.
@@ -520,6 +520,29 @@ DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
  */
 DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
     Dart_GcEpilogueCallback callback);
+
+// --- Heap Profiler ---
+
+/**
+ * A callback invoked by the heap profiler during profiling to write
+ * data.
+ */
+typedef void (*Dart_HeapProfileWriteCallback)(const void* data,
+                                              intptr_t length,
+                                              void* stream);
+
+/**
+ * Generates a heap profile.
+ *
+ * \param callback A function pointer that will be repeatedly invoked
+ *   with heap profile data.
+ * \param stream A pointer that will be passed to the callback.  This
+ *   is a convenient way to provide an open stream to the callback.
+ *
+ * \return Success if the heap profile is successful.
+ */
+DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
+                                         void* stream);
 
 // --- Initialization and Globals ---
 

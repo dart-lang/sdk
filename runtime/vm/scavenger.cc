@@ -354,6 +354,16 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 
+void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
+  uword cur = FirstObjectStart();
+  while (cur < top_) {
+    RawObject* raw_obj = RawObject::FromAddr(cur);
+    visitor->VisitObject(raw_obj);
+    cur += raw_obj->Size();
+  }
+}
+
+
 void Scavenger::Scavenge() {
   // TODO(cshapiro): Add a decision procedure for determining when the
   // the API callbacks should be invoked.
