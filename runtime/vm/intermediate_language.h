@@ -466,18 +466,24 @@ class InstanceCallComp : public Computation {
   InstanceCallComp(intptr_t token_index,
                    intptr_t try_index,
                    const String& function_name,
+                   Token::Kind token_kind,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
       : token_index_(token_index),
         try_index_(try_index),
         function_name_(function_name),
+        token_kind_(token_kind),
         arguments_(arguments),
         argument_names_(argument_names),
         checked_argument_count_(checked_argument_count) {
     ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle());
+    ASSERT(Token::IsBinaryToken(token_kind) ||
+           Token::IsUnaryToken(token_kind) ||
+           token_kind == Token::kGET ||
+           token_kind == Token::kILLEGAL);
   }
 
   DECLARE_COMPUTATION(InstanceCall)
@@ -485,6 +491,7 @@ class InstanceCallComp : public Computation {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
+  Token::Kind token_kind() const { return token_kind_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
   const Array& argument_names() const { return argument_names_; }
@@ -499,6 +506,7 @@ class InstanceCallComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   const String& function_name_;
+  const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;

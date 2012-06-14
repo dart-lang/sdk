@@ -427,6 +427,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   InstanceCallComp* call = new InstanceCallComp(node->token_index(),
                                                 owner()->try_index(),
                                                 name,
+                                                node->kind(),
                                                 arguments,
                                                 Array::ZoneHandle(),
                                                 2);
@@ -837,12 +838,13 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   Append(for_value);
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(1);
   arguments->Add(for_value.value());
+  Token::Kind token_kind =
+      (node->kind() == Token::kSUB) ? Token::kNEGATE : node->kind();
+
   const String& name =
-      String::ZoneHandle(String::NewSymbol((node->kind() == Token::kSUB)
-                                               ? Token::Str(Token::kNEGATE)
-                                               : node->Name()));
+      String::ZoneHandle(String::NewSymbol(Token::Str(token_kind)));
   InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
+      node->token_index(), owner()->try_index(), name, token_kind,
       arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
@@ -1376,8 +1378,8 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   TranslateArgumentList(*arguments, values);
   InstanceCallComp* call = new InstanceCallComp(
       node->token_index(), owner()->try_index(),
-      node->function_name(), values,
-                           arguments->names(), 1);
+      node->function_name(), Token::kILLEGAL, values,
+      arguments->names(), 1);
   ReturnComputation(call);
 }
 
@@ -1748,7 +1750,7 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   const String& name =
       String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
+      node->token_index(), owner()->try_index(), name, Token::kGET,
       arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }

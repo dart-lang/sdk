@@ -444,18 +444,19 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
 }
 
 
+
+
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
-    const String& function_name = comp->function_name();
-    Token::Kind op_kind = Token::GetBinaryOp(function_name);
-    if ((op_kind != Token::kILLEGAL) && TryReplaceWithBinaryOp(comp, op_kind)) {
+    const Token::Kind op_kind = comp->token_kind();
+    if (Token::IsBinaryToken(op_kind) &&
+        TryReplaceWithBinaryOp(comp, op_kind)) {
       return;
     }
-    op_kind = Token::GetUnaryOp(function_name);
-    if ((op_kind != Token::kILLEGAL) && TryReplaceWithUnaryOp(comp, op_kind)) {
+    if (Token::IsUnaryToken(op_kind) && TryReplaceWithUnaryOp(comp, op_kind)) {
       return;
     }
-    if ((Field::IsGetterName(function_name)) && TryInlineInstanceGetter(comp)) {
+    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(comp)) {
       return;
     }
     if (TryInlineInstanceMethod(comp)) {
