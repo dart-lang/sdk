@@ -457,8 +457,10 @@ public class NegativeParserTest extends CompilerTestCase {
             "var c = +1;",
             "var d = -a;",
             "var e = +a;",
+            "var f = + 1;",
             ""),
-        errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1));
+        errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1),
+        errEx(ParserErrorCode.NO_SPACE_AFTER_PLUS, 7, 9, 1));
   }
 
   public void test_functionDeclaration_name() {
