@@ -215,9 +215,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     equalsNullElement = interceptors.getEqualsNullInterceptor();
     boolifiedEqualsNullElement =
         interceptors.getBoolifiedVersionOf(equalsNullElement);
-    parameterNames.forEach((Element element, String name) {
-      declaredVariables.add(name);
-    });
   }
 
   abstract visitTypeGuard(HTypeGuard node);
@@ -2468,7 +2465,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
-    : super(backend, work, parameters, parameterNames);
+    : super(backend, work, parameters, parameterNames) {
+    // Declare the parameter names only for the optimized version. The
+    // unoptimized version has different parameters.
+    parameterNames.forEach((Element element, String name) {
+      declaredVariables.add(name);
+    });
+  }
 
   int maxBailoutParameters;
 
@@ -2700,6 +2703,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     // call site for non-complex bailout methods.
     newParameters.add('state');
 
+    // TODO(ngeoffray): We should declare the parameters in
+    // beginGraph, to avoid potentially redeclaring them with 'var'
+    // in the method body.
     if (!propagator.hasComplexTypeGuards) {
       propagator.firstTypeGuard.block.first = savedFirstInstruction;
       for (HInstruction input in propagator.firstTypeGuard.inputs) {
