@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,11 +14,13 @@ import com.google.dart.compiler.resolver.MethodNodeElement;
 public class DartBinaryExpression extends DartExpression {
 
   private final Token op;
+  private final int opOffset;
   private DartExpression arg1;
   private DartExpression arg2;
   private MethodNodeElement element;
 
-  public DartBinaryExpression(Token op, DartExpression arg1, DartExpression arg2) {
+  public DartBinaryExpression(Token op, int opOffset, DartExpression arg1, DartExpression arg2) {
+    this.opOffset = opOffset;
     assert op.isBinaryOperator() : op;
 
     this.op = op;
@@ -36,6 +38,13 @@ public class DartBinaryExpression extends DartExpression {
 
   public Token getOperator() {
     return op;
+  }
+  
+  /**
+   * @return the character offset of the {@link #getOperator()} token.
+   */
+  public int getOperatorOffset() {
+    return opOffset;
   }
 
   @Override

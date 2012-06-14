@@ -56,7 +56,7 @@ public enum TypeErrorCode implements ErrorCode {
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
-  PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'+' operator cannot be used for string concatentation"),
+  PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'%s' cannot be used for string concatentation, use string interpolation or a StringBuffer instead"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
   SETTER_TYPE_MUST_BE_ASSIGNABLE("Setter type '%s' must be assignable to getter type '%s'"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(

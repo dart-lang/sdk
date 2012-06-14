@@ -357,8 +357,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
 
         case ASSIGN_ADD: {
-          checkStringConcatPlus(lhsNode);
-          checkStringConcatPlus(rhsNode);
+          checkStringConcatPlus(node, lhs);
         }
         case ASSIGN_SUB:
         case ASSIGN_MUL:
@@ -418,8 +417,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
 
         case ADD:  {
-          checkStringConcatPlus(lhsNode);
-          checkStringConcatPlus(rhsNode);
+          checkStringConcatPlus(node, lhs);
         }
         case SUB:
         case MUL:
@@ -469,19 +467,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
-    private void checkStringConcatPlus(DartExpression node) {
-      if (node != null) {
-        Type type = null;
-        if (node.getElement() != null) {
-          type = node.getElement().getType();
-        } else if (node.getType() != null) {
-          type = node.getType();
-        }
-        if (type != null) {
-          if (type.equals(stringType)) {
-            onError(node, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-          }
-        }
+    private void checkStringConcatPlus(DartBinaryExpression binary, Type lhs) {
+      if (Objects.equal(lhs, stringType)) {
+        Token operator = binary.getOperator();
+        SourceInfo errorTarget = new SourceInfo(binary.getSourceInfo().getSource(),
+            binary.getOperatorOffset(), operator.getSyntax().length());
+        onError(errorTarget, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT, operator);
       }
     }
 

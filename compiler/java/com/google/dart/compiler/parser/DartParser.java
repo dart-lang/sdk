@@ -1877,7 +1877,8 @@ public class DartParser extends CompletionHooksParserBase {
     if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
-      result = done(new DartBinaryExpression(token, result, parseExpression()));
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = done(new DartBinaryExpression(token, tokenOffset, result, parseExpression()));
     } else {
       done(null);
     }
@@ -1895,7 +1896,8 @@ public class DartParser extends CompletionHooksParserBase {
     DartExpression result = parseExpression();
     // Must keep in sync with @Terminals above
     while (optional(Token.COMMA)) {
-      result = new DartBinaryExpression(Token.COMMA, result, parseExpression());
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = new DartBinaryExpression(Token.COMMA, tokenOffset, result, parseExpression());
       if (match(Token.COMMA)) {
         result = doneWithoutConsuming(result);
       }
@@ -1961,6 +1963,7 @@ public class DartParser extends CompletionHooksParserBase {
         Position prevPositionStart = ctx.getTokenLocation().getBegin();
         Position prevPositionEnd = ctx.getTokenLocation().getEnd();
         Token token = next();
+        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
         if (lastResult instanceof DartSuperExpression
             && (token == Token.AND || token == Token.OR)) {
           reportErrorAtPosition(prevPositionStart, prevPositionEnd,
@@ -1988,7 +1991,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
 
         lastResult = right;
-        result = doneWithoutConsuming(new DartBinaryExpression(token, result, right));
+        result = doneWithoutConsuming(new DartBinaryExpression(token, tokenOffset, result, right));
         if (token == Token.IS
             || token == Token.AS
             || token.isRelationalOperator()

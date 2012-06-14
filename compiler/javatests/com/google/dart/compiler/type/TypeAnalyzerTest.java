@@ -1388,12 +1388,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("{ var c = a + b; }");
     analyzeFail("{ var c = s + b; }",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-    analyzeFail("{ var c = a + s; }",
-            TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);    
     analyzeFail("var c = 'foo' + 1;",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);        
-    analyzeFail("var c = 1 + 'foo';",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);            
     analyzeFail("var c = 'foo' + 'bar';",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);                
   }  
