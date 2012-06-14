@@ -1,0 +1,53 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js ]
+class_test: Fail
+statements_test: Fail
+typed_locals_test: Fail
+
+[ $mode == debug ]
+operator_test: Skip
+string_interpolation_test: Skip
+
+[ $compiler == frog ]
+*: Skip
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dartc || $runtime == vm ]
+cascade_precedence_test: Fail
+
+[ $runtime == opera ]
+*: Skip
+
+[ $compiler == dart2js && $runtime == ff ]
+naming_test: Fail # BUG(3305)
+
+[ $compiler == dart2js && $runtime == ie ]
+12_test: Fail # BUG(3304)
+33_test: Fail # BUG(3304)
+43_test: Fail # BUG(3304)
+7_test: Fail # BUG(3304)
+bailout_test: Fail # BUG(3304)
+class_test: Fail # BUG(3304)
+equals_test: Fail # BUG(3304)
+foo7_test: Fail # BUG(3304)
+function_parameters_test: Fail # BUG(3304)
+literals_test: Fail # BUG(3304)
+locals_test: Fail # BUG(3304)
+naming_test: Fail # BUG(3305)
+not_equals_test: Fail # BUG(3304)
+phi_test: Fail # BUG(3304)
+regression_2913_test: Fail # BUG(3304)
+send_test: Fail # BUG(3304)
+
+[ $compiler == dart2js && $runtime == safari ]
+naming_test: Fail # BUG(3305)
+
+[ $checked ]
+parameter_bailout_test: Fail, OK
+variable_type_test/03: Fail, OK
+variable_type_test/01: Fail, OK

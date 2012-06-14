@@ -197,18 +197,18 @@ def TestCompiler(compiler, runtime, mode, system, option, flags):
       # The dart2js compiler isn't self-hosted (yet) so we run its
       # unit tests on the VM. We avoid doing this on the builders
       # that run the browser tests to cut down on the cycle time.
-      TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], flags)
+      TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
 
     # Run the default set of test suites.
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
     # TODO(kasperl): Consider running peg and css tests too.
-    extras = ['leg_only', 'frog_native']
+    extras = ['dart2js_extra', 'dart2js_native']
     TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
 
   elif compiler == 'frog':
     TestStep("frog", mode, system, compiler, runtime, [], flags)
-    extras = ['frog', 'frog_native', 'peg', 'css']
+    extras = ['frog', 'dart2js_native', 'peg', 'css']
     TestStep("frog_extra", mode, system, compiler, runtime, extras, flags)
 
   return 0
