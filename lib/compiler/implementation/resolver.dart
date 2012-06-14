@@ -1087,7 +1087,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
     useElement(node, target);
-    if (target === null) handleDynamicSend(node);
+    if (target === null) registerDynamicSend(node);
     if (node.isPropertyAccess) return target;
   }
 
@@ -1123,11 +1123,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     mapping.setSelector(node, selector);
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
-    handleDynamicSend(node);
+    registerDynamicSend(node);
     return useElement(node, setter);
   }
 
-  handleDynamicSend(Send node) {
+  registerDynamicSend(Send node) {
     Identifier id = node.selector.asIdentifier();
     if (id === null) return;
     SourceString name = node.selector.asIdentifier().source;

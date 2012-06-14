@@ -468,7 +468,7 @@ class Compiler implements DiagnosticListener {
   /**
    * Perform various checks of the queues. This includes checking that
    * the queues are empty (nothing was added after we stopped
-   * processing the quese). Also compute the number of methods that
+   * processing the queues). Also compute the number of methods that
    * were resolved, but not compiled (aka excess resolution).
    */
   checkQueues() {
@@ -514,12 +514,12 @@ class Compiler implements DiagnosticListener {
   TreeElements analyzeElement(Element element) {
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
     if (elements !== null) return elements;
-    if (element is AbstractFieldElement) {
-      return null;
-    }
     final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
                         | ElementCategory.FACTORY;
-    if (!element.isAccessor() && (element.kind.category & allowed) == 0) {
+    ElementKind kind = element.kind;
+    if (!element.isAccessor() &&
+        ((kind === ElementKind.ABSTRACT_FIELD) ||
+         (kind.category & allowed) == 0)) {
       return null;
     }
     assert(parser !== null);

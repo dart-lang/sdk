@@ -65,7 +65,7 @@ class Enqueuer {
       resolvedElements = new Map<Element, TreeElements>(),
       recompilationCandidates = new RecompilationQueue();
 
-  bool get isFirstQueue() => compiler.enqueuer.resolution === this;
+  bool get isResolutionQueue() => compiler.enqueuer.resolution === this;
 
   TreeElements getCachedElements(Element element) {
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
@@ -76,10 +76,11 @@ class Enqueuer {
     if (element.isForeign()) return;
     if (compiler.pass == 2) return;
     if (queueIsClosed) {
-      if (isFirstQueue && getCachedElements(element) !== null) return;
+      if (isResolutionQueue && getCachedElements(element) !== null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
-    if (!isFirstQueue && element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (!isResolutionQueue &&
+        element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
     if (elements === null) {
