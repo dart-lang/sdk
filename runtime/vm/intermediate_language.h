@@ -36,13 +36,15 @@ class LocationSummary;
   M(StoreContext, StoreContextComp)                                            \
   M(ClosureCall, ClosureCallComp)                                              \
   M(InstanceCall, InstanceCallComp)                                            \
+  M(PolymorphicInstanceCall, PolymorphicInstanceCallComp)                      \
   M(StaticCall, StaticCallComp)                                                \
   M(LoadLocal, LoadLocalComp)                                                  \
   M(StoreLocal, StoreLocalComp)                                                \
   M(StrictCompare, StrictCompareComp)                                          \
   M(EqualityCompare, EqualityCompareComp)                                      \
+  M(RelationalOp, RelationalOpComp)                                            \
   M(NativeCall, NativeCallComp)                                                \
-  M(LoadIndexed, LoadIndexedComp)                                            \
+  M(LoadIndexed, LoadIndexedComp)                                              \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
   M(StaticSetter, StaticSetterComp)                                            \
@@ -68,6 +70,8 @@ class LocationSummary;
   M(BinaryOp, BinaryOpComp)                                                    \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
+  M(CheckStackOverflow, CheckStackOverflowComp)                                \
+  M(ToDouble, ToDoubleComp)                                                    \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -76,6 +80,7 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 
 // Forward declarations.
 class BufferFormatter;
+class BranchInstr;
 class Instruction;
 class Value;
 
@@ -142,6 +147,8 @@ class Computation : public ZoneAllocated {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
   static LocationSummary* MakeCallSummary();
+
+  void ReplaceWith(Computation* other);
 
   // Declare an enum value used to define type-test predicates.
   enum ComputationType {
@@ -280,18 +287,23 @@ class Value : public TemplateComputation<0> {
   virtual void PrintTo(BufferFormatter* f) const;
 
 
+class Definition;
 class BindInstr;
+class PhiInstr;
 
 class UseVal : public Value {
  public:
-  explicit UseVal(BindInstr* definition) : definition_(definition) {}
+  explicit UseVal(Definition* definition) : definition_(definition) {}
 
   DECLARE_VALUE(Use)
 
-  BindInstr* definition() const { return definition_; }
+  Definition* definition() const { return definition_; }
+  void set_definition(Definition* definition) {
+    definition_ = definition;
+  }
 
  private:
-  BindInstr* definition_;
+  Definition* definition_;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -495,20 +507,82 @@ class InstanceCallComp : public Computation {
 };
 
 
-class StrictCompareComp : public TemplateComputation<2> {
+class PolymorphicInstanceCallComp : public Computation {
  public:
-  StrictCompareComp(Token::Kind kind, Value* left, Value* right)
-      : kind_(kind) {
-    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
+  PolymorphicInstanceCallComp(InstanceCallComp* comp,
+                              const ZoneGrowableArray<intptr_t>& class_ids,
+                              const ZoneGrowableArray<Function*>& targets)
+      : instance_call_(comp),
+        class_ids_(class_ids),
+        targets_(targets) {
+    ASSERT(instance_call_ != NULL);
+  }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+  const ZoneGrowableArray<intptr_t>& class_ids() const { return class_ids_; }
+  const ZoneGrowableArray<Function*>& targets() const { return targets_; }
+
+  virtual intptr_t InputCount() const { return instance_call()->InputCount(); }
+  virtual Value* InputAt(intptr_t i) const {
+    return instance_call()->ArgumentAt(i);
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const {
+    instance_call()->PrintOperandsTo(f);
+  }
+
+  DECLARE_COMPUTATION(PolymorphicInstanceCall)
+
+ private:
+  InstanceCallComp* instance_call_;
+  const ZoneGrowableArray<intptr_t>& class_ids_;
+  const ZoneGrowableArray<Function*>& targets_;
+
+  DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallComp);
+};
+
+
+class ComparisonComp : public TemplateComputation<2> {
+ public:
+  ComparisonComp(Value* left, Value* right)
+      : fused_with_branch_(NULL) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
+  }
+
+  void MarkFusedWithBranch(BranchInstr* branch) {
+    fused_with_branch_ = branch;
+  }
+
+  BranchInstr* fused_with_branch() const {
+    ASSERT(is_fused_with_branch());
+    return fused_with_branch_;
+  }
+
+  bool is_fused_with_branch() const {
+    return fused_with_branch_ != NULL;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+ private:
+  BranchInstr* fused_with_branch_;
+};
+
+
+class StrictCompareComp : public ComparisonComp {
+ public:
+  StrictCompareComp(Token::Kind kind, Value* left, Value* right)
+      : ComparisonComp(left, right), kind_(kind) {
+    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
   }
 
   DECLARE_COMPUTATION(StrictCompare)
 
   Token::Kind kind() const { return kind_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -519,34 +593,76 @@ class StrictCompareComp : public TemplateComputation<2> {
 };
 
 
-class EqualityCompareComp : public TemplateComputation<2> {
+class EqualityCompareComp : public ComparisonComp {
  public:
   EqualityCompareComp(intptr_t token_index,
                       intptr_t try_index,
                       Value* left,
                       Value* right)
-    : token_index_(token_index),
-      try_index_(try_index) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+      : ComparisonComp(left, right),
+        token_index_(token_index),
+        try_index_(try_index),
+        operands_class_id_(kObject) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
+  void set_operands_class_id(intptr_t value) {
+    operands_class_id_ = value;
+  }
+  intptr_t operands_class_id() const { return operands_class_id_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
+  intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
+};
+
+
+class RelationalOpComp : public ComparisonComp {
+ public:
+  RelationalOpComp(intptr_t token_index,
+                   intptr_t try_index,
+                   Token::Kind kind,
+                   Value* left,
+                   Value* right)
+      : ComparisonComp(left, right),
+        token_index_(token_index),
+        try_index_(try_index),
+        kind_(kind),
+        operands_class_id_(kObject) {
+    ASSERT(Token::IsRelationalOperator(kind));
+  }
+
+  DECLARE_COMPUTATION(RelationalOp)
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+  Token::Kind kind() const { return kind_; }
+
+  // TODO(srdjan): instead of class-id pass an enum that can differentiate
+  // between boxed and unboxed doubles and integers.
+  void set_operands_class_id(intptr_t value) {
+    operands_class_id_ = value;
+  }
+
+  intptr_t operands_class_id() const { return operands_class_id_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+ private:
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+  const Token::Kind kind_;
+  intptr_t operands_class_id_;  // class id of both operands.
+
+  DISALLOW_COPY_AND_ASSIGN(RelationalOpComp);
 };
 
 
@@ -831,7 +947,8 @@ class StoreIndexedComp : public TemplateComputation<3> {
                    Value* index,
                    Value* value)
       : token_index_(token_index),
-        try_index_(try_index) {
+        try_index_(try_index),
+        receiver_type_(kIllegalObjectKind) {
     inputs_[0] = array;
     inputs_[1] = index;
     inputs_[2] = value;
@@ -845,9 +962,18 @@ class StoreIndexedComp : public TemplateComputation<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
+  void set_receiver_type(ObjectKind receiver_type) {
+    receiver_type_ = receiver_type;
+  }
+
+  ObjectKind receiver_type() const {
+    return receiver_type_;
+  }
+
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
+  ObjectKind receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
@@ -1117,9 +1243,28 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   LoadVMFieldComp(Value* value,
                   intptr_t offset_in_bytes,
                   const AbstractType& type)
-      : offset_in_bytes_(offset_in_bytes), type_(type) {
+      : offset_in_bytes_(offset_in_bytes),
+        type_(type),
+        original_(NULL),
+        class_ids_(NULL) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    inputs_[0] = value;
+  }
+
+  LoadVMFieldComp(Value* value,
+                  intptr_t offset_in_bytes,
+                  const AbstractType& type,
+                  InstanceCallComp* original,
+                  ZoneGrowableArray<intptr_t>* class_ids)
+      : offset_in_bytes_(offset_in_bytes),
+        type_(type),
+        original_(original),
+        class_ids_(class_ids) {
+    ASSERT(value != NULL);
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    ASSERT(original != NULL);
+    ASSERT(class_ids != NULL);
     inputs_[0] = value;
   }
 
@@ -1128,12 +1273,17 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
+  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
+  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
+  const InstanceCallComp* original_;  // For optimizations.
+  // If non-NULL, the instruction is valid only for the class ids listed.
+  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };
@@ -1441,6 +1591,53 @@ class NumberNegateComp : public TemplateComputation<1> {
   DISALLOW_COPY_AND_ASSIGN(NumberNegateComp);
 };
 
+
+class CheckStackOverflowComp : public TemplateComputation<0> {
+ public:
+  CheckStackOverflowComp(intptr_t token_index, intptr_t try_index)
+      : token_index_(token_index),
+        try_index_(try_index) {}
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+
+  DECLARE_COMPUTATION(CheckStackOverflow)
+
+ private:
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowComp);
+};
+
+
+class ToDoubleComp : public TemplateComputation<1> {
+ public:
+  ToDoubleComp(Value* value,
+               ObjectKind from,
+               InstanceCallComp* instance_call)
+      : from_(from), instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  ObjectKind from() const { return from_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(ToDouble)
+
+ private:
+  const ObjectKind from_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(ToDoubleComp);
+};
+
+
 #undef DECLARE_COMPUTATION
 
 
@@ -1475,6 +1672,7 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(TargetEntry)                                                               \
   M(Do)                                                                        \
   M(Bind)                                                                      \
+  M(Phi)                                                                       \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -1496,6 +1694,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
+  virtual Value* InputAt(intptr_t i) const;                                    \
   virtual const char* DebugName() const { return #type; }                      \
   virtual void PrintTo(BufferFormatter* f) const;                              \
   virtual void PrintToVisualizer(BufferFormatter* f) const;
@@ -1519,12 +1718,11 @@ class Instruction : public ZoneAllocated {
   BlockEntryInstr* AsBlockEntry() {
     return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
   }
-  virtual bool IsBindInstr() const { return false; }
-  virtual BindInstr* AsBindInstr() {
-    return NULL;
-  }
+  virtual bool IsDefinition() const { return false; }
+  virtual Definition* AsDefinition() { return NULL; }
 
   virtual intptr_t InputCount() const = 0;
+  virtual Value* InputAt(intptr_t i) const = 0;
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -1651,6 +1849,14 @@ class BlockEntryInstr : public Instruction {
   BlockEntryInstr* dominator() const { return dominator_; }
   void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
+  const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
+    return dominated_blocks_;
+  }
+
+  void AddDominatedBlock(BlockEntryInstr* block) {
+    dominated_blocks_.Add(block);
+  }
+
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
@@ -1668,6 +1874,7 @@ class BlockEntryInstr : public Instruction {
         postorder_number_(-1),
         block_id_(-1),
         dominator_(NULL),
+        dominated_blocks_(1),
         last_instruction_(NULL) { }
 
  private:
@@ -1675,6 +1882,8 @@ class BlockEntryInstr : public Instruction {
   intptr_t postorder_number_;
   intptr_t block_id_;
   BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
+  // TODO(fschneider): Optimize the case of one child to save space.
+  GrowableArray<BlockEntryInstr*> dominated_blocks_;
   Instruction* last_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
@@ -1726,7 +1935,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   JoinEntryInstr()
       : BlockEntryInstr(),
         predecessors_(2),  // Two is the assumed to be the common case.
-        successor_(NULL) { }
+        successor_(NULL),
+        phis_(NULL),
+        phi_count_(0) { }
 
   DECLARE_INSTRUCTION(JoinEntry)
 
@@ -1746,11 +1957,19 @@ class JoinEntryInstr : public BlockEntryInstr {
     successor_ = instr;
   }
 
+  ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
+
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+  void InsertPhi(intptr_t var_index, intptr_t var_count);
+
+  intptr_t phi_count() const { return phi_count_; }
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
   Instruction* successor_;
+  ZoneGrowableArray<PhiInstr*>* phis_;
+  intptr_t phi_count_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -1853,21 +2072,33 @@ class DoInstr : public Instruction {
 };
 
 
-class BindInstr : public Instruction {
+// Abstract super-class of all instructions that define a value (Bind, Phi).
+class Definition : public Instruction {
+ public:
+  Definition() : temp_index_(-1) { }
+
+  virtual bool IsDefinition() const { return true; }
+  virtual Definition* AsDefinition() { return this; }
+
+  intptr_t temp_index() const { return temp_index_; }
+  void set_temp_index(intptr_t index) { temp_index_ = index; }
+
+ private:
+  intptr_t temp_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(Definition);
+};
+
+
+class BindInstr : public Definition {
  public:
   explicit BindInstr(Computation* computation)
-      : temp_index_(-1), computation_(computation), successor_(NULL) {
+      : computation_(computation), successor_(NULL) {
     ASSERT(computation != NULL);
     computation->set_instr(this);
   }
 
   DECLARE_INSTRUCTION(Bind)
-
-  virtual bool IsBindInstr() const { return true; }
-  virtual BindInstr* AsBindInstr() { return this; }
-
-  intptr_t temp_index() const { return temp_index_; }
-  void set_temp_index(intptr_t index) { temp_index_ = index; }
 
   Computation* computation() const { return computation_; }
   virtual void replace_computation(Computation* value) { computation_ = value; }
@@ -1895,12 +2126,37 @@ class BindInstr : public Instruction {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
-  intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
+
+
+class PhiInstr: public Definition {
+ public:
+  explicit PhiInstr(intptr_t num_inputs) : inputs_(num_inputs) {
+    for (intptr_t i = 0; i < num_inputs; ++i) {
+      inputs_.Add(NULL);
+    }
+  }
+
+  DECLARE_INSTRUCTION(Phi)
+
+  void SetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
+
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+ private:
+  GrowableArray<Value*> inputs_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInstr);
+};
+
+
 
 
 class ReturnInstr : public InstructionWithInputs {
@@ -2023,7 +2279,8 @@ class BranchInstr : public InstructionWithInputs {
       : InstructionWithInputs(),
         value_(value),
         true_successor_(NULL),
-        false_successor_(NULL) { }
+        false_successor_(NULL),
+        is_fused_with_comparison_(false) { }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -2052,10 +2309,20 @@ class BranchInstr : public InstructionWithInputs {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
+  void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                             Condition true_condition);
+
+  void MarkFusedWithComparison() {
+    is_fused_with_comparison_ = true;
+  }
+
+  bool is_fused_with_comparison() const { return is_fused_with_comparison_; }
+
  private:
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
+  bool is_fused_with_comparison_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

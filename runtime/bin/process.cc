@@ -147,7 +147,8 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t pid = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
-  bool success = Process::Kill(pid);
+  int signal = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
+  bool success = Process::Kill(pid, signal);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
   Dart_ExitScope();
 }

@@ -95,6 +95,7 @@ public enum Token {
   DEFAULT("default", 0),
   DO("do", 0),
   ELSE("else", 0),
+  EXTENDS("extends", 0),
   FINAL("final", 0),
   FINALLY("finally", 0),
   FOR("for", 0),

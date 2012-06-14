@@ -26,12 +26,33 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
 
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
+
+  public void test_getter() {
+    DartUnit unit = parseUnit("getter.dart", Joiner.on("\n").join(
+        "class G {",
+        "  // Old getter syntax",
+        "  int get g1() => 1;",
+        "  // New getter syntax",
+        "  int get g2 => 2;",
+        "}"));
+  }
+
+  public void test_setter() {
+    DartUnit unit = parseUnit("setter.dart", Joiner.on("\n").join(
+        "class G {",
+        "  // Old setter syntax",
+        "  void set g1(int v) {}",
+        "  // New setter syntax",
+        "  void set g2=(int v) {}",
+        "}"));
+  }
 
   /**
    * There was bug when "identA.identB" always considered as constructor declaration. But it can be
@@ -436,6 +457,24 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());
   }
 
+  public void test_super_operator() {
+    DartUnit unit = parseUnit("phony_super.dart", Joiner.on("\n").join(
+        "class A {",
+        "  void m() {",
+        "    --super;",
+        "  }",
+        "}"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+    DartClass A = (DartClass) nodes.get(0);
+    DartMethodDefinition m = (DartMethodDefinition) A.getMembers().get(0);
+    DartExprStmt statement = (DartExprStmt) m.getFunction().getBody().getStatements().get(0);
+    DartUnaryExpression value = (DartUnaryExpression) statement.getExpression();
+    assertEquals(Token.SUB, value.getOperator());
+    DartUnaryExpression inner = (DartUnaryExpression) value.getArg();
+    assertEquals(Token.SUB, inner.getOperator());
+  }
+
   /**
    * Typedef and interface are top level keywords that are also valid as identifiers.
    *
@@ -541,7 +580,7 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 13, 14,
             ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 15, 13);
   }
-  
+
   public void testBreakOutsideLoop() throws Exception {
     parseUnit("phony_lone_super_expression1.dart",
         Joiner.on("\n").join(
@@ -559,6 +598,39 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 4, 10,
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 7, 13,
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 18,
-            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);      
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 9, 35);
+  }
+
+  public void testContinueNoLabelInsideCase() throws Exception {
+    parseUnit("phony_lone_super_expression1.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  method() {",
+            "    switch(1) {",
+            "      case 1: continue;", // error
+            "    }",
+            "    while (1) {",
+            "      switch(1) {",
+            "        case 1: continue;", // ok, refers to the while loop.
+            "      }",
+            "    }",
+            "    L: switch(1) {",
+            "     case 1: var result = f() { continue L; };", // bad
+            "    }",
+            "  }",
+            "}"),
+            ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL, 4, 23,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 12, 42);
+  }
+
+  public void testBogusEscapedNewline() throws Exception {
+    parseUnit("phony_bogus_escaped_newline.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  var foo = \"not really multiline\\\n",
+            "\";",
+            "}"),
+            ParserErrorCode.UNEXPECTED_TOKEN,  2, 13,
+            ParserErrorCode.EXPECTED_TOKEN,  4, 1);
   }
 }

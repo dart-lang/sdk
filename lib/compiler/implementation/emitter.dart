@@ -367,13 +367,13 @@ function(collectedClasses) {
 
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
-    return compiler.codegenWorld.hasGetter(member, compiler);
+    return compiler.codegenWorld.hasInvokedGetter(member, compiler);
   }
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
     return (member.modifiers === null || !member.modifiers.isFinal())
-        && compiler.codegenWorld.hasSetter(member, compiler);
+        && compiler.codegenWorld.hasInvokedSetter(member, compiler);
   }
 
   String compiledFieldName(Element member) {
@@ -650,6 +650,10 @@ function(collectedClasses) {
       addParameterStubs(callElement, (String name, String value) {
         buffer.add('$fieldAccess.$name = $value;\n');
       });
+      // If a static function is used as a closure we need to add its name
+      // in case it is used in spawnFunction.
+      String fieldName = Namer.STATIC_CLOSURE_NAME_NAME;
+      buffer.add('$fieldAccess.$fieldName = "$staticName";\n');
     }
   }
 
@@ -823,7 +827,7 @@ function(collectedClasses) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.kind == ElementKind.FUNCTION) {
-      if (compiler.codegenWorld.hasGetter(member, compiler)) {
+      if (compiler.codegenWorld.hasInvokedGetter(member, compiler)) {
         emitDynamicFunctionGetter(member, defineInstanceMember);
       }
     }

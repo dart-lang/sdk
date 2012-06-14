@@ -41,6 +41,7 @@ void printHelp() {
   pl <id> Print dlibrary info for given id
   ls <libname> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
+  epi <none|all|unhandled>  Set exception pause info
   h   Print help
 """);
 }
@@ -124,6 +125,10 @@ void processCommand(String cmdLine) {
                 "params": { "libraryId": Math.parseInt(args[1]),
                             "url": args[2] }};
     sendCmd(cmd).then((result) => handleGetSourceResponse(result));
+  } else if (command == "epi" && args.length == 2) {
+    var cmd = { "id": seqNum, "command":  "setPauseOnException",
+                "params": { "exceptions": args[1] }};
+    sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "q") {
     quitShell();
   } else if (command == "h") {

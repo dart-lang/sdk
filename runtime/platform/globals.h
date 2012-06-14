@@ -21,10 +21,12 @@
 #define NOMCX
 
 #include <windows.h>
+#include <winsock2.h>
 #include <Rpc.h>
 #endif
 
 #if !defined(_WIN32)
+#include <arpa/inet.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -39,8 +41,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <cstdlib>
-#include <sstream>
 
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
@@ -206,7 +206,7 @@ private:                                                                       \
 public:                                                                        \
   void operator delete(void* pointer) {                                        \
     fprintf(stderr, "unreachable code\n");                                     \
-    std::abort();                                                              \
+    abort();                                                                   \
   }                                                                            \
 private:                                                                       \
   void* operator new(size_t size);

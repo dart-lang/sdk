@@ -5,6 +5,8 @@
 #ifndef VM_DEBUGGER_H_
 #define VM_DEBUGGER_H_
 
+#include "include/dart_debugger_api.h"
+
 #include "vm/object.h"
 
 namespace dart {
@@ -232,6 +234,8 @@ class Debugger {
   void SetStepInto() { resume_action_ = kStepInto; }
   void SetStepOut() { resume_action_ = kStepOut; }
 
+  void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Called from Runtime when a breakpoint in Dart code is reached.
@@ -323,9 +327,7 @@ class Debugger {
   // be run as a side effect of getting values of fields.
   bool ignore_breakpoints_;
 
-  // If true, notify debug client when (unhandled) exception is thrown.
-  bool pause_on_exception_;
-  bool pause_on_unhandled_exception_;
+  intptr_t exc_pause_info_;
 
   friend class SourceBreakpoint;
   DISALLOW_COPY_AND_ASSIGN(Debugger);

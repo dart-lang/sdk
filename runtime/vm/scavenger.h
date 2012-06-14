@@ -71,6 +71,7 @@ class Scavenger {
   intptr_t in_use() const { return (top_ - FirstObjectStart()); }
   intptr_t capacity() const { return space_->size(); }
 
+  void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   // Returns true if the last scavenge had a promotion failure.

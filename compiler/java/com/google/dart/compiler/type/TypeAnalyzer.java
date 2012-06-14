@@ -111,7 +111,7 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
-import com.google.dart.compiler.resolver.LibraryElement;
+import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
@@ -224,7 +224,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void onError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
       onError(node.getSourceInfo(), errorCode, arguments);
     }
-    
+
     private void onError(SourceInfo errorTarget, ErrorCode errorCode, Object... arguments) {
       Source source = errorTarget.getSource();
       if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
@@ -469,14 +469,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
-    private void checkStringConcatPlus(DartExpression node) {  
+    private void checkStringConcatPlus(DartExpression node) {
       if (node != null) {
         Type type = null;
-        if (node.getElement() != null) { 
+        if (node.getElement() != null) {
           type = node.getElement().getType();
         } else if (node.getType() != null) {
           type = node.getType();
-        } 
+        }
         if (type != null) {
           if (type.equals(stringType)) {
             onError(node, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
@@ -542,7 +542,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private static boolean hasInferredType(Element element) {
       return element != null && element.getType() != null && element.getType().isInferred();
     }
-    
+
     /**
      * Helper for visiting {@link DartNode} which happens only if "condition" is satisfied. Attempts
      * to infer types of {@link VariableElement}s from given "condition".
@@ -1104,7 +1104,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // continue
       return super.visitReturnBlock(node);
     }
-    
+
     private Type typeAsVoid(DartNode node) {
       node.visitChildren(this);
       return voidType;
@@ -1398,9 +1398,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-      if (TypeKind.of(node.getElement().getType()).equals(TypeKind.FUNCTION_ALIAS)) {
-        FunctionAliasType type = node.getElement().getType();
+      FunctionAliasElement element = node.getElement();
+      FunctionAliasType type = element.getType();
+      if (TypeKind.of(type) == TypeKind.FUNCTION_ALIAS) {
         checkCyclicBounds(type.getElement().getTypeParameters());
+        if (hasFunctionTypeAliasSelfReference(element)) {
+          onError(node, TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+        }
       }
       return typeAsVoid(node);
     }
@@ -1428,24 +1432,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         case FIELD:
           type = typeAsMemberOf(element, currentClass);
-          type.getClass(); // quick null check
           // try to resolve as getter/setter
-          if (element.getModifiers().isAbstractField()
-              && element.getEnclosingElement() instanceof LibraryElement) {
-            FieldElement fieldElement = (FieldElement) element;
-            if (Elements.inGetterContext(node)) {
-              MethodElement getter = fieldElement.getGetter();
-              if (getter != null) {
-                node.setElement(getter);
-              }
+          FieldElement fieldElement = (FieldElement) element;
+          if (Elements.inGetterContext(node)) {
+            MethodElement getter = fieldElement.getGetter();
+            if (getter != null) {
+              node.setElement(getter);
+              type = getter.getReturnType();
+              node.setType(type);
             }
-            if (Elements.inSetterContext(node)) {
-              MethodElement setter = fieldElement.getSetter();
-              if (setter != null) {
+          } else if (Elements.inSetterContext(node)) {
+            MethodElement setter = fieldElement.getSetter();
+            if (setter != null) {
+              if (setter.getParameters().size() > 0) {
                 node.setElement(setter);
+                type = setter.getParameters().get(0).getType();
+                node.setType(type);
               }
             }
           }
+          type.getClass(); // quick null check
           break;
 
         case METHOD:
@@ -1491,7 +1497,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // done
       return voidType;
     }
-    
+
     @Override
     public Type visitInitializer(DartInitializer node) {
       DartIdentifier name = node.getName();
@@ -1559,34 +1565,39 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (returnTypeNode != null && returnTypeNode.getType() != voidType) {
           typeError(returnTypeNode, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
         }
-        if (currentClass != null && methodElement.getParameters().size() > 0) {
+        if (methodElement.getParameters().size() > 0) {
           Element parameterElement = methodElement.getParameters().get(0);
           Type setterType = parameterElement.getType();
-          MethodElement getterElement = Elements.lookupFieldElementGetter(currentClass.getElement(),
-                                                                          methodElement.getName());
+          MethodElement getterElement = Elements.lookupFieldElementGetter(
+              methodElement.getEnclosingElement(), methodElement.getName());
+
           if (getterElement != null) {
             // prepare "getter" type
             Type getterType;
-            {
-              // prepare super types between "getter" and "setter" enclosing types
-              Type getterDeclarationType = getterElement.getEnclosingElement().getType();
-              List<InterfaceType> superTypes = getIntermediateSuperTypes(currentClass, getterDeclarationType);
-              // convert "getter" function type to use "setter" type parameters
-              FunctionType getterFunctionType = (FunctionType) getterElement.getType();
-              for (InterfaceType superType : superTypes) {
-                List<Type> superArguments = superType.getArguments();
-                List<Type> superParameters = superType.getElement().getTypeParameters();
-                getterFunctionType = (FunctionType) getterFunctionType.subst(
-                    superArguments, superParameters);
-              }
-              // get return type
-              getterType = getterFunctionType.getReturnType();
+
+            // prepare super types between "getter" and "setter" enclosing types
+            Type getterDeclarationType = getterElement.getEnclosingElement().getType();
+            List<InterfaceType> superTypes;
+            if (currentClass != null) {
+              superTypes = getIntermediateSuperTypes(currentClass, getterDeclarationType);
+            } else {
+              superTypes = Lists.newArrayList();
             }
+            // convert "getter" function type to use "setter" type parameters
+            FunctionType getterFunctionType = (FunctionType) getterElement.getType();
+            for (InterfaceType superType : superTypes) {
+              List<Type> superArguments = superType.getArguments();
+              List<Type> superParameters = superType.getElement().getTypeParameters();
+              getterFunctionType = (FunctionType) getterFunctionType.subst(superArguments,
+                  superParameters);
+            }
+            // get return type
+            getterType = getterFunctionType.getReturnType();
+
             // compare "getter" and "setter" types
             if (!types.isAssignable(setterType, getterType)) {
               typeError(parameterElement, TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
-                        setterType.getElement().getName(),
-                        getterType.getElement().getName());
+                  setterType.getElement().getName(), getterType.getElement().getName());
             }
           }
         }
@@ -1606,6 +1617,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
         Type returnType = node.getElement().getFunctionType().getReturnType();
         if (!types.isSubtype(returnType, numType)) {
           typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
+        }
+      }
+      // operator "[]=" should return void
+      if (modifiers.isOperator() && methodElement.getName().equals("[]=")
+          && returnTypeNode != null) {
+        Type returnType = node.getElement().getFunctionType().getReturnType();
+        if (TypeKind.of(returnType) != TypeKind.VOID) {
+          typeError(returnTypeNode, TypeErrorCode.OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE);
         }
       }
       // done
@@ -1887,6 +1906,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
           }
+          node.setType(result);
           return result;
 
         default:
@@ -1924,11 +1944,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression expression = node.getExpression();
       Type switchType = nonVoidTypeOf(expression);
       // check "case" expressions compatibility
+      Type sameCaseType = null;
       for (DartSwitchMember switchMember : node.getMembers()) {
         if (switchMember instanceof DartCase) {
           DartCase caseMember = (DartCase) switchMember;
           DartExpression caseExpr = caseMember.getExpr();
           Type caseType = nonVoidTypeOf(caseExpr);
+          // should be "int" or "String"
+          if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, stringType)) {
+            onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, caseType);
+            continue;
+          }
+          // all "case expressions" should be same type
+          if (sameCaseType == null) {
+            sameCaseType = caseType;
+          }
+          if (!Objects.equal(caseType, sameCaseType)) {
+            onError(caseExpr, TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, sameCaseType,
+                caseType);
+          }
+          // compatibility of "switch expression" and "case expression" types
           checkAssignable(caseExpr, switchType, caseType);
         }
       }
@@ -2144,7 +2179,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression value = node.getValue();
           if (value != null) {
             Type valueType = value.getType();
-            if (TypeKind.of(valueType) != TypeKind.DYNAMIC) {
+            if (valueType != null && TypeKind.of(valueType) != TypeKind.DYNAMIC) {
               Type varType = Types.makeInferred(valueType);
               Elements.setType(element, varType);
               node.getName().setType(varType);
@@ -2264,6 +2299,72 @@ public class TypeAnalyzer implements DartCompilationPhase {
         checkAssignable(node.getElement().getType(), value);
       }
       return voidType;
+    }
+
+    /**
+     * @return <code>true</code> if given {@link FunctionAliasElement} has direct or indirect
+     *         reference to itself using other {@link FunctionAliasElement}s.
+     */
+    private boolean hasFunctionTypeAliasSelfReference(FunctionAliasElement target) {
+      Set<FunctionAliasElement> visited = Sets.newHashSet();
+      return hasFunctionTypeAliasReference(visited, target, target);
+    }
+
+    /**
+     * Checks if "target" is referenced by "current".
+     */
+    private boolean hasFunctionTypeAliasReference(Set<FunctionAliasElement> visited,
+        FunctionAliasElement target, FunctionAliasElement current) {
+      FunctionType type = current.getFunctionType();
+      // prepare Types directly referenced by "current"
+      Set<Type> referencedTypes = Sets.newHashSet();
+      if (type != null) {
+        // type parameters
+        for (Type typeParameter : current.getTypeParameters()) {
+          if (typeParameter instanceof TypeVariable) {
+            TypeVariable typeVariable = (TypeVariable) typeParameter;
+            Type bound = typeVariable.getTypeVariableElement().getBound();
+            referencedTypes.add(bound);
+          }
+        }
+        // return type
+        referencedTypes.add(type.getReturnType());
+        // parameters
+        referencedTypes.addAll(type.getParameterTypes());
+        referencedTypes.addAll(type.getNamedParameterTypes().values());
+      }
+      // check that referenced types do not have references on "target"
+      for (Type referencedType : referencedTypes) {
+        if (referencedType != null
+            && hasFunctionTypeAliasReference(visited, target, referencedType.getElement())) {
+          return true;
+        }
+      }
+      // no
+      return false;
+    }
+
+    /**
+     * Checks if "target" is referenced by "current".
+     */
+    private boolean hasFunctionTypeAliasReference(Set<FunctionAliasElement> visited,
+        FunctionAliasElement target, Element currentElement) {
+      // only if "current" in function type alias
+      if (!(currentElement instanceof FunctionAliasElement)) {
+        return false;
+      }
+      FunctionAliasElement current = (FunctionAliasElement) currentElement;
+      // found "target"
+      if (Objects.equal(target, current)) {
+        return true;
+      }
+      // prevent recursion
+      if (visited.contains(current)) {
+        return false;
+      }
+      visited.add(current);
+      // check type of "current" function type alias
+      return hasFunctionTypeAliasReference(visited, target, current);
     }
 
     @Override
@@ -2535,11 +2636,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (namedIterator.hasNext()) {
             VariableElement parameter = namedIterator.next();
             if (Objects.equal(parameter.getName(), superParameter.getName())) {
-              if (!Objects.equal(ObjectUtils.toString(parameter.getDefaultValue()),
-                  ObjectUtils.toString(superParameter.getDefaultValue()))) {
+              DartExpression superDefValue = superParameter.getDefaultValue();
+              DartExpression defValue = parameter.getDefaultValue();
+              if (superDefValue != null
+                  && !Objects.equal(ObjectUtils.toString(defValue),
+                      ObjectUtils.toString(superDefValue))) {
                 onError(parameter.getSourceInfo(),
                     TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
-                    superParameter.getDefaultValue());
+                    superDefValue);
               }
               continue;
             }

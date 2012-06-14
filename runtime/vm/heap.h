@@ -118,6 +118,9 @@ class Heap {
   // Print heap sizes.
   void PrintSizes() const;
 
+  // Generates a profile of the current and VM isolate heaps.
+  void Profile(Dart_HeapProfileWriteCallback callback, void* stream) const;
+
  private:
   Heap();
 

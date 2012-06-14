@@ -130,11 +130,12 @@ public class DartParser extends CompletionHooksParserBase {
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
+  private static final String AS_KEYWORD = "as";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
+  private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
-  private static final String EXTENDS_KEYWORD = "extends";
-  private static final String FACTORY_KEYWORD = "factory"; // TODO(zundel): remove
+  private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
   private static final String IMPLEMENTS_KEYWORD = "implements";
   private static final String INTERFACE_KEYWORD = "interface";
@@ -149,23 +150,53 @@ public class DartParser extends CompletionHooksParserBase {
 
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
+    AS_KEYWORD,
     ASSERT_KEYWORD,
-    CALL_KEYWORD,
+    DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
-    EXTENDS_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
     IMPLEMENTS_KEYWORD,
     INTERFACE_KEYWORD,
     NEGATE_KEYWORD,
-    NATIVE_KEYWORD,
     OPERATOR_KEYWORD,
-    PREFIX_KEYWORD,
     SETTER_KEYWORD,
     STATIC_KEYWORD,
     TYPEDEF_KEYWORD
   };
   public static final Set<String> PSEUDO_KEYWORDS_SET = ImmutableSet.copyOf(PSEUDO_KEYWORDS);
+
+  public static final String[] RESERVED_WORDS = {
+      "break",
+      "case",
+      "catch",
+      "class",
+      "const",
+      "continue",
+      "default",
+      "do",
+      "else",
+      "extends",
+      "false",
+      "final",
+      "finally",
+      "for",
+      "if",
+      "in",
+      "is",
+      "new",
+      "null",
+      "return",
+      "super",
+      "switch",
+      "this",
+      "throw",
+      "true",
+      "try",
+      "var",
+      "void",
+      "while"};
+  public static final Set<String> RESERVED_WORDS_SET = ImmutableSet.copyOf(RESERVED_WORDS);
 
   public DartParser(Source source,
                     String sourceCode,
@@ -223,15 +254,16 @@ public class DartParser extends CompletionHooksParserBase {
    * {@link #setAllowFunctionExpression(boolean)}.
    */
   private boolean allowFunctionExpression = true;
-  
+
   /**
-   * 'break' (with no labels) and 'continue' stmts are not valid 
-   * just anywhere, they must be inside a loop or a case stmt.  
-   * 
+   * 'break' (with no labels) and 'continue' stmts are not valid
+   * just anywhere, they must be inside a loop or a case stmt.
+   *
    * A break with a label may be valid and is allowed through and
    * checked in the resolver.
    */
-  private boolean inLoopOrCaseStatement = false;
+  private boolean inLoopStatement = false;
+  private boolean inCaseStatement = false;
 
   /**
    * Set the {@link #allowFunctionExpression} flag indicating whether function expressions are
@@ -546,11 +578,14 @@ public class DartParser extends CompletionHooksParserBase {
   private DartTypeParameter parseTypeParameter() {
     beginTypeParameter();
     DartIdentifier name = parseIdentifier();
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    }
     // Try to parse bound.
     DartTypeNode bound = null;
     if (peek(0) != Token.EOS && peek(0) != Token.COMMA && peek(0) != Token.GT) {
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
-        // OK, this is EXTENDS_KEYWORD, parse type.
+      if (optional(Token.EXTENDS)) {
+        // OK, this is EXTENDS, parse type.
         bound = parseTypeAnnotation();
       } else if (looksLikeTopLevelKeyword()) {
         return done(new DartTypeParameter(name, bound));
@@ -631,17 +666,20 @@ public class DartParser extends CompletionHooksParserBase {
       }
       return done(null);
     }
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+    }
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
 
     // Parse the extends and implements clauses.
     DartTypeNode superType = null;
     List<DartTypeNode> interfaces = null;
     if (isParsingInterface) {
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
+      if (optional(Token.EXTENDS)) {
         interfaces = parseTypeAnnotationList();
       }
     } else {
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
+      if (optional(Token.EXTENDS)) {
         superType = parseTypeAnnotation();
       }
       if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
@@ -784,6 +822,7 @@ public class DartParser extends CompletionHooksParserBase {
             nestingLevel -= 2;
             break;
           case COMMA:
+          case EXTENDS:
           case IDENTIFIER:
             break;
           default:
@@ -820,6 +859,10 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     DartIdentifier name = parseIdentifier();
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    }
+
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
     List<DartParameter> params = parseFormalParameterList();
     expect(Token.SEMICOLON);
@@ -1325,7 +1368,19 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     // Parse the parameters definitions.
-    List<DartParameter> parameters = parseFormalParameterList();
+    List<DartParameter> parameters;
+    if (modifiers.isGetter() && peek(0) != Token.LPAREN) {
+      // TODO: For now the parameters are optional so that both the old and new style will be
+      // accepted, but eventually parameters should be disallowed.
+      parameters = new ArrayList<DartParameter>();
+    } else {
+      if (modifiers.isSetter()) {
+        // TODO: For now we optionally allow an equal sign before the formal parameter list, but
+        // eventually it should be required.
+        optional(Token.ASSIGN);
+      }
+      parameters = parseFormalParameterList();
+    }
 
     if (arity != -1) {
       if (parameters.size() != arity) {
@@ -1337,20 +1392,6 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
       }
-    }
-
-    // Interface method declaration can not have default values for named parameters.
-    if (isParsingInterface) {
-      validateNoDefaultParameterValues(
-          parameters,
-          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE);
-    }
-
-    // Abstract method declaration can not have default values for named parameters.
-    if (modifiers.isAbstract()) {
-      validateNoDefaultParameterValues(
-          parameters,
-          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT);
     }
 
     // Parse initializer expressions for constructors.
@@ -3114,8 +3155,9 @@ public class DartParser extends CompletionHooksParserBase {
   private DartBlock parseFunctionStatementBody(boolean requireSemicolonForArrow) {
     // A break inside a function body should have nothing to do with a loop in
     // the code surrounding the definition.
-    boolean oldInLoopOrCaseStatement = inLoopOrCaseStatement;
-    inLoopOrCaseStatement = false;
+    boolean oldInLoopStatement = inLoopStatement;
+    boolean oldInCaseStatement = inCaseStatement;
+    inLoopStatement = inCaseStatement = false;
     DartBlock result;
     if (isDietParse) {
       result = dietParseFunctionStatementBody();
@@ -3134,7 +3176,8 @@ public class DartParser extends CompletionHooksParserBase {
         result = done(parseBlock());
       }
     }
-    inLoopOrCaseStatement = oldInLoopOrCaseStatement;
+    inLoopStatement = oldInLoopStatement;
+    inCaseStatement = oldInCaseStatement;
     return result;
   }
 
@@ -3232,9 +3275,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartIdentifier label = null;
     if (match(Token.IDENTIFIER)) {
       label = parseIdentifier();
-    } else if (!inLoopOrCaseStatement) {
+    } else if (!inLoopStatement && !inCaseStatement) {
       // The validation of matching of labels to break statements is done later.
-      reportErrorWithoutAdvancing(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);      
+      reportErrorWithoutAdvancing(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
     }
     expectStatmentTerminator();
     return done(new DartBreakStatement(label));
@@ -3244,11 +3287,13 @@ public class DartParser extends CompletionHooksParserBase {
     beginContinueStatement();
     expect(Token.CONTINUE);
     DartIdentifier label = null;
-    if (!inLoopOrCaseStatement) {
-      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);      
+    if (!inLoopStatement && !inCaseStatement) {
+      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
     }
     if (peek(0) == Token.IDENTIFIER) {
       label = parseIdentifier();
+    } else if (!inLoopStatement && inCaseStatement) {
+      reportErrorWithoutAdvancing(ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL);
     }
     expectStatmentTerminator();
     return done(new DartContinueStatement(label));
@@ -3713,7 +3758,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
-    DartStatement body = parseLoopOrCaseStatement();
+    DartStatement body = parseLoopStatement();
     return done(new DartWhileStatement(condition, body));
   }
 
@@ -3729,7 +3774,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartDoWhileStatement parseDoWhileStatement() {
     beginDoStatement();
     expect(Token.DO);
-    DartStatement body = parseLoopOrCaseStatement();
+    DartStatement body = parseLoopStatement();
     expect(Token.WHILE);
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
@@ -3739,16 +3784,16 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
-   * Use this wrapper to parse the body of a loop or case statement.
-   * 
-   * Sets up flag variables to make sure continue and break are properly 
-   * marked as errors when in wrong context. 
+   * Use this wrapper to parse the body of a loop
+   *
+   * Sets up flag variables to make sure continue and break are properly
+   * marked as errors when in wrong context.
    */
-  private DartStatement parseLoopOrCaseStatement() {
-    boolean oldInBreakable = inLoopOrCaseStatement;
-    inLoopOrCaseStatement = true;
+  private DartStatement parseLoopStatement() {
+    boolean oldInLoop = inLoopStatement;
+    inLoopStatement = true;
     DartStatement stmt = parseStatement();
-    inLoopOrCaseStatement = oldInBreakable;
+    inLoopStatement = oldInLoop;
     return stmt;
   }
 
@@ -3819,7 +3864,7 @@ public class DartParser extends CompletionHooksParserBase {
       DartExpression iterable = parseExpression();
       expectCloseParen();
 
-      DartStatement body = parseLoopOrCaseStatement();
+      DartStatement body = parseLoopStatement();
       return done(new DartForInStatement(setup, iterable, body));
 
     } else if (optional(Token.SEMICOLON)) {
@@ -3838,7 +3883,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       expectCloseParen();
 
-      DartStatement body = parseLoopOrCaseStatement();
+      DartStatement body = parseLoopStatement();
       return done(new DartForStatement(setup, condition, next, body));
     } else {
       reportUnexpectedToken(position(), null, peek(0));
@@ -3886,9 +3931,14 @@ public class DartParser extends CompletionHooksParserBase {
         case EOS:
           return statements;
         default:
-          if ((statement = parseLoopOrCaseStatement()) == null) {
+          boolean oldInCaseStatement = inCaseStatement;
+          inCaseStatement = true;
+          statement = parseStatement();
+          inCaseStatement = oldInCaseStatement;
+          if (statement == null) {
             return statements;
           }
+
           statements.add(statement);
           if (statement.isAbruptCompletingStatement()) {
             /*
@@ -4092,13 +4142,21 @@ public class DartParser extends CompletionHooksParserBase {
     // Check for unary minus operator.
     Token token = peek(0);
     if (token.isUnaryOperator() || token == Token.SUB) {
-      beginUnaryExpression();
-      consume(token);
-      DartExpression unary = parseUnaryExpression();
-      if (token.isCountOperator()) {
-        ensureAssignable(unary);
+      if (token == Token.DEC && peek(1) == Token.SUPER) {
+        beginUnaryExpression();
+        beginUnaryExpression();
+        consume(token);
+        DartExpression unary = parseUnaryExpression();
+        return done(new DartUnaryExpression(Token.SUB, done(new DartUnaryExpression(Token.SUB, unary, true)), true));
+      } else {
+        beginUnaryExpression();
+        consume(token);
+        DartExpression unary = parseUnaryExpression();
+        if (token.isCountOperator()) {
+          ensureAssignable(unary);
+        }
+        return done(new DartUnaryExpression(token, unary, true));
       }
-      return done(new DartUnaryExpression(token, unary, true));
     } else {
       return parsePostfixExpression();
     }

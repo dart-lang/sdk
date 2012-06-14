@@ -273,6 +273,8 @@ _html_library_custom = set([
     'IFrameElement.get:contentWindow',
     'Window.get:document',
     'Window.get:top',
+    'Window.get:location',
+    'Window.set:location',
     'IDBDatabase.transaction',
     ])
 
@@ -448,6 +450,8 @@ _html_event_names = {
   'webkitkeyerror': 'keyError',
   'webkitkeymessage': 'keyMessage',
   'webkitneedkey': 'needKey',
+  'webkitpointerlockchange': 'pointerLockChange',
+  'webkitpointerlockerror': 'pointerLockError',
   'webkitSpeechChange': 'speechChange',
   'webkitsourceclose': 'sourceClose',
   'webkitsourceended': 'sourceEnded',
@@ -500,7 +504,7 @@ _html_element_constructors = {
   'ButtonElement': 'button',
   'CanvasElement':
     ElementConstructorInfo(tag='canvas',
-                           opt_params=[('int', 'height'), ('int', 'width')]),
+                           opt_params=[('int', 'width'), ('int', 'height')]),
   'DListElement': 'dl',
   'DetailsElement': 'details',
   'DivElement': 'div',
@@ -520,7 +524,7 @@ _html_element_constructors = {
   'ImageElement':
     ElementConstructorInfo(tag='img',
                            opt_params=[('String', 'src'),
-                                       ('int', 'height'), ('int', 'width')]),
+                                       ('int', 'width'), ('int', 'height')]),
   'InputElement':
     ElementConstructorInfo(tag='input', opt_params=[('String', 'type')]),
   'KeygenElement': 'keygen',

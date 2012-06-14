@@ -500,7 +500,8 @@ int Process::Start(const char* path,
 }
 
 
-bool Process::Kill(intptr_t id) {
+bool Process::Kill(intptr_t id, int signal) {
+  USE(signal);  // signal is not used on windows.
   HANDLE process_handle;
   HANDLE wait_handle;
   HANDLE exit_pipe;

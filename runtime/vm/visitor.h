@@ -38,6 +38,16 @@ class ObjectPointerVisitor {
 };
 
 
+// An object visitor interface.
+class ObjectVisitor {
+ public:
+  virtual ~ObjectVisitor() {}
+
+  // Invoked for each object.
+  virtual void VisitObject(RawObject* obj) = 0;
+};
+
+
 // An object finder visitor interface.
 class FindObjectVisitor {
  public:

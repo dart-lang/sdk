@@ -23,6 +23,7 @@ class Enqueuer {
   final Set<ClassElement> seenClasses;
   final Universe universe;
   final Queue<WorkItem> queue;
+  final Map<Element, TreeElements> resolvedElements;
   bool queueIsClosed = false;
   EnqueueTask task;
 
@@ -30,19 +31,38 @@ class Enqueuer {
     : instanceMembersByName = new Map<String, Link<Element>>(),
       seenClasses = new Set<ClassElement>(),
       universe = new Universe(),
-      queue = new Queue<WorkItem>();
+      queue = new Queue<WorkItem>(),
+      resolvedElements = new Map<Element, TreeElements>();
+
+  bool get isFirstQueue() => compiler.enqueuer.resolution === this;
+
+  TreeElements getCachedElements(Element element) {
+    Element owner = element.getOutermostEnclosingMemberOrTopLevel();
+    return compiler.enqueuer.resolution.resolvedElements[owner];
+  }
 
   void addToWorkList(Element element, [TreeElements elements]) {
+    if (element.isForeign()) return;
     if (queueIsClosed) {
+      if (isFirstQueue && getCachedElements(element) !== null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (!isFirstQueue && element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
+    }
+    if (elements === null) {
+      elements = getCachedElements(element);
     }
     queue.add(new WorkItem(element, elements));
   }
 
   void registerInstantiatedClass(ClassElement cls) {
+    if (cls.isInterface()) {
+      compiler.internalErrorOnElement(
+          // Use the current element, as this is where cls is referenced from.
+          compiler.currentElement,
+          'Expected a class, but $cls is an interface.');
+    }
     universe.instantiatedClasses.add(cls);
     onRegisterInstantiatedClass(cls);
   }
@@ -86,6 +106,7 @@ class Enqueuer {
 
   void processInstantiatedClassMember(Element member) {
     if (universe.generatedCode.containsKey(member)) return;
+    if (resolvedElements[member] !== null) return;
 
     if (!member.isInstanceMember()) return;
     if (member.isField()) return;
@@ -109,7 +130,7 @@ class Enqueuer {
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (universe.hasGetter(member, compiler)) {
+      if (universe.hasInvokedGetter(member, compiler)) {
         // We will emit a closure, so make sure the closure class is
         // generated.
         compiler.closureClass.ensureResolved(compiler);
@@ -117,7 +138,7 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
-      if (universe.hasGetter(member, compiler)) {
+      if (universe.hasInvokedGetter(member, compiler)) {
         return addToWorkList(member);
       }
       // We don't know what selectors the returned closure accepts. If
@@ -126,7 +147,7 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind === ElementKind.SETTER) {
-      if (universe.hasSetter(member, compiler)) {
+      if (universe.hasInvokedSetter(member, compiler)) {
         return addToWorkList(member);
       }
     }
@@ -163,13 +184,13 @@ class Enqueuer {
     });
   }
 
-  void registerGetter(SourceString getterName, Selector selector) {
+  void registerInvokedGetter(SourceString getterName, Selector selector) {
     task.measure(() {
       registerNewSelector(getterName, selector, universe.invokedGetters);
     });
   }
 
-  void registerSetter(SourceString setterName, Selector selector) {
+  void registerInvokedSetter(SourceString setterName, Selector selector) {
     task.measure(() {
       registerNewSelector(setterName, selector, universe.invokedSetters);
     });
@@ -216,15 +237,37 @@ class Enqueuer {
   }
 
   void registerDynamicGetter(SourceString methodName, Selector selector) {
-    registerGetter(methodName, selector);
+    registerInvokedGetter(methodName, selector);
   }
 
   void registerDynamicSetter(SourceString methodName, Selector selector) {
-    registerSetter(methodName, selector);
+    registerInvokedSetter(methodName, selector);
+  }
+
+  void registerFieldGetter(SourceString getterName, Type type) {
+    task.measure(() {
+      registerNewSelector(getterName,
+                          new TypedSelector(type, Selector.GETTER),
+                          universe.fieldGetters);
+    });
+  }
+
+  void registerFieldSetter(SourceString setterName, Type type) {
+    task.measure(() {
+      registerNewSelector(setterName,
+                          new TypedSelector(type, Selector.SETTER),
+                          universe.fieldSetters);
+    });
   }
 
   // TODO(ngeoffray): This should get a type.
   void registerIsCheck(Element element) {
     universe.isChecks.add(element);
+  }
+
+  void forEach(f(WorkItem work)) {
+    while (!queue.isEmpty()) {
+      f(queue.removeLast());
+    }
   }
 }

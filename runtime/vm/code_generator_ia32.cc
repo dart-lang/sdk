@@ -543,7 +543,7 @@ void CodeGenerator::GenerateEntryCode() {
     __ Bind(&wrong_num_arguments);
     if (locals_space_size() != 0) {
       // We need to unwind the space we reserved for locals and copied
-      // parmeters. The NoSuchMethodFunction stub does not expect to
+      // parameters. The NoSuchMethodFunction stub does not expect to
       // see that area on the stack.
       __ addl(ESP, Immediate(locals_space_size()));
     }

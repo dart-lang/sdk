@@ -6946,8 +6946,8 @@ void UnwindError::set_message(const String& message) const {
 
 
 const char* UnwindError::ToErrorCString() const {
-  UNIMPLEMENTED();
-  return "UnwindError";
+  const String& msg_str = String::Handle(message());
+  return msg_str.ToCString();
 }
 
 

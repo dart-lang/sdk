@@ -143,6 +143,7 @@
 #source('core_matchers.dart');
 #source('description.dart');
 #source('expect.dart');
+#source('future_matchers.dart');
 #source('interfaces.dart');
 #source('map_matchers.dart');
 #source('matcher.dart');

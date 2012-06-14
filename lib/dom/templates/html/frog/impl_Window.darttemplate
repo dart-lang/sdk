@@ -11,6 +11,59 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // Override top to return secure wrapper.
   Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 
+
+  // API level getter and setter for Location.
+  // TODO: The cross domain safe wrapper can be inserted here or folded into
+  // _LocationWrapper.
+  Location get location() => _get_location();
+
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location. [value] may be a Location object or a string.
+   */
+  void set location(value) => _set_location(value);
+
+  // Firefox work-around for Location.  The Firefox location object cannot be
+  // made to behave like a Dart object so must be wrapped.
+
+  Location _get_location() {
+    var result = _location;
+    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
+    if (null == _location_wrapper) {
+      _location_wrapper = new _LocationWrapper(result);
+    }
+    return _location_wrapper;
+  }
+
+  void _set_location(value) {
+    if (value is _LocationWrapper) {
+      _location = value._ptr;
+    } else {
+      _location = value;
+    }
+  }
+
+  var _location_wrapper;  // Cached wrapped Location object.
+
+  // Native getter and setter to access raw Location object.
+  Location get _location() native 'return this.location';
+  void set _location(Location value) native 'this.location = value';
+  // Prevent compiled from thinking 'location' property is available for a Dart
+  // member.
+  _protect_location() native 'location';
+
+  static _isDartLocation(thing) {
+    // On Firefox the code that implements 'is Location' fails to find the patch
+    // stub on Object.prototype and throws an exception.
+    try {
+      return thing is Location;
+    } catch (var e) {
+      return false;
+    }
+  }
+
+
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }

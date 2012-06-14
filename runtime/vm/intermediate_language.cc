@@ -56,6 +56,15 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
+void Computation::ReplaceWith(Computation* other) {
+  ASSERT(other->instr() == NULL);
+  ASSERT(instr() != NULL);
+  other->set_instr(other->instr());
+  instr()->replace_computation(other);
+  set_instr(NULL);
+}
+
+
 intptr_t InstanceCallComp::InputCount() const {
   return ArgumentCount();
 }
@@ -91,8 +100,23 @@ intptr_t BranchInstr::InputCount() const {
 }
 
 
+Value* BranchInstr::InputAt(intptr_t i) const {
+  if (i == 0) return value();
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t ReThrowInstr::InputCount() const {
   return 2;
+}
+
+
+Value* ReThrowInstr::InputAt(intptr_t i) const {
+  if (i == 0) return exception();
+  if (i == 1) return stack_trace();
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -101,8 +125,22 @@ intptr_t ThrowInstr::InputCount() const {
 }
 
 
+Value* ThrowInstr::InputAt(intptr_t i) const {
+  if (i == 0) return exception();
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t ReturnInstr::InputCount() const {
   return 1;
+}
+
+
+Value* ReturnInstr::InputAt(intptr_t i) const {
+  if (i == 0) return value();
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -111,8 +149,28 @@ intptr_t BindInstr::InputCount() const {
 }
 
 
+Value* BindInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
+}
+
+
+intptr_t PhiInstr::InputCount() const {
+  return inputs_.length();
+}
+
+
+Value* PhiInstr::InputAt(intptr_t i) const {
+  return inputs_[i];
+}
+
+
 intptr_t DoInstr::InputCount() const {
   return computation()->InputCount();
+}
+
+
+Value* DoInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
 }
 
 
@@ -121,13 +179,31 @@ intptr_t GraphEntryInstr::InputCount() const {
 }
 
 
+Value* GraphEntryInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t TargetEntryInstr::InputCount() const {
   return 0;
 }
 
 
+Value* TargetEntryInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
 intptr_t JoinEntryInstr::InputCount() const {
   return 0;
+}
+
+
+Value* JoinEntryInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -139,7 +215,7 @@ void Computation::RecordAssignedVars(BitVector* assigned_vars) {
 
 void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
   if (!local().is_captured()) {
-    assigned_vars->Add(local().BitIndexIn(assigned_vars));
+    assigned_vars->Add(local().BitIndexIn(assigned_vars->length()));
   }
 }
 
@@ -283,6 +359,23 @@ void BranchInstr::DiscoverBlocks(
 }
 
 
+void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
+  // Lazily initialize the array of phis.
+  // Currently, phis are stored in a sparse array that holds the phi
+  // for variable with index i at position i.
+  // TODO(fschneider): Store phis in a more compact way.
+  if (phis_ == NULL) {
+    phis_ = new ZoneGrowableArray<PhiInstr*>(var_count);
+    for (intptr_t i = 0; i < var_count; i++) {
+      phis_->Add(NULL);
+    }
+  }
+  ASSERT((*phis_)[var_index] == NULL);
+  (*phis_)[var_index] = new PhiInstr(PredecessorCount());
+  phi_count_++;
+}
+
+
 intptr_t Instruction::SuccessorCount() const {
   ASSERT(!IsBranch());
   ASSERT(!IsGraphEntry());
@@ -383,6 +476,11 @@ RawAbstractType* InstanceCallComp::StaticType() const {
 }
 
 
+RawAbstractType* PolymorphicInstanceCallComp::StaticType() const {
+  return Type::DynamicType();
+}
+
+
 RawAbstractType* StaticCallComp::StaticType() const {
   return function().result_type();
 }
@@ -410,6 +508,11 @@ RawAbstractType* StrictCompareComp::StaticType() const {
 
 
 RawAbstractType* EqualityCompareComp::StaticType() const {
+  return Type::BoolInterface();
+}
+
+
+RawAbstractType* RelationalOpComp::StaticType() const {
   return Type::BoolInterface();
 }
 
@@ -586,6 +689,12 @@ RawAbstractType* CatchEntryComp::StaticType() const {
 }
 
 
+RawAbstractType* CheckStackOverflowComp::StaticType() const {
+  UNREACHABLE();
+  return AbstractType::null();
+}
+
+
 RawAbstractType* BinaryOpComp::StaticType() const {
   // TODO(srdjan): Compute based on input types (ICData).
   return Type::DynamicType();
@@ -599,6 +708,11 @@ RawAbstractType* UnarySmiOpComp::StaticType() const {
 
 RawAbstractType* NumberNegateComp::StaticType() const {
   return Type::NumberInterface();
+}
+
+
+RawAbstractType* ToDoubleComp::StaticType() const {
+  return Type::DoubleInterface();
 }
 
 
@@ -724,26 +838,59 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
-  const int kNumInputs = 1;
-  const int kNumTemps = 0;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
-  locs->set_in(0, Location::RequiresRegister());
-  return locs;
+  if (is_fused_with_comparison()) {
+    return LocationSummary::Make(0, Location::NoLocation());
+  } else {
+    const int kNumInputs = 1;
+    const int kNumTemps = 0;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    return locs;
+  }
 }
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  __ CompareObject(value,  Bool::ZoneHandle(Bool::True()));
+  // If branch was fused with a comparision then no code needs to be emitted.
+  if (!is_fused_with_comparison()) {
+    Register value = locs()->in(0).reg();
+    __ CompareObject(value, compiler->bool_true());
+    EmitBranchOnCondition(compiler, EQUAL);
+  }
+}
+
+
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return NOT_EQUAL;
+    case NOT_EQUAL:     return EQUAL;
+    case LESS:          return GREATER_EQUAL;
+    case LESS_EQUAL:    return GREATER;
+    case GREATER:       return LESS_EQUAL;
+    case GREATER_EQUAL: return LESS;
+    case BELOW:         return ABOVE_EQUAL;
+    case BELOW_EQUAL:   return ABOVE;
+    case ABOVE:         return BELOW_EQUAL;
+    case ABOVE_EQUAL:   return BELOW;
+    default:
+      OS::Print("Error %d\n", condition);
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
+void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                        Condition true_condition) {
   if (compiler->IsNextBlock(false_successor())) {
-    // If the next block is the false successor we will fall through to it if
-    // comparison with true fails.
-    __ j(EQUAL, compiler->GetBlockLabel(true_successor()));
+    // If the next block is the false successor we will fall through to it.
+    __ j(true_condition, compiler->GetBlockLabel(true_successor()));
   } else {
-    ASSERT(compiler->IsNextBlock(true_successor()));
     // If the next block is the true successor we negate comparison and fall
     // through to it.
-    __ j(NOT_EQUAL, compiler->GetBlockLabel(false_successor()));
+    ASSERT(compiler->IsNextBlock(true_successor()));
+    Condition false_condition = NegateCondition(true_condition);
+    __ j(false_condition, compiler->GetBlockLabel(false_successor()));
   }
 }
 
@@ -774,31 +921,34 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::SameAsFirstInput());
+  if (!is_fused_with_branch()) {
+    return LocationSummary::Make(2, Location::SameAsFirstInput());
+  } else {
+    return LocationSummary::Make(2, Location::NoLocation());
+  }
 }
 
 
 void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  Register result = locs()->out().reg();
 
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ CompareRegisters(left, right);
-  Label load_true, done;
-  if (kind() == Token::kEQ_STRICT) {
-    __ j(EQUAL, &load_true, Assembler::kNearJump);
+
+  if (!is_fused_with_branch()) {
+    Register result = locs()->out().reg();
+    Label load_true, done;
+    __ j(true_condition, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
   } else {
-    ASSERT(kind() == Token::kNE_STRICT);
-    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
+    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
   }
-  __ LoadObject(result, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, bool_true);
-  __ Bind(&done);
 }
 
 
@@ -840,6 +990,29 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  ArgumentCount(),
                                  argument_names(),
                                  checked_argument_count());
+}
+
+
+LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
+  return MakeCallSummary();
+}
+
+
+void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(srdjan): Add checked calls, a series of checks each issuing
+  // a direct call to the target if check succeeds.
+  ASSERT(VerifyCallComputation(instance_call()));
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 instance_call()->cid(),
+                                 instance_call()->token_index(),
+                                 instance_call()->try_index());
+  compiler->GenerateInstanceCall(instance_call()->cid(),
+                                 instance_call()->token_index(),
+                                 instance_call()->try_index(),
+                                 instance_call()->function_name(),
+                                 instance_call()->ArgumentCount(),
+                                 instance_call()->argument_names(),
+                                 instance_call()->checked_argument_count());
 }
 
 
@@ -912,13 +1085,11 @@ void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label done;
-  __ LoadObject(result, bool_true);
+  __ LoadObject(result, compiler->bool_true());
   __ CompareRegisters(result, value);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(result, bool_false);
+  __ LoadObject(result, compiler->bool_false());
   __ Bind(&done);
 }
 

@@ -2815,7 +2815,7 @@ class Smi : public Integer {
 
   static RawClass* Class();
 
-  static intptr_t Value(RawSmi* raw_smi) {
+  static intptr_t Value(const RawSmi* raw_smi) {
     return ValueFromRaw(reinterpret_cast<uword>(raw_smi));
   }
 

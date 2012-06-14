@@ -308,7 +308,11 @@ class Parser : ValueObject {
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
                      const Array& interfaces);
-  RawFunction* GetSuperFunction(intptr_t token_pos, const String& name);
+  ArgumentListNode* BuildNoSuchMethodArguments(
+      const String& function_name, const ArgumentListNode& function_args);
+  RawFunction* GetSuperFunction(intptr_t token_pos,
+                                const String& name,
+                                bool* is_no_such_method);
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
   AstNode* ParseSuperOperator();

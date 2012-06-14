@@ -39,6 +39,9 @@ Document get document() {
 
 Document get _document() => _window.document;
 
+Element query(String selector) => _document.query(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
+
 class _Null {
   const _Null();
 }
@@ -5163,8 +5166,6 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
   NotificationCenter get webkitNotifications() native "DOMWindow_webkitNotifications_Getter";
 
-  StorageInfo get webkitStorageInfo() native "DOMWindow_webkitStorageInfo_Getter";
-
   Window get window() native "DOMWindow_window_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "DOMWindow_addEventListener_Callback";
@@ -5269,6 +5270,8 @@ class _DataTransferItemImpl extends _DOMWrapperBase implements DataTransferItem 
   Blob getAsFile() native "DataTransferItem_getAsFile_Callback";
 
   void getAsString([StringCallback callback = null]) native "DataTransferItem_getAsString_Callback";
+
+  Entry webkitGetAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6083,6 +6086,8 @@ class _DocumentEventsImpl extends _EventsImpl implements DocumentEvents {
   EventListenerList get mouseUp() => _get('mouseup');
   EventListenerList get mouseWheel() => _get('mousewheel');
   EventListenerList get paste() => _get('paste');
+  EventListenerList get pointerLockChange() => _get('webkitpointerlockchange');
+  EventListenerList get pointerLockError() => _get('webkitpointerlockerror');
   EventListenerList get readyStateChange() => _get('readystatechange');
   EventListenerList get reset() => _get('reset');
   EventListenerList get scroll() => _get('scroll');
@@ -8642,8 +8647,6 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
   int get height() native "HTMLCanvasElement_height_Getter";
@@ -8658,6 +8661,8 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
   String toDataURL(String type) native "HTMLCanvasElement_toDataURL_Callback";
 
+
+  CanvasRenderingContext2D get context2d() => getContext('2d');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11232,9 +11237,9 @@ class _IDBFactoryImpl extends _DOMWrapperBase implements IDBFactory {
 
   IDBVersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  IDBRequest getDatabaseNames() native "IDBFactory_getDatabaseNames_Callback";
-
   IDBRequest open(String name) native "IDBFactory_open_Callback";
+
+  IDBRequest webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13669,23 +13674,6 @@ class _OESVertexArrayObjectImpl extends _DOMWrapperBase implements OESVertexArra
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent {
 
   AudioBuffer get renderedBuffer() native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _OperationNotAllowedExceptionImpl extends _DOMWrapperBase implements OperationNotAllowedException {
-
-  int get code() native "OperationNotAllowedException_code_Getter";
-
-  String get message() native "OperationNotAllowedException_message_Getter";
-
-  String get name() native "OperationNotAllowedException_name_Getter";
-
-  String toString() native "OperationNotAllowedException_toString_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18153,6 +18141,10 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
 
+  bool get resetStyleInheritance() native "ShadowRoot_resetStyleInheritance_Getter";
+
+  void set resetStyleInheritance(bool) native "ShadowRoot_resetStyleInheritance_Setter";
+
   Element getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
   NodeList getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
@@ -18552,19 +18544,6 @@ class _StorageImpl extends _DOMWrapperBase implements Storage {
   void $dom_removeItem(String key) native "Storage_removeItem_Callback";
 
   void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _StorageInfoImpl extends _DOMWrapperBase implements StorageInfo {
-
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native "StorageInfo_queryUsageAndQuota_Callback";
-
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) native "StorageInfo_requestQuota_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21121,10 +21100,10 @@ class _Elements {
     return _e;
   }
 
-  factory CanvasElement([int height, int width]) {
+  factory CanvasElement([int width, int height]) {
     CanvasElement _e = _document.$dom_createElement("canvas");
-    if (height != null) _e.height = height;
     if (width != null) _e.width = width;
+    if (height != null) _e.height = height;
     return _e;
   }
 
@@ -21203,11 +21182,11 @@ class _Elements {
     return _e;
   }
 
-  factory ImageElement([String src, int height, int width]) {
+  factory ImageElement([String src, int width, int height]) {
     ImageElement _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
-    if (height != null) _e.height = height;
     if (width != null) _e.width = width;
+    if (height != null) _e.height = height;
     return _e;
   }
 
@@ -24831,7 +24810,7 @@ interface CSSValueList extends CSSValue {
 /// @domName HTMLCanvasElement
 interface CanvasElement extends Element default _Elements {
 
-  CanvasElement([int height, int width]);
+  CanvasElement([int width, int height]);
 
   /** @domName HTMLCanvasElement.height */
   int height;
@@ -24844,6 +24823,8 @@ interface CanvasElement extends Element default _Elements {
 
   /** @domName HTMLCanvasElement.toDataURL */
   String toDataURL(String type);
+
+  final CanvasRenderingContext2D context2d;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25923,6 +25904,9 @@ interface DataTransferItem {
 
   /** @domName DataTransferItem.getAsString */
   void getAsString([StringCallback callback]);
+
+  /** @domName DataTransferItem.webkitGetAsEntry */
+  Entry webkitGetAsEntry();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26535,6 +26519,10 @@ interface DocumentEvents extends ElementEvents {
   EventListenerList get mouseWheel();
 
   EventListenerList get paste();
+
+  EventListenerList get pointerLockChange();
+
+  EventListenerList get pointerLockError();
 
   EventListenerList get readyStateChange();
 
@@ -28470,6 +28458,8 @@ interface IDBDatabaseException {
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
+  static final int TYPE_ERR = 21;
+
   static final int UNKNOWN_ERR = 1;
 
   static final int VER_ERR = 12;
@@ -28501,11 +28491,11 @@ interface IDBFactory {
   /** @domName IDBFactory.deleteDatabase */
   IDBVersionChangeRequest deleteDatabase(String name);
 
-  /** @domName IDBFactory.getDatabaseNames */
-  IDBRequest getDatabaseNames();
-
   /** @domName IDBFactory.open */
   IDBRequest open(String name);
+
+  /** @domName IDBFactory.webkitGetDatabaseNames */
+  IDBRequest webkitGetDatabaseNames();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28891,7 +28881,7 @@ interface ImageData {
 /// @domName HTMLImageElement
 interface ImageElement extends Element default _Elements {
 
-  ImageElement([String src, int height, int width]);
+  ImageElement([String src, int width, int height]);
 
   /** @domName HTMLImageElement.align */
   String align;
@@ -31073,29 +31063,6 @@ interface OfflineAudioCompletionEvent extends Event {
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
   final AudioBuffer renderedBuffer;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName OperationNotAllowedException
-interface OperationNotAllowedException {
-
-  static final int NOT_ALLOWED_ERR = 1;
-
-  /** @domName OperationNotAllowedException.code */
-  final int code;
-
-  /** @domName OperationNotAllowedException.message */
-  final String message;
-
-  /** @domName OperationNotAllowedException.name */
-  final String name;
-
-  /** @domName OperationNotAllowedException.toString */
-  String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35689,6 +35656,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
+  /** @domName ShadowRoot.resetStyleInheritance */
+  bool resetStyleInheritance;
+
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -36085,46 +36055,6 @@ interface StorageEvent extends Event {
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName StorageInfo
-interface StorageInfo {
-
-  static final int PERSISTENT = 1;
-
-  static final int TEMPORARY = 0;
-
-  /** @domName StorageInfo.queryUsageAndQuota */
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
-
-  /** @domName StorageInfo.requestQuota */
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoErrorCallback(DOMException error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -38905,9 +38835,6 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.webkitNotifications */
   final NotificationCenter webkitNotifications;
 
-  /** @domName DOMWindow.webkitStorageInfo */
-  final StorageInfo webkitStorageInfo;
-
   /** @domName DOMWindow.window */
   final Window window;
 
@@ -40510,63 +40437,63 @@ class _TypedArrayFactoryProvider {
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
       _F32(buffer, byteOffset, length);
-  static _F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";
+  static _F32(arg0, [arg1, arg2]) native "Float32Array_constructor_Callback";
 
   factory Float64Array(int length) => _F64(length);
   factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) =>
       _F64(buffer, byteOffset, length);
-  static _F64(_arg0, [_arg1, _arg2]) native "Float64Array_constructor_Callback";
+  static _F64(arg0, [arg1, arg2]) native "Float64Array_constructor_Callback";
 
   factory Int8Array(int length) => _I8(length);
   factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) =>
       _I8(buffer, byteOffset, length);
-  static _I8(_arg0, [_arg1, _arg2]) native "Int8Array_constructor_Callback";
+  static _I8(arg0, [arg1, arg2]) native "Int8Array_constructor_Callback";
 
   factory Int16Array(int length) => _I16(length);
   factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       _I16(buffer, byteOffset, length);
-  static _I16(_arg0, [_arg1, _arg2]) native "Int16Array_constructor_Callback";
+  static _I16(arg0, [arg1, arg2]) native "Int16Array_constructor_Callback";
 
   factory Int32Array(int length) => _I32(length);
   factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       _I32(buffer, byteOffset, length);
-  static _I32(_arg0, [_arg1, _arg2]) native "Int32Array_constructor_Callback";
+  static _I32(arg0, [arg1, arg2]) native "Int32Array_constructor_Callback";
 
   factory Uint8Array(int length) => _U8(length);
   factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       _U8(buffer, byteOffset, length);
-  static _U8(_arg0, [_arg1, _arg2]) native "Uint8Array_constructor_Callback";
+  static _U8(arg0, [arg1, arg2]) native "Uint8Array_constructor_Callback";
 
   factory Uint16Array(int length) => _U16(length);
   factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
       _U16(buffer, byteOffset, length);
-  static _U16(_arg0, [_arg1, _arg2]) native "Uint16Array_constructor_Callback";
+  static _U16(arg0, [arg1, arg2]) native "Uint16Array_constructor_Callback";
 
   factory Uint32Array(int length) => _U32(length);
   factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) =>
       _U32(buffer, byteOffset, length);
-  static _U32(_arg0, [_arg1, _arg2]) native "Uint32Array_constructor_Callback";
+  static _U32(arg0, [arg1, arg2]) native "Uint32Array_constructor_Callback";
 
   factory Uint8ClampedArray(int length) => _U8C(length);
   factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) =>
       _U8C(buffer, byteOffset, length);
-  static _U8C(_arg0, [_arg1, _arg2]) native "Uint8ClampedArray_constructor_Callback";
+  static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }

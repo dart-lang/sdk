@@ -28,10 +28,11 @@ void shouldFail(var value, Matcher matcher, expected) {
   expect(value, matcher);
   configureExpectHandler(null);
   expect(errorCount, equals(1));
-  if (expected is String)
+  if (expected is String) {
     expect(errorString, equalsIgnoringWhitespace(expected));
-  else
-   expect(errorString, expected);
+  } else {
+    expect(errorString, expected);
+  }
 }
 
 void shouldPass(var value, Matcher matcher) {

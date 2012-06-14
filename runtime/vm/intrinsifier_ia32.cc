@@ -825,14 +825,14 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // represented by Smi.
   // Left is Smi, return false if right is Mint, otherwise fall through.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
-  __ CompareClassId(EAX, kMint, EAX);
+  __ CompareClassId(EAX, kMint, EDI);
   __ j(NOT_EQUAL, &fall_through);
   __ LoadObject(EAX, bool_false);  // Smi == Mint -> false.
   __ ret();
 
   __ Bind(&receiver_not_smi);
   // EAX:: receiver.
-  __ CompareClassId(EAX, kMint, EAX);
+  __ CompareClassId(EAX, kMint, EDI);
   __ j(NOT_EQUAL, &fall_through);
   // Receiver is Mint, return false if right is Smi.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.

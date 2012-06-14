@@ -6,11 +6,11 @@
 //   This file contains documentation that is merged into the real source.
 //   Do not make code changes here.
 
-/// @domName AbstractWorker
+/// An HTML5 Abstract Worker.
 interface AbstractWorker extends EventTarget {
 
   /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   * The valid events associated with an AbstractWorker.
    */
   AbstractWorkerEvents get on();
 

@@ -114,6 +114,7 @@ class HGraph {
   HBasicBlock entry;
   HBasicBlock exit;
   bool isRecursiveMethod = false;
+  bool calledInLoop = false;
   final List<HBasicBlock> blocks;
 
   // We canonicalize all constants used within a graph so we do not

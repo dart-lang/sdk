@@ -76,5 +76,4 @@ class IntlMessage {
     this._messageExamples = examples;
     this._languageCode = locale;
   }
-
 }

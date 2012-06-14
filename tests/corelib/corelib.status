@@ -5,12 +5,11 @@
 [ $compiler == none ]
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
-
-[ $arch == ia32 ]
-
+expando_test: Fail
 
 [ $compiler == dartc ]
 *vm_test: Skip
+expando_test: Fail
 
 [ $compiler == frog ]
 # VM or DartC specific tests not to be run by Frog. See language.status.

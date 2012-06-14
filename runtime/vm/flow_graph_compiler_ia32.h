@@ -70,6 +70,11 @@ class FlowGraphCompiler : public ValueObject {
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
 
+  void LoadDoubleOrSmiToXmm(XmmRegister result,
+                            Register reg,
+                            Register temp,
+                            Label* not_double_or_smi);
+
   // Returns 'true' if code generation for this function is complete, i.e.,
   // no fall-through to regular code is needed.
   bool TryIntrinsify();
@@ -132,6 +137,8 @@ class FlowGraphCompiler : public ValueObject {
                             const Array& arguments_descriptor,
                             intptr_t argument_count);
 
+  void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
+
   void EmitComment(Instruction* instr);
 
   void EmitClassChecksNoSmi(const ZoneGrowableArray<intptr_t>& class_ids,
@@ -157,8 +164,9 @@ class FlowGraphCompiler : public ValueObject {
                       intptr_t deopt_token_index,
                       intptr_t try_index_,
                       DeoptReasonId reason,
-                      Register reg1,
-                      Register reg2);
+                      Register reg1 = kNoRegister,
+                      Register reg2 = kNoRegister,
+                      Register reg3 = kNoRegister);
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
@@ -167,6 +175,9 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeComments(const Code& code);
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
+
+  const Bool& bool_true() const { return bool_true_; }
+  const Bool& bool_false() const { return bool_false_; }
 
  private:
   friend class DeoptimizationStub;
@@ -254,6 +265,9 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+
+  const Bool& bool_true_;
+  const Bool& bool_false_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

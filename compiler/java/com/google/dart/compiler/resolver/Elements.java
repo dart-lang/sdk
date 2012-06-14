@@ -274,7 +274,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * @return <code>non-null</code>  {@link MethodElement} if "holder", or one of its
    *         interfaces, or its superclass has {@link FieldElement} with getter.
    */
-  public static MethodElement lookupFieldElementGetter(ClassElement holder, String name) {
+  public static MethodElement lookupFieldElementGetter(EnclosingElement holder, String name) {
     Element element = holder.lookupLocalElement(name);
     if (element instanceof FieldElement) {
       FieldElement fieldElement = (FieldElement) element;
@@ -283,18 +283,23 @@ static FieldElementImplementation fieldFromNode(DartField node,
         return fieldElement.getGetter();
       }
     }
-    for (InterfaceType interfaceType : holder.getInterfaces()) {
-      MethodElement result = lookupFieldElementGetter(interfaceType.getElement(), name);
-      if (result != null) {
-        return result;
+    if (holder instanceof ClassElement) {
+      ClassElement classHolder = (ClassElement) holder;
+      for (InterfaceType interfaceType : classHolder.getInterfaces()) {
+        MethodElement result = lookupFieldElementGetter(interfaceType.getElement(), name);
+        if (result != null) {
+          return result;
+        }
+      }
+      if (classHolder.getSupertype() != null) {
+        MethodElement result = lookupFieldElementGetter(classHolder.getSupertype().getElement(), 
+            name);
+        if (result != null) {
+          return result;
+        }
       }
     }
-    if (holder.getSupertype() != null) {
-      MethodElement result = lookupFieldElementGetter(holder.getSupertype().getElement(), name);
-      if (result != null) {
-        return result;
-      }
-    }
+    
     return null;
   }
 
@@ -302,7 +307,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * @return <code>non-null</code> {@link MethodElement} if "holder", or one of its interfaces,
    *         or its superclass has {@link FieldElement} with setter.
    */
-  public static MethodElement lookupFieldElementSetter(ClassElement holder, String name) {
+  public static MethodElement lookupFieldElementSetter(EnclosingElement holder, String name) {
     Element element = holder.lookupLocalElement(name);
     if (element instanceof FieldElement) {
       FieldElement fieldElement = (FieldElement) element;
@@ -311,16 +316,20 @@ static FieldElementImplementation fieldFromNode(DartField node,
         return result;
       }
     }
-    for (InterfaceType interfaceType : holder.getInterfaces()) {
-      MethodElement result = lookupFieldElementSetter(interfaceType.getElement(), name);
-      if (result != null) {
-        return result;
+    if (holder instanceof ClassElement) {
+      ClassElement classHolder = (ClassElement)holder;
+      for (InterfaceType interfaceType : classHolder.getInterfaces()) {
+        MethodElement result = lookupFieldElementSetter(interfaceType.getElement(), name);
+        if (result != null) {
+          return result;
+        }
       }
-    }
-    if (holder.getSupertype() != null) {
-      MethodElement result = lookupFieldElementSetter(holder.getSupertype().getElement(), name);
-      if (result != null) {
-        return result;
+      if (classHolder.getSupertype() != null) {
+        MethodElement result = lookupFieldElementSetter(classHolder.getSupertype().getElement(), 
+            name);
+        if (result != null) {
+          return result;
+        }
       }
     }
     return null;

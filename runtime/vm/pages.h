@@ -52,6 +52,7 @@ class HeapPage {
     return result;
   }
 
+  void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
@@ -173,6 +174,7 @@ class PageSpace {
     return size <= kAllocatablePageSize;
   }
 
+  void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;

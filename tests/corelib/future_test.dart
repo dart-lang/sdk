@@ -206,7 +206,7 @@ testException() {
   final ex = new Exception();
   future.then((_) {}); // exception is thrown if we plan to use the value
   Expect.throws(
-      () { completer.completeException(ex); }, 
+      () { completer.completeException(ex); },
       check: (e) => e == ex);
 }
 
@@ -262,7 +262,7 @@ testExceptionHandlerReturnsFalse() {
   future.handleException((e) { return false; });
   future.handleException((e) { reached = true; return false; }); // overshadowed
   Expect.throws(
-      () { completer.completeException(ex); }, 
+      () { completer.completeException(ex); },
       check: (e) => e == ex);
   Expect.isTrue(reached);
 }
@@ -301,6 +301,54 @@ testExceptionHandlerAfterCompleteReturnsFalseThenThrows() {
   future.handleException((e) { ex2 = e; return false; });
   Expect.throws(() { future.then((e) { }); });
   Expect.equals(ex, ex2);
+}
+
+// Tests for accessing the exception call stack.
+
+testCallStackThrowsIfNotComplete() {
+  var exception;
+  try {
+    new Completer().future.stackTrace;
+  } catch (var ex) {
+    exception = ex;
+  }
+
+  Expect.isTrue(exception is FutureNotCompleteException);
+}
+
+testCallStackIsNullIfCompletedSuccessfully() {
+  Expect.isNull(new Future.immediate('blah').stackTrace);
+}
+
+testCallStackReturnsCallstackPassedToCompleteException() {
+  final completer = new Completer();
+  final future = completer.future;
+
+  final stackTrace = 'fake stack trace';
+  completer.completeException(new Exception(), stackTrace);
+  Expect.equals(stackTrace, future.stackTrace);
+}
+
+testCallStackIsCapturedIfTransformCallbackThrows() {
+  final completer = new Completer();
+  final transformed = completer.future.transform((_) {
+    throw 'whoops!';
+  });
+
+  final stackTrace = 'fake stack trace';
+  completer.complete('blah');
+  Expect.isNotNull(transformed.stackTrace);
+}
+
+testCallStackIsCapturedIfChainCallbackThrows() {
+  final completer = new Completer();
+  final chained = completer.future.chain((_) {
+    throw 'whoops!';
+  });
+
+  final stackTrace = 'fake stack trace';
+  completer.complete('blah');
+  Expect.isNotNull(chained.stackTrace);
 }
 
 // Tests for mixed usage of [onComplete], [then], and [handleException]
@@ -389,56 +437,9 @@ testTransformTransformerFails() {
   final error = new Exception("Oh no!");
   final transformedFuture = completer.future.transform((x) { throw error; });
   Expect.isFalse(transformedFuture.isComplete);
-  completer.complete("42");
+  transformedFuture.then((v) => null);
+  Expect.throws(() => completer.complete("42"), check: (e) => e == error);
   Expect.equals(error, transformedFuture.exception);
-}
-
-// Tests [handleException] and [transform] on the same Future.
-// An earlier implementation of [transform] didn't support this, and behavior
-// depended on whether [handleException] or [transform] was called first.
-
-testTransformAndHandleException() {
-  final completer = new Completer<String>();
-  final error = new Exception("Oh no!");
-  var futureError;
-  var transformedFutureError;
-
-  completer.future.transform((x) => "** $x **").handleException((e) {
-    Expect.isNotNull(futureError);
-    transformedFutureError = e;
-    return true;
-  });
-  completer.future.handleException((e) {
-    Expect.isNull(transformedFutureError);
-    futureError = e;
-    return true;
-  });
-  completer.completeException(error);
-
-  Expect.equals(error, futureError);
-  Expect.equals(error, transformedFutureError);
-}
-
-testHandleExceptionAndTransform() {
-  final completer = new Completer<String>();
-  final error = new Exception("Oh no!");
-  var futureError;
-  var transformedFutureError;
-
-  completer.future.handleException((e) {
-    Expect.isNull(transformedFutureError);
-    futureError = e;
-    return true;
-  });
-  completer.future.transform((x) => "** $x **").handleException((e) {
-    Expect.isNotNull(futureError);
-    transformedFutureError = e;
-    return true;
-  });
-  completer.completeException(error);
-
-  Expect.equals(error, futureError);
-  Expect.equals(error, transformedFutureError);
 }
 
 // Tests for Future.chain
@@ -475,8 +476,9 @@ testChainTransformerFails() {
     Expect.equals("42", x);
     throw error;
   });
+  chainedFuture.then((v) => null);
   Expect.isFalse(chainedFuture.isComplete);
-  completerA.complete("42");
+  Expect.throws(() => completerA.complete("42"), check: (e) => e == error);
   Expect.equals(error, chainedFuture.exception);
 }
 
@@ -493,58 +495,6 @@ testChainSecondFutureFails() {
   Expect.isFalse(chainedFuture.isComplete);
   completerB.completeException(error);
   Expect.equals(error, chainedFuture.exception);
-}
-
-// Tests [handleException] and [chain] on the same Future.
-// An earlier implementation of [chain] didn't support this, and behavior
-// depended on whether [handleException] or [chain] was called first.
-
-testChainAndHandleException() {
-  final completer = new Completer<String>();
-  final error = new Exception("Oh no!");
-  var futureError;
-  var chainedFutureError;
-
-  var chainedFuture = completer.future
-      .chain((_) => new Future<int>.immediate(43));
-  chainedFuture.handleException((e) {
-    Expect.isNotNull(futureError);
-    chainedFutureError = e;
-    return true;
-  });
-  completer.future.handleException((e) {
-    Expect.isNull(chainedFutureError);
-    futureError = e;
-    return true;
-  });
-  completer.completeException(error);
-
-  Expect.equals(error, futureError);
-  Expect.equals(error, chainedFutureError);
-}
-
-testHandleExceptionAndChain() {
-  final completer = new Completer<String>();
-  final error = new Exception("Oh no!");
-  var futureError;
-  var chainedFutureError;
-
-  completer.future.handleException((e) {
-    Expect.isNull(chainedFutureError);
-    futureError = e;
-    return true;
-  });
-  var chainedFuture = completer.future
-      .chain((_) => new Future<int>.immediate(43));
-  chainedFuture.handleException((e) {
-    Expect.isNotNull(futureError);
-    chainedFutureError = e;
-    return true;
-  });
-  completer.completeException(error);
-
-  Expect.equals(error, futureError);
-  Expect.equals(error, chainedFutureError);
 }
 
 main() {
@@ -568,18 +518,19 @@ main() {
   testExceptionHandlerReturnsFalse2();
   testExceptionHandlerAfterCompleteThenNotCalled();
   testExceptionHandlerAfterCompleteReturnsFalseThenThrows();
+  testCallStackThrowsIfNotComplete();
+  testCallStackIsNullIfCompletedSuccessfully();
+  testCallStackReturnsCallstackPassedToCompleteException();
+  testCallStackIsCapturedIfTransformCallbackThrows();
+  testCallStackIsCapturedIfChainCallbackThrows();
   testCompleteWithCompletionAndSuccessHandlers();
   testExceptionWithCompletionAndSuccessHandlers();
   testExceptionWithCompletionAndSuccessAndExceptionHandlers();
   testTransformSuccess();
   testTransformFutureFails();
   testTransformTransformerFails();
-  testTransformAndHandleException();
-  testHandleExceptionAndTransform();
   testChainSuccess();
   testChainFirstFutureFails();
   testChainTransformerFails();
   testChainSecondFutureFails();
-  testChainAndHandleException();
-  testHandleExceptionAndChain();
 }

@@ -37,7 +37,9 @@ FlowGraphCompiler::FlowGraphCompiler(
       stackmap_builder_(NULL),
       block_info_(block_order.length()),
       deopt_stubs_(),
-      is_optimizing_(is_optimizing) {
+      is_optimizing_(is_optimizing),
+      bool_true_(Bool::ZoneHandle(Bool::True())),
+      bool_false_(Bool::ZoneHandle(Bool::False())) {
   ASSERT(assembler != NULL);
 }
 
@@ -154,11 +156,13 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        intptr_t try_index,
                                        DeoptReasonId reason,
                                        Register reg1,
-                                       Register reg2) {
+                                       Register reg2,
+                                       Register reg3) {
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, deopt_token_index, try_index, reason);
-  stub->Push(reg1);
-  stub->Push(reg2);
+  if (reg1 != kNoRegister) stub->Push(reg1);
+  if (reg2 != kNoRegister) stub->Push(reg2);
+  if (reg3 != kNoRegister) stub->Push(reg3);
   deopt_stubs_.Add(stub);
   return stub->entry_label();
 }
@@ -363,5 +367,29 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
   instr->PrintTo(&f);
   assembler()->Comment("@%d: %s", instr->cid(), buffer);
 }
+
+
+void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+
+  AddCurrentDescriptor(PcDescriptors::kDeopt,
+                       comp->cid(),
+                       comp->token_index(),
+                       comp->try_index());
+
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
+  GenerateInstanceCall(comp->cid(),
+                       comp->token_index(),
+                       comp->try_index(),
+                       function_name,
+                       kNumArguments,
+                       Array::ZoneHandle(),  // No optional arguments.
+                       kNumArgsChecked);
+}
+
+
+
 
 }  // namespace dart

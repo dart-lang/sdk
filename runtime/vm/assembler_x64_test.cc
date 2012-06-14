@@ -1107,17 +1107,31 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, entry) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
+ASSEMBLER_TEST_GENERATE(Int32ToDoubleConversion, assembler) {
   __ movl(RDX, Immediate(6));
   __ cvtsi2sd(XMM0, RDX);
   __ ret();
 }
 
 
-ASSEMBLER_TEST_RUN(IntToDoubleConversion, entry) {
+ASSEMBLER_TEST_RUN(Int32ToDoubleConversion, entry) {
   typedef double (*IntToDoubleConversionCode)();
   double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
   EXPECT_FLOAT_EQ(6.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
+  __ movq(RDX, Immediate(12LL << 32));
+  __ cvtsi2sd(XMM0, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, entry) {
+  typedef double (*IntToDoubleConversionCode)();
+  double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
+  EXPECT_FLOAT_EQ(static_cast<double>(12LL << 32), res, 0.001);
 }
 
 

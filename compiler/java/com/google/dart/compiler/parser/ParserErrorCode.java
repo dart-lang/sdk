@@ -19,14 +19,15 @@ public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
   ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
   BREAK_OUTSIDE_OF_LOOP("'break' used outside of loop, case statement"),
+  RESERVED_WORD_AS_TYPE_NAME("Reserved word cannot be used as type name"),
+  BUILT_IN_IDENTIFIER_AS_TYPE_NAME("Built-in identifier cannot be used as type name"),
+  BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME("Built-in identifier can not be used as type alias name"),
+  BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME("Built-in identifier can not be used as type variable name"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
+  CONTINUE_IN_CASE_MUST_HAVE_LABEL("'continue' in case statement must have a label as a target."),
   CONTINUE_OUTSIDE_OF_LOOP("'continue' used outside of loop or case statement"),
-  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT(
-      "Default values cannot be specified in abstract method"),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE(
       "Default values cannot be specified in closure parameter"),
-  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE(
-      "Default values cannot be specified in signature of an interface method"),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
       "Default values cannot be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),

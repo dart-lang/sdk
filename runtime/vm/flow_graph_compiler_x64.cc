@@ -59,8 +59,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   Label fall_through;
   __ cmpq(bool_register, raw_null);
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  __ CompareObject(bool_register, bool_true);
+  __ CompareObject(bool_register, bool_true());
   __ j(EQUAL, is_true);
   __ jmp(is_false);
   __ Bind(&fall_through);
@@ -566,8 +565,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
                                            const AbstractType& type,
                                            bool negate_result) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -612,21 +609,21 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   Label done;
   if (negate_result) {
     __ popq(RDX);
-    __ LoadObject(RAX, bool_true);
+    __ LoadObject(RAX, bool_true());
     __ cmpq(RDX, RAX);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    __ LoadObject(RAX, bool_false);
+    __ LoadObject(RAX, bool_false());
   } else {
     __ popq(RAX);
   }
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_not_instance);
-  __ LoadObject(RAX, negate_result ? bool_true : bool_false);
+  __ LoadObject(RAX, negate_result ? bool_true() : bool_false());
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(RAX, negate_result ? bool_false : bool_true);
+  __ LoadObject(RAX, negate_result ? bool_false() : bool_true());
   __ Bind(&done);
   __ popq(RDX);  // Remove pushed instantiator type arguments.
   __ popq(RCX);  // Remove pushed instantiator.
@@ -928,8 +925,8 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   // Generate stack overflow check.
-  __ movq(TMP, Immediate(Isolate::Current()->stack_limit_address()));
-  __ cmpq(RSP, Address(TMP, 0));
+  __ movq(RDI, Immediate(Isolate::Current()->stack_limit_address()));
+  __ cmpq(RSP, Address(RDI, 0));
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
   GenerateCallRuntime(AstNode::kNoId,
@@ -994,13 +991,18 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(
   __ testq(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
+  bool use_near_jump = class_ids.length() < 5;
   __ LoadClassId(temp_reg, instance_reg);
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ cmpl(temp_reg, Immediate(class_ids[i]));
     if (i == (class_ids.length() - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
-      __ j(EQUAL, &is_ok, Assembler::kNearJump);
+      if (use_near_jump) {
+        __ j(EQUAL, &is_ok, Assembler::kNearJump);
+      } else {
+        __ j(EQUAL, &is_ok);
+      }
     }
   }
   __ Bind(&is_ok);

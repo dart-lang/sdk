@@ -9,6 +9,9 @@ version_test: Skip
 pubspec_test: Skip
 lock_file_test: Skip
 
+[ $compiler == dartc ]
+yaml_test: Fail # pub issue 3539
+
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium ]
 pub_test: Skip

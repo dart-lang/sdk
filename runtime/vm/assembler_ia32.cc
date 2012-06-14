@@ -1313,6 +1313,7 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 
 
 void Assembler::Drop(intptr_t stack_elements) {
+  ASSERT(stack_elements >= 0);
   if (stack_elements > 0) {
     addl(ESP, Immediate(stack_elements * kWordSize));
   }

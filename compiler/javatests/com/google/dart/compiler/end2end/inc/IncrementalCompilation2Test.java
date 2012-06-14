@@ -671,6 +671,28 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // should not cause exception
     assertFalse(source.exists());
   }
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3532
+   */
+  public void test_includeSameUnitTwice() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#source('A.dart');",
+            "#source('A.dart');",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors, errEx(DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, 4, 1, 18));
+  }
 
   /**
    * There was bug that we added <code>null</code> into {@link LibraryUnit#getImports()}. Here trick
@@ -733,6 +755,74 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 9),
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 5, 15));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3340
+   */
+  public void test_useImportPrefix_asVariableName() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'prf');",
+            "main() {",
+            "  var prf;",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3531
+   */
+  public void test_builtInIdentifier_asTypeAnnotation() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'abstract');",
+            "#import('A.dart', prefix: 'as');",
+            "#import('A.dart', prefix: 'assert');",
+            "#import('A.dart', prefix: 'Dynamic');",
+            "#import('A.dart', prefix: 'equals');",
+            "#import('A.dart', prefix: 'factory');",
+            "#import('A.dart', prefix: 'get');",
+            "#import('A.dart', prefix: 'implements');",
+            "#import('A.dart', prefix: 'interface');",
+            "#import('A.dart', prefix: 'negate');",
+            "#import('A.dart', prefix: 'operator');",
+            "#import('A.dart', prefix: 'set');",
+            "#import('A.dart', prefix: 'static');",
+            "#import('A.dart', prefix: 'typedef');",
+            "main() {",
+            "  var prf;",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertEquals(14, errors.size());
+    for (DartCompilationError error : errors) {
+      assertEquals(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, error.getErrorCode());
+    }
   }
 
   private void assertAppBuilt() {

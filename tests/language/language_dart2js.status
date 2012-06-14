@@ -76,6 +76,7 @@ method_override2_test/00: Fail # accepts illegal override
 method_override2_test/01: Fail # accepts illegal override
 method_override2_test/02: Fail # accepts illegal override
 method_override2_test/03: Fail # accepts illegal override
+parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
 named_parameters4_test: Fail # Unimplemented non-matching static call
@@ -189,8 +190,8 @@ pseudo_kw_illegal_test/16: Fail, OK # Negative language test.
 scope_negative_test: Fail, OK # Negative language test.
 setter_declaration2_negative_test: Fail, OK # Negative language test.
 setter_declaration_negative_test: Fail, OK # Negative language test.
-static_field1_run_negative_test: Fail, OK # Negative language test.
-static_field2_run_negative_test: Fail, OK # Negative language test.
+static_field_test/01: Fail, OK # Negative language test.
+static_field_test/03: Fail, OK # Negative language test.
 static_final_field2_negative_test: Fail, OK # Negative language test.too
 static_final_field_negative_test: Fail, OK # Negative language test.
 static_top_level_test/00: Fail, OK # Negative language test.
@@ -289,6 +290,7 @@ throw_test: Fail # BUG(3304)
 type_checks_in_factory_method_test: Fail # BUG(3304)
 typed_message_test: Fail # BUG(3304)
 unbound_getter_test: Fail # BUG(3304)
+is_nan_test: Fail # BUG(3542)
 
 
 [ $compiler == dart2js && $runtime == safari ]

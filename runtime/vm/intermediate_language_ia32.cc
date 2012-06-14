@@ -31,7 +31,13 @@ LocationSummary* Computation::MakeCallSummary() {
 
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
-  __ pushl(locs()->out().reg());
+  if (locs()->out().kind() == Location::kRegister) {
+    // TODO(vegorov): this should really happen only for comparisons fused
+    // with branches.  Currrently IR does not provide an easy way to remove
+    // instructions from the graph so we just leave fused comparison in it
+    // but change its result location to be NoLocation.
+    __ pushl(locs()->out().reg());
+  }
 }
 
 
@@ -163,9 +169,9 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Check that the type of the value is allowed in conditional context.
   // Call the runtime if the object is not bool::true or bool::false.
   Label done;
-  __ CompareObject(obj, Bool::ZoneHandle(Bool::True()));
+  __ CompareObject(obj, compiler->bool_true());
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(obj, Bool::ZoneHandle(Bool::False()));
+  __ CompareObject(obj, compiler->bool_false());
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ pushl(Immediate(Smi::RawValue(token_index())));  // Source location.
@@ -183,52 +189,276 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(2, 0);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  locs->set_out(Location::RegisterLocation(EAX));
-  return locs;
+  const intptr_t kNumInputs = 2;
+  if (operands_class_id() == kSmi) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    if (!is_fused_with_branch()) {
+      locs->set_out(Location::RequiresRegister());
+    }
+    return locs;
+  }
+  if (operands_class_id() == kObject) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    if (!is_fused_with_branch()) {
+      locs->set_out(Location::RegisterLocation(EAX));
+    }
+    return locs;
+  }
+  UNREACHABLE();
+  return NULL;
 }
 
 
-void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  Register result = locs()->out().reg();
-  ASSERT(locs()->out().reg() == EAX);
+static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
+                                   EqualityCompareComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptSmiCompareSmis,
+                                        left,
+                                        right);
+  // TODO(srdjan): Should we always include NULL test (common case)?
+  __ movl(temp, left);
+  __ orl(temp, right);
+  __ testl(temp, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+  __ cmpl(left, right);
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label load_true, done;
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
 
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
+                                       EqualityCompareComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done, load_true, non_null_compare;
+  Label done, non_null_compare;
   __ cmpl(left, raw_null);
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
   __ cmpl(left, right);
-  __ j(EQUAL, &load_true, Assembler::kNearJump);
-  __ LoadObject(result, bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, bool_true);
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label load_true;
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+  }
   __ jmp(&done);
 
   __ Bind(&non_null_compare);
   __ pushl(left);
   __ pushl(right);
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index());
   const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
-  const int kNumArgumentsChecked = 1;
+  const int kNumArgumentsChecked = 2;
 
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
+  compiler->GenerateInstanceCall(comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index(),
                                  operator_name,
                                  kNumberOfArguments,
                                  kNoArgumentNames,
                                  kNumArgumentsChecked);
+  ASSERT(comp->is_fused_with_branch() || (comp->locs()->out().reg() == EAX));
+
+  if (comp->is_fused_with_branch()) {
+    __ CompareObject(EAX, compiler->bool_true());
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  }
   __ Bind(&done);
+}
+
+
+void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (operands_class_id() == kSmi) {
+    EmitSmiEqualityCompare(compiler, this);
+    return;
+  }
+  if (operands_class_id() == kObject) {
+    EmitGenericEqualityCompare(compiler, this);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+LocationSummary* RelationalOpComp::MakeLocationSummary() const {
+  if ((operands_class_id() == kSmi) || (operands_class_id() == kDouble)) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    if (!is_fused_with_branch()) {
+      summary->set_out(Location::RequiresRegister());
+    }
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+  ASSERT(operands_class_id() == kObject);
+  return MakeCallSummary();
+}
+
+
+static Condition TokenKindToSmiCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQUAL;
+    case Token::kNE: return NOT_EQUAL;
+    case Token::kLT: return LESS;
+    case Token::kGT: return GREATER;
+    case Token::kLTE: return LESS_EQUAL;
+    case Token::kGTE: return  GREATER_EQUAL;
+    default:
+      UNREACHABLE();
+      return OVERFLOW;
+  }
+}
+
+
+static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
+                                RelationalOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptSmiCompareSmis,
+                                        left,
+                                        right);
+  __ movl(temp, left);
+  __ orl(temp, right);
+  __ testl(temp, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+
+  Condition true_condition = TokenKindToSmiCondition(comp->kind());
+  __ cmpl(left, right);
+
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label done, is_true;
+
+    __ j(true_condition, &is_true);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
+
+
+static Condition TokenKindToDoubleCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQUAL;
+    case Token::kLT: return BELOW;
+    case Token::kGT: return ABOVE;
+    case Token::kLTE: return BELOW_EQUAL;
+    case Token::kGTE: return ABOVE_EQUAL;
+    default:
+      UNREACHABLE();
+      return OVERFLOW;
+  }
+}
+
+
+static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
+                                   RelationalOpComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
+  Register temp = comp->locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptDoubleComparison,
+                                        left,
+                                        right);
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+
+  Condition true_condition = TokenKindToDoubleCondition(comp->kind());
+  __ comisd(XMM0, XMM1);
+
+  if (comp->is_fused_with_branch()) {
+    BranchInstr* branch = comp->fused_with_branch();
+    __ j(PARITY_EVEN, compiler->GetBlockLabel(branch->false_successor()));
+    branch->EmitBranchOnCondition(compiler, true_condition);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label is_false, is_true, done;
+    __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
+    __ j(true_condition, &is_true, Assembler::kNearJump);
+    __ Bind(&is_false);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
+
+
+
+void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (operands_class_id() == kSmi) {
+    EmitSmiRelationalOp(compiler, this);
+    return;
+  }
+  if (operands_class_id() == kDouble) {
+    EmitDoubleRelationalOp(compiler, this);
+    return;
+  }
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(kind())));
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 cid(),
+                                 token_index(),
+                                 try_index());
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumArgsChecked = 2;  // Type-feedback.
+  compiler->GenerateInstanceCall(cid(),
+                                 token_index(),
+                                 try_index(),
+                                 function_name,
+                                 kNumArguments,
+                                 Array::ZoneHandle(),  // No optional arguments.
+                                 kNumArgsChecked);
+  ASSERT(locs()->out().reg() == EAX);
 }
 
 
@@ -267,52 +497,185 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 2;
+  if ((receiver_type() == kGrowableObjectArray) ||
+      (receiver_type() == kArray) ||
+      (receiver_type() == kImmutableArray)) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  } else {
+    ASSERT(receiver_type() == kIllegalObjectKind);
+    return MakeCallSummary();
+  }
 }
 
 
-void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
 
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
-                                 function_name,
-                                 kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked);
+void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (receiver_type() == kIllegalObjectKind) {
+    compiler->EmitLoadIndexedGeneric(this);
+    ASSERT(locs()->out().reg() == EAX);
+    return;
+  }
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  Register temp = locs()->temp(0).reg();
+
+  const Class& receiver_class =
+      Class::ZoneHandle(Isolate::Current()->class_table()->At(
+          receiver_type()));
+
+  const DeoptReasonId deopt_reason = (receiver_type() == kGrowableObjectArray) ?
+      kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
+
+  Label* deopt = compiler->AddDeoptStub(cid(),
+                                        token_index(),
+                                        try_index(),
+                                        deopt_reason,
+                                        receiver,
+                                        index);
+
+  __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
+  __ j(ZERO, deopt);
+  __ CompareClassId(receiver, receiver_class.id(), temp);
+  __ j(NOT_EQUAL, deopt);
+
+  __ testl(index, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+
+  switch (receiver_type()) {
+    case kArray:
+    case kImmutableArray:
+      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ movl(result, FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)));
+      break;
+
+    case kGrowableObjectArray: {
+      Register temp = locs()->temp(0).reg();
+
+      __ cmpl(index,
+              FieldAddress(receiver, GrowableObjectArray::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ movl(result, FieldAddress(temp, index, TIMES_2, sizeof(RawArray)));
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
 }
 
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  return LocationSummary::Make(kNumInputs, Location::NoLocation());
+  if (receiver_type() == kGrowableObjectArray || receiver_type() == kArray) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_in(2, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::NoLocation());
+    return locs;
+  } else {
+    ASSERT(receiver_type() == kIllegalObjectKind);
+    return MakeCallSummary();
+  }
 }
 
 
-void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
-  Register value = locs()->in(2).reg();
 
+static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
+                                    StoreIndexedComp* comp) {
   const String& function_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
 
-  __ pushl(receiver);
-  __ pushl(index);
-  __ pushl(value);
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                 comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index());
+
   const intptr_t kNumArguments = 3;
   const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
-                                 try_index(),
+  compiler->GenerateInstanceCall(comp->cid(),
+                                 comp->token_index(),
+                                 comp->try_index(),
                                  function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
                                  kNumArgsChecked);
+}
+
+
+void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (receiver_type() == kIllegalObjectKind) {
+    EmitStoreIndexedGeneric(compiler, this);
+    return;
+  }
+
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register value = locs()->in(2).reg();
+  Register temp = locs()->temp(0).reg();
+
+  Label* deopt = compiler->AddDeoptStub(cid(),
+                                        token_index(),
+                                        try_index(),
+                                        kDeoptStoreIndexed,
+                                        receiver,
+                                        index,
+                                        value);
+
+  __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
+  __ j(ZERO, deopt);
+  __ CompareClassId(receiver, receiver_type(), temp);
+  __ j(NOT_EQUAL, deopt);
+
+  __ testl(index, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+
+  switch (receiver_type()) {
+    case kArray:
+    case kImmutableArray:
+      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ StoreIntoObject(receiver,
+          FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
+          value);
+      break;
+
+    case kGrowableObjectArray: {
+      __ cmpl(index,
+              FieldAddress(receiver, GrowableObjectArray::length_offset()));
+      __ j(ABOVE_EQUAL, deopt);
+      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
+      // Note that index is Smi, i.e, times 2.
+      ASSERT(kSmiTagShift == 1);
+      __ StoreIntoObject(temp,
+          FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
+          value);
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
 }
 
 
@@ -395,8 +758,7 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance,
-                                          kNoRegister);
+                                          instance);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
     ASSERT(result != instance);
@@ -513,10 +875,22 @@ LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
 
 
 void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
+  Register instance = locs()->in(0).reg();
   Register result = locs()->out().reg();
+  if (class_ids() != NULL) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+                                          original()->token_index(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget,
+                                          instance);
+    // Smis do not have instance fields (Smi class is always first).
+    // Use 'result' as temporary register.
+    ASSERT(result != instance);
+    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+  }
 
-  __ movl(result, FieldAddress(obj, offset_in_bytes()));
+  __ movl(result, FieldAddress(instance, offset_in_bytes()));
 }
 
 
@@ -772,14 +1146,33 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
+  return LocationSummary::Make(0, Location::NoLocation());
+}
+
+
+void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ cmpl(ESP,
+          Address::Absolute(Isolate::Current()->stack_limit_address()));
+  Label no_stack_overflow;
+  __ j(ABOVE, &no_stack_overflow);
+  compiler->GenerateCallRuntime(cid(),
+                                token_index(),
+                                try_index(),
+                                kStackOverflowRuntimeEntry);
+  __ Bind(&no_stack_overflow);
+}
+
+
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
   if (operands_type() == kDoubleOperands) {
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(Location::RegisterLocation(EAX));
+    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
   ASSERT(operands_type() == kSmiOperands);
@@ -957,15 +1350,46 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 
 static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
                                BinaryOpComp* comp) {
-  // TODO(srdjan): Remove this code once BinaryOpComp has been implemeneted
-  // for all intended operations.
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
+  Register temp = comp->locs()->temp(0).reg();
+  Register result = comp->locs()->out().reg();
+
+  const Class& double_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
   __ pushl(left);
   __ pushl(right);
-  InstanceCallComp* instance_call_comp = comp->instance_call();
-  instance_call_comp->EmitNativeCode(compiler);
-  __ MoveRegister(comp->locs()->out().reg(), EAX);
+  compiler->GenerateCall(comp->instance_call()->token_index(),
+                         comp->instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  // Newly allocated object is now in the result register (RAX).
+  ASSERT(result == EAX);
+  __ popl(right);
+  __ popl(left);
+
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptDoubleBinaryOp,
+                                        left,
+                                        right);
+
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+
+  switch (comp->op_kind()) {
+    case Token::kADD: __ addsd(XMM0, XMM1); break;
+    case Token::kSUB: __ subsd(XMM0, XMM1); break;
+    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
+    case Token::kDIV: __ divsd(XMM0, XMM1); break;
+    default: UNREACHABLE();
+  }
+
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
 }
 
 
@@ -1012,8 +1436,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
-                                        value,
-                                        kNoRegister);
+                                        value);
   if (test_class.id() == kSmi) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
@@ -1064,8 +1487,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
-                                        value,
-                                        kNoRegister);
+                                        value);
   if (test_class.id() == kDouble) {
     Register temp = locs()->temp(0).reg();
     ASSERT(result != temp);
@@ -1093,6 +1515,73 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     UNREACHABLE();
   }
+}
+
+
+LocationSummary* ToDoubleComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  if (from() == kDouble) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::SameAsFirstInput());
+    return locs;
+  } else {
+    ASSERT(from() == kSmi);
+    return LocationSummary::Make(kNumInputs, Location::RegisterLocation(EAX));
+  }
+}
+
+
+void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  const DeoptReasonId deopt_reason = (from() == kDouble) ?
+      kDeoptDoubleToDouble : kDeoptIntegerToDouble;
+  Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
+                                        instance_call()->token_index(),
+                                        instance_call()->try_index(),
+                                        deopt_reason,
+                                        value);
+
+  if (from() == kDouble) {
+    Register temp = locs()->temp(0).reg();
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);  // Deoptimize if Smi.
+    __ CompareClassId(value, kDouble, temp);
+    __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
+    ASSERT(value == result);
+    return;
+  }
+
+  ASSERT(from() == kSmi);
+
+  // TODO(vegorov): allocate a single ZoneHandle in FlowGraphCompiler for
+  // double class.
+  const Class& double_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+
+  // TODO(vegorov): allocate box in the driver loop to avoid pushing and poping.
+  __ pushl(value);
+  compiler->GenerateCall(instance_call()->token_index(),
+                         instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  ASSERT(result == EAX);
+  __ popl(value);
+
+  __ testl(value, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);  // Deoptimize if not Smi.
+  __ SmiUntag(value);
+  __ cvtsi2sd(XMM0, value);
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
 }
 
 

@@ -159,7 +159,7 @@ class MessageKind {
   static final CYCLIC_TYPE_VARIABLE = const MessageKind(
       "cyclic reference to type variable #{1}");
   static final TYPE_NAME_EXPECTED = const MessageKind(
-      "class or interface name exptected");
+      "class or interface name expected");
 
   static final CANNOT_EXTEND = const MessageKind(
       "#{1} cannot be extended");

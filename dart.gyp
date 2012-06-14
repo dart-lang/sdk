@@ -52,20 +52,22 @@
             '<(PRODUCT_DIR)/dart-sdk',
           ],
           'message': 'Creating SDK.',
+          'conditions' : [
+            ['OS=="linux"', {
+              'inputs' : [
+                '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
+              ],
+            }],
+          ],
         },
       ],
-# TODO(zundel): uncomment once build machines have prerequisite
-# software installed.  Also update create_sdk.py
-#      'conditions' : [
-#        ['OS=="linux"', {
-#          'dependencies': [
-#            'compiler',
-#          ],
-#          'inputs' : [
-#            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
-#          ],
-#        }],
-#      ],
+      'conditions' : [
+        ['OS=="linux"', {
+          'dependencies': [
+            'compiler',
+          ],
+        }],
+      ],
     },
     {
       # Upload the SDK. This target is separate from create_sdk as the

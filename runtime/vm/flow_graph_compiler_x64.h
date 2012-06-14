@@ -137,6 +137,8 @@ class FlowGraphCompiler : public ValueObject {
                             const Array& arguments_descriptor,
                             intptr_t argument_count);
 
+  void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
+
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.
@@ -155,14 +157,18 @@ class FlowGraphCompiler : public ValueObject {
                       intptr_t deopt_token_index,
                       intptr_t try_index_,
                       DeoptReasonId reason,
-                      Register reg1,
-                      Register reg2);
+                      Register reg1 = kNoRegister,
+                      Register reg2 = kNoRegister,
+                      Register reg3 = kNoRegister);
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
+
+  const Bool& bool_true() const { return bool_true_; }
+  const Bool& bool_false() const { return bool_false_; }
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
@@ -262,6 +268,9 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+
+  const Bool& bool_true_;
+  const Bool& bool_false_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

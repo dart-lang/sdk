@@ -490,6 +490,16 @@ testRepeatedlyCloseFile() {
   });
 }
 
+testRepeatedlyCloseFileSync() {
+  createTestFile((file, port) {
+    var openedFile = file.openSync();
+    openedFile.closeSync();
+    Expect.throws(openedFile.closeSync,
+                  (e) => e is FileIOException);
+    port.send(null);
+  });
+}
+
 main() {
   testOpenNonExistent();
   testDeleteNonExistent();
@@ -505,4 +515,5 @@ main() {
   testTruncateReadOnlyFile();
   testOperateOnClosedFile();
   testRepeatedlyCloseFile();
+  testRepeatedlyCloseFileSync();
 }

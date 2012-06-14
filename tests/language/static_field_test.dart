@@ -62,7 +62,54 @@ class StaticFieldTest {
 }
 
 
+class StaticField1RunNegativeTest {
+  static  /// 01: static type warning, runtime error
+    var x;
+  testMain() {
+    var foo = new StaticField1RunNegativeTest();
+    print(x); // Used to compile 'x' and force any errors.
+    var result = foo.x; 
+  }
+}
+
+class StaticField1aRunNegativeTest {
+  static  /// 02: static type warning, runtime error
+    void m() {}
+
+  testMain() {
+    var foo = new StaticField1aRunNegativeTest();
+    print(m); // Used to compile 'm' and force any errors.
+    var result = foo.m;
+  }
+}
+
+class StaticField2RunNegativeTest {
+  static /// 03:  static type warning, runtime error
+    var x;
+
+  testMain() {
+    var foo = new StaticField2RunNegativeTest();
+    print(x); // Used to compile 'x' and force any errors.
+    foo.x = 1;
+  }
+}
+
+class StaticField2aRunNegativeTest {
+  static   /// 04: static type warning, runtime error
+    void m() {} 
+
+  testMain() {
+    var foo = new StaticField2aRunNegativeTest();
+    print(m); // Used to compile 'm' and force any errors.
+    foo.m = 1; /// 04:continued
+  }
+}
+
 main() {
   StaticFieldTest.testMain();
   InitializerTest.testStaticFieldInitialization();
+  new StaticField1RunNegativeTest().testMain();
+  new StaticField1aRunNegativeTest().testMain();
+  new StaticField2RunNegativeTest().testMain();
+  new StaticField2aRunNegativeTest().testMain();
 }

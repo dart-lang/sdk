@@ -1582,12 +1582,19 @@ void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
-  // TODO(vegorov): Decode and display comments.
   ASSERT(formatter != NULL);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
+  intptr_t comment_finger = 0;
   while (pc < end) {
+    const intptr_t offset = pc - start;
+    while (comment_finger < comments.Length() &&
+           comments.PCOffsetAt(comment_finger) <= offset) {
+      formatter->Print("        ;; %s\n",
+                       comments.CommentAt(comment_finger).ToCString());
+      comment_finger++;
+    }
     int instruction_length = DecodeInstruction(hex_buffer,
                                                sizeof(hex_buffer),
                                                human_buffer,

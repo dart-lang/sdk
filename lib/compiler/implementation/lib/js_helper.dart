@@ -396,13 +396,23 @@ class ListIterator<T> implements Iterator<T> {
 }
 
 class Primitives {
+  /**
+   * This is the low-level method that is used to implement
+   * [print]. It is possible to override this function from JavaScript
+   * by defining a function in JavaScript called "dartPrint".
+   */
   static void printString(String string) {
-    var hasConsole = JS('bool', @'typeof console == "object"');
-    if (hasConsole) {
-      JS('void', @'console.log(#)', string);
+    var hasDartPrint = JS('bool', @'typeof dartPrint == "function"');
+    if (hasDartPrint) {
+      JS('void', @'dartPrint(#)', string);
     } else {
-      JS('void', @'write(#)', string);
-      JS('void', @'write("\n")');
+      var hasConsole = JS('bool', @'typeof console == "object"');
+      if (hasConsole) {
+        JS('void', @'console.log(#)', string);
+      } else {
+        JS('void', @'write(#)', string);
+        JS('void', @'write("\n")');
+      }
     }
   }
 
@@ -566,6 +576,22 @@ class Primitives {
     var value = JS('num', @'Date.parse(#)', str);
     if (value.isNaN()) throw new IllegalArgumentException(str);
     return value;
+  }
+
+  static getProperty(object, key) {
+    checkNull(object);
+    if (object is bool || object is num || object is String) {
+      throw new IllegalArgumentException(object);
+    }
+    return JS('var', '#[#]', object, key);
+  }
+
+  static void setProperty(object, key, value) {
+    checkNull(object);
+    if (object is bool || object is num || object is String) {
+      throw new IllegalArgumentException(object);
+    }
+    JS('void', '#[#] = #', object, key, value);
   }
 }
 
@@ -1071,4 +1097,12 @@ listSuperNativeTypeCheck(value, property) {
   if (value is List) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeError(value, property);
+}
+
+/**
+ * Special interface recognized by the compiler and implemented by DOM
+ * objects that support integer indexing. This interface is not
+ * visible to anyone, and is only injected into special libraries.
+ */
+interface JavaScriptIndexingBehavior {
 }

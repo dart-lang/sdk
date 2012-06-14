@@ -48,7 +48,7 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
 
 
 /**
- * DEPRECATED -- use Gart_GetLibraryIds instead.
+ * DEPRECATED -- use Dart_GetLibraryIds instead.
  *
  * Returns a list of urls (strings) of all the libraries loaded in the
  * current isolate.
@@ -264,6 +264,23 @@ DART_EXPORT void Dart_SetBreakpointResolvedHandler(
  */
 DART_EXPORT void Dart_SetExceptionThrownHandler(
                             Dart_ExceptionThrownHandler handler);
+
+
+// On which exceptions to pause.
+typedef enum {
+  kNoPauseOnExceptions = 1,
+  kPauseOnUnhandledExceptions,
+  kPauseOnAllExceptions,
+} Dart_ExceptionPauseInfo;
+
+/**
+ * Define on which exceptions the debugger pauses.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
+                            Dart_ExceptionPauseInfo pause_info);
+
 
 /**
  * Returns in \trace the the current stack trace, or NULL if the

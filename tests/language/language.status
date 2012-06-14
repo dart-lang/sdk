@@ -48,6 +48,7 @@ constructor_redirect_test/01: Fail # Issue 2103.
 
 closure_with_super_send_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
+parameter_initializer6_negative_test: Fail # Issue 3502
 
 # DartC or Frog specific tests that should not be run by the VM
 *dartc_test: Skip
@@ -69,7 +70,6 @@ body_less_constructor_wrong_arg_negative_test: Fail
 call_operator_test: Pass # Issue 1355
 char_escape_test: Pass # Issue 1654
 closure_call_wrong_argument_count_negative_test: Fail
-compile_time_constant3_test: Fail # Issue 1780
 compile_time_constant_o_test: Fail # Issue 2126
 compile_time_constant_p_test/01: Fail # Issue 2580
 const_constructor_syntax_test/05: Fail
@@ -83,50 +83,26 @@ factory5_test/00: Fail # issue 3079
 field3a_negative_test: Fail
 field_method4_negative_test: Fail
 final_syntax_test/*: Skip  # can't handle base case
-function_type_alias5_test/00: Fail # Legally self referencing typedef
-function_type_alias5_test/01: Fail # Legally self referencing typedef
-function_type_alias5_test/02: Fail # Legally self referencing typedef
 function_type_alias_negative_test: Fail  # Bug 5231617.
 generic_parameterized_extends_test: Skip  # Bug 5392297
-getters_setters_type3_test: Fail # Issue 2351
 instance_call_wrong_argument_count_negative_test: Fail
 instanceof3_test: Fail # Issue 2571
 library4_negative_test: Fail   # Bug 5406175
 list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail
+named_parameters_with_object_property_names_test: Fail # Issue 2137
 no_such_method_negative_test: Fail
 override_field_test/04: Fail             # Bug 5215249
-prefix6_negative_test: Fail	       # Issue 2383
 private_factory_resolution_negative_test: Fail # Issue 2275
 private_member3_negative_test: Fail       # Issue 2383
-pseudo_kw_illegal_test/01: Fail # Issue 356
-pseudo_kw_illegal_test/02: Fail # Issue 356
-pseudo_kw_illegal_test/03: Fail # Issue 356
-pseudo_kw_illegal_test/04: Fail # Issue 356
-pseudo_kw_illegal_test/05: Fail # Issue 356
-pseudo_kw_illegal_test/06: Fail # Issue 356
-pseudo_kw_illegal_test/07: Fail # Issue 356
 pseudo_kw_illegal_test/08: Fail # Issue 356
-pseudo_kw_illegal_test/09: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
-pseudo_kw_illegal_test/11: Fail # Issue 356
-pseudo_kw_illegal_test/12: Fail # Issue 356
-pseudo_kw_illegal_test/13: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
-pseudo_kw_illegal_test/15: Fail # Issue 356
-pseudo_kw_illegal_test/16: Fail # Issue 356
 pseudo_kw_test: Fail           # Issue 356
 scope_negative_test: Fail      # Bug 4207538.
 static_call_wrong_argument_count_negative_test: Fail
-static_field1_run_negative_test: Fail  # issue 1662
-static_field1a_run_negative_test: Fail # issue 1662
-static_field2_run_negative_test: Fail  # issue 1662
-static_field2a_run_negative_test: Fail # issue 1662
-string_escape1_negative_test: Fail # Issue 1351.
-string_escape4_negative_test: Fail # Issue 1351.
 string_interpolation8_test: Fail # Issue 2126.
-switch3_negative_test: Fail # issue 1663
 switch7_negative_test: Fail    # Bug 4208467.
 switch_label_test: Fail        # Bug 4208467.
 syntax_test: Skip             # Bug 2107  Static type warnings in none case

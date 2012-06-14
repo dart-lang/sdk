@@ -39,6 +39,14 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     assertEquals(classBar, classFoo.getSupertype().getElement());
   }
 
+  public void test_operator_indexAssign() {
+    Map<String, ClassNodeElement> source = loadSource(
+        "class A {",
+        "int operator []=(int index, var value) {}",
+        "}");
+    analyzeClasses(source, TypeErrorCode.OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE);
+  }
+
   public void testArrayLiteral() {
     analyze("['x'];");
     analyze("<String>['x'];");
@@ -1067,7 +1075,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testSwitch() {
     analyze("{ int i = 27; switch(i) { case i: break; } }");
-    analyze("{ num i = 27; switch(i) { case i: break; } }");
     analyzeFail(
         "{ switch(true) { case 1: break; case 'foo': break; }}",
         TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);

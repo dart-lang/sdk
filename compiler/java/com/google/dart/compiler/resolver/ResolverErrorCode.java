@@ -13,6 +13,7 @@ import com.google.dart.compiler.SubSystem;
 public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
+  BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Build-in identifier '%s' cannot be used as a import prefix"),
   BUILT_IN_IDENTIFIER_AS_TYPE("Build-in identifier '%s' cannot be used as a type annotation"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
@@ -27,6 +28,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
   CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
       "Cannot declare a non-factory named constructor of another class."),
+  CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
@@ -127,6 +129,7 @@ public enum ResolverErrorCode implements ErrorCode {
   MAP_LITERAL_ELEMENT_TYPE(
       "Map literal element type must match declaration '%s' when type checks are on."),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
+  NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),

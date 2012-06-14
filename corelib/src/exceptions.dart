@@ -38,7 +38,8 @@ class NoSuchMethodException implements Exception {
   const NoSuchMethodException(Object this._receiver,
                               String this._functionName,
                               List this._arguments,
-                              [List this._existingArgumentNames = null]);
+                              [List existingArgumentNames = null]) : 
+                                this._existingArgumentNames = existingArgumentNames;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -159,7 +160,7 @@ class UnsupportedOperationException implements Exception {
 
 
 class NotImplementedException implements Exception {
-  const NotImplementedException([String this._message]);
+  const NotImplementedException([String message]) : this._message = message;
   String toString() => (this._message !== null
                         ? "NotImplementedException: $_message"
                         : "NotImplementedException");

@@ -24,7 +24,7 @@ class Utf8 : AllStatic {
   static intptr_t Length(int32_t ch);
   static intptr_t Length(const String& str);
 
-  static void Encode(int32_t ch, char* dst);
+  static intptr_t Encode(int32_t ch, char* dst);
   static intptr_t Encode(const String& src, char* dst, intptr_t len);
 
   static intptr_t Decode(const char*, int32_t* ch);

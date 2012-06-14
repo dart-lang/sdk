@@ -92,10 +92,9 @@ public class ResolutionContext implements ResolutionErrorListener {
             && !Elements.isArtificialAssertMethod(existingElement)) {
           SourceInfo nameSourceInfo = element.getNameLocation();
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
-          // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
-          // http://code.google.com/p/dart/issues/detail?id=1060
-          if (!Elements.isLibrarySource(element.getSourceInfo().getSource(), "html.dart")
-              && !Elements.isLibrarySource(element.getSourceInfo().getSource(), "dom.dart")) {
+          if (existingElement.getKind() == ElementKind.LIBRARY_PREFIX) {
+            onError(nameSourceInfo, ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, name);
+          } else {
             onError(nameSourceInfo, warningCode, name, existingElement, existingLocation);
           }
         }
@@ -219,7 +218,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     // Built-in identifier can not be used as a type annotation.
     if (identifier instanceof DartIdentifier) {
       String name = ((DartIdentifier) identifier).getName();
-      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name)) {
+      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !"Dynamic".equals(name)) {
         onError(identifier, ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, name);
         return Types.newDynamicType();
       }

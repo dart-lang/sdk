@@ -360,6 +360,7 @@ class StandardTestSuite implements TestSuite {
     int testsStart = filename.lastIndexOf('tests/');
     int start = filename.lastIndexOf('src/');
     if (start > testsStart) {
+      // Old-style test suites with tests in a 'src' subdirectory.
       // TODO(sigmund): delete this branch once all tests stop using the src/
       // directory
       testName = filename.substring(start + 4, filename.length - 5);
@@ -370,26 +371,15 @@ class StandardTestSuite implements TestSuite {
       var multitestKey = filename.substring(middle + 1, filename.length - 5);
       testName = '$multitestBase/$multitestKey';
     } else {
-      // This branch is hit in two cases: standard test suites created with
-      // forDirectory and dartc code compilation tests.
-
-      // Dartc compilation tests are pretty broken compared to the
-      // rest. They use the .dart suffix in the status files. They
-      // find tests in weird ways (testing that they contain "#").
-      // They need to be redone.
-      // TODO(1058): This does not work on Windows.
+      // New-style test suites created by StandardTestSuite.forDirectory().
       start = filename.indexOf(directoryPath);
       if (start != -1) {
         testName = filename.substring(start + directoryPath.length + 1);
       } else {
         testName = filename;
       }
-      String suffix = TestUtils.executableSuffix(configuration['compiler']);
-      if (configuration['compiler'] != 'dart_analyzer$suffix' ||
-          testName.endsWith('_test.dart')) {
-        if (testName.endsWith('.dart')) {
-          testName = testName.substring(0, testName.length - 5);
-        }
+      if (testName.endsWith('.dart')) {
+        testName = testName.substring(0, testName.length - 5);
       }
     }
     int shards = configuration['shards'];

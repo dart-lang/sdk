@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
-  Expect.equals(42, testNonConstantDefaultValue());
-}
+// WARNING: Do not edit - generated code.
 
-testNonConstantDefaultValue(
-    [var parameter = main]  /// 01: compile-time error
-) => 42;
+$!COMMENT
+interface $ID$EXTENDS {
+$!MEMBERS
+  final CanvasRenderingContext2D context2d;
+}

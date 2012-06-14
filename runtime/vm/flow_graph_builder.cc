@@ -59,8 +59,8 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
   DeallocateTempIndex(instruction->InputCount());
-  if (instruction->IsBindInstr()) {
-    instruction->AsBindInstr()->set_temp_index(AllocateTempIndex());
+  if (instruction->IsDefinition()) {
+    instruction->AsDefinition()->set_temp_index(AllocateTempIndex());
   }
   if (is_empty()) {
     entry_ = exit_ = instruction;
@@ -804,14 +804,12 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ValueGraphVisitor for_right_value(owner(), temp_index());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
-  arguments->Add(for_left_value.value());
-  arguments->Add(for_right_value.value());
-  const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
-  InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
-      arguments, Array::ZoneHandle(), 2);
-  ReturnComputation(call);
+  RelationalOpComp* comp = new RelationalOpComp(node->token_index(),
+                                                owner()->try_index(),
+                                                node->kind(),
+                                                for_left_value.value(),
+                                                for_right_value.value());
+  ReturnComputation(comp);
 }
 
 
@@ -1164,6 +1162,11 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   TargetEntryInstr* body_entry = new TargetEntryInstr();
   for_body.AddInstruction(body_entry);
   node->body()->Visit(&for_body);
+  if (for_body.is_open()) {
+    CheckStackOverflowComp* comp =
+        new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+    for_body.AddInstruction(new DoInstr(comp));
+  }
 
   // Join loop body, increment and compute their end instruction.
   ASSERT(!for_body.is_empty());
@@ -2334,6 +2337,11 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   if (for_optimized) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
+    InsertPhis(preorder_block_entries_,
+               assigned_vars,
+               variable_count,
+               dominance_frontier);
+    // TODO(fschneider): Perform SSA renaming.
   }
   if (FLAG_print_flow_graph || (Dart::flow_graph_writer() != NULL)) {
     intptr_t length = postorder_block_entries_.length();
@@ -2442,6 +2450,7 @@ void FlowGraphBuilder::ComputeDominators(
     }
     idom[block_index] = dom_index;
     (*preorder)[block_index]->set_dominator((*preorder)[dom_index]);
+    (*preorder)[dom_index]->AddDominatedBlock((*preorder)[block_index]);
   }
 
   // 3. Now compute the dominance frontier for all blocks.  This is
@@ -2474,6 +2483,62 @@ void FlowGraphBuilder::CompressPath(intptr_t start_index,
     (*label)[current_index] =
         Utils::Minimum((*label)[current_index], (*label)[next_index]);
     (*parent)[current_index] = (*parent)[next_index];
+  }
+}
+
+
+void FlowGraphBuilder::InsertPhis(
+    const GrowableArray<BlockEntryInstr*>& preorder,
+    const GrowableArray<BitVector*>& assigned_vars,
+    const intptr_t var_count,
+    const GrowableArray<BitVector*>& dom_frontier) {
+  const intptr_t block_count = preorder.length();
+  // Map preorder block number to the highest variable index that has a phi
+  // in that block.  Use it to avoid inserting multiple phis for the same
+  // variable.
+  GrowableArray<intptr_t> has_already(block_count);
+  // Map preorder block number to the highest variable index for which the
+  // block went on the worklist.  Use it to avoid adding the same block to
+  // the worklist more than once for the same variable.
+  GrowableArray<intptr_t> work(block_count);
+
+  // Initialize has_already and work.
+  for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
+    has_already.Add(-1);
+    work.Add(-1);
+  }
+
+  // Insert phis for each variable in turn.
+  GrowableArray<BlockEntryInstr*> worklist;
+  for (intptr_t var_index = 0; var_index < var_count; ++var_index) {
+    // Add to the worklist each block containing an assignment.
+    for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
+      if (assigned_vars[block_index]->Contains(var_index)) {
+        work[block_index] = var_index;
+        worklist.Add(preorder[block_index]);
+      }
+    }
+
+    while (!worklist.is_empty()) {
+      BlockEntryInstr* current = worklist.Last();
+      worklist.RemoveLast();
+      // Ensure a phi for each block in the dominance frontier of current.
+      for (BitVector::Iterator it(dom_frontier[current->preorder_number()]);
+           !it.Done();
+           it.Advance()) {
+        int index = it.Current();
+        if (has_already[index] < var_index) {
+          BlockEntryInstr* block = preorder[index];
+          ASSERT(block->IsJoinEntry());
+          block->AsJoinEntry()->InsertPhi(var_index, var_count);
+          has_already[index] = var_index;
+          if (work[index] < var_index) {
+            work[index] = var_index;
+            worklist.Add(block);
+          }
+        }
+      }
+    }
   }
 }
 

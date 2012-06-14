@@ -408,8 +408,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   Label fall_through;
   __ cmpl(bool_register, raw_null);
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  __ CompareObject(bool_register, bool_true);
+  __ CompareObject(bool_register, bool_true());
   __ j(EQUAL, is_true);
   __ jmp(is_false);
   __ Bind(&fall_through);
@@ -790,8 +789,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
                                           const AbstractType& type,
                                           bool negate_result) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -836,21 +833,21 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   Label done;
   if (negate_result) {
     __ popl(EDX);
-    __ LoadObject(EAX, bool_true);
+    __ LoadObject(EAX, bool_true());
     __ cmpl(EDX, EAX);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    __ LoadObject(EAX, bool_false);
+    __ LoadObject(EAX, bool_false());
   } else {
     __ popl(EAX);
   }
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_not_instance);
-  __ LoadObject(EAX, negate_result ? bool_true : bool_false);
+  __ LoadObject(EAX, negate_result ? bool_true() : bool_false());
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(EAX, negate_result ? bool_false : bool_true);
+  __ LoadObject(EAX, negate_result ? bool_false() : bool_true());
   __ Bind(&done);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
   __ popl(ECX);  // Remove pushed instantiator.
@@ -973,17 +970,43 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(
   __ testl(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
+  bool use_near_jump = class_ids.length() < 5;
   __ LoadClassId(temp_reg, instance_reg);
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ cmpl(temp_reg, Immediate(class_ids[i]));
     if (i == class_ids.length() - 1) {
       __ j(NOT_EQUAL, deopt);
     } else {
-      __ j(EQUAL, &is_ok, Assembler::kNearJump);
+      if (use_near_jump) {
+        __ j(EQUAL, &is_ok, Assembler::kNearJump);
+      } else {
+        __ j(EQUAL, &is_ok);
+      }
     }
   }
   __ Bind(&is_ok);
 }
+
+
+void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
+                                             Register reg,
+                                             Register temp,
+                                             Label* not_double_or_smi) {
+  Label is_smi, done;
+  __ testl(reg, Immediate(kSmiTagMask));
+  __ j(ZERO, &is_smi);
+  __ LoadClassId(temp, reg);
+  __ cmpl(temp, Immediate(kDouble));
+  __ j(NOT_EQUAL, not_double_or_smi);
+  __ movsd(result, FieldAddress(reg, Double::value_offset()));
+  __ jmp(&done);
+  __ Bind(&is_smi);
+  __ movl(temp, reg);
+  __ SmiUntag(temp);
+  __ cvtsi2sd(result, temp);
+  __ Bind(&done);
+}
+
 
 #undef __
 

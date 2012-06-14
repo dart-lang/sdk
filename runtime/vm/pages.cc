@@ -45,6 +45,18 @@ void HeapPage::Deallocate() {
 }
 
 
+void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
+  uword obj_addr = first_object_start();
+  uword end_addr = top();
+  while (obj_addr < end_addr) {
+    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
+    visitor->VisitObject(raw_obj);
+    obj_addr += raw_obj->Size();
+  }
+  ASSERT(obj_addr == end_addr);
+}
+
+
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   uword obj_addr = first_object_start();
   uword end_addr = top();
@@ -251,6 +263,21 @@ bool PageSpace::Contains(uword addr) const {
     page = page->next();
   }
   return false;
+}
+
+
+void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    page->VisitObjects(visitor);
+    page = page->next();
+  }
+
+  page = large_pages_;
+  while (page != NULL) {
+    page->VisitObjects(visitor);
+    page = page->next();
+  }
 }
 
 

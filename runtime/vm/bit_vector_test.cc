@@ -11,6 +11,8 @@ namespace dart {
 TEST_CASE(BitVector) {
   { BitVector* v = new BitVector(15);
     v->Add(1);
+    EXPECT_EQ(true, v->Contains(1));
+    EXPECT_EQ(false, v->Contains(0));
     { BitVector::Iterator iter(v);
       EXPECT_EQ(1, iter.Current());
       iter.Advance();
@@ -18,6 +20,8 @@ TEST_CASE(BitVector) {
     }
     v->Add(0);
     v->Add(1);
+    EXPECT_EQ(true, v->Contains(0));
+    EXPECT_EQ(true, v->Contains(1));
     { BitVector::Iterator iter(v);
       EXPECT_EQ(0, iter.Current());
       iter.Advance();
@@ -32,6 +36,11 @@ TEST_CASE(BitVector) {
     v->Add(62);
     v->Add(63);
     v->Add(65);
+    EXPECT_EQ(true, v->Contains(49));
+    EXPECT_EQ(true, v->Contains(62));
+    EXPECT_EQ(true, v->Contains(63));
+    EXPECT_EQ(true, v->Contains(65));
+    EXPECT_EQ(false, v->Contains(64));
     BitVector::Iterator iter(v);
     EXPECT_EQ(49, iter.Current());
     iter.Advance();

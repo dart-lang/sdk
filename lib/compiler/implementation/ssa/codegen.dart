@@ -628,7 +628,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         buffer.add(":");
       }
     }
-    addIndented("switch (");
+    buffer.add("switch (");
     if (isExpression) {
       generateExpression(info.expression);
     } else {
@@ -1319,7 +1319,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     compiler.internalError('visitTry should not be called', instruction: node);
   }
 
-  /** 
+  /**
    * Analyzes the given [graph] to know whether it is empty, or
    * contains one statement, one expression, or multiple statements.
    */
@@ -1329,7 +1329,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Only deal with single blocks for now. TODO(ngeoffray): analyze
     // all blocks.
     if (start !== end) return MULTIPLE_STATEMENTS;
-    
+
     int kind = EMPTY;
     bool updateKind(int newKind) {
       if (kind != EMPTY) return false;
@@ -1433,6 +1433,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       endExpression(operatorPrecedence.precedence);
     }
 
+    List<HBasicBlock> thenSuccessors = thenGraph.end.successors;
+    bool thenGraphHasSuccessor = thenSuccessors.length != 0
+        && thenSuccessors[0] !== currentGraph.exit;
+
     switch (thenKind) {
       case EMPTY:
         switch (elseKind) {
@@ -1484,16 +1488,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             // TODO(ngeoffray): Generate a conditional.
             emitIf();
             visitWithoutIndent(thenGraph);
-            addIndented('else ');
-            visitWithoutIndent(elseGraph);
+            if (thenGraphHasSuccessor) {
+              addIndented('else ');
+              visitWithoutIndent(elseGraph);
+            } else {
+              generateStatements(elseGraph);
+            }
             break;
 
           case MULTIPLE_STATEMENTS:
             emitIf();
             visitWithoutIndent(thenGraph);
-            addIndented('else ');
-            visitWithIndent(elseGraph);
-            buffer.add('\n');
+            if (thenGraphHasSuccessor) {
+              addIndented('else ');
+              visitWithIndent(elseGraph);
+              buffer.add('\n');
+            } else {
+              generateStatements(elseGraph);
+            }
             break;
         }
         break;
@@ -1509,14 +1521,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
           case ONE_EXPRESSION:
           case ONE_STATEMENT:
-            buffer.add(' else ');
-            visitWithoutIndent(elseGraph);
+            if (thenGraphHasSuccessor) {
+              buffer.add(' else ');
+              visitWithoutIndent(elseGraph);
+            } else {
+              buffer.add('\n');
+              generateStatements(elseGraph);
+            }
             break;
 
           case MULTIPLE_STATEMENTS:
-            buffer.add(' else ');
-            visitWithIndent(elseGraph);
-            buffer.add('\n');
+            if (thenGraphHasSuccessor) {
+              buffer.add(' else ');
+              visitWithIndent(elseGraph);
+              buffer.add('\n');
+            } else {
+              buffer.add('\n');
+              generateStatements(elseGraph);
+            }
             break;
         }
         break;
@@ -1585,13 +1607,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(compiler.namer.instanceMethodInvocationName(
           currentLibrary, node.name, node.selector));
       visitArguments(node.inputs);
+      bool inLoop = node.block.enclosingLoopHeader !== null;
       if (node.element !== null) {
         // If we know we're calling a specific method, register that
         // method only.
+        if (inLoop) {
+          backend.builder.functionsCalledInLoop.add(node.element);
+        }
         world.registerDynamicInvocationOf(node.element);
       } else {
+        if (inLoop) {
+          backend.builder.selectorsCalledInLoop[node.name] = node.selector;
+        }
         world.registerDynamicInvocation(
-            node.name, getOptimizedSelectorFor(node, node.selector));
+            node.name,
+            getOptimizedSelectorFor(node, node.selector));
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
@@ -1688,6 +1718,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('.');
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldGetter(node.element.name, type);
+      }
     } else {
       use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
     }
@@ -1701,6 +1735,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(name);
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldSetter(node.element.name, type);
+      }
     } else {
       declareInstruction(node.receiver);
     }
@@ -2247,6 +2285,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, Element element) {
+    world.registerIsCheck(element);
     bool requiresNativeIsCheck =
         backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
     if (!requiresNativeIsCheck) buffer.add('!!');
@@ -2297,7 +2336,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (element.kind === ElementKind.TYPEDEF) {
       compiler.unimplemented("visitIs for typedefs", instruction: node);
     }
-    world.registerIsCheck(type.element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
@@ -2473,6 +2511,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void visitTypeGuard(HTypeGuard node) {
     addIndentation();
     HInstruction input = node.guarded;
+    Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
     if (node.isInteger()) {
       buffer.add('if (');
       checkInt(input, '!==');
@@ -2505,17 +2544,21 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     } else if (node.isMutableArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkArray(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkImmutableArray(input);
+      buffer.add(' || !');
+      checkType(input, indexingBehavior);
       buffer.add(') ');
       bailout(node, 'Not a mutable array');
     } else if (node.isReadableArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkArray(input, '!==');
+      buffer.add(' || !');
+      checkType(input, indexingBehavior);
       buffer.add(') ');
       bailout(node, 'Not an array');
     } else if (node.isIndexablePrimitive()) {
@@ -2523,8 +2566,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkString(input, '!==');
       buffer.add(' && (');
       checkObject(input, '!==');
-      buffer.add('||');
+      buffer.add(' || ');
       checkArray(input, '!==');
+      buffer.add(' || !');
+      checkType(input, indexingBehavior);
       buffer.add(')) ');
       bailout(node, 'Not a string or array');
     } else {
@@ -2623,12 +2668,12 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   // find the name of its checked input. Note that there must be a
   // name, otherwise the instruction would not be in the live
   // environment.
-  HInstruction unwrap(argument) {	
+  HInstruction unwrap(argument) {
     while (argument is HCheck && !variableNames.hasName(argument)) {
       argument = argument.checkedInput;
     }
     assert(variableNames.hasName(argument));
-    return argument;	
+    return argument;
   }
 
   void visitTypeGuard(HTypeGuard node) {

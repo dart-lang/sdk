@@ -19,6 +19,9 @@ Document get document() native "return document;";
 
 _DocumentImpl get _document() native "return document;";
 
+Element query(String selector) => _document.query(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
+
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
@@ -3778,6 +3781,9 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList native "*C
 
   _CSSValueImpl item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _CanvasElementImpl extends _ElementImpl implements CanvasElement native "*HTMLCanvasElement" {
 
@@ -3788,6 +3794,9 @@ class _CanvasElementImpl extends _ElementImpl implements CanvasElement native "*
   Object getContext(String contextId) native;
 
   String toDataURL(String type) native;
+
+
+  _CanvasRenderingContext2DImpl get context2d() => getContext('2d');
 }
 
 class _CanvasGradientImpl implements CanvasGradient native "*CanvasGradient" {
@@ -4503,6 +4512,8 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
   _BlobImpl getAsFile() native;
 
   void getAsString([StringCallback callback = null]) native;
+
+  _EntryImpl webkitGetAsEntry() native;
 }
 
 class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
@@ -4927,6 +4938,10 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   EventListenerList get mouseWheel() => _get('mousewheel');
 
   EventListenerList get paste() => _get('paste');
+
+  EventListenerList get pointerLockChange() => _get('webkitpointerlockchange');
+
+  EventListenerList get pointerLockError() => _get('webkitpointerlockerror');
 
   EventListenerList get readyStateChange() => _get('readystatechange');
 
@@ -7509,8 +7524,6 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
     return txn;
   }
 
-  static var _transaction_fn;  // Assigned one of the following:
-
   static _IDBTransactionImpl _transaction_string_mode(_IDBDatabaseImpl db, stores, mode) {
     return db._transaction(stores, mode);
   }
@@ -7551,6 +7564,10 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 }
 
+// TODO(sra): This should be a static member of _IDBTransactionImpl but frog
+// can't handle that.  Move it back after frog is completely done.
+var _transaction_fn;  // Assigned one of the static methods.
+
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
   _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
 
@@ -7585,6 +7602,8 @@ class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBData
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
+  static final int TYPE_ERR = 21;
+
   static final int UNKNOWN_ERR = 1;
 
   static final int VER_ERR = 12;
@@ -7604,9 +7623,9 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
   _IDBVersionChangeRequestImpl deleteDatabase(String name) native;
 
-  _IDBRequestImpl getDatabaseNames() native;
-
   _IDBRequestImpl open(String name) native;
+
+  _IDBRequestImpl webkitGetDatabaseNames() native;
 }
 
 class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
@@ -9837,19 +9856,6 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
 
   final _AudioBufferImpl renderedBuffer;
-}
-
-class _OperationNotAllowedExceptionImpl implements OperationNotAllowedException native "*OperationNotAllowedException" {
-
-  static final int NOT_ALLOWED_ERR = 1;
-
-  final int code;
-
-  final String message;
-
-  final String name;
-
-  String toString() native;
 }
 
 class _OptGroupElementImpl extends _ElementImpl implements OptGroupElement native "*HTMLOptGroupElement" {
@@ -13900,6 +13906,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   String innerHTML;
 
+  bool resetStyleInheritance;
+
   _ElementImpl getElementById(String elementId) native;
 
   _NodeListImpl getElementsByClassName(String className) native;
@@ -14169,17 +14177,6 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent native "*Stor
   final String url;
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, _StorageImpl storageAreaArg) native;
-}
-
-class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
-
-  static final int PERSISTENT = 1;
-
-  static final int TEMPORARY = 0;
-
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
-
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
 }
 
 class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HTMLStyleElement" {
@@ -16337,6 +16334,59 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   // Override top to return secure wrapper.
   Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 
+
+  // API level getter and setter for Location.
+  // TODO: The cross domain safe wrapper can be inserted here or folded into
+  // _LocationWrapper.
+  Location get location() => _get_location();
+
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location. [value] may be a Location object or a string.
+   */
+  void set location(value) => _set_location(value);
+
+  // Firefox work-around for Location.  The Firefox location object cannot be
+  // made to behave like a Dart object so must be wrapped.
+
+  Location _get_location() {
+    var result = _location;
+    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
+    if (null == _location_wrapper) {
+      _location_wrapper = new _LocationWrapper(result);
+    }
+    return _location_wrapper;
+  }
+
+  void _set_location(value) {
+    if (value is _LocationWrapper) {
+      _location = value._ptr;
+    } else {
+      _location = value;
+    }
+  }
+
+  var _location_wrapper;  // Cached wrapped Location object.
+
+  // Native getter and setter to access raw Location object.
+  Location get _location() native 'return this.location';
+  void set _location(Location value) native 'this.location = value';
+  // Prevent compiled from thinking 'location' property is available for a Dart
+  // member.
+  _protect_location() native 'location';
+
+  static _isDartLocation(thing) {
+    // On Firefox the code that implements 'is Location' fails to find the patch
+    // stub on Object.prototype and throws an exception.
+    try {
+      return thing is Location;
+    } catch (var e) {
+      return false;
+    }
+  }
+
+
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }
@@ -16418,8 +16468,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   final _StorageImpl localStorage;
 
-  _LocationImpl location;
-
   final _BarInfoImpl locationbar;
 
   final _BarInfoImpl menubar;
@@ -16479,8 +16527,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _IDBFactoryImpl webkitIndexedDB;
 
   final _NotificationCenterImpl webkitNotifications;
-
-  final _StorageInfoImpl webkitStorageInfo;
 
   final _WindowImpl window;
 
@@ -17136,10 +17182,10 @@ class _Elements {
     return _e;
   }
 
-  factory CanvasElement([int height, int width]) {
+  factory CanvasElement([int width, int height]) {
     _CanvasElementImpl _e = _document.$dom_createElement("canvas");
-    if (height != null) _e.height = height;
     if (width != null) _e.width = width;
+    if (height != null) _e.height = height;
     return _e;
   }
 
@@ -17218,11 +17264,11 @@ class _Elements {
     return _e;
   }
 
-  factory ImageElement([String src, int height, int width]) {
+  factory ImageElement([String src, int width, int height]) {
     _ImageElementImpl _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
-    if (height != null) _e.height = height;
     if (width != null) _e.width = width;
+    if (height != null) _e.height = height;
     return _e;
   }
 
@@ -21040,7 +21086,7 @@ interface CSSValueList extends CSSValue {
 /// @domName HTMLCanvasElement
 interface CanvasElement extends Element default _Elements {
 
-  CanvasElement([int height, int width]);
+  CanvasElement([int width, int height]);
 
   /** @domName HTMLCanvasElement.height */
   int height;
@@ -21053,6 +21099,8 @@ interface CanvasElement extends Element default _Elements {
 
   /** @domName HTMLCanvasElement.toDataURL */
   String toDataURL(String type);
+
+  final CanvasRenderingContext2D context2d;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22132,6 +22180,9 @@ interface DataTransferItem {
 
   /** @domName DataTransferItem.getAsString */
   void getAsString([StringCallback callback]);
+
+  /** @domName DataTransferItem.webkitGetAsEntry */
+  Entry webkitGetAsEntry();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22744,6 +22795,10 @@ interface DocumentEvents extends ElementEvents {
   EventListenerList get mouseWheel();
 
   EventListenerList get paste();
+
+  EventListenerList get pointerLockChange();
+
+  EventListenerList get pointerLockError();
 
   EventListenerList get readyStateChange();
 
@@ -24679,6 +24734,8 @@ interface IDBDatabaseException {
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
+  static final int TYPE_ERR = 21;
+
   static final int UNKNOWN_ERR = 1;
 
   static final int VER_ERR = 12;
@@ -24710,11 +24767,11 @@ interface IDBFactory {
   /** @domName IDBFactory.deleteDatabase */
   IDBVersionChangeRequest deleteDatabase(String name);
 
-  /** @domName IDBFactory.getDatabaseNames */
-  IDBRequest getDatabaseNames();
-
   /** @domName IDBFactory.open */
   IDBRequest open(String name);
+
+  /** @domName IDBFactory.webkitGetDatabaseNames */
+  IDBRequest webkitGetDatabaseNames();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25100,7 +25157,7 @@ interface ImageData {
 /// @domName HTMLImageElement
 interface ImageElement extends Element default _Elements {
 
-  ImageElement([String src, int height, int width]);
+  ImageElement([String src, int width, int height]);
 
   /** @domName HTMLImageElement.align */
   String align;
@@ -27282,29 +27339,6 @@ interface OfflineAudioCompletionEvent extends Event {
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
   final AudioBuffer renderedBuffer;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName OperationNotAllowedException
-interface OperationNotAllowedException {
-
-  static final int NOT_ALLOWED_ERR = 1;
-
-  /** @domName OperationNotAllowedException.code */
-  final int code;
-
-  /** @domName OperationNotAllowedException.message */
-  final String message;
-
-  /** @domName OperationNotAllowedException.name */
-  final String name;
-
-  /** @domName OperationNotAllowedException.toString */
-  String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31898,6 +31932,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
+  /** @domName ShadowRoot.resetStyleInheritance */
+  bool resetStyleInheritance;
+
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -32294,46 +32331,6 @@ interface StorageEvent extends Event {
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName StorageInfo
-interface StorageInfo {
-
-  static final int PERSISTENT = 1;
-
-  static final int TEMPORARY = 0;
-
-  /** @domName StorageInfo.queryUsageAndQuota */
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
-
-  /** @domName StorageInfo.requestQuota */
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoErrorCallback(DOMException error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35114,9 +35111,6 @@ interface Window extends EventTarget {
   /** @domName DOMWindow.webkitNotifications */
   final NotificationCenter webkitNotifications;
 
-  /** @domName DOMWindow.webkitStorageInfo */
-  final StorageInfo webkitStorageInfo;
-
   /** @domName DOMWindow.window */
   final Window window;
 
@@ -36986,6 +36980,79 @@ class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOp
   EventListenerList get blocked() => _get('blocked');
 
   EventListenerList get upgradeneeded() => _get('upgradeneeded');
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// On Firefox 11, the object obtained from 'window.location' is very strange.
+// It can't be monkey-patched and seems immune to putting methods on
+// Object.prototype.  We are forced to wrap the object.
+
+class _LocationWrapper implements Location {
+
+  final _ptr;  // Opaque reference to real location.
+
+  _LocationWrapper(this._ptr);
+
+  // TODO(sra): Replace all the _set and _get calls with 'JS' forms.
+
+  // final List<String> ancestorOrigins;
+  List<String> get ancestorOrigins() => _get(_ptr, 'ancestorOrigins');
+
+  // String hash;
+  String get hash() => _get(_ptr, 'hash');
+  void set hash(String value) => _set(_ptr, 'hash', value);
+
+  // String host;
+  String get host() => _get(_ptr, 'host');
+  void set host(String value) => _set(_ptr, 'host', value);
+
+  // String hostname;
+  String get hostname() => _get(_ptr, 'hostname');
+  void set hostname(String value) => _set(_ptr, 'hostname', value);
+
+  // String href;
+  String get href() => _get(_ptr, 'href');
+  void set href(String value) => _set(_ptr, 'href', value);
+
+  // final String origin;
+  String get origin() => _get(_ptr, 'origin');
+
+  // String pathname;
+  String get pathname() => _get(_ptr, 'pathname');
+  void set pathname(String value) => _set(_ptr, 'pathname', value);
+
+  // String port;
+  String get port() => _get(_ptr, 'port');
+  void set port(String value) => _set(_ptr, 'port', value);
+
+  // String protocol;
+  String get protocol() => _get(_ptr, 'protocol');
+  void set protocol(String value) => _set(_ptr, 'protocol', value);
+
+  // String search;
+  String get search() => _get(_ptr, 'search');
+  void set search(String value) => _set(_ptr, 'search', value);
+
+
+  void assign(String url) => _assign(_ptr, url);
+
+  void reload() => _reload(_ptr);
+
+  void replace(String url) => _replace(_ptr, url);
+
+  String toString() => _toString(_ptr);
+
+
+  static _get(p, m) native 'return p[m];';
+  static _set(p, m, v) native 'p[m] = v;';
+
+  static _assign(p, url) native 'p.assign(url);';
+  static _reload(p) native 'p.reload()';
+  static _replace(p, url) native 'p.replace(url);';
+  static _toString(p) native 'return p.toString();';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

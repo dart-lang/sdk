@@ -77,7 +77,7 @@ class _Process extends Process {
     _err = new _Socket._internalReadOnly();  // stderr coming from process.
     _exitHandler = new _Socket._internalReadOnly();
     _closed = false;
-    _killed = false;
+    _ended = false;
     _started = false;
     _onExit = null;
     // TODO(ager): Make the actual process starting really async instead of
@@ -178,6 +178,7 @@ class _Process extends Process {
       }
 
       void handleExit() {
+        _ended = true;
         if (_onExit !== null) {
           _onExit(exitCode(exitDataBuffer));
         }
@@ -224,24 +225,27 @@ class _Process extends Process {
     return _out.outputStream;
   }
 
-  void kill() {
+  void kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
+    if (signal is! ProcessSignal) {
+      throw new IllegalArgumentException(
+          "Argument 'signal' must be a ProcessSignal");
+    }
     if (_closed && _pid === null) {
       _reportError(new ProcessException("Process closed"));
       return;
     }
-    if (_killed) {
+    if (_ended) {
       return;
     }
     // TODO(ager): Make the actual kill operation asynchronous.
-    if (_kill(_pid)) {
-      _killed = true;
+    if (_kill(_pid, signal._signalNumber)) {
       return;
     }
     _reportError(new ProcessException("Could not kill process"));
     return;
   }
 
-  void _kill(int pid) native "Process_Kill";
+  void _kill(int pid, int signal) native "Process_Kill";
 
   void close() {
     if (_closed) {
@@ -258,7 +262,7 @@ class _Process extends Process {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
-    if (_killed) {
+    if (_ended) {
       throw new ProcessException("Process killed");
     }
     _onExit = callback;
@@ -291,7 +295,7 @@ class _Process extends Process {
   Socket _exitHandler;
   int _pid;
   bool _closed;
-  bool _killed;
+  bool _ended;
   bool _started;
   Function _onExit;
   Function _onError;

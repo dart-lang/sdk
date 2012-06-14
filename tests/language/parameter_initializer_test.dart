@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,12 +19,6 @@ class ParameterInitializerTest {
 
     obj = new Foo.optional();
     Expect.equals(5, obj.x);
-
-    obj = new Foo.optional_private(_y: 222);
-    Expect.equals(222, obj._y);
-
-    obj = new Foo.optional_private();
-    Expect.equals(77, obj._y);
 
     obj = new Foo(1);
     Expect.equals(2, obj.x);
@@ -48,10 +42,8 @@ class Foo {
   Foo.supertype(Object this.x) {}
   Foo.subtype(int this.x) {}
   Foo.optional([this.x = 5]) {}
-  Foo.optional_private([this._y = 77]) {}
 
   num x;
-  num _y;
 }
 
 class SubFoo extends Foo {

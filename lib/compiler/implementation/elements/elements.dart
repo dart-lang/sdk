@@ -123,6 +123,7 @@ class Element implements Hashable {
            kind === ElementKind.LIBRARY;
   }
   bool isClass() => kind === ElementKind.CLASS;
+  bool isPrefix() => kind === ElementKind.PREFIX;
   bool isVariable() => kind === ElementKind.VARIABLE;
   bool isParameter() => kind === ElementKind.PARAMETER;
   bool isStatement() => kind === ElementKind.STATEMENT;
@@ -131,8 +132,12 @@ class Element implements Hashable {
   bool isField() => kind === ElementKind.FIELD;
   bool isGetter() => kind === ElementKind.GETTER;
   bool isSetter() => kind === ElementKind.SETTER;
+  bool isAccessor() => isGetter() || isSetter();
+  bool isForeign() => kind === ElementKind.FOREIGN;
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
+
+  bool isTopLevel() => enclosingElement.isCompilationUnit();
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -188,7 +193,23 @@ class Element implements Hashable {
     return null;
   }
 
-  toString() => '$kind(${name.slowToString()})';
+  Element getOutermostEnclosingMemberOrTopLevel() {
+    for (Element e = this; e !== null; e = e.enclosingElement) {
+      if (e.isMember() || e.isTopLevel()) {
+        return e;
+      }
+    }
+    return null;
+  }
+
+  toString() {
+    if (!isTopLevel()) {
+      String holderName = enclosingElement.name.slowToString();
+      return '$kind($holderName#${name.slowToString()})';
+    } else {
+      return '$kind(${name.slowToString()})';
+    }
+  }
 
   bool _isNative = false;
   void setNative() { _isNative = true; }
@@ -792,8 +813,11 @@ class ClassElement extends ContainerElement {
   void forEachMember([void f(ClassElement enclosingClass, Element member),
                       includeBackendMembers = false,
                       includeSuperMembers = false]) {
+    Set<ClassElement> seen = new Set<ClassElement>();
     ClassElement classElement = this;
     do {
+      if (seen.contains(classElement)) return;
+      seen.add(classElement);
       for (Element element in classElement.members) {
         f(classElement, element);
       }

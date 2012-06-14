@@ -1825,8 +1825,6 @@ interface Window extends EventTarget {
 
   final NotificationCenter webkitNotifications;
 
-  final StorageInfo webkitStorageInfo;
-
   final DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -1937,6 +1935,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  Entry webkitGetAsEntry();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5158,6 +5158,8 @@ interface IDBDatabaseException {
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
+  static final int TYPE_ERR = 21;
+
   static final int UNKNOWN_ERR = 1;
 
   static final int VER_ERR = 12;
@@ -5182,9 +5184,9 @@ interface IDBFactory {
 
   IDBVersionChangeRequest deleteDatabase(String name);
 
-  IDBRequest getDatabaseNames();
-
   IDBRequest open(String name);
+
+  IDBRequest webkitGetDatabaseNames();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6418,24 +6420,6 @@ interface OESVertexArrayObject {
 interface OfflineAudioCompletionEvent extends Event {
 
   final AudioBuffer renderedBuffer;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface OperationNotAllowedException {
-
-  static final int NOT_ALLOWED_ERR = 1;
-
-  final int code;
-
-  final String message;
-
-  final String name;
-
-  String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9731,6 +9715,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   String innerHTML;
 
+  bool resetStyleInheritance;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -9991,43 +9977,6 @@ interface StorageEvent extends Event {
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface StorageInfo {
-
-  static final int PERSISTENT = 1;
-
-  static final int TEMPORARY = 0;
-
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
-
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoErrorCallback(DOMException error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
