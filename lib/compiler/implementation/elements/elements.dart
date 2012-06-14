@@ -680,7 +680,7 @@ class SynthesizedConstructorElement extends FunctionElement {
 
 class VoidElement extends Element {
   VoidElement(Element enclosing)
-      : super(Types.VOID, ElementKind.VOID, enclosing);
+      : super(const SourceString('void'), ElementKind.VOID, enclosing);
   Type computeType(compiler) => compiler.types.voidType;
   Node parseNode(_) {
     throw 'internal error: parseNode on void';

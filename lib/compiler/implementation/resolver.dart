@@ -367,7 +367,7 @@ class InitializerResolver {
     FunctionElement result;
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
-      if (lookupTarget.name == Types.OBJECT) {
+      if (lookupTarget === visitor.compiler.objectClass) {
         error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
       } else {
         lookupTarget = lookupTarget.supertype.element;
@@ -603,7 +603,7 @@ class TypeResolver {
     if (send !== null) {
       typeName = send.selector;
     }
-    if (typeName.source == Types.VOID) {
+    if (typeName.source.stringValue === 'void') {
       return compiler.types.voidType.element;
     } else if (send !== null) {
       Element e = context.lookup(send.receiver.asIdentifier().source);
@@ -1593,12 +1593,13 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     } else if (supertype !== null) {
       error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
     }
-    if (classElement.name != Types.OBJECT && classElement.supertype === null) {
-      ClassElement objectElement = context.lookup(Types.OBJECT);
-      if (objectElement !== null && !objectElement.isResolved) {
+    final objectElement = compiler.objectClass;
+    if (classElement !== objectElement && classElement.supertype === null) {
+      if (objectElement === null) {
+        compiler.internalError("Internal error: cannot resolve Object",
+                               node: node);
+      } else if (!objectElement.isResolved) {
         compiler.resolver.toResolve.add(objectElement);
-      } else if (objectElement === null){
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
       classElement.supertype = new InterfaceType(objectElement);
     }
