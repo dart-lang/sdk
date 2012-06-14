@@ -147,7 +147,8 @@ final Matcher throws = const _Throws();
  *   * A [Function] that throws an exception when called. The function cannot
  *     take any arguments. If you want to test that a function expecting
  *     arguments throws, wrap it in another zero-argument function that calls
- *     the one you want to test.
+ *     the one you want to test. The function will be called once upon success,
+ *     or twice upon failure (the second time to get the failure description).
  *
  *   * A [Future] that completes with an exception. Note that this creates an
  *     asynchronous expectation. The call to `expect()` that includes this will
@@ -209,11 +210,11 @@ class _Throws extends BaseMatcher {
   }
 
   Description describeMismatch(item, Description mismatchDescription) {
-    if (_matcher == null) {
+    try {
+      item();
       return mismatchDescription.add(' no exception');
-    } else {
-      return mismatchDescription.
-          add(' no exception or exception does not match ').
+    } catch (final e) {
+      return mismatchDescription.add(' exception does not match ').
           addDescriptionOf(_matcher);
     }
   }

@@ -7,7 +7,6 @@ crypto/*: Skip
 
 [ $compiler == dart2js || $compiler == dartc || $compiler == frog ]
 math/*: Skip
-unittest/instance_test: Skip
 
 [ $compiler == dart2js && $checked ]
 # numbers typed 'int' are too big to fit in a JS int.
