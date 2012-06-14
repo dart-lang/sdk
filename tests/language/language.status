@@ -50,6 +50,8 @@ closure_with_super_send_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
 parameter_initializer6_negative_test: Fail # Issue 3502
 
+prefix_core_test: Fail # Issue 3638.
+
 # DartC or Frog specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
@@ -418,6 +420,9 @@ static_field2_run_negative_test: Pass # but error is not correct
 [ $compiler == frog && $mode == debug ]
 constructor_redirect1_negative_test: Skip # Undiagnosed infinite loop.
 constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
+
+[ $browser ]
+prefix_core_test: Fail # Issue 2264.
 
 [ $compiler == frog && $runtime == none ]
 *: Skip
