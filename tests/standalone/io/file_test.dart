@@ -164,6 +164,126 @@ class FileTest {
     };
   }
 
+  // Test for file stream buffered handling of large files.
+  static void testReadWriteStreamLargeFile() {
+    asyncTestStarted();
+
+    // Create the test data - arbitrary binary data.
+    List<int> buffer = new List<int>(100000);
+    for (var i = 0; i < buffer.length; ++i) {
+      buffer[i] = i % 256;
+    }
+    String filename =
+        tempDirectory.path.concat("/out_read_write_stream_large_file");
+    File file = new File(filename);
+    OutputStream output = file.openOutputStream();
+    // Test a write immediately after the output stream is created.
+    output.writeFrom(buffer, 0, 20000);
+
+    output.onNoPendingWrites = () {
+      output.writeFrom(buffer, 20000, 60000);
+      output.writeFrom(buffer, 80000, 20000);
+      output.onNoPendingWrites = () {
+        output.writeFrom(buffer, 0, 0);
+        output.writeFrom(buffer, 0, 0);
+        output.writeFrom(buffer, 0, 100000);
+        output.close();
+      };
+    };
+    output.onClosed = () {
+      InputStream input = file.openInputStream();
+      int position = 0;
+      final int expectedLength = 200000;
+      // Start an independent asynchronous check on the length.
+      asyncTestStarted();
+      file.length().then((len) {
+        Expect.equals(expectedLength, len);
+        asyncTestDone('testReadWriteStreamLargeFile: length check');
+      });
+
+      List<int> inputBuffer = new List<int>(expectedLength + 100000);
+      // Immediate read should read 0 bytes.
+      Expect.equals(0, input.available());
+      Expect.equals(false, input.closed);
+      int bytesRead = input.readInto(inputBuffer);
+      Expect.equals(0, bytesRead);
+      Expect.equals(0, input.available());
+      Expect.isFalse(input.closed);
+      input.onError = (e) {
+        print('Error handler called on input in testReadWriteStreamLargeFile');
+        print('with error $e');
+        throw e;
+      };
+      input.onData = () {
+        Expect.isFalse(input.closed);
+        bytesRead = input.readInto(inputBuffer, offset: position,
+                                   len: inputBuffer.length - position);
+        position += bytesRead;
+        // The buffer is large enough to hold all available data.
+        // So there should be no data left to read.
+        Expect.equals(0, input.available());
+        bytesRead = input.readInto(inputBuffer, offset: position,
+                                   len: expectedLength - position);
+        Expect.equals(0, bytesRead);
+        Expect.equals(0, input.available());
+      };
+      input.onClosed = () {
+        Expect.equals(0, input.available());
+        Expect.isTrue(input.closed);
+        input.close();  // This should be safe to call.
+
+        Expect.equals(expectedLength, position);
+        for (int i = 0; i < position; ++i) {
+          Expect.equals(buffer[i % buffer.length], inputBuffer[i]);
+        }
+
+        Future testPipeDone = testPipe(file, buffer);
+
+        Future futureDeleted = testPipeDone.chain((ignored) => file.delete());
+        futureDeleted.handleException((e) {
+          print('Exception while deleting ReadWriteStreamLargeFile file');
+          print('Exception $e');
+          return false;  // Throw exception further.
+        });
+        futureDeleted.then((ignored) {
+            asyncTestDone('testReadWriteStreamLargeFile: main test');
+        });
+      };
+      // Try a read again after handlers are set.
+      bytesRead = input.readInto(inputBuffer);
+      Expect.equals(0, bytesRead);
+      Expect.equals(0, input.available());
+      Expect.isFalse(input.closed);
+    };
+  }
+
+  static Future testPipe(File file, buffer) {
+    String outputFilename = '${file.name}_copy';
+    File outputFile = new File(outputFilename);
+    InputStream input = file.openInputStream();
+    OutputStream output = outputFile.openOutputStream();
+    input.pipe(output);
+    Completer done = new Completer();
+    output.onClosed = () {
+      InputStream copy = outputFile.openInputStream();
+      int position = 0;
+      copy.onData = () {
+        var data;
+        while ((data = copy.read()) != null) {
+          for (int value in data) {
+            Expect.equals(buffer[position % buffer.length], value);
+            position++;
+          }
+        }
+      };
+      copy.onClosed = () {
+        Expect.equals(2 * buffer.length, position);
+        outputFile.delete().then((ignore) { done.complete(null); });
+      };
+    };
+    return done.future;
+  }
+
   static void testRead() {
     ReceivePort port = new ReceivePort();
     // Read a file and check part of it's contents.
@@ -730,7 +850,7 @@ class FileTest {
     InputStream input = file.openInputStream();
     input.onClosed = () {
       Expect.isTrue(input.closed);
-      Expect.isNull(input.readInto(buffer, 0, 12));
+      Expect.equals(0, input.readInto(buffer, 0, 12));
       OutputStream output = file.openOutputStream();
       output.close();
       Expect.throws(() => output.writeFrom(buffer, 0, 12));
@@ -1082,6 +1202,7 @@ class FileTest {
       testReadWriteStream();
       testReadEmptyFileSync();
       testReadEmptyFile();
+      testReadWriteStreamLargeFile();
       testTruncate();
       testTruncateSync();
       testCloseException();

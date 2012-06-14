@@ -23,7 +23,7 @@ class _BaseDataInputStream {
   }
 
   int readInto(List<int> buffer, [int offset = 0, int len]) {
-    if (_closeCallbackCalled) return null;
+    if (_closeCallbackCalled) return 0;
     if (len === null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
