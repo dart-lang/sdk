@@ -297,65 +297,108 @@ final _sentinel = const _Sentinel();
 // arguments inside [_expectAsync], once bug 282 is fixed or frog is replaced by
 // dart2js.
 class _SpreadArgsHelper {
-  Function callback;
-  int expectedCalls;
-  int calls = 0;
-  TestCase testCase;
-  _SpreadArgsHelper(this.callback, this.expectedCalls) {
-    Expect.isTrue(_currentTest < _tests.length);
-    testCase = _tests[_currentTest];
-    testCase.callbacks++;
+  Function _callback;
+  int _expectedCalls = 0;
+  int _calls = 0;
+  TestCase _testCase;
+  Function _shouldCallBack;
+  Function _isDone;
+
+  _init(Function callback, Function shouldCallBack, Function isDone,
+       [expectedCalls = 0]) {
+    assert(_currentTest < _tests.length);
+    _callback = callback;
+    _shouldCallBack = shouldCallBack;
+    _isDone = isDone;
+    _expectedCalls = expectedCalls;
+    _testCase = _tests[_currentTest];
+    _testCase.callbacks++;
+  }
+
+  _SpreadArgsHelper(callback, shouldCallBack, isDone) {
+    _init(callback, shouldCallBack, isDone);
+  }
+
+  _SpreadArgsHelper.fixedCallCount(callback, expectedCalls) {
+    _init(callback, _checkCallCount, _allCallsDone, expectedCalls);
+  }
+
+  _SpreadArgsHelper.variableCallCount(callback, isDone) {
+    _init(callback, _always, isDone);
+  }
+
+  _after() {
+    if (_isDone()) {
+      _handleAllCallbacksDone();
+    }
+  }
+
+  _allCallsDone() => _calls == _expectedCalls;
+
+  _always() {
+    // Always run except if the test is done.
+    if (_testCase.isComplete) {
+      _testCase.error(
+          'Callback called after already being marked as done ($_calls)',
+          '');
+      _state = _UNCAUGHT_ERROR;
+      return false;
+    } else {
+      return true;
+    }
   }
 
   invoke([arg0 = _sentinel, arg1 = _sentinel, arg2 = _sentinel,
           arg3 = _sentinel, arg4 = _sentinel]) {
     return guardAsync(() {
-      if (!_incrementCall()) {
+      ++_calls;
+      if (!_shouldCallBack()) {
         return;
       } else if (arg0 == _sentinel) {
-        return callback();
+        return _callback();
       } else if (arg1 == _sentinel) {
-        return callback(arg0);
+        return _callback(arg0);
       } else if (arg2 == _sentinel) {
-        return callback(arg0, arg1);
+        return _callback(arg0, arg1);
       } else if (arg3 == _sentinel) {
-        return callback(arg0, arg1, arg2);
+        return _callback(arg0, arg1, arg2);
       } else if (arg4 == _sentinel) {
-        return callback(arg0, arg1, arg2, arg3);
+        return _callback(arg0, arg1, arg2, arg3);
       } else {
-        testCase.error(
+        _testCase.error(
            'unittest lib does not support callbacks with more than 4 arguments',
            '');
         _state = _UNCAUGHT_ERROR;
       }
-    }, () { if (calls == expectedCalls) callbackDone(); });
+    },
+    _after);
   }
 
   invoke0() {
     return guardAsync(
-        () => _incrementCall() ? callback() : null,
-        () { if (calls == expectedCalls) callbackDone(); });
+        () { if (_shouldCallBack()) _callback(); },
+        _after);
   }
 
   invoke1(arg1) {
     return guardAsync(
-        () => _incrementCall() ? callback(arg1) : null,
-        () { if (calls == expectedCalls) callbackDone(); });
+        () { if (_shouldCallBack()) _callback(arg1); },
+        _after);
   }
 
   invoke2(arg1, arg2) {
     return guardAsync(
-        () => _incrementCall() ? callback(arg1, arg2) : null,
-        () { if (calls == expectedCalls) callbackDone(); });
+        () { if (_shouldCallBack()) _callback(arg1, arg2); },
+        _after);
   }
 
   /** Returns false if we exceded the number of expected calls. */
-  bool _incrementCall() {
-    calls++;
-    if (calls > expectedCalls) {
-      testCase.error(
-         'Callback called more times than expected ($calls > $expectedCalls)',
-         '');
+  bool _checkCallCount() {
+    if (_calls > _expectedCalls) {
+      _testCase.error(
+          'Callback called more times than expected '
+             '($_calls > $_expectedCalls)',
+          '');
       _state = _UNCAUGHT_ERROR;
       return false;
     }
@@ -372,7 +415,7 @@ class _SpreadArgsHelper {
  * arguments (named arguments are not supported here).
  */
 Function _expectAsync(Function callback, [int count = 1]) {
-  return new _SpreadArgsHelper(callback, count).invoke;
+  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke;
 }
 
 /**
@@ -385,19 +428,60 @@ Function _expectAsync(Function callback, [int count = 1]) {
  */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync0(Function callback, [int count = 1]) {
-  return new _SpreadArgsHelper(callback, count).invoke0;
+  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke0;
 }
 
 /** Like [expectAsync0] but [callback] should take 1 positional argument. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync1(Function callback, [int count = 1]) {
-  return new _SpreadArgsHelper(callback, count).invoke1;
+  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke1;
 }
 
 /** Like [expectAsync0] but [callback] should take 2 positional arguments. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync2(Function callback, [int count = 1]) {
-  return new _SpreadArgsHelper(callback, count).invoke2;
+  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke2;
+}
+
+/**
+ * Indicate that [callback] is expected to be called until [isDone] returns
+ * true. The unittest framework checks [isDone] after each callback and only
+ * when it returns true will it continue with the following test. Using
+ * [expectAsyncUntil] will also ensure that errors that occur within
+ * [callback] are tracked and reported. [callback] should take between 0 and
+ * 4 positional arguments (named arguments are not supported).
+ */
+Function _expectAsyncUntil(Function callback, Function isDone) {
+  return new _SpreadArgsHelper.variableCallCount(callback, isDone).invoke;
+}
+
+/**
+ * Indicate that [callback] is expected to be called until [isDone] returns
+ * true. The unittest framework check [isDone] after each callback and only
+ * when it returns true will it continue with the following test. Using
+ * [expectAsyncUntil0] will also ensure that errors that occur within
+ * [callback] are tracked and reported. [callback] should take 0 positional
+ * arguments (named arguments are not supported).
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsyncUntil0(Function callback, Function isDone) {
+  return new _SpreadArgsHelper.variableCallCount(callback, isDone).invoke0;
+}
+
+/**
+ * Like [expectAsyncUntil0] but [callback] should take 1 positional argument.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsyncUntil1(Function callback, Function isDone) {
+  return new _SpreadArgsHelper.variableCallCount(callback, isDone).invoke1;
+}
+
+/**
+ * Like [expectAsyncUntil0] but [callback] should take 2 positional arguments.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsyncUntil2(Function callback, Function isDone) {
+  return new _SpreadArgsHelper.variableCallCount(callback, isDone).invoke2;
 }
 
 /**
@@ -426,7 +510,7 @@ void group(String description, void body()) {
 }
 
 /** Called by subclasses to indicate that an asynchronous test completed. */
-void callbackDone() {
+void _handleAllCallbacksDone() {
   // TODO (gram): we defer this to give the nextBatch recursive
   // stack a chance to unwind. This is a temporary hack but
   // really a bunch of code here needs to be fixed. We have a
@@ -542,7 +626,6 @@ _nextBatch() {
     guardAsync(() {
       _callbacksCalled = 0;
       _state = _RUNNING_TEST;
-
       testCase.test();
 
       if (_state != _UNCAUGHT_ERROR) {
@@ -596,6 +679,8 @@ ensureInitialized() {
   if (_state != _UNINITIALIZED) return;
 
   _tests = <TestCase>[];
+  _uncaughtErrorMessage = null;
+  _currentTest = 0;
   _currentGroup = '';
   _state = _READY;
   _testRunner = _nextBatch;

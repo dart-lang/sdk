@@ -2,47 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('unittestTest');
-
-#import('../../lib/unittest/unittest.dart');
-
+#library('matcherTest');
+#import('../../../lib/unittest/unittest.dart');
+#source('test_utils.dart');
 
 doesNotThrow() {}
 doesThrow() { throw 'X'; }
-
-int errorCount;
-String errorString;
-var testHandler;
-
-class MyFailureHandler extends DefaultFailureHandler {
-  void fail(String reason) {
-    ++errorCount;
-    errorString = reason;
-  }
-}
-
-void shouldFail(var value, Matcher matcher, expected) {
-  errorCount = 0;
-  errorString = '';
-  configureExpectHandler(testHandler);
-  expect(value, matcher);
-  configureExpectHandler(null);
-  expect(errorCount, equals(1));
-  if (expected is String) {
-    expect(errorString, equalsIgnoringWhitespace(expected));
-  } else {
-    expect(errorString, expected);
-  }
-}
-
-void shouldPass(var value, Matcher matcher) {
-  errorCount = 0;
-  errorString = '';
-  configureExpectHandler(testHandler);
-  expect(value, matcher);
-  configureExpectHandler(null);
-  expect(errorCount, equals(0));
-}
 
 class PrefixMatcher extends BaseMatcher {
   final String _prefix;
@@ -60,7 +25,7 @@ class PrefixMatcher extends BaseMatcher {
 
 void main() {
 
-  testHandler = new MyFailureHandler();
+  initUtils();
 
   var a = new Map();
   var b = new Map();
@@ -110,27 +75,11 @@ void main() {
       shouldPass(doesThrow, throws);
     });
 
-    test('throwsA', () {
-      shouldPass(doesThrow, throwsA(equals('X')));
-      shouldFail(doesThrow, throwsA(equals('Y')),
-        "Expected: throws an exception which matches 'Y' "
-        "but:  exception does not match 'Y'");
-    });
-
     test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
       shouldFail(doesThrow, returnsNormally,
         "Expected: return normally but: threw exception");
     });
-
-    /* Removing these temporarily while dart2js failure is investigated */
-    /*
-    test('isInstanceOf', () {
-      shouldFail(0, new isInstanceOf<String>('String'),
-        "Expected: an instance of String but: was <0>");
-      shouldPass('cow', new isInstanceOf<String>('String'));
-    });
-    */
 
     test('hasLength', () {
       shouldPass(c, hasLength(0));
