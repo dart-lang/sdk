@@ -4,10 +4,6 @@
 
 #include "vm/heap_profiler.h"
 
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <sys/time.h>
-
 #include "vm/dart_api_state.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
