@@ -653,7 +653,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::SignalExceptionThrown(const Object& exc) {
-  if (ignore_breakpoints_) {
+  if (ignore_breakpoints_ || (event_handler_ == NULL)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -662,18 +662,17 @@ void Debugger::SignalExceptionThrown(const Object& exc) {
   }
   // No single-stepping possible after this pause event.
   last_bpt_line_ = -1;
-  if (event_handler_ != NULL) {
-    ASSERT(stack_trace_ == NULL);
-    stack_trace_ = stack_trace;
-    ASSERT(obj_cache_ == NULL);
-    obj_cache_ = new RemoteObjectCache(64);
-    DebuggerEvent event;
-    event.type = kExceptionThrown;
-    event.exception = &exc;
-    (*event_handler_)(&event);
-    stack_trace_ = NULL;
-    obj_cache_ = NULL;  // Remote object cache is zone allocated.
-  }
+  ASSERT(stack_trace_ == NULL);
+  stack_trace_ = stack_trace;
+  ASSERT(obj_cache_ == NULL);
+  obj_cache_ = new RemoteObjectCache(64);
+  DebuggerEvent event;
+  event.type = kExceptionThrown;
+  event.exception = &exc;
+  ASSERT(event_handler_ != NULL);
+  (*event_handler_)(&event);
+  stack_trace_ = NULL;
+  obj_cache_ = NULL;  // Remote object cache is zone allocated.
 }
 
 
