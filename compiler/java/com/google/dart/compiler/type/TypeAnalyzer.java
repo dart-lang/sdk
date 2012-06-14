@@ -13,6 +13,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
@@ -180,6 +181,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
+    private final boolean suppressNoMemberWarningForInferredTypes;
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -203,8 +205,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
-      this.suppressSdkWarnings = context.getCompilerConfiguration().getCompilerOptions()
-          .suppressSdkWarnings();
+      CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
+      this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
+      this.suppressNoMemberWarningForInferredTypes = compilerOptions.suppressNoMemberWarningForInferredTypes();
     }
 
     @VisibleForTesting
@@ -499,8 +502,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null) {
-        typeError(diagnosticNode, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED,
-                  receiver, methodName);
+        if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+          typeError(diagnosticNode, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
+              methodName);
+        }
         return null;
       }
       return member;
@@ -810,7 +815,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
         }
         default:
-          return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
+          if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+            typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
+          }
+          return dynamicType;
       }
       return checkArguments(diagnosticNode, argumentNodes, argumentTypes.iterator(), ftype);
     }
@@ -1832,7 +1840,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        return typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
+        if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+          typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
+        }
+        return dynamicType;
       }
       element = member.getElement();
       node.setElement(element);

@@ -37,6 +37,7 @@ import java.util.Map;
 public abstract class CompilerTestCase extends TestCase {
 
   private static final String UTF8 = "UTF-8";
+  protected CompilerConfiguration compilerConfiguration;
 
   /**
    * Instance of {@link CompilerConfiguration} for incremental check-only compilation.
@@ -163,6 +164,12 @@ public abstract class CompilerTestCase extends TestCase {
     }
     return buf.toString();
   }
+  
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    compilerConfiguration = CHECK_ONLY_CONFIGURATION;
+  }
 
   /**
    * Simulate running {@code analyzeLibrary} the way the IDE will.
@@ -196,7 +203,7 @@ public abstract class CompilerTestCase extends TestCase {
     result.setLibraryUnitResult(DartCompiler.analyzeLibrary(
         lib,
         testUnits,
-        CHECK_ONLY_CONFIGURATION,
+        compilerConfiguration,
         provider,
         result));
     // TODO(zundel): One day, we want all AST nodes that are identifiers to point to

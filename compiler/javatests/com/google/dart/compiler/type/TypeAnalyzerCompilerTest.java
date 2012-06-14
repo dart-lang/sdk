@@ -3,16 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
@@ -39,9 +44,6 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -1609,6 +1611,52 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
+  public void test_inferredTypes_noMemberWarnings() throws Exception {
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B extends A {",
+          "  var f;",
+          "  m() {}",
+          "}",
+          "foo(A a) {",
+          "  var v = a;",
+          "  v.f = 0;",
+          "  v.m();",
+          "}",
+          "");
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 3, 5));
+    }
+    // use CompilerConfiguration
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean suppressNoMemberWarningForInferredTypes() {
+          return true;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B extends A {",
+          "  var f;",
+          "  m() {}",
+          "}",
+          "foo(A a) {",
+          "  var v = a;",
+          "  v.f = 0;",
+          "  v.m();",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+    }
+  }
+  
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",

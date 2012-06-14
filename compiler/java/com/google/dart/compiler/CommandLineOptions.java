@@ -158,6 +158,13 @@ public class CommandLineOptions {
     }
     
     /**
+     * Returns whether "not a member" warnings should be suppressed for inferred types.
+     */
+    public boolean suppressNoMemberWarningForInferredTypes() {
+      return false;
+    }
+    
+    /**
      * Returns the list of files passed to the compiler.
      */
     public List<String> getSourceFiles() {
