@@ -6,7 +6,7 @@ class _BaseDataInputStream {
   abstract int available();
 
   List<int> read([int len]) {
-    if (_closeCallbackCalled) return null;
+    if (_closeCallbackCalled || _scheduledCloseCallback != null) return null;
     int bytesToRead = available();
     if (bytesToRead == 0) {
       _checkScheduleCallbacks();
@@ -23,7 +23,7 @@ class _BaseDataInputStream {
   }
 
   int readInto(List<int> buffer, [int offset = 0, int len]) {
-    if (_closeCallbackCalled) return 0;
+    if (_closeCallbackCalled || _scheduledCloseCallback != null) return 0;
     if (len === null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
@@ -109,6 +109,7 @@ class _BaseDataInputStream {
 
     void issueCloseCallback(Timer timer) {
       _scheduledCloseCallback = null;
+      _closeCallbackCalled = true;
       if (_clientCloseHandler !== null) _clientCloseHandler();
     }
 
@@ -120,11 +121,10 @@ class _BaseDataInputStream {
         if (_scheduledDataCallback == null) {
           _scheduledDataCallback = new Timer(0, issueDataCallback);
         }
-      } else if (_streamMarkedClosed && !_closeCallbackCalled) {
+      } else if (_streamMarkedClosed && _scheduledCloseCallback == null) {
         _cancelScheduledDataCallback();
         _close();
         _scheduledCloseCallback = new Timer(0, issueCloseCallback);
-        _closeCallbackCalled = true;
       }
     }
   }

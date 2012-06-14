@@ -226,6 +226,7 @@ class FileTest {
                                    len: expectedLength - position);
         Expect.equals(0, bytesRead);
         Expect.equals(0, input.available());
+        Expect.isFalse(input.closed);
       };
       input.onClosed = () {
         Expect.equals(0, input.available());
