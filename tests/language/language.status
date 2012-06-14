@@ -90,7 +90,9 @@ function_type_alias_negative_test: Fail  # Bug 5231617.
 generic_parameterized_extends_test: Skip  # Bug 5392297
 instance_call_wrong_argument_count_negative_test: Fail
 instanceof3_test: Fail # Issue 2571
+library2_negative_test: Fail # test issue 3649
 library4_negative_test: Fail   # Bug 5406175
+library6_negative_test: Fail # test issue 3650
 list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail

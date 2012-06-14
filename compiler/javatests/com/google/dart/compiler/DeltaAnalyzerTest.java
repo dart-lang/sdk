@@ -115,7 +115,7 @@ public class DeltaAnalyzerTest extends TestCase {
     LibraryUnit libraryUnit = DartCompiler.analyzeLibrary(librarySource, null,
                                                           config, provider, listener);
     LibraryElement enclosingLibrary = libraryUnit.getElement();
-    LibraryElement coreLibrary = libraryUnit.getImports().iterator().next().getElement();
+    LibraryElement coreLibrary = libraryUnit.getImportedLibraries().iterator().next().getElement();
     return (DartUnit) DartCompiler.analyzeDelta(SourceDelta.before(sourceBefore).after(sourceAfter),
                                                 enclosingLibrary, coreLibrary,
                                                 null, -1, -1, config, listener);

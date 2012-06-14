@@ -55,7 +55,7 @@ import java.util.List;
  * slower, not actually unit test, but easier to use if you need access to DartNode's.
  */
 public class TypeAnalyzerCompilerTest extends CompilerTestCase {
-
+  
   /**
    * Top-level "main" function should not have parameters.
    * <p>

@@ -16,17 +16,14 @@ import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.LibraryNode;
+import com.google.dart.compiler.ast.LibraryImport;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
@@ -69,8 +66,9 @@ public class TopLevelElementBuilder {
     assert scope.getElements().isEmpty();
 
     Map<String, LibraryPrefixElement> libraryPrefixElements = Maps.newHashMap();
-    for (LibraryUnit lib : library.getImports()) {
-      String prefix = library.getPrefixOf(lib);
+    for (LibraryImport libraryImport : library.getImports()) {
+      LibraryUnit lib = libraryImport.getLibrary();
+      String prefix = libraryImport.getPrefix();
       if (prefix != null) {
         // Put the prefix in the scope.
         LibraryPrefixElement libraryPrefixElement = libraryPrefixElements.get(prefix);
@@ -87,8 +85,7 @@ public class TopLevelElementBuilder {
       } else {
         // Put the elements of the library in the scope.
         for (DartUnit unit : lib.getUnits()) {
-          //fillInUnitScope(unit, listener, importScope, false);
-          fillInUnitScope(unit, listener, scope, false);
+          fillInUnitScope(unit, listener, importScope, false);
         }
       }
     }

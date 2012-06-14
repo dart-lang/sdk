@@ -388,7 +388,7 @@ public class DartCompiler {
             // Check that the current library is not the embedded library, and
             // that the current library does not already import the embedded
             // library.
-            if (lib != imp && !lib.hasImport(imp)) {
+            if (lib != imp && !lib.hasImport(null, imp)) {
               lib.addImport(imp, null);
             }
           }
@@ -648,7 +648,7 @@ public class DartCompiler {
         }
 
         // check that each imported library has a library directive
-        for (LibraryUnit importedLib : lib.getImports()) {
+        for (LibraryUnit importedLib  : lib.getImportedLibraries()) {
 
           if (SystemLibraryManager.isDartUri(importedLib.getSource().getUri())) {
             // system libraries are always valid
@@ -1139,7 +1139,7 @@ public class DartCompiler {
       }
       // use a place-holder LibrarySource instance, to be replaced when embedded
       // in the compiler, where the dart uri can be resolved.
-      embeddedLibraries.add(new NamedPlaceHolderLibrarySource("dart:coreimpl"));
+      embeddedLibraries.add(new NamedPlaceHolderLibrarySource("dart:core"));
     }
 
     new Compiler(lib, embeddedLibraries, config, context).compile();
@@ -1309,7 +1309,7 @@ public class DartCompiler {
         return libraryUnit;
       }
     }
-    for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
+    for (LibraryUnit importedLibrary : libraryUnit.getImportedLibraries()) {
       LibraryUnit unit = findLibrary(importedLibrary, uri, seen);
       if (unit != null) {
         return unit;

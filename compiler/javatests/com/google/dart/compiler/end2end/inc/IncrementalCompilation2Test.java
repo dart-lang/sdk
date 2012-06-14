@@ -24,6 +24,7 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
@@ -782,7 +783,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3531
@@ -819,10 +820,24 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     // do compile, no errors expected
     compile();
-    assertEquals(14, errors.size());
-    for (DartCompilationError error : errors) {
-      assertEquals(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, error.getErrorCode());
+    {
+      assertEquals(14, errors.size());
+      for (DartCompilationError error : errors) {
+        assertEquals(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, error.getErrorCode());
+      }
     }
+  }
+  
+  public void test_implicitlyImportCore() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('dart:core');",
+            ""));
+    compile();
+    ErrorExpectation.assertErrors(errors);
   }
 
   private void assertAppBuilt() {
@@ -848,7 +863,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         @Override
         public void onError(DartCompilationError event) {
           // Remember errors only between unitAboutToCompile/unitCompiled.
-          if (compilingUris.contains(event.getSource().getUri())) {
+          Source source = event.getSource();
+          if (source != null && compilingUris.contains(source.getUri())) {
             errors.add(event);
           }
         }

@@ -8,7 +8,8 @@ Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
 Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474
-Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
+Language/03_Overview/1_Scoping_A03_t04: Fail # co19 issue 143
+Language/03_Overview/1_Scoping_A03_t05: Fail # co19 issue 144
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 2383 
 Language/03_Overview/2_Privacy_A01_t09: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t10: Fail # Issue 2383
@@ -141,9 +142,9 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue
 Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
-Language/12_Libraries_and_Scripts/2_Imports_A02_t06: Fail # Issue 3530
-Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Issue 3530
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Issue 3530
+#Language/12_Libraries_and_Scripts/2_Imports_A02_t06: Fail # Issue 3530
+#Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Issue 3530
+#Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Issue 3530
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405

@@ -4,8 +4,10 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
@@ -17,13 +19,9 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -39,8 +37,7 @@ public class LibraryUnit {
   private final List<LibraryNode> nativePaths = Lists.newArrayList();
 
   private final Map<String, DartUnit> units = new ConcurrentSkipListMap<String, DartUnit>();
-  private final Collection<LibraryUnit> imports = Lists.newArrayList();
-  private final Map<LibraryUnit, String> prefixes = Maps.newHashMap();
+  private final List<LibraryImport> imports = Lists.newArrayList();
 
   private final LibraryElement element;
 
@@ -115,36 +112,16 @@ public class LibraryUnit {
 
   public void addImport(LibraryUnit unit, LibraryNode node) {
     if (unit != null) {
-      imports.add(unit);
-      if (node != null && node.getPrefix() != null) {
-        prefixes.put(unit, node.getPrefix());
-      }
+      String prefix = node != null ? node.getPrefix() : null;
+      imports.add(new LibraryImport(prefix, unit));
     }
-  }
-
-  public String getPrefixOf(LibraryUnit library) {
-    return prefixes.get(library);
-  }
-
-  public LibraryUnit getLibraryWithPrefix(String prefixToMatch) {
-    Iterator<LibraryUnit> libraries = prefixes.keySet().iterator();
-    Iterator<String> prefixStrings = prefixes.values().iterator();
-    while (prefixStrings.hasNext()) {
-      LibraryUnit library = libraries.next();
-      String prefix = prefixStrings.next();
-      if (prefix.equals(prefixToMatch)) {
-        return library;
-      }
-    }
-    return null;
   }
 
   public Collection<LibraryUnit> getLibrariesWithPrefix(String prefixToMatch) {
-    Set<Entry<LibraryUnit,String>> entries = prefixes.entrySet();
-    List<LibraryUnit> result = new ArrayList<LibraryUnit>(entries.size());
-    for (Entry<LibraryUnit,String> entry : entries) {
-      if (entry.getValue().equals(prefixToMatch)) {
-        result.add(entry.getKey());
+    List<LibraryUnit> result = Lists.newArrayList();
+    for (LibraryImport libraryImport : imports) {
+      if (Objects.equal(libraryImport.getPrefix(), prefixToMatch)) {
+        result.add(libraryImport.getLibrary());
       }
     }
     return result;
@@ -158,12 +135,20 @@ public class LibraryUnit {
     return units.values();
   }
 
-  public Iterable<LibraryUnit> getImports() {
+  public Iterable<LibraryImport> getImports() {
     return imports;
   }
+  
+  public Iterable<LibraryUnit> getImportedLibraries() {
+    Set<LibraryUnit> libraries = Sets.newHashSet();
+    for (LibraryImport libraryImport : imports) {
+      libraries.add(libraryImport.getLibrary());
+    }
+    return libraries;
+  }
 
-  public boolean hasImport(LibraryUnit unit) {
-    return imports.contains(unit);
+  public boolean hasImport(String prefix, LibraryUnit unit) {
+    return imports.contains(new LibraryImport(prefix, unit));
   }
 
   public DartExpression getEntryPoint() {
@@ -196,13 +181,14 @@ public class LibraryUnit {
    * Return all prefixes used by this library.
    */
   public Set<String> getPrefixes() {
-    return new HashSet<String>(prefixes.values());
-  }
-
-  public void initializePrefixes(LibraryUnit source) {
-    for (Map.Entry<LibraryUnit,String> e : source.prefixes.entrySet()) {
-      prefixes.put(e.getKey(), e.getValue());
+    Set<String> result = Sets.newTreeSet();
+    for (LibraryImport libraryImport : imports) {
+      String prefix = libraryImport.getPrefix();
+      if (prefix != null) {
+        result.add(prefix);
+      }
     }
+    return result;
   }
 
   /**
