@@ -16,6 +16,8 @@
  *
  *     server.addRequestHandler((req) => req.path == "/ws",
  *                              wsHandler.onRequest);
+ *
+ * This handler strives to implement web sockets as specified by RFC6455.
  */
 interface WebSocketHandler default _WebSocketHandler {
   WebSocketHandler();
