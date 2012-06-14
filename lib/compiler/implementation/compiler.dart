@@ -9,6 +9,11 @@
  */
 final bool REPORT_EXCESS_RESOLUTION = false;
 
+/**
+ * If true, trace information on pass2 optimizations.
+ */
+final bool REPORT_PASS2_OPTIMIZATIONS = false;
+
 class WorkItem {
   final Element element;
   TreeElements resolutionTree;
@@ -164,6 +169,7 @@ class Compiler implements DiagnosticListener {
   Backend backend;
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
+  int pass = 1;
 
   static final SourceString MAIN = const SourceString('main');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
@@ -200,6 +206,7 @@ class Compiler implements DiagnosticListener {
     tasks.addAll(backend.tasks);
   }
 
+  Universe get resolverWorld() => enqueuer.resolution.universe;
   Universe get codegenWorld() => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
@@ -420,6 +427,9 @@ class Compiler implements DiagnosticListener {
 
     log('Compiling...');
     processQueue(enqueuer.codegen, main);
+    log("Recompiling ${enqueuer.codegen.recompilationCandidates.length} "
+        "methods...");
+    processRecompilationQueue(enqueuer.codegen);
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     backend.assembleProgram();
@@ -437,6 +447,22 @@ class Compiler implements DiagnosticListener {
     world.queueIsClosed = true;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     world.registerFieldClosureInvocations();
+  }
+
+  processRecompilationQueue(Enqueuer world) {
+    pass = 2;
+    while (!world.recompilationCandidates.isEmpty()) {
+      WorkItem work = world.recompilationCandidates.next();
+      var oldCode = world.universe.generatedCode[work.element];
+      world.universe.generatedCode.remove(work.element);
+      withCurrentElement(work.element, () => work.run(this, world));
+      var newCode = world.universe.generatedCode[work.element];
+      if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
+        log("Pass 2 optimization:");
+        log("Before:\n$oldCode");
+        log("After:\n$newCode");
+      }
+    }
   }
 
   /**
@@ -583,6 +609,7 @@ class Compiler implements DiagnosticListener {
       if (message.message.kind === MessageKind.METHOD_NOT_FOUND) return;
     }
     SourceSpan span = spanFromNode(node);
+
     reportDiagnostic(span, "${magenta('warning:')} $message", false);
   }
 

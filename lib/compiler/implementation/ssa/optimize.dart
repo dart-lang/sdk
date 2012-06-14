@@ -27,11 +27,11 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial constant folding first to optimize
           // some patterns useful for type conversion.
-          new SsaConstantFolder(backend),
+          new SsaConstantFolder(backend, work),
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler),
           new SsaCheckInserter(backend),
-          new SsaConstantFolder(backend),
+          new SsaConstantFolder(backend, work),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaGlobalValueNumberer(compiler),
@@ -90,10 +90,11 @@ class SsaOptimizerTask extends CompilerTask {
 class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaConstantFolder";
   final JavaScriptBackend backend;
+  final WorkItem work;
   HGraph graph;
   Compiler get compiler() => backend.compiler;
 
-  SsaConstantFolder(this.backend);
+  SsaConstantFolder(this.backend, this.work);
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -579,6 +580,27 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     bool isFinalOrConst = false;
     if (modifiers != null) {
       isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
+    }
+    if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
+      // If no setter is ever used for this field it is only initialized in the
+      // initializer list.
+      isFinalOrConst = true;
+    }
+    if (!isFinalOrConst &&
+        !compiler.codegenWorld.hasInvokedSetter(field, compiler) &&
+        !compiler.codegenWorld.hasFieldSetter(field, compiler)) {
+      switch (compiler.pass) {
+        case 1:
+          compiler.enqueuer.codegen.registerRecompilationCandidate(
+              work.element);
+          break;
+        case 2:
+          // If field is not final or const but no setters are used then the
+          // field might be considered final anyway as it will be either
+          // un-initialized or initialized in the constructor initializer list.
+          isFinalOrConst = true;
+          break;
+      }
     }
     return new HFieldGet(field, node.inputs[0], isFinalOrConst: isFinalOrConst);
   }
