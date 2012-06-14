@@ -75,7 +75,10 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * This test succeeds if no exceptions are thrown.
    */
   public void test_recursiveTypes() throws Exception {
-    analyzeLibrary("test.dart", "class A extends A implements A {}");
+    analyzeLibrary("test.dart", Joiner.on("\n").join(
+        "class A extends A implements A {}",
+        "class B extends C {}",
+        "class C extends B {}"));
   }
 
   /**
