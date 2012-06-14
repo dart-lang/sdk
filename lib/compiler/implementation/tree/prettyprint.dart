@@ -15,6 +15,8 @@ class PrettyPrinter implements Visitor {
 
   StringBuffer sb;
   int depth;
+  /** Prefix for the type passed to the next [openNode()] call. */
+  String nextTypePrefix;
 
   PrettyPrinter() : sb = new StringBuffer(), depth = 0;
 
@@ -61,6 +63,10 @@ class PrettyPrinter implements Visitor {
   }
 
   void addTypeWithParams(String type, [Map params]) {
+    if (nextTypePrefix !== null) {
+      sb.add(nextTypePrefix);
+      nextTypePrefix = null;
+    }
     sb.add("${type}");
     if (params != null) {
       // TODO(smok): Escape doublequotes in values.
@@ -242,12 +248,34 @@ class PrettyPrinter implements Visitor {
     visitNodeWithChildren(node, "ScriptTag");
   }
 
+  /** Custom helper to visit given node and print its type with prefix. */
+  visitWithPrefix(Node node, String prefix) {
+    nextTypePrefix = prefix;
+    node.accept(this);
+  }
+
+  openSendNodeWithFields(Send node, String type) {
+    openNode(type, {
+        "isPrefix" : "${node.isPrefix}",
+        "isPostfix" : "${node.isPostfix}",
+        "isIndex" : "${node.isIndex}"
+    });
+    if (node.receiver !== null) visitWithPrefix(node.receiver, "receiver:");
+    if (node.selector !== null) visitWithPrefix(node.selector, "selector:");
+    if (node.argumentsNode !== null)
+        visitWithPrefix(node.argumentsNode, "argumentsNode:");
+  }
+
   visitSend(Send node) {
-    visitNodeWithChildren(node, "Send");
+    openSendNodeWithFields(node, "Send");
+    closeNode("Send");
   }
 
   visitSendSet(SendSet node) {
-    visitNodeWithChildren(node, "SendSet");
+    openSendNodeWithFields(node, "SendSet");
+    if (node.assignmentOperator !== null)
+        visitWithPrefix(node.assignmentOperator, "assignmentOperator:");
+    closeNode("SendSet");
   }
 
   visitStringInterpolation(StringInterpolation node) {
