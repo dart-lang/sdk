@@ -2252,6 +2252,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.PREFIX_PRECEDENCE);
   }
 
+  void checkFixedArray(HInstruction input) {
+    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    use(input, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.fixed\$length');
+    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+  }
+
   void checkNull(HInstruction input) {
     beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     use(input, JSPrecedence.EQUALITY_PRECEDENCE);
@@ -2275,11 +2282,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
   }
 
-  void checkType(HInstruction input, Element element) {
+  void checkType(HInstruction input, Element element, [bool negative = false]) {
     world.registerIsCheck(element);
     bool requiresNativeIsCheck =
         backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (!requiresNativeIsCheck) buffer.add('!!');
+    if (!requiresNativeIsCheck) {
+      if (negative) {
+        buffer.add('!');
+      } else {
+        buffer.add('!!');
+      }
+    } else if (negative) {
+      buffer.add('!');
+    }
     use(input, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(compiler.namer.operatorIs(element));
@@ -2501,64 +2516,77 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     HInstruction input = node.guarded;
     Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
     if (node.isInteger()) {
+      // if (input is !int) bailout
       buffer.add('if (');
       checkInt(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not an integer');
     } else if (node.isNumber()) {
+      // if (input is !num) bailout
       buffer.add('if (');
       checkNum(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a number');
     } else if (node.isBoolean()) {
+      // if (input is !bool) bailout
       buffer.add('if (');
       checkBool(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a boolean');
     } else if (node.isString()) {
+      // if (input is !string) bailout
       buffer.add('if (');
       checkString(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a string');
     } else if (node.isExtendableArray()) {
+      // if (input is !Object || input is !Array || input.isFixed) bailout
       buffer.add('if (');
       checkObject(input, '!==');
       buffer.add('||');
       checkArray(input, '!==');
       buffer.add('||');
-      checkExtendableArray(input);
+      checkFixedArray(input);
       buffer.add(') ');
       bailout(node, 'Not an extendable array');
     } else if (node.isMutableArray()) {
+      // if (input is !Object
+      //     || ((input is !Array || input.isImmutable)
+      //         && input is !JsIndexingBehavior)) bailout
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add(' || ');
+      buffer.add(' || ((');
       checkArray(input, '!==');
       buffer.add(' || ');
       checkImmutableArray(input);
-      buffer.add(' || !');
-      checkType(input, indexingBehavior);
-      buffer.add(') ');
+      buffer.add(') && ');
+      checkType(input, indexingBehavior, negative: true);
+      buffer.add(')) ');
       bailout(node, 'Not a mutable array');
     } else if (node.isReadableArray()) {
+      // if (input is !Object
+      //     || (input is !Array && input is !JsIndexingBehavior)) bailout
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add(' || ');
+      buffer.add(' || (');
       checkArray(input, '!==');
-      buffer.add(' || !');
-      checkType(input, indexingBehavior);
-      buffer.add(') ');
+      buffer.add(' && ');
+      checkType(input, indexingBehavior, negative: true);
+      buffer.add(')) ');
       bailout(node, 'Not an array');
     } else if (node.isIndexablePrimitive()) {
+      // if (input is !String
+      //     && (input is !Object
+      //         || (input is !Array && input is !JsIndexingBehavior))) bailout
       buffer.add('if (');
       checkString(input, '!==');
       buffer.add(' && (');
       checkObject(input, '!==');
-      buffer.add(' || ');
+      buffer.add(' || (');
       checkArray(input, '!==');
-      buffer.add(' || !');
-      checkType(input, indexingBehavior);
-      buffer.add(')) ');
+      buffer.add(' && ');
+      checkType(input, indexingBehavior, negative: true);
+      buffer.add('))) ');
       bailout(node, 'Not a string or array');
     } else {
       compiler.internalError('Unexpected type guard', instruction: input);
