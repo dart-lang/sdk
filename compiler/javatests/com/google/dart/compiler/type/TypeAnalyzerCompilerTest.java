@@ -1971,6 +1971,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v2", "double");
     assertInferredElementTypeString(libraryResult, "v3", "double");
   }
+  
+  public void test_typesPropagation_FunctionAliasType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef F();",
+        "foo(F f) {",
+        "  var v = f;",
+        "  v();",
+        "}",
+        "",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "F");
+  }
 
   public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
