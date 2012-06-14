@@ -215,6 +215,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     equalsNullElement = interceptors.getEqualsNullInterceptor();
     boolifiedEqualsNullElement =
         interceptors.getBoolifiedVersionOf(equalsNullElement);
+    parameterNames.forEach((Element element, String name) {
+      declaredVariables.add(name);
+    });
   }
 
   abstract visitTypeGuard(HTypeGuard node);
