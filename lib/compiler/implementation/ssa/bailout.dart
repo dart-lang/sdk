@@ -371,6 +371,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
   final List<HLabeledBlockInformation> labeledBlockInformations;
   final Set<HInstruction> generateAtUseSite;
   SubGraph subGraph;
+  int maxBailoutParameters = 0;
 
   /**
    * If set to true, the graph has either multiple bailouts in
@@ -508,6 +509,10 @@ class SsaBailoutPropagator extends HBaseVisitor {
   }
 
   visitTypeGuard(HTypeGuard guard) {
+    int inputLength = guard.inputs.length;
+    if (inputLength > maxBailoutParameters) {
+      maxBailoutParameters = inputLength;
+    }
     if (blocks.isEmpty()) {
       if (firstTypeGuard === null || firstTypeGuard.state === guard.state) {
         firstTypeGuard = guard;

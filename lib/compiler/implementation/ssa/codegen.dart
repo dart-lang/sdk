@@ -2639,7 +2639,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   final StringBuffer newParameters;
   final List<String> labels;
   int labelId = 0;
-  int maxBailoutParameters = 0;
 
   SsaBailoutPropagator propagator;
   HInstruction savedFirstInstruction;
@@ -2667,8 +2666,19 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   HBasicBlock beginGraph(HGraph graph) {
     propagator = new SsaBailoutPropagator(compiler, generateAtUseSite);
     propagator.visitGraph(graph);
+    // TODO(ngeoffray): We could avoid generating the state at the
+    // call site for non-complex bailout methods.
+    newParameters.add('state');
 
     if (propagator.hasComplexTypeGuards) {
+      // Use generic parameters that will be assigned to
+      // the right variables in the setup phase.
+      for (int i = 0; i < propagator.maxBailoutParameters; i++) {
+        String name = 'env$i';
+        declaredVariables.add(name);
+        newParameters.add(', $name');
+      }
+
       startBailoutSwitch();
 
       // The setup phase of a bailout function sets up the environment for
@@ -2677,6 +2687,15 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       setup.add('  switch (state) {\n');
       return graph.entry;
     } else {
+      // We have a simple type guard, so we can reuse the names that
+      // the type guard expects.
+      for (HInstruction input in propagator.firstTypeGuard.inputs) {
+        input = unwrap(input);
+        String name = variableNames.getName(input);
+        declaredVariables.add(name);
+        newParameters.add(', $name');
+      }
+
       // We change the first instruction of the first guard to be the
       // guard. We will change it back in the call to [endGraph].
       HBasicBlock block = propagator.firstTypeGuard.block;
@@ -2699,27 +2718,14 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void endGraph(HGraph graph) {
-    // TODO(ngeoffray): We could avoid generating the state at the
-    // call site for non-complex bailout methods.
-    newParameters.add('state');
-
-    // TODO(ngeoffray): We should declare the parameters in
-    // beginGraph, to avoid potentially redeclaring them with 'var'
-    // in the method body.
-    if (!propagator.hasComplexTypeGuards) {
-      propagator.firstTypeGuard.block.first = savedFirstInstruction;
-      for (HInstruction input in propagator.firstTypeGuard.inputs) {
-        input = unwrap(input);
-        newParameters.add(', ${variableNames.getName(input)}');
-      }
-    } else {
-      for (int i = 0; i < maxBailoutParameters; i++) {
-        newParameters.add(', env$i');
-      }
+    if (propagator.hasComplexTypeGuards) {
       indent--; // Close original case.
       indent--;
       addIndented('}\n');  // Close 'switch'.
       setup.add('  }\n');
+    } else {
+      // Put back the original first instruction of the block.
+      propagator.firstTypeGuard.block.first = savedFirstInstruction;
     }
   }
 
@@ -2761,7 +2767,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       setup.add('$name = env$i;\n');
       i++;
     }
-    if (i > maxBailoutParameters) maxBailoutParameters = i;
     setup.add('      break;\n');
   }
 
