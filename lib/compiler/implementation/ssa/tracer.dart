@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -72,10 +72,12 @@ class HTracer extends HGraphVisitor implements Tracer {
          instruction = instruction.next) {
       int bci = 0;
       int uses = instruction.usedBy.length;
+      String changes = instruction.hasSideEffects() ? '!' : '';
+      String depends = instruction.dependsOnSomething() ? '?' : '';
       addIndent();
       String temporaryId = stringifier.temporaryId(instruction);
       String instructionString = stringifier.visit(instruction);
-      add("$bci $uses $temporaryId $instructionString <|@\n");
+      add("$bci $uses $temporaryId $instructionString $changes $depends <|@\n");
     }
   }
 
