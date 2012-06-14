@@ -3946,6 +3946,11 @@ public class DartParser extends CompletionHooksParserBase {
         case RBRACE:
         case EOS:
           return statements;
+        case IDENTIFIER:
+          // Handle consecutively labelled case statements
+          if (peek(1).equals(Token.COLON) && peek(2).equals(Token.CASE)) {
+            return statements;
+          }
         default:
           boolean oldInCaseStatement = inCaseStatement;
           inCaseStatement = true;

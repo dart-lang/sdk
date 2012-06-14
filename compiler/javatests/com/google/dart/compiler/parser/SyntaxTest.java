@@ -684,4 +684,16 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.UNEXPECTED_TOKEN,  2, 13,
             ParserErrorCode.EXPECTED_TOKEN,  4, 1);
   }
+
+  public void testLabelledCaseStatements() throws Exception {
+    parseUnit("phony_labelled_case_statements.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  switch(1) {",
+            "  A: case 0:",
+            "  B: case 1:",
+            "    break;",
+            "  }",
+            "}"));
+  }
 }
