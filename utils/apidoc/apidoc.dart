@@ -19,9 +19,9 @@
 #import('dart:json');
 #import('html_diff.dart');
 
-#import('../../frog/lang.dart');
-#import('../../frog/file_system_vm.dart');
-#import('../../frog/file_system.dart');
+#import('../../lib/dartdoc/frog/lang.dart');
+#import('../../lib/dartdoc/frog/file_system_vm.dart');
+#import('../../lib/dartdoc/frog/file_system.dart');
 #import('../../lib/dartdoc/dartdoc.dart', prefix: 'doc');
 
 HtmlDiff _diff;
@@ -66,10 +66,10 @@ void main() {
     }
   }
 
-  final frogPath = joinPaths(doc.scriptDir, '../../frog/');
+  final frogPath = joinPaths(doc.scriptDir, '../../lib/dartdoc/frog/');
 
   if (compilerPath === null) {
-    compilerPath = joinPaths(frogPath, 'frog.py');
+    compilerPath = 'dart2js';
   }
 
   doc.cleanOutputDirectory(outputDir);
@@ -93,7 +93,7 @@ void main() {
       outputDir);
 
   var files = new VMFileSystem();
-  parseOptions(frogPath, ['', '', '--libdir=$frogPath/lib'], files);
+  parseOptions(frogPath, ['', '', '--libdir=../../lib'], files);
   initializeWorld(files);
 
   print('Parsing MDN data...');

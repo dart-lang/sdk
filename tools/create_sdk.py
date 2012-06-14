@@ -207,7 +207,7 @@ def Main(argv):
         'dart_analyzer' + analyzer_file_extension)
     copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
     copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
-  
+
   # Create pub shell script.
   pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
   CopyShellScript(pub_src_script, BIN)
@@ -338,48 +338,18 @@ def Main(argv):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
 
-  # Create and populate lib/dartdoc
+  # Create and populate lib/dartdoc.
   dartdoc_src_dir = join(HOME, 'lib', 'dartdoc')
   dartdoc_dest_dir = join(LIB, 'dartdoc')
   copytree(dartdoc_src_dir, dartdoc_dest_dir,
            ignore=ignore_patterns('.svn', 'docs'))
 
-  # Copy frog into lib/dartdoc and fixup dependencies.
-  # TODO(johnniwinther): This should not be necessary long term.
-  frog_src_dir = join(HOME, 'frog')
-  frog_dest_dir = join(dartdoc_dest_dir, 'frog')
-  os.makedirs(frog_dest_dir)
-  for filename in os.listdir(frog_src_dir):
-    if filename == 'frog_options.dart':
-      # Change config from 'dev' to 'sdk' in frog_options.dart.
-      frog_options_contents = open(join(frog_src_dir, filename)).read()
-      frog_options_dest = open(join(frog_dest_dir, filename), 'w')
-      frog_options_dest.write(re.sub("final config = \'dev\';",
-                                     "final config = \'sdk\';",
-                                     frog_options_contents))
-      frog_options_dest.close()
-    elif filename.endswith('.dart'):
-      dest = join(frog_dest_dir, filename)
-      copyfile(join(frog_src_dir, filename), dest)
-      ReplaceInFiles([dest], [("../lib/", "../../")])
-    ReplaceInFiles([
-      join(LIB, 'dartdoc', 'dartdoc.dart')
-    ], [
-      ("#import\('../../frog",
-          "#import('frog"),
-      ("joinPaths\(scriptDir, '../../frog/'\)",
-          "joinPaths(scriptDir, 'frog/')"),
-      ("joinPaths\(frogPath, 'lib'\)",
-          "joinPaths(scriptDir, '../')"),
-      ("joinPaths\(frogPath, 'minfrog'\)",
-          "joinPaths(scriptDir, '../../bin/dart2js')"),
+  # Fixup frog dependencies.
+  ReplaceInFiles([join(LIB, 'dartdoc', 'dartdoc.dart')], [
+      ("'dart2js'", "joinPaths(scriptDir, '../../bin/dart2js')"),
     ])
-  ReplaceInFiles([
-      join(LIB, 'dartdoc', 'classify.dart'),
-      join(LIB, 'dartdoc', 'client-live-nav.dart'),
-      join(LIB, 'dartdoc', 'client-static.dart')
-    ], [
-      ("#import\('../../frog", "#import('frog")
+  ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'frog_options.dart')], [
+      ("final config = \'dev\';", "final config = \'sdk\';")
     ])
 
   # Create and populate lib/isolate

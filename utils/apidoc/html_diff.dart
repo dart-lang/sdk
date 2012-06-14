@@ -10,9 +10,9 @@
 
 #import('dart:coreimpl');
 
-#import('../../frog/lang.dart');
-#import('../../frog/file_system_vm.dart');
-#import('../../frog/file_system.dart');
+#import('../../lib/dartdoc/frog/lang.dart');
+#import('../../lib/dartdoc/frog/file_system_vm.dart');
+#import('../../lib/dartdoc/frog/file_system.dart');
 #import('../../lib/dartdoc/dartdoc.dart');
 
 /**

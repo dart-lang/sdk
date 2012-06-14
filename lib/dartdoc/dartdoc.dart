@@ -18,9 +18,9 @@
 
 #import('dart:io');
 #import('dart:json');
-#import('../../frog/lang.dart');
-#import('../../frog/file_system.dart');
-#import('../../frog/file_system_vm.dart');
+#import('frog/lang.dart');
+#import('frog/file_system.dart');
+#import('frog/file_system_vm.dart');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
 
@@ -110,9 +110,9 @@ void main() {
   // TODO(rnystrom): Note that the following lines get munged by create-sdk to
   // work with the SDK's different file layout. If you change, be sure to test
   // that dartdoc still works when run from the built SDK directory.
-  final frogPath = joinPaths(scriptDir, '../../frog/');
-  final libDir = joinPaths(frogPath, 'lib');
-  final compilerPath = joinPaths(frogPath, 'minfrog');
+  final frogPath = joinPaths(scriptDir, 'frog/');
+  final libDir = joinPaths(scriptDir, '..');
+  final compilerPath = 'dart2js';
 
   parseOptions(frogPath, ['', '', '--libdir=$libDir'], files);
   initializeWorld(files);
