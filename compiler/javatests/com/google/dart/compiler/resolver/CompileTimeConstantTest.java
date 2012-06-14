@@ -15,6 +15,25 @@ import com.google.common.base.Joiner;
  */
 public class CompileTimeConstantTest extends ResolverTestCase {
 
+  /**
+   * We should understand "const" keyword and temporary treat both "const" and "static final" as
+   * constants.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3550
+   */
+  public void test_temporaryConstSyntax() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "const CT = 5;",
+        "class A {",
+        " const CF = 5;",
+        " const C1 = CT + 1;",
+        " const C2 = CF + 1;",
+        " static final SF1 = CT + 1;",
+        " static final SF2 = CF + 1;",
+        "}"));
+  }
+
   public void testConstantBinaryExpression1() {
     resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",

@@ -46,6 +46,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "super type %s does not have a default constructor"),
   CIRCULAR_REFERENCE(
       "Circular reference detected:  compile-time constants cannot reference themselves."),
+  CONST_REQUIRES_VALUE("Constant fields must have an initial value"),
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),

@@ -29,6 +29,7 @@ import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
+import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
 import com.google.dart.compiler.resolver.CompileTimeConstantResolver;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
@@ -1241,7 +1242,10 @@ public class DartCompiler {
     }
     librariesToResolve.put(topLibUnit.getSource().getUri(), topLibUnit);
     
-    DartCompilationPhase[] phases = {new Resolver.Phase(), new TypeAnalyzer()};
+    DartCompilationPhase[] phases = {
+        new CompileTimeConstantAnalyzer.Phase(),
+        new Resolver.Phase(),
+        new TypeAnalyzer()};
     Map<URI, LibraryUnit> newLibraries = Maps.newHashMap();
     for (Entry<URI, LibraryUnit> entry : librariesToResolve.entrySet()) {
       URI libUri = entry.getKey();

@@ -1173,6 +1173,16 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
         errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
   }
+  
+  public void test_const_requiresValue() {
+    resolveAndTest(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "interface int {}",
+        "const f;",
+        ""),
+        errEx(ResolverErrorCode.CONST_REQUIRES_VALUE, 4, 7, 1));
+  }
 
   public void testNoGetterOrSetter() {
     resolveAndTest(Joiner.on("\n").join(

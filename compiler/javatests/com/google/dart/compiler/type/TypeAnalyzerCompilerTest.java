@@ -1144,6 +1144,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
+  
+  public void test_constField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "const f = 1;",
+            "class A {",
+            "  const f = 1;",
+            "}",
+            "main() {",
+            "  f = 2;",
+            "  A a = new A();",
+            "  a.f = 2;",
+            "}",
+            ""));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 3, 1),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 9, 5, 1));
+  }
 
   /**
    * <p>

@@ -17,7 +17,6 @@ Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
 Language/05_Variables/05_Variables_A01_t01: Fail # Issue 3323
 Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
-Language/05_Variables/05_Variables_A05_t03: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # Issue 963
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
@@ -25,9 +24,6 @@ Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
-Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Issue 3323
-Language/07_Classes/4_Instance_Variables_A02_t06: Fail # Issue 3323
-Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Issue 3323
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t02: Fail # Issue 2474
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
@@ -42,10 +38,6 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Issue 3476
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Issue 3476
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Issue 3476
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t04: Fail # Issue 3476
-Language/07_Classes/7_Static_Variables_A01_t01: Fail # Issue 3323
-Language/07_Classes/7_Static_Variables_A01_t05: Fail # Issue 3323
-Language/07_Classes/7_Static_Variables_A02_t01: Fail # Issue 3323
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail # Issue 976
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
@@ -57,17 +49,17 @@ Language/09_Generics/09_Generics_A01_t04: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t01: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
 Language/10_Expressions/01_Constants_A03_t01: Fail # Issue 1483
-Language/10_Expressions/01_Constants_A05_t01: Fail # Issue 3323
 Language/10_Expressions/01_Constants_A06_t01: Fail # Issue 3323
 Language/10_Expressions/01_Constants_A10_t01: Fail # Issue 3521
 Language/10_Expressions/01_Constants_A14_t01: Fail # Issue 3519
+Language/10_Expressions/01_Constants_A15_t16: Fail # issue 3553
+Language/10_Expressions/01_Constants_A15_t38: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 134
 Language/10_Expressions/01_Constants_A15_t49: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/10_Expressions/01_Constants_A18_t02: Fail # Issue 3323
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # Issue 2376
 Language/10_Expressions/06_Lists_A03_t01: Fail # Issue 1473
 Language/10_Expressions/07_Maps_A01_t01: Fail # Issue 1489

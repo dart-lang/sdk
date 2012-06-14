@@ -35,7 +35,7 @@ import java.util.List;
 public class SyntaxTest extends AbstractParserTest {
 
   public void test_getter() {
-    DartUnit unit = parseUnit("getter.dart", Joiner.on("\n").join(
+    parseUnit("getter.dart", Joiner.on("\n").join(
         "class G {",
         "  // Old getter syntax",
         "  int get g1() => 1;",
@@ -45,13 +45,64 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   public void test_setter() {
-    DartUnit unit = parseUnit("setter.dart", Joiner.on("\n").join(
+    parseUnit("setter.dart", Joiner.on("\n").join(
         "class G {",
         "  // Old setter syntax",
         "  void set g1(int v) {}",
         "  // New setter syntax",
         "  void set g2=(int v) {}",
         "}"));
+  }
+  
+  public void test_const() {
+    DartUnit unit = parseUnit(getName() + ".dart", makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const T1 = 1;",
+        "final T2 = 1;",
+        "class A {",
+        "  const F1 = 2;",
+        "  static final F2 = 2;",
+        "}"));
+    // T1
+    {
+      DartFieldDefinition fieldDefinition = (DartFieldDefinition) unit.getTopLevelNodes().get(0);
+      DartField field = fieldDefinition.getFields().get(0);
+      assertEquals("T1", field.getName().getName());
+      assertEquals(true, field.getModifiers().isConstant());
+      assertEquals(false, field.getModifiers().isStatic());
+      assertEquals(true, field.getModifiers().isFinal());
+    }
+    // T2
+    {
+      DartFieldDefinition fieldDefinition = (DartFieldDefinition) unit.getTopLevelNodes().get(1);
+      DartField field = fieldDefinition.getFields().get(0);
+      assertEquals("T2", field.getName().getName());
+      assertEquals(false, field.getModifiers().isConstant());
+      assertEquals(false, field.getModifiers().isStatic());
+      assertEquals(true, field.getModifiers().isFinal());
+    }
+    // A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(2);
+      // F1
+      {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) classA.getMembers().get(0);
+        DartField field = fieldDefinition.getFields().get(0);
+        assertEquals("F1", field.getName().getName());
+        assertEquals(true, field.getModifiers().isConstant());
+        assertEquals(false, field.getModifiers().isStatic());
+        assertEquals(true, field.getModifiers().isFinal());
+      }
+      // F2
+      {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) classA.getMembers().get(1);
+        DartField field = fieldDefinition.getFields().get(0);
+        assertEquals("F2", field.getName().getName());
+        assertEquals(false, field.getModifiers().isConstant());
+        assertEquals(true, field.getModifiers().isStatic());
+        assertEquals(true, field.getModifiers().isFinal());
+      }
+    }
   }
 
   /**
@@ -260,7 +311,7 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   public void testMultipleLabels() {
-    DartUnit unit = parseUnit ("multiple_labels.dart",
+    parseUnit ("multiple_labels.dart",
       Joiner.on("\n").join(
         "class A {",
         "  void foo() {",

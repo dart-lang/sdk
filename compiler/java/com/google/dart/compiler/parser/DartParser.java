@@ -1046,7 +1046,20 @@ public class DartParser extends CompletionHooksParserBase {
         if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
           modifiers = modifiers.makeFactory();
         }
-        member = done(parseMethod(modifiers, null));
+        if (peek(0).equals(Token.IDENTIFIER) && looksLikeMethodOrAccessorDefinition()) {
+          return done(parseMethod(modifiers, null));
+        }
+        // Try to find type, may be "const ^ Type field".
+        DartTypeNode type = null;
+        if (peek(1) != Token.COMMA
+            && peek(1) != Token.ASSIGN
+            && peek(1) != Token.SEMICOLON) {
+          type = parseTypeAnnotation();
+        }
+        // Parse field.
+        modifiers = modifiers.makeFinal();
+        member = parseFieldDeclaration(modifiers, type);
+        expectStatmentTerminator();
         break;
       }
 

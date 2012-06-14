@@ -671,7 +671,9 @@ public class Resolver {
           Elements.setType(element, fieldType);
         }
       } else if (isFinal) {
-        if (isStatic) {
+        if (modifiers.isConstant()) {
+          onError(node, ResolverErrorCode.CONST_REQUIRES_VALUE);
+        } else if (isStatic) {
           onError(node, ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
         } else if (isTopLevel) {
           onError(node, ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE);          

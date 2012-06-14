@@ -329,7 +329,7 @@ public class MemberBuilder {
       assert !fieldNode.getModifiers().isAbstractField();
       Modifiers modifiers = fieldNode.getModifiers();
       if (modifiers.isFinal() && (modifiers.isStatic() || context == topLevelContext)) {
-        // final toplevel fields are implicitly compile-time constants.
+        // final top-level fields are implicitly compile-time constants.
         modifiers = modifiers.makeStatic();
         // Set the "const" modifier so that it is easy to compare a constant field to other
         // types of constant expressions.

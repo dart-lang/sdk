@@ -76,6 +76,9 @@ compile_time_constant_o_test: Fail # Issue 2126
 compile_time_constant_p_test/01: Fail # Issue 2580
 const_constructor_syntax_test/05: Fail
 const_counter_negative_test: Fail    # issue 1655
+const_syntax_test/01: Fail # test issue 3626
+const_syntax_test/02: Fail # test issue 3626
+const_syntax_test/03: Fail # test issue 3626
 constructor3_negative_test: Fail
 constructor_call_wrong_argument_count_negative_test: Fail
 default_factory_library_test: Fail          # Issue 514
