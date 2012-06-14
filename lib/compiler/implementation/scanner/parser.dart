@@ -261,17 +261,6 @@ class Parser {
 
   Token expect(String string, Token token) {
     if (string !== token.stringValue) {
-      if (string === '>') {
-        if (token.stringValue === '>>') {
-          Token gt = new Token(GT_INFO, token.charOffset + 1);
-          gt.next = token.next;
-          return gt;
-        } else if (token.stringValue === '>>>') {
-          Token gtgt = new Token(GT_GT_INFO, token.charOffset + 1);
-          gtgt.next = token.next;
-          return gtgt;
-        }
-      }
       return listener.expected(string, token);
     }
     return token.next;
@@ -335,6 +324,16 @@ class Parser {
         token = stuffParser(token.next);
         ++count;
       } while (optional(',', token));
+      Token next = token.next;
+      if (token.stringValue === '>>') {
+        token = new Token(GT_INFO, token.charOffset);
+        token.next = new Token(GT_INFO, token.charOffset + 1);
+        token.next.next = next;
+      } else if (token.stringValue === '>>>') {
+        token = new Token(GT_INFO, token.charOffset);
+        token.next = new Token(GT_GT_INFO, token.charOffset + 1);
+        token.next.next = next;
+      }
       endStuff(count, begin, token);
       return expect('>', token);
     }
