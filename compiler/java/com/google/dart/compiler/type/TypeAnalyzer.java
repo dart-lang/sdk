@@ -601,6 +601,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private class VariableElementsRestorer {
       private final Map<VariableElement, Type> typesMap = Maps.newHashMap();
       void setType(VariableElement element, Type inferredType) {
+        if (element == null) {
+          return;
+        }
         Type currentType = element.getType();
         // remember original if not yet
         if (!typesMap.containsKey(element)) {

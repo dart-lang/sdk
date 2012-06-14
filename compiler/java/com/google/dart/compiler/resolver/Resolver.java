@@ -1577,8 +1577,12 @@ public class Resolver {
       }
 
       assert !inInitializer;
+      DartExpression value = x.getValue();
+      if (value == null) {
+        return null;
+      }
       inInitializer = true;
-      Element element = x.getValue().accept(this);
+      Element element = value.accept(this);
       inInitializer = false;
       return element;
     }
