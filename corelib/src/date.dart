@@ -6,6 +6,10 @@
 
 /**
  * Date is the public interface to a point in time.
+ *
+ * It can represent time values that are at a distance of at most
+ * 8,640,000,000,000,000ms (100,000,000 days) from epoch (1970-01-01 UTC). In
+ * other words: [:value.abs() <= 8640000000000000:].
  */
 interface Date extends Comparable, Hashable default DateImplementation {
   // Weekday constants that are returned by [weekday] method:
@@ -34,7 +38,7 @@ interface Date extends Comparable, Hashable default DateImplementation {
 
   /**
    * Constructs a [Date] instance based on the individual parts. The date is
-   * in the local time-zone if [isUtc] is false.
+   * in the local time zone if [isUtc] is false.
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
@@ -60,10 +64,10 @@ interface Date extends Comparable, Hashable default DateImplementation {
 
   /**
    * Constructs a new [Date] instance with the given [value]. If [isUtc] is
-   * false then the date is in the local time-zone.
+   * false then the date is in the local time zone.
    *
    * The constructed [Date] represents 1970-01-01T00:00:00Z + [value]ms in
-   * the given time-zone (local or UTC).
+   * the given time zone (local or UTC).
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
@@ -100,7 +104,7 @@ interface Date extends Comparable, Hashable default DateImplementation {
 
 
   /**
-   * Returns [this] in the local time-zone. Returns itself if it is already in
+   * Returns [this] in the local time zone. Returns itself if it is already in
    * the local time zone. Otherwise, this method is equivalent to
    * [:new Date.fromEpoch(this.value, isUtc: false):].
    */
