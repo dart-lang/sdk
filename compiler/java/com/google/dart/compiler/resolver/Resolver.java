@@ -1209,7 +1209,7 @@ public class Resolver {
               element = member.getElement();
               // Must be accessible.
               if (!Elements.isAccessible(context.getScope().getLibrary(), element)) {
-                name.markResolutionError();
+                name.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
                 onError(name, ResolverErrorCode.CANNOT_ACCESS_METHOD, x.getFunctionNameString());
               }
             }
@@ -1482,11 +1482,11 @@ public class Resolver {
       switch (kind) {
         case NONE:
           if (isStaticContextOrInitializer()) {
-            node.getTarget().markResolutionError();
+            node.getTarget().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
             onError(node.getTarget(), ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
           }
           if (scope.findElement(null, name) != null) {
-            node.getTarget().markResolutionError();
+            node.getTarget().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
             onError(node.getTarget(), ResolverErrorCode.CANNOT_ACCESS_METHOD, name);
           }
           break;

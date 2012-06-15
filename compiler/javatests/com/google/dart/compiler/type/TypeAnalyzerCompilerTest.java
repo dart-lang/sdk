@@ -2545,7 +2545,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, 4, 11, 3));
   }
 
-  public void test_canNotResolveMethod_unqualified() throws Exception {
+  public void test_cannotResolveMethod_unqualified() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",

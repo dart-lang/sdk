@@ -2123,7 +2123,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           type = typeAsMemberOf(element, currentClass);
           break;
         case NONE:
-          if (!target.hasResolutionError()) {
+          if (!target.isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
             onError(target, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, currentClass, target);
           }
           return dynamicType;
