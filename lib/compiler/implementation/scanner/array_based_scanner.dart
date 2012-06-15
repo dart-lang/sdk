@@ -49,6 +49,10 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   }
 
   void appendKeywordToken(Keyword keyword) {
+    String syntax = keyword.syntax;
+
+    // Type parameters and arguments cannot contain 'this' or 'super'.
+    if (syntax === 'this' || syntax === 'super') discardOpenLt();
     tail.next = new KeywordToken(keyword, tokenStart);
     tail = tail.next;
   }
@@ -90,11 +94,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     Token token = new BeginGroupToken(info, value, tokenStart);
     tail.next = token;
     tail = tail.next;
-    while (info.kind !== LT_TOKEN &&
-           !groupingStack.isEmpty() &&
-           groupingStack.head.kind === LT_TOKEN) {
-      groupingStack = groupingStack.tail;
-    }
+    if (info.kind !== LT_TOKEN) discardOpenLt();
     groupingStack = groupingStack.prepend(token);
   }
 

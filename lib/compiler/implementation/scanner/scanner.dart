@@ -33,6 +33,13 @@ class AbstractScanner<T extends SourceString> implements Scanner {
   abstract void appendGt(PrecedenceInfo info, String value);
   abstract void appendGtGt(PrecedenceInfo info, String value);
   abstract void appendGtGtGt(PrecedenceInfo info, String value);
+
+  /**
+   * We call this method to discard '<' from the "grouping" stack
+   * (maintained by subclasses). That we don't create groups for stuff
+   * like "a = b < c, d = e > f" is used by
+   * [PartialParser.skipExpression].
+   */
   abstract void discardOpenLt();
 
   // TODO(ahe): Move this class to implementation.
@@ -143,6 +150,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
 
     if (next === $SEMICOLON) {
       appendPrecedenceToken(SEMICOLON_INFO);
+      // Type parameters and arguments cannot contain semicolon.
       discardOpenLt();
       return advance();
     }
@@ -341,6 +349,11 @@ class AbstractScanner<T extends SourceString> implements Scanner {
 
   int tokenizeEquals(int next) {
     // = == ===
+
+    // Type parameters and arguments cannot contain any token that
+    // starts with '='.
+    discardOpenLt();
+
     next = advance();
     if (next === $EQ) {
       return select($EQ, EQ_EQ_EQ_INFO, EQ_EQ_INFO);
