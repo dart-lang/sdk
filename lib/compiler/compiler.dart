@@ -16,7 +16,7 @@
  * or if an error occur while fetching it, this method must throw an
  * exception.
  */
-typedef Future<String> ReadUriFromString(Uri uri);
+typedef Future<String> ReadStringFromUri(Uri uri);
 
 /**
  * Invoked by the compiler to report diagnostics. If [uri] is null, so
@@ -39,7 +39,7 @@ typedef void DiagnosticHandler(Uri uri, int begin, int end,
 Future<String> compile(Uri script,
                        Uri libraryRoot,
                        Uri packageRoot,
-                       ReadUriFromString provider,
+                       ReadStringFromUri provider,
                        DiagnosticHandler handler,
                        [List<String> options = const []]) {
   Compiler compiler = new Compiler(provider, handler, libraryRoot, packageRoot,
