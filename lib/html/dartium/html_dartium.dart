@@ -5309,6 +5309,14 @@ class _DataTransferItemListImpl extends _DOMWrapperBase implements DataTransferI
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DataViewFactoryProvider {
+  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) => _createDataView(buffer, byteOffset, byteLength);
+  static DataView _createDataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) native "DataView_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
@@ -5357,7 +5365,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getInt32_2(byteOffset, littleEndian) native "DataView_getInt32_2_Callback";
 
-  Object getInt8() native "DataView_getInt8_Callback";
+  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
   int getUint16(byteOffset, [littleEndian = _null]) {
     if (littleEndian === _null) {
@@ -5381,7 +5389,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getUint32_2(byteOffset, littleEndian) native "DataView_getUint32_2_Callback";
 
-  Object getUint8() native "DataView_getUint8_Callback";
+  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
   void setFloat32(byteOffset, value, [littleEndian = _null]) {
     if (littleEndian === _null) {
@@ -5431,7 +5439,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setInt32_2(byteOffset, value, littleEndian) native "DataView_setInt32_2_Callback";
 
-  void setInt8() native "DataView_setInt8_Callback";
+  void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
   void setUint16(byteOffset, value, [littleEndian = _null]) {
     if (littleEndian === _null) {
@@ -5457,7 +5465,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setUint32_2(byteOffset, value, littleEndian) native "DataView_setUint32_2_Callback";
 
-  void setUint8() native "DataView_setUint8_Callback";
+  void setUint8(int byteOffset, int value) native "DataView_setUint8_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25936,7 +25944,9 @@ interface DataTransferItemList {
 // WARNING: Do not edit - generated code.
 
 /// @domName DataView
-interface DataView extends ArrayBufferView {
+interface DataView extends ArrayBufferView default _DataViewFactoryProvider {
+
+  DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]);
 
   /** @domName DataView.getFloat32 */
   num getFloat32(int byteOffset, [bool littleEndian]);
@@ -25951,7 +25961,7 @@ interface DataView extends ArrayBufferView {
   int getInt32(int byteOffset, [bool littleEndian]);
 
   /** @domName DataView.getInt8 */
-  Object getInt8();
+  int getInt8(int byteOffset);
 
   /** @domName DataView.getUint16 */
   int getUint16(int byteOffset, [bool littleEndian]);
@@ -25960,7 +25970,7 @@ interface DataView extends ArrayBufferView {
   int getUint32(int byteOffset, [bool littleEndian]);
 
   /** @domName DataView.getUint8 */
-  Object getUint8();
+  int getUint8(int byteOffset);
 
   /** @domName DataView.setFloat32 */
   void setFloat32(int byteOffset, num value, [bool littleEndian]);
@@ -25975,7 +25985,7 @@ interface DataView extends ArrayBufferView {
   void setInt32(int byteOffset, int value, [bool littleEndian]);
 
   /** @domName DataView.setInt8 */
-  void setInt8();
+  void setInt8(int byteOffset, int value);
 
   /** @domName DataView.setUint16 */
   void setUint16(int byteOffset, int value, [bool littleEndian]);
@@ -25984,7 +25994,7 @@ interface DataView extends ArrayBufferView {
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
   /** @domName DataView.setUint8 */
-  void setUint8();
+  void setUint8(int byteOffset, int value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

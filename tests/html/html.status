@@ -13,6 +13,7 @@ request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not impl
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
+typed_arrays_dataview_test: Fail  # DataView constructor not implemented.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -45,6 +46,7 @@ typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip
 typed_arrays_4_test: Skip
+typed_arrays_dataview_test: Skip
 canvas_pixel_array_type_alias_test: Fail  # Verify is CanvasPixelArray.
 canvaspixelarraytypealias_test: Fail  # Verify is CanvasPixelArray.
 cssstyledeclaration_test: Fail
