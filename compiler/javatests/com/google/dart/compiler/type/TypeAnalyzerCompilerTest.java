@@ -1736,6 +1736,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v1", "String");
     assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
+  
+  /**
+   * Even if there is negation, we still apply "as" cast, so visit "then" statement only if cast was
+   * successful.
+   */
+  public void test_typesPropagation_ifAsType_negation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (!(v as String).isEmpty()) {",
+        "    var v1 = v;",
+        "  }",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+  }
 
   public void test_typesPropagation_ifIsType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(

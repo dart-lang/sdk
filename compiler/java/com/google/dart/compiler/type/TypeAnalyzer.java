@@ -564,19 +564,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
             @Override
             public Void visitBinaryExpression(DartBinaryExpression node) {
-              // don't infer type if condition negated
-              if (!negation) {
-                if (node.getOperator() == Token.IS || node.getOperator() == Token.AS) {
-                  DartExpression arg1 = node.getArg1();
-                  DartExpression arg2 = node.getArg2();
-                  if (arg1 instanceof DartIdentifier
-                      && arg1.getElement() instanceof VariableElement
-                      && arg2 instanceof DartTypeExpression) {
-                    VariableElement variableElement = (VariableElement) arg1.getElement();
-                    Type rhsType = arg2.getType();
-                    Type varType = Types.makeInferred(rhsType);
-                    variableRestorer.setType(variableElement, varType);
-                  }
+              // apply "as" always
+              // apply "is" only if not negated
+              if (node.getOperator() == Token.AS || node.getOperator() == Token.IS && !negation) {
+                DartExpression arg1 = node.getArg1();
+                DartExpression arg2 = node.getArg2();
+                if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
+                    && arg2 instanceof DartTypeExpression) {
+                  VariableElement variableElement = (VariableElement) arg1.getElement();
+                  Type rhsType = arg2.getType();
+                  Type varType = Types.makeInferred(rhsType);
+                  variableRestorer.setType(variableElement, varType);
                 }
               }
               // operator || means that we can not be sure about types
