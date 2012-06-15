@@ -16,6 +16,7 @@ namespace dart {
 class BitVector;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
+class Function;
 class LocalVariable;
 class LocationSummary;
 
@@ -612,24 +613,40 @@ class EqualityCompareComp : public ComparisonComp {
       : ComparisonComp(left, right),
         token_index_(token_index),
         try_index_(try_index),
-        operands_class_id_(kObject) {
+        class_ids_(NULL),
+        targets_(NULL) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  void set_operands_class_id(intptr_t value) {
-    operands_class_id_ = value;
+  void SetPolymorphicTargets(ZoneGrowableArray<intptr_t>* class_ids,
+                             ZoneGrowableArray<Function*>* targets) {
+    class_ids_ = class_ids;
+    targets_ = targets;
+    ASSERT(targets_ != NULL);
+    ASSERT(class_ids_ != NULL);
   }
-  intptr_t operands_class_id() const { return operands_class_id_; }
+  intptr_t NumTargets() const {
+    return class_ids_ == NULL ? 0 : class_ids_->length();
+  }
+  Function* TargetAt(intptr_t ix) const {
+    ASSERT(targets_ != NULL);
+    return (*targets_)[ix];
+  }
+  intptr_t ClassIdAt(intptr_t ix) const {
+    ASSERT(class_ids_ != NULL);
+    return (*class_ids_)[ix];
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  intptr_t operands_class_id_;  // class id of both operands.
+  ZoneGrowableArray<intptr_t>* class_ids_;
+  ZoneGrowableArray<Function*>* targets_;
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };

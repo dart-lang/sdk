@@ -623,15 +623,16 @@ void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
-  if (!comp->HasICData()) return;
-  const ICData& ic_data = *comp->ic_data();
-  if (ic_data.NumberOfChecks() != 1) return;
-  ASSERT(HasOneTarget(ic_data));
-  if (HasTwoSmi(ic_data)) {
-    comp->set_operands_class_id(kSmi);
-  } else {
-    return;
+  const intptr_t kMaxChecks = 4;
+  if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
+    ZoneGrowableArray<intptr_t>* class_ids =
+        new ZoneGrowableArray<intptr_t>();
+    ZoneGrowableArray<Function*>* targets =
+        new ZoneGrowableArray<Function*>();
+    ExtractClassIdsAndTargets(*comp->ic_data(), class_ids, targets);
+    comp->SetPolymorphicTargets(class_ids, targets);
   }
+
   // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
   // and a branch.
   TryFuseComparisonWithBranch(comp);

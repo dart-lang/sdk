@@ -190,7 +190,7 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if (operands_class_id() == kSmi) {
+  if ((NumTargets() == 1) && (ClassIdAt(0) == kSmi)) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
     locs->set_in(0, Location::RequiresRegister());
@@ -201,18 +201,25 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     }
     return locs;
   }
-  if (operands_class_id() == kObject) {
-    const intptr_t kNumTemps = 0;
+  if (NumTargets() > 0) {
+    const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
     if (!is_fused_with_branch()) {
       locs->set_out(Location::RegisterLocation(EAX));
     }
     return locs;
   }
-  UNREACHABLE();
-  return NULL;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  if (!is_fused_with_branch()) {
+    locs->set_out(Location::RegisterLocation(EAX));
+  }
+  return locs;
 }
 
 
@@ -248,33 +255,8 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
-static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
+static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        EqualityCompareComp* comp) {
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done, non_null_compare;
-  __ cmpl(left, raw_null);
-  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
-  // Comparison with NULL is "===".
-  __ cmpl(left, right);
-  if (comp->is_fused_with_branch()) {
-    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
-  } else {
-    Register result = comp->locs()->out().reg();
-    Label load_true;
-    __ j(EQUAL, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, compiler->bool_false());
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&load_true);
-    __ LoadObject(result, compiler->bool_true());
-  }
-  __ jmp(&done);
-
-  __ Bind(&non_null_compare);
-  __ pushl(left);
-  __ pushl(right);
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  comp->cid(),
                                  comp->token_index(),
@@ -297,20 +279,126 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
     __ CompareObject(EAX, compiler->bool_true());
     comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
   }
+}
+
+
+static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
+                                          EqualityCompareComp* comp,
+                                          Register left,
+                                          Register right) {
+  ASSERT(comp->NumTargets() > 0);
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptEquality);
+  __ testl(left, Immediate(kSmiTagMask));
+  Register temp = comp->locs()->temp(0).reg();
+  if (comp->ClassIdAt(0) == kSmi) {
+    Label done, load_class_id;
+    __ j(NOT_ZERO, &load_class_id, Assembler::kNearJump);
+    __ movl(temp, Immediate(kSmi));
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&load_class_id);
+    __ LoadClassId(temp, left);
+    __ Bind(&done);
+  } else {
+    __ j(ZERO, deopt);  // Smi deopts.
+    __ LoadClassId(temp, left);
+  }
+  Label done;
+  for (intptr_t i = 0; i < comp->NumTargets(); i++) {
+    ASSERT((comp->ClassIdAt(i) != kSmi) || (i == 0));
+    Label next_test;
+    __ cmpl(temp, Immediate(comp->ClassIdAt(i)));
+    __ j(NOT_EQUAL, &next_test, Assembler::kNearJump);
+    const Function& target = *comp->TargetAt(i);
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    if (target.owner() == object_store->object_class()) {
+      // Object.== is same as ===.
+      __ Drop(2);
+      __ cmpl(left, right);
+      if (comp->is_fused_with_branch()) {
+        comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+      } else {
+        // This case should be rare.
+        Register result = comp->locs()->out().reg();
+        Label load_true;
+        __ j(EQUAL, &load_true, Assembler::kNearJump);
+        __ LoadObject(result, compiler->bool_false());
+        __ jmp(&done);
+        __ Bind(&load_true);
+        __ LoadObject(result, compiler->bool_true());
+      }
+    } else {
+      const int kNumberOfArguments = 2;
+      const Array& kNoArgumentNames = Array::Handle();
+      compiler->GenerateStaticCall(comp->cid(),
+                                   comp->token_index(),
+                                   comp->try_index(),
+                                   target,
+                                   kNumberOfArguments,
+                                   kNoArgumentNames);
+      ASSERT(comp->is_fused_with_branch() ||
+            (comp->locs()->out().reg() == EAX));
+      if (comp->is_fused_with_branch()) {
+        __ CompareObject(EAX, compiler->bool_true());
+        comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+      }
+    }
+    __ jmp(&done);
+    __ Bind(&next_test);
+  }
+  // Fall through leads to deoptimization
+  __ jmp(deopt);
+  __ Bind(&done);
+}
+
+
+// First test if receiver is NULL, in which case === is applied.
+// If type feedback was provided (lists of <class-id, target>), do a
+// type by type check (either === or static call to the operator.
+static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
+                                       EqualityCompareComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label done, non_null_compare;
+  __ cmpl(left, raw_null);
+  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
+  // Comparison with NULL is "===".
+  __ cmpl(left, right);
+  if (comp->is_fused_with_branch()) {
+    comp->fused_with_branch()->EmitBranchOnCondition(compiler, EQUAL);
+  } else {
+    Register result = comp->locs()->out().reg();
+    Label load_true;
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&load_true);
+    __ LoadObject(result, compiler->bool_true());
+  }
+  __ jmp(&done);
+
+  __ Bind(&non_null_compare);  // Receiver is not null.
+  __ pushl(left);
+  __ pushl(right);
+  if (comp->NumTargets() > 0) {
+    EmitEqualityAsPolymorphicCall(compiler, comp, left, right);
+  } else {
+    EmitEqualityAsInstanceCall(compiler, comp);
+  }
   __ Bind(&done);
 }
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (operands_class_id() == kSmi) {
+  if ((NumTargets() == 1) && (ClassIdAt(0) == kSmi)) {
     EmitSmiEqualityCompare(compiler, this);
     return;
   }
-  if (operands_class_id() == kObject) {
-    EmitGenericEqualityCompare(compiler, this);
-    return;
-  }
-  UNREACHABLE();
+  EmitGenericEqualityCompare(compiler, this);
 }
 
 
