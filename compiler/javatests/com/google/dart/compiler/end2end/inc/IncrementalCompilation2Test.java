@@ -754,8 +754,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(
         errors,
-        errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 9),
-        errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 5, 15));
+        errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 7),
+        errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 11, 7));
   }
 
   /**

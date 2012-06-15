@@ -346,7 +346,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     while (element != null) {
       if (element instanceof MethodElement) {
         MethodElement methodElement = (MethodElement) element;
-        return methodElement.isStatic();
+        return methodElement.isStatic() || methodElement.getEnclosingElement()  instanceof LibraryElement;
       }
       if (element instanceof FieldElement) {
         FieldElement fieldElement = (FieldElement) element;

@@ -660,7 +660,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  foo();",
         "}",
         "");
-    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 3, 3, 5));
+    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 3, 3, 3));
   }
 
   /**
@@ -1630,7 +1630,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertErrors(
           result.getErrors(),
           errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
-          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 3, 5));
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
     }
     // use CompilerConfiguration
     {
@@ -2530,6 +2530,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(libraryResult.getErrors(),
         errEx(TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, 4, 11, 3));
+  }
+
+  public void test_canNotResolveMethod_unqualified() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  f() {",
+        "    foo();",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 4, 5, 3));
+  }
+
+  public void test_canNotResolveMethod_qualified() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 6, 5, 3));
   }
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {

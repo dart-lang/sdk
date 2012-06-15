@@ -39,7 +39,7 @@ public enum TypeErrorCode implements ErrorCode {
   INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),
   INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS(
       "instantiation of class %s with the inherited abstract members: %s"),
-  INTERFACE_HAS_NO_METHOD_NAMED("%s has no method named \"%s\""),
+  INTERFACE_HAS_NO_METHOD_NAMED("\"%s\" has no method named \"%s\""),
   INTERNAL_ERROR("internal error: %s", true),
   IS_STATIC_FIELD_IN("\"%s\" is a static field in \"%s\""),
   IS_STATIC_METHOD_IN("\"%s\" is a static method in \"%s\""),

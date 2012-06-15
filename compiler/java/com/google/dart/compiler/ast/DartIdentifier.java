@@ -14,6 +14,7 @@ public class DartIdentifier extends DartExpression {
 
   private final String name;
   private NodeElement element;
+  private boolean hasResolutionError;
 
   public DartIdentifier(String name) {
     assert name != null;
@@ -41,6 +42,21 @@ public class DartIdentifier extends DartExpression {
   @Override
   public void setElement(Element element) {
     this.element = (NodeElement) element;
+  }
+
+  /**
+   * Specifies that this name was not found it enclosing {@link Element}.
+   */
+  public void markResolutionError() {
+    this.hasResolutionError = true;
+  }
+  
+  /**
+   * @return <code>true</code> if we know that this name was not found in its enclosing
+   *         {@link Element}, and error was already reported.
+   */
+  public boolean hasResolutionError() {
+    return hasResolutionError;
   }
 
   @Override

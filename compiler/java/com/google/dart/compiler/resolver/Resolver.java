@@ -1018,7 +1018,7 @@ public class Resolver {
 
       return recordElement(x, element);
     }
-
+    
     /**
      * Possibly recursive check on the resolved identifier.
      */
@@ -1178,6 +1178,7 @@ public class Resolver {
 
     @Override
     public Element visitMethodInvocation(DartMethodInvocation x) {
+      DartIdentifier name = x.getFunctionName();
       Element target = resolveQualifier(x.getTarget());
       Element element = null;
 
@@ -1208,7 +1209,8 @@ public class Resolver {
               element = member.getElement();
               // Must be accessible.
               if (!Elements.isAccessible(context.getScope().getLibrary(), element)) {
-                onError(x, ResolverErrorCode.CANNOT_ACCESS_METHOD, x.getFunctionNameString());
+                name.markResolutionError();
+                onError(name, ResolverErrorCode.CANNOT_ACCESS_METHOD, x.getFunctionNameString());
               }
             }
           }
@@ -1223,15 +1225,15 @@ public class Resolver {
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, library, null);
           } else {
-            x.getFunctionName().setElement(element);
+            name.setElement(element);
           }
           break;
       }
 
       checkInvocationTarget(x, currentMethod, target);
       visit(x.getArguments());
-      if (x.getFunctionName() != null) {
-        recordElement(x.getFunctionName(), element);
+      if (name != null) {
+        recordElement(name, element);
       }
       return recordElement(x, element);
     }
@@ -1480,10 +1482,12 @@ public class Resolver {
       switch (kind) {
         case NONE:
           if (isStaticContextOrInitializer()) {
-            onError(node, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
+            node.getTarget().markResolutionError();
+            onError(node.getTarget(), ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
           }
           if (scope.findElement(null, name) != null) {
-            onError(node, ResolverErrorCode.CANNOT_ACCESS_METHOD, name);
+            node.getTarget().markResolutionError();
+            onError(node.getTarget(), ResolverErrorCode.CANNOT_ACCESS_METHOD, name);
           }
           break;
 
@@ -1853,13 +1857,13 @@ public class Resolver {
 
       checkConstructor(node, constructorElement);
     }
-
-    private void onError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
-      context.onError(node, errorCode, arguments);
+    
+    private void onError(HasSourceInfo target, ErrorCode errorCode, Object... arguments) {
+      context.onError(target, errorCode, arguments);
     }
 
-    private void onError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
-      context.onError(node, errorCode, arguments);
+    private void onError(SourceInfo target, ErrorCode errorCode, Object... arguments) {
+      context.onError(target, errorCode, arguments);
     }
 
     private boolean inStaticContext(DartNode node) {
@@ -1873,10 +1877,6 @@ public class Resolver {
       return true;
     }
 
-    private boolean inStaticContext(Element element) {
-        return element == null || Elements.isTopLevel(element)
-                || element.getModifiers().isStatic() || element.getModifiers().isFactory();
-    }
 
     private boolean inFactoryContext(Element element) {
       if (element != null) {
@@ -1888,6 +1888,11 @@ public class Resolver {
     @Override
     boolean isStaticContext() {
       return inStaticContext(currentMethod);
+    }
+
+    private boolean inStaticContext(Element element) {
+      return element == null || Elements.isTopLevel(element)
+          || element.getModifiers().isStatic() || element.getModifiers().isFactory();
     }
 
     @Override

@@ -1272,7 +1272,7 @@ public class ResolverTest extends ResolverTestCase {
         "    outer();",
         "  }",
         "}"),
-        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 5, 5, 7));
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 5, 5, 5));
   }
 
   public void testUndercoreInNamedParameterMethodDefinition() {

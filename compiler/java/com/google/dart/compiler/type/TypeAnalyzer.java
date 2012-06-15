@@ -1143,7 +1143,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartNode target = node.getTarget();
       Type receiver = nonVoidTypeOf(target);
       List<DartExpression> arguments = node.getArguments();
-      Member member = lookupMember(receiver, name, node);
+      Member member = lookupMember(receiver, name, node.getFunctionName());
       if (member != null) {
         node.setElement(member.getElement());
       }
@@ -2120,7 +2120,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
           type = typeAsMemberOf(element, currentClass);
           break;
         case NONE:
-          // already reported by resolver
+          if (!target.hasResolutionError()) {
+            onError(target, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, currentClass, target);
+          }
           return dynamicType;
         default:
           type = element.getType();
