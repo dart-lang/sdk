@@ -49,8 +49,8 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 int Thread::Start(ThreadStartFunction function, uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(function, parameter);
   uint32_t tid;
-  uintptr_t thread =
-      _beginthreadex(NULL, 64 * KB, ThreadEntry, start_data, 0, &tid);
+  uintptr_t thread = _beginthreadex(NULL, Thread::GetMaxStackSize(),
+                                    ThreadEntry, start_data, 0, &tid);
   if (thread == -1L || thread == 0) {
 #ifdef DEBUG
     fprintf(stderr, "_beginthreadex error: %d (%s)\n", errno, strerror(errno));
@@ -80,6 +80,12 @@ void Thread::DeleteThreadLocal(ThreadLocalKey key) {
   if (!result) {
     FATAL("TlsFree failed");
   }
+}
+
+
+intptr_t Thread::GetMaxStackSize() {
+  const int kStackSize = (256 * KB);
+  return kStackSize;
 }
 
 

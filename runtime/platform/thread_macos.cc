@@ -71,12 +71,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   RETURN_ON_PTHREAD_FAILURE(result);
 
-#if DEBUG
-  const int kStackSize = (128 * KB);
-#else
-  const int kStackSize = (64 * KB);
-#endif
-  result = pthread_attr_setstacksize(&attr, kStackSize);
+  result = pthread_attr_setstacksize(&attr, Thread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
   ThreadStartData* data = new ThreadStartData(function, parameter);
@@ -115,6 +110,12 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
   VALIDATE_PTHREAD_RESULT(result);
+}
+
+
+intptr_t Thread::GetMaxStackSize() {
+  const int kStackSize = (256 * KB);
+  return kStackSize;
 }
 
 
