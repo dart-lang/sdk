@@ -34,17 +34,25 @@ class LibraryReader {
       };
     } else if (options.config == 'sdk') {
       _specialLibs = {
-        'dart:core': joinPaths(options.libDir, 'core/core_frog.dart'),
+        'dart:core': joinPaths(options.libDir,
+            'dartdoc/frog/lib/corelib.dart'),
         'dart:coreimpl': joinPaths(options.libDir,
-          'coreimpl/coreimpl_frog.dart'),
-        'dart:html': joinPaths(options.libDir, 'html/html_frog.dart'),
-        'dart:dom_deprecated': joinPaths(options.libDir, 'dom/dom_frog.dart'),
+            'dartdoc/frog/lib/corelib_impl.dart'),
+        'dart:html': joinPaths(options.libDir,
+            'html/html_frog.dart'),
+        'dart:dom_deprecated': joinPaths(options.libDir,
+            'dom/dom_frog.dart'),
         // TODO(rnystrom): How should we handle dart:io here?
-        'dart:isolate': joinPaths(options.libDir, 'isolate/isolate_frog.dart'),
-        'dart:crypto': joinPaths(options.libDir, 'crypto/crypto.dart'),
-        'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
-        'dart:uri': joinPaths(options.libDir, 'uri/uri.dart'),
-        'dart:utf': joinPaths(options.libDir, 'utf/utf.dart'),
+        'dart:isolate': joinPaths(options.libDir,
+            'isolate/isolate_frog.dart'),
+        'dart:crypto': joinPaths(options.libDir,
+            'crypto/crypto.dart'),
+        'dart:json': joinPaths(options.libDir,
+            'json/json_frog.dart'),
+        'dart:uri': joinPaths(options.libDir,
+            'uri/uri.dart'),
+        'dart:utf': joinPaths(options.libDir,
+            'utf/utf.dart'),
       };
     } else {
       world.error('Invalid configuration ${options.config}');

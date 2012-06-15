@@ -8,7 +8,7 @@
       'target_name': 'api_docs',
       'type': 'none',
       'dependencies': [
-        '../../frog/dart-frog.gyp:frog',
+        '../../utils/compiler/compiler.gyp:dart2js',
         '../../runtime/dart-runtime.gyp:dart',
       ],
       'includes': [
@@ -19,7 +19,7 @@
           'action_name': 'run_apidoc',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/frog/bin/frog',
+            '<(PRODUCT_DIR)/dart2js',
             '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../lib/dartdoc"])',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib", "../../runtime/lib", "../../runtime/bin"])',
             '<@(_sources)',
@@ -33,7 +33,7 @@
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
             '--mode=live-nav',
-            '--compiler=<(PRODUCT_DIR)/frog/bin/frog',
+            '--compiler=<(PRODUCT_DIR)/dart2js',
           ],
         },
       ],

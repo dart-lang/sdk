@@ -29,11 +29,11 @@
 # ........runtime/
 # ......compiler/
 # ......core/
-# ........core_{frog, runtime}.dart
-# ........{frog, runtime}/
+# ........core_runtime.dart
+# ........runtime/
 # ......coreimpl/
-# ........coreimpl_{frog, runtime}.dart
-# ........{frog, runtime}/
+# ........coreimpl_runtime.dart
+# ........runtime/
 # ......dart2js/
 # ......dartdoc/
 # ......isolate/
@@ -97,7 +97,7 @@ def Copy(src, dest):
 # have all prerequisite software installed.  Also update dart.gyp.
 def ShouldCopyAnalyzer():
   return utils.GuessOS() == 'linux'
-  
+
 
 def CopyShellScript(src_file, dest_dir):
   '''Copies a shell/batch script to the given destination directory. Handles
@@ -155,15 +155,11 @@ def Main(argv):
     (eval(open("runtime/bin/io_sources.gypi").read()))['sources']
   corelib_sources = \
     (eval(open("corelib/src/corelib_sources.gypi").read()))['sources']
-  corelib_frog_sources = \
-    (eval(open("frog/lib/frog_corelib_sources.gypi").read()))['sources']
   corelib_runtime_sources = \
     (eval(open("runtime/lib/lib_sources.gypi").read()))['sources']
   coreimpl_sources = \
     (eval(open("corelib/src/implementation/corelib_impl_sources.gypi").read()))\
     ['sources']
-  coreimpl_frog_sources = \
-    (eval(open("frog/lib/frog_coreimpl_sources.gypi").read()))['sources']
   coreimpl_runtime_sources = \
     (eval(open("runtime/lib/lib_impl_sources.gypi").read()))['sources']
 
@@ -230,12 +226,10 @@ def Main(argv):
   os.makedirs(LIB)
   corelib_dest_dir = join(LIB, 'core')
   os.makedirs(corelib_dest_dir)
-  os.makedirs(join(corelib_dest_dir, 'frog'))
   os.makedirs(join(corelib_dest_dir, 'runtime'))
 
   coreimpl_dest_dir = join(LIB, 'coreimpl')
   os.makedirs(coreimpl_dest_dir)
-  os.makedirs(join(coreimpl_dest_dir, 'frog'))
   os.makedirs(join(coreimpl_dest_dir, 'runtime'))
 
 
@@ -351,6 +345,12 @@ def Main(argv):
   ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'frog_options.dart')], [
       ("final config = \'dev\';", "final config = \'sdk\';")
     ])
+  ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'lib', 'corelib.dart')], [
+      ("../../../../corelib/src/", "../../../core/runtime/")
+    ]);
+  ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'lib', 'corelib_impl.dart')], [
+      ("../../../../corelib/src/implementation", "../../../coreimpl/runtime/")
+    ]);
 
   # Create and populate lib/isolate
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
@@ -369,17 +369,11 @@ def Main(argv):
   # Create and populate lib/core.
   #
 
-  # First, copy corelib/* to lib/{frog, runtime}
+  # First, copy corelib/* to lib/runtime
   for filename in corelib_sources:
-    for target_dir in ['frog', 'runtime']:
+    for target_dir in ['runtime']:
       copyfile(join('corelib', 'src', filename),
                join(corelib_dest_dir, target_dir, filename))
-
-  # Next, copy the frog library source on top of core/frog
-  # TOOD(dgrove): move json to top-level
-  for filename in corelib_frog_sources:
-    copyfile(join('frog', 'lib', filename),
-             join(corelib_dest_dir, 'frog', filename))
 
   # Next, copy the runtime library source on top of core/runtime
   for filename in corelib_runtime_sources:
@@ -390,15 +384,6 @@ def Main(argv):
   #
   # At this point, it's time to create lib/core/core*dart .
   #
-  # munge frog/lib/corelib.dart into lib/core_frog.dart .
-  src_file = join('frog', 'lib', 'corelib.dart')
-  dest_file = open(join(corelib_dest_dir, 'core_frog.dart'), 'w')
-  contents = open(src_file).read()
-  contents = re.sub('source\(\"../../corelib/src/', 'source(\"', contents)
-  contents = re.sub("source\(\"", "source(\"frog/", contents)
-  dest_file.write(contents)
-  dest_file.close()
-
   # construct lib/core_runtime.dart from whole cloth.
   dest_file = open(join(corelib_dest_dir, 'core_runtime.dart'), 'w')
   dest_file.write('#library("dart:core");\n')
@@ -416,31 +401,16 @@ def Main(argv):
   # Create and populate lib/coreimpl.
   #
 
-  # First, copy corelib/src/implementation to corelib/{frog, runtime}.
+  # First, copy corelib/src/implementation to corelib/runtime.
   for filename in coreimpl_sources:
-    for target_dir in ['frog', 'runtime']:
+    for target_dir in ['runtime']:
       copyfile(join('corelib', 'src', 'implementation', filename),
                join(coreimpl_dest_dir, target_dir, filename))
-
-  for filename in coreimpl_frog_sources:
-    copyfile(join('frog', 'lib', filename),
-             join(coreimpl_dest_dir, 'frog', filename))
 
   for filename in coreimpl_runtime_sources:
     if filename.endswith('.dart'):
       copyfile(join('runtime', 'lib', filename),
                join(coreimpl_dest_dir, 'runtime', filename))
-
-
-  # Create and fix up lib/coreimpl/coreimpl_frog.dart .
-  src_file = join('frog', 'lib', 'corelib_impl.dart')
-  dest_file = open(join(coreimpl_dest_dir, 'coreimpl_frog.dart'), 'w')
-  contents = open(src_file).read()
-  contents = re.sub('source\(\"../../corelib/src/implementation/',
-                    'source(\"', contents)
-  contents = re.sub('source\(\"', 'source(\"frog/', contents)
-  dest_file.write(contents)
-  dest_file.close()
 
   # Construct lib/coreimpl/coreimpl_runtime.dart from whole cloth.
   dest_file = open(join(coreimpl_dest_dir, 'coreimpl_runtime.dart'), 'w')
@@ -465,7 +435,7 @@ def Main(argv):
                             'dart_analyzer.jar')
     analyzer_dest_jar = join(ANALYZER_DEST, 'dart_analyzer.jar')
     copyfile(analyzer_src_jar, analyzer_dest_jar)
-  
+
     jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
                    join("guava", "r09", "guava-r09.jar"),
                    join("json", "r2_20080312", "json.jar") ]

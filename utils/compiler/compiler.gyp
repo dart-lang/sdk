@@ -12,6 +12,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
+        '../../third_party/v8/src/d8.gyp:d8',
       ],
       'actions': [
         {
