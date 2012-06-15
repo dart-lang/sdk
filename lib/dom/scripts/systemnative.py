@@ -255,7 +255,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if constructor_info:
       self._EmitFactoryProvider(self._interface.id, constructor_info)
 
-    if 'CustomConstructor' in self._interface.ext_attrs:
+    if constructor_info is None:
       # We have a custom implementation for it.
       self._cpp_declarations_emitter.Emit(
           '\n'
