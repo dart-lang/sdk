@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -740,9 +740,6 @@ class HInstruction implements Hashable {
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
-  bool dependsOnSomething() => getFlag(FLAG_DEPENDS_ON_SOMETHING);
-  void setDependsOnSomething() { setFlag(FLAG_DEPENDS_ON_SOMETHING); }
-
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
   // Does this node potentially affect control flow.
@@ -1079,9 +1076,6 @@ class HConditionalBranch extends HControlFlow {
 class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
-  void prepareGvn() {
-    clearAllSideEffects();
-  }
   bool isControlFlow() => true;
   bool isStatement() => true;
 }
@@ -1267,9 +1261,12 @@ class HFieldGet extends HFieldAccess {
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn() {
-    clearAllSideEffects();
-    setUseGvn();
-    if (!isFinalOrConst) setDependsOnSomething();
+    if (isFinalOrConst) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      clearAllSideEffects();
+    }
   }
 
   int typeCode() => 27;

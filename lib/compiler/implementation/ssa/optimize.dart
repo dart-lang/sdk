@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -711,11 +711,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
   static bool isDeadCode(HInstruction instruction) {
+    // TODO(ngeoffray): the way we handle side effects is not right
+    // (e.g. branching instructions have side effects).
     return !instruction.hasSideEffects()
            && instruction.usedBy.isEmpty()
            && instruction is !HCheck
-           && instruction is !HTypeGuard
-           && !instruction.isControlFlow();
+           && instruction is !HTypeGuard;
   }
 
   void visitGraph(HGraph graph) {
