@@ -9,8 +9,8 @@ main() {
 
   test('constructorTest', () {
       var ctx = new AudioContext();
-      Expect.isNotNull(ctx);
-      Expect.isTrue(ctx is AudioContext);
+      expect(ctx, isNotNull);
+      expect(ctx is AudioContext);
   });
   test('createBuffer', () {
       var ctx = new AudioContext();
@@ -20,7 +20,7 @@ main() {
         // should throw 'SYNTAX_ERR' DOMException because the buffer is empty.
         AudioBuffer buffer = ctx.createBuffer(arrayBufferView.buffer, false);
       } catch(var e) {
-        Expect.equals(DOMException.SYNTAX_ERR, e.code);
+        expect(e.code, equals(DOMException.SYNTAX_ERR));
       }
   });
 }

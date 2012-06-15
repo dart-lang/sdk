@@ -52,6 +52,6 @@ main() {
     // FIXME: uncomment when numeric index getters are supported.
     //var byte = bytes[0];
 
-    Expect.equals(40000, bytes.length);
+    expect(bytes, hasLength(40000));
   });
 }

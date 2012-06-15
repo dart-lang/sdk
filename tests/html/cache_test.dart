@@ -7,7 +7,7 @@ main() {
   useHtmlConfiguration();
   test('ApplicationCache', () {
     DOMApplicationCache appCache = window.applicationCache;
-    Expect.equals("UNCACHED", cacheStatusToString(appCache.status));
+    expect(cacheStatusToString(appCache.status), equals("UNCACHED"));
   });
 }
 

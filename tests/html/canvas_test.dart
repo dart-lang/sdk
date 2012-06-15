@@ -62,12 +62,12 @@ main() {
                                               canvas.height);
     Uint8ClampedArray data = image.data;
 
-    Expect.equals(40000, data.length);
+    expect(data, hasLength(40000));
     checkPixel(data, 0, [0, 0, 0, 0]);
     checkPixel(data, width * height - 1, [0, 0, 0, 0]);
 
     data[100] = 200;
-    Expect.equals(200, data[100]);
+    expect(data[100], equals(200));
   });
   test('PutImageData', () {
     ImageData data = context.getImageData(0, 0, width, height);
@@ -76,8 +76,8 @@ main() {
     context.putImageData(data, 0, 0);
 
     data = context.getImageData(0, 0, width, height);
-    Expect.equals(25, data.data[0]);
-    Expect.equals(255, data.data[3]);
+    expect(data.data[0], equals(25));
+    expect(data.data[3], equals(255));
   });
 }
 
@@ -85,6 +85,6 @@ void checkPixel(Uint8ClampedArray data, int offset, List<int> rgba)
 {
   offset *= 4;
   for (var i = 0; i < 4; ++i) {
-    Expect.equals(rgba[i], data[offset + i]);
+    expect(data[offset + i], equals(rgba[i]));
   }
 }

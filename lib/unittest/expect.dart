@@ -15,7 +15,7 @@
  * implements the [IFailureHandler] interface.
  *
  * [expect] allows an alternative call format, providing a Boolean
- * predicate as the first argument and an optional reason as the
+ * predicate as the first argument and an optional reason as a named
  * second argument. This supports brevity at the expense of detailed
  * error messages. For example, these are equivalent, but the first
  * form will give a detailed error message, while the second form will
@@ -23,6 +23,10 @@
  *
  *     expect(foo, isLessThanOrEqual(bar));
  *     expect(foo <= bar);
+ *
+ * A better way of doing the second form is:
+ *
+ *     expect(foo <= bar, reason: "foo not less than or equal to bar");
  *
  * expect() is a 3rd generation assertion mechanism, drawing
  * inspiration from [Hamcrest] and Ladislav Thon's [dart-matchers]
@@ -32,28 +36,33 @@
  *     [Hamcrest] http://http://code.google.com/p/hamcrest/
  *     [dart-matchers] https://github.com/Ladicek/dart-matchers
  */
-void expect(actual, [matcherOrReason = null, String reason = '']) {
-  if (matcherOrReason is Matcher) {
+void expect(actual, [matcher = null, String reason = null]) {
+  if (matcher == null) {
+    // Treat this as an assert(predicate, [reason]).
+    if (!actual) {
+      if (reason == null) {
+        reason = 'Assertion failed';
+      }
+      // Make sure we have a failure handler configured.
+      configureExpectHandler(_assertFailureHandler);
+      _assertFailureHandler.fail(reason);
+    }
+  } else {
+    // Treat this as an expect(value, [matcher], [reason]).
+    matcher = wrapMatcher(matcher);
     var doesMatch;
     try {
-      doesMatch = matcherOrReason.matches(actual);
+      doesMatch = matcher.matches(actual);
     } catch (var e, var trace) {
       doesMatch = false;
-      if (reason == '') {
+      if (reason == null) {
         reason = '${(e is String) ? e : e.toString()} at $trace';
       }
     }
     if (!doesMatch) {
       // Make sure we have a failure handler configured.
       configureExpectHandler(_assertFailureHandler);
-      _assertFailureHandler.failMatch(actual, matcherOrReason, reason);
-    }
-  } else {
-    if (!actual) {
-      reason = (matcherOrReason == null) ? 'Assertion failed' : matcherOrReason;
-      // Make sure we have a failure handler configured.
-      configureExpectHandler(_assertFailureHandler);
-      _assertFailureHandler.fail(reason);
+      _assertFailureHandler.failMatch(actual, matcher, reason);
     }
   }
 }
@@ -105,7 +114,9 @@ String _defaultErrorFormatter(actual, Matcher matcher, String reason) {
   description.add('Expected: ').addDescriptionOf(matcher).
       add('\n     but: ');
   matcher.describeMismatch(actual, description);
-  description.add('\n').add(reason).add('\n');
+  if (reason != null) {
+    description.add('\n').add(reason).add('\n');
+  }
   return description.toString();
 }
 

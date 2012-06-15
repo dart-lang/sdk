@@ -8,19 +8,19 @@
 #import('../../lib/unittest/unittest.dart');
 
 bethIsolate() {
-  port.receive((msg, reply) => msg[1].send(
-        '${msg[0]}\nBeth says: Tim are you coming? And Bob?', reply));
+  port.receive(expectAsync2((msg, reply) => msg[1].send(
+        '${msg[0]}\nBeth says: Tim are you coming? And Bob?', reply)));
 }
 
 timIsolate() {
   SendPort bob = spawnFunction(bobIsolate);
-  port.receive((msg, reply) => bob.send(
-        '$msg\nTim says: Can you tell "main" that we are all coming?', reply));
+  port.receive(expectAsync2((msg, reply) => bob.send(
+        '$msg\nTim says: Can you tell "main" that we are all coming?', reply)));
 }
 
 bobIsolate() {
-  port.receive((msg, reply) => reply.send(
-        '$msg\nBob says: we are all coming!'));
+  port.receive(expectAsync2((msg, reply) => reply.send(
+        '$msg\nBob says: we are all coming!')));
 }
 
 main() {
@@ -44,3 +44,4 @@ main() {
         port.toSendPort());
   });
 }
+

@@ -2,47 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('unittestTest');
-
-#import('../../lib/unittest/unittest.dart');
-
+#library('matcherTest');
+#import('../../../lib/unittest/unittest.dart');
+#source('test_utils.dart');
 
 doesNotThrow() {}
 doesThrow() { throw 'X'; }
-
-int errorCount;
-String errorString;
-var testHandler;
-
-class MyFailureHandler extends DefaultFailureHandler {
-  void fail(String reason) {
-    ++errorCount;
-    errorString = reason;
-  }
-}
-
-void shouldFail(var value, Matcher matcher, expected) {
-  errorCount = 0;
-  errorString = '';
-  configureExpectHandler(testHandler);
-  expect(value, matcher);
-  configureExpectHandler(null);
-  expect(errorCount, equals(1));
-  if (expected is String) {
-    expect(errorString, equalsIgnoringWhitespace(expected));
-  } else {
-    expect(errorString, expected);
-  }
-}
-
-void shouldPass(var value, Matcher matcher) {
-  errorCount = 0;
-  errorString = '';
-  configureExpectHandler(testHandler);
-  expect(value, matcher);
-  configureExpectHandler(null);
-  expect(errorCount, equals(0));
-}
 
 class PrefixMatcher extends BaseMatcher {
   final String _prefix;
@@ -60,15 +25,12 @@ class PrefixMatcher extends BaseMatcher {
 
 void main() {
 
-  testHandler = new MyFailureHandler();
-
-  var a = new Map();
-  var b = new Map();
-  var c = new List();
+  initUtils();
 
   // Core matchers
 
   group('Core matchers', () {
+
     test('isTrue', () {
       shouldPass(true, isTrue);
       shouldFail(false, isTrue, "Expected: true but: was <false>");
@@ -90,16 +52,23 @@ void main() {
     });
 
     test('same', () {
+      var a = new Map();
+      var b = new Map();
       shouldPass(a, same(a));
       shouldFail(b, same(a), "Expected: same instance as <{}> but: was <{}>");
     });
 
     test('equals', () {
+      var a = new Map();
+      var b = new Map();
       shouldPass(a, equals(a));
       shouldFail(a, equals(b), "Expected: <{}> but: was <{}>");
     });
 
     test('anything', () {
+      var a = new Map();
+      shouldPass(0, anything);
+      shouldPass(null, anything);
       shouldPass(a, anything);
       shouldFail(a, isNot(anything), "Expected: not anything but: was <{}>");
     });
@@ -110,47 +79,33 @@ void main() {
       shouldPass(doesThrow, throws);
     });
 
-    test('throwsA', () {
-      shouldPass(doesThrow, throwsA(equals('X')));
-      shouldFail(doesThrow, throwsA(equals('Y')),
-        "Expected: throws an exception which matches 'Y' "
-        "but:  exception does not match 'Y'");
-    });
-
     test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
       shouldFail(doesThrow, returnsNormally,
         "Expected: return normally but: threw exception");
     });
 
-    /* Removing these temporarily while dart2js failure is investigated */
-    /*
-    test('isInstanceOf', () {
-      shouldFail(0, new isInstanceOf<String>('String'),
-        "Expected: an instance of String but: was <0>");
-      shouldPass('cow', new isInstanceOf<String>('String'));
-    });
-    */
-
     test('hasLength', () {
-      shouldPass(c, hasLength(0));
+      var a = new Map();
+      var b = new List();
       shouldPass(a, hasLength(0));
+      shouldPass(b, hasLength(0));
       shouldPass('a', hasLength(1));
       shouldFail(0, hasLength(0), new PrefixMatcher(
         "Expected: an object with length of <0> "
         "but: was <0> has no length property"));
 
-      c.add(0);
-      shouldPass(c, hasLength(1));
-      shouldFail(c, hasLength(2),
+      b.add(0);
+      shouldPass(b, hasLength(1));
+      shouldFail(b, hasLength(2),
         "Expected: an object with length of <2> "
         "but: was <[0]> with length of <1>");
 
-      c.add(0);
-      shouldFail(c, hasLength(1),
+      b.add(0);
+      shouldFail(b, hasLength(1),
         "Expected: an object with length of <1> "
         "but: was <[0, 0]> with length of <2>");
-      shouldPass(c, hasLength(2));
+      shouldPass(b, hasLength(2));
     });
   });
 
@@ -354,28 +309,31 @@ void main() {
       shouldFail([1], isEmpty, "Expected: empty but: was <[1]>");
     });
 
-    var d = [1, 2];
-
     test('contains', () {
+      var d = [1, 2];
       shouldPass(d, contains(1));
       shouldFail(d, contains(0), "Expected: contains <0> but: was <[1, 2]>");
     });
 
-    var e = [1, 1, 1];
 
     test('everyElement', () {
+      var d = [1, 2];
+      var e = [1, 1, 1];
       shouldFail(d, everyElement(1),
           "Expected: every element <1> but: was <[1, 2]>");
       shouldPass(e, everyElement(1));
     });
 
     test('someElement', () {
+      var d = [1, 2];
+      var e = [1, 1, 1];
       shouldPass(d, someElement(2));
       shouldFail(e, someElement(2),
           "Expected: some element <2> but: was <[1, 1, 1]>");
     });
 
     test('orderedEquals', () {
+      var d = [1, 2];
       shouldPass(d, orderedEquals([1, 2]));
       shouldFail(d, orderedEquals([2, 1]),
           "Expected: equals <[2, 1]> ordered "
@@ -383,6 +341,7 @@ void main() {
     });
 
     test('unorderedEquals', () {
+      var d = [1, 2];
       shouldPass(d, unorderedEquals([2, 1]));
       shouldFail(d, unorderedEquals([1]),
           "Expected: equals <[1]> unordered "
@@ -399,6 +358,7 @@ void main() {
   group('Map Matchers', () {
 
     test('isEmpty', () {
+      var a = new Map();
       shouldPass({}, isEmpty);
       shouldPass(a, isEmpty);
       a['foo'] = 'bar';
@@ -406,6 +366,9 @@ void main() {
     });
 
     test('contains', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      var b = new Map();
       shouldPass(a, contains('foo'));
       shouldFail(b, contains('foo'),
           "Expected: contains 'foo' but: was <{}>");
@@ -414,12 +377,16 @@ void main() {
     });
 
     test('containsValue', () {
+      var a = new Map();
+      a['foo'] = 'bar';
       shouldPass(a, containsValue('bar'));
       shouldFail(a, containsValue('ba'),
           "Expected: contains value 'ba' but: was <{foo: bar}>");
     });
 
     test('containsPair', () {
+      var a = new Map();
+      a['foo'] = 'bar';
       shouldPass(a, containsPair('foo', 'bar'));
       shouldFail(a, containsPair('foo', 'ba'),
           "Expected: contains pair 'foo' => 'ba' "
@@ -430,6 +397,9 @@ void main() {
     });
 
     test('hasLength', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      var b = new Map();
       shouldPass(a, hasLength(1));
       shouldFail(b, hasLength(1),
           "Expected: an object with length of <1> "
@@ -453,5 +423,4 @@ void main() {
     });
   });
 }
-
 

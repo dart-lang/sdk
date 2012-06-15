@@ -12,7 +12,7 @@ main() {
       final frameWindow = iframe.contentWindow;
 
       // Ensure that the frame's document is inaccessible via window.
-      Expect.throws(() => frameWindow.document);
+      expect(() => frameWindow.document, throws);
     });
 
   test('contentDocument', () {
@@ -20,6 +20,6 @@ main() {
       document.body.nodes.add(iframe);
 
       // Ensure that the frame's document is inaccessible.
-      Expect.throws(() => iframe.contentDocument);
+      expect(() => iframe.contentDocument, throws);
     });
 }

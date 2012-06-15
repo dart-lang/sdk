@@ -14,8 +14,8 @@ main() {
   test('isolate fromUri - send and reply', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      expect(msg, equals('re: hi'));
       port.close();
+      expect(msg, equals('re: hi'));
     }));
 
     SendPort s = spawnUri('v2_spawn_uri_child_isolate.dart');
