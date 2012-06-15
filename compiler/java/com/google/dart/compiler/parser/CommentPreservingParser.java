@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,10 +7,12 @@ package com.google.dart.compiler.parser;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -186,12 +188,29 @@ public class CommentPreservingParser extends DartParser {
             DartDeclaration<?> decl = (DartDeclaration<?>)next;
 
             if (!commentContainedBySibling(comment, decl)) {
+              // Dartc creates both a DartField and a DartMethodDefinition for getters and setters.
+              // They have the same source location; we want to assign the dartdoc to the method
+              // definition and not the field.
+              if (i + 2 < nodes.size()) {
+                decl = adjustDartdocTarget(next, nodes.get(i + 2));
+              }
+              
               decl.setDartDoc(comment);
             }
           }
         }
       }
     }
+  }
+
+  private DartDeclaration<?> adjustDartdocTarget(DartNode currentNode, DartNode nextNode) {
+    if (currentNode instanceof DartField && nextNode instanceof DartMethodDefinition) {
+      if (currentNode.getSourceInfo().equals(nextNode.getSourceInfo())) {
+        return (DartDeclaration<?>)nextNode;
+      }
+    }
+    
+    return (DartDeclaration<?>)currentNode;
   }
 
   private boolean commentContainedBySibling(DartComment comment, DartDeclaration<?> node) {
