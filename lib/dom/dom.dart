@@ -27,6 +27,13 @@ class _DOMURLFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DataViewFactoryProvider {
+  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _DeprecatedPeerConnectionFactoryProvider {
   factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) => _dummy();
 }
@@ -1960,7 +1967,9 @@ interface DataTransferItemList {
 
 // WARNING: Do not edit - generated code.
 
-interface DataView extends ArrayBufferView {
+interface DataView extends ArrayBufferView default _DataViewFactoryProvider {
+
+  DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]);
 
   num getFloat32(int byteOffset, [bool littleEndian]);
 
@@ -1970,13 +1979,13 @@ interface DataView extends ArrayBufferView {
 
   int getInt32(int byteOffset, [bool littleEndian]);
 
-  Object getInt8();
+  int getInt8(int byteOffset);
 
   int getUint16(int byteOffset, [bool littleEndian]);
 
   int getUint32(int byteOffset, [bool littleEndian]);
 
-  Object getUint8();
+  int getUint8(int byteOffset);
 
   void setFloat32(int byteOffset, num value, [bool littleEndian]);
 
@@ -1986,13 +1995,13 @@ interface DataView extends ArrayBufferView {
 
   void setInt32(int byteOffset, int value, [bool littleEndian]);
 
-  void setInt8();
+  void setInt8(int byteOffset, int value);
 
   void setUint16(int byteOffset, int value, [bool littleEndian]);
 
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
-  void setUint8();
+  void setUint8(int byteOffset, int value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

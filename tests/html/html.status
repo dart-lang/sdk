@@ -10,6 +10,7 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+typed_arrays_dataview_test: Fail  # DataView constructor not implemented.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
@@ -45,6 +46,7 @@ typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip
 typed_arrays_4_test: Skip
+typed_arrays_dataview_test: Skip
 canvas_pixel_array_type_alias_test: Fail  # Verify is CanvasPixelArray.
 canvaspixelarraytypealias_test: Fail  # Verify is CanvasPixelArray.
 cssstyledeclaration_test: Fail
@@ -94,6 +96,7 @@ svg_3_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
+typed_arrays_dataview_test: Fail  # DataView not implemented until Firefox 15.0
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
 #   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
 # Note this test now passes for the wrong reasons. It used to be that the only
