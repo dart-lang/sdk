@@ -15,7 +15,7 @@
 #import('source_file.dart');
 
 class Compiler extends leg.Compiler {
-  api.ReadUriFromString provider;
+  api.ReadStringFromUri provider;
   api.DiagnosticHandler handler;
   final Uri libraryRoot;
   final Uri packageRoot;
