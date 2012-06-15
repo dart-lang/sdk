@@ -62,57 +62,54 @@ prefix_core_test: Fail # Issue 3638.
 gc_test: Skip  # Takes too long.
 
 [ $compiler == dartc ]
-application_negative_test: Fail
-assert_keyword_negative_test: Fail
-assert_test: Fail             # Uses AssertError class. Bug 4385894.
-assign_instance_method_negative_test: Fail
-body_less_constructor_wrong_arg_negative_test: Fail
-call_operator_test: Pass # Issue 1355
+application_negative_test: Fail # Runtime only test, rewrite as multitest
+assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
+assign_instance_method_negative_test: Fail  # Issue 3662
+body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
+call_operator_test: Pass # Issue 1355  
 char_escape_test: Pass # Issue 1654
-closure_call_wrong_argument_count_negative_test: Fail
+closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 compile_time_constant_o_test: Fail # Issue 2126
 compile_time_constant_p_test/01: Fail # Issue 2580
-const_constructor_syntax_test/05: Fail
+const_constructor_syntax_test/05: Fail # Issue 3663
 const_counter_negative_test: Fail    # issue 1655
 const_syntax_test/01: Fail # test issue 3626
 const_syntax_test/02: Fail # test issue 3626
 const_syntax_test/03: Fail # test issue 3626
-constructor3_negative_test: Fail
-constructor_call_wrong_argument_count_negative_test: Fail
+constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
+constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 default_factory_library_test: Fail          # Issue 514
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
-field3a_negative_test: Fail
-field_method4_negative_test: Fail
+field3a_negative_test: Fail # Issue 3655  
+field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 final_syntax_test/*: Skip  # can't handle base case
-function_type_alias_negative_test: Fail  # Bug 5231617.
-generic_parameterized_extends_test: Skip  # Bug 5392297
-instance_call_wrong_argument_count_negative_test: Fail
+instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 instanceof3_test: Fail # Issue 2571
-library2_negative_test: Fail # test issue 3649
-library4_negative_test: Fail   # Bug 5406175
-library6_negative_test: Fail # test issue 3650
+library2_negative_test: Fail # still a valid test? Issue 3649
+library4_negative_test: Fail # still a valid test? Issue 3530
+library6_negative_test: Fail # still a valid test? Issue 3650
 list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
-named_parameters_negative_test: Fail
+named_parameters_negative_test: Fail # Runtime only test, rewrite as multitest
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-no_such_method_negative_test: Fail
-override_field_test/04: Fail             # Bug 5215249
+no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest 
+override_field_test/04: Fail # Issue 3656
 private_factory_resolution_negative_test: Fail # Issue 2275
 private_member3_negative_test: Fail       # Issue 2383
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
 pseudo_kw_test: Fail           # Issue 356
-scope_negative_test: Fail      # Bug 4207538.
-static_call_wrong_argument_count_negative_test: Fail
+scope_negative_test: Fail      # Runtime only test, rewrite as multitest
+static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 string_interpolation8_test: Fail # Issue 2126.
-switch7_negative_test: Fail    # Bug 4208467.
-switch_label_test: Fail        # Bug 4208467.
-syntax_test: Skip             # Bug 2107  Static type warnings in none case
-third_test: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
-throw7_negative_test: Fail     # Bug 4208459.
+switch7_negative_test: Fail    # Issue 3658
+switch_label_test: Fail        # Issue 3658
+syntax_test: Skip              # Bug 2107  Static type warnings in none case
+third_test: Fail               # Issue 3659
+throw7_negative_test: Fail     # Issue 3654
 type_dartc_test: Fail          # Issue 2348
 type_variable_bounds_test/00: Fail # issue 3079
 
