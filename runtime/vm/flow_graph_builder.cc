@@ -1073,6 +1073,9 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
+  CheckStackOverflowComp* comp =
+      new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+  for_body.AddInstruction(new DoInstr(comp));
   node->body()->Visit(&for_body);
 
   // Labels are set after body traversal.
@@ -1099,6 +1102,9 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
+  CheckStackOverflowComp* comp =
+      new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+  for_body.AddInstruction(new DoInstr(comp));
   node->body()->Visit(&for_body);
 
   TestGraphVisitor for_test(owner(),
@@ -1163,12 +1169,10 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   EffectGraphVisitor for_body(owner(), temp_index());
   TargetEntryInstr* body_entry = new TargetEntryInstr();
   for_body.AddInstruction(body_entry);
+  CheckStackOverflowComp* comp =
+      new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+  for_body.AddInstruction(new DoInstr(comp));
   node->body()->Visit(&for_body);
-  if (for_body.is_open()) {
-    CheckStackOverflowComp* comp =
-        new CheckStackOverflowComp(node->token_index(), owner()->try_index());
-    for_body.AddInstruction(new DoInstr(comp));
-  }
 
   // Join loop body, increment and compute their end instruction.
   ASSERT(!for_body.is_empty());
