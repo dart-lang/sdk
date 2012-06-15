@@ -1443,8 +1443,7 @@ static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
   Register temp = comp->locs()->temp(0).reg();
   Register result = comp->locs()->out().reg();
 
-  const Class& double_class =
-      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+  const Class& double_class = compiler->double_class();
   const Code& stub =
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
@@ -1584,8 +1583,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CompareClassId(value, kDouble, temp);
     __ j(NOT_EQUAL, deopt);
     // Allocate result object.
-    const Class& double_class =
-      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
+    const Class& double_class = compiler->double_class();
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(double_class));
     const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
@@ -1646,14 +1644,9 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(from() == kSmi);
 
-  // TODO(vegorov): allocate a single ZoneHandle in FlowGraphCompiler for
-  // double class.
-  const Class& double_class =
-      Class::ZoneHandle(Isolate::Current()->object_store()->double_class());
-
+  const Class& double_class = compiler->double_class();
   const Code& stub =
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
   // TODO(vegorov): allocate box in the driver loop to avoid pushing and poping.

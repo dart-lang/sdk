@@ -15,6 +15,42 @@
 
 namespace dart {
 
+MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
+    const Function& function) {
+  // Only core library methods can be recognized.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Class& function_class = Class::Handle(function.owner());
+  if ((function_class.library() != core_lib.raw()) &&
+      (function_class.library() != core_impl_lib.raw())) {
+    return kUnknown;
+  }
+  const String& recognize_name = String::Handle(function.name());
+  const String& recognize_class = String::Handle(function_class.Name());
+  String& test_function_name = String::Handle();
+  String& test_class_name = String::Handle();
+#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
+  test_function_name = String::NewSymbol(#function_name);                      \
+  test_class_name = String::NewSymbol(#class_name);                            \
+  if (recognize_name.Equals(test_function_name) &&                             \
+      recognize_class.Equals(test_class_name)) {                               \
+    return k##enum_name;                                                       \
+  }
+RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
+#undef RECOGNIZE_FUNCTION
+  return kUnknown;
+}
+
+
+const char* MethodRecognizer::KindToCString(Kind kind) {
+#define KIND_TO_STRING(class_name, function_name, enum_name)                   \
+  if (kind == k##enum_name) return #enum_name;
+RECOGNIZED_LIST(KIND_TO_STRING)
+#undef KIND_TO_STRING
+  return "?";
+}
+
+
 // ==== Support for visiting flow graphs.
 #define DEFINE_ACCEPT(ShortName, ClassName)                                    \
 void ClassName::Accept(FlowGraphVisitor* visitor) {                            \
@@ -37,7 +73,7 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
 
-// Truee iff. the v2 is above v1 on stack, or one of them is constant.
+// True iff. the v2 is above v1 on stack, or one of them is constant.
 static bool VerifyValues(Value* v1, Value* v2) {
   ASSERT(v1->IsUse() && v2->IsUse());
   return (v1->AsUse()->definition()->temp_index() + 1) ==
@@ -1005,12 +1041,18 @@ LocationSummary* StaticCallComp::MakeLocationSummary() const {
 
 void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
+  Label done;
+  if (recognized() == MethodRecognizer::kMathSqrt) {
+    compiler->GenerateInlinedMathSqrt(&done);
+    // Falls through to static call when operand type is not double or smi.
+  }
   compiler->GenerateStaticCall(cid(),
                                token_index(),
                                try_index(),
                                function(),
                                ArgumentCount(),
                                argument_names());
+  __ Bind(&done);
 }
 
 

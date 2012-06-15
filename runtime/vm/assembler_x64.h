@@ -464,6 +464,8 @@ class Assembler : public ValueObject {
   void leave();
   void ret();
 
+  void sqrtsd(XmmRegister dst, XmmRegister src);
+
   void xorpd(XmmRegister dst, const Address& src);
 
   // 'size' indicates size in bytes and must be in the range 1..8.

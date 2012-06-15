@@ -1277,9 +1277,10 @@ ASSEMBLER_TEST_RUN(TestNot, entry) {
 
 
 ASSEMBLER_TEST_GENERATE(XorpdZeroing, assembler) {
-  __ movsd(XMM0, Address(RSP, kWordSize));
-  __ xorpd(XMM0, Address(RSP, kWordSize));
-  __ movq(RAX, Immediate(999));
+  __ pushq(RAX);
+  __ movsd(Address(RSP, 0), XMM0);
+  __ xorpd(XMM0, Address(RSP, 0));
+  __ popq(RAX);
   __ ret();
 }
 
@@ -1288,6 +1289,20 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
   typedef double (*XorpdZeroingCode)(double d);
   double res = reinterpret_cast<XorpdZeroingCode>(entry)(12.56e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
+  __ sqrtsd(XMM0, XMM0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SquareRootDouble, entry) {
+  typedef double (*SquareRootDoubleCode)(double d);
+  const double kDoubleConst = .7;
+  double res = reinterpret_cast<SquareRootDoubleCode>(entry)(kDoubleConst);
+  EXPECT_FLOAT_EQ(sqrt(kDoubleConst), res, 0.0001);
 }
 
 }  // namespace dart

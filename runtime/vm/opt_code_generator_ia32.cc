@@ -2741,7 +2741,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
 // if the argument is double, smi or something else.
 bool OptimizingCodeGenerator::TryInlineStaticCall(StaticCallNode* node) {
   Recognizer::Kind recognized = Recognizer::RecognizeKind(node->function());
-  if (false && recognized == Recognizer::kMathSqrt) {
+  if (recognized == Recognizer::kMathSqrt) {
     Label smi_to_double, call_method, done;
     __ movl(EAX, Address(ESP, 0));
     CheckIfDoubleOrSmi(EAX, EBX, &smi_to_double, &call_method);

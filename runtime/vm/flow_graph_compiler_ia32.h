@@ -120,6 +120,8 @@ class FlowGraphCompiler : public ValueObject {
                           intptr_t argument_count,
                           const Array& argument_names);
 
+  void GenerateInlinedMathSqrt(Label* done);
+
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
                                Label* is_instance_lbl,
@@ -178,6 +180,7 @@ class FlowGraphCompiler : public ValueObject {
 
   const Bool& bool_true() const { return bool_true_; }
   const Bool& bool_false() const { return bool_false_; }
+  const Class& double_class() const { return double_class_; }
 
  private:
   friend class DeoptimizationStub;
@@ -268,6 +271,7 @@ class FlowGraphCompiler : public ValueObject {
 
   const Bool& bool_true_;
   const Bool& bool_false_;
+  const Class& double_class_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

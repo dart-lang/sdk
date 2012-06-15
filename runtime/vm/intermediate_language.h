@@ -13,6 +13,34 @@
 
 namespace dart {
 
+// TODO(srdjan): Add _ByteArrayBase, get:length.
+
+#define RECOGNIZED_LIST(V)                                                     \
+  V(ObjectArray, get:length, ObjectArrayLength)                                \
+  V(ImmutableArray, get:length, ImmutableArrayLength)                          \
+  V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
+  V(StringBase, get:length, StringBaseLength)                                  \
+  V(IntegerImplementation, toDouble, IntegerToDouble)                          \
+  V(Double, toDouble, DoubleToDouble)                                          \
+  V(Math, sqrt, MathSqrt)                                                      \
+
+// Class that recognizes the name and owner of a function and returns the
+// corresponding enum. See RECOGNIZED_LIST above for list of recognizable
+// functions.
+class MethodRecognizer : public AllStatic {
+ public:
+  enum Kind {
+    kUnknown,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
+RECOGNIZED_LIST(DEFINE_ENUM_LIST)
+#undef DEFINE_ENUM_LIST
+  };
+
+  static Kind RecognizeKind(const Function& function);
+  static const char* KindToCString(Kind kind);
+};
+
+
 class BitVector;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
@@ -704,7 +732,8 @@ class StaticCallComp : public Computation {
         try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
-        arguments_(arguments) {
+        arguments_(arguments),
+        recognized_(MethodRecognizer::kUnknown) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -720,6 +749,9 @@ class StaticCallComp : public Computation {
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
+  MethodRecognizer::Kind recognized() const { return recognized_; }
+  void set_recognized(MethodRecognizer::Kind kind) { recognized_ = kind; }
+
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
 
@@ -731,6 +763,7 @@ class StaticCallComp : public Computation {
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
+  MethodRecognizer::Kind recognized_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
 };

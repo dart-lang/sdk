@@ -538,6 +538,17 @@ void Assembler::comisd(XmmRegister a, XmmRegister b) {
 }
 
 
+void Assembler::sqrtsd(XmmRegister dst, XmmRegister src) {
+  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF2);
+  EmitUint8(0x0F);
+  EmitUint8(0x51);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::xorpd(XmmRegister dst, const Address& src) {
   ASSERT(dst <= XMM7);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);

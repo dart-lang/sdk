@@ -14,64 +14,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, trace_optimization);
 
-// TODO(srdjan): Add _ByteArrayBase, get:length.
-
-#define RECOGNIZED_LIST(V)                                                     \
-  V(ObjectArray, get:length, ObjectArrayLength)                                \
-  V(ImmutableArray, get:length, ImmutableArrayLength)                          \
-  V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
-  V(StringBase, get:length, StringBaseLength)                                  \
-  V(IntegerImplementation, toDouble, IntegerToDouble)                          \
-  V(Double, toDouble, DoubleToDouble)                                          \
-  V(Math, sqrt, MathSqrt)                                                      \
-
-// Class that recognizes the name and owner of a function and returns the
-// corresponding enum. See RECOGNIZED_LIST above for list of recognizable
-// functions.
-class MethodRecognizer : public AllStatic {
- public:
-  enum Kind {
-    kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
-RECOGNIZED_LIST(DEFINE_ENUM_LIST)
-#undef DEFINE_ENUM_LIST
-  };
-
-  static Kind RecognizeKind(const Function& function) {
-    // Only core library methods can be recognized.
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-    const Class& function_class = Class::Handle(function.owner());
-    if ((function_class.library() != core_lib.raw()) &&
-        (function_class.library() != core_impl_lib.raw())) {
-      return kUnknown;
-    }
-    const String& recognize_name = String::Handle(function.name());
-    const String& recognize_class = String::Handle(function_class.Name());
-    String& test_function_name = String::Handle();
-    String& test_class_name = String::Handle();
-#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
-    test_function_name = String::NewSymbol(#function_name);                    \
-    test_class_name = String::NewSymbol(#class_name);                          \
-    if (recognize_name.Equals(test_function_name) &&                           \
-        recognize_class.Equals(test_class_name)) {                             \
-      return k##enum_name;                                                     \
-    }
-RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-    return kUnknown;
-  }
-
-  static const char* KindToCString(Kind kind) {
-#define KIND_TO_STRING(class_name, function_name, enum_name)                   \
-    if (kind == k##enum_name) return #enum_name;
-RECOGNIZED_LIST(KIND_TO_STRING)
-#undef KIND_TO_STRING
-    return "?";
-  }
-};
-
-
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
   if (FLAG_print_flow_graph) {
@@ -481,7 +423,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(comp->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    // TODO(srdjan): Implement this.
+    comp->set_recognized(MethodRecognizer::kMathSqrt);
   }
 }
 

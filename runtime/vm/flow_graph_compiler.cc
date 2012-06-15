@@ -10,6 +10,7 @@
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/longjump.h"
+#include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
 
@@ -39,7 +40,9 @@ FlowGraphCompiler::FlowGraphCompiler(
       deopt_stubs_(),
       is_optimizing_(is_optimizing),
       bool_true_(Bool::ZoneHandle(Bool::True())),
-      bool_false_(Bool::ZoneHandle(Bool::False())) {
+      bool_false_(Bool::ZoneHandle(Bool::False())),
+      double_class_(Class::ZoneHandle(
+          Isolate::Current()->object_store()->double_class())) {
   ASSERT(assembler != NULL);
 }
 
