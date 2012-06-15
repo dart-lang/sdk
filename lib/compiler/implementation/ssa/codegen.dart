@@ -502,9 +502,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     // Is it a builtin operation involving +, -, /, or *?
-    if (instruction.builtin && instruction.inputs.length == 3) {
-      var left = instruction.inputs[1];
-      var right = instruction.inputs[2];
+    HBinaryArithmetic binaryInstruction = instruction;
+    assert(binaryInstruction.inputs.length == 3);
+    if (binaryInstruction.builtin) {
+      var left = binaryInstruction.left;
+      var right = binaryInstruction.right;
       if (isCommutative && variableNames.getName(right) == name) {
         var tmp = right;
         right = left;
@@ -518,20 +520,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         bool rightIsOne = false;
         if (right.isConstantNumber()) {
           HConstant rightConstant = right;
-          rightIsOne = (rightConstant.constant.value == 1);
+          NumConstant numConstant = rightConstant.constant;
+          rightIsOne = (numConstant.value == 1);
         }
-        if (instruction is HAdd && rightIsOne) {
+        if (binaryInstruction is HAdd && rightIsOne) {
           beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add('++');
           declareVariable(name);
           endExpression(JSPrecedence.PREFIX_PRECEDENCE);
-        } else if (instruction is HSubtract && rightIsOne) {
+        } else if (binaryInstruction is HSubtract && rightIsOne) {
           beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add('--');
           declareVariable(name);
           endExpression(JSPrecedence.PREFIX_PRECEDENCE);
         } else {
-          var operation = instruction.operation.name;
+          var operation = binaryInstruction.operation.name;
           beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
           declareVariable(name);
           buffer.add(' ${operation}= ');
@@ -2491,8 +2494,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void bailout(HTypeGuard guard, String reason) {
     if (maxBailoutParameters === null) {
       maxBailoutParameters = 0;
-      work.guards.forEach((HTypeGuard guard) {
-        int inputLength = guard.inputs.length;
+      work.guards.forEach((HTypeGuard workGuard) {
+        int inputLength = workGuard.inputs.length;
         if (inputLength > maxBailoutParameters) {
           maxBailoutParameters = inputLength;
         }

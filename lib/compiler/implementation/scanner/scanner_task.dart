@@ -57,7 +57,7 @@ class ScannerTask extends CompilerTask {
         }
       } else if (tag.isSource()) {
         tagState = checkTag(TagState.SOURCE, tag);
-        Script script = compiler.readScript(resolved, argument);
+        Script script = compiler.readScript(resolved, tag);
         CompilationUnitElement unit =
             new CompilationUnitElement(script, library);
         compiler.withCurrentElement(unit, () => scan(unit));

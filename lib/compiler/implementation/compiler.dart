@@ -45,7 +45,8 @@ class Backend {
 
   abstract void enqueueHelpers(Enqueuer world);
   abstract String codegen(WorkItem work);
-  abstract void processNativeClasses(world, libraries);
+  abstract void processNativeClasses(Enqueuer world,
+                                     Collection<LibraryElement> libraries);
   abstract void assembleProgram();
   abstract List<CompilerTask> get tasks();
 }
@@ -92,7 +93,8 @@ class JavaScriptBackend extends Backend {
     return generator.generateMethod(work, graph);
   }
 
-  void processNativeClasses(world, libraries) {
+  void processNativeClasses(Enqueuer world,
+                            Collection<LibraryElement> libraries) {
     native.processNativeClasses(world, emitter, libraries);
   }
 
@@ -437,7 +439,7 @@ class Compiler implements DiagnosticListener {
     checkQueues();
   }
 
-  processQueue(Enqueuer world, Element main) {
+  void processQueue(Enqueuer world, Element main) {
     backend.processNativeClasses(world, libraries.getValues());
     world.addToWorkList(main);
     codegenProgress.reset();
@@ -449,7 +451,7 @@ class Compiler implements DiagnosticListener {
     world.registerFieldClosureInvocations();
   }
 
-  processRecompilationQueue(Enqueuer world) {
+  void processRecompilationQueue(Enqueuer world) {
     pass = 2;
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
@@ -472,7 +474,7 @@ class Compiler implements DiagnosticListener {
    * were resolved, but not compiled (aka excess resolution).
    */
   checkQueues() {
-    for (var world in [enqueuer.resolution, enqueuer.codegen]) {
+    for (Enqueuer world in [enqueuer.resolution, enqueuer.codegen]) {
       world.forEach((WorkItem work) {
         internalErrorOnElement(work.element, "Work list is not empty.");
       });
@@ -490,7 +492,8 @@ class Compiler implements DiagnosticListener {
         resolved.remove(e);
       }
       if (e.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-        if (e.enclosingElement.isInterface()) {
+        ClassElement enclosingClass = e.enclosingElement;
+        if (enclosingClass.isInterface()) {
           resolved.remove(e);
         }
         resolved.remove(e);

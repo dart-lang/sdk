@@ -33,8 +33,8 @@ class ScannerBench {
       }
       timer.stop();
       bar.recordScore(charCount / timer.elapsedInMs());
-      log("Tokenized ${arguments.length} files " +
-          "(total size = ${charCount} chars) " +
+      log("Tokenized ${arguments.length} files "
+          "(total size = ${charCount} chars) "
           "in ${timer.elapsedInMs()}ms");
     }
     bar.end();

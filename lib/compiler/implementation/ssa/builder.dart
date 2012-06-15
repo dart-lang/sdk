@@ -159,16 +159,14 @@ class SsaBuilderTask extends CompilerTask {
       HInstruction.idCounter = 0;
       SsaBuilder builder = new SsaBuilder(this, work);
       HGraph graph;
-      switch (element.kind) {
-        case ElementKind.GENERATIVE_CONSTRUCTOR:
-          graph = compileConstructor(builder, work);
-          break;
-        case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
-        case ElementKind.FUNCTION:
-        case ElementKind.GETTER:
-        case ElementKind.SETTER:
-          graph = builder.buildMethod(work.element);
-          break;
+      ElementKind kind = element.kind;
+      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+        graph = compileConstructor(builder, work);
+      } else if (kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
+                 kind === ElementKind.FUNCTION ||
+                 kind === ElementKind.GETTER ||
+                 kind === ElementKind.SETTER) {
+        graph = builder.buildMethod(work.element);
       }
       assert(graph.isValid());
       bool inLoop = functionsCalledInLoop.contains(element);
@@ -315,8 +313,8 @@ class LocalsHandler {
     ClosureTranslator translator = new ClosureTranslator(builder);
     closureData = translator.translate(node);
 
-    FunctionSignature params = function.computeSignature(builder.compiler);
-    params.forEachParameter((Element element) {
+    FunctionSignature signature = function.computeSignature(builder.compiler);
+    signature.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
       builder.parameters[element] = parameter;
@@ -913,8 +911,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     int index = 0;
-    FunctionSignature parameters = constructor.computeSignature(compiler);
-    parameters.forEachParameter((Element parameter) {
+    FunctionSignature params = constructor.computeSignature(compiler);
+    params.forEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
       // Don't forget to update the field, if the parameter is of the
@@ -1012,8 +1010,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     openFunction(functionElement, function);
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
-    FunctionSignature parameters = functionElement.computeSignature(compiler);
-    parameters.forEachParameter((Element element) {
+    FunctionSignature params = functionElement.computeSignature(compiler);
+    params.forEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter (such as [:this.x:] then
         // initialize the field element with its value.
@@ -2247,8 +2245,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           node: closure);
     }
     FunctionElement function = element;
-    FunctionSignature parameters = function.computeSignature(compiler);
-    if (parameters.optionalParameterCount !== 0) {
+    FunctionSignature params = function.computeSignature(compiler);
+    if (params.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',
           node: closure);
@@ -2256,8 +2254,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = compiler.namer.closureInvocationName(
-        new Selector(SelectorKind.INVOCATION,
-                     parameters.requiredParameterCount));
+        new Selector(SelectorKind.INVOCATION, params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),
                       inputs));
@@ -3424,14 +3421,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
  */
 class StringBuilderVisitor extends AbstractVisitor {
   final SsaBuilder builder;
-  final Node node;
+  final Node diagnosticNode;
 
   /**
    * The string value generated so far.
    */
   HInstruction result = null;
 
-  StringBuilderVisitor(this.builder, this.node);
+  StringBuilderVisitor(this.builder, this.diagnosticNode);
 
   void visit(Node node) {
     node.accept(this);
@@ -3465,7 +3462,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
-    HInstruction instruction = new HStringConcat(left, right, node);
+    HInstruction instruction = new HStringConcat(left, right, diagnosticNode);
     builder.add(instruction);
     return instruction;
   }

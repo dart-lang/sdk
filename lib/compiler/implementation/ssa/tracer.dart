@@ -159,32 +159,38 @@ class HInstructionStringifier implements HVisitor<String> {
 
   visit(HInstruction node) => node.accept(this);
 
-  visitBasicBlock(HBasicBlock node) {
-    // TODO(floitsch): Need a compiler object.
-    compiler.internalError('conditionExpression should not be called',
-                           instruction: node);
-  }
-
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.propagatedType;
     if (!type.isPrimitive()) {
       prefix = 'U';
     } else {
-      switch (type) {
-        case HType.MUTABLE_ARRAY: prefix = 'm'; break;
-        case HType.READABLE_ARRAY: prefix = 'a'; break;
-        case HType.EXTENDABLE_ARRAY: prefix = 'e'; break;
-        case HType.BOOLEAN: prefix = 'b'; break;
-        case HType.INTEGER: prefix = 'i'; break;
-        case HType.DOUBLE: prefix = 'd'; break;
-        case HType.NUMBER: prefix = 'n'; break;
-        case HType.STRING: prefix = 's'; break;
-        case HType.UNKNOWN: prefix = 'v'; break;
-        case HType.CONFLICTING: prefix = 'c'; break;
-        case HType.INDEXABLE_PRIMITIVE: prefix = 'r'; break;
-        case HType.NULL: prefix = 'u'; break;
-        default: prefix = 'x';
+      if (type == HType.MUTABLE_ARRAY) {
+        prefix = 'm';
+      } else if (type == HType.READABLE_ARRAY) {
+        prefix = 'a';
+      } else if (type == HType.EXTENDABLE_ARRAY) {
+        prefix = 'e';
+      } else if (type == HType.BOOLEAN) {
+        prefix = 'b';
+      } else if (type == HType.INTEGER) {
+        prefix = 'i';
+      } else if (type == HType.DOUBLE) {
+        prefix = 'd';
+      } else if (type == HType.NUMBER) {
+        prefix = 'n';
+      } else if (type == HType.STRING) {
+        prefix = 's';
+      } else if (type == HType.UNKNOWN) {
+        prefix = 'v';
+      } else if (type == HType.CONFLICTING) {
+        prefix = 'c';
+      } else if (type == HType.INDEXABLE_PRIMITIVE) {
+        prefix = 'r';
+      } else if (type == HType.NULL) {
+        prefix = 'u';
+      } else {
+        prefix = 'x';
       }
     }
     return "$prefix${instruction.id}";
@@ -432,22 +438,29 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitTypeGuard(HTypeGuard node) {
     String type;
-    switch (node.guardedType) {
-      case HType.MUTABLE_ARRAY: type = "mutable_array"; break;
-      case HType.READABLE_ARRAY: type = "readable_array"; break;
-      case HType.EXTENDABLE_ARRAY: type = "extendable_array"; break;
-      case HType.BOOLEAN: type = "bool"; break;
-      case HType.INTEGER: type = "integer"; break;
-      case HType.DOUBLE: type = "double"; break;
-      case HType.NUMBER: type = "number"; break;
-      case HType.STRING: type = "string"; break;
-      case HType.INDEXABLE_PRIMITIVE: type = "string_or_array"; break;
-      case HType.UNKNOWN: type = 'unknown'; break;
-      default:
-        // TODO(floitsch): Need a compiler object.
-        compiler.internalError('Unexpected type guard.',
-                               instruction: node.guardedType);
-        break;
+    HType guardedType = node.guardedType;
+    if (guardedType == HType.MUTABLE_ARRAY) {
+      type = "mutable_array";
+    } else if (guardedType == HType.READABLE_ARRAY) {
+      type = "readable_array";
+    } else if (guardedType == HType.EXTENDABLE_ARRAY) {
+      type = "extendable_array";
+    } else if (guardedType == HType.BOOLEAN) {
+      type = "bool";
+    } else if (guardedType == HType.INTEGER) {
+      type = "integer";
+    } else if (guardedType == HType.DOUBLE) {
+      type = "double";
+    } else if (guardedType == HType.NUMBER) {
+      type = "number";
+    } else if (guardedType == HType.STRING) {
+      type = "string";
+    } else if (guardedType == HType.INDEXABLE_PRIMITIVE) {
+      type = "string_or_array";
+    } else if (guardedType == HType.UNKNOWN) {
+      type = 'unknown';
+    } else {
+      throw new CompilerCancelledException('Unexpected type guard: $type');
     }
     StringBuffer envBuffer = new StringBuffer();
     List<HInstruction> inputs = node.inputs;

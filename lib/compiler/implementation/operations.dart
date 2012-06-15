@@ -235,8 +235,7 @@ class AddOperation implements BinaryOperation {
       if (rightDartString.isEmpty()) {
         return left;
       } else if (leftString.value.isEmpty()) {
-        // TODO(floitsch): There is no right.node. Find a node some other way.
-        return new StringConstant(rightDartString, right.node);
+        return new StringConstant(rightDartString, leftString.node);
       } else {
         DartString concatenated =
             new ConsDartString(leftString.value, rightDartString);

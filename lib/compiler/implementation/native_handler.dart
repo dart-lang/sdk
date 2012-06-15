@@ -218,7 +218,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     return;
   }
 
-  HInstruction convertDartClosure(Element parameter, Type type) {
+  HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.

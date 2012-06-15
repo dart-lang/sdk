@@ -50,24 +50,23 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolve(Element element) {
     return measure(() {
-      switch (element.kind) {
-        case ElementKind.GENERATIVE_CONSTRUCTOR:
-        case ElementKind.FUNCTION:
-        case ElementKind.GETTER:
-        case ElementKind.SETTER:
-          return resolveMethodElement(element);
-
-        case ElementKind.FIELD:
-          return resolveField(element);
-
-        case ElementKind.PARAMETER:
-        case ElementKind.FIELD_PARAMETER:
-          return resolveParameter(element);
-
-        default:
-          compiler.unimplemented(
-              "resolve($element)", node: element.parseNode(compiler));
+      ElementKind kind = element.kind;
+      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
+          kind === ElementKind.FUNCTION ||
+          kind === ElementKind.GETTER ||
+          kind === ElementKind.SETTER) {
+        return resolveMethodElement(element);
       }
+
+      if (kind === ElementKind.FIELD) return resolveField(element);
+
+      if (kind === ElementKind.PARAMETER ||
+          kind === ElementKind.FIELD_PARAMETER) {
+        return resolveParameter(element);
+      }
+
+      compiler.unimplemented("resolve($element)",
+                             node: element.parseNode(compiler));
     });
   }
 

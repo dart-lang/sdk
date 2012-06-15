@@ -108,7 +108,10 @@ class DartBackend extends Backend {
         new ReachabilityVisitor(compiler, work.resolutionTree)));
   }
 
-  void processNativeClasses(world, libraries) {}
+  void processNativeClasses(Enqueuer world,
+                            Collection<LibraryElement> libraries) {
+  }
+
   void assembleProgram() {
     compiler.assembledCode = '';
   }
