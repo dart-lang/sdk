@@ -23,7 +23,11 @@ namespace dart {
 void RuntimeEntry::Call(Assembler* assembler) const {
   __ movl(ECX, Immediate(GetEntryPoint()));
   __ movl(EDX, Immediate(argument_count()));
-  __ call(&StubCode::CallToRuntimeLabel());
+  if (is_leaf()) {
+    __ call(&StubCode::CallToLeafRuntimeLabel());
+  } else {
+    __ call(&StubCode::CallToRuntimeLabel());
+  }
 }
 
 }  // namespace dart

@@ -22,15 +22,18 @@ typedef void (*RuntimeFunction)(NativeArguments arguments);
 // by the function.
 class RuntimeEntry : public ValueObject {
  public:
-  RuntimeEntry(const char* name, RuntimeFunction function, int argument_count)
+  RuntimeEntry(const char* name, RuntimeFunction function,
+               int argument_count, bool is_leaf)
       : name_(name),
         function_(function),
-        argument_count_(argument_count) { }
+        argument_count_(argument_count),
+        is_leaf_(is_leaf) { }
   ~RuntimeEntry() {}
 
   const char* name() const { return name_; }
   RuntimeFunction function() const { return function_; }
   int argument_count() const { return argument_count_; }
+  bool is_leaf() const { return is_leaf_; }
   uword GetEntryPoint() const { return reinterpret_cast<uword>(function()); }
 
   // Generate code to call the runtime entry.
@@ -38,8 +41,9 @@ class RuntimeEntry : public ValueObject {
 
  private:
   const char* name_;
-  RuntimeFunction function_;
-  int argument_count_;
+  const RuntimeFunction function_;
+  const int argument_count_;
+  const bool is_leaf_;
 
   DISALLOW_COPY_AND_ASSIGN(RuntimeEntry);
 };
@@ -50,7 +54,7 @@ class RuntimeEntry : public ValueObject {
 #define DEFINE_RUNTIME_ENTRY(name, argument_count)                             \
   extern void DRT_##name(NativeArguments arguments);                           \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DRT_"#name, &DRT_##name, argument_count);                               \
+      "DRT_"#name, &DRT_##name, argument_count, false);                        \
   static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments);   \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
@@ -66,6 +70,24 @@ class RuntimeEntry : public ValueObject {
   static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments)
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
+  extern const RuntimeEntry k##name##RuntimeEntry
+
+#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count)                        \
+  extern RawObject* DLRT_##name(NativeArguments arguments);                    \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_"#name, reinterpret_cast<RuntimeFunction>(&DLRT_##name),           \
+       argument_count, true);                                                  \
+  static RawObject* DLRT_Helper##name(Isolate* isolate, NativeArguments args); \
+  RawObject* DLRT_##name(NativeArguments arguments) {                          \
+    CHECK_STACK_ALIGNMENT;                                                     \
+    {                                                                          \
+      NoGCScope no_gc_scope;                                                   \
+      return DLRT_Helper##name(arguments.isolate(), arguments);                \
+    }                                                                          \
+  }                                                                            \
+  static RawObject* DLRT_Helper##name(Isolate* isolate, NativeArguments args)
+
+#define DECLARE_LEAF_RUNTIME_ENTRY(name)                                       \
   extern const RuntimeEntry k##name##RuntimeEntry
 
 }  // namespace dart

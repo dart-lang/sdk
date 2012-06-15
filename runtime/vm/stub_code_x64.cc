@@ -90,6 +90,49 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   RSP : points to return address.
+//   RSP + 8 : address of last argument in argument array.
+//   RSP + 8*R10 : address of first argument in argument array.
+//   RSP + 8*R10 + 8 : address of return value.
+//   RBX : address of the runtime function to call.
+//   R10 : number of arguments to the call.
+// Must preserve callee saved registers R12 and R13.
+void StubCode::GenerateCallToLeafRuntimeStub(Assembler* assembler) {
+  ASSERT((R12 != CTX) && (R13 != CTX));
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_offset = NativeArguments::argc_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+
+  __ EnterFrame(0);
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  if (OS::ActivationFrameAlignment() > 0) {
+    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Pass NativeArguments structure by value.
+  // NOTE: the retvalue area in the NativeArguments structure is not setup
+  //       as leaf routines return the value in RAX.
+  __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, argc_offset), R10);  // Set argc in NativeArguments.
+  __ leaq(RAX, Address(RBP, R10, TIMES_8, 1 * kWordSize));  // Compute argv.
+  __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
+
+  // Make call to leaf runtime entry.
+  __ call(RBX);
+
+  // Set return value in caller's frame.
+  __ movq(RBX, Address(RSP, argv_offset));
+  __ addq(RBX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
+  __ movq(Address(RBX, 0), RAX);
+
+  __ LeaveFrame();
+  __ ret();
+}
+
+
 // Print the stop message.
 static void PrintStopMessage(const char* message) {
   OS::Print("Stop message: %s\n", message);
