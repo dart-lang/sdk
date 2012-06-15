@@ -861,13 +861,14 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
         (parsed_function_.saved_context_var() != NULL)) {
       GenerateStoreVariable(
           *parsed_function_.saved_context_var(), CTX, kNoRegister);
-      const Immediate raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ movl(CTX, raw_null);
+      __ StoreIntoObjectNoBarrier(EAX,
+                                  FieldAddress(EAX, Context::parent_offset()),
+                                  Object::ZoneHandle());
+    } else {
+      // Chain the new context in EAX to its parent in CTX.
+      __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
     }
 
-    // Chain the new context in EAX to its parent in CTX.
-    __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
     // Set new context as current context.
     __ movl(CTX, EAX);
     set_context_level(scope->context_level());

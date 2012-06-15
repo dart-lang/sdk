@@ -13,6 +13,8 @@
 
 namespace dart {
 
+DECLARE_RUNTIME_ENTRY(StoreBuffer);
+
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
@@ -96,6 +98,18 @@ void Assembler::popl(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x8F);
   EmitOperand(0, address);
+}
+
+
+void Assembler::pushal() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x60);
+}
+
+
+void Assembler::popal() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x61);
 }
 
 
@@ -1365,8 +1379,56 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
-  // TODO(iposva): Add write barrier.
   movl(dest, value);
+  Label done;
+  // Check that 'value' is a new object.  Store buffer updates are not
+  // required when storing a smi or an old object.
+  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  j(NOT_EQUAL, &done, Assembler::kNearJump);
+  // Check that 'object' is an old object.  A store buffer update is
+  // not required when storing into a new object.
+  testl(object, Immediate(kOldObjectAlignmentOffset | kHeapObjectTag));
+  j(NOT_EQUAL, &done, Assembler::kNearJump);
+  // A store buffer update is required.
+  pushal();
+  pushl(dest);  // Push argument
+  CallRuntime(kStoreBufferRuntimeEntry);
+  popl(value);  // Pop argument
+  popal();
+  Bind(&done);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const FieldAddress& dest,
+                                         Register value) {
+  movl(dest, value);
+#if defined(DEBUG)
+  Label done;
+  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  j(NOT_EQUAL, &done, Assembler::kNearJump);
+  testl(object, Immediate(kOldObjectAlignmentOffset | kHeapObjectTag));
+  j(NOT_EQUAL, &done, Assembler::kNearJump);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif
+  // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const FieldAddress& dest,
+                                         const Object& value) {
+  if (value.IsSmi()) {
+    movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
+  } else {
+    ASSERT(value.IsOld());
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0xC7);
+    EmitOperand(0, dest);
+    buffer_.EmitObject(value);
+  }
+  // No store buffer update.
 }
 
 

@@ -1574,4 +1574,14 @@ RawCode* FunctionsCache::LookupCode(const String& function_name,
   return Code::null();
 }
 
+
+// Adds a pointer to the store buffer.
+// Arg0: the address of a field being stored into
+DEFINE_LEAF_RUNTIME_ENTRY(StoreBuffer, 1) {
+  ASSERT(args.Count() == kStoreBufferRuntimeEntry.argument_count());
+  uword ptr = reinterpret_cast<uword>(args.At(0));
+  isolate->store_buffer()->AddPointer(ptr);
+  return Smi::New(0);  // Just an arbitrary RawObject* value.
+}
+
 }  // namespace dart

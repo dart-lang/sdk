@@ -302,6 +302,9 @@ class Assembler : public ValueObject {
   void popl(Register reg);
   void popl(const Address& address);
 
+  void pushal();
+  void popal();
+
   void movl(Register dst, const Immediate& src);
   void movl(Register dst, Register src);
 
@@ -520,6 +523,13 @@ class Assembler : public ValueObject {
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const FieldAddress& dest,  // Where we are storing into.
                        Register value);  // Value we are storing.
+
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                const Object& value);
 
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);

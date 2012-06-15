@@ -665,7 +665,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+      __ j(NOT_ZERO, &slow_case);
     }
     __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
     __ movl(EDI, Address(EDI, Isolate::heap_offset()));
@@ -690,7 +690,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // EDX: Array length as Smi.
     // EDI: Points to new space object.
     __ cmpl(EBX, Address(EDI, Scavenger::end_offset()));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    __ j(ABOVE_EQUAL, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -707,14 +707,16 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // EDX: Array length as Smi.
 
     // Store the type argument field.
-    __ StoreIntoObject(EAX,
-                       FieldAddress(EAX, Array::type_arguments_offset()),
-                       ECX);
+    __ StoreIntoObjectNoBarrier(
+        EAX,
+        FieldAddress(EAX, Array::type_arguments_offset()),
+        ECX);
 
     // Set the length field.
-    __ StoreIntoObject(EAX,
-                       FieldAddress(EAX, Array::length_offset()),
-                       EDX);
+    __ StoreIntoObjectNoBarrier(
+        EAX,
+        FieldAddress(EAX, Array::length_offset()),
+        EDX);
 
     // Calculate the size tag.
     // EAX: new object start as a tagged pointer.
@@ -751,6 +753,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&init_loop);
     __ cmpl(ECX, EBX);
     __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+    // TODO(cshapiro): StoreIntoObjectNoBarrier
     __ movl(Address(ECX, 0), raw_null);
     __ addl(ECX, Immediate(kWordSize));
     __ jmp(&init_loop, Assembler::kNearJump);
