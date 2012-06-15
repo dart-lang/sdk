@@ -1724,6 +1724,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
 
+  public void test_typesPropagation_ifAsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if ((v as String).length != 0) {",
+        "    var v1 = v;",
+        "  }",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+  }
+
   public void test_typesPropagation_ifIsType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var v) {",

@@ -565,23 +565,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
             @Override
             public Void visitBinaryExpression(DartBinaryExpression node) {
               // don't infer type if condition negated
-              if (!negation && (node.getOperator() == Token.IS || node.getOperator() == Token.AS)) {
-                DartExpression arg1 = node.getArg1();
-                DartExpression arg2 = node.getArg2();
-                if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
-                    && arg2 instanceof DartTypeExpression) {
-                  VariableElement variableElement = (VariableElement) arg1.getElement();
-                  Type rhsType = arg2.getType();
-                  Type varType = Types.makeInferred(rhsType);
-                  variableRestorer.setType(variableElement, varType);
+              if (!negation) {
+                if (node.getOperator() == Token.IS || node.getOperator() == Token.AS) {
+                  DartExpression arg1 = node.getArg1();
+                  DartExpression arg2 = node.getArg2();
+                  if (arg1 instanceof DartIdentifier
+                      && arg1.getElement() instanceof VariableElement
+                      && arg2 instanceof DartTypeExpression) {
+                    VariableElement variableElement = (VariableElement) arg1.getElement();
+                    Type rhsType = arg2.getType();
+                    Type varType = Types.makeInferred(rhsType);
+                    variableRestorer.setType(variableElement, varType);
+                  }
                 }
               }
-              // visit && expressions
-              if (node.getOperator() == Token.AND) {
-                return super.visitBinaryExpression(node);
+              // operator || means that we can not be sure about types
+              if (node.getOperator() == Token.OR) {
+                return null;
               }
-              // other operators, such as || - don't infer types
-              return null;
+              // continue
+              return super.visitBinaryExpression(node);
             }
           });
         }
