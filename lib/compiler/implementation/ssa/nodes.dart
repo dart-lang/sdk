@@ -757,6 +757,7 @@ class HInstruction implements Hashable {
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
   bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
+  bool isPrimitive() => propagatedType.isPrimitive();
   bool canBePrimitive() => propagatedType.canBePrimitive();
 
   /**
@@ -1543,7 +1544,9 @@ class HBinaryBitOp extends HBinaryArithmetic {
   bool get builtin() => left.isInteger() && right.isInteger();
 
   HType computeTypeFromInputTypes() {
-    if (left.isInteger()) return HType.INTEGER;
+    // All bitwise operations on primitive types either produce an
+    // integer or throw an error.
+    if (left.isPrimitive()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
@@ -1678,8 +1681,9 @@ class HBitNot extends HInvokeUnary {
   bool get builtin() => operand.isInteger();
 
   HType computeTypeFromInputTypes() {
-    HType operandType = operand.propagatedType;
-    if (operandType.isInteger()) return HType.INTEGER;
+    // All bitwise operations on primitive types either produce an
+    // integer or throw an error.
+    if (operand.isPrimitive()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 

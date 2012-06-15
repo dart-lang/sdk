@@ -501,32 +501,42 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return false;
     }
 
-    // Is it a builtin operation involving constant numbers?
+    // Is it a builtin operation involving +, -, /, or *?
     if (instruction.builtin && instruction.inputs.length == 3) {
       var left = instruction.inputs[1];
       var right = instruction.inputs[2];
-      if (left.isConstantNumber() && isCommutative) {
+      if (isCommutative && variableNames.getName(right) == name) {
         var tmp = right;
         right = left;
         left = tmp;
-      } else if (!right.isConstantNumber()) {
-        return false;
       }
-      // Right is constant number.
-      var value = right.constant.value;
+
       // Check that left has the same name as the definition and emit
       // the short update definition if it is.
       if (variableNames.getName(left) == name) {
-        if (instruction is HAdd && right.constant.value == 1) {
+        // Check if the right operand is constant one.
+        bool rightIsOne = false;
+        if (right.isConstantNumber()) {
+          HConstant rightConstant = right;
+          rightIsOne = (rightConstant.constant.value == 1);
+        }
+        if (instruction is HAdd && rightIsOne) {
+          beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add('++');
           declareVariable(name);
-        } else if (instruction is HSubtract && right.constant.value == 1) {
+          endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+        } else if (instruction is HSubtract && rightIsOne) {
+          beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add('--');
           declareVariable(name);
+          endExpression(JSPrecedence.PREFIX_PRECEDENCE);
         } else {
           var operation = instruction.operation.name;
+          beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
           declareVariable(name);
-          buffer.add(' ${operation}= ${value}');
+          buffer.add(' ${operation}= ');
+          use(right, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+          endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
         }
         return true;
       }
