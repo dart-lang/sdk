@@ -114,7 +114,7 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
 
 
 intptr_t Thread::GetMaxStackSize() {
-  const int kStackSize = (1024 * KB);
+  const int kStackSize = (512 * KB);
   return kStackSize;
 }
 

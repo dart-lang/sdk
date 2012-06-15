@@ -198,7 +198,7 @@ class Isolate : public BaseIsolate {
 
   static uword GetSpecifiedStackSize();
 
-  static const intptr_t kStackSizeBuffer = (4 * KB);
+  static const intptr_t kStackSizeBuffer = (16 * KB);
 
   static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_;
