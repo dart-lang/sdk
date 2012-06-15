@@ -67,7 +67,7 @@ foo(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'sum');
-  Expect.isTrue(generated.contains('sum = sum + i'));
+  Expect.isTrue(generated.contains('sum += i'));
   Expect.isTrue(generated.contains("typeof param1 !== 'number'"));
 
   generated = compile(TEST_TWO, 'foo');
