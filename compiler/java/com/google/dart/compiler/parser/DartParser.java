@@ -2990,7 +2990,13 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    return done(new DartNewExpression(constructor, parseArguments(), isConst));
+    boolean save = setAllowFunctionExpression(true);
+    try {
+      List<DartExpression> args = parseArguments();
+      return done(new DartNewExpression(constructor, args, isConst));
+    } finally {
+      setAllowFunctionExpression(save);
+    }
   }
 
   private DartIdentifier ensureIdentifier(DartTypeNode node) {
