@@ -556,6 +556,12 @@ void _handleAllCallbacksDone() {
 }
 
 /**
+ * Temporary hack: expose old API.
+ * TODO(gram) remove this when WebKit tests are working with new framework
+ */
+void callbackDone() { _handleAllCallbacksDone(); }
+
+/**
  * Utility function that can be used to notify the test framework that an
  *  error was caught outside of this library.
  */
