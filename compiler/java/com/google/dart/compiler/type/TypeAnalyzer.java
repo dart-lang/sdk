@@ -1146,7 +1146,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       List<DartExpression> arguments = node.getArguments();
       Member member = lookupMember(receiver, name, node.getFunctionName());
       if (member != null) {
-        node.setElement(member.getElement());
+        Element methodElement = member.getElement();
+        node.setElement(methodElement);
+        if (node.getFunctionName() != null) {
+          node.getFunctionName().setElement(methodElement);
+        }
       }
       return analyzeMethodInvocation(receiver, member, name,
                                      node.getFunctionName(), analyzeArgumentTypes(arguments),
