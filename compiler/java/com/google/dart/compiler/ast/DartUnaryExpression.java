@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,16 +14,17 @@ import com.google.dart.compiler.resolver.MethodNodeElement;
 public class DartUnaryExpression extends DartExpression {
 
   private final Token operator;
+  private final int operatorOffset;
   private DartExpression arg;
   private final boolean isPrefix;
   private MethodNodeElement element;
 
-  public DartUnaryExpression(Token operator, DartExpression arg, boolean isPrefix) {
+  public DartUnaryExpression(Token operator, int operatorOffset, DartExpression arg, boolean isPrefix) {
     assert operator.isUnaryOperator() || operator == Token.SUB;
-
-    this.isPrefix = isPrefix;
     this.operator = operator;
+    this.operatorOffset = operatorOffset;
     this.arg = becomeParentOf(arg);
+    this.isPrefix = isPrefix;
   }
 
   public DartExpression getArg() {
@@ -32,6 +33,10 @@ public class DartUnaryExpression extends DartExpression {
 
   public Token getOperator() {
     return operator;
+  }
+
+  public int getOperatorOffset() {
+    return operatorOffset;
   }
 
   public boolean isPrefix() {

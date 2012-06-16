@@ -309,7 +309,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         DartNode diagnosticNode, DartExpression rhs) {
       Type rhsType = nonVoidTypeOf(rhs);
       String methodName = methodNameForBinaryOperator(operator);
-      Member member = lookupMember(lhsType, methodName, diagnosticNode);
+      HasSourceInfo problemTarget = getOperatorHasSourceInfo(node);
+      Member member = lookupMember(lhsType, methodName, problemTarget);
       if (member != null) {
         node.setElement(member.getElement());
         Type returnType = analyzeMethodInvocation(lhsType, member, methodName, diagnosticNode,
@@ -473,10 +474,39 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void checkStringConcatPlus(DartBinaryExpression binary, Type lhs) {
       if (Objects.equal(lhs, stringType)) {
         Token operator = binary.getOperator();
-        SourceInfo errorTarget = new SourceInfo(binary.getSourceInfo().getSource(),
-            binary.getOperatorOffset(), operator.getSyntax().length());
+        HasSourceInfo errorTarget = getOperatorHasSourceInfo(binary);
         onError(errorTarget, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT, operator);
       }
+    }
+    
+    /**
+     * @return the best guess for operator token location in the given {@link DartNode}.
+     */
+    private static HasSourceInfo getOperatorHasSourceInfo(DartNode node) {
+      Token operator = null;
+      int offset = 0;
+      if (node instanceof DartBinaryExpression) {
+        DartBinaryExpression binary = (DartBinaryExpression) node;
+        operator = binary.getOperator();
+        offset = binary.getOperatorOffset();
+      }
+      if (node instanceof DartUnaryExpression) {
+        DartUnaryExpression binary = (DartUnaryExpression) node;
+        operator = binary.getOperator();
+        offset = binary.getOperatorOffset();
+      }
+      if (operator != null) {
+        Source source = node.getSourceInfo().getSource();
+        int length = operator.getSyntax().length();
+        final SourceInfo sourceInfo = new SourceInfo(source, offset, length);
+        return new HasSourceInfo() {
+          @Override
+          public SourceInfo getSourceInfo() {
+            return sourceInfo;
+          }
+        };
+      }
+      return node;
     }
 
     @Override
@@ -494,16 +524,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return argumentTypes;
     }
 
-    private Member lookupMember(Type receiver, String methodName, DartNode diagnosticNode) {
+    private Member lookupMember(Type receiver, String methodName, HasSourceInfo problemTarget) {
       InterfaceType itype = types.getInterfaceType(receiver);
       if (itype == null) {
-        diagnoseNonInterfaceType(diagnosticNode, receiver);
+        diagnoseNonInterfaceType(problemTarget, receiver);
         return null;
       }
       Member member = itype.lookupMember(methodName);
       if (member == null) {
         if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
-          typeError(diagnosticNode, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
+          typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
               methodName);
         }
         return null;
@@ -824,7 +854,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return checkArguments(diagnosticNode, argumentNodes, argumentTypes.iterator(), ftype);
     }
 
-    private Type diagnoseNonInterfaceType(DartNode node, Type type) {
+    private Type diagnoseNonInterfaceType(HasSourceInfo node, Type type) {
       switch (TypeKind.of(type)) {
         case DYNAMIC:
           return type;
@@ -2049,7 +2079,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
             return intType;
           } else {
             String name = methodNameForUnaryOperator(node, operator);
-            Member member = lookupMember(type, name, node);
+            HasSourceInfo problemTarget = getOperatorHasSourceInfo(node);
+            Member member = lookupMember(type, name, problemTarget);
             if (member != null) {
               node.setElement(member.getElement());
               return analyzeMethodInvocation(type, member, name, node,
@@ -2072,7 +2103,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           String operatorMethodName = methodNameForUnaryOperator(node, operator);
           Member member = itype.lookupMember(operatorMethodName);
           if (member == null) {
-            return typeError(expression, TypeErrorCode.CANNOT_BE_RESOLVED,
+            HasSourceInfo errorTarget = getOperatorHasSourceInfo(node);
+            return typeError(errorTarget, TypeErrorCode.CANNOT_BE_RESOLVED,
                              operatorMethodName);
           }
           MethodElement element = ((MethodElement) member.getElement());

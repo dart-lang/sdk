@@ -2591,6 +2591,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 6, 5, 3));
   }
 
+  public void test_operatorLocation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a + 0;",
+        "  -a;",
+        "  a--;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 6, 5, 1),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 7, 3, 1),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 8, 4, 2));
+  }
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

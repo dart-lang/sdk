@@ -1973,9 +1973,10 @@ public class DartParser extends CompletionHooksParserBase {
         if (token == Token.IS) {
           beginTypeExpression();
           if (optional(Token.NOT)) {
+            int notOffset = ctx.getTokenLocation().getBegin().getPos();
             beginTypeExpression();
             DartTypeExpression typeExpression = done(new DartTypeExpression(parseTypeAnnotation()));
-            right = done(new DartUnaryExpression(Token.NOT, typeExpression, true));
+            right = done(new DartUnaryExpression(Token.NOT, notOffset, typeExpression, true));
           } else {
             right = done(new DartTypeExpression(parseTypeAnnotation()));
           }
@@ -2469,7 +2470,8 @@ public class DartParser extends CompletionHooksParserBase {
     if (token.isCountOperator()) {
       ensureAssignable(result);
       consume(token);
-      result = doneWithoutConsuming(new DartUnaryExpression(token, result, false));
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = doneWithoutConsuming(new DartUnaryExpression(token, tokenOffset, result, false));
     }
 
     return done(result);
@@ -4167,16 +4169,19 @@ public class DartParser extends CompletionHooksParserBase {
         beginUnaryExpression();
         beginUnaryExpression();
         consume(token);
+        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
         DartExpression unary = parseUnaryExpression();
-        return done(new DartUnaryExpression(Token.SUB, done(new DartUnaryExpression(Token.SUB, unary, true)), true));
+        DartUnaryExpression unary2 = new DartUnaryExpression(Token.SUB, tokenOffset, unary, true);
+        return done(new DartUnaryExpression(Token.SUB, tokenOffset, done(unary2), true));
       } else {
         beginUnaryExpression();
         consume(token);
+        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
         DartExpression unary = parseUnaryExpression();
         if (token.isCountOperator()) {
           ensureAssignable(unary);
         }
-        return done(new DartUnaryExpression(token, unary, true));
+        return done(new DartUnaryExpression(token, tokenOffset, unary, true));
       }
     } else {
       return parsePostfixExpression();
