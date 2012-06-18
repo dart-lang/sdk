@@ -36,7 +36,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaDeadPhiEliminator(),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaDeadCodeEliminator()];
+          new SsaDeadCodeEliminator(),
+          new SsaProcessRecompileCandidates(backend, work)];
       runPhases(graph, phases);
     });
   }
@@ -1168,6 +1169,70 @@ class SsaTypeConversionInserter extends HBaseVisitor
       }
       // TODO(ngeoffray): Also change uses for the then block on a HType
       // that knows it is not of a specific Type.
+    }
+  }
+}
+
+class SsaProcessRecompileCandidates
+      extends HBaseVisitor implements OptimizationPhase {
+  final String name = "SsaProcessRecompileCandidates";
+  final JavaScriptBackend backend;
+  final WorkItem work;
+  HGraph graph;
+  Compiler get compiler() => backend.compiler;
+
+  SsaProcessRecompileCandidates(this.backend, this.work);
+
+  void visitGraph(HGraph visitee) {
+    graph = visitee;
+    visitDominatorTree(visitee);
+  }
+
+  HInstruction visitEquals(HEquals node) {
+    // Try to optimize the case where a field which is known to always be an
+    // integer is compared with a constant integer literal.
+    if (node.left is HFieldGet &&
+        node.right is HConstant &&
+        node.right.isInteger()) {
+      HFieldGet left = node.left;
+      HConstant right = node.right;
+      if (left.element != null) {
+        Type type = left.receiver.propagatedType.computeType(compiler);
+        switch (compiler.phase) {
+          case Compiler.PHASE_COMPILING:
+            if (compiler.codegenWorld.couldHaveFieldOnlyIntegerSetters(
+                    type, left.element.name) &&
+                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
+                    type, left.element.name)) {
+              compiler.enqueuer.codegen.registerRecompilationCandidate(
+                  work.element);
+            }
+            break;
+          case Compiler.PHASE_RECOMPILING:
+            if (compiler.codegenWorld.hasFieldOnlyIntegerSetters(
+                    type, left.element.name) &&
+                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
+                    type, left.element.name)) {
+              if (compiler.codegenWorld.hasInvokedSetter(left.element,
+                                                         compiler)) {
+                // If there are invoked setters we don't know for sure that the
+                // field will hold an integer, but the fact that the class
+                // itself always sets an integer in the fiels is still a strong
+                // signal to indiate the expected type of the field.
+                left.propagatedType = HType.INTEGER;
+                graph.highTypeLikelyhood = true;
+              } else {
+                // If there are no invoked setters we know the type of this
+                // field for sure.
+                left.guaranteedType = HType.INTEGER;
+              }
+            }
+            break;
+          default:
+            assert(false);
+            break;
+        }
+      }
     }
   }
 }

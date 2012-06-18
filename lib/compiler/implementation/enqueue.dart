@@ -289,6 +289,12 @@ class Enqueuer {
     addToWorkList(element);
   }
 
+  void registerFieldInitializer(SourceString name, Type type, bool isInteger) {
+    task.measure(() {
+      universe.updateFieldIntegerInitializers(type, name, isInteger);
+    });
+  }
+
   void registerDynamicGetter(SourceString methodName, Selector selector) {
     registerInvokedGetter(methodName, selector);
   }
@@ -305,11 +311,12 @@ class Enqueuer {
     });
   }
 
-  void registerFieldSetter(SourceString setterName, Type type) {
+  void registerFieldSetter(SourceString setterName, Type type, bool isInteger) {
     task.measure(() {
       registerNewSelector(setterName,
                           new TypedSelector(type, Selector.SETTER),
                           universe.fieldSetters);
+      universe.updateFieldIntegerSetters(type, setterName, isInteger);
     });
   }
 

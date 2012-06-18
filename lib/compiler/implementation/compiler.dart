@@ -463,10 +463,11 @@ class Compiler implements DiagnosticListener {
     assert(phase == PHASE_RECOMPILING);
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
+      String oldCode = world.universe.generatedCode[work.element];
       world.universe.generatedCode.remove(work.element);
-      var oldCode = world.universe.generatedCode[work.element];
+      world.universe.generatedBailoutCode.remove(work.element);
       withCurrentElement(work.element, () => work.run(this, world));
-      var newCode = world.universe.generatedCode[work.element];
+      String newCode = world.universe.generatedCode[work.element];
       if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
         log("Pass 2 optimization:");
         log("Before:\n$oldCode");

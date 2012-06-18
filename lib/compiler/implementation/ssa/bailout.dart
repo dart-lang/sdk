@@ -29,7 +29,7 @@ class Environment {
     // If the instruction is a type guard, we add its checked input
     // instead. This allows sharing the same environment between
     // different type guards.
-    // 
+    //
     // Also, we don't need to add code motion invariant instructions
     // in the live set (because we generate them at use-site), except
     // for parameters that are not 'this', which is always passed as
@@ -75,6 +75,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
   bool calledInLoop = false;
+  bool highTypeLikelyhood = false;
   bool isRecursiveMethod = false;
   int stateId = 1;
 
@@ -83,6 +84,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   void visitGraph(HGraph graph) {
     isRecursiveMethod = graph.isRecursiveMethod;
     calledInLoop = graph.calledInLoop;
+    highTypeLikelyhood = graph.highTypeLikelyhood;
     work.guards = <HTypeGuard>[];
     visitDominatorTree(graph);
   }
@@ -145,7 +147,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
     // Insert type guards if the method is likely to be called in a
     // loop.
-    return calledInLoop;
+    return calledInLoop || highTypeLikelyhood;
   }
 
   bool shouldInsertTypeGuard(HInstruction instruction) {

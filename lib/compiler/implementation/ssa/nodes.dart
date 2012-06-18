@@ -115,6 +115,7 @@ class HGraph {
   HBasicBlock exit;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
+  bool highTypeLikelyhood = false;
   final List<HBasicBlock> blocks;
 
   // We canonicalize all constants used within a graph so we do not
@@ -1793,6 +1794,7 @@ class HConstant extends HInstruction {
   bool isConstantBoolean() => constant.isBool();
   bool isConstantNull() => constant.isNull();
   bool isConstantNumber() => constant.isNum();
+  bool isConstantInteger() => constant.isInt();
   bool isConstantString() => constant.isString();
   bool isConstantList() => constant.isList();
   bool isConstantMap() => constant.isMap();

@@ -13,6 +13,8 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedSetters;
   final Map<SourceString, Set<Selector>> fieldGetters;
   final Map<SourceString, Set<Selector>> fieldSetters;
+  final Map<Element, Map<SourceString, bool>> fieldIntegerInitializers;
+  final Map<Element, Map<SourceString, bool>> fieldIntegerSetters;
   // TODO(ngeoffray): This should be a Set<Type>.
   final Set<Element> isChecks;
   final RuntimeTypeInformation rti;
@@ -27,6 +29,10 @@ class Universe {
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                fieldGetters = new Map<SourceString, Set<Selector>>(),
                fieldSetters = new Map<SourceString, Set<Selector>>(),
+               fieldIntegerInitializers =
+                   new Map<Element, Map<SourceString, bool>>(),
+               fieldIntegerSetters =
+                   new Map<Element, Map<SourceString, bool>>(),
                isChecks = new Set<Element>(),
                rti = new RuntimeTypeInformation();
 
@@ -66,6 +72,54 @@ class Universe {
 
   bool hasFieldSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(fieldSetters[member.name], member, compiler);
+  }
+
+  void updateFieldIntegerInitializers(Type type,
+                                      SourceString name,
+                                      bool isInteger) {
+    Map<SourceString, bool> fields =
+        fieldIntegerInitializers.putIfAbsent(
+            type.element, () => new Map<SourceString, bool>());
+    if (!fields.containsKey(name)) {
+      fields[name] = isInteger;
+    } else {
+      fields[name] = fields[name] && isInteger;
+    }
+  }
+
+  bool hasFieldOnlyIntegerInitializers(Type type, SourceString name) {
+    if (type == null) return false;
+    if (!fieldIntegerInitializers.containsKey(type.element)) return true;
+    Map<SourceString, bool> fields = fieldIntegerInitializers[type.element];
+    if (!fields.containsKey(name)) return false;
+    return fields[name];
+  }
+
+  void updateFieldIntegerSetters(Type type, SourceString name, bool isInteger) {
+    Map<SourceString, bool> fields =
+        fieldIntegerSetters.putIfAbsent(
+            type.element, () => new Map<SourceString, bool>());
+    if (!fields.containsKey(name)) {
+      fields[name] = isInteger;
+    } else {
+      fields[name] = fields[name] && isInteger;
+    }
+  }
+
+  bool couldHaveFieldOnlyIntegerSetters(Type type, SourceString name) {
+    if (type == null) return false;
+    if (!fieldIntegerSetters.containsKey(type.element)) return true;
+    Map<SourceString, bool> fields = fieldIntegerSetters[type.element];
+    if (!fields.containsKey(name)) return false;
+    return fields[name];
+  }
+
+  bool hasFieldOnlyIntegerSetters(Type type, SourceString name) {
+    if (type == null) return false;
+    if (!fieldIntegerSetters.containsKey(type.element)) return true;
+    Map<SourceString, bool> fields = fieldIntegerSetters[type.element];
+    if (!fields.containsKey(name)) return false;
+    return fields[name];
   }
 }
 
