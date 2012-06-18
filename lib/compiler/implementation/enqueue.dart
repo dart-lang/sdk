@@ -20,6 +20,7 @@ class EnqueueTask extends CompilerTask {
 class RecompilationQueue {
   final Queue<WorkItem> queue;
   final Set<Element> queueElements;
+  int processed = 0;
 
   RecompilationQueue()
     : queue = new Queue<WorkItem>(),
@@ -41,6 +42,7 @@ class RecompilationQueue {
   WorkItem next() {
     WorkItem item = queue.removeLast();
     queueElements.remove(item.element);
+    processed++;
     return item;
   }
 }
@@ -74,7 +76,7 @@ class Enqueuer {
 
   void addToWorkList(Element element, [TreeElements elements]) {
     if (element.isForeign()) return;
-    if (compiler.pass == 2) return;
+    if (compiler.phase == Compiler.PHASE_RECOMPILING) return;
     if (queueIsClosed) {
       if (isResolutionQueue && getCachedElements(element) !== null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");

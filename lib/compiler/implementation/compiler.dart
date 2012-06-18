@@ -171,7 +171,6 @@ class Compiler implements DiagnosticListener {
   Backend backend;
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
-  int pass = 1;
 
   static final SourceString MAIN = const SourceString('main');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
@@ -181,7 +180,13 @@ class Compiler implements DiagnosticListener {
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
-  Stopwatch codegenProgress;
+  Stopwatch progress;
+
+  static final int PHASE_SCANNING = 0;
+  static final int PHASE_RESOLVING = 1;
+  static final int PHASE_COMPILING = 2;
+  static final int PHASE_RECOMPILING = 3;
+  int phase;
 
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
@@ -190,7 +195,7 @@ class Compiler implements DiagnosticListener {
             validateUnparse = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
-        codegenProgress = new Stopwatch.start() {
+        progress = new Stopwatch.start() {
     namer = new Namer(this);
     constantHandler = new ConstantHandler(this);
     scanner = new ScannerTask(this);
@@ -423,14 +428,17 @@ class Compiler implements DiagnosticListener {
     world.populate(this, libraries.getValues());
 
     log('Resolving...');
+    phase = PHASE_RESOLVING;
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
     log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
 
     log('Compiling...');
+    phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
     log("Recompiling ${enqueuer.codegen.recompilationCandidates.length} "
         "methods...");
+    phase = PHASE_RECOMPILING;
     processRecompilationQueue(enqueuer.codegen);
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
@@ -442,7 +450,7 @@ class Compiler implements DiagnosticListener {
   void processQueue(Enqueuer world, Element main) {
     backend.processNativeClasses(world, libraries.getValues());
     world.addToWorkList(main);
-    codegenProgress.reset();
+    progress.reset();
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
     });
@@ -452,11 +460,11 @@ class Compiler implements DiagnosticListener {
   }
 
   void processRecompilationQueue(Enqueuer world) {
-    pass = 2;
+    assert(phase == PHASE_RECOMPILING);
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
-      var oldCode = world.universe.generatedCode[work.element];
       world.universe.generatedCode.remove(work.element);
+      var oldCode = world.universe.generatedCode[work.element];
       withCurrentElement(work.element, () => work.run(this, world));
       var newCode = world.universe.generatedCode[work.element];
       if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
@@ -536,6 +544,15 @@ class Compiler implements DiagnosticListener {
 
   TreeElements analyze(WorkItem work, Enqueuer world) {
     if (work.isAnalyzed()) return work.resolutionTree;
+    if (progress.elapsedInMs() > 500) {
+      // TODO(ahe): Add structured diagnostics to the compiler API and
+      // use it to separate this from the --verbose option.
+      if (phase == PHASE_RESOLVING) {
+        log('Resolved ${enqueuer.resolution.resolvedElements.length}'
+            'elements.');
+        progress.reset();
+      }
+    }
     Element element = work.element;
     TreeElements result = world.getCachedElements(element);
     if (result !== null) return result;
@@ -550,11 +567,15 @@ class Compiler implements DiagnosticListener {
 
   String codegen(WorkItem work, Enqueuer world) {
     if (world !== enqueuer.codegen) return null;
-    if (codegenProgress.elapsedInMs() > 500) {
+    if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('Compiled ${codegenWorld.generatedCode.length} methods.');
-      codegenProgress.reset();
+      if (phase == PHASE_COMPILING) {
+        log('Compiled ${codegenWorld.generatedCode.length} methods.');
+      } else {
+        log('Recompiled ${world.recompilationCandidates.processed} methods.');
+      }
+      progress.reset();
     }
     if (work.element.kind.category == ElementCategory.VARIABLE) {
       constantHandler.compileWorkItem(work);

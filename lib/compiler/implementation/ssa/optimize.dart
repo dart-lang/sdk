@@ -589,12 +589,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (!isFinalOrConst &&
         !compiler.codegenWorld.hasInvokedSetter(field, compiler) &&
         !compiler.codegenWorld.hasFieldSetter(field, compiler)) {
-      switch (compiler.pass) {
-        case 1:
+      switch (compiler.phase) {
+        case Compiler.PHASE_COMPILING:
           compiler.enqueuer.codegen.registerRecompilationCandidate(
               work.element);
           break;
-        case 2:
+        case Compiler.PHASE_RECOMPILING:
           // If field is not final or const but no setters are used then the
           // field might be considered final anyway as it will be either
           // un-initialized or initialized in the constructor initializer list.
