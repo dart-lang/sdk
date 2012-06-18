@@ -142,9 +142,11 @@ void ParsedFunction::AllocateVariables() {
   const int fixed_parameter_count = function().num_fixed_parameters();
   const int optional_parameter_count = function().num_optional_parameters();
   const int parameter_count = fixed_parameter_count + optional_parameter_count;
+  const bool is_native_instance_closure =
+      function().is_native() && function().IsImplicitInstanceClosureFunction();
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  if (optional_parameter_count == 0) {
+  if (optional_parameter_count == 0 && !is_native_instance_closure) {
     // Parameter i will be at fp[1 + parameter_count - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - j].
     first_parameter_index_ = 1 + parameter_count;
@@ -156,6 +158,9 @@ void ParsedFunction::AllocateVariables() {
     first_parameter_index_ = kFirstLocalSlotIndex;
     first_stack_local_index_ = first_parameter_index_ - parameter_count;
     copied_parameter_count_ = parameter_count;
+    if (is_native_instance_closure) {
+      copied_parameter_count_ += 1;
+    }
   }
 
   // Allocate parameters and local variables, either in the local frame or
@@ -3953,18 +3958,23 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
 // Builds ReturnNode/NativeBodyNode for a native function.
 void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                       const Function& func) {
+  func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.owner());
   const int num_parameters = params->parameters->length();
+  const bool is_instance_closure = func.IsImplicitInstanceClosureFunction();
+  int num_params_for_resolution = num_parameters;
 
   // Parse the function name out.
   const intptr_t native_pos = token_index_;
   const String& native_name = ParseNativeDeclaration();
 
+  if (is_instance_closure) {
+    num_params_for_resolution += 1;  // account for 'this' when resolving.
+  }
   // Now resolve the native function to the corresponding native entrypoint.
-  NativeFunction native_function = NativeEntry::ResolveNative(cls,
-                                                              native_name,
-                                                              num_parameters);
+  NativeFunction native_function = NativeEntry::ResolveNative(
+      cls, native_name, num_params_for_resolution);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
@@ -3978,7 +3988,8 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                                       native_name,
                                                       native_function,
                                                       num_parameters,
-                                                      has_opt_params)));
+                                                      has_opt_params,
+                                                      is_instance_closure)));
 }
 
 

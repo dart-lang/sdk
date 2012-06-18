@@ -3609,6 +3609,11 @@ void Function::set_is_optimizable(bool value) const {
 }
 
 
+void Function::set_is_native(bool value) const {
+  raw_ptr()->is_native_ = value;
+}
+
+
 intptr_t Function::NumberOfParameters() const {
   return num_fixed_parameters() + num_optional_parameters();
 }
@@ -3867,6 +3872,7 @@ RawFunction* Function::New(const String& name,
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
+  result.set_is_native(false);
   return result.raw();
 }
 

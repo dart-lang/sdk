@@ -5172,6 +5172,291 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(saved);
 }
 
+
+static int64_t GetValue(Dart_Handle arg) {
+  EXPECT(!Dart_IsError(arg));
+  EXPECT(Dart_IsInteger(arg));
+  int64_t value;
+  EXPECT_VALID(Dart_IntegerToInt64(arg, &value));
+  return value;
+}
+
+static void NativeFoo1(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(1, i);
+  Dart_Handle arg = Dart_GetNativeArgument(args, 0);
+  EXPECT(!Dart_IsError(arg));
+  Dart_SetReturnValue(args, Dart_NewInteger(1));
+  Dart_ExitScope();
+}
+
+
+static void NativeFoo2(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(2, i);
+  Dart_Handle arg = Dart_GetNativeArgument(args, 1);
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg)));
+  Dart_ExitScope();
+}
+
+
+static void NativeFoo3(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(3, i);
+  Dart_Handle arg1 = Dart_GetNativeArgument(args, 1);
+  Dart_Handle arg2 = Dart_GetNativeArgument(args, 2);
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg1) + GetValue(arg2)));
+  Dart_ExitScope();
+}
+
+
+static void NativeFoo4(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(4, i);
+  Dart_Handle arg1 = Dart_GetNativeArgument(args, 1);
+  Dart_Handle arg2 = Dart_GetNativeArgument(args, 2);
+  Dart_Handle arg3 = Dart_GetNativeArgument(args, 3);
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg1) +
+                                            GetValue(arg2) +
+                                            GetValue(arg3)));
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction MyNativeClosureResolver(Dart_Handle name,
+                                                   int arg_count) {
+  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  if (!obj.IsString()) {
+    return NULL;
+  }
+  const char* function_name = obj.ToCString();
+  const char* kNativeFoo1 = "NativeFoo1";
+  const char* kNativeFoo2 = "NativeFoo2";
+  const char* kNativeFoo3 = "NativeFoo3";
+  const char* kNativeFoo4 = "NativeFoo4";
+  if (!strncmp(function_name, kNativeFoo1, strlen(kNativeFoo1))) {
+    return &NativeFoo1;
+  } else if (!strncmp(function_name, kNativeFoo2, strlen(kNativeFoo2))) {
+    return &NativeFoo2;
+  } else if (!strncmp(function_name, kNativeFoo3, strlen(kNativeFoo3))) {
+    return &NativeFoo3;
+  } else if (!strncmp(function_name, kNativeFoo4, strlen(kNativeFoo4))) {
+    return &NativeFoo4;
+  } else {
+    UNREACHABLE();
+    return NULL;
+  }
+}
+
+
+TEST_CASE(NativeFunctionClosure) {
+  const char* kScriptChars =
+      "class Test {"
+      "  int foo1() native \"NativeFoo1\";\n"
+      "  int foo2(int i) native \"NativeFoo2\";\n"
+      "  int foo3([int k = 10000, int l = 1]) native \"NativeFoo3\";\n"
+      "  int foo4(int i,"
+      "           [int j = 10, int k = 1]) native \"NativeFoo4\";\n"
+      "  int bar1() { var func = foo1; return func(); }\n"
+      "  int bar2(int i) { var func = foo2; return func(i); }\n"
+      "  int bar30() { var func = foo3; return func(); }\n"
+      "  int bar31(int i) { var func = foo3; return func(i); }\n"
+      "  int bar32(int i, int j) { var func = foo3; return func(i, j); }\n"
+      "  int bar41(int i) {\n"
+      "    var func = foo4; return func(i); }\n"
+      "  int bar42(int i, int j) {\n"
+      "    var func = foo4; return func(i, j); }\n"
+      "  int bar43(int i, int j, int k) {\n"
+      "    var func = foo4; return func(i, j, k); }\n"
+      "}\n"
+      "int testMain() {\n"
+      "  Test obj = new Test();\n"
+      "  Expect.equals(1, obj.foo1());\n"
+      "  Expect.equals(1, obj.bar1());\n"
+      "\n"
+      "  Expect.equals(10, obj.foo2(10));\n"
+      "  Expect.equals(10, obj.bar2(10));\n"
+      "\n"
+      "  Expect.equals(10001, obj.foo3());\n"
+      "  Expect.equals(10001, obj.bar30());\n"
+      "  Expect.equals(2, obj.foo3(1));\n"
+      "  Expect.equals(2, obj.bar31(1));\n"
+      "  Expect.equals(4, obj.foo3(2, 2));\n"
+      "  Expect.equals(4, obj.bar32(2, 2));\n"
+      "\n"
+      "  Expect.equals(12, obj.foo4(1));\n"
+      "  Expect.equals(12, obj.bar41(1));\n"
+      "  Expect.equals(3, obj.foo4(1, 1));\n"
+      "  Expect.equals(3, obj.bar42(1, 1));\n"
+      "  Expect.equals(6, obj.foo4(2, 2, 2));\n"
+      "  Expect.equals(6, obj.bar43(2, 2, 2));\n"
+      "\n"
+      "  return 0;\n"
+      "}\n";
+
+  Dart_Handle result;
+
+  // Load a test script.
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  result = Dart_SetLibraryTagHandler(library_handler);
+  EXPECT_VALID(result);
+  Dart_Handle lib = Dart_LoadScript(url, source);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+  result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(0, value);
+}
+
+
+static void StaticNativeFoo1(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(0, i);
+  Dart_SetReturnValue(args, Dart_NewInteger(0));
+  Dart_ExitScope();
+}
+
+
+static void StaticNativeFoo2(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(1, i);
+  Dart_Handle arg = Dart_GetNativeArgument(args, 0);
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg)));
+  Dart_ExitScope();
+}
+
+
+static void StaticNativeFoo3(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(2, i);
+  Dart_Handle arg1 = Dart_GetNativeArgument(args, 0);
+  Dart_Handle arg2 = Dart_GetNativeArgument(args, 1);
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg1) + GetValue(arg2)));
+  Dart_ExitScope();
+}
+
+
+static void StaticNativeFoo4(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t i = Dart_GetNativeArgumentCount(args);
+  EXPECT_EQ(3, i);
+  Dart_Handle arg1 = Dart_GetNativeArgument(args, 0);
+  Dart_Handle arg2 = Dart_GetNativeArgument(args, 1);
+  Dart_Handle arg3 = Dart_GetNativeArgument(args, 2);
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg1) +
+                                            GetValue(arg2) +
+                                            GetValue(arg3)));
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction MyStaticNativeClosureResolver(Dart_Handle name,
+                                                         int arg_count) {
+  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  if (!obj.IsString()) {
+    return NULL;
+  }
+  const char* function_name = obj.ToCString();
+  const char* kNativeFoo1 = "StaticNativeFoo1";
+  const char* kNativeFoo2 = "StaticNativeFoo2";
+  const char* kNativeFoo3 = "StaticNativeFoo3";
+  const char* kNativeFoo4 = "StaticNativeFoo4";
+  if (!strncmp(function_name, kNativeFoo1, strlen(kNativeFoo1))) {
+    return &StaticNativeFoo1;
+  } else if (!strncmp(function_name, kNativeFoo2, strlen(kNativeFoo2))) {
+    return &StaticNativeFoo2;
+  } else if (!strncmp(function_name, kNativeFoo3, strlen(kNativeFoo3))) {
+    return &StaticNativeFoo3;
+  } else if (!strncmp(function_name, kNativeFoo4, strlen(kNativeFoo4))) {
+    return &StaticNativeFoo4;
+  } else {
+    UNREACHABLE();
+    return NULL;
+  }
+}
+
+
+TEST_CASE(NativeStaticFunctionClosure) {
+  const char* kScriptChars =
+      "class Test {"
+      "  static int foo1() native \"StaticNativeFoo1\";\n"
+      "  static int foo2(int i) native \"StaticNativeFoo2\";\n"
+      "  static int foo3([int k = 10000, int l = 1])"
+            " native \"StaticNativeFoo3\";\n"
+      "  static int foo4(int i, [int j = 10, int k = 1])"
+            " native \"StaticNativeFoo4\";\n"
+      "  int bar1() { var func = foo1; return func(); }\n"
+      "  int bar2(int i) { var func = foo2; return func(i); }\n"
+      "  int bar30() { var func = foo3; return func(); }\n"
+      "  int bar31(int i) { var func = foo3; return func(i); }\n"
+      "  int bar32(int i, int j) { var func = foo3; return func(i, j); }\n"
+      "  int bar41(int i) {\n"
+      "    var func = foo4; return func(i); }\n"
+      "  int bar42(int i, int j) {\n"
+      "    var func = foo4; return func(i, j); }\n"
+      "  int bar43(int i, int j, int k) {\n"
+      "    var func = foo4; return func(i, j, k); }\n"
+      "}\n"
+      "int testMain() {\n"
+      "  Test obj = new Test();\n"
+      "  Expect.equals(0, Test.foo1());\n"
+      "  Expect.equals(0, obj.bar1());\n"
+      "\n"
+      "  Expect.equals(10, Test.foo2(10));\n"
+      "  Expect.equals(10, obj.bar2(10));\n"
+      "\n"
+      "  Expect.equals(10001, Test.foo3());\n"
+      "  Expect.equals(10001, obj.bar30());\n"
+      "  Expect.equals(2, Test.foo3(1));\n"
+      "  Expect.equals(2, obj.bar31(1));\n"
+      "  Expect.equals(4, Test.foo3(2, 2));\n"
+      "  Expect.equals(4, obj.bar32(2, 2));\n"
+      "\n"
+      "  Expect.equals(12, Test.foo4(1));\n"
+      "  Expect.equals(12, obj.bar41(1));\n"
+      "  Expect.equals(3, Test.foo4(1, 1));\n"
+      "  Expect.equals(3, obj.bar42(1, 1));\n"
+      "  Expect.equals(6, Test.foo4(2, 2, 2));\n"
+      "  Expect.equals(6, obj.bar43(2, 2, 2));\n"
+      "\n"
+      "  return 0;\n"
+      "}\n";
+
+  Dart_Handle result;
+
+  // Load a test script.
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  result = Dart_SetLibraryTagHandler(library_handler);
+  EXPECT_VALID(result);
+  Dart_Handle lib = Dart_LoadScript(url, source);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+  result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(0, value);
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

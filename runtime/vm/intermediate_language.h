@@ -842,6 +842,10 @@ class NativeCallComp : public TemplateComputation<0> {
     return ast_node_.has_optional_parameters();
   }
 
+  bool is_native_instance_closure() const {
+    return ast_node_.is_native_instance_closure();
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:

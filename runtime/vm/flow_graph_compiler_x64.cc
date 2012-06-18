@@ -647,6 +647,8 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 // Copied from CodeGenerator::CopyParameters (CodeGenerator will be deprecated).
 void FlowGraphCompiler::CopyParameters() {
   const Function& function = parsed_function().function();
+  const bool is_native_instance_closure =
+      function.is_native() && function.IsImplicitInstanceClosureFunction();
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
@@ -670,6 +672,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Check that num_pos_args >= num_fixed_params.
   __ cmpq(RCX, Immediate(Smi::RawValue(num_fixed_params)));
   __ j(LESS, &wrong_num_arguments);
+
   // Since RBX and RCX are Smi, use TIMES_4 instead of TIMES_8.
   // Let RBX point to the last passed positional argument, i.e. to
   // fp[1 + num_args - (num_pos_args - 1)].
@@ -677,12 +680,20 @@ void FlowGraphCompiler::CopyParameters() {
   __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
   // Let RDI point to the last copied positional argument, i.e. to
   // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
+  int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
+  const int index =
+      ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos;
+  // First copy captured receiver if function is an implicit native closure.
+  if (is_native_instance_closure) {
+    __ movq(RAX, FieldAddress(CTX, Context::variable_offset(0)));
+    __ movq(Address(RBP, (index * kWordSize)), RAX);
+  }
   __ SmiUntag(RCX);
   __ movq(RAX, RCX);
   __ negq(RAX);
-  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
   // -num_pos_args is in RAX.
-  // (ParsedFunction::kFirstLocalSlotIndex + 1) is in index.
+  // (ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos)
+  // is in index.
   __ leaq(RDI, Address(RBP, RAX, TIMES_8, (index * kWordSize)));
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
@@ -699,79 +710,84 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 
   // Copy or initialize optional named arguments.
-  ASSERT(num_opt_params > 0);  // Or we would not have to copy arguments.
-  // Start by alphabetically sorting the names of the optional parameters.
-  LocalVariable** opt_param = new LocalVariable*[num_opt_params];
-  int* opt_param_position = new int[num_opt_params];
-  for (int pos = num_fixed_params; pos < num_params; pos++) {
-    LocalVariable* parameter = scope->VariableAt(pos);
-    const String& opt_param_name = parameter->name();
-    int i = pos - num_fixed_params;
-    while (--i >= 0) {
-      LocalVariable* param_i = opt_param[i];
-      const intptr_t result = opt_param_name.CompareTo(param_i->name());
-      ASSERT(result != 0);
-      if (result > 0) break;
-      opt_param[i + 1] = opt_param[i];
-      opt_param_position[i + 1] = opt_param_position[i];
-    }
-    opt_param[i + 1] = parameter;
-    opt_param_position[i + 1] = pos;
-  }
-  // Generate code handling each optional parameter in alphabetical order.
-  // Total number of args is the first Smi in args descriptor array (R10).
-  __ movq(RBX, FieldAddress(R10, Array::data_offset()));
-  // Number of positional args is the second Smi in descriptor array (R10).
-  __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
-  __ SmiUntag(RCX);
-  // Let RBX point to the first passed argument, i.e. to fp[1 + argc - 0].
-  __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
-  // Let EDI point to the name/pos pair of the first named argument.
-  __ leaq(RDI, FieldAddress(R10, Array::data_offset() + (2 * kWordSize)));
-  for (int i = 0; i < num_opt_params; i++) {
-    // Handle this optional parameter only if k or fewer positional arguments
-    // have been passed, where k is the position of this optional parameter in
-    // the formal parameter list.
-    Label load_default_value, assign_optional_parameter, next_parameter;
-    const int param_pos = opt_param_position[i];
-    __ cmpq(RCX, Immediate(param_pos));
-    __ j(GREATER, &next_parameter, Assembler::kNearJump);
-    // Check if this named parameter was passed in.
-    __ movq(RAX, Address(RDI, 0));  // Load RAX with the name of the argument.
-    __ CompareObject(RAX, opt_param[i]->name());
-    __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
-    // Load RAX with passed-in argument at provided arg_pos, i.e. at
-    // fp[1 + argc - arg_pos].
-    __ movq(RAX, Address(RDI, kWordSize));  // RAX is arg_pos as Smi.
-    __ addq(RDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
-    __ negq(RAX);
-    Address argument_addr(RBX, RAX, TIMES_4, 0);  // RAX is a negative Smi.
-    __ movq(RAX, argument_addr);
-    __ jmp(&assign_optional_parameter, Assembler::kNearJump);
-    __ Bind(&load_default_value);
-    // Load RAX with default argument at pos.
-    const Object& value = Object::ZoneHandle(
-        parsed_function().default_parameter_values().At(
-            param_pos - num_fixed_params));
-    __ LoadObject(RAX, value);
-    __ Bind(&assign_optional_parameter);
-    // Assign RAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
-    // We do not use the final allocation index of the variable here, i.e.
-    // scope->VariableAt(i)->index(), because captured variables still need
-    // to be copied to the context that is not yet allocated.
-    const Address param_addr(
-        RBP, (ParsedFunction::kFirstLocalSlotIndex - param_pos) * kWordSize);
-    __ movq(param_addr, RAX);
-    __ Bind(&next_parameter);
-  }
-  delete[] opt_param;
-  delete[] opt_param_position;
-  // Check that RDI now points to the null terminator in the array descriptor.
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label all_arguments_processed;
-  __ cmpq(Address(RDI, 0), raw_null);
-  __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+  if (num_opt_params > 0) {
+    // Start by alphabetically sorting the names of the optional parameters.
+    LocalVariable** opt_param = new LocalVariable*[num_opt_params];
+    int* opt_param_position = new int[num_opt_params];
+    for (int pos = num_fixed_params; pos < num_params; pos++) {
+      LocalVariable* parameter = scope->VariableAt(pos);
+      const String& opt_param_name = parameter->name();
+      int i = pos - num_fixed_params;
+      while (--i >= 0) {
+        LocalVariable* param_i = opt_param[i];
+        const intptr_t result = opt_param_name.CompareTo(param_i->name());
+        ASSERT(result != 0);
+        if (result > 0) break;
+        opt_param[i + 1] = opt_param[i];
+        opt_param_position[i + 1] = opt_param_position[i];
+      }
+      opt_param[i + 1] = parameter;
+      opt_param_position[i + 1] = pos;
+    }
+    // Generate code handling each optional parameter in alphabetical order.
+    // Total number of args is the first Smi in args descriptor array (R10).
+    __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+    // Number of positional args is the second Smi in descriptor array (R10).
+    __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+    __ SmiUntag(RCX);
+    // Let RBX point to the first passed argument, i.e. to fp[1 + argc - 0].
+    __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
+    // Let EDI point to the name/pos pair of the first named argument.
+    __ leaq(RDI, FieldAddress(R10, Array::data_offset() + (2 * kWordSize)));
+    for (int i = 0; i < num_opt_params; i++) {
+      // Handle this optional parameter only if k or fewer positional arguments
+      // have been passed, where k is the position of this optional parameter in
+      // the formal parameter list.
+      Label load_default_value, assign_optional_parameter, next_parameter;
+      const int param_pos = opt_param_position[i];
+      __ cmpq(RCX, Immediate(param_pos));
+      __ j(GREATER, &next_parameter, Assembler::kNearJump);
+      // Check if this named parameter was passed in.
+      __ movq(RAX, Address(RDI, 0));  // Load RAX with the name of the argument.
+      __ CompareObject(RAX, opt_param[i]->name());
+      __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
+      // Load RAX with passed-in argument at provided arg_pos, i.e. at
+      // fp[1 + argc - arg_pos].
+      __ movq(RAX, Address(RDI, kWordSize));  // RAX is arg_pos as Smi.
+      __ addq(RDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
+      __ negq(RAX);
+      Address argument_addr(RBX, RAX, TIMES_4, 0);  // RAX is a negative Smi.
+      __ movq(RAX, argument_addr);
+      __ jmp(&assign_optional_parameter, Assembler::kNearJump);
+      __ Bind(&load_default_value);
+      // Load RAX with default argument at pos.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(
+              param_pos - num_fixed_params));
+      __ LoadObject(RAX, value);
+      __ Bind(&assign_optional_parameter);
+      // Assign RAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
+                                     param_pos + implicit_this_param_pos);
+      const Address param_addr(RBP, (computed_param_pos * kWordSize));
+      __ movq(param_addr, RAX);
+      __ Bind(&next_parameter);
+    }
+    delete[] opt_param;
+    delete[] opt_param_position;
+    // Check that RDI now points to the null terminator in the array descriptor.
+    __ cmpq(Address(RDI, 0), raw_null);
+    __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+  } else {
+    ASSERT(is_native_instance_closure);
+    __ jmp(&all_arguments_processed, Assembler::kNearJump);
+  }
 
   __ Bind(&wrong_num_arguments);
   if (StackSize() != 0) {

@@ -1380,6 +1380,9 @@ class Function : public Object {
   }
   void set_is_optimizable(bool value) const;
 
+  bool is_native() const { return raw_ptr()->is_native_; }
+  void set_is_native(bool value) const;
+
   bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;

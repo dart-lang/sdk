@@ -30,7 +30,8 @@ CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
                                                   native_name,
                                                   native_function,
                                                   num_params,
-                                                  has_opt_params)));
+                                                  has_opt_params,
+                                                  false)));
 }
 
 CODEGEN_TEST2_GENERATE(PatchStaticCall, function, test) {

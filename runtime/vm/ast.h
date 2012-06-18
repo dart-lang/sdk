@@ -1493,12 +1493,14 @@ class NativeBodyNode : public AstNode {
                  const String& native_c_function_name,
                  NativeFunction native_c_function,
                  int argument_count,
-                 bool has_optional_parameters)
+                 bool has_optional_parameters,
+                 bool is_native_instance_closure)
       : AstNode(token_index),
         native_c_function_name_(native_c_function_name),
         native_c_function_(native_c_function),
         argument_count_(argument_count),
-        has_optional_parameters_(has_optional_parameters) {
+        has_optional_parameters_(has_optional_parameters),
+        is_native_instance_closure_(is_native_instance_closure) {
     ASSERT(native_c_function_ != NULL);
     ASSERT(native_c_function_name_.IsZoneHandle());
     ASSERT(native_c_function_name_.IsSymbol());
@@ -1512,6 +1514,9 @@ class NativeBodyNode : public AstNode {
   bool has_optional_parameters() const {
     return has_optional_parameters_;
   }
+  bool is_native_instance_closure() const {
+    return is_native_instance_closure_;
+  }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
@@ -1522,6 +1527,7 @@ class NativeBodyNode : public AstNode {
   NativeFunction native_c_function_;  // Actual non-Dart implementation.
   const int argument_count_;  // Native Dart function argument count.
   const bool has_optional_parameters_;  // Native Dart function kind.
+  const bool is_native_instance_closure_;  // An implicit native closure.
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeBodyNode);
 };
