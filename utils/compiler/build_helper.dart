@@ -73,8 +73,6 @@ List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
   print('dart2jsPath = $dart2jsPath');
   print('dart2jsPathWin = $dart2jsPathWin');
 
-  options = ' $options';
-
   // Tell the VM to grow the heap more aggressively. This should only
   // be necessary temporarily until the VM is better at detecting how
   // applications use memory.
