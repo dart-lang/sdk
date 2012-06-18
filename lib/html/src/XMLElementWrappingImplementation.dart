@@ -25,8 +25,8 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
     parentTag.innerHTML = xml;
     if (parentTag.nodes.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException('XML had ${parentTag.nodes.length} ' +
-        'top-level nodes but 1 expected');
+    throw new IllegalArgumentException(
+        'XML had ${parentTag.nodes.length} top-level nodes but 1 expected');
   }
 
   Set<String> get classes() {
