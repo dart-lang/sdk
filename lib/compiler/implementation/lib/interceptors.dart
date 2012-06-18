@@ -187,8 +187,13 @@ getRange(receiver, start, length) {
 }
 
 indexOf$1(receiver, element) {
-  if (isJsArray(receiver) || receiver is String) {
-    return indexOf$2(receiver, element, 0);
+  if (isJsArray(receiver)) {
+    var length = JS('num', @'#.length', receiver);
+    return Arrays.indexOf(receiver, element, 0, length);
+  } else if (receiver is String) {
+    checkNull(element);
+    if (element is !String) throw new IllegalArgumentException(element);
+    return JS('int', @'#.indexOf(#)', receiver, element);
   }
   return UNINTERCEPTED(receiver.indexOf(element));
 }

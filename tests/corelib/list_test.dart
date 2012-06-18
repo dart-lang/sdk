@@ -65,8 +65,25 @@ class ListTest {
     }
 
     for (int i = 0; i < 4; i++) {
-      Expect.equals(list[i], i);
+      Expect.equals(i, list[i]);
+      Expect.equals(i, list.indexOf(i));
+      Expect.equals(i, list.lastIndexOf(i));
     }
+
+    Expect.equals(-1, list.indexOf(100));
+    Expect.equals(-1, list.lastIndexOf(100));
+    list[2] = new Yes();
+    Expect.equals(2, list.indexOf(100));
+    Expect.equals(2, list.lastIndexOf(100));
+    list[3] = new Yes();
+    Expect.equals(2, list.indexOf(100));
+    Expect.equals(3, list.lastIndexOf(100));
+    list[2] = 2;
+    Expect.equals(3, list.indexOf(100));
+    Expect.equals(3, list.lastIndexOf(100));
+    list[3] = 3;
+    Expect.equals(-1, list.indexOf(100));
+    Expect.equals(-1, list.lastIndexOf(100));
 
     testClosures(list);
 
@@ -96,8 +113,25 @@ class ListTest {
 
     Expect.equals(list.length, 10);
     for (int i = 0; i < 10; i++) {
-      Expect.equals(list[i], i);
+      Expect.equals(i, list[i]);
+      Expect.equals(i, list.indexOf(i));
+      Expect.equals(i, list.lastIndexOf(i));
     }
+
+    Expect.equals(-1, list.indexOf(100));
+    Expect.equals(-1, list.lastIndexOf(100));
+    list[2] = new Yes();
+    Expect.equals(2, list.indexOf(100));
+    Expect.equals(2, list.lastIndexOf(100));
+    list[3] = new Yes();
+    Expect.equals(2, list.indexOf(100));
+    Expect.equals(3, list.lastIndexOf(100));
+    list[2] = 2;
+    Expect.equals(3, list.indexOf(100));
+    Expect.equals(3, list.lastIndexOf(100));
+    list[3] = 3;
+    Expect.equals(-1, list.indexOf(100));
+    Expect.equals(-1, list.lastIndexOf(100));
 
     testClosures(list);
 
@@ -107,6 +141,10 @@ class ListTest {
     Expect.equals(list.length, 0);
     Expect.equals(true, list.isEmpty());
   }
+}
+
+class Yes {
+  operator ==(var other) => true;
 }
 
 main() {
