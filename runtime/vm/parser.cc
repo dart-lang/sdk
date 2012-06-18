@@ -26,7 +26,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, allow_string_plus, true, "Allow + operator on strings.");
+DEFINE_FLAG(bool, allow_string_plus, false, "Allow + operator on strings.");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
