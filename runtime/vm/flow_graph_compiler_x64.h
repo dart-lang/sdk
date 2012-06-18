@@ -9,12 +9,6 @@
 #error Include flow_graph_compiler.h instead of flow_graph_compiler_x64.h.
 #endif
 
-#include "vm/assembler.h"
-#include "vm/assembler_macros.h"
-#include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
-#include "vm/intermediate_language.h"
-
 namespace dart {
 
 class Code;
@@ -37,7 +31,7 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<BlockEntryInstr*>& block_order,
                     bool is_optimizing);
 
-  virtual ~FlowGraphCompiler();
+  ~FlowGraphCompiler();
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }
@@ -75,10 +69,10 @@ class FlowGraphCompiler : public ValueObject {
   // no fall-through to regular code is needed.
   bool TryIntrinsify();
 
-  virtual void GenerateCallRuntime(intptr_t cid,
-                                   intptr_t token_index,
-                                   intptr_t try_index,
-                                   const RuntimeEntry& entry);
+  void GenerateCallRuntime(intptr_t cid,
+                           intptr_t token_index,
+                           intptr_t try_index,
+                           const RuntimeEntry& entry);
 
   // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_index,
@@ -113,7 +107,7 @@ class FlowGraphCompiler : public ValueObject {
                           intptr_t argument_count,
                           const Array& argument_names);
 
-  virtual void GenerateInlinedMathSqrt(Label* done);
+  void GenerateInlinedMathSqrt(Label* done);
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
@@ -173,6 +167,10 @@ class FlowGraphCompiler : public ValueObject {
   const Bool& bool_false() const { return bool_false_; }
   const Class& double_class() const { return double_class_; }
 
+  FrameRegisterAllocator* frame_register_allocator() {
+    return &frame_register_allocator_;
+  }
+
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
  private:
@@ -180,22 +178,22 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateDeferredCode();
 
-  virtual void EmitInstructionPrologue(Instruction* instr);
+  void EmitInstructionPrologue(Instruction* instr);
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
   // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
   // pc-descriptor information.
-  virtual intptr_t EmitStaticCall(const Function& function,
-                                  const Array& arguments_descriptor,
-                                  intptr_t argument_count);
+  intptr_t EmitStaticCall(const Function& function,
+                          const Array& arguments_descriptor,
+                          intptr_t argument_count);
 
   // Type checking helper methods.
-  virtual void CheckClassIds(Register class_id_reg,
-                             const GrowableArray<intptr_t>& class_ids,
-                             Label* is_instance_lbl,
-                             Label* is_not_instance_lbl);
+  void CheckClassIds(Register class_id_reg,
+                     const GrowableArray<intptr_t>& class_ids,
+                     Label* is_instance_lbl,
+                     Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
                                                 intptr_t token_index,
@@ -247,8 +245,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void CopyParameters();
 
-  virtual void GenerateInlinedGetter(intptr_t offset);
-  virtual void GenerateInlinedSetter(intptr_t offset);
+  void GenerateInlinedGetter(intptr_t offset);
+  void GenerateInlinedSetter(intptr_t offset);
 
   // Map a block number in a forward iteration into the block number in the
   // corresponding reverse iteration.  Used to obtain an index into
@@ -275,6 +273,8 @@ class FlowGraphCompiler : public ValueObject {
   const Bool& bool_true_;
   const Bool& bool_false_;
   const Class& double_class_;
+
+  FrameRegisterAllocator frame_register_allocator_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

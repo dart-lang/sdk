@@ -68,6 +68,14 @@ class BaseGrowableArray : public B {
     length_ = 0;
   }
 
+  void RemoveFirst() {
+    ASSERT(length_ > 0);
+    length_--;
+    for (int i = 0; i < length_; i++) {
+      data_[i] = data_[i + 1];
+    }
+  }
+
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
 

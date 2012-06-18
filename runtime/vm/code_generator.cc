@@ -32,6 +32,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 
 
 bool CodeGenerator::CanOptimize() {
@@ -1338,6 +1339,13 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // a loop. Maybe test if the code has been optimized before calling.
     // If this happens from optimized code, then it means that the optimized
     // code needs to be reoptimized.
+    function.set_usage_counter(kLowInvocationCount);
+    return;
+  }
+  if ((FLAG_optimization_filter != NULL) &&
+      (strncmp(function.ToFullyQualifiedCString(),
+               FLAG_optimization_filter,
+               strlen(FLAG_optimization_filter)) != 0)) {
     function.set_usage_counter(kLowInvocationCount);
     return;
   }

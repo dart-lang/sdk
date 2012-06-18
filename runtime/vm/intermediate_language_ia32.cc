@@ -23,7 +23,7 @@ DECLARE_FLAG(bool, trace_functions);
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
 LocationSummary* Computation::MakeCallSummary() {
-  LocationSummary* result = new LocationSummary(0, 0);
+  LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
   result->set_out(Location::RegisterLocation(EAX));
   return result;
 }
@@ -36,7 +36,7 @@ void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // with branches.  Currrently IR does not provide an easy way to remove
     // instructions from the graph so we just leave fused comparison in it
     // but change its result location to be NoLocation.
-    __ pushl(locs()->out().reg());
+    compiler->frame_register_allocator()->Push(locs()->out().reg(), this);
   }
 }
 
@@ -105,7 +105,9 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ClosureCallComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
-  LocationSummary* result = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* result = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kCall);
   result->set_out(Location::RegisterLocation(EAX));
   result->set_temp(0, Location::RegisterLocation(EDX));  // Arg. descriptor.
   return result;
@@ -189,10 +191,17 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
+  const LocationSummary::ContainsBranch contains_branch =
+      is_fused_with_branch() ? LocationSummary::kBranch
+                             : LocationSummary::kNoBranch;
+
   const intptr_t kNumInputs = 2;
   if ((NumTargets() == 1) && (ClassIdAt(0) == kSmi)) {
     const intptr_t kNumTemps = 1;
-    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    LocationSummary* locs = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kNoCall,
+                                                contains_branch);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
     locs->set_temp(0, Location::RequiresRegister());
@@ -203,7 +212,10 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   }
   if (NumTargets() > 0) {
     const intptr_t kNumTemps = 1;
-    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    LocationSummary* locs = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kCall,
+                                                contains_branch);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
     locs->set_temp(0, Location::RequiresRegister());
@@ -213,7 +225,10 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     return locs;
   }
   const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall,
+                                              contains_branch);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, Location::RequiresRegister());
   if (!is_fused_with_branch()) {
@@ -403,10 +418,17 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* RelationalOpComp::MakeLocationSummary() const {
+  const LocationSummary::ContainsBranch contains_branch =
+      is_fused_with_branch() ? LocationSummary::kBranch
+                             : LocationSummary::kNoBranch;
+
   if ((operands_class_id() == kSmi) || (operands_class_id() == kDouble)) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                   kNumTemps,
+                                                   LocationSummary::kNoCall,
+                                                   contains_branch);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     if (!is_fused_with_branch()) {
@@ -551,7 +573,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* NativeCallComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(0, 3);
+  LocationSummary* locs = new LocationSummary(0, 3, LocationSummary::kCall);
   locs->set_temp(0, Location::RegisterLocation(EAX));
   locs->set_temp(1, Location::RegisterLocation(ECX));
   locs->set_temp(2, Location::RegisterLocation(EDX));
@@ -768,22 +790,14 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  return LocationSummary::Make(kNumInputs, Location::NoLocation());
+  return MakeCallSummary();
 }
 
 
 void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-  Register value = locs()->in(1).reg();
-
-  // Preserve the value (second argument) under the arguments as the result
-  // of the computation, then call the setter.
   const String& function_name =
       String::ZoneHandle(Field::SetterSymbol(field_name()));
 
-  __ pushl(receiver);
-  __ pushl(value);
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
                                  token_index(),
@@ -899,7 +913,9 @@ LocationSummary* CreateArrayComp::MakeLocationSummary() const {
   // ArgumentCount getter and an ArgumentAt getter.
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(ECX));
   locs->set_temp(0, Location::RegisterLocation(EDX));
   locs->set_out(Location::RegisterLocation(EAX));
@@ -930,7 +946,9 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary*
 AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::RequiresRegister());
+  return LocationSummary::Make(2,
+                               Location::RequiresRegister(),
+                               LocationSummary::kCall);
 }
 
 
@@ -985,7 +1003,9 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
@@ -1168,7 +1188,9 @@ void ExtractConstructorInstantiatorComp::EmitNativeCode(
 LocationSummary* AllocateContextComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
   locs->set_temp(0, Location::RegisterLocation(EDX));
   locs->set_out(Location::RegisterLocation(EAX));
   return locs;
@@ -1190,7 +1212,9 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1, Location::RequiresRegister());
+  return LocationSummary::Make(1,
+                               Location::RequiresRegister(),
+                               LocationSummary::kCall);
 }
 
 
@@ -1235,7 +1259,9 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
-  return LocationSummary::Make(0, Location::NoLocation());
+  return LocationSummary::Make(0,
+                               Location::NoLocation(),
+                               LocationSummary::kCall);
 }
 
 
@@ -1255,13 +1281,7 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (operands_type() == kDoubleOperands) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::RegisterLocation(EAX));
-    summary->set_temp(0, Location::RequiresRegister());
-    return summary;
+    return MakeCallSummary();  // Calls into a stub for allocation.
   }
   ASSERT(operands_type() == kSmiOperands);
   if (op_kind() == Token::kTRUNCDIV) {
@@ -1316,6 +1336,8 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
                                         kDeoptSmiBinaryOp,
                                         temp,
                                         right);
+  // TODO(vegorov): for many binary operations this pattern can be rearranged
+  // to save one move.
   __ movl(temp, left);
   __ orl(left, right);
   __ testl(left, Immediate(kSmiTagMask));
@@ -1438,17 +1460,15 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 
 static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
                                BinaryOpComp* comp) {
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
-  Register temp = comp->locs()->temp(0).reg();
+  Register left = EBX;
+  Register right = ECX;
+  Register temp = EDX;
   Register result = comp->locs()->out().reg();
 
   const Class& double_class = compiler->double_class();
   const Code& stub =
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
-  __ pushl(left);
-  __ pushl(right);
   compiler->GenerateCall(comp->instance_call()->token_index(),
                          comp->instance_call()->try_index(),
                          &label,
@@ -1548,7 +1568,9 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* NumberNegateComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;  // Needed for doubles.
-  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                 kNumTemps,
+                                                 LocationSummary::kCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_out(Location::SameAsFirstInput());
   summary->set_temp(0, Location::RequiresRegister());
@@ -1612,17 +1634,18 @@ LocationSummary* ToDoubleComp::MakeLocationSummary() const {
     locs->set_in(0, Location::RequiresRegister());
     locs->set_temp(0, Location::RequiresRegister());
     locs->set_out(Location::SameAsFirstInput());
+    locs->set_temp(0, Location::RequiresRegister());
     return locs;
   } else {
     ASSERT(from() == kSmi);
-    return LocationSummary::Make(kNumInputs, Location::RegisterLocation(EAX));
+    return MakeCallSummary();  // Calls a stub to allocate result.
   }
 }
 
 
 void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
+  Register value = (from() == kDouble) ? locs()->in(0).reg() : EBX;
 
   const DeoptReasonId deopt_reason = (from() == kDouble) ?
       kDeoptDoubleToDouble : kDeoptIntegerToDouble;
@@ -1649,8 +1672,7 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
-  // TODO(vegorov): allocate box in the driver loop to avoid pushing and poping.
-  __ pushl(value);
+  // TODO(vegorov): allocate box in the driver loop to avoid spilling.
   compiler->GenerateCall(instance_call()->token_index(),
                          instance_call()->try_index(),
                          &label,

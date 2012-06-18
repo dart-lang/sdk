@@ -1307,6 +1307,16 @@ void Assembler::MoveRegister(Register to, Register from) {
 }
 
 
+void Assembler::PushRegister(Register r) {
+  pushl(r);
+}
+
+
+void Assembler::PopRegister(Register r) {
+  popl(r);
+}
+
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   int value = imm.value();
   if (value > 0) {

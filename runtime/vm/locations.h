@@ -12,8 +12,6 @@
 namespace dart {
 
 
-class UnallocatedLocation;
-
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
 // LocationSummary object which specifies expected location for every input
@@ -102,10 +100,26 @@ class Location : public ValueObject {
 // Specification of locations for inputs and output.
 class LocationSummary : public ZoneAllocated {
  public:
-  LocationSummary(intptr_t input_count, intptr_t temp_count)
+  enum ContainsCall {
+    kNoCall,
+    kCall,
+  };
+
+  enum ContainsBranch {
+    kNoBranch,
+    kBranch
+  };
+
+  // TODO(vegorov): remove unsafe kNoCall default.
+  LocationSummary(intptr_t input_count,
+                  intptr_t temp_count,
+                  ContainsCall call = kNoCall,
+                  ContainsBranch branch = kNoBranch)
       : input_locations_(input_count),
         temp_locations_(temp_count),
-        output_location_() {
+        output_location_(),
+        is_call_(call == kCall),
+        is_branch_(branch == kBranch) {
     for (intptr_t i = 0; i < input_count; i++) {
       input_locations_.Add(Location());
     }
@@ -146,16 +160,30 @@ class LocationSummary : public ZoneAllocated {
     output_location_ = loc;
   }
 
-  // Perform a greedy local register allocation.  Consider all register free.
-  void AllocateRegisters();
+  bool is_call() const {
+    return is_call_;
+  }
 
-  static LocationSummary* Make(intptr_t input_count, Location out);
+  // TODO(vegorov): this is a temporary solution. Once we will start removing
+  // comparison operations from the flow graph when they are fused with a branch
+  // we should eliminate this.
+  bool is_branch() const {
+    return is_branch_;
+  }
+
+  static LocationSummary* Make(intptr_t input_count,
+                               Location out,
+                               ContainsCall contains_call = kNoCall,
+                               ContainsBranch contains_branch = kNoBranch);
 
  private:
   // TODO(vegorov): replace with ZoneArray.
   GrowableArray<Location> input_locations_;
   GrowableArray<Location> temp_locations_;
   Location output_location_;
+
+  const bool is_call_;
+  const bool is_branch_;
 };
 
 

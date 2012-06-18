@@ -95,10 +95,21 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
 }
 
 
+void FlowGraphCompiler::GenerateCall(intptr_t token_index,
+                                     intptr_t try_index,
+                                     const ExternalLabel* label,
+                                     PcDescriptors::Kind kind) {
+  ASSERT(frame_register_allocator()->IsSpilled());
+  __ call(label);
+  AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
+}
+
+
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
                                             intptr_t token_index,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry) {
+  ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, cid, token_index, try_index);
 }
@@ -411,15 +422,6 @@ intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
   const intptr_t descr_offset = assembler()->CodeSize();
   __ Drop(argument_count);
   return descr_offset;
-}
-
-
-void FlowGraphCompiler::GenerateCall(intptr_t token_index,
-                                     intptr_t try_index,
-                                     const ExternalLabel* label,
-                                     PcDescriptors::Kind kind) {
-  __ call(label);
-  AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
 }
 
 
@@ -971,14 +973,13 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
 
-  locs->AllocateRegisters();
+  frame_register_allocator()->AllocateRegisters(instr);
 
-  // Load instruction inputs into allocated registers.
-  for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
-    Location loc = locs->in(i);
-    ASSERT(loc.kind() == Location::kRegister);
-    __ popl(loc.reg());
-  }
+  // TODO(vegorov): adjust assertion when we start removing comparison from the
+  // graph when it is merged with a branch.
+  ASSERT(locs->is_call() ||
+         (instr->IsBranch() && instr->AsBranch()->is_fused_with_comparison()) ||
+         (locs->input_count() == instr->InputCount()));
 }
 
 

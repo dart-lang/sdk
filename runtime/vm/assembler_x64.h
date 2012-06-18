@@ -501,6 +501,8 @@ class Assembler : public ValueObject {
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
+  void PushRegister(Register r);
+  void PopRegister(Register r);
 
   void AddImmediate(Register reg, const Immediate& imm);
 

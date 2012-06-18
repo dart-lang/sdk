@@ -9,21 +9,17 @@
 #error Include flow_graph_compiler.h instead of flow_graph_compiler_ia32.h.
 #endif
 
-#include "vm/assembler.h"
-#include "vm/assembler_macros.h"
-#include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
-#include "vm/intermediate_language.h"
-
 namespace dart {
 
 class AbstractType;
 class Assembler;
 class Code;
 class DeoptimizationStub;
+class FlowGraphCompiler;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 class StackMapBuilder;
+
 
 // Stubbed out implementation of graph compiler, bails out immediately if
 // CompileGraph is called. The rest of the public API is UNIMPLEMENTED.
@@ -41,7 +37,7 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<BlockEntryInstr*>& block_order,
                     bool is_optimizing);
 
-  virtual ~FlowGraphCompiler();
+  ~FlowGraphCompiler();
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }
@@ -79,31 +75,31 @@ class FlowGraphCompiler : public ValueObject {
   // no fall-through to regular code is needed.
   bool TryIntrinsify();
 
-  virtual void GenerateCallRuntime(intptr_t cid,
-                                   intptr_t token_index,
-                                   intptr_t try_index,
-                                   const RuntimeEntry& entry);
+  void GenerateCallRuntime(intptr_t cid,
+                           intptr_t token_index,
+                           intptr_t try_index,
+                           const RuntimeEntry& entry);
 
   // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
   // pc-descriptor information.
-  virtual intptr_t EmitStaticCall(const Function& function,
-                                  const Array& arguments_descriptor,
-                                  intptr_t argument_count);
+  intptr_t EmitStaticCall(const Function& function,
+                          const Array& arguments_descriptor,
+                          intptr_t argument_count);
 
-  virtual void GenerateCall(intptr_t token_index,
-                            intptr_t try_index,
-                            const ExternalLabel* label,
-                            PcDescriptors::Kind kind);
-  virtual void GenerateInstanceOf(intptr_t cid,
-                                  intptr_t token_index,
-                                  intptr_t try_index,
-                                  const AbstractType& type,
-                                  bool negate_result);
-  virtual void GenerateAssertAssignable(intptr_t cid,
-                                        intptr_t token_index,
-                                        intptr_t try_index,
-                                        const AbstractType& dst_type,
-                                        const String& dst_name);
+  void GenerateCall(intptr_t token_index,
+                    intptr_t try_index,
+                    const ExternalLabel* label,
+                    PcDescriptors::Kind kind);
+  void GenerateInstanceOf(intptr_t cid,
+                          intptr_t token_index,
+                          intptr_t try_index,
+                          const AbstractType& type,
+                          bool negate_result);
+  void GenerateAssertAssignable(intptr_t cid,
+                                intptr_t token_index,
+                                intptr_t try_index,
+                                const AbstractType& dst_type,
+                                const String& dst_name);
 
   void GenerateInstanceCall(intptr_t cid,
                             intptr_t token_index,
@@ -176,6 +172,10 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
 
+  FrameRegisterAllocator* frame_register_allocator() {
+    return &frame_register_allocator_;
+  }
+
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
   const Bool& bool_true() const { return bool_true_; }
@@ -188,10 +188,10 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateDeferredCode();
 
   void CopyParameters();
-  virtual void EmitInstructionPrologue(Instruction* instr);
+  void EmitInstructionPrologue(Instruction* instr);
 
-  virtual void GenerateInlinedGetter(intptr_t offset);
-  virtual void GenerateInlinedSetter(intptr_t offset);
+  void GenerateInlinedGetter(intptr_t offset);
+  void GenerateInlinedSetter(intptr_t offset);
 
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
                                                 intptr_t token_index,
@@ -241,10 +241,10 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
-  virtual void CheckClassIds(Register class_id_reg,
-                             const GrowableArray<intptr_t>& class_ids,
-                             Label* is_equal_lbl,
-                             Label* is_not_equal_lbl);
+  void CheckClassIds(Register class_id_reg,
+                     const GrowableArray<intptr_t>& class_ids,
+                     Label* is_equal_lbl,
+                     Label* is_not_equal_lbl);
 
 
   // Map a block number in a forward iteration into the block number in the
@@ -272,6 +272,8 @@ class FlowGraphCompiler : public ValueObject {
   const Bool& bool_true_;
   const Bool& bool_false_;
   const Class& double_class_;
+
+  FrameRegisterAllocator frame_register_allocator_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

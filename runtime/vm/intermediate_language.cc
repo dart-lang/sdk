@@ -849,7 +849,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
   const int kNumInputs = 0;
   const int kNumTemps = 0;
-  return new LocationSummary(kNumInputs, kNumTemps);
+  return new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
 }
 
 
@@ -867,7 +867,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ReThrowInstr::MakeLocationSummary() const {
   const int kNumInputs = 0;
   const int kNumTemps = 0;
-  return new LocationSummary(kNumInputs, kNumTemps);
+  return new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
 }
 
 
@@ -884,11 +884,17 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
   if (is_fused_with_comparison()) {
-    return LocationSummary::Make(0, Location::NoLocation());
+    return LocationSummary::Make(0,
+                                 Location::NoLocation(),
+                                 LocationSummary::kNoCall,
+                                 LocationSummary::kBranch);
   } else {
     const int kNumInputs = 1;
     const int kNumTemps = 0;
-    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    LocationSummary* locs = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kNoCall,
+                                                LocationSummary::kBranch);
     locs->set_in(0, Location::RequiresRegister());
     return locs;
   }
@@ -1086,7 +1092,9 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1, Location::SameAsFirstInput());
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kCall);
 }
 
 

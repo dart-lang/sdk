@@ -9,6 +9,7 @@
 #include "vm/debugger.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
+#include "vm/locations.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -42,7 +43,8 @@ FlowGraphCompiler::FlowGraphCompiler(
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->double_class())) {
+          Isolate::Current()->object_store()->double_class())),
+      frame_register_allocator_(this, is_optimizing) {
   ASSERT(assembler != NULL);
 }
 
@@ -69,6 +71,7 @@ void FlowGraphCompiler::InitCompiler() {
 
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order().length(); ++i) {
+    ASSERT(frame_register_allocator()->IsSpilled());
     assembler()->Comment("B%d", i);
     // Compile the block entry.
     set_current_block(block_order()[i]);
@@ -85,6 +88,7 @@ void FlowGraphCompiler::VisitBlocks() {
     BlockEntryInstr* successor =
         (instr == NULL) ? NULL : instr->AsBlockEntry();
     if (successor != NULL) {
+      frame_register_allocator()->Spill();
       // Block ended with a "goto".  We can fall through if it is the
       // next block in the list.  Otherwise, we need a jump.
       if ((i == block_order().length() - 1) ||
@@ -146,6 +150,8 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t cid,
                                              intptr_t token_index,
                                              intptr_t try_index) {
+  ASSERT((kind != PcDescriptors::kDeopt) ||
+         frame_register_allocator()->IsSpilled());
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        cid,
@@ -163,6 +169,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        Register reg3) {
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, deopt_token_index, try_index, reason);
+  frame_register_allocator()->SpillInDeoptStub(stub);
   if (reg1 != kNoRegister) stub->Push(reg1);
   if (reg2 != kNoRegister) stub->Push(reg2);
   if (reg3 != kNoRegister) stub->Push(reg3);
@@ -268,6 +275,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t checked_argument_count) {
+  ASSERT(frame_register_allocator()->IsSpilled());
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function().function(),
                                      function_name,
@@ -306,6 +314,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names) {
+  ASSERT(frame_register_allocator()->IsSpilled());
+
   const Array& arguments_descriptor =
       CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
   const intptr_t descr_offset = EmitStaticCall(function,
@@ -393,6 +403,184 @@ void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
 }
 
 
+Register FrameRegisterAllocator::AllocateFreeRegister(bool* blocked_registers) {
+  for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
+    if (!blocked_registers[regno] && (registers_[regno] == NULL)) {
+      blocked_registers[regno] = true;
+      return static_cast<Register>(regno);
+    }
+  }
+  return SpillFirst();
+}
+
+
+Register FrameRegisterAllocator::SpillFirst() {
+  ASSERT(stack_.length() > 0);
+  Register reg = stack_[0];
+  stack_.RemoveFirst();
+  compiler()->assembler()->PushRegister(reg);
+  registers_[reg] = NULL;
+  return reg;
+}
+
+
+void FrameRegisterAllocator::SpillRegister(Register reg) {
+  while (registers_[reg] != NULL) SpillFirst();
+}
+
+
+void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
+  LocationSummary* locs = instr->locs();
+
+  bool blocked_registers[kNumberOfCpuRegisters];
+  bool blocked_temp_registers[kNumberOfCpuRegisters];
+
+  bool spill = false;
+
+  // Mark all available registers free.
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    blocked_registers[i] = false;
+    blocked_temp_registers[i] = false;
+  }
+
+  // Mark all fixed input, temp and output registers as used.
+  for (intptr_t i = 0; i < locs->input_count(); i++) {
+    Location loc = locs->in(i);
+    if (loc.kind() == Location::kRegister) {
+      ASSERT(!blocked_registers[loc.reg()]);
+      blocked_registers[loc.reg()] = true;
+      if (registers_[loc.reg()] != NULL) {
+        intptr_t stack_index = stack_.length() - (locs->input_count() - i);
+        if ((stack_index < 0) || (stack_[stack_index] != loc.reg())) {
+          spill = true;
+        }
+      }
+    }
+  }
+
+  if (spill) Spill();
+
+  for (intptr_t i = 0; i < locs->temp_count(); i++) {
+    Location loc = locs->temp(i);
+    if (loc.kind() == Location::kRegister) {
+      ASSERT(!blocked_registers[loc.reg()]);
+      blocked_registers[loc.reg()] = true;
+      blocked_temp_registers[loc.reg()] = true;
+    }
+  }
+
+  if (locs->out().kind() == Location::kRegister) {
+    // Fixed output registers are allowed to overlap with
+    // temps and inputs.
+    blocked_registers[locs->out().reg()] = true;
+  }
+
+  // Do not allocate known registers.
+  blocked_registers[CTX] = true;
+  blocked_registers[SPREG] = true;
+  blocked_registers[FPREG] = true;
+  if (TMP != kNoRegister) {
+    blocked_registers[TMP] = true;
+  }
+
+  // Allocate all unallocated input locations.
+  for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
+    Location loc = locs->in(i);
+    Register reg = kNoRegister;
+    if (loc.kind() == Location::kRegister) {
+      reg = loc.reg();
+    } else if (loc.kind() == Location::kUnallocated) {
+      ASSERT(loc.policy() == Location::kRequiresRegister);
+      if ((stack_.length() > 0) && !blocked_temp_registers[stack_.Last()]) {
+        reg = stack_.Last();
+        blocked_registers[reg] = true;
+      } else {
+        reg = AllocateFreeRegister(blocked_registers);
+      }
+      locs->set_in(i, Location::RegisterLocation(reg));
+    }
+
+    Pop(reg, instr->InputAt(i));
+  }
+
+  // If this instruction is call spill everything that was not consumed by
+  // input locations.
+  if (locs->is_call() || locs->is_branch()) {
+    Spill();
+  }
+
+  // Allocate all unallocated temp locations.
+  for (intptr_t i = 0; i < locs->temp_count(); i++) {
+    Location loc = locs->temp(i);
+    if (loc.kind() == Location::kUnallocated) {
+      ASSERT(loc.policy() == Location::kRequiresRegister);
+      loc = Location::RegisterLocation(
+        AllocateFreeRegister(blocked_registers));
+      locs->set_temp(i, loc);
+    }
+    SpillRegister(loc.reg());
+  }
+
+  Location result_location = locs->out();
+  if (result_location.kind() == Location::kUnallocated) {
+    switch (result_location.policy()) {
+      case Location::kRequiresRegister:
+        result_location = Location::RegisterLocation(
+            AllocateFreeRegister(blocked_registers));
+        break;
+      case Location::kSameAsFirstInput:
+        result_location = locs->in(0);
+        break;
+    }
+    locs->set_out(result_location);
+  }
+
+  if (result_location.kind() == Location::kRegister) {
+    SpillRegister(result_location.reg());
+  }
+}
+
+
+void FrameRegisterAllocator::Pop(Register dst, Value* val) {
+  if (stack_.length() > 0) {
+    ASSERT(keep_values_in_registers_);
+    Register src = stack_.Last();
+    ASSERT(val->AsUse()->definition() == registers_[src]);
+    stack_.RemoveLast();
+    registers_[src] = NULL;
+    compiler()->assembler()->MoveRegister(dst, src);
+  } else {
+    compiler()->assembler()->PopRegister(dst);
+  }
+}
+
+
+void FrameRegisterAllocator::Push(Register reg, BindInstr* val) {
+  ASSERT(registers_[reg] == NULL);
+  if (keep_values_in_registers_) {
+    registers_[reg] = val;
+    stack_.Add(reg);
+  } else {
+    compiler()->assembler()->PushRegister(reg);
+  }
+}
+
+
+void FrameRegisterAllocator::Spill() {
+  for (int i = 0; i < stack_.length(); i++) {
+    Register r = stack_[i];
+    registers_[r] = NULL;
+    compiler()->assembler()->PushRegister(r);
+  }
+  stack_.Clear();
+}
+
+
+void FrameRegisterAllocator::SpillInDeoptStub(DeoptimizationStub* stub) {
+  for (int i = 0; i < stack_.length(); i++) {
+    stub->Push(stack_[i]);
+  }
+}
 
 
 }  // namespace dart
