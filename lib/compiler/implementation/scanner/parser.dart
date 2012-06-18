@@ -774,6 +774,8 @@ class Parser {
       return parseContinueStatement(token);
     } else if (value === ';') {
       return parseEmptyStatement(token);
+    } else if (isIdentifier(token)) {
+      return parseExpressionStatementOrDeclaration(token);
     } else {
       return parseExpressionStatement(token);
     }

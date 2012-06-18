@@ -42,17 +42,6 @@ LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a c
 LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant
 Language/05_Variables/05_Variables_A01_t01: Fail # Compile-time error: expected '(', but got '='
 Language/05_Variables/05_Variables_A04_t09: Fail # Compile-time error: expected '(', but got 'pi'
-Language/10_Expressions/28_Identifier_Reference_A08_t37: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t40: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t41: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t42: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t43: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t44: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t45: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t46: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t47: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t48: Fail # Compile-time error: expected ';', but got ':'
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Compile-time error: expected an expression, but got '&&'
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Compile-time error: expected identifier, but got '!'
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Compile-time error: unexpected token '('
@@ -410,6 +399,7 @@ Language/05_Variables/05_Variables_A08_t05: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A08_t06: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A08_t07: Fail, OK # @compile-error
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # @compile-error
+Language/06_Functions/06_Functions_A01_t31: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A02_t02: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A03_t02: Fail, OK # @compile-error
@@ -668,8 +658,19 @@ Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail, OK # @compile-err
 Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t01: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t02: Fail, OK # @compile-error
 Language/11_Statements/05_For_A01_t12: Fail, OK # @compile-error
