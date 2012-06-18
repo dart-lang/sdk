@@ -13,6 +13,7 @@ import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -49,7 +50,6 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -479,7 +479,11 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitStringInterpolation(DartStringInterpolation x) {
-      expectedConstant(x);
+      x.visitChildren(this);
+      for (DartExpression expression : x.getExpressions()) {
+        Type expressionType = getMostSpecificType(expression);
+        checkNumberBooleanOrStringType(expression, expressionType);
+      }
       return null;
     }
 
@@ -566,10 +570,14 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
       DartFunction functionNode = node.getFunction();
-      List<DartParameter> parameters = functionNode.getParameters();
-      for (DartParameter parameter : parameters) {
-        // Then resolve the default values.
+      // check parameters default value
+      for (DartParameter parameter : functionNode.getParameters()) {
         checkConstantExpression(parameter.getDefaultExpr());
+      }
+      // continue into body (to check local functions)
+      DartBlock body = node.getFunction().getBody();
+      if (body != null) {
+        super.visitBlock(body);
       }
       return null;
     }

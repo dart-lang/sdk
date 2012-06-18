@@ -19,7 +19,6 @@ Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
 Language/05_Variables/05_Variables_A01_t01: Fail # Issue 3323
 Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # Issue 963
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
@@ -69,8 +68,6 @@ Language/10_Expressions/07_Maps_A02_t02: Fail # Issue 1483
 Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # Issue 2378
 Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # Issue 2378
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
-Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
-Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
