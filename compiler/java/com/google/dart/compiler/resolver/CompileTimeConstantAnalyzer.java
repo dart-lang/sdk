@@ -32,6 +32,7 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -113,15 +114,24 @@ public class CompileTimeConstantAnalyzer {
     }
 
     private boolean checkNumberBooleanOrStringType(HasSourceInfo x, Type type) {
-      if (!type.equals(intType) && !type.equals(boolType)
-          && !type.equals(numType) && !type.equals(doubleType)
-          && !type.equals(stringType)) {
-        context.onError(new DartCompilationError(x,
-            ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
-            type.toString()));
-        return false;
+      if (type.equals(intType) || type.equals(boolType)
+          || type.equals(numType) || type.equals(doubleType)
+          || type.equals(stringType) || (x instanceof DartNullLiteral)) {
+        return true;
+      } else if (x instanceof DartStringInterpolation) {
+        DartStringInterpolation interpolation = (DartStringInterpolation) x;
+        for (DartExpression expression : interpolation.getExpressions()) {
+          Type expressionType = getMostSpecificType(expression);
+          if (!checkNumberBooleanOrStringType(expression, expressionType)) {
+            return false;
+          }
+        }
+        return true;
       }
-      return true;
+      context.onError(new DartCompilationError(x,
+          ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
+          type.toString()));
+      return false;
     }
 
     /**
@@ -335,7 +345,9 @@ public class CompileTimeConstantAnalyzer {
           visitedElements.add(element);
 
           // Should be declared as constant.
-          if (!element.getModifiers().isConstant()) {
+          // TODO(brianwilkerson) Remove the second condition when final variables are no longer
+          // treated like constants
+          if (!element.getModifiers().isConstant() && !element.getModifiers().isFinal()) {
             expectedConstant(x);
           }
           
@@ -552,6 +564,16 @@ public class CompileTimeConstantAnalyzer {
   private class FindCompileTimeConstantExpressionsVisitor extends ASTVisitor<Void> {
 
     @Override
+    public Void visitArrayLiteral(DartArrayLiteral node) {
+      if (node.isConst()) {
+        for (DartExpression expr : node.getExpressions()) {
+          checkConstantExpression(expr);
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Void visitField(DartField node) {
       if (node.getParent() != null) {
         DartNode pp = node.getParent().getParent();
@@ -567,20 +589,16 @@ public class CompileTimeConstantAnalyzer {
       return null;
     }
 
-    @Override
-    public Void visitMethodDefinition(DartMethodDefinition node) {
-      DartFunction functionNode = node.getFunction();
-      // check parameters default value
-      for (DartParameter parameter : functionNode.getParameters()) {
-        checkConstantExpression(parameter.getDefaultExpr());
+  @Override
+  public Void visitMapLiteral(DartMapLiteral node) {
+    if (node.isConst()) {
+      for (DartMapLiteralEntry entry : node.getEntries()) {
+        checkConstantExpression(entry.getKey());
+        checkConstantExpression(entry.getValue());
       }
-      // continue into body (to check local functions)
-      DartBlock body = node.getFunction().getBody();
-      if (body != null) {
-        super.visitBlock(body);
-      }
-      return null;
     }
+    return null;
+  }
 
     @Override
     public Void visitNewExpression(DartNewExpression node) {
@@ -588,8 +606,9 @@ public class CompileTimeConstantAnalyzer {
         for (DartExpression arg : node.getArguments()) {
           checkConstantExpression(arg);
         }
+        return null;
       }
-      return null;
+      return super.visitNewExpression(node);
     }
 
     @Override
@@ -605,8 +624,9 @@ public class CompileTimeConstantAnalyzer {
         if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
           checkConstantExpression(variable.getValue());
         }
+        return null;
       }
-      return null;
+      return super.visitVariableStatement(node);
     }
 
     @Override

@@ -34,6 +34,25 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "}"));
   }
 
+  public void test_nonConstantExpressions() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "var x = 0;",
+            "const c1 = const {'$x' : 1};",
+            "const c2 = const {'key': []};",
+            "const c3 = const [new Object()];"),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 21, 1),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 26,2),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 19, 12));
+  }
+
+  public void test_expressionsWithNull() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "var b = null === '';"));
+  }
+
   public void test_parameterDefaultValue_inLocalFunction() {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(

@@ -48,11 +48,9 @@ Language/08_Interfaces/Interfaces_A01_t01: Fail # Issue 3522
 Language/09_Generics/09_Generics_A01_t04: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t01: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
-Language/10_Expressions/01_Constants_A03_t01: Fail # Issue 1483
-Language/10_Expressions/01_Constants_A06_t01: Fail # Issue 3323
-Language/10_Expressions/01_Constants_A10_t01: Fail # Issue 3521
 Language/10_Expressions/01_Constants_A14_t01: Fail # Issue 3519
 Language/10_Expressions/01_Constants_A15_t16: Fail # issue 3553
+Language/10_Expressions/01_Constants_A15_t24: Fail # co19 issue 146
 Language/10_Expressions/01_Constants_A15_t38: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 134
 Language/10_Expressions/01_Constants_A15_t49: Fail # Issue 1473
@@ -61,10 +59,7 @@ Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # Issue 2376
-Language/10_Expressions/06_Lists_A03_t01: Fail # Issue 1473
 Language/10_Expressions/07_Maps_A01_t01: Fail # Issue 1489
-Language/10_Expressions/07_Maps_A02_t01: Fail # Issue 1483
-Language/10_Expressions/07_Maps_A02_t02: Fail # Issue 1483
 Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # Issue 2378
 Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # Issue 2378
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
