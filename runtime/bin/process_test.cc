@@ -32,7 +32,8 @@ int main(int argc, char* argv[]) {
   int crash = atoi(argv[4]);
 
   if (crash == 1) {
-    abort();
+    int* segfault = NULL;
+    *segfault = 1;
   }
 
   const int kLineSize = 128;
