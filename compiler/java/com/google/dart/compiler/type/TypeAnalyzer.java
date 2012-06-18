@@ -2163,6 +2163,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return dynamicType;
         default:
           type = element.getType();
+          // attempt to resolve to "call()" method invocation
+          if (type instanceof InterfaceType) {
+            InterfaceType interfaceType = (InterfaceType) type;
+            Element callElement = interfaceType.getElement().lookupLocalElement("call");
+            if (ElementKind.of(callElement) == ElementKind.METHOD) {
+              node.setElement(callElement);
+              type = typeAsMemberOf(callElement, interfaceType);
+            }
+          }
           break;
       }
       return checkInvocation(node, target, name, type);

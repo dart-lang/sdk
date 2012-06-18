@@ -36,6 +36,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -48,7 +49,9 @@ import com.google.dart.compiler.resolver.TypeErrorCode;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -74,6 +77,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.MAIN_FUNCTION_PARAMETERS, 2, 1, 4));
   }
 
+  /**
+   * We should support resolving to the method "call".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1355
+   */
+  public void test_resolveCallMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  call() => 42;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // find a()
+    DartIdentifier aVar = findNode(libraryResult, DartIdentifier.class, "a()");
+    assertNotNull(aVar);
+    DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) aVar.getParent();
+    // analyze a() element
+    MethodElement element = (MethodElement) invocation.getElement();
+    assertNotNull(element);
+    assertEquals("call", element.getName());
+    assertEquals(
+        libraryResult.source.indexOf("call() => 42"),
+        element.getNameLocation().getOffset());
+  }
+  
   /**
    * It is a compile-time error if a typedef refers to itself via a chain of references that does
    * not include a class or interface type.
@@ -2612,5 +2645,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
+  }
+
+  private static <T extends DartNode> T findNode(
+      AnalyzeLibraryResult libraryResult,
+      final Class<T> clazz,
+      String pattern) {
+    final int index = libraryResult.source.indexOf(pattern);
+    assertTrue(index != -1);
+    final AtomicReference<T> result = new AtomicReference<T>();
+    Iterator<DartUnit> unitsIterator = libraryResult.getLibraryUnitResult().getUnits().iterator();
+    unitsIterator.next();
+    DartUnit unit = unitsIterator.next();
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      @SuppressWarnings("unchecked")
+      public Void visitNode(DartNode node) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo.getOffset() <= index
+            && index < sourceInfo.getEnd()
+            && clazz.isInstance(node)) {
+          result.set((T) node);
+        }
+        return super.visitNode(node);
+      }
+    });
+    return result.get();
   }
 }
