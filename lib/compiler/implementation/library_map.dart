@@ -23,5 +23,4 @@ final Map<String,String> DART2JS_LIBRARY_MAP = const <String> {
   "json": "lib/json/json.dart",
   "uri": "lib/uri/uri.dart",
   "utf": "lib/utf/utf.dart",
-  "web": "lib/web/web.dart",
 };
