@@ -364,6 +364,11 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     // being type checked.
     return true;
   }
+  if (static_type.IsType() &&
+      Class::Handle(static_type.type_class()).HasTypeArguments()) {
+    // TODO(regis): Special tests need to be added.
+    return false;
+  }
   Error& malformed_error = Error::Handle();
   if (!dst_type.IsMalformed() &&
       static_type.IsSubtypeOf(dst_type, &malformed_error)) {
