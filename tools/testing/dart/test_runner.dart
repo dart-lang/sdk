@@ -735,6 +735,13 @@ class BatchRunnerProcess {
     _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
     _timer = new Timer(testCase.timeout * 1000, _timeoutHandler);
     var line = _createArgumentsLine(testCase.batchTestArguments);
+    _process.stdin.onError = (err) {
+      print('Error on batch runner input stream stdin');
+      print('  Input line: $line');
+      print('  Previous test\'s status: $_status');
+      print('  Error: $err');
+      throw err;
+    };
     _process.stdin.write(line.charCodes());
   }
 
@@ -845,12 +852,12 @@ class BatchRunnerProcess {
         _startProcess(() { _reportResult(); });
       } else {  // No active test case running.
         _process.close();
-        _startProcess(() { });
+        _process = null;
       }
     };
-  } 
+  }
 
-  void _timeoutHandler(ignore) { 
+  void _timeoutHandler(ignore) {
     _process.onExit = makeExitHandler(">>> TEST TIMEOUT");
     _process.kill();
   }
