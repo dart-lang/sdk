@@ -767,7 +767,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
+      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
