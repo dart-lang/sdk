@@ -123,8 +123,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   static final int ONE_STATEMENT = 0;
   static final int ONE_EXPRESSION = 1;
   static final int EMPTY = 2;
-  static final int IF_STATEMENT = 3;
-  static final int MULTIPLE_STATEMENTS = 4;
+  static final int MULTIPLE_STATEMENTS = 3;
 
   /**
    * Returned by [expressionType] to tell how code can be generated for
@@ -176,19 +175,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   int expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
   JSBinaryOperatorPrecedence unsignedShiftPrecedences;
   HGraph currentGraph;
-
   /**
    * Whether the code-generation should try to generate an expression
    * instead of a sequence of statements.
    */
   int generationState = STATE_STATEMENT;
-
-  /**
-   * Whether we are generating a statement that does not need
-   * indentation (e.g. an 'if' in an 'else if').
-   */
-  bool generatingInlineStatement = false;
-
   HBasicBlock currentBlock;
 
   // Records a block-information that is being handled specially.
@@ -1337,10 +1328,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * contains one statement, one expression, or multiple statements.
    */
   int analyzeGraphForCodegen(HStatementInformation graph) {
-    return analyzeBlocksForCodegen(graph.start, graph.end);
-  }
+    HBasicBlock start = graph.start;
+    HBasicBlock end = graph.end;
+    // Only deal with single blocks for now. TODO(ngeoffray): analyze
+    // all blocks.
+    if (start !== end) return MULTIPLE_STATEMENTS;
 
-  int analyzeBlocksForCodegen(HBasicBlock start, HBasicBlock end) {
     int kind = EMPTY;
     bool updateKind(int newKind) {
       if (kind != EMPTY) return false;
@@ -1359,26 +1352,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     HInstruction last = start.last;
-    if (last is HGoto) {
-      if (start !== end) {
-        int nextKind = analyzeBlocksForCodegen(start.successors[0], end);
-        if (!updateKind(nextKind)) return MULTIPLE_STATEMENTS;
-      }
-    } else if (last is HIf) {
-      HIf ifInstruction = last;
-      if (ifInstruction.joinBlock !== null
-          && analyzeBlocksForCodegen(ifInstruction.joinBlock, end) != EMPTY) {
+    if (last is !HGoto) {
+      if (!updateKind(last.isStatement() ? ONE_STATEMENT : ONE_EXPRESSION)) {
         return MULTIPLE_STATEMENTS;
       }
-      int ifKind = controlFlowOperators.contains(ifInstruction)
-          ? ONE_EXPRESSION
-          : IF_STATEMENT;
-      if (!updateKind(ifKind)) return MULTIPLE_STATEMENTS;
-    } else if (start !== end) {
-      return MULTIPLE_STATEMENTS;
-    } else if (!updateKind(
-                  last.isStatement() ? ONE_STATEMENT : ONE_EXPRESSION)) {
-      return MULTIPLE_STATEMENTS;
     }
 
     CopyHandler handler = variableNames.getCopyHandler(start);
@@ -1412,7 +1389,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Usually, the variable name is longer than 'if' and it takes up
     // more space to duplicate the name.
     if (!atUseSite
-        && !generatingInlineStatement
         && variableNames.getName(phi) == variableNames.getName(phi.inputs[1])) {
       return false;
     }
@@ -1428,14 +1404,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     int elseKind = analyzeGraphForCodegen(elseGraph);
 
     void visitWithoutIndent(HStatementInformation toVisit) {
-      generatingInlineStatement = true;
-      visitSubGraph(new SubGraph(toVisit.start, toVisit.end));
+      int oldIndent = indent;
+      indent = 0;
+      generateStatements(toVisit);
+      indent = oldIndent;
     }
 
     void visitWithIndent(HStatementInformation toVisit) {
       buffer.add('{\n');
       indent++;
-      visitSubGraph(new SubGraph(toVisit.start, toVisit.end));
+      generateStatements(toVisit);
       indent--;
       addIndented('}');
     }
@@ -1479,7 +1457,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             break;
 
           case ONE_STATEMENT:
-          case IF_STATEMENT:
             addIndented('if (');
             generateNot(node.inputs[0]);
             buffer.add(') ');
@@ -1512,7 +1489,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
           case ONE_EXPRESSION:
           case ONE_STATEMENT:
-          case IF_STATEMENT:
             // TODO(ngeoffray): Generate a conditional.
             emitIf();
             visitWithoutIndent(thenGraph);
@@ -1539,7 +1515,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         break;
 
       case MULTIPLE_STATEMENTS:
-      case IF_STATEMENT:
         emitIf();
         visitWithIndent(thenGraph);
 
@@ -1550,7 +1525,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
           case ONE_EXPRESSION:
           case ONE_STATEMENT:
-          case IF_STATEMENT:
             if (thenGraphHasSuccessor) {
               buffer.add(' else ');
               visitWithoutIndent(elseGraph);
@@ -1575,6 +1549,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+
   visitIf(HIf node) {
     if (tryControlFlowOperation(node)) return;
 
@@ -1592,21 +1567,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HConstant constant = condition;
       if (constant.constant.isTrue()) {
         generateStatements(info.thenGraph);
-        int thenKind = analyzeGraphForCodegen(info.thenGraph);
-        if (thenKind == EMPTY && generatingInlineStatement) {
-          // If we are generating an inline statement, but that
-          // statement is actually empty, still emit a ';' (one
-          // statement) to emit valid syntax (e.g. 'else;').
-          generatingInlineStatement = false;
-          buffer.add(';\n');
-        }
       } else {
         generateStatements(info.elseGraph);
-        int elseKind = analyzeGraphForCodegen(info.elseGraph);
-        if (elseKind == EMPTY && generatingInlineStatement) {
-          generatingInlineStatement = false;
-          buffer.add(';\n');
-        }
       }
     } else {
       generateIf(node, info);
@@ -2067,12 +2029,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void addIndentation() {
-    if (generatingInlineStatement) {
-      generatingInlineStatement = false;
-    } else {
-      for (int i = 0; i < indent; i++) {
-        buffer.add('  ');
-      }
+    for (int i = 0; i < indent; i++) {
+      buffer.add('  ');
     }
   }
 
