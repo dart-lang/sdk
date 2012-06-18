@@ -131,6 +131,7 @@ void main() {
   world.getOrAddLibrary('${doc.scriptDir}/../../lib/unittest/unittest.dart');
   world.getOrAddLibrary('dart:uri');
   world.getOrAddLibrary('dart:utf');
+  world.getOrAddLibrary('dart:web');
   world.process();
 
   print('Generating docs...');
