@@ -152,6 +152,7 @@ fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
 element_test: Fail
 measurement_test: Fail
+svgelement_test: Fail # Issue 3709.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

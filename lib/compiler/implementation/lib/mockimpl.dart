@@ -142,27 +142,35 @@ class StringBase {
   static String join(List<String> strings, String separator) {
     checkNull(strings);
     checkNull(separator);
-    var result = "";
-    var first = true;
-    for (var string in strings) {
-      checkNull(string);
-      if (string is !String) throw new IllegalArgumentException(string);
-      if (!first) result += separator; // TODO(ahe): Use string buffer.
-      result += string; // TODO(ahe): Use string buffer.
-      first = false;
-    }
-    return result;
+    if (separator is !String) throw new IllegalArgumentException(separator);
+    return stringJoinUnchecked(_toJsStringArray(strings), separator);
   }
 
   static String concatAll(List<String> strings) {
+    return stringJoinUnchecked(_toJsStringArray(strings), "");
+  }
+
+  static List _toJsStringArray(List<String> strings) {
     checkNull(strings);
-    var result = "";
-    for (var string in strings) {
-      checkNull(string);
-      if (string is !String) throw new IllegalArgumentException(string);
-      result = '$result$string'; // TODO(ahe): Use string buffer.
+    var array;
+    final length = strings.length;
+    if (isJsArray(strings)) {
+      array = strings;
+      for (int i = 0; i < length; i++) {
+        final string = strings[i];
+        checkNull(string);
+        if (string is !String) throw new IllegalArgumentException(string);
+      }
+    } else {
+      array = new List(length);
+      for (int i = 0; i < length; i++) {
+        final string = strings[i];
+        checkNull(string);
+        if (string is !String) throw new IllegalArgumentException(string);
+        array[i] = string;
+      }
     }
-    return result;
+    return array;
   }
 }
 

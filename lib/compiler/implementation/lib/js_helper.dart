@@ -118,14 +118,6 @@ bool isJsArray(var value) {
 add$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# + #', a, b);
-  } else if (a is String) {
-    // TODO(lrn): Remove when we disable String.operator+
-    b = b.toString();
-    if (b is String) {
-      return JS('String', @'# + #', a, b);
-    }
-    checkNull(b);
-    throw new IllegalArgumentException(b);
   }
   return UNINTERCEPTED(a + b);
 }

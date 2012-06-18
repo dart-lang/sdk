@@ -171,8 +171,10 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/10_Expressions/06_Lists_A08_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -181,6 +183,7 @@ Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail, OK # A map literal
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail, OK # A map literal cannot start an expression statement.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/11_Statements/07_Do_A02_t02: Fail, OK # co19 issue 145.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail, OK # Dart issue 2259.

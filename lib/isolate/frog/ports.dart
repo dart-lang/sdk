@@ -75,7 +75,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
           }
           _receivePort._callback(msg, reply);
         }
-      }, 'receive ' + message);
+      }, 'receive $message');
     });
   }
 

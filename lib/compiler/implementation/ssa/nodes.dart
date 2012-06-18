@@ -1399,11 +1399,7 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  bool get builtin() {
-    return (left.isNumber() && right.isNumber())
-            || (left.isString() && right.isString())
-            || (left.isString() && right is HConstant);
-  }
+  bool get builtin() => left.isNumber() && right.isNumber();
 
   HType computeTypeFromInputTypes() {
     if (left.isInteger() && right.isInteger()) return left.propagatedType;
@@ -1411,7 +1407,6 @@ class HAdd extends HBinaryArithmetic {
       if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
       return HType.NUMBER;
     }
-    if (left.isString()) return HType.STRING;
     return HType.UNKNOWN;
   }
 
@@ -1419,11 +1414,6 @@ class HAdd extends HBinaryArithmetic {
     // If the desired output type is an integer we want two integers as input.
     if (propagatedType.isInteger()) {
       return HType.INTEGER;
-    }
-    // TODO(floitsch): remove string specialization once string+ is removed
-    // from dart2js.
-    if (propagatedType.isString() || left.isString() || right.isString()) {
-      return HType.STRING;
     }
     // If the desired output is a number or any of the inputs is a number
     // ask for a number. Note that we might return the input's (say 'left')
@@ -1435,7 +1425,6 @@ class HAdd extends HBinaryArithmetic {
   }
 
   HType get likelyType() {
-    if (left.isString() || right.isString()) return HType.STRING;
     if (left.isTypeUnknown() || left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
