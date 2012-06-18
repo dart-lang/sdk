@@ -1399,8 +1399,6 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  bool get builtin() => left.isNumber() && right.isNumber();
-
   HType computeTypeFromInputTypes() {
     if (left.isInteger() && right.isInteger()) return left.propagatedType;
     if (left.isNumber()) {

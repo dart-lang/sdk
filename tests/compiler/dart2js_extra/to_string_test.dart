@@ -5,16 +5,16 @@
 class A extends Object {
 }
 
-class Adder {
+class Concater {
   final x;
   final y;
-  Adder(x, y) : this.x = x, this.y = y;
-  add() => x + y;
+  Concater(x, y) : this.x = x, this.y = y;
+  add() => x.concat(y.toString());
 }
 
 test(expected, x) {
   Expect.equals(expected, x.toString());
-  Expect.equals(expected, new Adder("", x).add());
+  Expect.equals(expected, new Concater("", x).add());
 }
 
 main() {

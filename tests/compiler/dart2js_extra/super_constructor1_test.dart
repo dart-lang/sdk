@@ -7,21 +7,21 @@ String message;
 class A {
   int x;
   A(i) : x = i {
-    message += 'A($i)';
+    message = '${message}A($i)';
   }
 }
 
 class B extends A {
   int y;
   B(i) : y = i++, super(i + 5) {
-    message += 'B($i)';
+    message = '${message}B($i)';
   }
 }
 
 class C extends B {
   var z;
   C(i) : super(i * 3), z = i {
-    message += 'C($i)';
+    message = '${message}C($i)';
   }
 }
 

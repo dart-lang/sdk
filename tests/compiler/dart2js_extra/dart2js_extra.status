@@ -6,6 +6,7 @@
 class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
+this_phi_elimination_test: Fail # Issue 3710.
 
 [ $mode == debug ]
 operator_test: Skip

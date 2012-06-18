@@ -5,7 +5,7 @@
 final x = "foo";
 final y = "foo";
 final g1 = x
-  + "bar"  // TODO(lrn) - see below: 01: compile-time error
+  + "bar"  /// 01: compile-time error
 ;
 final g2 = x
   + null   /// 02: compile-time error
@@ -33,9 +33,9 @@ final g9 = x == y;
 use(x) => x;
 
 main() {
-  Expect.equals("foobar", g1);
+  Expect.equals("foo", g1);
   Expect.isTrue(g9);
-  use(g1);  // TODO(lrn): Should fail when String.operator+ is removed.
+  use(g1);
   use(g2);
   use(g3);
   use(g4);
