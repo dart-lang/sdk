@@ -118,7 +118,9 @@ class LiveEnvironment {
       var input = instruction.checkedInput;
       while (input is HCheck) input = input.checkedInput;
       liveIntervals.putIfAbsent(input, () => new LiveInterval());
-      liveIntervals.putIfAbsent(instruction, () => liveIntervals[input]);
+      // Unconditionally force the live interval of the HCheck to
+      // be the live interval of the instruction it is checking.
+      liveIntervals[instruction] = liveIntervals[input];
     } else {
       LiveInterval range = liveIntervals.putIfAbsent(
           instruction, () => new LiveInterval());
@@ -142,7 +144,6 @@ class LiveEnvironment {
     if (instruction is HCheck) {
       // Special case the HCheck instruction to mark the actual
       // checked instruction live.
-      liveInstructions.putIfAbsent(instruction, () => userId);
       var input = instruction.checkedInput;
       while (input is HCheck) input = input.checkedInput;
       liveInstructions.putIfAbsent(input, () => userId);
@@ -576,7 +577,7 @@ class SsaVariableAllocator extends HBaseVisitor {
     }
     return true;
   }
- 
+
   /**
    * Returns whether [instruction] dies at the instruction [at].
    */
