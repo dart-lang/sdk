@@ -53,7 +53,7 @@ public class SyntaxTest extends AbstractParserTest {
         "  void set g2=(int v) {}",
         "}"));
   }
-  
+
   public void test_const() {
     DartUnit unit = parseUnit(getName() + ".dart", makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -690,6 +690,45 @@ public class SyntaxTest extends AbstractParserTest {
             "}"),
             ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL, 4, 23,
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 12, 42);
+  }
+
+  public void testRedundantAbruptlyTermainatedCaseStatement() throws Exception {
+    parseUnit("phony_reduntant_abruptly_terminated_case_statement.dart",
+        Joiner.on("\n").join(
+            "func () {",
+            "  switch (0) {",
+            "   case 0: ",
+            "     return 0; ",
+            "     break;", // warn dead code
+            "   case 1: ",
+            "     return 1; ",
+            "     var foo = 1;", // warn dead code
+            "   case 2:",
+            "     return 2;",
+            "     var bar = 2;", // warn dead code
+            "     break;",    // no warning here
+            "   default:",
+            "     return -1;",
+            "     var baz = -1;", // warn dead code
+            "     break;",  // no warning here
+            "  }",
+            "}"),
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 5, 6,
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 8, 6,
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 11, 6,
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 15, 6);
+  }
+
+  public void testCornerCaseLabelInSwitch() throws Exception {
+    // The parser used to just accept this statement.
+    parseUnit("phony_reduntant_abruptly_terminated_case_statement.dart",
+        Joiner.on("\n").join(
+            "func () {",
+            "  switch (0) {",
+            "  label1: ",  // no case, default or statement follows.
+            "  }",
+            "}"),
+            ParserErrorCode.LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT, 3, 9);
   }
 
   public void testBogusEscapedNewline() throws Exception {

@@ -3182,27 +3182,30 @@ public class DartParser extends CompletionHooksParserBase {
     boolean oldInLoopStatement = inLoopStatement;
     boolean oldInCaseStatement = inCaseStatement;
     inLoopStatement = inCaseStatement = false;
-    DartBlock result;
-    if (isDietParse) {
-      result = dietParseFunctionStatementBody();
-    } else {
-      beginFunctionStatementBody();
-      if (optional(Token.ARROW)) {
-        DartExpression expr = parseExpression();
-        if (expr == null) {
-          expr = new DartSyntheticErrorExpression();
-        }
-        if (requireSemicolonForArrow) {
-          expect(Token.SEMICOLON);
-        }
-        result = done(makeReturnBlock(expr));
+    try {
+      DartBlock result;
+      if (isDietParse) {
+        result = dietParseFunctionStatementBody();
       } else {
-        result = done(parseBlock());
+        beginFunctionStatementBody();
+        if (optional(Token.ARROW)) {
+          DartExpression expr = parseExpression();
+          if (expr == null) {
+            expr = new DartSyntheticErrorExpression();
+          }
+          if (requireSemicolonForArrow) {
+            expect(Token.SEMICOLON);
+          }
+          result = done(makeReturnBlock(expr));
+        } else {
+          result = done(parseBlock());
+        }
       }
+      return result;
+    } finally {
+      inLoopStatement = oldInLoopStatement;
+      inCaseStatement = oldInCaseStatement;
     }
-    inLoopStatement = oldInLoopStatement;
-    inCaseStatement = oldInCaseStatement;
-    return result;
   }
 
   private DartBlock dietParseFunctionStatementBody() {
@@ -3816,9 +3819,11 @@ public class DartParser extends CompletionHooksParserBase {
   private DartStatement parseLoopStatement() {
     boolean oldInLoop = inLoopStatement;
     inLoopStatement = true;
-    DartStatement stmt = parseStatement();
-    inLoopStatement = oldInLoop;
-    return stmt;
+    try {
+      return parseStatement();
+    } finally {
+      inLoopStatement = oldInLoop;
+    }
   }
 
   /**
@@ -3947,6 +3952,8 @@ public class DartParser extends CompletionHooksParserBase {
   private List<DartStatement> parseCaseStatements() {
     List<DartStatement> statements = new ArrayList<DartStatement>();
     DartStatement statement = null;
+    boolean endOfCaseFound = false;
+    boolean warnedUnreachable = false;
     while (true) {
       switch (peek(0)) {
         case CASE:
@@ -3955,27 +3962,33 @@ public class DartParser extends CompletionHooksParserBase {
         case EOS:
           return statements;
         case IDENTIFIER:
-          // Handle consecutively labelled case statements
-          if (peek(1).equals(Token.COLON) && peek(2).equals(Token.CASE)) {
+          // Handle consecutively labeled case statements
+          if (peek(1).equals(Token.COLON)
+              && (peek(2).equals(Token.CASE) || peek(2).equals(Token.DEFAULT))) {
             return statements;
           }
         default:
           boolean oldInCaseStatement = inCaseStatement;
           inCaseStatement = true;
-          statement = parseStatement();
-          inCaseStatement = oldInCaseStatement;
+          try {
+            if (endOfCaseFound && !warnedUnreachable) {
+              reportErrorWithoutAdvancing(ParserErrorCode.UNREACHABLE_CODE_IN_CASE);
+              warnedUnreachable = true;
+            }
+            statement = parseStatement();
+          } finally {
+            inCaseStatement = oldInCaseStatement;
+          }
           if (statement == null) {
             return statements;
           }
 
-          statements.add(statement);
-          if (statement.isAbruptCompletingStatement()) {
-            /*
-             * TODO(jat): is this correct? It seems like we would get better
-             * error messages if we parsed dead code as part of this case block
-             * and gave an error for unreachable code
-             */
-            return statements;
+          // Don't add unreachable code to the list of statements.
+          if (!endOfCaseFound) {
+            statements.add(statement);
+            if (statement.isAbruptCompletingStatement()) {
+              endOfCaseFound = true;
+            }
           }
       }
     }
@@ -4041,8 +4054,12 @@ public class DartParser extends CompletionHooksParserBase {
         DartIdentifier identifier = parseIdentifier();
         expect(Token.COLON);
         label = done(new DartLabel(identifier, null));
+        if (peek(0) == Token.RBRACE) {
+          reportError(position(), ParserErrorCode.LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT);
+          expectCloseBrace(foundOpenBrace);
+          break;
+        }
       }
-
       if (peek(0) == Token.CASE) {
         members.add(parseCaseMember(label));
       } else if (optional(Token.RBRACE)) {
@@ -4062,7 +4079,39 @@ public class DartParser extends CompletionHooksParserBase {
     return done(new DartSwitchStatement(expr, members));
   }
 
-  /**
+  private void parseDeadSwitchCode() {
+    boolean done = false;
+    boolean warned = false;
+    boolean oldInCaseStatement = inCaseStatement;
+    inCaseStatement = true;
+    try {
+      while (!done) {
+        if (peek(0) == Token.IDENTIFIER && peek(1) == Token.COLON) {
+          beginLabel();
+          DartIdentifier identifier = parseIdentifier();
+          expect(Token.COLON);
+          done(new DartLabel(identifier, null));
+
+        }
+
+        Token nextToken = peek(0);
+        switch(nextToken) {
+          case CASE:
+          case DEFAULT:
+          case EOS:
+          case RBRACE:
+            return;
+          default:
+            warned = true;
+            parseStatement();
+        }
+      }
+    } finally {
+      inCaseStatement = oldInCaseStatement;
+    }
+  }
+
+    /**
    * <pre>
    * catchParameter
    *    : FINAL type? identifier

@@ -117,10 +117,6 @@ Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A01_t01: Fail # Issue 2441
-Language/11_Statements/08_Switch_A01_t19: Fail # Issue 3527
-Language/11_Statements/08_Switch_A08_t01: Fail # Issue 3529
-Language/11_Statements/08_Switch_A09_t01: Fail # Issue 3529
-Language/11_Statements/11_Labels_A01_t01: Fail # Issue 2440
 Language/11_Statements/11_Labels_A03_t04: Fail # co19 issue 137
 Language/11_Statements/11_Labels_A03_t05: Fail # Issue 2441
 Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
@@ -134,9 +130,6 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue
 Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
-#Language/12_Libraries_and_Scripts/2_Imports_A02_t06: Fail # Issue 3530
-#Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Issue 3530
-#Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Issue 3530
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
