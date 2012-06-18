@@ -295,10 +295,10 @@ Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05:
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t02: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail
 Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail
 Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail
@@ -443,10 +443,6 @@ Language/03_Overview/1_Scoping_A02_t30: Fail
 Language/03_Overview/1_Scoping_A02_t31: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t05: Fail
-
-
-[ $runtime == vm && $arch == x64 && $checked ]
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Crash
 
 
 [ $runtime == vm && $mode == debug && $unchecked ]

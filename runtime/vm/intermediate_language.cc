@@ -508,9 +508,12 @@ RawAbstractType* ClosureCallComp::StaticType() const {
     return Type::DynamicType();
   }
   const Class& signature_class = Class::Handle(function_type.type_class());
-  ASSERT(signature_class.IsSignatureClass());
   const Function& signature_function =
       Function::Handle(signature_class.signature_function());
+  if (signature_function.IsNull()) {
+    // Attempting to invoke a non-closure object.
+    return Type::DynamicType();
+  }
   // TODO(regis): The result type may be generic. Consider upper bounds.
   return signature_function.result_type();
 }
