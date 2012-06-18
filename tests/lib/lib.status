@@ -30,3 +30,5 @@ i18n/*: Fail # Issue 3387
 [ $runtime == opera ]
 *: Skip
 
+[ $compiler == dart2js && $checked ]
+fixnum/int_32_test: Fail # Issue 3720.
