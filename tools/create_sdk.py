@@ -54,6 +54,8 @@
 # ......uri/
 # ........uri.dart
 # ......utf/
+# ......web/
+# ........web.dart
 # ......(more will come here)
 # ....util/
 # ......analyzer/
@@ -320,10 +322,10 @@ def Main(argv):
            join(dom_dest_dir, 'dom_frog.dart'))
 
   #
-  # Create and populate lib/{crypto, json, uri, utf}.
+  # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['crypto', 'json', 'unittest', 'uri', 'utf', 'i18n']:
+  for library in ['crypto', 'json', 'unittest', 'uri', 'utf', 'i18n', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
