@@ -32,7 +32,10 @@ class Test {
           db.deleteObjectStore(STORE_NAME);
         } catch (IDBDatabaseException e) { }
         db.createObjectStore(STORE_NAME);
-        writeItems(0);
+
+        var transaction = e.target.result;
+        transaction.on.complete.add(expectAsync1((e) => writeItems(0)));
+        transaction.on.error.add(fail);
       })
     );
     request.on.error.add(fail('setVersion error'));

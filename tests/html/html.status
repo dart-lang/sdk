@@ -11,10 +11,6 @@ measurement_test: Pass, Fail  # Issue 1940
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 typed_arrays_dataview_test: Fail  # DataView constructor not implemented.
-indexeddb_1_test: Fail  # Temporary disable after recent webkit roll.
-indexeddb_2_test: Fail  # Temporary disable after recent webkit roll.
-indexeddb_3_test: Fail  # Temporary disable after recent webkit roll.
-indexeddb_4_test: Fail  # Temporary disable after recent webkit roll.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
