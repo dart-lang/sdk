@@ -6220,6 +6220,9 @@ Code::Comments& Code::Comments::New(intptr_t count) {
 
 
 intptr_t Code::Comments::Length() const {
+  if (comments_.IsNull()) {
+    return 0;
+  }
   return comments_.Length() / kNumberOfEntries;
 }
 
