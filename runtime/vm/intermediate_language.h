@@ -1253,7 +1253,7 @@ class CreateArrayComp : public TemplateComputation<1> {
   Value* element_type() const { return inputs_[0]; }
 
   virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return ElementAt(i); }
+  virtual Value* InputAt(intptr_t i) const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

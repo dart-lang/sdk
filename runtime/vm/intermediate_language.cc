@@ -131,6 +131,15 @@ intptr_t CreateArrayComp::InputCount() const {
 }
 
 
+Value* CreateArrayComp::InputAt(intptr_t i) const {
+  if (i == 0) {
+    return element_type();
+  } else {
+    return ElementAt(i - 1);
+  }
+}
+
+
 intptr_t BranchInstr::InputCount() const {
   return 1;
 }
