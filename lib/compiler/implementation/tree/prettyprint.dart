@@ -241,7 +241,12 @@ class PrettyPrinter implements Visitor {
   }
 
   visitReturn(Return node) {
-    visitNodeWithChildren(node, "Return");
+    var beginToken =
+        node.beginToken !== null ? node.beginToken.stringValue : "null";
+    var endToken = node.endToken !== null ? node.endToken.stringValue : "null";
+    openNode("Return", {"beginToken" : beginToken, "endToken" : endToken});
+    if (node.hasExpression) visitWithPrefix(node.expression, "expression:");
+    closeNode("Return");
   }
 
   visitScriptTag(ScriptTag node) {
