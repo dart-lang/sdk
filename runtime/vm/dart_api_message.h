@@ -117,7 +117,7 @@ class ApiMessageWriter : public BaseWriter {
     ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
   }
   ~ApiMessageWriter() {
-    delete forward_list_;
+    ::free(forward_list_);
   }
 
   // Writes a message of integers.
