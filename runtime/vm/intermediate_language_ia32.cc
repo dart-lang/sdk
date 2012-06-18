@@ -1284,10 +1284,24 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
+
   if (operands_type() == kDoubleOperands) {
     return MakeCallSummary();  // Calls into a stub for allocation.
   }
+
+  if (operands_type() == kMintOperands) {
+    ASSERT(op_kind() == Token::kBIT_AND);
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+
   ASSERT(operands_type() == kSmiOperands);
+
   if (op_kind() == Token::kTRUNCDIV) {
     const intptr_t kNumTemps = 3;
     LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
@@ -1462,6 +1476,39 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 }
 
 
+static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
+  // TODO(regis): For now, we only support Token::kBIT_AND for a Mint or Smi
+  // receiver and a Smi argument.
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Register result = comp->locs()->out().reg();
+  Register temp = comp->locs()->temp(0).reg();
+  ASSERT(left == result);
+  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
+                                        comp->instance_call()->token_index(),
+                                        comp->instance_call()->try_index(),
+                                        kDeoptMintBinaryOp,
+                                        temp,
+                                        right);
+  __ testl(right, Immediate(kSmiTagMask));  // Argument must be Smi.
+  __ j(NOT_ZERO, deopt);
+  __ testl(left, Immediate(kSmiTagMask));  // Receiver can be Smi.
+  Label two_smi;
+  __ j(ZERO, &two_smi);
+  __ CompareClassId(left, kMint, temp);  // Receiver must be Mint.
+  __ j(NOT_EQUAL, deopt);
+
+  ASSERT(comp->op_kind() == Token::kBIT_AND);
+
+  // Load lower Mint word, convert to Smi. It is OK to loose bits.
+  ASSERT(result == left);
+  __ movl(result, FieldAddress(left, Mint::value_offset()));
+  __ SmiTag(result);
+  __ Bind(&two_smi);
+  __ andl(result, right);
+}
+
+
 static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
                                BinaryOpComp* comp) {
   Register left = EBX;
@@ -1508,6 +1555,10 @@ void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (operands_type()) {
     case kSmiOperands:
       EmitSmiBinaryOp(compiler, this);
+      break;
+
+    case kMintOperands:
+      EmitMintBinaryOp(compiler, this);
       break;
 
     case kDoubleOperands:

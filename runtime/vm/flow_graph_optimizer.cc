@@ -35,14 +35,13 @@ void FlowGraphOptimizer::VisitBlocks() {
 }
 
 
-static bool ICDataHasReceiverClass(const ICData& ic_data, const Class& cls) {
-  ASSERT(!cls.IsNull());
+static bool ICDataHasReceiverClass(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
   Class& test_class = Class::Handle();
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     ic_data.GetOneClassCheckAt(i, &test_class, &target);
-    if (cls.raw() == test_class.raw()) {
+    if (test_class.id() == class_id) {
       return true;
     }
   }
@@ -50,10 +49,9 @@ static bool ICDataHasReceiverClass(const ICData& ic_data, const Class& cls) {
 }
 
 
-static bool ICDataHasTwoReceiverClasses(const ICData& ic_data,
-                                        const Class& cls1,
-                                        const Class& cls2) {
-  ASSERT(!cls1.IsNull() && !cls2.IsNull());
+static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
+                                             intptr_t receiver_class_id,
+                                             intptr_t argument_class_id) {
   if (ic_data.num_args_tested() != 2) {
     return false;
   }
@@ -62,8 +60,8 @@ static bool ICDataHasTwoReceiverClasses(const ICData& ic_data,
     GrowableArray<const Class*> classes;
     ic_data.GetCheckAt(i, &classes, &target);
     ASSERT(classes.length() == 2);
-    if (classes[0]->raw() == cls1.raw()) {
-      if (classes[1]->raw() == cls2.raw()) {
+    if (classes[0]->id() == receiver_class_id) {
+      if (classes[1]->id() == argument_class_id) {
         return true;
       }
     }
@@ -73,41 +71,49 @@ static bool ICDataHasTwoReceiverClasses(const ICData& ic_data,
 
 
 static bool HasOneSmi(const ICData& ic_data) {
-  const Class& smi_class =
-      Class::Handle(Isolate::Current()->object_store()->smi_class());
-  return ICDataHasReceiverClass(ic_data, smi_class);
+  return ICDataHasReceiverClass(ic_data, kSmi);
 }
 
 
 static bool HasTwoSmi(const ICData& ic_data) {
-  const Class& smi_class =
-      Class::Handle(Isolate::Current()->object_store()->smi_class());
-  return ICDataHasTwoReceiverClasses(ic_data, smi_class, smi_class);
+  return ICDataHasReceiverArgumentClasses(ic_data, kSmi, kSmi);
+}
+
+
+static bool HasMintSmi(const ICData& ic_data) {
+  return ICDataHasReceiverArgumentClasses(ic_data, kMint, kSmi);
 }
 
 
 static bool HasOneDouble(const ICData& ic_data) {
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
-  return ICDataHasReceiverClass(ic_data, double_class);
+  return ICDataHasReceiverClass(ic_data, kDouble);
 }
 
 
 static bool HasTwoDouble(const ICData& ic_data) {
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
-  return ICDataHasTwoReceiverClasses(ic_data, double_class, double_class);
+  return ICDataHasReceiverArgumentClasses(ic_data, kDouble, kDouble);
 }
 
 
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
+  BinaryOpComp::OperandsType operands_type;
+
+  if (HasMintSmi(*comp->ic_data())) {
+    // We check for Mint receiver and Smi argument, but we try to support any
+    // combination of Mint and Smi.
+    if (op_kind != Token::kBIT_AND) {
+      // TODO(regis): Not yet supported.
+      return false;
+    }
+
+    operands_type = BinaryOpComp::kMintOperands;
+  }
+
   if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
     return false;
   }
-
-  BinaryOpComp::OperandsType operands_type;
 
   if (HasTwoSmi(*comp->ic_data())) {
     if (op_kind == Token::kDIV ||

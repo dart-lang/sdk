@@ -1567,6 +1567,7 @@ class BinaryOpComp : public TemplateComputation<2> {
  public:
   enum OperandsType {
     kSmiOperands,
+    kMintOperands,
     kDoubleOperands
   };
 
