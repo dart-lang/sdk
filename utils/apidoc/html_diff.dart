@@ -77,8 +77,8 @@ class HtmlDiff {
     dom = world.libraries['dart:dom_deprecated'];
   }
 
-  HtmlDiff([bool printWarnings = false]) : 
-    _printWarnings = printWarnings, 
+  HtmlDiff([bool printWarnings = false]) :
+    _printWarnings = printWarnings,
     domToHtml = new Map<Member, Set<Member>>(),
     htmlToDom = new Map<Member, Set<Member>>(),
     domTypesToHtml = new Map<Type, Set<Type>>(),
@@ -87,7 +87,7 @@ class HtmlDiff {
 
   void warn(String s) {
     if (_printWarnings) {
-      print('Warning: ' + s);
+      print('Warning: $s');
     }
   }
 
@@ -130,7 +130,7 @@ class HtmlDiff {
 
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty()) {
-      warn('dart:html member ${htmlMember.declaringType.name}.' +
+      warn('dart:html member ${htmlMember.declaringType.name}.'
           '${htmlMember.name} has no corresponding dart:html member.');
     }
 

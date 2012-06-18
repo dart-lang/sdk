@@ -441,7 +441,7 @@ class Parser {
     if (_peekKind(TokenKind.LT)) {
       var tp = typeParameters();
       world.warning('type parameters on factories are no longer supported, '
-          + 'place them on the class instead', _makeSpan(tp[0].span.start));
+          'place them on the class instead', _makeSpan(tp[0].span.start));
     }
 
     var name = null;

@@ -215,7 +215,7 @@ class Library extends Element {
   static String _getDottedName(NameTypeReference type) {
     if (type.names != null) {
       var names = map(type.names, (n) => n.name);
-      return type.name.name + '.' + Strings.join(names, '.');
+      return '${type.name.name}.${Strings.join(names, ".")}';
     } else {
       return type.name.name;
     }
@@ -388,7 +388,7 @@ class _LibraryVisitor implements TreeVisitor {
             node.arguments.length == 2 && prefix == null) {
           world.error(
               'expected at most one "name" argument and one optional "prefix"'
-              + ' but found ${node.arguments.length}', node.span);
+              ' but found ${node.arguments.length}', node.span);
         } else if (prefix != null && prefix.indexOf('.') >= 0) {
           world.error('library prefix canot contain "."', node.span);
         } else if (seenSource || seenResource) {
@@ -468,7 +468,7 @@ class _LibraryVisitor implements TreeVisitor {
     }
     if (args.length > 1) {
       world.error('expected at most one "${argName}" argument but found '
-          + node.arguments.length, node.span);
+                  '${node.arguments.length}', node.span);
     }
     // Even though the collection has one arg, this is the easiest way to get
     // the first item.

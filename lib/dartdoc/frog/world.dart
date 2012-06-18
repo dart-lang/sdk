@@ -284,7 +284,7 @@ class World {
     }
 
     info('mangling matching top level name "${named.jsname}" in '
-         + 'both "${named.library.jsname}" and "${existing.library.jsname}"');
+         'both "${named.library.jsname}" and "${existing.library.jsname}"');
 
     // resolve conflicts based on priority
     int existingPri = existing.jsnamePriority;
@@ -299,8 +299,8 @@ class World {
     } else {
       if (named.isNative) {
         final msg = 'conflicting JS name "$name" of same '
-            + 'priority $existingPri: (already defined in) '
-            + '${existing.span.locationText} with priority $namedPri)';
+            'priority $existingPri: (already defined in) '
+            '${existing.span.locationText} with priority $namedPri)';
         // We trust that conflicting native names in builtin libraries
         // are harmless. Most cases there are no conflicts, currently
         // isolates in coreimpl and dart:dom_deprecated both define
@@ -323,7 +323,7 @@ class World {
     if (existing != null && existing != named) {
       // If this happens it means the library name wasn't unique enough.
       world.internalError('name mangling failed for "${named.jsname}" '
-          + '("${named.jsname}" defined also in ${existing.span.locationText})',
+          '("${named.jsname}" defined also in ${existing.span.locationText})',
           named.span);
     }
     _topNames[named.jsname] = named;
@@ -354,7 +354,7 @@ class World {
         'protected', 'public', 'static', 'yield', 'native']);
     }
     if (_jsKeywords.contains(name)) {
-      return name + '_';
+      return '${name}_';
     } else {
       // regexs for better perf?
       return name.replaceAll(@'$', @'$$').replaceAll(':', @'$');
@@ -607,7 +607,7 @@ class World {
       }
     } else {
       final messageWithPrefix = options.useColors
-          ? (color + prefix + _NO_COLOR + message) : (prefix + message);
+          ? ('$color$prefix${_NO_COLOR}$message') : ('$prefix$message');
 
       var text = messageWithPrefix;
       if (span != null) {
@@ -623,7 +623,7 @@ class World {
     }
 
     if (throwing) {
-      throw new CompilerException(prefix + message, span);
+      throw new CompilerException('$prefix$message', span);
     }
   }
 
