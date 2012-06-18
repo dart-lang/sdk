@@ -974,7 +974,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartNode parseFieldOrMethod(boolean allowStatic) {
     beginClassMember();
     Modifiers modifiers = Modifiers.NONE;
-    if (optionalPseudoKeyword(STATIC_KEYWORD)) {
+    if (peek(1) != Token.LPAREN && optionalPseudoKeyword(STATIC_KEYWORD)) {
       if (!allowStatic) {
         reportError(position(), ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
       } else {

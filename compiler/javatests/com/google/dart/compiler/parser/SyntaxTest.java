@@ -576,6 +576,24 @@ public class SyntaxTest extends AbstractParserTest {
             "  typedef();",
             "}"));
   }
+  
+  /**
+   * We should be able to parse "static(abstract) => 42" top-level function.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1197
+   */
+  public void test_staticAsFunctionName() {
+    DartUnit unit = parseUnit(
+        getName(),
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "static(abstract) => 42;",
+            ""));
+    assertEquals(1, unit.getTopLevelNodes().size());
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertEquals("static", method.getName().toSource());
+    assertEquals("abstract", method.getFunction().getParameters().get(0).getName().toSource());
+  }
 
   /**
    * The token 'super' is valid by itself (not as a qualifier or assignment selector) in only some
