@@ -24,6 +24,7 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
+DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
 DECLARE_FLAG(bool, enable_type_checks);
 
 
@@ -2340,7 +2341,7 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   for (intptr_t i = 0; i < block_count; ++i) {
     postorder_block_entries_[i]->set_block_id(block_count - i - 1);
   }
-  if (for_optimized) {
+  if (for_optimized && FLAG_use_ssa) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
     InsertPhis(preorder_block_entries_,
@@ -2365,6 +2366,10 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
       FlowGraphVisualizer printer(function, reverse_postorder);
       printer.PrintFunction();
     }
+  }
+
+  if (for_optimized && FLAG_use_ssa) {
+    Bailout("No SSA code generation support.");
   }
 }
 

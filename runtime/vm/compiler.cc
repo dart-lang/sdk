@@ -333,6 +333,12 @@ static void CompileParsedFunctionHelper(
 #endif
   if (use_new_compiler) {
     is_compiled = CompileWithNewCompiler(parsed_function, optimized);
+    if (!is_compiled && optimized) {
+      // When bailing out from the optimizing compiler, mark function as
+      // non-optimizable and return.
+      parsed_function.function().set_is_optimizable(false);
+      return;
+    }
   }
 
   if (!is_compiled) {
