@@ -2355,7 +2355,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    compiler.resolver.resolveMethodElement(element);
+    if (compiler.enqueuer.resolution.getCachedElements(element) === null) {
+      compiler.internalError("Unresolved element: $element", node: node);
+    }
     FunctionElement functionElement = element;
     element = functionElement.defaultImplementation;
     HInstruction target = new HStatic(element);
