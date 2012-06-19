@@ -76,7 +76,7 @@ public enum ParserErrorCode implements ErrorCode {
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
   LOCAL_CANNOT_BE_STATIC("Local function cannot be static"),
-  MISSING_FUNCTION_NAME("a function name is required for a declaration"),
+  MISSING_FUNCTION_NAME(ErrorSeverity.WARNING, "a function name is required for a declaration"),
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),

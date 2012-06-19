@@ -464,7 +464,7 @@ public class NegativeParserTest extends CompilerTestCase {
   }
 
   public void test_functionDeclaration_name() {
-    parseExpectErrors(
+    parseExpectWarnings(
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "foo() {",

@@ -58,8 +58,6 @@ Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 149
 Language/10_Expressions/07_Maps_A01_t01: Fail # Issue 1489
-Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # Issue 2378
-Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # Issue 2378
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
@@ -77,7 +75,6 @@ Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t04: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Issue 3525
 Language/10_Expressions/16_Assignment_A08_t04: Fail # Issue 3524
-Language/10_Expressions/17_Conditional_A01_t01: Fail # Issue 2371
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # Issue 1489
 Language/10_Expressions/20_Equality_A01_t01: Fail # Issue 1489
