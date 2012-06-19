@@ -1264,7 +1264,7 @@ class HFieldGet extends HFieldAccess {
       : super(element, <HInstruction>[receiver]);
   HFieldGet.fromActivation(receiver) : this(null, receiver);
 
-  HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
+  HInstruction get receiver() => inputs[0];
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
@@ -1284,8 +1284,8 @@ class HFieldSet extends HFieldAccess {
   HFieldSet.fromActivation(receiver, value)
       : this(null, receiver, value);
 
-  HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
-  HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
+  HInstruction get receiver() => inputs[0];
+  HInstruction get value() => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
   void prepareGvn() {
