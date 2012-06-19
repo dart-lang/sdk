@@ -71,34 +71,34 @@ class Diagnostic {
    * This means that the compiler can generate code that when executed
    * terminates execution.
    */
-  static final Diagnostic ERROR = new Diagnostic(1);
+  static final Diagnostic ERROR = const Diagnostic(1);
 
   /**
    * A warning as identified by the "Dart Programming Language
    * Specification" [http://www.dartlang.org/docs/spec/].
    */
-  static final Diagnostic WARNING = new Diagnostic(2);
+  static final Diagnostic WARNING = const Diagnostic(2);
 
   /**
    * Any other warning that is not covered by [WARNING].
    */
-  static final Diagnostic LINT = new Diagnostic(4);
+  static final Diagnostic LINT = const Diagnostic(4);
 
   /**
    * Informational messages.
    */
-  static final Diagnostic INFO = new Diagnostic(8);
+  static final Diagnostic INFO = const Diagnostic(8);
 
   /**
    * Informational messages that shouldn't be printed unless
    * explicitly requested by the user of a compiler.
    */
-  static final Diagnostic VERBOSE_INFO = new Diagnostic(16);
+  static final Diagnostic VERBOSE_INFO = const Diagnostic(16);
 
   /**
    * An internal error in the compiler.
    */
-  static final Diagnostic CRASH = new Diagnostic(32);
+  static final Diagnostic CRASH = const Diagnostic(32);
 
   /**
    * An [int] representation of this kind. The ordinals are designed
@@ -110,5 +110,5 @@ class Diagnostic {
    * This constructor is not private to support user-defined
    * diagnostic kinds.
    */
-  Diagnostic(this.ordinal);
+  const Diagnostic(this.ordinal);
 }
