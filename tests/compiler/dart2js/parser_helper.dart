@@ -47,6 +47,9 @@ Node parseFunction(String text, Compiler compiler) {
   return element.parseNode(compiler);
 }
 
+Node parseMember(String text) =>
+    parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens));
+
 class MockFile {
   final filename = '<string>';
   final text;

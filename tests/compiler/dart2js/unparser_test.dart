@@ -10,6 +10,11 @@ testUnparse(String statement) {
   Expect.equals(statement, node.unparse());
 }
 
+testUnparseMember(String member) {
+  Node node = parseMember(member);
+  Expect.equals(member, node.unparse());
+}
+
 testGenericTypes() {
   testUnparse('var x=new List<List<int>>();');
   testUnparse('var x=new List<List<List<int>>>();');
@@ -26,8 +31,13 @@ testEmptyList() {
   testUnparse('var x= [];');
 }
 
+testIndexedOperatorDecl() {
+  testUnparseMember('operator[](int i)=> null;');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
   testEmptyList();
+  testIndexedOperatorDecl();
 }

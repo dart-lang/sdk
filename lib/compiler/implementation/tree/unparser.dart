@@ -86,7 +86,18 @@ class Unparser implements Visitor {
       visit(node.returnType);
       sb.add(' ');
     }
-    visit(node.name);
+    // TODO(antonm): that's a workaround as currently FunctionExpression
+    // names are modelled with Send and it emits operator[] as only
+    // operator, without [] which are expected to be emitted with
+    // arguments.
+    Send send = node.name.asSend();
+    if (send !== null) {
+      assert(send is !SendSet);
+      visit(send.receiver);
+      visit(send.selector);
+    } else {
+      visit(node.name);
+    }
     visit(node.parameters);
     visit(node.body);
   }
