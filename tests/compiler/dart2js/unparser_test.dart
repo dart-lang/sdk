@@ -22,7 +22,12 @@ testForLoop() {
   testUnparse('for(i=0;i<100;i++){}');
 }
 
+testEmptyList() {
+  testUnparse('var x= [];');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
+  testEmptyList();
 }
