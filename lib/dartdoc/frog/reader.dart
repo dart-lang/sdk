@@ -31,6 +31,8 @@ class LibraryReader {
             'uri/uri.dart'),
         'dart:utf': joinPaths(options.libDir,
             'utf/utf.dart'),
+        'dart:web': joinPaths(options.libDir,
+            'web/web.dart'),
       };
     } else if (options.config == 'sdk') {
       _specialLibs = {
@@ -53,6 +55,8 @@ class LibraryReader {
             'uri/uri.dart'),
         'dart:utf': joinPaths(options.libDir,
             'utf/utf.dart'),
+        'dart:web': joinPaths(options.libDir,
+            'web/web.dart'),
       };
     } else {
       world.error('Invalid configuration ${options.config}');
