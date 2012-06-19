@@ -58,6 +58,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
+  CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(

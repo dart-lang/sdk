@@ -1177,7 +1177,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
-  
+
   public void test_constField() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         getName(),
@@ -1197,6 +1197,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 9, 5, 1));
+  }
+  
+  /**
+   * It is a compile-time error to use type variables in "const" instance creation.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2379
+   */
+  public void test_constInstantiation_withTypeVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  const A();",
+        "  const A.name();",
+        "}",
+        "class B<U> {",
+        "  test() {",
+        "    const A<U>();",
+        "    const A<U>.name();",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CONST_WITH_TYPE_VARIABLE, 8, 13, 1),
+        errEx(ResolverErrorCode.CONST_WITH_TYPE_VARIABLE, 9, 13, 1));
   }
 
   /**

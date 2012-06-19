@@ -1314,10 +1314,22 @@ public class Resolver {
       // try to lookup the constructor in the default class.
       constructor = resolveInterfaceConstructorInDefaultClass(x.getConstructor(), constructor);
 
-      // Check for using "const" to non-const constructor.
+      // Check constructor.
       if (constructor != null) {
-        if (x.isConst() && !constructor.getModifiers().isConstant()) {
+        boolean constConstructor = constructor.getModifiers().isConstant();
+        // Check for using "const" to non-const constructor.
+        if (x.isConst() && !constConstructor) {
           onError(x, ResolverErrorCode.CONST_AND_NONCONST_CONSTRUCTOR);
+        }
+        // Check for using "const" with type variables as type arguments.
+        if (x.isConst() && constConstructor) {
+          DartTypeNode typeNode = Types.constructorTypeNode(x);
+          List<DartTypeNode> typeArguments = typeNode.getTypeArguments();
+          for (DartTypeNode typeArgument : typeArguments) {
+            if (typeArgument.getType() instanceof TypeVariable) {
+              onError(typeArgument, ResolverErrorCode.CONST_WITH_TYPE_VARIABLE);
+            }
+          }
         }
       }
 
