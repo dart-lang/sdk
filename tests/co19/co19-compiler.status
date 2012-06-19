@@ -4,7 +4,6 @@
 
 [ $compiler == dartc ]
 
-Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
 Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474

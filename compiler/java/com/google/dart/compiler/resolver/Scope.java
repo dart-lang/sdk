@@ -1,16 +1,20 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartVariableStatement;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A scope used by {@link Resolver}.
@@ -18,6 +22,7 @@ import java.util.Map;
 public class Scope {
 
   private final Map<String, Element> elements = new LinkedHashMap<String, Element>();
+  private final Set<String> declaredButNotReachedVariables = Sets.newHashSet();
   private final Scope parent;
   private final String name;
   private List<LabelElement> labels;
@@ -85,6 +90,29 @@ public class Scope {
 
   public Map<String, Element> getElements() {
     return elements;
+  }
+  
+  /**
+   * @return <code>true</code> if local variable with given name is declared in the lexical context
+   *         of {@link DartBlock}, but corresponding {@link DartVariableStatement} is not visited
+   *         yet. So, using this variable is error.
+   */
+  public boolean isDeclaredButNotReachedVariable(String name) {
+    return declaredButNotReachedVariables.contains(name);
+  }
+  
+  /**
+   * @see #isDeclaredButNotReachedVariable(String)
+   */
+  public void addDeclaredButNotReachedVariable(String name) {
+    declaredButNotReachedVariables.add(name);
+  }
+  
+  /**
+   * @see #isDeclaredButNotReachedVariable(String)
+   */
+  public void removeDeclaredButNotReachedVariable(String name) {
+    declaredButNotReachedVariables.remove(name);
   }
 
   public String getName() {

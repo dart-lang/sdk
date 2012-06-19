@@ -748,6 +748,8 @@ public class Resolver {
               TypeErrorCode.NO_SUCH_TYPE,
               TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       for (DartVariable variable : node.getVariables()) {
+        String name = variable.getVariableName();
+        getContext().getScope().removeDeclaredButNotReachedVariable(name);
         Elements.setType(resolveVariable(variable, node.getModifiers()), type);
         checkVariableStatement(node, variable, isImplicitlyInitialized);
       }
@@ -798,6 +800,18 @@ public class Resolver {
     public Element visitBlock(DartBlock x) {
       getContext().pushScope("<block>");
       addLabelToStatement(x);
+      // Remember names of Block variables.
+      for (DartStatement statement : x.getStatements()) {
+        if (statement instanceof DartVariableStatement) {
+          DartVariableStatement node = (DartVariableStatement) statement;
+          List<DartVariable> variables = node.getVariables();
+          for (DartVariable variable : variables) {
+            String name = variable.getVariableName();
+            getContext().getScope().addDeclaredButNotReachedVariable(name);
+          }
+        }
+      }
+      // Visit statements.
       x.visitChildren(this);
       getContext().popScope();
       return null;
@@ -1015,6 +1029,11 @@ public class Resolver {
         if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
           onError(x, ResolverErrorCode.CANNOT_ACCESS_FIELD_IN_INIT);
         }
+      }
+
+      // May be local variable declared in lexical scope, but its declaration is not visited yet.
+      if (getContext().getScope().isDeclaredButNotReachedVariable(name)) {
+        onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);
       }
 
       // If we we haven't resolved the identifier, it will be normalized to

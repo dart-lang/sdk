@@ -171,6 +171,10 @@ public abstract class CompilerTestCase extends TestCase {
     compilerConfiguration = CHECK_ONLY_CONFIGURATION;
   }
 
+  protected AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
+    return analyzeLibrary(getName(), makeCode(lines));
+  }
+
   /**
    * Simulate running {@code analyzeLibrary} the way the IDE will.
    * <p>

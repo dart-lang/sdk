@@ -2721,10 +2721,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
   }
 
-  private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
-    return analyzeLibrary(getName(), makeCode(lines));
-  }
-
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,
       final Class<T> clazz,
