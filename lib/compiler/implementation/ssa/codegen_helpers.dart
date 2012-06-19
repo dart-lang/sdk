@@ -52,7 +52,7 @@ class SsaInstructionMerger extends HBaseVisitor {
       generateAtUseSite.add(instruction);
     } else if (instruction.isCheckedModeCheck()) {
       // Checked mode checks compile to code that only use their input
-      // once, so we can safely visit them an try to merge the input.
+      // once, so we can safely visit them and try to merge the input.
       visitInstruction(instruction);
     }
   }

@@ -6,13 +6,15 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
 
   final Map<int, HInstruction> workmap;
   final List<int> worklist;
+  final Map<HInstruction, Function> pendingOptimizations;
+
   final Compiler compiler;
   String get name() => 'type propagator';
 
   SsaTypePropagator(Compiler this.compiler)
       : workmap = new Map<int, HInstruction>(),
-        worklist = new List<int>();
-
+        worklist = new List<int>(),
+        pendingOptimizations = new Map<HInstruction, Function>();
 
   HType computeType(HInstruction instruction) {
     if (instruction.hasGuaranteedType()) return instruction.guaranteedType;
@@ -22,8 +24,10 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType(HInstruction instruction) {
-    // Visit the instruction before computing types.
-    visitInstruction(instruction);
+    // The [updateType] method is invoked when one of the inputs of
+    // the instruction changes its type. That gives us a new
+    // opportunity to consider this instruction for optimizations.
+    considerForArgumentTypeOptimization(instruction);
     // Compute old and new types.
     HType oldType = instruction.propagatedType;
     HType newType = computeType(instruction);
@@ -33,18 +37,23 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     return oldType != newType;
   }
 
-  void visitInstruction(HInstruction instruction) {
+  void considerForArgumentTypeOptimization(HInstruction instruction) {
     if (instruction is !HBinaryArithmetic) return;
-    HInstruction left = instruction.left;
-    if (!left.isNumber()) return;
-    HInstruction right = instruction.right;
-    // TODO(floitsch): Enable this once we made it so inputs must be
-    // integers for all bitwise operations.
-    if (false && instruction is HBinaryBitOp) {
-      if (!left.isInteger()) convertInput(instruction, left, HType.INTEGER);
-      if (!right.isInteger()) convertInput(instruction, right, HType.INTEGER);
+    // Update the pending optimizations map based on the potentially
+    // new types of the operands. If the operand types no longer allow
+    // us to optimize, we remove the pending optimization.
+    HBinaryArithmetic arithmetic = instruction;
+    HInstruction left = arithmetic.left;
+    HInstruction right = arithmetic.right;
+    if (left.isNumber() && !right.isNumber()) {
+      pendingOptimizations[instruction] = () {
+        // This callback function is invoked after we're done
+        // propagating types. The types shouldn't have changed.
+        assert(left.isNumber() && !right.isNumber());
+        convertInput(instruction, right, HType.NUMBER);
+      };
     } else {
-      if (!right.isNumber()) convertInput(instruction, right, HType.NUMBER);
+      pendingOptimizations.remove(instruction);
     }
   }
 
@@ -86,15 +95,22 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void processWorklist() {
-    while (!worklist.isEmpty()) {
-      int id = worklist.removeLast();
-      HInstruction instruction = workmap[id];
-      assert(instruction !== null);
-      workmap.remove(id);
-      if (updateType(instruction)) {
-        addDependentInstructionsToWorkList(instruction);
+    do {
+      while (!worklist.isEmpty()) {
+        int id = worklist.removeLast();
+        HInstruction instruction = workmap[id];
+        assert(instruction !== null);
+        workmap.remove(id);
+        if (updateType(instruction)) {
+          addDependentInstructionsToWorkList(instruction);
+        }
       }
-    }
+      // While processing the optimizable arithmetic instructions, we
+      // may discover better type information for dominated users of
+      // replaced operands, so we may need to take another stab at
+      // emptying the worklist afterwards.
+      processPendingOptimizations();
+    } while (!worklist.isEmpty());
   }
 
   void addDependentInstructionsToWorkList(HInstruction instruction) {
@@ -113,6 +129,11 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
+  void processPendingOptimizations() {
+    pendingOptimizations.forEach((instruction, action) => action());
+    pendingOptimizations.clear();
+  }
+
   void convertInput(HInstruction instruction, HInstruction input, HType type) {
     HTypeConversion converted =
         new HTypeConversion.argumentTypeCheck(type, input);
@@ -121,9 +142,8 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     replaceDominatedUses(input, converted);
   }
 
-  // TODO(kasperl): Get rid of
-  // SsaTypeConversionInserter.changeUsesDominatedBy because this is
-  // just better.
+  // TODO(kasperl): Get rid of the changeUsesDominatedBy method in
+  // SsaTypeConversionInserter because this is just better.
   void replaceDominatedUses(HInstruction instruction,
                             HInstruction replacement) {
     // Keep track of all instructions that we have to deal with later
@@ -163,9 +183,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     // dominated users.
     for (HInstruction current in pending) {
       current.changeUse(instruction, replacement);
-      if (updateType(current)) {
-        addDependentInstructionsToWorkList(current);
-      }
+      addToWorkList(current);
     }
   }
 }
@@ -217,6 +235,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     return newType.intersection(desiredType);
   }
 
-  void visitInstruction(HInstruction instruction) { }
+  // Do not use speculative argument type optimization for now.
+  void considerForArgumentTypeOptimization(HInstruction instruction) { }
 
 }

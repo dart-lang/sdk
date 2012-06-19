@@ -935,12 +935,12 @@ class HInstruction implements Hashable {
   bool isConstantBoolean() => false;
   bool isConstantNull() => false;
   bool isConstantNumber() => false;
+  bool isConstantInteger() => false;
   bool isConstantString() => false;
   bool isConstantList() => false;
   bool isConstantMap() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
-  bool isConstantInteger() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
