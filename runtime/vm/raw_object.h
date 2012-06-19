@@ -885,7 +885,7 @@ class RawICData : public RawObject {
   }
   RawFunction* function_;  // Parent/calling function of this IC.
   RawString* target_name_;  // Name of target function.
-  RawArray* ic_data_;  // Contains test classes and target function.
+  RawArray* ic_data_;  // Contains test class-ids and target functions.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }

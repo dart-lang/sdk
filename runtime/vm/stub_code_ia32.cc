@@ -1552,6 +1552,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Check if 'num_args' (including receiver) match any IC data group.
 // - Match found -> jump to target.
 // - Match not found -> jump to IC miss.
+// TODO(srdjan): Change IC data to keep class ids as integers not as Smi-s.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
   const Immediate raw_null =
@@ -1584,7 +1585,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is Smi.
 
-  Label get_class, ic_miss;
+  Label get_class_id_as_smi, ic_miss;
   // ECX: IC data array.
 
 #if defined(DEBUG)
@@ -1607,11 +1608,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // EBX: points directly to the first ic data array element.
   Label loop, found;
   if (num_args == 1) {
-    __ call(&get_class);
-    // EAX: receiver's class
+    __ call(&get_class_id_as_smi);
+    // EAX: receiver's class id Smi.
     __ Bind(&loop);
-    __ movl(EDI, Address(EBX, 0));  // Get class to check.
-    __ cmpl(EAX, EDI);  // Match?
+    __ movl(EDI, Address(EBX, 0));  // Get class id (Smi) to check.
+    __ cmpl(EAX, EDI);  // Class id match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ addl(EBX, Immediate(kWordSize * 2));  // Next element (class + target).
     __ cmpl(EDI, raw_null);   // Done?
@@ -1620,24 +1621,23 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     // EDI: class to check.
     Label no_match;
     __ Bind(&loop);
-    // Get class from IC data to check.
+    // Get class id from IC data to check.
     // Get receiver using argument descriptor in EDX.
     __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (arg. count) is Smi.
-    __ call(&get_class);
-    // TODO(vegorov): switch IC data to store class index instead of class.
+    __ call(&get_class_id_as_smi);
     __ movl(EDI, Address(EBX, 0));
-    __ cmpl(EAX, EDI);  // Match?
+    __ cmpl(EAX, EDI);  // Class id match?
     __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
     // Check second class/argument.
-    // Get class from IC data to check.
+    // Get class id from IC data to check.
     // Get next argument.
     __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, -kWordSize));
     // EAX (argument count) is Smi.
-    __ call(&get_class);
+    __ call(&get_class_id_as_smi);
     __ movl(EDI, Address(EBX, kWordSize));
-    __ cmpl(EAX, EDI);  // Match?
+    __ cmpl(EAX, EDI);  // Class id match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ Bind(&no_match);
     // Each test entry has (1 + num_args) array elements.
@@ -1694,18 +1694,17 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EAX);
 
-  __ Bind(&get_class);
+  __ Bind(&get_class_id_as_smi);
   Label not_smi;
   // Test if Smi -> load Smi class for comparison.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  const Class& smi_class =
-      Class::ZoneHandle(Isolate::Current()->object_store()->smi_class());
-  __ LoadObject(EAX, smi_class);
+  __ movl(EAX, Immediate(Smi::RawValue(kSmi)));
   __ ret();
 
   __ Bind(&not_smi);
-  __ LoadClass(EAX, EAX, EDI);
+  __ LoadClassId(EAX, EAX);
+  __ SmiTag(EAX);
   __ ret();
 }
 

@@ -6656,19 +6656,19 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
-void ICData::AddCheck(const GrowableArray<const Class*>& classes,
+void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
-  ASSERT(classes.length() == num_args_tested());
+  ASSERT(class_ids.length() == num_args_tested());
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());
   intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
   intptr_t data_pos = old_num * TestEntryLength();
-  for (intptr_t i = 0; i < classes.length(); i++) {
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
     // Null is used as terminating value, do not add it.
-    ASSERT(!classes[i]->IsNull());
-    data.SetAt(data_pos++, *(classes[i]));
+    ASSERT(class_ids[i] != kNullClass);
+    data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
   ASSERT(!target.IsNull());
   data.SetAt(data_pos, target);
@@ -6676,30 +6676,32 @@ void ICData::AddCheck(const GrowableArray<const Class*>& classes,
 
 
 void ICData::GetCheckAt(intptr_t index,
-                        GrowableArray<const Class*>* classes,
+                        GrowableArray<intptr_t>* class_ids,
                         Function* target) const {
-  ASSERT(classes != NULL);
+  ASSERT(class_ids != NULL);
   ASSERT(target != NULL);
-  classes->Clear();
+  class_ids->Clear();
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
+  Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < num_args_tested(); i++) {
-    Class& cls = Class::ZoneHandle();
-    cls ^= data.At(data_pos++);
-    classes->Add(&cls);
+    smi ^= data.At(data_pos++);
+    class_ids->Add(smi.Value());
   }
   (*target) ^= data.At(data_pos);
 }
 
 
 void ICData::GetOneClassCheckAt(
-    int index, Class* cls, Function* target) const {
-  ASSERT(cls != NULL);
+    int index, intptr_t* class_id, Function* target) const {
+  ASSERT(class_id != NULL);
   ASSERT(target != NULL);
   ASSERT(num_args_tested() == 1);
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
-  *cls ^= data.At(data_pos);
+  Smi& smi = Smi::Handle();
+  smi ^= data.At(data_pos);
+  *class_id = smi.Value();
   *target ^= data.At(data_pos + 1);
 }
 

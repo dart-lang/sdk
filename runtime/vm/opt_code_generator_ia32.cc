@@ -327,29 +327,20 @@ static const ZoneGrowableArray<const Class*>*
   ASSERT(ic_data.num_args_tested() == 1);
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    Class& cls = Class::ZoneHandle();
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
-    result->Add(&cls);
+    intptr_t class_id;
+    ic_data.GetOneClassCheckAt(i, &class_id, &target);
+    result->Add(&Class::ZoneHandle(
+        Isolate::Current()->class_table()->At(class_id)));
   }
   return result;
 }
 
 
-// Debugging helper function.
+// Debugging helper function. TODO(srdjan): Remove
 void OptimizingCodeGenerator::PrintCollectedClasses(AstNode* node) {
   const ICData& ic_data = node->ic_data();
   OS::Print("Collected classes id %d num: %d\n",
       node->id(), ic_data.NumberOfChecks());
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    Function& target = Function::Handle();
-    GrowableArray<const Class*> classes;
-    ic_data.GetCheckAt(i, &classes, &target);
-    OS::Print("[");
-    for (intptr_t c = 0; c < classes.length(); c++) {
-      OS::Print("%s%s", (c > 0) ? ", " : "", classes[c]->ToCString());
-    }
-    OS::Print("] -> %s\n", target.ToFullyQualifiedCString());
-  }
 }
 
 
@@ -547,14 +538,14 @@ static bool NodeHasBothReceiverClasses(AstNode* node,
   bool cls1_found = false;
   bool cls2_found = false;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<const Class*> classes;
+    GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
-    ic_data.GetCheckAt(i, &classes, &target);
-    if (!classes.is_empty()) {
-      if (classes[0]->raw() == cls1.raw()) {
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (!class_ids.is_empty()) {
+      if (class_ids[0] == cls1.id()) {
         cls1_found = true;
       }
-      if (classes[0]->raw() == cls2.raw()) {
+      if (class_ids[0] == cls2.id()) {
         cls2_found = true;
       }
       if (cls1_found && cls2_found) {
@@ -579,13 +570,13 @@ static bool NodeHasClassAt(AstNode* node,
   }
   ASSERT(ic_data.num_args_tested() > arg_index);
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<const Class*> classes;
+    GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
-    ic_data.GetCheckAt(i, &classes, &target);
-    if (classes.is_empty()) {
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (class_ids.is_empty()) {
       return false;
     }
-    if (classes[arg_index]->raw() != cls.raw()) {
+    if (class_ids[arg_index] != cls.id()) {
       return false;
     }
   }
@@ -606,9 +597,9 @@ static bool NodeHasTwoClasses(AstNode* node,
     return false;
   }
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
-  if ((cls0.raw() == classes[0]->raw()) && (cls1.raw() == classes[1]->raw())) {
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
+  if ((cls0.id() == class_ids[0]) && (cls1.id() == class_ids[1])) {
     return true;
   }
   return false;
@@ -842,11 +833,10 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
     ASSERT(ic_data.num_args_tested() == 2);
     ASSERT(ic_data.NumberOfChecks() > 0);
     Function& target = Function::Handle();
-    GrowableArray<const Class*> classes;
-    ic_data.GetCheckAt(0, &classes, &target);
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(0, &class_ids, &target);
     ASSERT(ic_data.NumberOfChecks() == 1);
-    ASSERT((classes[0]->raw() == smi_class_.raw()) &&
-        (classes[1]->raw() == smi_class_.raw()));
+    ASSERT((class_ids[0] == kSmi) && (class_ids[1] == kSmi));
     CodeGenInfo left_info(node->left());
     CodeGenInfo right_info(node->right());
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
@@ -1413,22 +1403,24 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
   Function& target = Function::Handle();
   Label load_field;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    Class& cls = Class::Handle();
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
-    __ cmpl(EAX, Immediate(cls.id()));
+    intptr_t class_id = kIllegalObjectKind;
+    ic_data.GetOneClassCheckAt(i, &class_id, &target);
+    __ cmpl(EAX, Immediate(class_id));
     if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
     } else {
       __ j(EQUAL, &load_field);
     }
   }
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
+  intptr_t class_id = kIllegalObjectKind;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
 
   __ Bind(&load_field);
   // EBX: receiver.
   if (target.kind() == RawFunction::kImplicitGetter) {
     TraceOpt(node, "Inlines instance getter with same target");
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(class_id));
     intptr_t field_offset = GetFieldOffset(cls, field_name);
     ASSERT(field_offset >= 0);
     __ movl(EAX, FieldAddress(EBX, field_offset));
@@ -1477,9 +1469,9 @@ static bool IsInlineableInstanceGetter(const Function& function) {
 static RawFunction* GetUniqueTarget(const ICData& ic_data) {
   Function& prev_target = Function::Handle();
   Function& target = Function::Handle();
-  Class& cls = Class::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    intptr_t class_id;
+    ic_data.GetOneClassCheckAt(i, &class_id, &target);
     ASSERT(!target.IsNull());
     if (!prev_target.IsNull() && (prev_target.raw() != target.raw())) {
       return Function::null();
@@ -1597,9 +1589,11 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
     ASSERT(ic_data.NumberOfChecks() > 0);
     ASSERT(ic_data.num_args_tested() == 1);
     for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-      Class& cls = Class::ZoneHandle();
       Function& target = Function::ZoneHandle();
-      ic_data.GetOneClassCheckAt(i, &cls, &target);
+      intptr_t class_id;
+      ic_data.GetOneClassCheckAt(i, &class_id, &target);
+      Class& cls =
+          Class::ZoneHandle(Isolate::Current()->class_table()->At(class_id));
       classes.Add(&cls);
       targets.Add(&target);
     }
@@ -2524,13 +2518,11 @@ void OptimizingCodeGenerator::NormalizeClassChecks(
   ASSERT(classes != NULL);
   ASSERT(targets != NULL);
   // Check if we can add Smi class in front.
-  Class& smi_test_class = Class::Handle();
   Function& smi_target = Function::ZoneHandle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<const Class*> test_classes;
-    ic_data.GetCheckAt(i, &test_classes, &smi_target);
-    smi_test_class = test_classes[0]->raw();
-    if (smi_test_class.raw() == smi_class_.raw()) {
+    GrowableArray<intptr_t> test_class_ids;
+    ic_data.GetCheckAt(i, &test_class_ids, &smi_target);
+    if (test_class_ids[0] == kSmi) {
       classes->Add(&Class::ZoneHandle(smi_class_.raw()));
       targets->Add(&Function::ZoneHandle(smi_target.raw()));
       break;
@@ -2539,12 +2531,13 @@ void OptimizingCodeGenerator::NormalizeClassChecks(
   // Add all classes except Smi.
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     Function& target = Function::ZoneHandle();
-    Class& cls = Class::ZoneHandle();
-    GrowableArray<const Class*> test_classes;
-    ic_data.GetCheckAt(i, &test_classes, &target);
-    cls = test_classes[0]->raw();
-    ASSERT(!cls.IsNullClass());
-    if (cls.raw() != smi_class_.raw()) {
+    GrowableArray<intptr_t> test_class_ids;
+    ic_data.GetCheckAt(i, &test_class_ids, &target);
+    ASSERT(test_class_ids[0] != kNullClassId);
+    if (test_class_ids[0] != kSmi) {
+      const Class& cls =
+          Class::Handle(Isolate::Current()->class_table()->At(
+              test_class_ids[0]));
       ASSERT(!cls.IsNull());
       ASSERT(!target.IsNull());
       classes->Add(&cls);

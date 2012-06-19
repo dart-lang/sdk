@@ -2591,31 +2591,28 @@ TEST_CASE(ICData) {
   EXPECT_EQ(target_name.raw(), o1.target_name());
 
   const Function& target1 = Function::Handle(GetDummyTarget("Thun"));
-  GrowableArray<const Class*> classes;
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  const Class& smi_class = Class::ZoneHandle(object_store->smi_class());
-  classes.Add(&smi_class);
+  GrowableArray<intptr_t> classes;
+  classes.Add(kSmi);
   o1.AddCheck(classes, target1);
   EXPECT_EQ(1, o1.NumberOfChecks());
-  Class& test_class = Class::Handle();
+  intptr_t test_class_id = -1;
   Function& test_target = Function::Handle();
-  o1.GetOneClassCheckAt(0, &test_class, &test_target);
-  EXPECT_EQ(smi_class.raw(), test_class.raw());
+  o1.GetOneClassCheckAt(0, &test_class_id, &test_target);
+  EXPECT_EQ(kSmi, test_class_id);
   EXPECT_EQ(target1.raw(), test_target.raw());
-  GrowableArray<const Class*> test_classes;
-  o1.GetCheckAt(0, &test_classes, &test_target);
-  EXPECT_EQ(1, test_classes.length());
-  EXPECT_EQ(smi_class.raw(), test_classes[0]->raw());
+  GrowableArray<intptr_t> test_class_ids;
+  o1.GetCheckAt(0, &test_class_ids, &test_target);
+  EXPECT_EQ(1, test_class_ids.length());
+  EXPECT_EQ(kSmi, test_class_ids[0]);
   EXPECT_EQ(target1.raw(), test_target.raw());
 
   classes.Clear();
   const Function& target2 = Function::Handle(GetDummyTarget("Thun"));
-  const Class& double_class = Class::ZoneHandle(object_store->double_class());
-  classes.Add(&double_class);
+  classes.Add(kDouble);
   o1.AddCheck(classes, target2);
   EXPECT_EQ(2, o1.NumberOfChecks());
-  o1.GetOneClassCheckAt(1, &test_class, &test_target);
-  EXPECT_EQ(double_class.raw(), test_class.raw());
+  o1.GetOneClassCheckAt(1, &test_class_id, &test_target);
+  EXPECT_EQ(kDouble, test_class_id);
   EXPECT_EQ(target2.raw(), test_target.raw());
 
   ICData& o2 = ICData::Handle();
@@ -2625,14 +2622,14 @@ TEST_CASE(ICData) {
   EXPECT_EQ(function.raw(), o2.function());
   EXPECT_EQ(0, o2.NumberOfChecks());
   classes.Clear();
-  classes.Add(&smi_class);
-  classes.Add(&smi_class);
+  classes.Add(kSmi);
+  classes.Add(kSmi);
   o2.AddCheck(classes, target1);
   EXPECT_EQ(1, o2.NumberOfChecks());
-  o2.GetCheckAt(0, &test_classes, &test_target);
-  EXPECT_EQ(2, test_classes.length());
-  EXPECT_EQ(smi_class.raw(), test_classes[0]->raw());
-  EXPECT_EQ(smi_class.raw(), test_classes[1]->raw());
+  o2.GetCheckAt(0, &test_class_ids, &test_target);
+  EXPECT_EQ(2, test_class_ids.length());
+  EXPECT_EQ(kSmi, test_class_ids[0]);
+  EXPECT_EQ(kSmi, test_class_ids[1]);
   EXPECT_EQ(target1.raw(), test_target.raw());
 }
 

@@ -1565,7 +1565,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
 
-  Label get_class, ic_miss;
+  Label get_class_id_as_smi, ic_miss;
   // RBX: IC data array.
 
 #if defined(DEBUG)
@@ -1590,10 +1590,10 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label loop, found;
   if (num_args == 1) {
-    __ call(&get_class);
-    // RAX: receiver's class.
+    __ call(&get_class_id_as_smi);
+    // RAX: receiver's class id as Smi.
     __ Bind(&loop);
-    __ movq(R13, Address(R12, 0));  // Get class to check.
+    __ movq(R13, Address(R12, 0));  // Get class if (Smi) to check.
     __ cmpq(RAX, R13);  // Match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ addq(R12, Immediate(kWordSize * 2));  // Next element (class + target).
@@ -1605,18 +1605,17 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     // Get receiver.
     __ movq(RAX, FieldAddress(R10, Array::data_offset()));
     __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
-    __ call(&get_class);
-    // TODO(vegorov): switch IC data to store class index instead of class.
-    __ movq(R13, Address(R12, 0));  // Get class from IC data to check.
-    __ cmpq(RAX, R13);  // Match?
+    __ call(&get_class_id_as_smi);
+    __ movq(R13, Address(R12, 0));  // Get class id from IC data to check.
+    __ cmpq(RAX, R13);  // Class id match?
     __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
     // Check second.
     // Get next argument.
     __ movq(RAX, FieldAddress(R10, Array::data_offset()));
     __ movq(RAX, Address(RSP, RAX, TIMES_4, -kWordSize));  // RAX is Smi.
-    __ call(&get_class);
-    __ movq(R13, Address(R12, kWordSize));  // Get class from IC data to check.
-    __ cmpq(RAX, R13);  // Match?
+    __ call(&get_class_id_as_smi);
+    __ movq(R13, Address(R12, kWordSize));  // Get class id from IC data.
+    __ cmpq(RAX, R13);  //  Class id match?
     __ j(EQUAL, &found);
     __ Bind(&no_match);
     __ addq(R12, Immediate(kWordSize * (1 + num_args)));  // Next element.
@@ -1670,18 +1669,17 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RAX);
 
-  __ Bind(&get_class);
+  __ Bind(&get_class_id_as_smi);
   Label not_smi;
   // Test if Smi -> load Smi class for comparison.
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  const Class& smi_class =
-      Class::ZoneHandle(Isolate::Current()->object_store()->smi_class());
-  __ LoadObject(RAX, smi_class);
+  __ movq(RAX, Immediate(Smi::RawValue(kSmi)));
   __ ret();
 
   __ Bind(&not_smi);
-  __ LoadClass(RAX, RAX);
+  __ LoadClassId(RAX, RAX);
+  __ SmiTag(RAX);
   __ ret();
 }
 

@@ -37,11 +37,11 @@ void FlowGraphOptimizer::VisitBlocks() {
 
 static bool ICDataHasReceiverClass(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
-  Class& test_class = Class::Handle();
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &test_class, &target);
-    if (test_class.id() == class_id) {
+    intptr_t test_class_id;
+    ic_data.GetOneClassCheckAt(i, &test_class_id, &target);
+    if (test_class_id == class_id) {
       return true;
     }
   }
@@ -57,11 +57,11 @@ static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
   }
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<const Class*> classes;
-    ic_data.GetCheckAt(i, &classes, &target);
-    ASSERT(classes.length() == 2);
-    if (classes[0]->id() == receiver_class_id) {
-      if (classes[1]->id() == argument_class_id) {
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    ASSERT(class_ids.length() == 2);
+    if (class_ids[0] == receiver_class_id) {
+      if (class_ids[1] == argument_class_id) {
         return true;
       }
     }
@@ -182,12 +182,12 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
 static bool HasOneTarget(const ICData& ic_data) {
   ASSERT(ic_data.NumberOfChecks() > 0);
   Function& prev_target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &prev_target);
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &prev_target);
   ASSERT(!prev_target.IsNull());
   Function& target = Function::Handle();
   for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &classes, &target);
+    ic_data.GetCheckAt(i, &class_ids, &target);
     ASSERT(!target.IsNull());
     if (prev_target.raw() != target.raw()) {
       return false;
@@ -199,8 +199,8 @@ static bool HasOneTarget(const ICData& ic_data) {
 
 
 // Using field class
-static RawField* GetField(const Class& field_class, const String& field_name) {
-  Class& cls = Class::Handle(field_class.raw());
+static RawField* GetField(intptr_t class_id, const String& field_name) {
+  Class& cls = Class::Handle(Isolate::Current()->class_table()->At(class_id));
   Field& field = Field::Handle();
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
@@ -226,11 +226,11 @@ static void ExtractClassIdsAndTargets(const ICData& ic_data,
   }
   intptr_t smi_index = -1;
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
+  GrowableArray<intptr_t> unsorted_class_ids;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &classes, &target);
+    ic_data.GetCheckAt(i, &unsorted_class_ids, &target);
     // Collect receiver class only.
-    const intptr_t class_id = (*classes[0]).id();
+    const intptr_t class_id = unsorted_class_ids[0];
     if (ic_data.num_args_tested() > 1) {
       // Check if we have not already entered the class-id.
       intptr_t duplicate_class_id = -1;
@@ -289,9 +289,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     return false;
   }
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
-  ASSERT(classes.length() == 1);
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
+  ASSERT(class_ids.length() == 1);
 
   if (target.kind() == RawFunction::kImplicitGetter) {
     if (!HasOneTarget(ic_data)) {
@@ -301,7 +301,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     // Inline implicit instance getter.
     const String& field_name =
         String::Handle(Field::NameFromGetter(comp->function_name()));
-    const Field& field = Field::Handle(GetField(*classes[0], field_name));
+    const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
     LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
         field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
@@ -367,8 +367,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
     return false;
   }
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
@@ -381,7 +381,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
     return false;
   }
 
-  if (classes[0]->id() != from_kind) {
+  if (class_ids[0] != from_kind) {
     return false;
   }
   ToDoubleComp* coerce = new ToDoubleComp(
@@ -446,15 +446,15 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
     return false;
   }
   Function& target = Function::Handle();
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
+  intptr_t class_id;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
   if (target.kind() != RawFunction::kImplicitSetter) {
     // Not an implicit setter.
     // TODO(srdjan): Inline special setters.
     return false;
   }
   // Inline implicit instance setter.
-  const Field& field = Field::Handle(GetField(cls, comp->field_name()));
+  const Field& field = Field::Handle(GetField(class_id, comp->field_name()));
   ASSERT(!field.IsNull());
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
@@ -493,10 +493,9 @@ static intptr_t ReceiverClassId(Computation* comp) {
   ASSERT(HasOneTarget(ic_data));
 
   Function& target = Function::Handle();
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
-
-  return cls.id();
+  intptr_t class_id;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  return class_id;
 }
 
 

@@ -2556,12 +2556,15 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, function_);
   }
 
-  void AddCheck(const GrowableArray<const Class*>& classes,
+  // Adds one more class test to ICData. Length of 'classes' must be equal to
+  // the number of arguments tested.
+  void AddCheck(const GrowableArray<intptr_t>& class_ids,
                 const Function& target) const;
   void GetCheckAt(intptr_t index,
-                  GrowableArray<const Class*>* classes,
+                  GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
-  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
+  void GetOneClassCheckAt(
+      int index, intptr_t* class_id, Function* target) const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

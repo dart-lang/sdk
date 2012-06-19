@@ -1587,9 +1587,9 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(ic_data.num_args_tested() == 1);
   // TODO(srdjan): Implement for more checks.
   ASSERT(ic_data.NumberOfChecks() == 1);
-  Class& test_class = Class::Handle();
+  intptr_t test_class_id;
   Function& target = Function::Handle();
-  ic_data.GetOneClassCheckAt(0, &test_class, &target);
+  ic_data.GetOneClassCheckAt(0, &test_class_id, &target);
 
   Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
@@ -1599,7 +1599,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
                                         value);
-  if (test_class.id() == kSmi) {
+  if (test_class_id == kSmi) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
     switch (op_kind()) {
@@ -1640,9 +1640,9 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // TODO(srdjan): Implement for more checks.
   ASSERT(ic_data.NumberOfChecks() == 1);
-  Class& test_class = Class::Handle();
+  intptr_t test_class_id;
   Function& target = Function::Handle();
-  ic_data.GetOneClassCheckAt(0, &test_class, &target);
+  ic_data.GetOneClassCheckAt(0, &test_class_id, &target);
 
   Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
@@ -1652,7 +1652,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
                                         value);
-  if (test_class.id() == kDouble) {
+  if (test_class_id == kDouble) {
     Register temp = locs()->temp(0).reg();
     ASSERT(result != temp);
     __ testl(value, Immediate(kSmiTagMask));
