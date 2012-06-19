@@ -54,8 +54,7 @@ class Compiler extends leg.Compiler {
       if (node !== null) {
         cancel("$exception", node: node);
       } else {
-        reportDiagnostic(const leg.SourceSpan(null, null, null),
-                         "$exception", api.Diagnostic.ERROR);
+        reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
         throw new leg.CompilerCancelledException("$exception");
       }
     }
