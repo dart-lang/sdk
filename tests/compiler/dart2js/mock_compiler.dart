@@ -104,7 +104,7 @@ class MockCompiler extends Compiler {
     errors.add(new WarningMessage(node, message.message));
   }
 
-  void reportDiagnostic(SourceSpan span, String message, bool fatal) {
+  void reportDiagnostic(SourceSpan span, String message, var kind) {
     print(message);
   }
 
