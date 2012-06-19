@@ -1710,44 +1710,43 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    if (!node.isFromActivation()) {
-      String name = compiler.namer.getName(node.element);
-      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-      use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('.');
-      buffer.add(name);
-      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-      Type type = node.receiver.propagatedType.computeType(compiler);
-      if (type != null) {
-        world.registerFieldGetter(node.element.name, type);
-      }
-    } else {
-      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
+    String name = compiler.namer.getName(node.element);
+    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.');
+    buffer.add(name);
+    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    Type type = node.receiver.propagatedType.computeType(compiler);
+    if (type != null) {
+      world.registerFieldGetter(node.element.name, type);
     }
   }
 
   visitFieldSet(HFieldSet node) {
-    String name;
-    if (!node.isFromActivation()) {
-      name = compiler.namer.getName(node.element);
-      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('.');
-      buffer.add(name);
-      Type type = node.receiver.propagatedType.computeType(compiler);
-      if (type != null) {
-        world.registerFieldSetter(node.element.name,
-                                  type,
-                                  node.value.isInteger());
-      }
-    } else {
-      declareInstruction(node.receiver);
+    String name = compiler.namer.getName(node.element);
+    beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.');
+    buffer.add(name);
+    Type type = node.receiver.propagatedType.computeType(compiler);
+    if (type != null) {
+      world.registerFieldSetter(node.element.name,
+                                type,
+                                node.value.isInteger());
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    if (node.receiver !== null) {
-      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    }
+    endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+  }
+
+  visitLocalGet(HLocalGet node) {
+    use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
+  }
+
+  visitLocalSet(HLocalSet node) {
+    declareInstruction(node.receiver);
+    buffer.add(' = ');
+    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
   visitForeign(HForeign node) {
@@ -1906,7 +1905,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  visitParameterValue(HParameterValue node) {
+  visitParameterValue(HParameterValue node) => visitLocalValue(node);
+
+  visitLocalValue(HLocalValue node) {
     assert(isGenerateAtUseSite(node));
     buffer.add(variableNames.getName(node));
   }

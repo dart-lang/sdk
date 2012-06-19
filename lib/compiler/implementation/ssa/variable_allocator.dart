@@ -285,8 +285,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     });
 
     env.removeLoopMarker(header);
-   
-    // Update all liveIns set to contain the liveIns of [header]. 
+
+    // Update all liveIns set to contain the liveIns of [header].
     liveInstructions.forEach((HBasicBlock block, LiveEnvironment other) {
       if (other.loopMarkers.containsKey(header)) {
         env.liveInstructions.forEach((HInstruction instruction, int id) {
@@ -563,10 +563,10 @@ class SsaVariableAllocator extends HBaseVisitor {
    */
   bool needsName(HInstruction instruction) {
     if (instruction.usedBy.isEmpty()) return false;
-    // TODO(ngeoffray): parameters are being generated at use site,
-    // but we need a name for parameters. We should probably not make
+    // TODO(ngeoffray): locals/parameters are being generated at use site,
+    // but we need a name for them. We should probably not make
     // them generate at use site to make things simpler.
-    if (instruction is HParameterValue && instruction is !HThis) return true;
+    if (instruction is HLocalValue && instruction is !HThis) return true;
     if (generateAtUseSite.contains(instruction)) return false;
     // A [HCheck] instruction that has control flow needs a name only if its
     // checked input needs a name (e.g. a check [HConstant] does not

@@ -417,8 +417,8 @@ class LocalsHandler {
       return lookup;
     } else {
       assert(isUsedInTry(element));
-      HParameterValue parameter = getActivationParameter(element);
-      HInstruction variable = new HFieldGet.fromActivation(parameter);
+      HLocalValue local = getLocal(element);
+      HInstruction variable = new HLocalGet(element, local);
       builder.add(variable);
       return variable;
     }
@@ -441,7 +441,7 @@ class LocalsHandler {
     return res;
   }
 
-  HParameterValue getActivationParameter(Element element) {
+  HLocalValue getLocal(Element element) {
     // If the element is a parameter, we already have a
     // HParameterValue for it. We cannot create another one because
     // it could then have another name than the real parameter. And
@@ -450,9 +450,9 @@ class LocalsHandler {
     if (element.isParameter()) return builder.parameters[element];
 
     return builder.activationVariables.putIfAbsent(element, () {
-      HParameterValue parameter = new HParameterValue(element);
-      builder.graph.entry.addAtExit(parameter);
-      return parameter;
+      HLocalValue local = new HLocalValue(element);
+      builder.graph.entry.addAtExit(local);
+      return local;
     });
   }
 
@@ -475,8 +475,8 @@ class LocalsHandler {
       builder.add(new HFieldSet(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
-      HParameterValue parameter = getActivationParameter(element);
-      builder.add(new HFieldSet.fromActivation(parameter, value));
+      HLocalValue local = getLocal(element);
+      builder.add(new HLocalSet(element, local, value));
     }
   }
 

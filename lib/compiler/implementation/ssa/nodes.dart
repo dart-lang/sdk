@@ -39,6 +39,9 @@ interface HVisitor<R> {
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLiteralList(HLiteralList node);
+  R visitLocalGet(HLocalGet node);
+  R visitLocalSet(HLocalSet node);
+  R visitLocalValue(HLocalValue node);
   R visitLoopBranch(HLoopBranch node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
@@ -250,6 +253,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
+  visitFieldAccess(HFieldAccess node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
@@ -266,8 +270,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
-  visitFieldGet(HFieldGet node) => visitInstruction(node);
-  visitFieldSet(HFieldSet node) => visitInstruction(node);
+  visitFieldGet(HFieldGet node) => visitFieldAccess(node);
+  visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   visitForeign(HForeign node) => visitInstruction(node);
   visitForeignNew(HForeignNew node) => visitForeign(node);
   visitGoto(HGoto node) => visitControlFlow(node);
@@ -294,13 +298,16 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
+  visitLocalGet(HLocalGet node) => visitFieldGet(node);
+  visitLocalSet(HLocalSet node) => visitFieldSet(node);
+  visitLocalValue(HLocalValue node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitModulo(HModulo node) => visitBinaryArithmetic(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
-  visitParameterValue(HParameterValue node) => visitInstruction(node);
+  visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
@@ -1289,11 +1296,41 @@ class HFieldSet extends HFieldAccess {
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
   void prepareGvn() {
-    // TODO(ngeoffray): implement more fine grain side effects.
+    // TODO(ngeoffray): implement more fine grained side effects.
     setAllSideEffects();
   }
 
   bool isStatement() => true;
+}
+
+class HLocalGet extends HFieldGet {
+  HLocalGet(Element element, HLocalValue local) : super(element, local);
+
+  accept(HVisitor visitor) => visitor.visitLocalGet(this);
+
+  HLocalValue get local() => inputs[0];
+
+  void prepareGvn() {
+    setUseGvn();
+    // TODO(floitsch): if the variable is not captured then it only depends
+    // on assignments to the same variable. Otherwise we need to see if the
+    // variable is mutated inside closures.
+    setDependsOnSomething();
+  }
+}
+
+class HLocalSet extends HFieldSet {
+  HLocalSet(Element element, HLocalValue local, HInstruction value)
+      : super(element, local, value);
+
+  accept(HVisitor visitor) => visitor.visitLocalSet(this);
+
+  HLocalValue get local() => inputs[0];
+
+  void prepareGvn() {
+    // TODO(floitsch): implement more fine grained side effects.
+    setAllSideEffects();
+  }
 }
 
 class HForeign extends HInstruction {
@@ -1805,17 +1842,29 @@ class HNot extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HParameterValue extends HInstruction {
-  HParameterValue(element) : super(<HInstruction>[]) {
+/**
+  * An [HLocalValue] represents a local. Unlike [HParameterValue]s its
+  * first use must be in an HLocalSet. That is, [HParameterValue]s have a
+  * value from the start, whereas [HLocalValue]s need to be initialized first.
+  */
+class HLocalValue extends HInstruction {
+  HLocalValue(element) : super(<HInstruction>[]) {
     sourceElement = element;
   }
 
   void prepareGvn() {
     assert(!hasSideEffects());
   }
+  toString() => 'local ${sourceElement.name}';
+  accept(HVisitor visitor) => visitor.visitLocalValue(this);
+  bool isCodeMotionInvariant() => true;
+}
+
+class HParameterValue extends HLocalValue {
+  HParameterValue(element) : super(element);
+
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
-  bool isCodeMotionInvariant() => true;
 }
 
 class HThis extends HParameterValue {

@@ -251,6 +251,9 @@ class HInstructionStringifier implements HVisitor<String> {
     return 'set ${temporaryId(node.receiver)} to $valueId';
   }
 
+  String visitLocalGet(HLocalGet node) => visitFieldGet(node);
+  String visitLocalSet(HLocalSet node) => visitFieldSet(node);
+
   String visitGoto(HGoto node) {
     HBasicBlock target = currentBlock.successors[0];
     return "Goto: (B${target.id})";
@@ -363,6 +366,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitParameterValue(HParameterValue node) {
     return "p${node.sourceElement.name.slowToString()}";
+  }
+
+  String visitLocalValue(HParameterValue node) {
+    return "l${node.sourceElement.name.slowToString()}";
   }
 
   String visitPhi(HPhi phi) {
