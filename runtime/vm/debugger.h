@@ -120,7 +120,7 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  explicit ActivationFrame(uword pc, uword fp, uword sp);
+  explicit ActivationFrame(uword pc, uword fp, uword sp, const Context& ctx);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -132,6 +132,12 @@ class ActivationFrame : public ZoneAllocated {
   RawScript* SourceScript();
   intptr_t TokenIndex();
   intptr_t LineNumber();
+
+  // The context level of a frame is the context level at the
+  // PC/token index of the frame. It determines the depth of the context
+  // chain that belongs to the function of this activation frame.
+  intptr_t ContextLevel();
+
   const char* ToCString();
 
   intptr_t NumLocalVariables();
@@ -143,8 +149,12 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
+  RawContext* CallerContext();
 
  private:
+  intptr_t PcDescIndex();
+  void GetPcDescriptors();
+  void GetVarDescriptors();
   void GetDescIndices();
   RawInstance* GetLocalVarValue(intptr_t slot_index);
   RawInstance* GetInstanceCallReceiver(intptr_t num_actual_args);
@@ -152,12 +162,20 @@ class ActivationFrame : public ZoneAllocated {
   uword pc_;
   uword fp_;
   uword sp_;
+
+  // The anchor of the context chain for this function.
+  const Context& ctx_;
+
   Function& function_;
   intptr_t token_index_;
+  intptr_t pc_desc_index_;
   intptr_t line_number_;
+  intptr_t context_level_;
 
+  bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
   ZoneGrowableArray<intptr_t> desc_indices_;
+  PcDescriptors& pc_desc_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);

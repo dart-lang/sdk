@@ -177,8 +177,8 @@ void ParsedFunction::AllocateVariables() {
   // variables, the context needs to be saved on entry and restored on exit.
   // Add and allocate a local variable to this purpose.
   if ((context_owner != NULL) && !function().IsClosureFunction()) {
-    const String& context_var_name =
-        String::ZoneHandle(String::NewSymbol(":saved_entry_context_var"));
+    const String& context_var_name = String::ZoneHandle(
+        String::NewSymbol(LocalVariable::kSavedContextVarName));
     LocalVariable* context_var =
         new LocalVariable(function().token_index(),
                           context_var_name,
@@ -3884,7 +3884,9 @@ void Parser::OpenFunctionBlock(const Function& func) {
 SequenceNode* Parser::CloseBlock() {
   SequenceNode* statements = current_block_->statements;
   if (current_block_->scope != NULL) {
-    // Record the end token index of the scope.
+    // Record the begin and end token index of the scope.
+    ASSERT(statements != NULL);
+    current_block_->scope->set_begin_token_index(statements->token_index());
     current_block_->scope->set_end_token_index(token_index_);
   }
   current_block_ = current_block_->parent;

@@ -13,6 +13,8 @@ namespace dart {
 
 const char* SourceLabel::kDefaultLabelName = ":L";
 
+const char* LocalVariable::kSavedContextVarName = ":saved_entry_context_var";
+
 
 int SourceLabel::FunctionLevel() const {
   ASSERT(owner() != NULL);
@@ -28,6 +30,7 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel),
       num_context_variables_(0),
+      begin_token_index_(0),
       end_token_index_(0),
       variables_(),
       labels_() {
@@ -180,24 +183,32 @@ int LocalScope::AllocateVariables(int first_parameter_index,
 }
 
 
-RawLocalVarDescriptors* LocalScope::GetVarDescriptors() {
-  GrowableArray<LocalVariable*> vars(8);
-  // Variables of each scope are guaranteed to be consecutive elements
-  // in array vars. See CollectLocalVariables() below. The outermost
-  // scope (containing the function parameters) has id 0.
-  CollectLocalVariables(&vars);
+RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
+  GrowableArray<VarDesc> vars(8);
+  // First enter all variables from scopes of outer functions.
+  const ContextScope& context_scope =
+      ContextScope::Handle(func.context_scope());
+  if (!context_scope.IsNull()) {
+    ASSERT(func.IsLocalFunction());
+    for (int i = 0; i < context_scope.num_variables(); i++) {
+      VarDesc desc;
+      desc.name = &String::Handle(context_scope.NameAt(i));
+      desc.info.kind =  RawLocalVarDescriptors::kContextVar;
+      desc.info.scope_id = context_scope.ContextLevelAt(i);
+      desc.info.begin_pos = begin_token_index();
+      desc.info.end_pos = end_token_index();
+      desc.info.index = context_scope.ContextIndexAt(i);
+      vars.Add(desc);
+    }
+  }
+  // Now collect all variables from local scopes.
+  int16_t scope_id = 0;
+  CollectLocalVariables(&vars, &scope_id);
+
   const LocalVarDescriptors& var_desc =
       LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars.length()));
-  intptr_t scope_id = -1;
-  LocalScope* current_scope = NULL;
-  for (int i = 0;  i < vars.length(); i++) {
-    LocalVariable* var = vars[i];
-    if (current_scope != var->owner()) {
-      current_scope = var->owner();
-      scope_id += 1;
-    }
-    var_desc.SetVar(i, var->name(), var->index(),
-        scope_id, var->token_index(), var->owner()->end_token_index());
+  for (int i = 0; i < vars.length(); i++) {
+    var_desc.SetVar(i, *(vars[i].name), &vars[i].info);
   }
   return var_desc.raw();
 }
@@ -205,21 +216,62 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors() {
 
 // Add variables that are declared in this scope to vars, then collect
 // variables of children, followed by siblings.
-void LocalScope::CollectLocalVariables(GrowableArray<LocalVariable*>* vars) {
+void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
+                                       int16_t* scope_id) {
+  (*scope_id)++;
+  if (HasContextLevel() &&
+      ((parent() == NULL) ||
+      (!parent()->HasContextLevel()) ||
+      (parent()->context_level() != context_level()))) {
+    // This is the outermost scope with a context level or this scope's
+    // context level differes from its parent's level.
+    VarDesc desc;
+    desc.name = &String::Handle();  // No name.
+    desc.info.kind =  RawLocalVarDescriptors::kContextLevel;
+    desc.info.scope_id = *scope_id;
+    desc.info.begin_pos = begin_token_index();
+    desc.info.end_pos = end_token_index();
+    desc.info.index = context_level();
+    vars->Add(desc);
+  }
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    // TODO(hausner): Remove the is_captured() condition once the debugger
-    // can handle getting values of captured variables.
-    if (!var->is_captured() && (var->owner() == this) &&
-        Scanner::IsIdent(var->name())) {
-      vars->Add(this->variables_[i]);
+    if (var->owner() == this) {
+      if (Scanner::IsIdent(var->name())) {
+        // This is a regular Dart variable, either stack-based or captured.
+        VarDesc desc;
+        desc.name = &var->name();
+        if (var->is_captured()) {
+          desc.info.kind = RawLocalVarDescriptors::kContextVar;
+          ASSERT(var->owner() != NULL);
+          ASSERT(var->owner()->context_level() >= 0);
+          desc.info.scope_id = var->owner()->context_level();
+        } else {
+          desc.info.kind = RawLocalVarDescriptors::kStackVar;
+          desc.info.scope_id = *scope_id;
+        }
+        desc.info.begin_pos = var->token_index();
+        desc.info.end_pos = var->owner()->end_token_index();
+        desc.info.index = var->index();
+        vars->Add(desc);
+      } else if (var->name().Equals(LocalVariable::kSavedContextVarName)) {
+        // This is the local variable in which the function saves the
+        // caller's chain of closure contexts (caller's CTX register).
+        VarDesc desc;
+        desc.name = &var->name();
+        desc.info.kind = RawLocalVarDescriptors::kContextChain;
+        desc.info.scope_id = 0;
+        desc.info.begin_pos = 0;
+        desc.info.end_pos = 0;
+        desc.info.index = var->index();
+        vars->Add(desc);
+      }
     }
   }
-  if (child() != NULL) {
-    child()->CollectLocalVariables(vars);
-  }
-  if (sibling() != NULL) {
-    sibling()->CollectLocalVariables(vars);
+  LocalScope* child = this->child();
+  while (child != NULL) {
+    child->CollectLocalVariables(vars, scope_id);
+    child = child->sibling();
   }
 }
 

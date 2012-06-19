@@ -418,11 +418,30 @@ static RawError* CompileFunctionHelper(const Function& function,
       String& var_name = String::Handle();
       for (intptr_t i = 0; i < var_desc_length; i++) {
         var_name = var_descriptors.GetName(i);
-        intptr_t scope_id, begin_pos, end_pos;
-        var_descriptors.GetScopeInfo(i, &scope_id, &begin_pos, &end_pos);
-        intptr_t slot = var_descriptors.GetSlotIndex(i);
-        OS::Print("  var %s scope %ld (valid %d-%d) offset %ld\n",
-                  var_name.ToCString(), scope_id, begin_pos, end_pos, slot);
+        RawLocalVarDescriptors::VarInfo var_info;
+        var_descriptors.GetInfo(i, &var_info);
+        if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
+          OS::Print("  context level %d scope %d (valid %d-%d)\n",
+                    var_info.index,
+                    var_info.scope_id,
+                    var_info.begin_pos,
+                    var_info.end_pos);
+        } else if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
+            OS::Print("  saved CTX reg offset %d\n", var_info.index);
+        } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
+          OS::Print("  stack var '%s' offset %d (valid %d-%d) \n",
+                    var_name.ToCString(),
+                    var_info.index,
+                    var_info.begin_pos,
+                    var_info.end_pos);
+        } else if (var_info.kind == RawLocalVarDescriptors::kContextVar) {
+          OS::Print("  context var '%s' level %d offset %d (valid %d-%d)\n",
+                    var_name.ToCString(),
+                    var_info.scope_id,
+                    var_info.index,
+                    var_info.begin_pos,
+                    var_info.end_pos);
+        }
       }
       OS::Print("}\n");
       OS::Print("Exception Handlers for function '%s' {\n", function_fullname);

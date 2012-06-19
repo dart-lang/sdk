@@ -240,7 +240,8 @@ void CodeGenerator::FinalizeStackmaps(const Code& code) {
 
 void CodeGenerator::FinalizeVarDescriptors(const Code& code) {
   const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
-          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors(
+              parsed_function_.function()));
   code.set_var_descriptors(var_descs);
 }
 

@@ -78,6 +78,10 @@ class LocalVariable : public ZoneAllocated {
   // all parameters.
   int BitIndexIn(intptr_t var_count) const;
 
+  // Name of the internal variable that is used to save the context chain
+  // on function entry.
+  static const char* kSavedContextVarName;
+
  private:
   static const int kUnitializedIndex = INT_MIN;
 
@@ -218,6 +222,9 @@ class LocalScope : public ZoneAllocated {
     context_level_ = context_level;
   }
 
+  intptr_t begin_token_index() const { return begin_token_index_; }
+  void set_begin_token_index(intptr_t value) { begin_token_index_ = value; }
+
   intptr_t end_token_index() const { return end_token_index_; }
   void set_end_token_index(intptr_t value) { end_token_index_ = value; }
 
@@ -293,7 +300,7 @@ class LocalScope : public ZoneAllocated {
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.
-  RawLocalVarDescriptors* GetVarDescriptors();
+  RawLocalVarDescriptors* GetVarDescriptors(const Function& func);
 
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.
@@ -310,6 +317,11 @@ class LocalScope : public ZoneAllocated {
   static RawContextScope* CreateImplicitClosureScope(const Function& func);
 
  private:
+  struct VarDesc {
+    const String* name;
+    RawLocalVarDescriptors::VarInfo info;
+  };
+
   // Allocate the variable in the current context, possibly updating the current
   // context owner scope, if the variable is the first one to be allocated at
   // this loop level.
@@ -318,17 +330,18 @@ class LocalScope : public ZoneAllocated {
   void AllocateContextVariable(LocalVariable* variable,
                                LocalScope** context_owner);
 
-  void CollectLocalVariables(GrowableArray<LocalVariable*>* vars);
+  void CollectLocalVariables(GrowableArray<VarDesc>* vars, int16_t* scope_id);
 
   static const int kUnitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;
   int function_level_;  // Reflects the nesting level of local functions.
-  int loop_level_;  // Reflects the loop nesting level.
-  int context_level_;  // Reflects the level of the runtime context.
-  int num_context_variables_;  // Only set if this scope is a context owner.
-  intptr_t end_token_index_;  // Token index of end of scope.
+  int loop_level_;      // Reflects the loop nesting level.
+  int context_level_;   // Reflects the level of the runtime context.
+  int num_context_variables_;   // Only set if this scope is a context owner.
+  intptr_t begin_token_index_;  // Token index of beginning of scope.
+  intptr_t end_token_index_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
 

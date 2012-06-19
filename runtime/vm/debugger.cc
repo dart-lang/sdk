@@ -106,13 +106,19 @@ void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp)
+ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
+                                 const Context& ctx)
     : pc_(pc), fp_(fp), sp_(sp),
+      ctx_(Context::ZoneHandle(ctx.raw())),
       function_(Function::ZoneHandle()),
       token_index_(-1),
+      pc_desc_index_(-1),
       line_number_(-1),
+      context_level_(-1),
+      vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
-      desc_indices_(8) {
+      desc_indices_(8),
+      pc_desc_(PcDescriptors::ZoneHandle()) {
 }
 
 
@@ -167,22 +173,41 @@ RawScript* ActivationFrame::SourceScript() {
 }
 
 
-intptr_t ActivationFrame::TokenIndex() {
-  if (token_index_ < 0) {
+void ActivationFrame::GetPcDescriptors() {
+  if (pc_desc_.IsNull()) {
     const Function& func = DartFunction();
     ASSERT(!func.HasOptimizedCode());
     Code& code = Code::Handle(func.unoptimized_code());
     ASSERT(!code.IsNull());
-    PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-    for (int i = 0; i < desc.Length(); i++) {
-      if (desc.PC(i) == pc_) {
-        token_index_ = desc.TokenIndex(i);
+    pc_desc_ = code.pc_descriptors();
+    ASSERT(!pc_desc_.IsNull());
+  }
+}
+
+
+// Compute token_index_ and pc_desc_index_.
+intptr_t ActivationFrame::TokenIndex() {
+  if (token_index_ < 0) {
+    GetPcDescriptors();
+    for (int i = 0; i < pc_desc_.Length(); i++) {
+      if (pc_desc_.PC(i) == pc_) {
+        pc_desc_index_ = i;
+        token_index_ = pc_desc_.TokenIndex(i);
         break;
       }
     }
     ASSERT(token_index_ >= 0);
   }
   return token_index_;
+}
+
+
+intptr_t ActivationFrame::PcDescIndex() {
+  if (pc_desc_index_ < 0) {
+    TokenIndex();
+    ASSERT(pc_desc_index_ >= 0);
+  }
+  return pc_desc_index_;
 }
 
 
@@ -197,58 +222,133 @@ intptr_t ActivationFrame::LineNumber() {
 }
 
 
-void ActivationFrame::GetDescIndices() {
-  if (var_descriptors_.IsNull()) {
-    ASSERT(!DartFunction().HasOptimizedCode());
-    const Code& code = Code::Handle(DartFunction().unoptimized_code());
-    var_descriptors_ = code.var_descriptors();
-    // TODO(Hausner): Consider replacing this GrowableArray.
-    GrowableArray<String*> var_names(8);
+void ActivationFrame::GetVarDescriptors() {
+  if (!var_descriptors_.IsNull()) {
+    return;
+  }
+  ASSERT(!DartFunction().HasOptimizedCode());
+  const Code& code = Code::Handle(DartFunction().unoptimized_code());
+  var_descriptors_ = code.var_descriptors();
+  ASSERT(!var_descriptors_.IsNull());
+}
+
+
+// Calculate the context level at the current token index of the frame.
+intptr_t ActivationFrame::ContextLevel() {
+  if (context_level_ < 0) {
+    context_level_ = 0;
+    intptr_t pc_desc_idx = PcDescIndex();
+    ASSERT(!pc_desc_.IsNull());
+    if (pc_desc_.DescriptorKind(pc_desc_idx) == PcDescriptors::kReturn) {
+      // Special case: the context chain has already been deallocated.
+      // The context level is 0.
+      return context_level_;
+    }
+    intptr_t innermost_begin_pos = 0;
     intptr_t activation_token_pos = TokenIndex();
+    GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
     for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
-      ASSERT(var_names.length() == desc_indices_.length());
-      intptr_t scope_id, begin_pos, end_pos;
-      var_descriptors_.GetScopeInfo(cur_idx, &scope_id, &begin_pos, &end_pos);
-      if ((begin_pos <= activation_token_pos) &&
-          (activation_token_pos <= end_pos)) {
-        // The current variable is textually in scope. Now check whether
-        // there is another local variable with the same name that shadows
-        // or is shadowed by this variable.
-        String& var_name = String::Handle(var_descriptors_.GetName(cur_idx));
-        intptr_t indices_len = desc_indices_.length();
-        bool name_match_found = false;
-        for (int i = 0; i < indices_len; i++) {
-          if (var_name.Equals(*var_names[i])) {
-            // Found two local variables with the same name. Now determine
-            // which one is shadowed.
-            name_match_found = true;
-            intptr_t i_begin_pos, ignore;
-            var_descriptors_.GetScopeInfo(
-                desc_indices_[i], &ignore, &i_begin_pos, &ignore);
-            if (i_begin_pos < begin_pos) {
-              // The variable we found earlier is in an outer scope
-              // and is shadowed by the current variable. Replace the
-              // descriptor index of the previously found variable
-              // with the descriptor index of the current variable.
-              desc_indices_[i] = cur_idx;
-            } else {
-              // The variable we found earlier is in an inner scope
-              // and shadows the current variable. Skip the current
-              // variable. (Nothing to do.)
-            }
-            break;  // Stop looking for name matches.
-          }
-        }
-        if (!name_match_found) {
-          // No duplicate name found. Add the current descriptor index to the
-          // list of visible variables.
-          desc_indices_.Add(cur_idx);
-          var_names.Add(&var_name);
+      RawLocalVarDescriptors::VarInfo var_info;
+      var_descriptors_.GetInfo(cur_idx, &var_info);
+      if ((var_info.kind == RawLocalVarDescriptors::kContextLevel) &&
+          (var_info.begin_pos <= activation_token_pos) &&
+          (activation_token_pos < var_info.end_pos)) {
+        // This var_descriptors_ entry is a context scope which is in scope
+        // of the current token position. Now check whether it is shadowing
+        // the previous context scope.
+        if (innermost_begin_pos < var_info.begin_pos) {
+          innermost_begin_pos = var_info.begin_pos;
+          context_level_ = var_info.index;
         }
       }
     }
+    ASSERT(context_level_ >= 0);
   }
+  return context_level_;
+}
+
+
+RawContext* ActivationFrame::CallerContext() {
+  GetVarDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (int i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
+      return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
+    }
+  }
+  // Caller uses same context chain.
+  return ctx_.raw();
+}
+
+
+void ActivationFrame::GetDescIndices() {
+  if (vars_initialized_) {
+    return;
+  }
+  GetVarDescriptors();
+  // TODO(hausner): Consider replacing this GrowableArray.
+  GrowableArray<String*> var_names(8);
+  intptr_t activation_token_pos = TokenIndex();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+    ASSERT(var_names.length() == desc_indices_.length());
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(cur_idx, &var_info);
+    if ((var_info.kind != RawLocalVarDescriptors::kStackVar) &&
+        (var_info.kind != RawLocalVarDescriptors::kContextVar)) {
+      continue;
+    }
+    if ((var_info.begin_pos <= activation_token_pos) &&
+        (activation_token_pos <= var_info.end_pos)) {
+      if ((var_info.kind == RawLocalVarDescriptors::kContextVar) &&
+          (ContextLevel() < var_info.scope_id)) {
+        // The variable is textually in scope but the context level
+        // at the activation frame's PC is lower than the context
+        // level of the variable. The context containing the variable
+        // has already been removed from the chain. This can happen when we
+        // break at a return statement, since the contexts get discarded
+        // before the debugger gets called.
+        continue;
+      }
+      // The current variable is textually in scope. Now check whether
+      // there is another local variable with the same name that shadows
+      // or is shadowed by this variable.
+      String& var_name = String::Handle(var_descriptors_.GetName(cur_idx));
+      intptr_t indices_len = desc_indices_.length();
+      bool name_match_found = false;
+      for (int i = 0; i < indices_len; i++) {
+        if (var_name.Equals(*var_names[i])) {
+          // Found two local variables with the same name. Now determine
+          // which one is shadowed.
+          name_match_found = true;
+          RawLocalVarDescriptors::VarInfo i_var_info;
+          var_descriptors_.GetInfo(desc_indices_[i], &i_var_info);
+          if (i_var_info.begin_pos < var_info.begin_pos) {
+            // The variable we found earlier is in an outer scope
+            // and is shadowed by the current variable. Replace the
+            // descriptor index of the previously found variable
+            // with the descriptor index of the current variable.
+            desc_indices_[i] = cur_idx;
+          } else {
+            // The variable we found earlier is in an inner scope
+            // and shadows the current variable. Skip the current
+            // variable. (Nothing to do.)
+          }
+          break;  // Stop looking for name matches.
+        }
+      }
+      if (!name_match_found) {
+        // No duplicate name found. Add the current descriptor index to the
+        // list of visible variables.
+        desc_indices_.Add(cur_idx);
+        var_names.Add(&var_name);
+      }
+    }
+  }
+  vars_initialized_ = true;
 }
 
 
@@ -265,13 +365,41 @@ void ActivationFrame::VariableAt(intptr_t i,
                                  Instance* value) {
   GetDescIndices();
   ASSERT(i < desc_indices_.length());
-  ASSERT(name != NULL);
   intptr_t desc_index = desc_indices_[i];
+  ASSERT(name != NULL);
   *name ^= var_descriptors_.GetName(desc_index);
-  intptr_t scope_id;
-  var_descriptors_.GetScopeInfo(desc_index, &scope_id, token_pos, end_pos);
+  RawLocalVarDescriptors::VarInfo var_info;
+  var_descriptors_.GetInfo(desc_index, &var_info);
+  ASSERT(token_pos != NULL);
+  *token_pos = var_info.begin_pos;
+  ASSERT(end_pos != NULL);
+  *end_pos = var_info.end_pos;
   ASSERT(value != NULL);
-  *value = GetLocalVarValue(var_descriptors_.GetSlotIndex(desc_index));
+  if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
+    *value = GetLocalVarValue(var_info.index);
+  } else {
+    ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
+    ASSERT(!ctx_.IsNull());
+    // The context level at the PC/token index of this activation frame.
+    intptr_t frame_ctx_level = ContextLevel();
+    // The context level of the variable.
+    intptr_t var_ctx_level = var_info.scope_id;
+    intptr_t level_diff = frame_ctx_level - var_ctx_level;
+    intptr_t ctx_slot = var_info.index;
+    if (level_diff == 0) {
+      *value = ctx_.At(ctx_slot);
+    } else {
+      ASSERT(level_diff > 0);
+      Context& ctx = Context::Handle(ctx_.raw());
+      while (level_diff > 0) {
+        ASSERT(!ctx.IsNull());
+        level_diff--;
+        ctx = ctx.parent();
+      }
+      ASSERT(!ctx.IsNull());
+      *value = ctx.At(ctx_slot);
+    }
+  }
 }
 
 
@@ -282,9 +410,9 @@ RawArray* ActivationFrame::GetLocalVariables() {
   Instance& value = Instance::Handle();
   const Array& list = Array::Handle(Array::New(2 * num_variables));
   for (int i = 0; i < num_variables; i++) {
-    var_name = var_descriptors_.GetName(i);
+    intptr_t ignore;
+    VariableAt(i, &var_name, &ignore, &ignore, &value);
     list.SetAt(2 * i, var_name);
-    value = GetLocalVarValue(var_descriptors_.GetSlotIndex(i));
     list.SetAt((2 * i) + 1, value);
   }
   return list.raw();
@@ -609,13 +737,15 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
 
 DebuggerStackTrace* Debugger::CollectStackTrace() {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+  Context& ctx = Context::Handle(Isolate::Current()->top_context());
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
     ASSERT(frame->IsValid());
     ASSERT(frame->IsDartFrame());
     ActivationFrame* activation =
-        new ActivationFrame(frame->pc(), frame->fp(), frame->sp());
+        new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), ctx);
+    ctx = activation->CallerContext();
     stack_trace->AddActivation(activation);
     frame = iterator.NextFrame();
   }

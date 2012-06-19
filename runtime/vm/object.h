@@ -1941,18 +1941,12 @@ class LocalVarDescriptors : public Object {
   intptr_t Length() const;
 
   RawString* GetName(intptr_t var_index) const;
-  void GetScopeInfo(intptr_t var_index,
-                    intptr_t* scope_id,
-                    intptr_t* begin_token_pos,
-                    intptr_t* end_token_pos) const;
-  intptr_t GetSlotIndex(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,
-              intptr_t stack_slot,
-              intptr_t scope_id,
-              intptr_t begin_pos,
-              intptr_t end_pos) const;
+              RawLocalVarDescriptors::VarInfo* info) const;
+
+  void GetInfo(intptr_t var_index, RawLocalVarDescriptors::VarInfo* info) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
