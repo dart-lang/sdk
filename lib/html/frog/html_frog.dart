@@ -552,6 +552,8 @@ class _BlobImpl implements Blob native "*Blob" {
 
   final String type;
 
+  _BlobImpl slice([int start = null, int end = null, String contentType = null]) native;
+
   _BlobImpl webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }
 
@@ -623,7 +625,7 @@ class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*
 
   String name;
 
-  final String type;
+  String type;
 
   final String validationMessage;
 
@@ -4034,8 +4036,6 @@ class _ConsoleImpl
 
   final _MemoryInfoImpl memory;
 
-  final List<ScriptProfile> profiles;
-
   void assertCondition(bool condition, Object arg) native;
 
   void count() native;
@@ -4777,6 +4777,8 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   final bool webkitIsFullScreen;
 
+  final _ElementImpl webkitPointerLockElement;
+
   final String webkitVisibilityState;
 
   _RangeImpl caretRangeFromPoint(int x, int y) native;
@@ -4830,6 +4832,8 @@ class _DocumentImpl extends _NodeImpl implements Document
   void webkitCancelFullScreen() native;
 
   void webkitExitFullscreen() native;
+
+  void webkitExitPointerLock() native;
 
   // TODO(jacobr): implement all Element methods not on Document. 
 
@@ -6210,6 +6214,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void webkitRequestFullscreen() native;
 
+  void webkitRequestPointerLock() native;
+
 }
 
 final _START_TAG_REGEXP = const RegExp('<(\\w+)');
@@ -6257,7 +6263,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
+      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -7980,6 +7986,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   Date valueAsDate;
 
   num valueAsNumber;
+
+  final _EntryArrayImpl webkitEntries;
 
   bool webkitGrammar;
 
@@ -13822,8 +13830,6 @@ class _ScriptProfileNodeImpl implements ScriptProfileNode native "*ScriptProfile
 
   final int callUID;
 
-  final List<ScriptProfileNode> children;
-
   final String functionName;
 
   final int lineNumber;
@@ -13837,6 +13843,8 @@ class _ScriptProfileNodeImpl implements ScriptProfileNode native "*ScriptProfile
   final String url;
 
   final bool visible;
+
+  List<ScriptProfileNode> children() native;
 }
 
 class _SelectElementImpl extends _ElementImpl implements SelectElement native "*HTMLSelectElement" {
@@ -13860,8 +13868,6 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
   bool required;
 
   int selectedIndex;
-
-  final _HTMLCollectionImpl selectedOptions;
 
   int size;
 
@@ -14046,7 +14052,7 @@ class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative 
   final String transcript;
 }
 
-class _SpeechRecognitionErrorImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
+class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
 
   static final int ABORTED = 2;
 
@@ -14072,8 +14078,6 @@ class _SpeechRecognitionErrorImpl implements SpeechRecognitionError native "*Spe
 }
 
 class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
-
-  final _SpeechRecognitionErrorImpl error;
 
   final _SpeechRecognitionResultImpl result;
 
@@ -15280,6 +15284,9 @@ class _WebGLDebugRendererInfoImpl implements WebGLDebugRendererInfo native "*Web
 class _WebGLDebugShadersImpl implements WebGLDebugShaders native "*WebGLDebugShaders" {
 
   String getTranslatedShaderSource(_WebGLShaderImpl shader) native;
+}
+
+class _WebGLDepthTextureImpl implements WebGLDepthTexture native "*WebGLDepthTexture" {
 }
 
 class _WebGLFramebufferImpl implements WebGLFramebuffer native "*WebGLFramebuffer" {
@@ -16892,8 +16899,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
   static final int OPENED = 1;
 
   static final int UNSENT = 0;
-
-  bool asBlob;
 
   final int readyState;
 
@@ -18553,6 +18558,9 @@ interface Blob {
   /** @domName Blob.type */
   final String type;
 
+  /** @domName Blob.slice */
+  Blob slice([int start, int end, String contentType]);
+
   /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
 }
@@ -18658,7 +18666,7 @@ interface ButtonElement extends Element default _Elements {
   String name;
 
   /** @domName HTMLButtonElement.type */
-  final String type;
+  String type;
 
   /** @domName HTMLButtonElement.validationMessage */
   final String validationMessage;
@@ -21514,9 +21522,6 @@ interface Console {
   /** @domName Console.memory */
   final MemoryInfo memory;
 
-  /** @domName Console.profiles */
-  final List<ScriptProfile> profiles;
-
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
 
@@ -22656,6 +22661,9 @@ interface Document extends HtmlElement {
   /** @domName Document.webkitIsFullScreen */
   final bool webkitIsFullScreen;
 
+  /** @domName Document.webkitPointerLockElement */
+  final Element webkitPointerLockElement;
+
   /** @domName Document.webkitVisibilityState */
   final String webkitVisibilityState;
 
@@ -22736,6 +22744,9 @@ interface Document extends HtmlElement {
 
   /** @domName Document.webkitExitFullscreen */
   void webkitExitFullscreen();
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock();
 
 }
 
@@ -23210,6 +23221,9 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.webkitRequestFullscreen */
   void webkitRequestFullscreen();
+
+  /** @domName Element.webkitRequestPointerLock */
+  void webkitRequestPointerLock();
 
 }
 
@@ -25372,6 +25386,9 @@ interface InputElement extends Element default _Elements {
 
   /** @domName HTMLInputElement.valueAsNumber */
   num valueAsNumber;
+
+  /** @domName HTMLInputElement.webkitEntries */
+  final EntryArray webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -31799,9 +31816,6 @@ interface ScriptProfileNode {
   /** @domName ScriptProfileNode.callUID */
   final int callUID;
 
-  /** @domName ScriptProfileNode.children */
-  final List<ScriptProfileNode> children;
-
   /** @domName ScriptProfileNode.functionName */
   final String functionName;
 
@@ -31822,6 +31836,9 @@ interface ScriptProfileNode {
 
   /** @domName ScriptProfileNode.visible */
   final bool visible;
+
+  /** @domName ScriptProfileNode.children */
+  List<ScriptProfileNode> children();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31861,9 +31878,6 @@ interface SelectElement extends Element {
 
   /** @domName HTMLSelectElement.selectedIndex */
   int selectedIndex;
-
-  /** @domName HTMLSelectElement.selectedOptions */
-  final HTMLCollection selectedOptions;
 
   /** @domName HTMLSelectElement.size */
   int size;
@@ -32213,7 +32227,7 @@ interface SpeechRecognitionAlternative {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionError
-interface SpeechRecognitionError {
+interface SpeechRecognitionError extends Event {
 
   static final int ABORTED = 2;
 
@@ -32247,9 +32261,6 @@ interface SpeechRecognitionError {
 
 /// @domName SpeechRecognitionEvent
 interface SpeechRecognitionEvent extends Event {
-
-  /** @domName SpeechRecognitionEvent.error */
-  final SpeechRecognitionError error;
 
   /** @domName SpeechRecognitionEvent.result */
   final SpeechRecognitionResult result;
@@ -33635,6 +33646,15 @@ interface WebGLDebugShaders {
 
   /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName WebGLDepthTexture
+interface WebGLDepthTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35612,9 +35632,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   static final int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.asBlob */
-  bool asBlob;
-
   /** @domName XMLHttpRequest.readyState */
   final int readyState;
 
@@ -36826,7 +36843,8 @@ class _SVGElementFactoryProvider {
     parentTag.innerHTML = svg;
     if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} '
+    throw new IllegalArgumentException(
+        'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
 }

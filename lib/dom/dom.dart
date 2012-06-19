@@ -649,6 +649,8 @@ interface Blob {
 
   final String type;
 
+  Blob slice([int start, int end, String contentType]);
+
   Blob webkitSlice([int start, int end, String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1242,8 +1244,6 @@ interface CompositionEvent extends UIEvent {
 interface Console {
 
   final MemoryInfo memory;
-
-  final List<ScriptProfile> profiles;
 
   void assertCondition(bool condition, Object arg);
 
@@ -2221,7 +2221,7 @@ interface Document extends Node {
 
   final Element documentElement;
 
-  String documentURI;
+  final String documentURI;
 
   String domain;
 
@@ -2264,6 +2264,8 @@ interface Document extends Node {
   final bool webkitHidden;
 
   final bool webkitIsFullScreen;
+
+  final Element webkitPointerLockElement;
 
   final String webkitVisibilityState;
 
@@ -2354,6 +2356,8 @@ interface Document extends Node {
   void webkitCancelFullScreen();
 
   void webkitExitFullscreen();
+
+  void webkitExitPointerLock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2530,6 +2534,8 @@ interface Element extends Node, ElementTraversal {
   void webkitRequestFullScreen(int flags);
 
   void webkitRequestFullscreen();
+
+  void webkitRequestPointerLock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3403,7 +3409,7 @@ interface HTMLButtonElement extends HTMLElement {
 
   String name;
 
-  final String type;
+  String type;
 
   final String validationMessage;
 
@@ -3980,6 +3986,8 @@ interface HTMLInputElement extends HTMLElement {
   Date valueAsDate;
 
   num valueAsNumber;
+
+  final EntryArray webkitEntries;
 
   bool webkitGrammar;
 
@@ -4618,8 +4626,6 @@ interface HTMLSelectElement extends HTMLElement {
   bool required;
 
   int selectedIndex;
-
-  final HTMLCollection selectedOptions;
 
   int size;
 
@@ -9676,8 +9682,6 @@ interface ScriptProfileNode {
 
   final int callUID;
 
-  final List<ScriptProfileNode> children;
-
   final String functionName;
 
   final int lineNumber;
@@ -9691,6 +9695,8 @@ interface ScriptProfileNode {
   final String url;
 
   final bool visible;
+
+  List<ScriptProfileNode> children();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9880,7 +9886,7 @@ interface SpeechRecognitionAlternative {
 
 // WARNING: Do not edit - generated code.
 
-interface SpeechRecognitionError {
+interface SpeechRecognitionError extends Event {
 
   static final int ABORTED = 2;
 
@@ -9911,8 +9917,6 @@ interface SpeechRecognitionError {
 // WARNING: Do not edit - generated code.
 
 interface SpeechRecognitionEvent extends Event {
-
-  final SpeechRecognitionError error;
 
   final SpeechRecognitionResult result;
 
@@ -10570,6 +10574,14 @@ interface WebGLDebugRendererInfo {
 interface WebGLDebugShaders {
 
   String getTranslatedShaderSource(WebGLShader shader);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLDepthTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12055,8 +12067,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   static final int OPENED = 1;
 
   static final int UNSENT = 0;
-
-  bool asBlob;
 
   final int readyState;
 
