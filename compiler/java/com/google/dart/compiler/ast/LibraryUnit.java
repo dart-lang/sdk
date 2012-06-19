@@ -5,7 +5,6 @@
 package com.google.dart.compiler.ast;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompiler;
@@ -138,7 +137,7 @@ public class LibraryUnit {
   public Iterable<LibraryImport> getImports() {
     return imports;
   }
-  
+
   public Iterable<LibraryUnit> getImportedLibraries() {
     Set<LibraryUnit> libraries = Sets.newHashSet();
     for (LibraryImport libraryImport : imports) {

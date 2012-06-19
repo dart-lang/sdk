@@ -4079,39 +4079,7 @@ public class DartParser extends CompletionHooksParserBase {
     return done(new DartSwitchStatement(expr, members));
   }
 
-  private void parseDeadSwitchCode() {
-    boolean done = false;
-    boolean warned = false;
-    boolean oldInCaseStatement = inCaseStatement;
-    inCaseStatement = true;
-    try {
-      while (!done) {
-        if (peek(0) == Token.IDENTIFIER && peek(1) == Token.COLON) {
-          beginLabel();
-          DartIdentifier identifier = parseIdentifier();
-          expect(Token.COLON);
-          done(new DartLabel(identifier, null));
-
-        }
-
-        Token nextToken = peek(0);
-        switch(nextToken) {
-          case CASE:
-          case DEFAULT:
-          case EOS:
-          case RBRACE:
-            return;
-          default:
-            warned = true;
-            parseStatement();
-        }
-      }
-    } finally {
-      inCaseStatement = oldInCaseStatement;
-    }
-  }
-
-    /**
+  /**
    * <pre>
    * catchParameter
    *    : FINAL type? identifier

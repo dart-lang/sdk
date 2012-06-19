@@ -174,7 +174,7 @@ public class CompileTimeConstantAnalyzer {
      */
     private Type getMostSpecificType(DartNode node) {
       if (node != null) {
-        Element element = (Element) node.getElement();
+        Element element = node.getElement();
         Type type = inferredTypes.get(node);
         if (type != null) {
           return type;
@@ -289,7 +289,7 @@ public class CompileTimeConstantAnalyzer {
           rememberInferredType(x, intType);
         } else if (lhsType.equals(doubleType) && rhsType.equals(doubleType)) {
           rememberInferredType(x, doubleType);
-        } else  if (lhsType.equals(doubleType) && rhsType.equals(intType) 
+        } else  if (lhsType.equals(doubleType) && rhsType.equals(intType)
             || lhsType.equals(intType) && rhsType.equals(doubleType)) {
           rememberInferredType(x, doubleType);
         } else {
@@ -372,7 +372,7 @@ public class CompileTimeConstantAnalyzer {
           if (!element.getModifiers().isConstant() && !element.getModifiers().isFinal()) {
             expectedConstant(x);
           }
-          
+
           // Infer type by visiting node or cached from Element.
           final Type inferredType;
           if (element instanceof FieldNodeElement) {
@@ -381,19 +381,19 @@ public class CompileTimeConstantAnalyzer {
             fieldNode.accept(this);
             inferredType = getMostSpecificType(fieldNode);
             fieldNodeElement.setConstantType(inferredType);
-          } else if (fieldElement.getType() != null 
+          } else if (fieldElement.getType() != null
               && !fieldElement.getType().equals(dynamicType)) {
             inferredType = fieldElement.getType();
           } else {
             inferredType = fieldElement.getConstantType();
           }
-          
+
           // Done with this element.
           visitedElements.remove(element);
 
           rememberInferredType(x, inferredType);
           break;
-          
+
         case METHOD:
           if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
             expectedConstant(x);
@@ -612,7 +612,7 @@ public class CompileTimeConstantAnalyzer {
       }
       return null;
     }
-    
+
     @Override
     public Void visitClass(DartClass node) {
       ClassElement oldClassElement = currentClass;
@@ -623,7 +623,7 @@ public class CompileTimeConstantAnalyzer {
         currentClass = oldClassElement;
       }
     }
-    
+
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
       inConstConstructor = node.getModifiers().isConstant();
