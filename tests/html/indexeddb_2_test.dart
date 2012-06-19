@@ -39,7 +39,7 @@ testReadWrite(key, value, check,
     request.on.error.add(fail);
   }
 
-  step1([e]) {
+  step1() {
     var transaction = db.transaction([storeName], 'readwrite');
     var request = transaction.objectStore(storeName).put(value, key);
     request.on.success.add(expectAsync1(step2));
@@ -58,7 +58,7 @@ testReadWrite(key, value, check,
           createObjectStore();
 
           var transaction = e.target.result;
-          transaction.on.complete.add(expectAsync1(step1));
+          transaction.on.complete.add(expectAsync1((e) => step1()));
           transaction.on.error.add(fail);
         })
       );
