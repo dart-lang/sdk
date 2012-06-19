@@ -140,6 +140,15 @@ Value* CreateArrayComp::InputAt(intptr_t i) const {
 }
 
 
+void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    inputs_[0] = value;
+  } else {
+    (*elements_)[i - 1] = value;
+  }
+}
+
+
 intptr_t BranchInstr::InputCount() const {
   return 1;
 }
@@ -149,6 +158,15 @@ Value* BranchInstr::InputAt(intptr_t i) const {
   if (i == 0) return value();
   UNREACHABLE();
   return NULL;
+}
+
+
+void BranchInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    value_ = value;
+    return;
+  }
+  UNREACHABLE();
 }
 
 
@@ -165,6 +183,19 @@ Value* ReThrowInstr::InputAt(intptr_t i) const {
 }
 
 
+void ReThrowInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    exception_ = value;
+    return;
+  }
+  if (i == 1) {
+    stack_trace_ = value;
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 intptr_t ThrowInstr::InputCount() const {
   return 1;
 }
@@ -174,6 +205,15 @@ Value* ThrowInstr::InputAt(intptr_t i) const {
   if (i == 0) return exception();
   UNREACHABLE();
   return NULL;
+}
+
+
+void ThrowInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    exception_ = value;
+    return;
+  }
+  UNREACHABLE();
 }
 
 
@@ -189,6 +229,15 @@ Value* ReturnInstr::InputAt(intptr_t i) const {
 }
 
 
+void ReturnInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    value_ = value;
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 intptr_t BindInstr::InputCount() const {
   return computation()->InputCount();
 }
@@ -196,6 +245,11 @@ intptr_t BindInstr::InputCount() const {
 
 Value* BindInstr::InputAt(intptr_t i) const {
   return computation()->InputAt(i);
+}
+
+
+void BindInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
 }
 
 
@@ -209,6 +263,11 @@ Value* PhiInstr::InputAt(intptr_t i) const {
 }
 
 
+void PhiInstr::SetInputAt(intptr_t i, Value* value) {
+  inputs_[i] = value;
+}
+
+
 intptr_t DoInstr::InputCount() const {
   return computation()->InputCount();
 }
@@ -216,6 +275,11 @@ intptr_t DoInstr::InputCount() const {
 
 Value* DoInstr::InputAt(intptr_t i) const {
   return computation()->InputAt(i);
+}
+
+
+void DoInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
 }
 
 
@@ -230,6 +294,11 @@ Value* GraphEntryInstr::InputAt(intptr_t i) const {
 }
 
 
+void GraphEntryInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t TargetEntryInstr::InputCount() const {
   return 0;
 }
@@ -241,6 +310,11 @@ Value* TargetEntryInstr::InputAt(intptr_t i) const {
 }
 
 
+void TargetEntryInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t JoinEntryInstr::InputCount() const {
   return 0;
 }
@@ -249,6 +323,11 @@ intptr_t JoinEntryInstr::InputCount() const {
 Value* JoinEntryInstr::InputAt(intptr_t i) const {
   UNREACHABLE();
   return NULL;
+}
+
+
+void JoinEntryInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
 }
 
 

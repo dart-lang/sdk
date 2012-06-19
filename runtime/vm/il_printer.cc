@@ -86,7 +86,11 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void UseVal::PrintTo(BufferFormatter* f) const {
-  f->Print("t%d", definition()->temp_index());
+  if (definition()->ssa_temp_index() != -1) {
+    f->Print("t%d", definition()->ssa_temp_index());
+  } else {
+    f->Print("t%d", definition()->temp_index());
+  }
 }
 
 
@@ -332,6 +336,12 @@ void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
+  if (start_env_ != NULL) {
+    for (intptr_t i = 0; i < start_env_->length(); ++i) {
+      f->Print("\n  ");
+      (*start_env_)[i]->PrintTo(f);
+    }
+  }
 }
 
 
@@ -348,7 +358,7 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("     phi(");
+  f->Print("    t%d <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(",");
@@ -374,7 +384,11 @@ void DoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BindInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    t%d <- ", temp_index());
+  if (ssa_temp_index() != -1) {
+    f->Print("    t%d <- ", ssa_temp_index());
+  } else {
+    f->Print("    t%d <- ", temp_index());
+  }
   computation()->PrintTo(f);
 }
 
@@ -428,7 +442,7 @@ void FlowGraphVisualizer::PrintInstruction(Instruction* instr) {
   char str[120];
   BufferFormatter f(str, sizeof(str));
   instr->PrintToVisualizer(&f);
-  f.Print("%s <|@\n", str);
+  f.Print(" <|@\n");
   (*Dart::flow_graph_writer())(str, strlen(str));
 }
 
@@ -556,12 +570,30 @@ void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
-  // TODO(fschneider): Print operands when SSA renaming is implemented.
-  f->Print("v [");
+  f->Print("t%d [", ssa_temp_index());
+  bool has_constant = false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
-    f->Print(" v ");
+    if (i > 0) f->Print(" ");
+    if (InputAt(i)->IsConstant()) {
+      f->Print("const");
+      has_constant = true;
+    } else {
+      InputAt(i)->PrintTo(f);
+    }
   }
   f->Print("]");
+  // The vizualizer file format does not allow arbitrary strings inside the phi.
+  // Print constants as a line-end comment instead.
+  if (has_constant) {
+    f->Print("\"");
+    for (intptr_t i = 0; i < InputCount(); ++i) {
+      if (i > 0) f->Print(" ");
+      if (InputAt(i)->IsConstant()) {
+        InputAt(i)->PrintTo(f);
+      }
+    }
+    f->Print("\"");
+  }
 }
 
 
@@ -582,7 +614,11 @@ void DoInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("t%d ", temp_index());
+  if (ssa_temp_index() != -1) {
+    f->Print("t%d ", ssa_temp_index());
+  } else {
+    f->Print("t%d ", temp_index());
+  }
   computation()->PrintTo(f);
 }
 

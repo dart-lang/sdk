@@ -52,6 +52,11 @@ class FlowGraphBuilder: public ValueObject {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
+  void Rename(intptr_t var_count);
+  void RenameRecursive(BlockEntryInstr* block_entry,
+                       ZoneGrowableArray<Value*>* env,
+                       intptr_t var_count);
+
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
                   const GrowableArray<BitVector*>& assigned_vars,
                   const intptr_t var_count,
@@ -64,6 +69,7 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t last_used_try_index_;
   intptr_t try_index_;
   GraphEntryInstr* graph_entry_;
+  intptr_t current_ssa_temp_index_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };

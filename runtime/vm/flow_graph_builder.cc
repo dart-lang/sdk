@@ -35,7 +35,8 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    graph_entry_(NULL) { }
+    graph_entry_(NULL),
+    current_ssa_temp_index_(0) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
@@ -2353,7 +2354,7 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
                assigned_vars,
                variable_count,
                dominance_frontier);
-    // TODO(fschneider): Perform SSA renaming.
+    Rename(variable_count);
   }
   if (FLAG_print_flow_graph || (Dart::flow_graph_writer() != NULL)) {
     intptr_t length = postorder_block_entries_.length();
@@ -2553,6 +2554,167 @@ void FlowGraphBuilder::InsertPhis(
             worklist.Add(block);
           }
         }
+      }
+    }
+  }
+}
+
+
+void FlowGraphBuilder::Rename(intptr_t var_count) {
+  // Initialize start environment:
+  // All locals are initialized with #null.
+  // TODO(fschneider): Support parameters. All parameters are initially located
+  // on the stack.
+  // TODO(fschneider): Store var_count in the FlowGraphBuilder instead of
+  // passing it around.
+  ZoneGrowableArray<Value*>* start_env =
+      new ZoneGrowableArray<Value*>(var_count);
+  if (parsed_function().function().num_fixed_parameters() > 0) {
+    Bailout("Fixed parameter support in SSA");
+  }
+  if (parsed_function().copied_parameter_count()) {
+    Bailout("Copied parameter support in SSA");
+  }
+  Value* null_value = new ConstantVal(Object::ZoneHandle());
+  // TODO(fschneider): Change this assert once parameters are supported.
+  ASSERT(var_count == parsed_function().stack_local_count());
+  for (intptr_t i = 0; i < var_count; i++) {
+    start_env->Add(null_value);
+  }
+  graph_entry_->set_start_env(start_env);
+
+  BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
+  ASSERT(normal_entry != NULL);  // Must have entry.
+  ZoneGrowableArray<Value*>* env = new ZoneGrowableArray<Value*>(var_count);
+  env->AddArray(*start_env);
+  RenameRecursive(normal_entry, env, var_count);
+}
+
+
+static intptr_t WhichPred(BlockEntryInstr* predecessor,
+                          JoinEntryInstr* join_block) {
+  for (intptr_t i = 0; i < join_block->PredecessorCount(); ++i) {
+    if (join_block->PredecessorAt(i) == predecessor) return i;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
+void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
+                                       ZoneGrowableArray<Value*>* env,
+                                       intptr_t var_count) {
+  // Iterate over instructions.
+  // 1. Handle phis first.
+  if (block_entry->IsJoinEntry()) {
+    JoinEntryInstr* join = block_entry->AsJoinEntry();
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi != NULL) {
+          (*env)[i] = new UseVal(phi);
+          phi->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
+        }
+      }
+    }
+  }
+
+  // 2. Handle normal instructions.
+  Instruction* current = block_entry->StraightLineSuccessor();
+  Instruction* prev = block_entry;
+  while ((current != NULL) && !current->IsBlockEntry()) {
+    // 2a. Handle LoadLocal and StoreLocal.
+    // LoadLocal should not be present in an effect context.
+    ASSERT(!current->IsDo() ||
+           !current->AsDo()->computation()->IsLoadLocal());
+    LoadLocalComp* load = NULL;
+    if (current->IsBind() &&
+               current->AsBind()->computation()->IsLoadLocal()) {
+      load = current->AsBind()->computation()->AsLoadLocal();
+    }
+    StoreLocalComp* store = NULL;
+    if (current->IsDo() &&
+        current->AsDo()->computation()->IsStoreLocal()) {
+      store = current->AsDo()->computation()->AsStoreLocal();
+    } else if (current->IsBind() &&
+               current->AsBind()->computation()->IsStoreLocal()) {
+      store = current->AsBind()->computation()->AsStoreLocal();
+    }
+
+    if ((load != NULL) || (store != NULL)) {
+      // Remove instruction with LoadLocal or StoreLocal.
+      prev->SetSuccessor(current->StraightLineSuccessor());
+      // Update renaming environment for StoreLocal.
+      if (store != NULL) {
+        (*env)[store->local().BitIndexIn(var_count)] = store->value();
+      }
+    } else {
+      // Assign new SSA temporary.
+      if (current->IsBind()) {
+        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
+      }
+    }
+
+    // 2b. Handle uses of LoadLocal / StoreLocal
+    for (intptr_t i = 0; i < current->InputCount(); ++i) {
+      // For each use of a LoadLocal/StoreLocal: Replace it with the definition
+      // from the environment.
+      Value* v = current->InputAt(i);
+      if (v->IsUse() &&
+          v->AsUse()->definition()->IsBind() &&
+          v->AsUse()->definition()->AsBind()->computation()->IsLoadLocal()) {
+        Computation* comp = v->AsUse()->definition()->AsBind()->computation();
+        intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(var_count);
+        Value* new_value = (*env)[index];
+        // Make a copy if it is a UseVal.
+        if (new_value->IsUse()) {
+          new_value = new UseVal(new_value->AsUse()->definition());
+        }
+        current->SetInputAt(i, new_value);
+      }
+      if (v->IsUse() &&
+          v->AsUse()->definition()->IsBind() &&
+          v->AsUse()->definition()->AsBind()->computation()->IsStoreLocal()) {
+        // For each use of a LoadLocal: Replace LoadLocal with the definition
+        // from the enviroment.
+        Computation* comp = v->AsUse()->definition()->AsBind()->computation();
+        intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
+        Value* new_value = (*env)[index];
+        // Make a copy if it is a UseVal.
+        if (new_value->IsUse()) {
+          new_value = new UseVal(new_value->AsUse()->definition());
+        }
+        current->SetInputAt(i, new_value);
+      }
+    }
+
+    // Update previous only if no instruction was removed from the graph.
+    if ((load == NULL) && (store == NULL)) {
+      prev = current;
+    }
+    current = current->StraightLineSuccessor();
+  }
+
+  // 3. Process dominated blocks.
+  for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
+    BlockEntryInstr* block = block_entry->dominated_blocks()[i];
+    ZoneGrowableArray<Value*>* new_env =
+        new ZoneGrowableArray<Value*>(var_count);
+    new_env->AddArray(*env);
+    RenameRecursive(block, new_env, var_count);
+  }
+
+  // 4. Process successor block. We have edge-split form, so that only blocks
+  // with one successor can have a join block as successor.
+  if ((block_entry->last_instruction()->SuccessorCount() == 1) &&
+      block_entry->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* successor =
+        block_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = WhichPred(block_entry, successor);
+    if (successor->phis() != NULL) {
+      for (intptr_t i = 0; i < successor->phis()->length(); ++i) {
+        PhiInstr* phi = (*successor->phis())[i];
+        if (phi != NULL) phi->SetInputAt(pred_index, (*env)[i]);
       }
     }
   }

@@ -138,6 +138,7 @@ class Computation : public ZoneAllocated {
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
+  virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
   // Static type of the computation.
   virtual RawAbstractType* StaticType() const = 0;
@@ -284,6 +285,7 @@ class TemplateComputation : public Computation {
  public:
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -478,6 +480,9 @@ class ClosureCallComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -528,6 +533,9 @@ class InstanceCallComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -564,6 +572,9 @@ class PolymorphicInstanceCallComp : public Computation {
   virtual intptr_t InputCount() const { return instance_call()->InputCount(); }
   virtual Value* InputAt(intptr_t i) const {
     return instance_call()->ArgumentAt(i);
+  }
+  virtual void SetInputAt(intptr_t index, Value* value) {
+    instance_call()->SetInputAt(index, value);
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const {
@@ -754,6 +765,9 @@ class StaticCallComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1189,6 +1203,9 @@ class AllocateObjectComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1219,6 +1236,9 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1258,6 +1278,7 @@ class CreateArrayComp : public TemplateComputation<1> {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const;
+  virtual void SetInputAt(intptr_t i, Value* value);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1760,6 +1781,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
   virtual Value* InputAt(intptr_t i) const;                                    \
+  virtual void SetInputAt(intptr_t i, Value* value);                           \
   virtual const char* DebugName() const { return #type; }                      \
   virtual void PrintTo(BufferFormatter* f) const;                              \
   virtual void PrintToVisualizer(BufferFormatter* f) const;
@@ -1788,6 +1810,7 @@ class Instruction : public ZoneAllocated {
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
+  virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -1958,7 +1981,10 @@ class BlockEntryInstr : public Instruction {
 class GraphEntryInstr : public BlockEntryInstr {
  public:
   explicit GraphEntryInstr(TargetEntryInstr* normal_entry)
-      : BlockEntryInstr(), normal_entry_(normal_entry), catch_entries_() { }
+      : BlockEntryInstr(),
+        normal_entry_(normal_entry),
+        catch_entries_(),
+        start_env_(NULL) { }
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -1987,9 +2013,13 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
+  ZoneGrowableArray<Value*>* start_env() const { return start_env_; }
+  void set_start_env(ZoneGrowableArray<Value*>* env) { start_env_ = env; }
+
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
+  ZoneGrowableArray<Value*>* start_env_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -2018,7 +2048,6 @@ class JoinEntryInstr : public BlockEntryInstr {
     return successor_;
   }
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2073,7 +2102,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     return successor_;
   }
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2115,7 +2143,6 @@ class DoInstr : public Instruction {
   }
 
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2140,7 +2167,7 @@ class DoInstr : public Instruction {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  Definition() : temp_index_(-1) { }
+  Definition() : temp_index_(-1), ssa_temp_index_(-1) { }
 
   virtual bool IsDefinition() const { return true; }
   virtual Definition* AsDefinition() { return this; }
@@ -2148,8 +2175,12 @@ class Definition : public Instruction {
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
 
+  intptr_t ssa_temp_index() const { return ssa_temp_index_; }
+  void set_ssa_temp_index(intptr_t index) { ssa_temp_index_ = index; }
+
  private:
   intptr_t temp_index_;
+  intptr_t ssa_temp_index_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -2173,7 +2204,6 @@ class BindInstr : public Definition {
   }
 
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2208,10 +2238,6 @@ class PhiInstr: public Definition {
 
   DECLARE_INSTRUCTION(Phi)
 
-  void SetInputAt(intptr_t i, Value* value) {
-    inputs_[i] = value;
-  }
-
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
@@ -2220,8 +2246,6 @@ class PhiInstr: public Definition {
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
-
-
 
 
 class ReturnInstr : public InstructionWithInputs {
