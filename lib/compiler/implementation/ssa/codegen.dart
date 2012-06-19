@@ -2444,6 +2444,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (element == compiler.intClass) {
         helper = const SourceString('intTypeCheck');
       } else if (Elements.isStringSupertype(element, compiler)) {
+        additionalArgument = compiler.namer.operatorIs(element);
         if (nativeCheck) {
           helper = const SourceString('stringSuperNativeTypeCheck');
         } else {
