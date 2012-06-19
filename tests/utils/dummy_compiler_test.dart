@@ -40,8 +40,12 @@ Future<String> provider(Uri uri) {
   return completer.future;
 }
 
-void handler(Uri uri, int begin, int end, String message, bool fatal) {
-  print(message);
+void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
+  if (uri === null) {
+    print('$kind: $message');
+  } else {
+    print('$uri:$begin:$end: $kind: $message');
+  }
 }
 
 main() {

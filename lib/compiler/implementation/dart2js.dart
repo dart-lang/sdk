@@ -75,6 +75,7 @@ void compile(List<String> argv) {
   List<String> options = new List<String>();
   bool explicitOut = false;
   bool wantHelp = false;
+  bool enableColors = true;
 
   passThrough(String argument) => options.add(argument);
 
@@ -122,7 +123,7 @@ void compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--unparse-validation', passThrough),
-    new OptionHandler('--no-colors', (_) => colors.enabled = false),
+    new OptionHandler('--no-colors', (_) => enableColors = false),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler(@'--help|/\?|/h', (_) => wantHelp = true),
@@ -167,24 +168,49 @@ void compile(List<String> argv) {
     return new Future.immediate(source);
   }
 
-  void info(var message) {
-    if (verbose) print('${colors.green("info:")} $message');
+  void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
+    if (!verbose && kind === api.Diagnostic.VERBOSE_INFO) return;
+    print('${colors.green("info:")} $message');
   }
 
   bool isAborting = false;
 
-  void handler(Uri uri, int begin, int end, String message, bool fatal) {
+  final int FATAL = api.Diagnostic.CRASH.ordinal | api.Diagnostic.ERROR.ordinal;
+  final int INFO =
+      api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
+
+  void handler(Uri uri, int begin, int end, String message,
+               api.Diagnostic kind) {
     if (isAborting) return;
-    if (uri === null && !fatal) {
-      info(message);
+    isAborting = kind === api.Diagnostic.CRASH;
+    bool fatal = (kind.ordinal & FATAL) != 0;
+    bool isInfo = (kind.ordinal & INFO) != 0;
+    if (isInfo) {
+      assert(uri === null);
+      info(message, kind);
       return;
+    }
+    var color;
+    if (!enableColors) {
+      color = (x) => x;
+    } else if (kind === api.Diagnostic.ERROR) {
+      color = colors.red;
+    } else if (kind === api.Diagnostic.WARNING) {
+      color = colors.magenta;
+    } else if (kind === api.Diagnostic.LINT) {
+      color = colors.magenta;
+    } else if (kind === api.Diagnostic.CRASH) {
+      color = colors.red;
+    } else {
+      throw 'Unknown kind: $kind (${kind.ordinal})';
     }
     if (uri === null) {
       assert(fatal);
-      print(message);
+      print(color(message));
     } else if (fatal || showWarnings) {
       SourceFile file = sourceFiles[uri.toString()];
-      print(file.getLocationMessage(message, begin, end, true));
+      print(file.getLocationMessage(color(message), begin, end, true,
+                                    color));
     }
     if (fatal && throwOnError) {
       isAborting = true;

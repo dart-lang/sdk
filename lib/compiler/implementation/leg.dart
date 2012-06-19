@@ -6,7 +6,6 @@
 
 #import('dart:uri');
 
-#import('colors.dart');
 #import('dart_backend/dart_backend.dart', prefix: 'dart_backend');
 #import('elements/elements.dart');
 #import('native_handler.dart', prefix: 'native');
@@ -18,6 +17,7 @@
 #import('tree/tree.dart');
 #import('util/characters.dart');
 #import('util/util.dart');
+#import('../compiler.dart', prefix: 'api');
 
 #source('compile_time_constants.dart');
 #source('compiler.dart');

@@ -232,8 +232,7 @@ class Compiler implements DiagnosticListener {
   void internalError(String message,
                      [Node node, Token token, HInstruction instruction,
                       Element element]) {
-    cancel("${red('internal error:')} $message",
-           node, token, instruction, element);
+    cancel('Internal error: $message', node, token, instruction, element);
   }
 
   void internalErrorOnElement(Element element, String message) {
@@ -243,7 +242,7 @@ class Compiler implements DiagnosticListener {
   void unhandledExceptionOnElement(Element element) {
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
-                     false);
+                     api.Diagnostic.CRASH);
     // TODO(ahe): Obtain the build ID.
     var buildId = 'build number could not be determined';
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message([buildId]));
@@ -265,7 +264,7 @@ class Compiler implements DiagnosticListener {
     } else {
       throw 'No error location for error: $reason';
     }
-    reportDiagnostic(span, red(reason), true);
+    reportDiagnostic(span, reason, api.Diagnostic.ERROR);
     throw new CompilerCancelledException(reason);
   }
 
@@ -277,7 +276,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void log(message) {
-    reportDiagnostic(null, message, false);
+    reportDiagnostic(null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
   bool run(Uri uri) {
@@ -519,7 +518,8 @@ class Compiler implements DiagnosticListener {
     if (!REPORT_EXCESS_RESOLUTION) return;
     for (Element e in resolved) {
       SourceSpan span = spanFromElement(e);
-      reportDiagnostic(span, 'Warning: $e resolved but not compiled.', false);
+      reportDiagnostic(span, 'Warning: $e resolved but not compiled.',
+                       api.Diagnostic.WARNING);
     }
   }
 
@@ -635,16 +635,17 @@ class Compiler implements DiagnosticListener {
     }
     SourceSpan span = spanFromNode(node);
 
-    reportDiagnostic(span, "${magenta('warning:')} $message", false);
+    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING );
   }
 
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, "${red('error:')} $message", true);
+    reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
     throw new CompilerCancelledException(message.toString());
   }
 
-  abstract void reportDiagnostic(SourceSpan span, String message, bool fatal);
+  abstract void reportDiagnostic(SourceSpan span, String message,
+                                 api.Diagnostic kind);
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
     if (begin === null || end === null) {
