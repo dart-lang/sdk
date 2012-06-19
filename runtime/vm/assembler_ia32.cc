@@ -1413,7 +1413,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const FieldAddress& dest,
                                          Register value) {
   movl(dest, value);
-#if defined(DEBUG)
+#if 0  // TODO(cshapiro) Turn this back on after it is fixed defined(DEBUG).
   Label done;
   testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
   j(PARITY_ODD, &done, Assembler::kNearJump);
