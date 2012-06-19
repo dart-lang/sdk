@@ -337,6 +337,12 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static const ObjectKind kInstanceKind = kObject;
 
+  // Different kinds of type tests.
+  enum TypeTestKind {
+    kIsSubtypeOf = 0,
+    kIsMoreSpecificThan
+  };
+
  protected:
   // Used for extracting the C++ vtable during bringup.
   Object() : raw_(null_) {}
@@ -602,7 +608,25 @@ class Class : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const;
+                   Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
+
+  // Check the 'more specific' relationship.
+  bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
+                          const Class& other,
+                          const AbstractTypeArguments& other_type_arguments,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -739,9 +763,17 @@ class Class : public Object {
                                                      const Script& script,
                                                      intptr_t token_index);
 
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractTypeArguments& type_arguments,
+                const Class& other,
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
+
   HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class Object;
   friend class Instance;
+  friend class AbstractType;
   friend class Type;
 };
 
@@ -870,11 +902,26 @@ class AbstractType : public Object {
   }
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const;
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf, other, malformed_error);
+  }
+
+  // Check the 'more specific' relationship.
+  bool IsMoreSpecificThan(const AbstractType& other,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, malformed_error);
+  }
+
+ private:
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractType& other,
+                Error* malformed_error) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
+  friend class AbstractTypeArguments;
 };
 
 
@@ -1083,7 +1130,17 @@ class AbstractTypeArguments : public Object {
   // Check the subtype relationship, considering only a prefix of length 'len'.
   bool IsSubtypeOf(const AbstractTypeArguments& other,
                    intptr_t len,
-                   Error* malformed_error) const;
+                   Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf, other, len, malformed_error);
+  }
+
+  // Check the 'more specific' relationship, considering only a prefix of
+  // length 'len'.
+  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+                          intptr_t len,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, len, malformed_error);
+  }
 
   bool Equals(const AbstractTypeArguments& other) const;
 
@@ -1101,6 +1158,13 @@ class AbstractTypeArguments : public Object {
   // If raw_instantiated is true, consider each type parameter to be first
   // instantiated from a vector of dynamic types.
   bool IsDynamicTypes(bool raw_instantiated, intptr_t len) const;
+
+  // Check the subtype or 'more specific' relationship, considering only a
+  // prefix of length 'len'.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractTypeArguments& other,
+                intptr_t len,
+                Error* malformed_error) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments, Object);

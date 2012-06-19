@@ -339,13 +339,9 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     return false;
   }
 
-  // If nothing is known about the static type of the value, the test cannot be
-  // eliminated.
+  // Consider the static type of the value.
   const AbstractType& static_type = AbstractType::Handle(value->StaticType());
   ASSERT(!static_type.IsMalformed());
-  if (static_type.IsDynamicType()) {
-    return false;
-  }
 
   // If the static type of the value is void, the only allowed value is null,
   // which must be verified by the type test.
@@ -354,7 +350,7 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     return false;
   }
 
-  // Eliminate the test if it can be performed successfully at compile time.
+  // If the static type of the value is NullType, the type test is eliminated.
   if (static_type.IsNullType()) {
     // There are only three instances that can be of Class Null:
     // Object::null(), Object::sentinel(), and Object::transition_sentinel().
@@ -365,14 +361,19 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     // being type checked.
     return true;
   }
-  if (static_type.IsType() &&
-      Class::Handle(static_type.type_class()).HasTypeArguments()) {
-    // TODO(regis): Special tests need to be added.
-    return false;
-  }
+
+  // The run time type of the value is guaranteed to be a subtype of the compile
+  // time static type of the value. However, establishing here that the static
+  // type is a subtype of the destination type does not guarantee that the run
+  // time type will also be a subtype of the destination type, because the
+  // subtype relation is not transitive.
+  // However, the 'more specific than' relation is transitive and is used here.
+  // In other words, if the static type of the value is more specific than the
+  // destination type, the run time type of the value, which is guaranteed to
+  // be a subtype of the static type, is also guaranteed to be a subtype of the
+  // destination type and the type check can therefore be eliminated.
   Error& malformed_error = Error::Handle();
-  if (!dst_type.IsMalformed() &&
-      static_type.IsSubtypeOf(dst_type, &malformed_error)) {
+  if (static_type.IsMoreSpecificThan(dst_type, &malformed_error)) {
     return true;
   }
 

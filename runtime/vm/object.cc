@@ -1739,22 +1739,28 @@ bool Class::IsCanonicalSignatureClass() const {
 }
 
 
-// Checks if the type S is a subtype of type T.
+// If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
+// If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
 // Type S is specified by this class parameterized with 'type_arguments', and
 // type T by class 'other' parameterized with 'other_type_arguments'.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
-bool Class::IsSubtypeOf(
+bool Class::TypeTest(
+    TypeTestKind test_kind,
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
   // Check for DynamicType.
-  // The DynamicType on the lefthand side is replaced by the bottom type, which
-  // is more specific than any type.
-  // Any type is more specific than the DynamicType on the righthand side.
-  if (IsDynamicClass() || other.IsDynamicClass()) {
+  // Each occurrence of DynamicType in type T is interpreted as the Dynamic
+  // type, a supertype of all types.
+  if (other.IsDynamicClass()) {
     return true;
+  }
+  // In the case of a subtype test, each occurrence of DynamicType in type S is
+  // interpreted as the bottom type, a subtype of all types.
+  if (IsDynamicClass()) {
+    return test_kind == kIsSubtypeOf;
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
@@ -1765,16 +1771,21 @@ bool Class::IsSubtypeOf(
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
     // Check for covariance.
-    if (type_arguments.IsNull() ||
-        other_type_arguments.IsNull() ||
-        type_arguments.IsRawInstantiatedRaw(len) ||
+    if (other_type_arguments.IsNull() ||
         other_type_arguments.IsRawInstantiatedRaw(len)) {
       return true;
     }
-    return type_arguments.IsSubtypeOf(other_type_arguments,
-                                      len,
-                                      malformed_error);
+    if (type_arguments.IsNull() ||
+        type_arguments.IsRawInstantiatedRaw(len)) {
+      return test_kind == kIsSubtypeOf;
+    }
+    return type_arguments.TypeTest(test_kind,
+                                   other_type_arguments,
+                                   len,
+                                   malformed_error);
   }
+  // TODO(regis): Check for interface type S implementing method call() of
+  // function type T.
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
     const Function& fun = Function::Handle(signature_function());
@@ -1820,10 +1831,11 @@ bool Class::IsSubtypeOf(
         }
       }
     }
-    if (interface_class.IsSubtypeOf(interface_args,
-                                    other,
-                                    other_type_arguments,
-                                    malformed_error)) {
+    if (interface_class.TypeTest(test_kind,
+                                 interface_args,
+                                 other,
+                                 other_type_arguments,
+                                 malformed_error)) {
       return true;
     }
   }
@@ -1843,10 +1855,11 @@ bool Class::IsSubtypeOf(
   // Instead of truncating the type argument vector to the length of the super
   // type argument vector, we make sure that the code works with a vector that
   // is longer than necessary.
-  return super_class.IsSubtypeOf(type_arguments,
-                                 other,
-                                 other_type_arguments,
-                                 malformed_error);
+  return super_class.TypeTest(test_kind,
+                              type_arguments,
+                              other,
+                              other_type_arguments,
+                              malformed_error);
 }
 
 
@@ -2403,8 +2416,9 @@ bool AbstractType::IsListInterface() const {
 }
 
 
-bool AbstractType::IsSubtypeOf(const AbstractType& other,
-                               Error* malformed_error) const {
+bool AbstractType::TypeTest(TypeTestKind test_kind,
+                            const AbstractType& other,
+                            Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // In case the type checked in a type test is malformed, the code generator
@@ -2426,7 +2440,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     }
     return false;
   }
-  // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
+  // AbstractType parameters cannot be handled by Class::TypeTest().
   // When comparing two uninstantiated function types, one returning type
   // parameter K, the other returning type parameter V, we cannot assume that K
   // is a subtype of V, or vice versa. We only return true if K == V, i.e. if
@@ -2438,15 +2452,25 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   // For example, with class A<K, V extends K>, new A<T, T> called from within
   // a class B<T> will never require a run time bounds check, even it T is
   // uninstantiated at compile time.
-  if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+  if (IsTypeParameter()) {
+    if (other.IsTypeParameter()) {
+      return Index() == other.Index();
+    } else {
+      // TODO(regis): In checked mode, if the other type is the upper bound of
+      // this type parameter, then return true.
+      // We would need to keep the upper bound associated to the type parameter.
+    }
+    return false;
+  }
+  if (other.IsTypeParameter()) {
+    return false;
   }
   const Class& cls = Class::Handle(type_class());
-  return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
-                         Class::Handle(other.type_class()),
-                         AbstractTypeArguments::Handle(other.arguments()),
-                         malformed_error);
+  return cls.TypeTest(test_kind,
+                      AbstractTypeArguments::Handle(arguments()),
+                      Class::Handle(other.type_class()),
+                      AbstractTypeArguments::Handle(other.arguments()),
+                      malformed_error);
 }
 
 
@@ -3181,10 +3205,10 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
 }
 
 
-bool AbstractTypeArguments::IsSubtypeOf(
-    const AbstractTypeArguments& other,
-    intptr_t len,
-    Error* malformed_error) const {
+bool AbstractTypeArguments::TypeTest(TypeTestKind test_kind,
+                                     const AbstractTypeArguments& other,
+                                     intptr_t len,
+                                     Error* malformed_error) const {
   ASSERT(Length() >= len);
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= len);
@@ -3195,7 +3219,7 @@ bool AbstractTypeArguments::IsSubtypeOf(
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.IsSubtypeOf(other_type, malformed_error)) {
+    if (!type.TypeTest(test_kind, other_type, malformed_error)) {
       return false;
     }
   }
