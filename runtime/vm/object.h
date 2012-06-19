@@ -2557,14 +2557,21 @@ class ICData : public Object {
   }
 
   // Adds one more class test to ICData. Length of 'classes' must be equal to
-  // the number of arguments tested.
+  // the number of arguments tested. Use only for number_of_checks > 1.
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
                 const Function& target) const;
+  // Adds sorted so that Smi is the first class-id. Use only for
+  // number_of_checks == 1.
+  void AddReceiverCheck(intptr_t receiver_class_id,
+                        const Function& target) const;
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
   void GetOneClassCheckAt(
       int index, intptr_t* class_id, Function* target) const;
+
+  intptr_t GetReceiverClassIdAt(intptr_t index) const;
+  RawFunction* GetTargetAt(intptr_t index) const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

@@ -556,18 +556,12 @@ class InstanceCallComp : public Computation {
 
 class PolymorphicInstanceCallComp : public Computation {
  public:
-  PolymorphicInstanceCallComp(InstanceCallComp* comp,
-                              const ZoneGrowableArray<intptr_t>& class_ids,
-                              const ZoneGrowableArray<Function*>& targets)
-      : instance_call_(comp),
-        class_ids_(class_ids),
-        targets_(targets) {
+  explicit PolymorphicInstanceCallComp(InstanceCallComp* comp)
+      : instance_call_(comp) {
     ASSERT(instance_call_ != NULL);
   }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
-  const ZoneGrowableArray<intptr_t>& class_ids() const { return class_ids_; }
-  const ZoneGrowableArray<Function*>& targets() const { return targets_; }
 
   virtual intptr_t InputCount() const { return instance_call()->InputCount(); }
   virtual Value* InputAt(intptr_t i) const {
@@ -585,8 +579,6 @@ class PolymorphicInstanceCallComp : public Computation {
 
  private:
   InstanceCallComp* instance_call_;
-  const ZoneGrowableArray<intptr_t>& class_ids_;
-  const ZoneGrowableArray<Function*>& targets_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallComp);
 };
@@ -651,41 +643,18 @@ class EqualityCompareComp : public ComparisonComp {
                       Value* right)
       : ComparisonComp(left, right),
         token_index_(token_index),
-        try_index_(try_index),
-        class_ids_(NULL),
-        targets_(NULL) {
+        try_index_(try_index) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  void SetPolymorphicTargets(ZoneGrowableArray<intptr_t>* class_ids,
-                             ZoneGrowableArray<Function*>* targets) {
-    class_ids_ = class_ids;
-    targets_ = targets;
-    ASSERT(targets_ != NULL);
-    ASSERT(class_ids_ != NULL);
-  }
-  intptr_t NumTargets() const {
-    return class_ids_ == NULL ? 0 : class_ids_->length();
-  }
-  Function* TargetAt(intptr_t ix) const {
-    ASSERT(targets_ != NULL);
-    return (*targets_)[ix];
-  }
-  intptr_t ClassIdAt(intptr_t ix) const {
-    ASSERT(class_ids_ != NULL);
-    return (*class_ids_)[ix];
-  }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  ZoneGrowableArray<intptr_t>* class_ids_;
-  ZoneGrowableArray<Function*>* targets_;
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };
@@ -874,9 +843,8 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
   LoadInstanceFieldComp(const Field& field,
                         Value* instance,
-                        InstanceCallComp* original,  // Maybe NULL.
-                        ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
-      : field_(field), original_(original), class_ids_(class_ids) {
+                        InstanceCallComp* original)  // Maybe NULL.
+      : field_(field), original_(original) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
@@ -885,7 +853,6 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   const Field& field() const { return field_; }
   Value* instance() const { return inputs_[0]; }
-  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
   const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -893,8 +860,6 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
  private:
   const Field& field_;
   const InstanceCallComp* original_;  // For optimizations.
-  // If non-NULL, the instruction is valid only for the class ids listed.
-  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -905,9 +870,8 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
                          Value* value,
-                         InstanceSetterComp* original,  // Maybe NULL.
-                         ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
-      : field_(field), original_(original), class_ids_(class_ids) {
+                         InstanceSetterComp* original)  // Maybe NULL.
+      : field_(field), original_(original) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
     inputs_[0] = instance;
@@ -921,7 +885,6 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
-  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
   const InstanceSetterComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -929,8 +892,6 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
  private:
   const Field& field_;
   const InstanceSetterComp* original_;  // For optimizations.
-  // If non-NULL, the instruction is valid only for the class ids listed.
-  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
@@ -1330,26 +1291,9 @@ class LoadVMFieldComp : public TemplateComputation<1> {
                   const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
-        original_(NULL),
-        class_ids_(NULL) {
+        original_(NULL) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    inputs_[0] = value;
-  }
-
-  LoadVMFieldComp(Value* value,
-                  intptr_t offset_in_bytes,
-                  const AbstractType& type,
-                  InstanceCallComp* original,
-                  ZoneGrowableArray<intptr_t>* class_ids)
-      : offset_in_bytes_(offset_in_bytes),
-        type_(type),
-        original_(original),
-        class_ids_(class_ids) {
-    ASSERT(value != NULL);
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    ASSERT(original != NULL);
-    ASSERT(class_ids != NULL);
     inputs_[0] = value;
   }
 
@@ -1358,8 +1302,8 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
-  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
   const InstanceCallComp* original() const { return original_; }
+  void set_original(InstanceCallComp* value) { original_ = value; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1368,7 +1312,6 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   const AbstractType& type_;
   const InstanceCallComp* original_;  // For optimizations.
   // If non-NULL, the instruction is valid only for the class ids listed.
-  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };

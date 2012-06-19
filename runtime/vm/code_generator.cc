@@ -956,12 +956,17 @@ static RawFunction* InlineCacheMissHandler(
   }
 #endif  // DEBUG
 
-  GrowableArray<intptr_t> class_ids;
-  ASSERT(ic_data.num_args_tested() == args.length());
-  for (intptr_t i = 0; i < args.length(); i++) {
-    class_ids.Add(Class::Handle(args[i]->clazz()).id());
+  if (args.length() == 1) {
+    ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
+                             target_function);
+  } else {
+    GrowableArray<intptr_t> class_ids;
+    ASSERT(ic_data.num_args_tested() == args.length());
+    for (intptr_t i = 0; i < args.length(); i++) {
+      class_ids.Add(Class::Handle(args[i]->clazz()).id());
+    }
+    ic_data.AddCheck(class_ids, target_function);
   }
-  ic_data.AddCheck(class_ids, target_function);
   if (FLAG_trace_ic) {
     OS::Print("InlineCacheMissHandler %d call at 0x%x' "
               "adding <%s> id:%d -> <%s>\n",

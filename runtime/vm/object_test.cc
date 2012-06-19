@@ -2591,9 +2591,7 @@ TEST_CASE(ICData) {
   EXPECT_EQ(target_name.raw(), o1.target_name());
 
   const Function& target1 = Function::Handle(GetDummyTarget("Thun"));
-  GrowableArray<intptr_t> classes;
-  classes.Add(kSmi);
-  o1.AddCheck(classes, target1);
+  o1.AddReceiverCheck(kSmi, target1);
   EXPECT_EQ(1, o1.NumberOfChecks());
   intptr_t test_class_id = -1;
   Function& test_target = Function::Handle();
@@ -2606,10 +2604,8 @@ TEST_CASE(ICData) {
   EXPECT_EQ(kSmi, test_class_ids[0]);
   EXPECT_EQ(target1.raw(), test_target.raw());
 
-  classes.Clear();
   const Function& target2 = Function::Handle(GetDummyTarget("Thun"));
-  classes.Add(kDouble);
-  o1.AddCheck(classes, target2);
+  o1.AddReceiverCheck(kDouble, target2);
   EXPECT_EQ(2, o1.NumberOfChecks());
   o1.GetOneClassCheckAt(1, &test_class_id, &test_target);
   EXPECT_EQ(kDouble, test_class_id);
@@ -2621,7 +2617,7 @@ TEST_CASE(ICData) {
   EXPECT_EQ(57, o2.id());
   EXPECT_EQ(function.raw(), o2.function());
   EXPECT_EQ(0, o2.NumberOfChecks());
-  classes.Clear();
+  GrowableArray<intptr_t> classes;
   classes.Add(kSmi);
   classes.Add(kSmi);
   o2.AddCheck(classes, target1);

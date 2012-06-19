@@ -121,7 +121,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
-  void EmitClassChecksNoSmi(const ZoneGrowableArray<intptr_t>& class_ids,
+  void EmitClassChecksNoSmi(const ICData& ic_data,
                             Register instance_reg,
                             Register temp_reg,
                             Label* deopt);

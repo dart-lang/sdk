@@ -35,12 +35,10 @@ void FlowGraphOptimizer::VisitBlocks() {
 }
 
 
-static bool ICDataHasReceiverClass(const ICData& ic_data, intptr_t class_id) {
+static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
-  Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    intptr_t test_class_id;
-    ic_data.GetOneClassCheckAt(i, &test_class_id, &target);
+    const intptr_t test_class_id = ic_data.GetReceiverClassIdAt(i);
     if (test_class_id == class_id) {
       return true;
     }
@@ -52,18 +50,18 @@ static bool ICDataHasReceiverClass(const ICData& ic_data, intptr_t class_id) {
 static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
                                              intptr_t receiver_class_id,
                                              intptr_t argument_class_id) {
-  if (ic_data.num_args_tested() != 2) {
-    return false;
-  }
+  ASSERT(receiver_class_id != kIllegalObjectKind);
+  ASSERT(argument_class_id != kIllegalObjectKind);
+  if (ic_data.num_args_tested() != 2) return false;
+
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;
     ic_data.GetCheckAt(i, &class_ids, &target);
     ASSERT(class_ids.length() == 2);
-    if (class_ids[0] == receiver_class_id) {
-      if (class_ids[1] == argument_class_id) {
-        return true;
-      }
+    if ((class_ids[0] == receiver_class_id) &&
+        (class_ids[1] == argument_class_id)) {
+      return true;
     }
   }
   return false;
@@ -71,7 +69,7 @@ static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
 
 
 static bool HasOneSmi(const ICData& ic_data) {
-  return ICDataHasReceiverClass(ic_data, kSmi);
+  return ICDataHasReceiverClassId(ic_data, kSmi);
 }
 
 
@@ -86,7 +84,7 @@ static bool HasMintSmi(const ICData& ic_data) {
 
 
 static bool HasOneDouble(const ICData& ic_data) {
-  return ICDataHasReceiverClass(ic_data, kDouble);
+  return ICDataHasReceiverClassId(ic_data, kDouble);
 }
 
 
@@ -181,18 +179,13 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
 // TODO(srdjan): if targets are native use their C_function to compare.
 static bool HasOneTarget(const ICData& ic_data) {
   ASSERT(ic_data.NumberOfChecks() > 0);
-  Function& prev_target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &prev_target);
-  ASSERT(!prev_target.IsNull());
-  Function& target = Function::Handle();
+  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
+  Function& test_target = Function::Handle();
   for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    ASSERT(!target.IsNull());
-    if (prev_target.raw() != target.raw()) {
+    test_target = ic_data.GetTargetAt(i);
+    if (first_target.raw() != test_target.raw()) {
       return false;
     }
-    prev_target = target.raw();
   }
   return true;
 }
@@ -213,70 +206,36 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 }
 
 
-// Returns all receiver class-ids and corresponding tagets for the given
-// 'ic_data', sorted so that a smi class id is at index[0] if it exists.
-// 'targets' can be NULL in which case it is not collected,
-static void ExtractClassIdsAndTargets(const ICData& ic_data,
-                                      ZoneGrowableArray<intptr_t>* class_ids,
-                                      ZoneGrowableArray<Function*>* targets) {
-  ASSERT(class_ids != NULL);
-  class_ids->Clear();
-  if (targets != NULL) {
-    targets->Clear();
-  }
-  intptr_t smi_index = -1;
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> unsorted_class_ids;
+// Returns ICData with num_args_checked == 1. If necessary creates a new ICData
+// object that contains unique receiver class-ids
+static RawICData* ToUnaryClassChecks(const ICData& ic_data) {
+  ASSERT(!ic_data.IsNull());
+  ASSERT(ic_data.num_args_tested() != 0);
+  if (ic_data.num_args_tested() == 1) return ic_data.raw();
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(ic_data.function()),
+      String::Handle(ic_data.target_name()),
+      ic_data.id(),
+      kNumArgsTested));
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &unsorted_class_ids, &target);
-    // Collect receiver class only.
-    const intptr_t class_id = unsorted_class_ids[0];
-    if (ic_data.num_args_tested() > 1) {
-      // Check if we have not already entered the class-id.
-      intptr_t duplicate_class_id = -1;
-      for (intptr_t k = 0; k < class_ids->length(); k++) {
-        if ((*class_ids)[k] == class_id) {
-          duplicate_class_id = k;
-          break;
-        }
-      }
-      if (duplicate_class_id >= 0)  {
-        ASSERT((targets == NULL) ||
-               ((*targets)[duplicate_class_id]->raw() == target.raw()));
-        continue;
+    const intptr_t class_id = ic_data.GetReceiverClassIdAt(i);
+    intptr_t duplicate_class_id = -1;
+    for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
+      if (class_id == result.GetReceiverClassIdAt(k)) {
+        duplicate_class_id = k;
+        break;
       }
     }
-    if (class_id == kSmi) {
-      ASSERT(smi_index < 0);  // Classes entered only once in ic_data.
-      smi_index = class_ids->length();
-    }
-    class_ids->Add(class_id);
-    if (targets != NULL) {
-      targets->Add(&Function::ZoneHandle(target.raw()));
-    }
-  }
-  if (smi_index >= 0) {
-    // Smi class id must be at index 0.
-    intptr_t temp_id = (*class_ids)[0];
-    (*class_ids)[0] =  (*class_ids)[smi_index];
-    (*class_ids)[smi_index] = temp_id;
-    if (targets != NULL) {
-      Function* temp_func = (*targets)[0];
-      (*targets)[0] =  (*targets)[smi_index];
-      (*targets)[smi_index] = temp_func;
+    if (duplicate_class_id >= 0) {
+      ASSERT(result.GetTargetAt(duplicate_class_id) == ic_data.GetTargetAt(i));
+    } else {
+      // This will make sure that Smi is first if it exists.
+      result.AddReceiverCheck(class_id,
+                              Function::Handle(ic_data.GetTargetAt(i)));
     }
   }
-}
-
-
-// Returns array of all class ids that are in ic_data. The result is
-// normalized so that a smi class is at index 0 if it exists in the ic_data.
-static ZoneGrowableArray<intptr_t>*  ExtractClassIds(const ICData& ic_data) {
-  if (ic_data.NumberOfChecks() == 0) return NULL;
-  ZoneGrowableArray<intptr_t>* result =
-      new ZoneGrowableArray<intptr_t>(ic_data.NumberOfChecks());
-  ExtractClassIdsAndTargets(ic_data, result, NULL);
-  return result;
+  return result.raw();
 }
 
 
@@ -304,7 +263,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
     LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-        field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
+        field, comp->InputAt(0), comp);
+    load->set_ic_data(comp->ic_data());
     comp->ReplaceWith(load);
     return true;
   }
@@ -336,9 +296,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->InputAt(0),
         length_offset,
-        Type::ZoneHandle(Type::IntInterface()),
-        comp,
-        ExtractClassIds(ic_data));
+        Type::ZoneHandle(Type::IntInterface()));
+    load->set_original(comp);
+    load->set_ic_data(comp->ic_data());
     comp->ReplaceWith(load);
     return true;
   }
@@ -348,9 +308,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->InputAt(0),
         String::length_offset(),
-        Type::ZoneHandle(Type::IntInterface()),
-        comp,
-        ExtractClassIds(ic_data));
+        Type::ZoneHandle(Type::IntInterface()));
+    load->set_original(comp);
+    load->set_ic_data(comp->ic_data());
     comp->ReplaceWith(load);
     return true;
   }
@@ -412,13 +372,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
     }
     const intptr_t kMaxChecks = 4;
     if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
-      ZoneGrowableArray<intptr_t>* class_ids =
-          new ZoneGrowableArray<intptr_t>();
-      ZoneGrowableArray<Function*>* targets =
-          new ZoneGrowableArray<Function*>();
-      ExtractClassIdsAndTargets(*comp->ic_data(), class_ids, targets);
-      PolymorphicInstanceCallComp* call =
-          new PolymorphicInstanceCallComp(comp, *class_ids, *targets);
+      PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
+      ICData& unary_checks =
+          ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
+      call->set_ic_data(&unary_checks);
       comp->ReplaceWith(call);
     }
   }
@@ -460,8 +417,8 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
       field,
       comp->InputAt(0),
       comp->InputAt(1),
-      comp,
-      ExtractClassIds(ic_data));
+      comp);
+  store->set_ic_data(comp->ic_data());
   comp->ReplaceWith(store);
   return true;
 }
@@ -571,13 +528,11 @@ void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
   const intptr_t kMaxChecks = 4;
-  if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
-    ZoneGrowableArray<intptr_t>* class_ids =
-        new ZoneGrowableArray<intptr_t>();
-    ZoneGrowableArray<Function*>* targets =
-        new ZoneGrowableArray<Function*>();
-    ExtractClassIdsAndTargets(*comp->ic_data(), class_ids, targets);
-    comp->SetPolymorphicTargets(class_ids, targets);
+  if (comp->HasICData() && (comp->ic_data()->num_args_tested() <= kMaxChecks)) {
+    // Replace binary checks with unary ones.
+    ICData& unary_checks =
+        ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
+    comp->set_ic_data(&unary_checks);
   }
 
   // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion

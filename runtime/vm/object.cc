@@ -6658,6 +6658,7 @@ intptr_t ICData::NumberOfChecks() const {
 
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
+  ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == num_args_tested());
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());
@@ -6668,10 +6669,41 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     // Null is used as terminating value, do not add it.
     ASSERT(class_ids[i] != kNullClass);
+    ASSERT(class_ids[i] != kIllegalObjectKind);
     data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
   ASSERT(!target.IsNull());
   data.SetAt(data_pos, target);
+}
+
+
+void ICData::AddReceiverCheck(intptr_t receiver_class_id,
+                              const Function& target) const {
+  ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
+  // Not supporting collection of null receivers.
+  ASSERT(receiver_class_id != kNullClass);
+  ASSERT(receiver_class_id != kIllegalObjectKind);
+  ASSERT(!target.IsNull());
+
+  intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  if ((receiver_class_id == kSmi) && (data_pos > 0)) {
+    // Instert kSmi in position 0.
+    const intptr_t zero_class_id = GetReceiverClassIdAt(0);
+    ASSERT(zero_class_id != kSmi);  // Simple duplicate entry check.
+    const Function& zero_target = Function::Handle(GetTargetAt(0));
+    data.SetAt(0, Smi::Handle(Smi::New(receiver_class_id)));
+    data.SetAt(1, target);
+    data.SetAt(data_pos, Smi::Handle(Smi::New(zero_class_id)));
+    data.SetAt(data_pos + 1, zero_target);
+  } else {
+    data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+    data.SetAt(data_pos + 1, target);
+  }
 }
 
 
@@ -6703,6 +6735,24 @@ void ICData::GetOneClassCheckAt(
   smi ^= data.At(data_pos);
   *class_id = smi.Value();
   *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  Smi& smi = Smi::Handle();
+  smi ^= data.At(data_pos);
+  return smi.Value();
+}
+
+
+RawFunction* ICData::GetTargetAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
+  Function& target = Function::Handle();
+  target ^= data.At(data_pos);
+  return target.raw();
 }
 
 

@@ -171,23 +171,9 @@ void NativeCallComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-static void PrintClassIds(BufferFormatter* f,
-                          const ZoneGrowableArray<intptr_t>& class_ids) {
-  f->Print(" [");
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    if (i != 0) f->Print(", ");
-    f->Print("%d", class_ids[i]);
-  }
-  f->Print("]");
-}
-
-
 void LoadInstanceFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", String::Handle(field().name()).ToCString());
   instance()->PrintTo(f);
-  if (class_ids() != NULL) {
-    PrintClassIds(f, *class_ids());
-  }
 }
 
 
@@ -196,9 +182,6 @@ void StoreInstanceFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", ");
   value()->PrintTo(f);
-  if (class_ids() != NULL) {
-    PrintClassIds(f, *class_ids());
-  }
 }
 
 

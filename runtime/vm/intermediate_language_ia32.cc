@@ -196,7 +196,9 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
                              : LocationSummary::kNoBranch;
 
   const intptr_t kNumInputs = 2;
-  if ((NumTargets() == 1) && (ClassIdAt(0) == kSmi)) {
+  if (HasICData() &&
+      (ic_data()->NumberOfChecks() == 1) &&
+      (ic_data()->GetReceiverClassIdAt(0) == kSmi)) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
@@ -210,7 +212,7 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     }
     return locs;
   }
-  if (NumTargets() > 0) {
+  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
@@ -301,14 +303,16 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           EqualityCompareComp* comp,
                                           Register left,
                                           Register right) {
-  ASSERT(comp->NumTargets() > 0);
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  ASSERT(ic_data.NumberOfChecks() > 0);
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_index(),
                                         comp->try_index(),
                                         kDeoptEquality);
   __ testl(left, Immediate(kSmiTagMask));
   Register temp = comp->locs()->temp(0).reg();
-  if (comp->ClassIdAt(0) == kSmi) {
+  if (ic_data.GetReceiverClassIdAt(0) == kSmi) {
     Label done, load_class_id;
     __ j(NOT_ZERO, &load_class_id, Assembler::kNearJump);
     __ movl(temp, Immediate(kSmi));
@@ -321,12 +325,12 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     __ LoadClassId(temp, left);
   }
   Label done;
-  for (intptr_t i = 0; i < comp->NumTargets(); i++) {
-    ASSERT((comp->ClassIdAt(i) != kSmi) || (i == 0));
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmi) || (i == 0));
     Label next_test;
-    __ cmpl(temp, Immediate(comp->ClassIdAt(i)));
+    __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
     __ j(NOT_EQUAL, &next_test, Assembler::kNearJump);
-    const Function& target = *comp->TargetAt(i);
+    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     ObjectStore* object_store = Isolate::Current()->object_store();
     if (target.owner() == object_store->object_class()) {
       // Object.== is same as ===.
@@ -399,7 +403,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ Bind(&non_null_compare);  // Receiver is not null.
   __ pushl(left);
   __ pushl(right);
-  if (comp->NumTargets() > 0) {
+  if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
     EmitEqualityAsPolymorphicCall(compiler, comp, left, right);
   } else {
     EmitEqualityAsInstanceCall(compiler, comp);
@@ -409,7 +413,9 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if ((NumTargets() == 1) && (ClassIdAt(0) == kSmi)) {
+  if (HasICData() &&
+      (ic_data()->NumberOfChecks() == 1) &&
+      (ic_data()->GetReceiverClassIdAt(0) == kSmi)) {
     EmitSmiEqualityCompare(compiler, this);
     return;
   }
@@ -855,22 +861,23 @@ LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
 
 
 void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register instance_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out().reg();
 
-  if (class_ids() != NULL) {
+  if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->cid(),
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance);
+                                          instance_reg);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
-    ASSERT(result != instance);
-    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+    ASSERT(result_reg != instance_reg);
+    ASSERT(ic_data() != NULL);
+    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, result_reg, deopt);
   }
-  __ movl(result, FieldAddress(instance, field().Offset()));
+  __ movl(result_reg, FieldAddress(instance_reg, field().Offset()));
 }
 
 
@@ -985,22 +992,23 @@ LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
 
 
 void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-  if (class_ids() != NULL) {
+  Register instance_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out().reg();
+  if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->cid(),
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance);
+                                          instance_reg);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
-    ASSERT(result != instance);
-    compiler->EmitClassChecksNoSmi(*class_ids(), instance, result, deopt);
+    ASSERT(result_reg != instance_reg);
+    ASSERT(ic_data() != NULL);
+    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, result_reg, deopt);
   }
 
-  __ movl(result, FieldAddress(instance, offset_in_bytes()));
+  __ movl(result_reg, FieldAddress(instance_reg, offset_in_bytes()));
 }
 
 
@@ -1750,14 +1758,16 @@ LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
 
 void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(instance_call()->VerifyComputation());
-  ASSERT(class_ids().length() == targets().length());
-  ASSERT(class_ids().length() > 0);
+  ASSERT(HasICData());
+  ASSERT(ic_data()->num_args_tested() == 1);
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         kDeoptPolymorphicInstanceCallTestFail);
   Label handle_smi;
-  Label* is_smi_label = class_ids()[0] == kSmi ?  &handle_smi : deopt;
+  Label* is_smi_label =
+      ic_data()->GetReceiverClassIdAt(0) == kSmi ?  &handle_smi : deopt;
+
   // Load receiver into EAX.
   __ movl(EAX,
       Address(ESP, (instance_call()->ArgumentCount() - 1) * kWordSize));
@@ -1765,14 +1775,15 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(ZERO, is_smi_label);
   Label done;
   __ LoadClassId(EDI, EAX);
-  for (intptr_t i = 0; i < class_ids().length(); i++) {
+  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); i++) {
     Label next_test;
-    __ cmpl(EDI, Immediate(class_ids()[i]));
+    __ cmpl(EDI, Immediate(ic_data()->GetReceiverClassIdAt(i)));
     __ j(NOT_EQUAL, &next_test);
+    const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(i));
     compiler->GenerateStaticCall(instance_call()->cid(),
                                  instance_call()->token_index(),
                                  instance_call()->try_index(),
-                                 *targets()[i],
+                                 target,
                                  instance_call()->ArgumentCount(),
                                  instance_call()->argument_names());
     __ jmp(&done);
@@ -1781,10 +1792,12 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ jmp(deopt);
   if (is_smi_label == &handle_smi) {
     __ Bind(&handle_smi);
+    ASSERT(ic_data()->GetReceiverClassIdAt(0) == kSmi);
+    const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(0));
     compiler->GenerateStaticCall(instance_call()->cid(),
                                  instance_call()->token_index(),
                                  instance_call()->try_index(),
-                                 *targets()[0],
+                                 target,
                                  instance_call()->ArgumentCount(),
                                  instance_call()->argument_names());
   }

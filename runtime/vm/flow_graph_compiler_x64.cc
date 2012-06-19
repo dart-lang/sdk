@@ -1022,21 +1022,21 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
 
 // Checks class id of instance against all 'class_ids'. Jump to 'deopt' label
 // if no match or instance is Smi.
-void FlowGraphCompiler::EmitClassChecksNoSmi(
-    const ZoneGrowableArray<intptr_t>& class_ids,
-    Register instance_reg,
-    Register temp_reg,
-    Label* deopt) {
+void FlowGraphCompiler::EmitClassChecksNoSmi(const ICData& ic_data,
+                                             Register instance_reg,
+                                             Register temp_reg,
+                                             Label* deopt) {
   Label ok;
-  ASSERT(class_ids[0] != kSmi);
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
   __ testq(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
-  bool use_near_jump = class_ids.length() < 5;
+  const intptr_t num_checks = ic_data.NumberOfChecks();
+  const bool use_near_jump = num_checks < 5;
   __ LoadClassId(temp_reg, instance_reg);
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ cmpl(temp_reg, Immediate(class_ids[i]));
-    if (i == (class_ids.length() - 1)) {
+  for (intptr_t i = 0; i < num_checks; i++) {
+    __ cmpl(temp_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    if (i == (num_checks - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
       if (use_near_jump) {

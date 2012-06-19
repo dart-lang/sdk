@@ -893,11 +893,11 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  intptr_t num_temps = (class_ids() == NULL) ? 0 : 1;
+  const intptr_t num_temps = HasICData() ? 1 : 0;
   LocationSummary* summary = new LocationSummary(kNumInputs, num_temps);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  if (class_ids() != NULL) {
+  if (HasICData()) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;
@@ -906,25 +906,26 @@ LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
 
 void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyValues(instance(), value()));
-  Register instance = locs()->in(0).reg();
-  Register value = locs()->in(1).reg();
+  Register instance_reg = locs()->in(0).reg();
+  Register value_reg = locs()->in(1).reg();
 
-  if (class_ids() != NULL) {
+  if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->cid(),
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance,
-                                          value);
+                                          instance_reg,
+                                          value_reg);
     // Smis do not have instance fields (Smi class is always first).
-    Register temp = locs()->temp(0).reg();
-    ASSERT(temp != instance);
-    ASSERT(temp != value);
-    compiler->EmitClassChecksNoSmi(*class_ids(), instance, temp, deopt);
+    Register temp_reg = locs()->temp(0).reg();
+    ASSERT(temp_reg != instance_reg);
+    ASSERT(temp_reg != value_reg);
+    ASSERT(ic_data() != NULL);
+    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
   }
-  __ StoreIntoObject(instance, FieldAddress(instance, field().Offset()),
-                     value);
+  __ StoreIntoObject(instance_reg, FieldAddress(instance_reg, field().Offset()),
+                     value_reg);
 }
 
 
