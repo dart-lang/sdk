@@ -44,7 +44,6 @@ Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: F
 Language/08_Interfaces/Interfaces_A01_t01: Fail # Issue 3522
 Language/09_Generics/09_Generics_A01_t04: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t01: Fail # co19 issue 142
-Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
 Language/10_Expressions/01_Constants_A14_t01: Fail # Issue 3519
 Language/10_Expressions/01_Constants_A15_t16: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t24: Fail # co19 issue 146
@@ -106,7 +105,6 @@ Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
-Language/10_Expressions/29_Type_Test_A04_t01: Fail # Issue 3282
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
@@ -129,7 +127,7 @@ Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
+Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 148
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # co19 issue 141
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495

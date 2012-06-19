@@ -89,7 +89,6 @@ field3a_negative_test: Fail # Issue 3655
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 final_syntax_test/*: Skip  # can't handle base case
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-instanceof3_test: Fail # Issue 2571
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650

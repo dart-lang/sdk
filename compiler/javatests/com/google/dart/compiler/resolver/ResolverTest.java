@@ -903,7 +903,7 @@ public class ResolverTest extends ResolverTestCase {
         "    }",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
+        TypeErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_noSuchType_inCatch() throws Exception {

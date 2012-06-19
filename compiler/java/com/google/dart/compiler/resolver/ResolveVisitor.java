@@ -45,7 +45,8 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
             node.getReturnTypeNode(),
             element.getModifiers().isStatic(),
             element.getModifiers().isFactory(),
-            TypeErrorCode.NO_SUCH_TYPE);
+            TypeErrorCode.NO_SUCH_TYPE,
+            TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     ClassElement functionElement = typeProvider.getFunctionType().getElement();
     FunctionType type = Types.makeFunctionType(getContext(), functionElement,
                                                element.getParameters(), returnType);
@@ -89,11 +90,17 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
 
   @Override
   public Element visitParameter(DartParameter node) {
-    ErrorCode typeErrorCode =
-        node.getParent() instanceof DartCatchBlock
-            ? ResolverErrorCode.NO_SUCH_TYPE
-            : TypeErrorCode.NO_SUCH_TYPE;
-    Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(), typeErrorCode);
+    ErrorCode typeErrorCode;
+    ErrorCode wrongNumberErrorCode;
+    if (node.getParent() instanceof DartCatchBlock) {
+      typeErrorCode = ResolverErrorCode.NO_SUCH_TYPE;
+      wrongNumberErrorCode = ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+    } else {
+      typeErrorCode = TypeErrorCode.NO_SUCH_TYPE;
+      wrongNumberErrorCode = TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+    }
+    Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(),
+        typeErrorCode, wrongNumberErrorCode);
     VariableElement element =
         Elements.parameterElement(
             getEnclosingElement(),
@@ -120,12 +127,12 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
   }
 
   final Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory,
-                         ErrorCode errorCode) {
+                         ErrorCode errorCode, ErrorCode wrongNumberErrorCode) {
     if (node == null) {
       return getTypeProvider().getDynamicType();
     }
     assert node.getType() == null || node.getType() instanceof DynamicType;
-    Type type = getContext().resolveType(node, isStatic, isFactory, errorCode);
+    Type type = getContext().resolveType(node, isStatic, isFactory, errorCode, wrongNumberErrorCode);
     if (type == null) {
       type = getTypeProvider().getDynamicType();
     }

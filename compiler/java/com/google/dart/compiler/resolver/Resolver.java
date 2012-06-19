@@ -57,6 +57,7 @@ import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
+import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
@@ -67,6 +68,7 @@ import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
@@ -390,7 +392,8 @@ public class Resolver {
                   boundNode,
                   false,
                   false,
-                  ResolverErrorCode.NO_SUCH_TYPE);
+                  ResolverErrorCode.NO_SUCH_TYPE,
+                  ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
           boundNode.setType(bound);
         }
       }
@@ -742,7 +745,8 @@ public class Resolver {
               node.getTypeNode(),
               inStaticContext(currentMethod),
               inFactoryContext(currentMethod),
-              TypeErrorCode.NO_SUCH_TYPE);
+              TypeErrorCode.NO_SUCH_TYPE,
+              TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       for (DartVariable variable : node.getVariables()) {
         Elements.setType(resolveVariable(variable, node.getModifiers()), type);
         checkVariableStatement(node, variable, isImplicitlyInitialized);
@@ -1063,9 +1067,27 @@ public class Resolver {
 
     @Override
     public Element visitTypeNode(DartTypeNode x) {
-      Element result = resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
-          ResolverErrorCode.NO_SUCH_TYPE).getElement();
-     return result;
+      // prepare ErrorCode, depends on the context
+      ErrorCode errorCode = ResolverErrorCode.NO_SUCH_TYPE;
+      ErrorCode wrongNumberErrorCode = ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+      {
+        DartNode p = x.getParent();
+        if (p instanceof DartTypeExpression) {
+          DartTypeExpression typeExpression = (DartTypeExpression) p;
+          if (typeExpression.getTypeNode() == x) {
+            DartNode pp = p.getParent();
+            if (pp instanceof DartBinaryExpression) {
+              Token operator = ((DartBinaryExpression) pp).getOperator();
+              if (operator == Token.AS || operator == Token.IS) {
+                errorCode = TypeErrorCode.NO_SUCH_TYPE;
+              }
+            }
+          }
+        }
+      }
+      // do Type resolve
+      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
+          errorCode, wrongNumberErrorCode).getElement();
     }
 
     @Override
@@ -1271,7 +1293,8 @@ public class Resolver {
         public Element visitTypeNode(DartTypeNode type) {
           return recordType(type, resolveType(type, inStaticContext(currentMethod),
                                               inFactoryContext(currentMethod),
-                                              ResolverErrorCode.NO_SUCH_TYPE));
+                                              ResolverErrorCode.NO_SUCH_TYPE,
+                                              ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS));
         }
 
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
@@ -1729,7 +1752,8 @@ public class Resolver {
               typeArgs,
               inStaticContext(node),
               inFactoryContext(currentMethod),
-              ResolverErrorCode.NO_SUCH_TYPE);
+              ResolverErrorCode.NO_SUCH_TYPE,
+              ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
       if (node.isConst()) {
         checkTypeArgumentsInConstLiteral(typeArgs, ResolverErrorCode.CONST_MAP_WITH_TYPE_VARIABLE);
@@ -1749,7 +1773,8 @@ public class Resolver {
               typeArgs,
               inStaticContext(node),
               inFactoryContext(currentMethod),
-              ResolverErrorCode.NO_SUCH_TYPE);
+              ResolverErrorCode.NO_SUCH_TYPE,
+              ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
       if (node.isConst()) {
         checkTypeArgumentsInConstLiteral(typeArgs, ResolverErrorCode.CONST_ARRAY_WITH_TYPE_VARIABLE);

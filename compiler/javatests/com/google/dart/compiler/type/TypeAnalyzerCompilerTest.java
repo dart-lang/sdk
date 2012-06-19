@@ -2668,6 +2668,59 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 8, 4, 2));
   }
 
+  /**
+   * It is a static warning if T does not denote a type available in the current lexical scope.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2373
+   */
+  public void test_asType_unknown() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  null as T;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
+  }
+  
+  /**
+   * It is a compile-time error if T is a parameterized type of the form G < T1; : : : ; Tn > and G
+   * is not a generic type with n type parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2373
+   */
+  public void test_asType_wrongNumberOfTypeArguments() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  null as A<int, bool>;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 4, 11, 12));
+  }
+  
+  /**
+   * It is a static warning if T does not denote a type available in the current lexical scope.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2373
+   */
+  public void test_isType_unknown() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  null is T;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
+  }
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }
