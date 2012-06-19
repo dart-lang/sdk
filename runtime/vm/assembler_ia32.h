@@ -545,6 +545,7 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
+  void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   void CallRuntime(const RuntimeEntry& entry);
 

@@ -19,7 +19,7 @@
 namespace dart {
 
 DECLARE_RUNTIME_ENTRY(TestSmiSub);
-DECLARE_LEAF_RUNTIME_ENTRY(TestLeafSmiAdd);
+DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*);
 
 
 static Function* CreateFunction(const char* name) {
@@ -75,23 +75,17 @@ TEST_CASE(CallRuntimeStubCode) {
 static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
                                               int value1,
                                               int value2) {
-  const int argc = 2;
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
-  const Object& result = Object::ZoneHandle();
-  const Context& context = Context::ZoneHandle(Context::New(0));
-  ASSERT(context.isolate() == Isolate::Current());
   __ enter(Immediate(0));
-  __ LoadObject(CTX, context);
-  __ PushObject(result);  // Push Null object for return value.
-  __ PushObject(smi1);  // Push argument 1 smi1.
-  __ PushObject(smi2);  // Push argument 2 smi2.
-  ASSERT(kTestLeafSmiAddRuntimeEntry.argument_count() == argc);
+  __ ReserveAlignedFrameSpace(2 * kWordSize);
+  __ LoadObject(EAX, smi1);
+  __ movl(Address(ESP, 0), EAX);  // Push argument 1 smi1.
+  __ LoadObject(EAX, smi2);
+  __ movl(Address(ESP, kWordSize), EAX);  // Push argument 2 smi2.
   __ CallRuntime(kTestLeafSmiAddRuntimeEntry);  // Call SmiAdd runtime func.
-  __ AddImmediate(ESP, Immediate(argc * kWordSize));
-  __ popl(EAX);  // Pop return value from return slot.
   __ leave();
-  __ ret();
+  __ ret();  // Return value is in EAX.
 }
 
 

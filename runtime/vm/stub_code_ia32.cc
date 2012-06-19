@@ -88,49 +88,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 }
 
 
-// Input parameters:
-//   ESP : points to return address.
-//   ESP + 4 : address of last argument in argument array.
-//   ESP + 4*EDX : address of first argument in argument array.
-//   ESP + 4*EDX + 4 : address of return value.
-//   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call.
-// Must preserve callee saved registers EDI and EBX.
-void StubCode::GenerateCallToLeafRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
-  const intptr_t argc_offset = NativeArguments::argc_offset();
-  const intptr_t argv_offset = NativeArguments::argv_offset();
-
-  __ EnterFrame(0);
-
-  // Reserve space for arguments and align frame before entering C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
-  if (OS::ActivationFrameAlignment() > 0) {
-    __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
-
-  // Pass NativeArguments structure by value.
-  // NOTE: the retvalue area in the NativeArguments structure is not setup
-  //       as leaf routines return the value in EAX.
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movl(Address(ESP, isolate_offset), EAX);  // Set isolate in NativeArgs.
-  __ movl(Address(ESP, argc_offset), EDX);  // Set argc in NativeArguments.
-  __ leal(EAX, Address(EBP, EDX, TIMES_4, 1 * kWordSize));  // Compute argv.
-  __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
-
-  // Make call to leaf runtime entry.
-  __ call(ECX);
-
-  // Set return value in caller's frame.
-  __ movl(ECX, Address(ESP, argv_offset));
-  __ addl(ECX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
-  __ movl(Address(ECX, 0), EAX);
-
-  __ LeaveFrame();
-  __ ret();
-}
-
-
 // Print the stop message.
 static void PrintStopMessage(const char* message) {
   OS::Print("Stop message: %s\n", message);

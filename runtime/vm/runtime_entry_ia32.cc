@@ -17,16 +17,20 @@ namespace dart {
 
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
+// For regular runtime calls -
 //   ESP : points to the arguments and return value array.
 //   ECX : address of the runtime function to call.
 //   EDX : number of arguments to the call.
+// For leaf calls the caller is responsible to setup the arguments
+// and look for return values based on the C calling convention.
 void RuntimeEntry::Call(Assembler* assembler) const {
-  __ movl(ECX, Immediate(GetEntryPoint()));
-  __ movl(EDX, Immediate(argument_count()));
-  if (is_leaf()) {
-    __ call(&StubCode::CallToLeafRuntimeLabel());
-  } else {
+  if (!is_leaf()) {
+    __ movl(ECX, Immediate(GetEntryPoint()));
+    __ movl(EDX, Immediate(argument_count()));
     __ call(&StubCode::CallToRuntimeLabel());
+  } else {
+    ExternalLabel label(name(), GetEntryPoint());
+    __ call(&label);
   }
 }
 

@@ -1479,6 +1479,16 @@ void Assembler::LeaveFrame() {
 }
 
 
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(RSP, Immediate(-frame_space));
+  if (OS::ActivationFrameAlignment() > 0) {
+    andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+}
+
+
 void Assembler::CallRuntime(const RuntimeEntry& entry) {
   entry.Call(this);
 }

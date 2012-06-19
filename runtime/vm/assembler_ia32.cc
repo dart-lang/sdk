@@ -1401,9 +1401,12 @@ void Assembler::StoreIntoObject(Register object,
   j(NOT_ZERO, &done, Assembler::kNearJump);
   // A store buffer update is required.
   pushal();
-  pushl(dest);  // Push argument
+  movl(EBP, ESP);
+  ReserveAlignedFrameSpace(kWordSize);
+  movl(EAX, dest);
+  movl(Address(ESP, 0), EAX);  // Push argument
   CallRuntime(kStoreBufferRuntimeEntry);
-  popl(value);  // Pop argument
+  movl(ESP, EBP);
   popal();
   Bind(&done);
 }
@@ -1500,6 +1503,16 @@ void Assembler::EnterFrame(intptr_t frame_size) {
 void Assembler::LeaveFrame() {
   movl(ESP, EBP);
   popl(EBP);
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(ESP, Immediate(-frame_space));
+  if (OS::ActivationFrameAlignment() > 0) {
+    andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
 }
 
 

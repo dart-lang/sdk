@@ -21,7 +21,6 @@ class RawCode;
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(CallToRuntime)                                                             \
-  V(CallToLeafRuntime)                                                         \
   V(PrintStopMessage)                                                          \
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \

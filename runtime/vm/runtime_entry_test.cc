@@ -43,16 +43,17 @@ DEFINE_RUNTIME_ENTRY(TestSmiSub, 2) {
 
 
 // A leaf runtime call for test purposes.
-// Arg0: a smi.
-// Arg1: a smi.
+// arg0: a smi.
+// arg1: a smi.
 // returns a smi representing arg0 + arg1.
-DEFINE_LEAF_RUNTIME_ENTRY(TestLeafSmiAdd, 2) {
-  ASSERT(args.Count() == kTestLeafSmiAddRuntimeEntry.argument_count());
+DEFINE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd,
+                          RawObject* arg0, RawObject* arg1) {
   // Ignoring overflow in the calculation below and using the internal
   // representation of Smi directly without using any handlized code.
-  intptr_t result = reinterpret_cast<intptr_t>(args.At(0)) +
-      reinterpret_cast<intptr_t>(args.At(1));
+  intptr_t result = reinterpret_cast<intptr_t>(arg0) +
+      reinterpret_cast<intptr_t>(arg1);
   return reinterpret_cast<RawObject*>(result);
 }
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

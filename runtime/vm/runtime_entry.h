@@ -72,23 +72,19 @@ class RuntimeEntry : public ValueObject {
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
   extern const RuntimeEntry k##name##RuntimeEntry
 
-#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count)                        \
-  extern RawObject* DLRT_##name(NativeArguments arguments);                    \
+#define DEFINE_LEAF_RUNTIME_ENTRY(type, name, ...)                             \
+  extern "C" type DLRT_##name(__VA_ARGS__);                                    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_"#name, reinterpret_cast<RuntimeFunction>(&DLRT_##name),           \
-       argument_count, true);                                                  \
-  static RawObject* DLRT_Helper##name(Isolate* isolate, NativeArguments args); \
-  RawObject* DLRT_##name(NativeArguments arguments) {                          \
+      "DLRT_"#name, reinterpret_cast<RuntimeFunction>(&DLRT_##name), 0, true); \
+  type DLRT_##name(__VA_ARGS__) {                                              \
     CHECK_STACK_ALIGNMENT;                                                     \
-    {                                                                          \
-      NoGCScope no_gc_scope;                                                   \
-      return DLRT_Helper##name(arguments.isolate(), arguments);                \
-    }                                                                          \
-  }                                                                            \
-  static RawObject* DLRT_Helper##name(Isolate* isolate, NativeArguments args)
+    NoGCScope no_gc_scope;                                                     \
 
-#define DECLARE_LEAF_RUNTIME_ENTRY(name)                                       \
-  extern const RuntimeEntry k##name##RuntimeEntry
+#define END_LEAF_RUNTIME_ENTRY }
+
+#define DECLARE_LEAF_RUNTIME_ENTRY(type, name, ...)                            \
+  extern const RuntimeEntry k##name##RuntimeEntry;                             \
+  extern "C" type DLRT_##name(__VA_ARGS__)
 
 }  // namespace dart
 
