@@ -7,34 +7,35 @@
 #import('dart:uri');
 #import('implementation/apiimpl.dart');
 
-// Unless explicitly allowed, passing null for any argument to the
+// Unless explicitly allowed, passing [:null:] for any argument to the
 // methods of library will result in a NullPointerException being
 // thrown.
 
 /**
- * Returns the source corresponding to [uri]. If no such source exists
- * or if an error occur while fetching it, this method must throw an
+ * Returns a future that completes to the source corresponding to
+ * [uri]. If an exception occurs, the future completes with this
  * exception.
  */
 typedef Future<String> ReadStringFromUri(Uri uri);
 
 /**
- * Invoked by the compiler to report diagnostics. If [uri] is null, so
- * is [begin] and [end]. No other arguments may be null. If [uri] is
- * not null, neither are [begin] and [end]. [uri] indicates the
- * compilation unit from where the diagnostic originates. [begin] and
- * [end] are zero-based character offsets from the beginning of the
- * compilaton unit. [message] is the diagnostic message, and [fatal]
- * indicates whether or not this diagnostic will prevent the compiler
- * from returning null.
+ * Invoked by the compiler to report diagnostics. If [uri] is
+ * [:null:], so are [begin] and [end]. No other arguments may be
+ * [:null:]. If [uri] is not [:null:], neither are [begin] and
+ * [end]. [uri] indicates the compilation unit from where the
+ * diagnostic originates. [begin] and [end] are zero-based character
+ * offsets from the beginning of the compilaton unit. [message] is the
+ * diagnostic message, and [kind] indicates indicates what kind of
+ * diagnostic it is.
  */
 typedef void DiagnosticHandler(Uri uri, int begin, int end,
-                               String message, bool fatal);
+                               String message, var kind);
 
 /**
- * Returns [script] compiled to JavaScript. If the compilation fails,
- * null is returned and [handler] will have been invoked at least once
- * with [:fatal == true:].
+ * Returns a future that completes to [script] compiled to JavaScript. If
+ * the compilation fails, the future's value will be [:null:] and
+ * [handler] will have been invoked at least once with [:kind ==
+ * Diagnostic.ERROR:] or [:kind == Diagnostic.CRASH:].
  */
 Future<String> compile(Uri script,
                        Uri libraryRoot,
@@ -42,9 +43,72 @@ Future<String> compile(Uri script,
                        ReadStringFromUri provider,
                        DiagnosticHandler handler,
                        [List<String> options = const []]) {
+  // TODO(ahe): Consider completing the future with an exception if
+  // code is null.
   Compiler compiler = new Compiler(provider, handler, libraryRoot, packageRoot,
                                    options);
   compiler.run(script);
   String code = compiler.assembledCode;
   return new Future.immediate(code);
+}
+
+/**
+ * Kind of diagnostics that the compiler can report.
+ */
+class Diagnostic {
+  /**
+   * An error as identified by the "Dart Programming Language
+   * Specification" [http://www.dartlang.org/docs/spec/].
+   *
+   * Note: the compiler may still produce an executable result after
+   * reporting a compilation error. The specification says:
+   *
+   * "A compile-time error must be reported by a Dart compiler before
+   * the erroneous code is executed." and "If a compile-time error
+   * occurs within the code of a running isolate A, A is immediately
+   * suspended."
+   *
+   * This means that the compiler can generate code that when executed
+   * terminates execution.
+   */
+  static final Diagnostic ERROR = new Diagnostic(1);
+
+  /**
+   * A warning as identified by the "Dart Programming Language
+   * Specification" [http://www.dartlang.org/docs/spec/].
+   */
+  static final Diagnostic WARNING = new Diagnostic(2);
+
+  /**
+   * Any other warning that is not covered by [WARNING].
+   */
+  static final Diagnostic LINT = new Diagnostic(4);
+
+  /**
+   * Informational messages.
+   */
+  static final Diagnostic INFO = new Diagnostic(8);
+
+  /**
+   * Informational messages that shouldn't be printed unless
+   * explicitly requested by the user of a compiler.
+   */
+  static final Diagnostic VERBOSE_INFO = new Diagnostic(16);
+
+  /**
+   * An internal error in the compiler.
+   */
+  static final Diagnostic CRASH = new Diagnostic(32);
+
+  /**
+   * An [int] representation of this kind. The ordinals are designed
+   * to be used as bitsets.
+   */
+  final int ordinal;
+
+  /**
+   * This constructor is not private to support user-defined
+   * diagnostic kinds.
+   */
+  Diagnostic(this.ordinal);
 }
