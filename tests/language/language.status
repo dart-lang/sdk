@@ -52,6 +52,10 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 
 prefix_core_test: Fail # Issue 3638.
 
+# Issue 2501
+cascade_test: Pass,Fail  # Some cases pass, but for the wrong reason  
+cascade_precedence_test: Fail 
+
 # DartC or Frog specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
@@ -67,6 +71,8 @@ assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail  # Issue 3662
 body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
 call_operator_test: Pass # Issue 1355  
+cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
+cascade_precedence_test: Fail  # Issue 3729
 char_escape_test: Pass # Issue 1654
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 compile_time_constant_p_test/01: Fail # Issue 2580

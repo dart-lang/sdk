@@ -19,7 +19,6 @@ string_interpolation_test: Skip
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dartc || $runtime == vm ]
-cascade_precedence_test: Fail
 
 [ $runtime == opera ]
 *: Skip
