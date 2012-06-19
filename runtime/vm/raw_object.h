@@ -1491,7 +1491,7 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   ASSERT(kImmutableArray == kArray + 1 &&
          kGrowableObjectArray == kArray + 2 &&
          kByteArray == kArray + 3);
-  return (index >= kArray && index < kByteArray);
+  return (index >= kArray && index < kByteArray) || IsByteArrayClassId(index);
 }
 
 inline bool RawObject::IsByteArrayClassId(intptr_t index) {
