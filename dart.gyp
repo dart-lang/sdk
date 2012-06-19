@@ -52,7 +52,7 @@
           ],
           'message': 'Creating SDK.',
           'conditions' : [
-            ['OS=="linux"', {
+            ['(OS=="linux" or OS=="mac") ', {
               'inputs' : [
                 '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
               ],
@@ -61,7 +61,7 @@
         },
       ],
       'conditions' : [
-        ['OS=="linux"', {
+        ['(OS=="linux" or OS=="mac") ', {
           'dependencies': [
             'compiler',
           ],
