@@ -800,7 +800,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * being updated in try/catch blocks, and should be
    * accessed indirectly through HFieldGet and HFieldSet.
    */
-  Map<Element, HParameterValue> activationVariables;
+  Map<Element, HLocalValue> activationVariables;
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
@@ -824,7 +824,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       methodInterceptionEnabled = true,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
-      activationVariables = new Map<Element, HParameterValue>(),
+      activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
       parameters = new Map<Element, HParameterValue>(),
       super(work.resolutionTree) {
