@@ -25,7 +25,8 @@ final String DEFAULT_HELPERLIB = @'''
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} eqNull(a) {} eqq() {}
   ltB() {} leB() {} eqB() {} gtB() {} geB() {} eqNullB(a) {}
-  iae(x) {throw x;} ioore(x) {throw x;}
+  captureStackTrace(x) { return x; }
+  iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }
   guard$num(x) { return x; }
   guard$string(x) { return x; }

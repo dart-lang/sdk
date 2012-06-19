@@ -940,6 +940,7 @@ class HInstruction implements Hashable {
   bool isConstantMap() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
+  bool isConstantInteger() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1400,36 +1401,7 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  HType computeTypeFromInputTypes() {
-    if (left.isInteger() && right.isInteger()) return left.propagatedType;
-    if (left.isNumber()) {
-      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
-      return HType.NUMBER;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
-    // If the desired output type is an integer we want two integers as input.
-    if (propagatedType.isInteger()) {
-      return HType.INTEGER;
-    }
-    // If the desired output is a number or any of the inputs is a number
-    // ask for a number. Note that we might return the input's (say 'left')
-    // type depending on its (the 'left's) type. But that shouldn't matter.
-    if (propagatedType.isNumber() || left.isNumber() || right.isNumber()) {
-      return HType.NUMBER;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType get likelyType() {
-    if (left.isTypeUnknown() || left.isNumber()) return HType.NUMBER;
-    return HType.UNKNOWN;
-  }
-
   AddOperation get operation() => const AddOperation();
-
   int typeCode() => 5;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
@@ -1439,8 +1411,6 @@ class HDivide extends HBinaryArithmetic {
   HDivide(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
-
-  bool get builtin() => left.isNumber() && right.isNumber();
 
   HType computeTypeFromInputTypes() {
     if (left.isNumber()) return HType.DOUBLE;
@@ -1564,6 +1534,15 @@ class HShiftLeft extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
+  // Shift left cannot be mapped to the native operator unless the
+  // shift count is guaranteed to be an integer in the [0,31] range.
+  bool get builtin() {
+    if (!left.isInteger() || !right.isConstantInteger()) return false;
+    HConstant rightConstant = right;
+    int count = rightConstant.constant.value;
+    return count >= 0 && count <= 31;
+  }
+
   ShiftLeftOperation get operation() => const ShiftLeftOperation();
   int typeCode() => 11;
   bool typeEquals(other) => other is HShiftLeft;
@@ -1574,6 +1553,9 @@ class HShiftRight extends HBinaryBitOp {
   HShiftRight(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
+
+  // Shift right cannot be mapped to the native operator easily.
+  bool get builtin() => false;
 
   ShiftRightOperation get operation() => const ShiftRightOperation();
   int typeCode() => 12;
@@ -2234,20 +2216,35 @@ class HIs extends HInstruction {
 
 class HTypeConversion extends HCheck {
   HType type;
-  final bool checked;
+  final int kind;
 
-  HTypeConversion(HType this.type,
-                  HInstruction input,
-                  [bool this.checked = false])
-    : super(<HInstruction>[input]) {
-      sourceElement = input.sourceElement;
+  static final int NO_CHECK = 0;
+  static final int CHECKED_MODE_CHECK = 1;
+  static final int ARGUMENT_TYPE_CHECK = 2;
+
+  HTypeConversion(HType type, HInstruction input)
+      : this.internal(type, input, NO_CHECK);
+  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
+      : this.internal(type, input, CHECKED_MODE_CHECK);
+  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
+      : this.internal(type, input, ARGUMENT_TYPE_CHECK);
+
+  HTypeConversion.internal(this.type, HInstruction input, this.kind)
+      : super(<HInstruction>[input]) {
+    sourceElement = input.sourceElement;
   }
+
+  bool isChecked() => kind != NO_CHECK;
+  bool isCheckedModeCheck() => kind == CHECKED_MODE_CHECK;
+  bool isArgumentTypeCheck() => kind == ARGUMENT_TYPE_CHECK;
 
   HType get guaranteedType() => type;
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool hasSideEffects() => checked;
+  bool hasSideEffects() => kind != NO_CHECK;
+  bool isStatement() => kind == ARGUMENT_TYPE_CHECK;
+  bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 }
 
 class HStringConcat extends HInstruction {

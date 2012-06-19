@@ -7,8 +7,15 @@
 final String FIB = @"""
 fib(n) {
   if (n <= 1) return 1;
-  return fib(n - 1) + fib(n - 2);
+  return add(fib(n - 1), fib(n - 2));
 }
+
+// We need this artificial add method because
+// our optimizer will actually add type checks
+// for the result of recursively calling fib
+// which introduces new variables because we
+// now have multiple users.
+add(x, y) => x + y;
 """;
 
 main() {

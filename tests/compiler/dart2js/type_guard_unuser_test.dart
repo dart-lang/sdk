@@ -53,9 +53,9 @@ main() {
 
   generated = compile(TEST_THREE, 'foo');
   regexp = new RegExp(getNumberTypeCheck('param1'));
-  Expect.isTrue(!regexp.hasMatch(generated));
+  Expect.isTrue(regexp.hasMatch(generated));
   regexp = new RegExp(getNumberTypeCheck('param2'));
-  Expect.isTrue(!regexp.hasMatch(generated));
+  Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE_WITH_BAILOUT, 'foo');
   regexp = new RegExp(getNumberTypeCheck('param1'));

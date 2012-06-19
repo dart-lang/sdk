@@ -1129,7 +1129,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
-    if (node.builtin){
+    if (node.builtin) {
       beginExpression(unsignedShiftPrecedences.precedence);
       int oldPrecedence = this.expectedPrecedence;
       this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
@@ -1202,13 +1202,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitNot(HBitNot node)         => visitBitInvokeUnary(node, '~');
   visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
-
-  // We need to check if the left operand is negative in order to use
-  // the native operator.
-  visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
-
-  // Shift left cannot be mapped to the native operator (different semantics).
-  visitShiftLeft(HShiftLeft node)   => visitInvokeStatic(node);
+  visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>');
+  visitShiftLeft(HShiftLeft node)   => visitBitInvokeBinary(node, '<<');
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
@@ -2008,10 +2003,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitIntegerCheck(HIntegerCheck node) {
     if (!node.alwaysFalse) {
       buffer.add('if (');
-      use(node.value, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' !== (');
-      use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
-      buffer.add(" | 0)) ");
+      checkInt(node.value, '!==');
+      buffer.add(') ');
     }
     generateThrowWithHelper('iae', node.value);
   }
@@ -2415,7 +2408,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (node.checked) {
+    if (node.isChecked()) {
       Element element = node.type.computeType(compiler).element;
       world.registerIsCheck(element);
       SourceString helper;
@@ -2424,6 +2417,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
+      if (node.isArgumentTypeCheck()) {
+        buffer.add('if (');
+        if (element == compiler.intClass) {
+          checkInt(node.checkedInput, '!==');
+        } else {
+          assert(element == compiler.numClass);
+          checkNum(node.checkedInput, '!==');
+        }
+        buffer.add(') ');
+        generateThrowWithHelper('iae', node.checkedInput);
+        return;
+      }
+
+      assert(node.isCheckedModeCheck());
       if (element == compiler.stringClass) {
         helper = const SourceString('stringTypeCheck');
       } else if (element == compiler.doubleClass) {

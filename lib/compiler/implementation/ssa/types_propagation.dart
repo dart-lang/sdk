@@ -22,12 +22,30 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType(HInstruction instruction) {
+    // Visit the instruction before computing types.
+    visitInstruction(instruction);
+    // Compute old and new types.
     HType oldType = instruction.propagatedType;
     HType newType = computeType(instruction);
     // We unconditionally replace the propagated type with the new type. The
     // computeType must make sure that we eventually reach a stable state.
     instruction.propagatedType = newType;
     return oldType != newType;
+  }
+
+  void visitInstruction(HInstruction instruction) {
+    if (instruction is !HBinaryArithmetic) return;
+    HInstruction left = instruction.left;
+    if (!left.isNumber()) return;
+    HInstruction right = instruction.right;
+    // TODO(floitsch): Enable this once we made it so inputs must be
+    // integers for all bitwise operations.
+    if (false && instruction is HBinaryBitOp) {
+      if (!left.isInteger()) convertInput(instruction, left, HType.INTEGER);
+      if (!right.isInteger()) convertInput(instruction, right, HType.INTEGER);
+    } else {
+      if (!right.isNumber()) convertInput(instruction, right, HType.NUMBER);
+    }
   }
 
   void visitGraph(HGraph graph) {
@@ -94,6 +112,62 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       workmap[id] = instruction;
     }
   }
+
+  void convertInput(HInstruction instruction, HInstruction input, HType type) {
+    HTypeConversion converted =
+        new HTypeConversion.argumentTypeCheck(type, input);
+    instruction.block.addBefore(instruction, converted);
+    instruction.changeUse(input, converted);
+    replaceDominatedUses(input, converted);
+  }
+
+  // TODO(kasperl): Get rid of
+  // SsaTypeConversionInserter.changeUsesDominatedBy because this is
+  // just better.
+  void replaceDominatedUses(HInstruction instruction,
+                            HInstruction replacement) {
+    // Keep track of all instructions that we have to deal with later
+    // and count the number of them that are in the current block.
+    Set<HInstruction> pending = null;
+    int pendingInCurrentBlock = 0;
+
+    // Run through all the users of the instruction and see if they
+    // are dominated or potentially dominated by the replacement.
+    HBasicBlock block = replacement.block;
+    for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
+      HInstruction current = instruction.usedBy[i];
+      if (current !== replacement && block.dominates(current.block)) {
+        if (current.block === block) pendingInCurrentBlock++;
+        if (pending === null) pending = new Set<HInstruction>();
+        pending.add(current);
+      }
+    }
+
+    // If there are no pending instructions, we're done.
+    if (pending === null) return;
+
+    // Run through all the instructions before the replacement and
+    // remove them from the pending set.
+    if (pendingInCurrentBlock > 0) {
+      HInstruction current = block.first;
+      while (current !== replacement) {
+        if (pending.contains(current)) {
+          pending.remove(current);
+          if (--pendingInCurrentBlock == 0) break;
+        }
+        current = current.next;
+      }
+    }
+
+    // Run through all the pending instructions. They are the
+    // dominated users.
+    for (HInstruction current in pending) {
+      current.changeUse(instruction, replacement);
+      if (updateType(current)) {
+        addDependentInstructionsToWorkList(current);
+      }
+    }
+  }
 }
 
 class SsaSpeculativeTypePropagator extends SsaTypePropagator {
@@ -142,4 +216,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     if (!desiredType.isPrimitive()) return newType;
     return newType.intersection(desiredType);
   }
+
+  void visitInstruction(HInstruction instruction) { }
+
 }

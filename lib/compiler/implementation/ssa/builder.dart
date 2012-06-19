@@ -1107,7 +1107,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HInstruction instruction =
-        new HTypeConversion(convertedType, original, true);
+        new HTypeConversion.checkedModeCheck(convertedType, original);
     add(instruction);
     return instruction;
   }
