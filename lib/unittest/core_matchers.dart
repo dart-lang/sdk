@@ -180,7 +180,7 @@ class _Throws extends BaseMatcher {
       // completes.
       item.onComplete(expectAsync1((future) {
         if (future.hasValue) {
-          expect(false,
+          expect(false, reason:
               "Expected future to fail, but succeeded with '${future.value}'.");
         } else if (_matcher != null) {
           expect(future.exception, _matcher);
