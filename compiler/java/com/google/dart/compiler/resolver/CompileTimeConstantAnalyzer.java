@@ -13,7 +13,6 @@ import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
-import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -23,6 +22,7 @@ import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMapLiteral;
@@ -50,6 +50,7 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +70,12 @@ public class CompileTimeConstantAnalyzer {
     private ExpressionVisitor() {
     }
 
-    private boolean checkBoolean(HasSourceInfo x, Type type) {
+    private boolean checkBoolean(DartNode x, Type type) {
+      // Spec 0.11 allows using "null" literal in place of bool.
+      if (x instanceof DartNullLiteral) {
+        return true;
+      }
+      // check actual type
       if (!type.equals(boolType)) {
         context.onError(new DartCompilationError(x,
             ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN, type
@@ -79,7 +85,12 @@ public class CompileTimeConstantAnalyzer {
       return true;
     }
 
-    private boolean checkInt(HasSourceInfo x, Type type) {
+    private boolean checkInt(DartNode x, Type type) {
+      // Spec 0.11 allows using "null" literal in place of num.
+      if (x instanceof DartNullLiteral) {
+        return true;
+      }
+      // check actual type
       if (!type.equals(intType)) {
         context
             .onError(new DartCompilationError(x,
@@ -90,7 +101,7 @@ public class CompileTimeConstantAnalyzer {
       return true;
     }
 
-    private boolean checkString(HasSourceInfo x, Type type) {
+    private boolean checkString(DartNode x, Type type) {
       if (!type.equals(stringType)) {
         context
             .onError(new DartCompilationError(x,
@@ -101,7 +112,18 @@ public class CompileTimeConstantAnalyzer {
       return true;
     }
 
-    private boolean checkNumber(HasSourceInfo x, Type type) {
+    private boolean checkNumber(DartNode x, Type type) {
+      // for "const" constructor we check "potentially constant expression",
+      // so suppose that parameters have correct type
+      if (TypeKind.of(type) == TypeKind.DYNAMIC && x.getElement() != null
+          && x.getElement().getEnclosingElement() instanceof MethodElement) {
+        return true;
+      }
+      // Spec 0.11 allows using "null" literal in place of num.
+      if (x instanceof DartNullLiteral) {
+        return true;
+      }
+      // check actual type
       if (!(type.equals(numType) || type.equals(intType) || type
           .equals(doubleType))) {
         context.onError(new DartCompilationError(x,
@@ -113,7 +135,7 @@ public class CompileTimeConstantAnalyzer {
       return true;
     }
 
-    private boolean checkNumberBooleanOrStringType(HasSourceInfo x, Type type) {
+    private boolean checkNumberBooleanOrStringType(DartNode x, Type type) {
       if (type.equals(intType) || type.equals(boolType)
           || type.equals(numType) || type.equals(doubleType)
           || type.equals(stringType) || (x instanceof DartNullLiteral)) {
@@ -527,17 +549,17 @@ public class CompileTimeConstantAnalyzer {
       Type type = getMostSpecificType(x.getArg());
       switch (x.getOperator()) {
         case NOT:
-          if (checkBoolean(x, type)) {
+          if (checkBoolean(x.getArg(), type)) {
             rememberInferredType(x, boolType);
           }
           break;
         case SUB:
-          if (checkNumber(x, type)) {
+          if (checkNumber(x.getArg(), type)) {
             rememberInferredType(x, numType);
           }
           break;
         case BIT_NOT:
-          if (checkInt(x, type)) {
+          if (checkInt(x.getArg(), type)) {
             rememberInferredType(x, intType);
           }
           break;
@@ -562,6 +584,8 @@ public class CompileTimeConstantAnalyzer {
   }
 
   private class FindCompileTimeConstantExpressionsVisitor extends ASTVisitor<Void> {
+    private ClassElement currentClass;
+    private boolean inConstConstructor;
 
     @Override
     public Void visitArrayLiteral(DartArrayLiteral node) {
@@ -588,17 +612,50 @@ public class CompileTimeConstantAnalyzer {
       }
       return null;
     }
-
-  @Override
-  public Void visitMapLiteral(DartMapLiteral node) {
-    if (node.isConst()) {
-      for (DartMapLiteralEntry entry : node.getEntries()) {
-        checkConstantExpression(entry.getKey());
-        checkConstantExpression(entry.getValue());
+    
+    @Override
+    public Void visitClass(DartClass node) {
+      ClassElement oldClassElement = currentClass;
+      currentClass = node.getElement();
+      try {
+        return super.visitClass(node);
+      } finally {
+        currentClass = oldClassElement;
       }
     }
-    return null;
-  }
+    
+    @Override
+    public Void visitMethodDefinition(DartMethodDefinition node) {
+      inConstConstructor = node.getModifiers().isConstant();
+      return super.visitMethodDefinition(node);
+    }
+
+    @Override
+    public Void visitInitializer(DartInitializer node) {
+      if (inConstConstructor) {
+        String name = node.getInitializerName();
+        if (name != null) {
+          Element member = currentClass.lookupLocalElement(name);
+          if (member instanceof FieldElement) {
+            if (member.getModifiers().isFinal()) {
+              checkConstantExpression(node.getValue());
+            }
+          }
+        }
+      }
+      return super.visitInitializer(node);
+    }
+
+    @Override
+    public Void visitMapLiteral(DartMapLiteral node) {
+      if (node.isConst()) {
+        for (DartMapLiteralEntry entry : node.getEntries()) {
+          checkConstantExpression(entry.getKey());
+          checkConstantExpression(entry.getValue());
+        }
+      }
+      return null;
+    }
 
     @Override
     public Void visitNewExpression(DartNewExpression node) {

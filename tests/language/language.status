@@ -76,8 +76,6 @@ cascade_precedence_test: Fail  # Issue 3729
 char_escape_test: Pass # Issue 1654
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 compile_time_constant_p_test/01: Fail # Issue 2580
-const_constructor_syntax_test/05: Fail # Issue 3663
-const_counter_negative_test: Fail    # issue 1655
 const_syntax_test/01: Fail # test issue 3626
 const_syntax_test/02: Fail # test issue 3626
 const_syntax_test/03: Fail # test issue 3626

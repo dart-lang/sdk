@@ -29,9 +29,6 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Iss
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail  # Issue 2478
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t01: Fail # Issue 2477
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail # Issue 2477
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
@@ -51,6 +48,7 @@ Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
 Language/10_Expressions/01_Constants_A14_t01: Fail # Issue 3519
 Language/10_Expressions/01_Constants_A15_t16: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t24: Fail # co19 issue 146
+Language/10_Expressions/01_Constants_A15_t31: Fail # co19 issue 147
 Language/10_Expressions/01_Constants_A15_t38: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 134
 Language/10_Expressions/01_Constants_A15_t49: Fail # Issue 1473

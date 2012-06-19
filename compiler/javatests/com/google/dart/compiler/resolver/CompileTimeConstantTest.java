@@ -34,6 +34,72 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "}"));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1655
+   */
+  public void test_constConstructor_nonConstInitializerValue() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "foo() {}",
+            "class A {",
+            " final v;",
+            " const A() : v = foo();",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 18, 5));
+  }
+  
+  /**
+   * At compile time we "trust" user that parameter will have correct type.
+   */
+  public void test_constConstructor_constInitializerValue_plusDynamic() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            " final v;",
+            " const A(var p) : v = 100 + p;",
+            "}",
+            ""));
+  }
+  
+  public void test_constConstructor_constInitializerValue_boolNulls() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            " final a, b, c, d;",
+            " const A(var p) : ",
+            "   a = false || null,",
+            "   b = null || false,",
+            "   c = null || null,",
+            "   d = !null;",
+            "}",
+            ""));
+  }
+  
+  public void test_constConstructor_constInitializerValue_numNulls() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            " final a, b, c, d, e;",
+            " const A(var p) : ",
+            "   a = 1 ^ null,",
+            "   b = 1 << null,",
+            "   c = 1 & null,",
+            "   d = ~null,",
+            "   e = -null;",
+            "}",
+            ""));
+  }
+
   public void test_nonConstantExpressions() {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(
