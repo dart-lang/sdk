@@ -634,6 +634,8 @@ class Assembler : public ValueObject {
   void EmitGenericShift(int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(int rm, Register operand, Register shifter);
 
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };

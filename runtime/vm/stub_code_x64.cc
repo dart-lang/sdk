@@ -657,12 +657,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R10: Array length as Smi.
 
     // Store the type argument field.
-    __ StoreIntoObject(RAX,
-                       FieldAddress(RAX, Array::type_arguments_offset()),
-                       RBX);
+    __ StoreIntoObjectNoBarrier(
+        RAX, FieldAddress(RAX, Array::type_arguments_offset()), RBX);
 
     // Set the length field.
-    __ StoreIntoObject(RAX, FieldAddress(RAX, Array::length_offset()), R10);
+    __ StoreIntoObjectNoBarrier(
+        RAX, FieldAddress(RAX, Array::length_offset()), R10);
 
     // Calculate the size tag.
     // RAX: new object start as a tagged pointer.
@@ -1068,8 +1068,47 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
+//   RAX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  __ Unimplemented("StubCode::GenerateUpdateStoreBufferStub");
+  // Save registers being destroyed.
+  __ pushq(CTX);
+  __ pushq(RBX);
+
+  // Load the isolate out of the context.
+  // RAX: Address being stored
+  __ movq(CTX, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // RAX: Address being stored
+  // CTX: Isolate
+  intptr_t store_buffer_offset = Isolate::store_buffer_offset();
+  __ movl(RBX,
+          Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ movq(Address(CTX,
+                  RBX, TIMES_4,
+                  store_buffer_offset + StoreBufferBlock::pointers_offset()),
+          RAX);
+
+  // Increment top_ and check for overflow.
+  // RBX: top_
+  // CTX: Isolate
+  Label L;
+  __ incq(RBX);
+  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
+          RBX);
+  __ cmpl(RBX, Immediate(StoreBufferBlock::kSize));
+  __ j(NOT_EQUAL, &L, Assembler::kNearJump);
+
+  // Handle overflow: Reset the top_ pointer.
+  // CTX: Isolate
+  __ movl(RBX, Immediate(0));
+  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
+          RBX);
+
+  __ Bind(&L);
+  // Restore values.
+  __ popq(RBX);
+  __ popq(CTX);
   __ ret();
 }
 

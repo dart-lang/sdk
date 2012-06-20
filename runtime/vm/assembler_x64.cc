@@ -1402,11 +1402,48 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // Check that 'value' is a new object.  Store buffer updates are not
+  // required when storing a smi or an old object.
+  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  j(PARITY_ODD, no_update, Assembler::kNearJump);
+  j(ZERO, no_update, Assembler::kNearJump);
+  // Check that 'object' is an old object.  A store buffer update is
+  // not required when storing into a new object.
+  testl(object, Immediate(kNewObjectAlignmentOffset));
+  j(NOT_ZERO, no_update, Assembler::kNearJump);
+}
+
+
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
-  // TODO(iposva): Add write barrier.
   movq(dest, value);
+
+  Label done;
+  StoreIntoObjectFilter(object, value, &done);
+  // A store buffer update is required.
+  pushq(RAX);
+  leaq(RAX, dest);
+  call(&StubCode::UpdateStoreBufferLabel());
+  popq(RAX);
+  Bind(&done);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const FieldAddress& dest,
+                                         Register value) {
+  movq(dest, value);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
 }
 
 

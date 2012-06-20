@@ -517,6 +517,13 @@ class Assembler : public ValueObject {
                        const FieldAddress& dest,  // Where we are storing into.
                        Register value);  // Value we are storing.
 
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                const Object& value);
+
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
 
@@ -621,6 +628,8 @@ class Assembler : public ValueObject {
 
   void EmitGenericShift(bool wide, int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(bool wide, int rm, Register operand, Register shifter);
+
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

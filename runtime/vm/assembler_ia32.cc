@@ -1384,20 +1384,27 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // Check that 'value' is a new object.  Store buffer updates are not
+  // required when storing a smi or an old object.
+  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  j(PARITY_ODD, no_update, Assembler::kNearJump);
+  j(ZERO, no_update, Assembler::kNearJump);
+  // Check that 'object' is an old object.  A store buffer update is
+  // not required when storing into a new object.
+  testl(object, Immediate(kNewObjectAlignmentOffset));
+  j(NOT_ZERO, no_update, Assembler::kNearJump);
+}
+
+
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
   movl(dest, value);
   Label done;
-  // Check that 'value' is a new object.  Store buffer updates are not
-  // required when storing a smi or an old object.
-  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
-  j(PARITY_ODD, &done, Assembler::kNearJump);
-  j(ZERO, &done, Assembler::kNearJump);
-  // Check that 'object' is an old object.  A store buffer update is
-  // not required when storing into a new object.
-  testl(object, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, &done, Assembler::kNearJump);
+  StoreIntoObjectFilter(object, value, &done);
   // A store buffer update is required.
   pushl(EAX);  // Preserve EAX.
   leal(EAX, dest);
@@ -1411,15 +1418,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const FieldAddress& dest,
                                          Register value) {
   movl(dest, value);
-#if 0  // TODO(cshapiro) Turn this back on after it is fixed defined(DEBUG).
+#if defined(DEBUG)
   Label done;
-  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
-  j(PARITY_ODD, &done, Assembler::kNearJump);
-  testl(object, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, &done, Assembler::kNearJump);
+  StoreIntoObjectFilter(object, value, &done);
   Stop("Store buffer update is required");
   Bind(&done);
-#endif
+#endif  // defined(DEBUG)
   // No store buffer update.
 }
 

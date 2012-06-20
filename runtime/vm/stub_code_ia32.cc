@@ -1084,7 +1084,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 // Input parameters:
 //   EAX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  Label L;
   // Save values being destroyed.
   __ pushl(CTX);
   __ pushl(EBX);
@@ -1107,6 +1106,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Increment top_ and check for overflow.
   // EBX: top_
   // CTX: Isolate
+  Label L;
   __ incl(EBX);
   __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
           EBX);
@@ -1119,7 +1119,6 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
           Immediate(0));
 
   __ Bind(&L);
-
   // Restore values.
   __ popl(EBX);
   __ popl(CTX);
