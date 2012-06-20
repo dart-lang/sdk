@@ -49,7 +49,6 @@ Language/10_Expressions/01_Constants_A15_t24: Fail # co19 issue 146
 Language/10_Expressions/01_Constants_A15_t31: Fail # co19 issue 147
 Language/10_Expressions/01_Constants_A15_t38: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 134
-Language/10_Expressions/01_Constants_A15_t49: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473

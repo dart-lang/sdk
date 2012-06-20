@@ -34,6 +34,17 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "}"));
   }
 
+  public void test_nonConstArg() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class A { const A(s); }",
+            "main() {",
+            "  var a = const A(new A(null));",
+            "}"),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 11));
+  }
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=1655

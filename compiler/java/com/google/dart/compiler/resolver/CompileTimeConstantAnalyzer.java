@@ -52,6 +52,7 @@ import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -174,13 +175,30 @@ public class CompileTimeConstantAnalyzer {
      */
     private Type getMostSpecificType(DartNode node) {
       if (node != null) {
-        Element element = node.getElement();
         Type type = inferredTypes.get(node);
         if (type != null) {
           return type;
         }
+        Element element = node.getElement();
         if (element != null) {
           type = element.getType();
+          if (type != null && TypeKind.of(type) != TypeKind.DYNAMIC) {
+            return type;
+          }
+          if (element instanceof VariableElement) {
+            VariableElement variable = (VariableElement) element;
+            if (variable.getModifiers().isConstant()) {
+              DartExpression value = variable.getDefaultValue();
+              if (value != null) {
+                type = getMostSpecificType(value);
+              }
+            }
+          } else if (element instanceof FieldElement) {
+            FieldElement field = (FieldElement) element;
+            if (field.getModifiers().isConstant()) {
+              type = field.getConstantType();
+            }
+          }
           if (type != null) {
             return type;
           }
@@ -479,23 +497,24 @@ public class CompileTimeConstantAnalyzer {
           return null;
       }
 
+      Type type = getMostSpecificType(x.getName());
+      rememberInferredType(x, type);
+
       Element element = x.getName().getElement();
-      while (element != null) {
+      if (element != null) {
         // OK. Static method reference.
         if (ElementKind.of(element) == ElementKind.METHOD && element.getModifiers().isStatic()) {
-          break;
+          return null;
         }
         // OK. Constant field.
-        if (element.getModifiers().isConstant()) {
-          break;
+        // TODO(brianwilkerson) Remove the second condition when final variables are no longer
+        // treated like constants
+        if (element.getModifiers().isConstant() || element.getModifiers().isFinal()) {
+          return null;
         }
         // Fail.
         expectedConstant(x);
-        return null;
       }
-      x.visitChildren(this);
-      Type type = getMostSpecificType(x.getName());
-      rememberInferredType(x, type);
       return null;
     }
 
@@ -593,8 +612,9 @@ public class CompileTimeConstantAnalyzer {
         for (DartExpression expr : node.getExpressions()) {
           checkConstantExpression(expr);
         }
+        return null;
       }
-      return null;
+      return super.visitArrayLiteral(node);
     }
 
     @Override
@@ -608,9 +628,10 @@ public class CompileTimeConstantAnalyzer {
           if (node.getElement().getType().equals(dynamicType)) {
             node.getElement().setConstantType(type);
           }
+          return null;
         }
       }
-      return null;
+      return super.visitField(node);
     }
 
     @Override
@@ -653,8 +674,9 @@ public class CompileTimeConstantAnalyzer {
           checkConstantExpression(entry.getKey());
           checkConstantExpression(entry.getValue());
         }
+        return null;
       }
-      return null;
+      return super.visitMapLiteral(node);
     }
 
     @Override
@@ -671,15 +693,23 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitParameter(DartParameter node) {
       checkConstantExpression(node.getDefaultExpr());
+      List<DartParameter> parameters = node.getFunctionParameters();
+      if (parameters != null) {
+        for (DartParameter parameter : parameters) {
+          visitParameter(parameter);
+        }
+      }
       return null;
     }
 
     @Override
     public Void visitVariableStatement(DartVariableStatement node) {
-      for (DartVariable variable : node.getVariables()) {
-        Modifiers modifiers = node.getModifiers();
-        if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
-          checkConstantExpression(variable.getValue());
+      Modifiers modifiers = node.getModifiers();
+      if (modifiers.isStatic() && modifiers.isFinal()) {
+        for (DartVariable variable : node.getVariables()) {
+          if (variable.getValue() != null) {
+            checkConstantExpression(variable.getValue());
+          }
         }
         return null;
       }

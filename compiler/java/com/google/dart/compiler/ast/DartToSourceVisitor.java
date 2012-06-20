@@ -714,7 +714,11 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitNewExpression(DartNewExpression x) {
-    p("new ");
+    if (x.isConst()) {
+      p("const ");
+    } else {
+      p("new ");
+    }
     accept(x.getConstructor());
     pArgs(x.getArguments());
     return null;
