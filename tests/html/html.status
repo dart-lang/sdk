@@ -21,15 +21,7 @@ audiocontext_test: Skip
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
 
-[ $compiler == frog && $runtime == drt ]
-html_test: Skip   # Issue 2657
-request_animation_frame_test: Skip   # drt hangs
-
-[ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
-fileapi_test: Skip # Timeout, issue 3022, FileSystem API not supported.
-window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
-
-[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
+[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
@@ -65,12 +57,6 @@ element_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
-
-[ $compiler == frog && $runtime == ff ]
-# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
-hidden_dom_1_test: Fail
-# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
-hidden_dom_2_test: Fail
 
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
@@ -131,21 +117,9 @@ xhr_test: Fail
 [ $runtime == vm ]
 *: Skip
 
-[ $compiler == frog && $runtime == d8 ]
-*: Skip
-
-[ $compiler == frog && $runtime == chrome ]
-css_test: Pass, Fail # Test is flaky Issue #2823
-
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
 *: Skip
-
-[ $compiler == frog && $runtime == none ]
-*: Skip
-
-[ $compiler == frog ]
-svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 
 [ $compiler == dart2js && $runtime == drt ]
 fileapi_test: Skip # Issue 3022
