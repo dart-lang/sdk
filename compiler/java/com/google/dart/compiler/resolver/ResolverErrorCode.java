@@ -111,6 +111,7 @@ public enum ResolverErrorCode implements ErrorCode {
   FIELD_DOES_NOT_HAVE_A_GETTER("Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER("Field does not have a setter"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
+  ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(
       "Illegal constructor declaration.  No default clause in interface"),
