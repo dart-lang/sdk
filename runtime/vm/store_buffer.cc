@@ -13,4 +13,14 @@ void StoreBufferBlock::ProcessBuffer() {
   top_ = 0;  // Currently just reset back to the beginning.
 }
 
+
+bool StoreBufferBlock::Contains(uword pointer) {
+  for (int32_t i = 0; i < top_; i++) {
+    if (pointers_[i] == pointer) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace dart

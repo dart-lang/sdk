@@ -59,6 +59,9 @@ class Isolate : public BaseIsolate {
                                   bool visit_prologue_weak_persistent_handles);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
+  static intptr_t store_buffer_offset() {
+    return OFFSET_OF(Isolate, store_buffer_);
+  }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {

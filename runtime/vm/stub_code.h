@@ -47,6 +47,7 @@ class RawCode;
 #define STUB_CODE_LIST(V)                                                      \
   V(InvokeDartCode)                                                            \
   V(AllocateContext)                                                           \
+  V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(BreakpointDynamic)                                                         \

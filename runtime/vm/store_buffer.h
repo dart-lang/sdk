@@ -35,6 +35,8 @@ class StoreBufferBlock {
   // Process this store buffer and remember its contents in the heap.
   void ProcessBuffer();
 
+  bool Contains(uword pointer);
+
  private:
   int32_t top_;
   uword pointers_[kSize];

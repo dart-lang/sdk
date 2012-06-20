@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_RUNTIME_ENTRY(StoreBuffer);
-
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
@@ -1400,14 +1398,10 @@ void Assembler::StoreIntoObject(Register object,
   testl(object, Immediate(kNewObjectAlignmentOffset));
   j(NOT_ZERO, &done, Assembler::kNearJump);
   // A store buffer update is required.
-  pushal();
-  movl(EBP, ESP);
-  ReserveAlignedFrameSpace(kWordSize);
-  movl(EAX, dest);
-  movl(Address(ESP, 0), EAX);  // Push argument
-  CallRuntime(kStoreBufferRuntimeEntry);
-  movl(ESP, EBP);
-  popal();
+  pushl(EAX);  // Preserve EAX.
+  leal(EAX, dest);
+  call(&StubCode::UpdateStoreBufferLabel());
+  popl(EAX);  // Restore EAX.
   Bind(&done);
 }
 

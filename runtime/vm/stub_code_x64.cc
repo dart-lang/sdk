@@ -1066,6 +1066,14 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 }
 
 
+// Helper stub to implement Assembler::StoreIntoObject.
+// Input parameters:
+void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+  __ Unimplemented("StubCode::GenerateUpdateStoreBufferStub");
+  __ ret();
+}
+
+
 // Called for inline allocation of objects.
 // Input parameters:
 //   RSP + 16 : type arguments object (only if class is parameterized).

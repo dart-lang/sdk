@@ -1080,6 +1080,53 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 }
 
 
+// Helper stub to implement Assembler::StoreIntoObject.
+// Input parameters:
+//   EAX: Address being stored
+void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+  Label L;
+  // Save values being destroyed.
+  __ pushl(CTX);
+  __ pushl(EBX);
+
+  // Load the isolate out of the context.
+  // EAX: Address being stored
+  __ movl(CTX, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // EAX: Address being stored
+  // CTX: Isolate
+  intptr_t store_buffer_offset = Isolate::store_buffer_offset();
+  __ movl(EBX,
+          Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ movl(Address(CTX,
+                  EBX, TIMES_4,
+                  store_buffer_offset + StoreBufferBlock::pointers_offset()),
+          EAX);
+
+  // Increment top_ and check for overflow.
+  // EBX: top_
+  // CTX: Isolate
+  __ incl(EBX);
+  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
+          EBX);
+  __ cmpl(EBX, Immediate(StoreBufferBlock::kSize));
+  __ j(NOT_EQUAL, &L, Assembler::kNearJump);
+
+  // Handle overflow: Reset the top_ pointer.
+  // CTX: Isolate
+  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
+          Immediate(0));
+
+  __ Bind(&L);
+
+  // Restore values.
+  __ popl(EBX);
+  __ popl(CTX);
+  __ ret();
+}
+
+
 // Called for inline allocation of objects.
 // Input parameters:
 //   ESP + 8 : type arguments object (only if class is parameterized).
