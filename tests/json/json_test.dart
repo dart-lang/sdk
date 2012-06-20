@@ -28,54 +28,48 @@ main() {
     expect(JSON.parse(' [] '), isEmpty);
     expect(JSON.parse('[ ]'), isEmpty);
     expect(JSON.parse(' [3, -4.5, true, "hi", false] '),
-      orderedEquals([3, -4.5, true, 'hi', false]));
+      equals([3, -4.5, true, 'hi', false]));
     // Nulls are tricky.
     expect(JSON.parse('[null]'), orderedEquals([null]));
     expect(JSON.parse(' [3, -4.5, null, true, "hi", false] '),
-      orderedEquals([3, -4.5, null, true, 'hi', false]));
-    expect(JSON.parse('[[null]]'),
-     recursivelyMatches([[null]]));
+      equals([3, -4.5, null, true, 'hi', false]));
+    expect(JSON.parse('[[null]]'), equals([[null]]));
     expect(JSON.parse(' [ [3], [], [null], ["hi", true]] '),
-      recursivelyMatches([[3], [], [null], ['hi', true]]));
+      equals([[3], [], [null], ['hi', true]]));
 
     // Maps.
     expect(JSON.parse(' {} '), isEmpty);
     expect(JSON.parse('{ }'), isEmpty);
 
     expect(JSON.parse(
-      ' {"x":3, "y": -4.5,  "z" : "hi","u" : true, "v": false } '),
-      recursivelyMatches({"x":3, "y": -4.5,  "z" : "hi",
-        "u" : true, "v": false }));
+        ' {"x":3, "y": -4.5,  "z" : "hi","u" : true, "v": false } '),
+        equals({"x":3, "y": -4.5,  "z" : "hi", "u" : true, "v": false }));
 
     expect(JSON.parse(' {"x":3, "y": -4.5,  "z" : "hi" } '),
-      recursivelyMatches({"x":3, "y": -4.5,  "z" : "hi" }));
+        equals({"x":3, "y": -4.5,  "z" : "hi" }));
 
     expect(JSON.parse(' {"y": -4.5,  "z" : "hi" ,"x":3 } '),
-      recursivelyMatches({"y": -4.5,  "z" : "hi" ,"x":3 }));
+        equals({"y": -4.5,  "z" : "hi" ,"x":3 }));
 
     expect(JSON.parse('{ " hi bob " :3, "": 4.5}'),
-      recursivelyMatches({ " hi bob " :3, "": 4.5}));
+        equals({ " hi bob " :3, "": 4.5}));
   
-    expect(JSON.parse(' { "x" : { } } '),
-      recursivelyMatches({ 'x' : {}}));
-    expect(JSON.parse('{"x":{}}'),
-      recursivelyMatches({ 'x' : {}}));
+    expect(JSON.parse(' { "x" : { } } '), equals({ 'x' : {}}));
+    expect(JSON.parse('{"x":{}}'), equals({ 'x' : {}}));
 
     // Nulls are tricky.
-    expect(JSON.parse('{"w":null}'),
-      recursivelyMatches({ 'w' : null}));
+    expect(JSON.parse('{"w":null}'), equals({ 'w' : null}));
 
-    expect(JSON.parse('{"x":{"w":null}}'),
-      recursivelyMatches({"x":{"w":null}}));
+    expect(JSON.parse('{"x":{"w":null}}'), equals({"x":{"w":null}}));
 
     expect(JSON.parse(' {"x":3, "y": -4.5,  "z" : "hi",'
                    '"w":null, "u" : true, "v": false } '),
-      recursivelyMatches({"x":3, "y": -4.5,  "z" : "hi",
+        equals({"x":3, "y": -4.5,  "z" : "hi",
                    "w":null, "u" : true, "v": false }));
 
     expect(JSON.parse('{"x": {"a":3, "b": -4.5}, "y":[{}], '
                    '"z":"hi","w":{"c":null,"d":true}, "v":null}'),
-      recursivelyMatches({"x": {"a":3, "b": -4.5}, "y":[{}],
+        equals({"x": {"a":3, "b": -4.5}, "y":[{}],
                    "z":"hi","w":{"c":null,"d":true}, "v":null}));
 
   test('stringify', () {
@@ -142,7 +136,7 @@ class TestClass {
  * back, and produce something equivalent to the argument.
  */
 validateRoundTrip(expected) {
-  expect(JSON.parse(JSON.stringify(expected)), recursivelyMatches(expected));
+  expect(JSON.parse(JSON.stringify(expected)), equals(expected));
 }
 
 

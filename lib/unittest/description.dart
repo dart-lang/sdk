@@ -8,7 +8,14 @@
  */
 
 class StringDescription implements Description {
-  var _out = '';
+  var _out;
+
+  /**
+   * Initialize the description with initial contents [init].
+   */
+  StringDescription([String init = '']) {
+    _out = init;
+  }
 
   /**
    * Get the description as a string.

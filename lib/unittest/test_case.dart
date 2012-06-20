@@ -7,7 +7,6 @@
  * and assumes unittest defines the type [TestFunction].
  */
 
-
 /** Summarizes information about a single test case. */
 class TestCase {
   /** Identifier for this test. */
@@ -15,6 +14,12 @@ class TestCase {
 
   /** A description of what the test is specifying. */
   final String description;
+
+  /** The setup function to call before the test, if any. */
+  final _setup;
+
+  /** The teardown function to call after the test, if any. */
+  final _teardown;
 
   /** The body of the test case. */
   final TestFunction test;
@@ -35,15 +40,30 @@ class TestCase {
 
   /** The group (or groups) under which this test is running. */
   final String currentGroup;
- 
+
   Date startTime;
 
   Duration runningTime;
 
   TestCase(this.id, this.description, this.test, this.callbacks)
-  : currentGroup = _currentGroup;
+  : currentGroup = _currentGroup,
+    _setup = _testSetup,
+    _teardown = _testTeardown;
 
   bool get isComplete() => result != null;
+
+  void run() {
+    if (_setup != null) {
+      _setup();
+    }
+    try {
+      test();
+    } finally {
+      if (_teardown != null) {
+        _teardown();
+      }
+    }
+  }
 
   void pass() {
     result = _PASS;

@@ -155,9 +155,14 @@
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;
 
-/** Set the [Configuration] used by the unittest library. */
-void configure(Configuration config) {
+/**
+ * Set the [Configuration] used by the unittest library. Returns any
+ * previous configuration.
+ */
+Configuration configure(Configuration config) {
+  Configuration _oldConfig = _config;
   _config = config;
+  return _oldConfig;
 }
 
 /**
@@ -174,6 +179,12 @@ List<TestCase> _tests;
  * if they want.
  */
 Function _testRunner;
+
+/** Setup function called before each test in a group */
+Function _testSetup;
+
+/** Teardown function called after each test in a group */
+Function _testTeardown;
 
 /** Current test being executed. */
 int _currentTest = 0;
@@ -305,6 +316,7 @@ class _SpreadArgsHelper {
 
   _init(Function callback, Function shouldCallBack, Function isDone,
        [expectedCalls = 0]) {
+    ensureInitialized();
     assert(_currentTest < _tests.length);
     _callback = callback;
     _shouldCallBack = shouldCallBack;
@@ -325,8 +337,8 @@ class _SpreadArgsHelper {
   }
 
   _SpreadArgsHelper.variableCallCount(callback, isDone) {
-    _init(callback, _always, isDone);
-  }
+    _init(callback, _always, isDone, 1);
+   }
 
   _after() {
     if (_isDone()) {
@@ -508,7 +520,7 @@ void group(String description, void body()) {
   ensureInitialized();
 
   // Concatenate the new group.
-  final oldGroup = _currentGroup;
+  final parentGroup = _currentGroup;
   if (_currentGroup != '') {
     // Add a space.
     _currentGroup = '$_currentGroup $description';
@@ -517,12 +529,43 @@ void group(String description, void body()) {
     _currentGroup = description;
   }
 
+  // Groups can be nested, so we need to preserve the current
+  // settings for test setup/teardown.
+  Function parentSetup = _testSetup;
+  Function parentTeardown = _testTeardown;
+
   try {
+    _testSetup = null;
+    _testTeardown = null;
     body();
   } finally {
     // Now that the group is over, restore the previous one.
-    _currentGroup = oldGroup;
+    _currentGroup = parentGroup;
+    _testSetup = parentSetup;
+    _testTeardown = parentTeardown;
   }
+}
+
+/**
+ * Register a [setUp] function for a test [group]. This function will
+ * be called before each test in the group is run. Note that if groups
+ * are nested only the most locally scoped [setUp] function will be run.
+ * [setUp] and [tearDown] should be called within the [group] before any
+ * calls to [test].
+ */
+void setUp(Function setupTest) {
+  _testSetup = setupTest;
+}
+
+/**
+ * Register a [tearDown] function for a test [group]. This function will
+ * be called after each test in the group is run. Note that if groups
+ * are nested only the most locally scoped [tearDown] function will be run.
+ * [setUp] and [tearDown] should be called within the [group] before any
+ * calls to [test].
+ */
+void tearDown(Function teardownTest) {
+  _testTeardown = teardownTest;
 }
 
 /** Called by subclasses to indicate that an asynchronous test completed. */
@@ -540,7 +583,7 @@ void _handleAllCallbacksDone() {
       if (_callbacksCalled > testCase.callbacks) {
         final expected = testCase.callbacks;
         testCase.error(
-            'More calls to callbackDone() than expected. '
+            'More calls to _handleAllCallbacksDone() than expected. '
             'Actual: ${_callbacksCalled}, expected: ${expected}', '');
         _state = _UNCAUGHT_ERROR;
       } else if ((_callbacksCalled == testCase.callbacks) &&
@@ -648,7 +691,7 @@ _nextBatch() {
     guardAsync(() {
       _callbacksCalled = 0;
       _state = _RUNNING_TEST;
-      testCase.test();
+      testCase.run();
 
       if (_state != _UNCAUGHT_ERROR) {
         if (testCase.callbacks == _callbacksCalled) {

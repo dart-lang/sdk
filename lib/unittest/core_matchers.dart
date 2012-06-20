@@ -78,15 +78,111 @@ class _IsSameAs extends BaseMatcher {
       description.add('same instance as ').addDescriptionOf(_expected);
 }
 
-/** Returns a matcher that matches if two objects are equal (==). */
-Matcher equals(expected) => new _IsEqual(expected);
+/**
+ * Returns a matcher that does a deep recursive match. This only works
+ * with scalars, Maps and Iterables. To handle cyclic structures a
+ * recursion depth [limit] can be provided. The default limit is 100.
+ */
+Matcher equals(expected, [limit=100]) =>
+    new _DeepMatcher(expected, limit);
 
-class _IsEqual extends BaseMatcher {
+class _DeepMatcher extends BaseMatcher {
   final _expected;
-  const _IsEqual(this._expected);
-  bool matches(item) => item == _expected;
+  final int _limit;
+  var count;
+
+  _DeepMatcher(this._expected, [limit = 1000]) : this._limit = limit;
+
+  String _compareIterables(expected, actual, matcher, depth) {
+    if (actual is !Iterable) {
+      return 'is not Iterable';
+    }
+    var expectedIterator = expected.iterator();
+    var actualIterator = actual.iterator();
+    var position = 0;
+    String reason = null;
+    while (reason == null) {
+      if (expectedIterator.hasNext()) {
+        if (actualIterator.hasNext()) {
+          reason = matcher(expectedIterator.next(),
+                           actualIterator.next(),
+                           'mismatch at position ${position}',
+                           depth);
+          ++position;
+        } else {
+          reason = 'shorter than expected';
+        }
+      } else if (actualIterator.hasNext()) {
+        reason = 'longer than expected';
+      } else {
+        return null;
+      }
+    }
+    return reason;
+  }
+
+  Description _recursiveMatch(expected, actual, String location, int depth) {
+    Description reason = null;
+    // If _limit is 1 we can only recurse one level into object.
+    bool canRecurse = depth == 0 || _limit > 1;
+    if (expected == actual) {
+      // Do nothing.
+    } else if (depth > _limit) {
+      reason =  new StringDescription('recursion depth limit exceeded');
+    } else {
+      if (expected is Iterable && canRecurse) {
+        String r = _compareIterables(expected, actual,
+          _recursiveMatch, depth+1);
+        if (r != null) reason = new StringDescription(r);
+      } else if (expected is Map && canRecurse) {
+        if (actual is !Map) {
+          reason = new StringDescription('expected a map');
+        } else if (expected.length != actual.length) {
+          reason = new StringDescription('different map lengths');
+        } else {
+          for (var key in expected.getKeys()) {
+            if (!actual.containsKey(key)) {
+              reason = new StringDescription('missing map key ');
+              reason.addDescriptionOf(key);
+              break;
+            }
+            reason = _recursiveMatch(expected[key], actual[key],
+                'with key <${key}> ${location}', depth+1);
+            if (reason != null) {
+              break;
+            }
+          }
+        }
+      } else {
+        // If we have recursed, show the expected value too; if not,
+        // expect() will show it for us.
+        reason = new StringDescription();
+        if (depth > 1) {
+          reason.add('expected ').addDescriptionOf(expected).add(' but was ').
+              addDescriptionOf(actual);
+        } else {
+          reason.add('was ').addDescriptionOf(actual);
+        }
+      }
+    }
+    if (reason != null) {
+      reason.add(' ').add(location);
+    }
+    return reason;
+  }
+
+  String _match(expected, actual) {
+    Description reason = _recursiveMatch(expected, actual, '', 0);
+    return reason == null ? null : reason.toString();
+  }
+
+  bool matches(item) => _match(_expected, item) == null;
+
   Description describe(Description description) =>
-      description.addDescriptionOf(_expected);
+    description.addDescriptionOf(_expected);
+
+  Description describeMismatch(item, Description mismatchDescription) =>
+    mismatchDescription.add(_match(_expected, item));
 }
 
 /** A matcher that matches any value. */
@@ -240,41 +336,141 @@ class _ReturnsNormally extends BaseMatcher {
   }
 }
 
+/*
+ * Matchers for different exception types. Ideally we should just be able to
+ * use something like:
+ *
+ * final Matcher throwsException =
+ *     const _Throws(const isInstanceOf<Exception>());
+ *
+ * Unfortunately instanceOf is not working with dart2js.
+ *
+ * Alternatively, if static functions could be used in const expressions,
+ * we could use:
+ *
+ * bool _isException(x) => x is Exception;
+ * final Matcher isException = const _Predicate(_isException, "Exception");
+ * final Matcher throwsException = const _Throws(isException);
+ *
+ * But currently using static functions in const expressions is not supported.
+ * For now the only solution for all platforms seems to be separate classes
+ * for each exception type.
+ */
+
+/* abstract */ class _ExceptionMatcher extends BaseMatcher {
+  final String _name;
+  const _ExceptionMatcher(this._name);
+  Description describe(Description description) =>
+      description.add(_name);
+}
+
+/** A matcher for BadNumberFormatExceptions. */
+final isBadNumberFormatException = const _BadNumberFormatException();
+
 /** A matcher for functions that throw BadNumberFormatException */
 final Matcher throwsBadNumberFormatException =
-    const _Throws(const isInstanceOf<BadNumberFormatException>());
+    const _Throws(isBadNumberFormatException);
 
-/** A matcher for functions that throw an Exception */
-final Matcher throwsException =
-    const _Throws(const isInstanceOf<Exception>());
+class _BadNumberFormatException extends _ExceptionMatcher {
+  const _BadNumberFormatException() : super("BadNumberFormatException");
+  bool matches(item) => item is BadNumberFormatException;
+}
 
-/** A matcher for functions that throw an IllegalArgumentException */
+/** A matcher for Exceptions. */
+final isException = const _Exception();
+
+/** A matcher for functions that throw Exception */
+final Matcher throwsException = const _Throws(isException);
+
+class _Exception extends _ExceptionMatcher {
+  const _Exception() : super("Exception");
+  bool matches(item) => item is Exception;
+}
+
+/** A matcher for IllegalArgumentExceptions. */
+final isIllegalArgumentException = const _IllegalArgumentException();
+
+/** A matcher for functions that throw IllegalArgumentException */
 final Matcher throwsIllegalArgumentException =
-    const _Throws(const isInstanceOf<IllegalArgumentException>());
+    const _Throws(isIllegalArgumentException);
 
-/** A matcher for functions that throw an IllegalJSRegExpException */
+class _IllegalArgumentException extends _ExceptionMatcher {
+  const _IllegalArgumentException() : super("IllegalArgumentException");
+  bool matches(item) => item is IllegalArgumentException;
+}
+
+/** A matcher for IllegalJSRegExpExceptions. */
+final isIllegalJSRegExpException = const _IllegalJSRegExpException();
+
+/** A matcher for functions that throw IllegalJSRegExpException */
 final Matcher throwsIllegalJSRegExpException =
-    const _Throws(const isInstanceOf<IllegalJSRegExpException>());
+    const _Throws(isIllegalJSRegExpException);
 
-/** A matcher for functions that throw an IndexOutOfRangeException */
+class _IllegalJSRegExpException extends _ExceptionMatcher {
+  const _IllegalJSRegExpException() : super("IllegalJSRegExpException");
+  bool matches(item) => item is IllegalJSRegExpException;
+}
+
+/** A matcher for IndexOutOfRangeExceptions. */
+final isIndexOutOfRangeException = const _IndexOutOfRangeException();
+
+/** A matcher for functions that throw IndexOutOfRangeException */
 final Matcher throwsIndexOutOfRangeException =
-    const _Throws(const isInstanceOf<IndexOutOfRangeException>());
+    const _Throws(isIndexOutOfRangeException);
 
-/** A matcher for functions that throw a NoSuchMethodException */
+class _IndexOutOfRangeException extends _ExceptionMatcher {
+  const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
+  bool matches(item) => item is IndexOutOfRangeException;
+}
+
+/** A matcher for NoSuchMethodExceptions. */
+final isNoSuchMethodException = const _NoSuchMethodException();
+
+/** A matcher for functions that throw NoSuchMethodException */
 final Matcher throwsNoSuchMethodException =
-    const _Throws(const isInstanceOf<NoSuchMethodException>());
+    const _Throws(isNoSuchMethodException);
 
-/** A matcher for functions that throw a NotImplementedException */
+class _NoSuchMethodException extends _ExceptionMatcher {
+  const _NoSuchMethodException() : super("NoSuchMethodException");
+  bool matches(item) => item is NoSuchMethodException;
+}
+
+/** A matcher for NotImplementedExceptions. */
+final isNotImplementedException = const _NotImplementedException();
+
+/** A matcher for functions that throw Exception */
 final Matcher throwsNotImplementedException =
-    const _Throws(const isInstanceOf<NotImplementedException>());
+    const _Throws(isNotImplementedException);
 
-/** A matcher for functions that throw a NullPointerException */
+class _NotImplementedException extends _ExceptionMatcher {
+  const _NotImplementedException() : super("NotImplementedException");
+  bool matches(item) => item is NotImplementedException;
+}
+
+/** A matcher for NullPointerExceptions. */
+final isNullPointerException = const _NullPointerException();
+
+/** A matcher for functions that throw NotNullPointerException */
 final Matcher throwsNullPointerException =
-    const _Throws(const isInstanceOf<NullPointerException>());
+    const _Throws(isNullPointerException);
 
-/** A matcher for functions that throw an UnsupportedOperationException */
+class _NullPointerException extends _ExceptionMatcher {
+  const _NullPointerException() : super("NullPointerException");
+  bool matches(item) => item is NullPointerException;
+}
+
+/** A matcher for UnsupportedOperationExceptions. */
+final isUnsupportedOperationException = const _UnsupportedOperationException();
+
+/** A matcher for functions that throw UnsupportedOperationException */
 final Matcher throwsUnsupportedOperationException =
-    const _Throws(const isInstanceOf<UnsupportedOperationException>());
+    const _Throws(isUnsupportedOperationException);
+
+class _UnsupportedOperationException extends _ExceptionMatcher {
+  const _UnsupportedOperationException() :
+      super("UnsupportedOperationException");
+  bool matches(item) => item is UnsupportedOperationException;
+}
 
 /**
  * Returns a matcher that matches if an object has a length property
@@ -312,100 +508,6 @@ class _HasLength extends BaseMatcher {
 }
 
 /**
- * Returns a matcher that does a deep recursive match. This only works
- * with scalars, Maps and Iterables. To handle cyclic structures an
- * item [limit] can be provided; if after [limit] items have been
- * compared and the process is not complete this will be treated as
- * a mismatch. The default limit is 1000.
- */
-Matcher recursivelyMatches(expected, [limit=1000]) =>
-    new _DeepMatcher(expected, limit);
-
-// A utility function for comparing iterators
-
-String _compareIterables(expected, actual, matcher) {
-  if (actual is !Iterable) {
-    return 'is not Iterable';
-  }
-  var expectedIterator = expected.iterator();
-  var actualIterator = actual.iterator();
-  var position = 0;
-  String reason = null;
-  while (reason == null) {
-    if (expectedIterator.hasNext()) {
-      if (actualIterator.hasNext()) {
-        reason = matcher(expectedIterator.next(),
-                         actualIterator.next(),
-                         'mismatch at position ${position}');
-        ++position;
-      } else {
-        reason = 'shorter than expected';
-      }
-    } else if (actualIterator.hasNext()) {
-      reason = 'longer than expected';
-    } else {
-      return null;
-    }
-  }
-  return reason;
-}
-
-class _DeepMatcher extends BaseMatcher {
-  final _expected;
-  final int _limit;
-  var count;
-
-  _DeepMatcher(this._expected, [limit = 1000]) : this._limit = limit;
-
-  String _recursiveMatch(expected, actual, String location) {
-    String reason = null;
-    if (++count >= _limit) {
-      reason =  'item comparison limit exceeded';
-    } else if (expected is Iterable) {
-      reason = _compareIterables(expected, actual, _recursiveMatch);
-    } else if (expected is Map) {
-      if (actual is !Map) {
-        reason = 'expected a map';
-      } else if (expected.length != actual.length) {
-        reason = 'different map lengths';
-      } else {
-        for (var key in expected.getKeys()) {
-          if (!actual.containsKey(key)) {
-            reason = 'missing map key ${key}';
-            break;
-          }
-          reason = _recursiveMatch(expected[key], actual[key],
-              'with key ${key} ${location}');
-          if (reason != null) {
-            break;
-          }
-        }
-      }
-    } else if (expected != actual) {
-      reason = 'expected ${expected} but got ${actual}';
-    }
-    if (reason == null) {
-      return null;
-    } else {
-      return '${reason} ${location}';
-    }
-  }
-
-  String _match(expected, actual) {
-    count = 0;
-    return _recursiveMatch(expected, actual, '');
-  }
-
-  bool matches(item) => _match(_expected, item) == null;
-
-  Description describe(Description description) =>
-    description.add('recursively matches ').addDescriptionOf(_expected);
-
-  Description describeMismatch(item, Description mismatchDescription) =>
-    mismatchDescription.add(_match(_expected, item));
-}
-
-/**
  * Returns a matcher that matches if the match argument contains
  * the expected value. For [String]s this means substring matching;
  * for [Map]s is means the map has the key, and for [Collection]s it
@@ -439,3 +541,49 @@ class _Contains extends BaseMatcher {
       description.add('contains ').addDescriptionOf(_expected);
 }
 
+/**
+ * Returns a matcher that matches if the match argument is in
+ * the expected value. This is the converse of [contains].
+ */
+Matcher isIn(expected) => new _In(expected);
+
+class _In extends BaseMatcher {
+
+  final _expected;
+
+  const _In(this._expected);
+
+  bool matches(item) {
+    if (_expected is String) {
+      return _expected.indexOf(item) >= 0;
+    } else if (_expected is Collection) {
+      return _expected.some((e) => e == item);
+    } else if (_expected is Map) {
+      return _expected.containsKey(item);
+    }
+    return false;
+  }
+
+  Description describe(Description description) =>
+      description.add('is in ').addDescriptionOf(_expected);
+}
+
+/**
+ * Returns a matcher that uses an arbitrary function that returns
+ * true or false for the actual value.
+ */
+Matcher predicate(f, [description = 'satisfies function']) =>
+    new _Predicate(f, description);
+
+class _Predicate extends BaseMatcher {
+
+  final _matcher;
+  final String _description;
+
+  const _Predicate(this._matcher, this._description);
+
+  bool matches(item) => _matcher(item);
+
+  Description describe(Description description) =>
+      description.add(_description);
+}
