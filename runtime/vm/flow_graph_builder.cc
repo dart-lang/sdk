@@ -2606,8 +2606,7 @@ static intptr_t WhichPred(BlockEntryInstr* predecessor,
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
                                        ZoneGrowableArray<Value*>* env,
                                        intptr_t var_count) {
-  // Iterate over instructions.
-  // 1. Handle phis first.
+  // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
     JoinEntryInstr* join = block_entry->AsJoinEntry();
     if (join->phis() != NULL) {
@@ -2621,46 +2620,14 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     }
   }
 
-  // 2. Handle normal instructions.
+  // 2. Process normal instructions.
   Instruction* current = block_entry->StraightLineSuccessor();
   Instruction* prev = block_entry;
   while ((current != NULL) && !current->IsBlockEntry()) {
-    // 2a. Handle LoadLocal and StoreLocal.
-    // LoadLocal should not be present in an effect context.
-    ASSERT(!current->IsDo() ||
-           !current->AsDo()->computation()->IsLoadLocal());
-    LoadLocalComp* load = NULL;
-    if (current->IsBind() &&
-               current->AsBind()->computation()->IsLoadLocal()) {
-      load = current->AsBind()->computation()->AsLoadLocal();
-    }
-    StoreLocalComp* store = NULL;
-    if (current->IsDo() &&
-        current->AsDo()->computation()->IsStoreLocal()) {
-      store = current->AsDo()->computation()->AsStoreLocal();
-    } else if (current->IsBind() &&
-               current->AsBind()->computation()->IsStoreLocal()) {
-      store = current->AsBind()->computation()->AsStoreLocal();
-    }
-
-    if ((load != NULL) || (store != NULL)) {
-      // Remove instruction with LoadLocal or StoreLocal.
-      prev->SetSuccessor(current->StraightLineSuccessor());
-      // Update renaming environment for StoreLocal.
-      if (store != NULL) {
-        (*env)[store->local().BitIndexIn(var_count)] = store->value();
-      }
-    } else {
-      // Assign new SSA temporary.
-      if (current->IsBind()) {
-        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
-      }
-    }
-
-    // 2b. Handle uses of LoadLocal / StoreLocal
+    // 2a. Handle uses of LoadLocal / StoreLocal
+    // For each use of a LoadLocal or StoreLocal: Replace it with the value
+    // from the environment.
     for (intptr_t i = 0; i < current->InputCount(); ++i) {
-      // For each use of a LoadLocal/StoreLocal: Replace it with the definition
-      // from the environment.
       Value* v = current->InputAt(i);
       if (v->IsUse() &&
           v->AsUse()->definition()->IsBind() &&
@@ -2677,8 +2644,8 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       if (v->IsUse() &&
           v->AsUse()->definition()->IsBind() &&
           v->AsUse()->definition()->AsBind()->computation()->IsStoreLocal()) {
-        // For each use of a LoadLocal: Replace LoadLocal with the definition
-        // from the enviroment.
+        // For each use of a StoreLocal: Replace it with the value from the
+        // environment.
         Computation* comp = v->AsUse()->definition()->AsBind()->computation();
         intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
         Value* new_value = (*env)[index];
@@ -2690,8 +2657,38 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       }
     }
 
-    // Update previous only if no instruction was removed from the graph.
-    if ((load == NULL) && (store == NULL)) {
+    // 2b. Handle LoadLocal and StoreLocal.
+    // For each LoadLocal: Remove it from the graph.
+    // For each StoreLocal: Remove it from the graph and update the environment.
+    ASSERT(!current->IsDo() ||
+           !current->AsDo()->computation()->IsLoadLocal());  // Not possible.
+    LoadLocalComp* load = NULL;
+    if (current->IsBind() &&
+        current->AsBind()->computation()->IsLoadLocal()) {
+      load = current->AsBind()->computation()->AsLoadLocal();
+    }
+    StoreLocalComp* store = NULL;
+    if (current->IsDo() &&
+        current->AsDo()->computation()->IsStoreLocal()) {
+      store = current->AsDo()->computation()->AsStoreLocal();
+    } else if (current->IsBind() &&
+               current->AsBind()->computation()->IsStoreLocal()) {
+      store = current->AsBind()->computation()->AsStoreLocal();
+    }
+
+    if (load != NULL) {
+      // Remove instruction.
+      prev->SetSuccessor(current->StraightLineSuccessor());
+    } else if (store != NULL) {
+      // Remove instruction and update renaming environment.
+      prev->SetSuccessor(current->StraightLineSuccessor());
+      (*env)[store->local().BitIndexIn(var_count)] = store->value();
+    } else {
+      // Assign new SSA temporary.
+      if (current->IsBind()) {
+        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
+      }
+      // Update previous only if no instruction was removed from the graph.
       prev = current;
     }
     current = current->StraightLineSuccessor();
@@ -2716,7 +2713,13 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     if (successor->phis() != NULL) {
       for (intptr_t i = 0; i < successor->phis()->length(); ++i) {
         PhiInstr* phi = (*successor->phis())[i];
-        if (phi != NULL) phi->SetInputAt(pred_index, (*env)[i]);
+        if (phi != NULL) {
+          // Rename input operand and make a copy if it is a UseVal.
+          Value* new_val = (*env)[i]->IsUse()
+              ? new UseVal((*env)[i]->AsUse()->definition())
+              : (*env)[i];
+          phi->SetInputAt(pred_index, new_val);
+        }
       }
     }
   }

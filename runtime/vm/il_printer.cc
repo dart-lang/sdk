@@ -87,7 +87,7 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
 
 void UseVal::PrintTo(BufferFormatter* f) const {
   if (definition()->ssa_temp_index() != -1) {
-    f->Print("t%d", definition()->ssa_temp_index());
+    f->Print("v%d", definition()->ssa_temp_index());
   } else {
     f->Print("t%d", definition()->temp_index());
   }
@@ -341,7 +341,7 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    t%d <- phi(", ssa_temp_index());
+  f->Print("    v%d <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(",");
@@ -368,7 +368,7 @@ void DoInstr::PrintTo(BufferFormatter* f) const {
 
 void BindInstr::PrintTo(BufferFormatter* f) const {
   if (ssa_temp_index() != -1) {
-    f->Print("    t%d <- ", ssa_temp_index());
+    f->Print("    v%d <- ", ssa_temp_index());
   } else {
     f->Print("    t%d <- ", temp_index());
   }
@@ -553,7 +553,7 @@ void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("t%d [", ssa_temp_index());
+  f->Print("v%d [", ssa_temp_index());
   bool has_constant = false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(" ");
@@ -598,7 +598,7 @@ void DoInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
   if (ssa_temp_index() != -1) {
-    f->Print("t%d ", ssa_temp_index());
+    f->Print("v%d ", ssa_temp_index());
   } else {
     f->Print("t%d ", temp_index());
   }
