@@ -98,8 +98,6 @@ named_parameters_negative_test: Fail # Runtime only test, rewrite as multitest
 named_parameters_with_object_property_names_test: Fail # Issue 2137
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest 
 override_field_test/04: Fail # Issue 3656
-private_factory_resolution_negative_test: Fail # Issue 2275
-private_member3_negative_test: Fail       # Issue 2383
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356

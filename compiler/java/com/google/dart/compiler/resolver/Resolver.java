@@ -1117,6 +1117,10 @@ public class Resolver {
         case CLASS:
           // Must be a static field.
           element = Elements.findElement(((ClassElement) qualifier), x.getPropertyName());
+          if (isIllegalPrivateAccess(x.getName(), qualifier, element, x.getPropertyName())) {
+            // break;
+            return null;
+          }
           switch (ElementKind.of(element)) {
             case FIELD:
               FieldElement field = (FieldElement) element;
@@ -1157,6 +1161,9 @@ public class Resolver {
           break;
 
         case SUPER:
+          if (isIllegalPrivateAccess(x.getName(), qualifier, element, x.getPropertyName())) {
+            return null;
+          }
           ClassElement cls = ((SuperElement) qualifier).getClassElement();
           Member member = cls.getType().lookupMember(x.getPropertyName());
           if (member != null) {
@@ -1221,6 +1228,24 @@ public class Resolver {
       return recordElement(x, element);
     }
 
+    private boolean isIllegalPrivateAccess(DartNode diagnosticNode, Element qualifier,
+        Element element, String name) {
+      if (DartIdentifier.isPrivateName(name)) {
+        if (element == null) {
+          element = getContext().getScope().findElement(null, name);
+        }
+        if (element != null) {
+          Element enclosingLibrary = Elements.getLibraryElement(enclosingElement);
+          Element identifierEnclosingLibrary = Elements.getLibraryElement(element);
+          if (!enclosingLibrary.equals(identifierEnclosingLibrary)) {
+            onError(diagnosticNode, ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, name);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     private Element resolveQualifier(DartNode qualifier) {
       return (qualifier instanceof DartIdentifier)
           ? resolveIdentifier((DartIdentifier) qualifier, true)
@@ -1243,6 +1268,11 @@ public class Resolver {
           }
           if (element == null || !element.getModifiers().isStatic()) {
             diagnoseErrorInMethodInvocation(x, classElement, element);
+          } else {
+            if (isIllegalPrivateAccess(x.getFunctionName(), target, element,
+                x.getFunctionNameString())) {
+              break;
+            }
           }
           break;
         }
@@ -1352,6 +1382,18 @@ public class Resolver {
             && Elements.needsImplicitDefaultConstructor(classElement)) {
           element = new SyntheticDefaultConstructorElement(null, classElement, typeProvider);
         }
+        break;
+        case CONSTRUCTOR:
+          if (enclosingElement != null) {
+            Element enclosingLibrary = Elements.getLibraryElement(enclosingElement);
+            Element constructorEnclosingLibrary = Elements.getLibraryElement(element);
+            if (element != null && DartIdentifier.isPrivateName(element.getName())
+                && !enclosingLibrary.equals(constructorEnclosingLibrary)) {
+              onError(x.getConstructor(), ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE,
+                  element.getName());
+              return null;
+            }
+          }
         break;
         case TYPE_VARIABLE:
           onError(x.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
