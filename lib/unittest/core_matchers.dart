@@ -104,10 +104,11 @@ class _DeepMatcher extends BaseMatcher {
     while (reason == null) {
       if (expectedIterator.hasNext()) {
         if (actualIterator.hasNext()) {
-          reason = matcher(expectedIterator.next(),
+          Description r = matcher(expectedIterator.next(),
                            actualIterator.next(),
                            'mismatch at position ${position}',
                            depth);
+          if (r != null) reason = r.toString();
           ++position;
         } else {
           reason = 'shorter than expected';
