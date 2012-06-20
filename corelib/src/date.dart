@@ -9,17 +9,19 @@
  *
  * It can represent time values that are at a distance of at most
  * 8,640,000,000,000,000ms (100,000,000 days) from epoch (1970-01-01 UTC). In
- * other words: [:value.abs() <= 8640000000000000:].
+ * other words: [:millisecondsSinceEpoch.abs() <= 8640000000000000:].
+ *
+ * Also see [Stopwatch] for means to measure time-spans.
  */
 interface Date extends Comparable, Hashable default DateImplementation {
   // Weekday constants that are returned by [weekday] method:
-  static final int MON = 0;
-  static final int TUE = 1;
-  static final int WED = 2;
-  static final int THU = 3;
-  static final int FRI = 4;
-  static final int SAT = 5;
-  static final int SUN = 6;
+  static final int MON = 1;
+  static final int TUE = 2;
+  static final int WED = 3;
+  static final int THU = 4;
+  static final int FRI = 5;
+  static final int SAT = 6;
+  static final int SUN = 7;
   static final int DAYS_IN_WEEK = 7;
 
   // Month constants that are returned by the [month] getter.
@@ -39,16 +41,19 @@ interface Date extends Comparable, Hashable default DateImplementation {
   /**
    * Constructs a [Date] instance based on the individual parts. The date is
    * in the local time zone if [isUtc] is false.
+   *
+   * [month] and [day] are one-based. For example
+   * [:new Date(1038, 1, 10)] represents the 10th of January 1938.
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
   Date(int year,
        [int month,
         int day,
-        int hours,
-        int minutes,
-        int seconds,
-        int milliseconds,
+        int hour,
+        int minute,
+        int second,
+        int millisecond,
         bool isUtc]);
 
   /**
@@ -63,15 +68,16 @@ interface Date extends Comparable, Hashable default DateImplementation {
   Date.fromString(String formattedString);
 
   /**
-   * Constructs a new [Date] instance with the given [value]. If [isUtc] is
-   * false then the date is in the local time zone.
+   * Constructs a new [Date] instance with the given [millisecondsSinceEpoch].
+   * If [isUtc] is false then the date is in the local time zone.
    *
-   * The constructed [Date] represents 1970-01-01T00:00:00Z + [value]ms in
-   * the given time zone (local or UTC).
+   * The constructed [Date] represents
+   * 1970-01-01T00:00:00Z + [millisecondsSinceEpoch]ms in the given
+   * time zone (local or UTC).
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
-  Date.fromEpoch(int value, [bool isUtc]);
+  Date.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch, [bool isUtc]);
 
   /**
    * Returns true if [this] occurs at the same time as [other]. The
@@ -106,14 +112,14 @@ interface Date extends Comparable, Hashable default DateImplementation {
   /**
    * Returns [this] in the local time zone. Returns itself if it is already in
    * the local time zone. Otherwise, this method is equivalent to
-   * [:new Date.fromEpoch(this.value, isUtc: false):].
+   * [:new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, false):].
    */
   Date toLocal();
 
   /**
    * Returns [this] in UTC. Returns itself if it is already in UTC. Otherwise,
    * this method is equivalent to
-   * [:new Date.fromEpoch(this.value, isUtc: true):].
+   * [:new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, true):].
    */
   Date toUtc();
 
@@ -140,51 +146,53 @@ interface Date extends Comparable, Hashable default DateImplementation {
   int get year();
 
   /**
-   * Returns the month in the year [1..12].
+   * Returns the month into the year [1..12].
    */
   int get month();
 
   /**
-   * Returns the day in the month [1..31].
+   * Returns the day into the month [1..31].
    */
   int get day();
 
   /**
-   * Returns the number of hours [0..23].
+   * Returns the hour into the day [0..23].
    */
-  int get hours();
+  int get hour();
 
   /**
-   * Returns the number of minutes [0...59].
+   * Returns the minute into the hour [0...59].
    */
-  int get minutes();
+  int get minute();
 
   /**
-   * Returns the number of seconds [0...59].
+   * Returns the second into the minute [0...59].
    */
-  int get seconds();
+  int get second();
 
   /**
-   * Returns the number of milliseconds [0...999].
+   * Returns the millisecond into the second [0...999].
    */
-  int get milliseconds();
+  int get millisecond();
 
   /**
-   * Returns the week day [MON..SUN]
+   * Returns the week day [MON..SUN]. In accordance with ISO 8601
+   * a week starts with Monday which has the value 1.
    */
   int get weekday();
 
   /**
-   * Returns milliseconds from 1970-01-01T00:00:00Z (UTC).
+   * The milliseconds since 1970-01-01T00:00:00Z (UTC). This value is
+   * independent of the time zone.
    *
-   * Note that this value is independent of the time zone.
+   * See [Stopwatch] for means to measure time-spans.
    */
-  final int value;
+  int get millisecondsSinceEpoch();
 
   /**
-   * Returns true if this [Date] is set to UTC time.
+   * True if this [Date] is set to UTC time.
    */
-  bool isUtc();
+  bool get isUtc();
 
   /**
    * Returns a human readable string for this instance.

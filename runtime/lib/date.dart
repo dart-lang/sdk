@@ -5,25 +5,26 @@
 
 // VM implementation of DateImplementation.
 class DateImplementation implements Date {
-  static final int _MAX_VALUE = 8640000000000000;
+  static final int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
   DateImplementation(int years,
                      [int month = 1,
                       int day = 1,
-                      int hours = 0,
-                      int minutes = 0,
-                      int seconds = 0,
-                      int milliseconds = 0,
+                      int hour = 0,
+                      int minute = 0,
+                      int second = 0,
+                      int millisecond = 0,
                       bool isUtc = false])
-      : _isUtc = isUtc,
-        value = _brokenDownDateToMillisecondsSinceEpoch(
-            years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
-    if (value === null) throw new IllegalArgumentException();
+      : this.isUtc = isUtc,
+        this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
+            years, month, day, hour, minute, second, millisecond, isUtc) {
+    if (millisecondsSinceEpoch === null) throw new IllegalArgumentException();
+    if (isUtc === null) throw new IllegalArgumentException();
   }
 
   DateImplementation.now()
-      : _isUtc = false,
-        value = _getCurrentMs() {
+      : isUtc = false,
+        millisecondsSinceEpoch = _getCurrentMs() {
   }
 
   factory DateImplementation.fromString(String formattedString) {
@@ -56,118 +57,137 @@ class DateImplementation implements Date {
       int years = Math.parseInt(match[1]);
       int month = Math.parseInt(match[2]);
       int day = Math.parseInt(match[3]);
-      int hours = parseIntOrZero(match[4]);
-      int minutes = parseIntOrZero(match[5]);
-      int seconds = parseIntOrZero(match[6]);
+      int hour = parseIntOrZero(match[4]);
+      int minute = parseIntOrZero(match[5]);
+      int second = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int milliseconds = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
-      if (milliseconds == 1000) {
+      int millisecond = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
+      if (millisecond == 1000) {
         addOneMillisecond = true;
-        milliseconds = 999;
+        millisecond = 999;
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
-      int epochValue = _brokenDownDateToMillisecondsSinceEpoch(
-          years, month, day, hours, minutes, seconds, milliseconds, isUtc);
-      if (epochValue === null) {
+      int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
+          years, month, day, hour, minute, second, millisecond, isUtc);
+      if (millisecondsSinceEpoch === null) {
         throw new IllegalArgumentException(formattedString);
       }
-      if (addOneMillisecond) epochValue++;
-      return new DateImplementation.fromEpoch(epochValue, isUtc);
+      if (addOneMillisecond) millisecondsSinceEpoch++;
+      return new DateImplementation.fromMillisecondsSinceEpoch(
+          millisecondsSinceEpoch, isUtc);
     } else {
       throw new IllegalArgumentException(formattedString);
     }
   }
 
-  DateImplementation.fromEpoch(int this.value, [bool isUtc = false])
-      : _isUtc = isUtc {
-    if (value.abs() > _MAX_VALUE) throw new IllegalArgumentException(value);
+  DateImplementation.fromMillisecondsSinceEpoch(
+      int this.millisecondsSinceEpoch, [bool isUtc = false])
+      : this.isUtc = isUtc {
+    if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
+      throw new IllegalArgumentException(millisecondsSinceEpoch);
+    }
+    if (isUtc === null) {
+      throw new IllegalArgumentException(isUtc);
+    }
   }
 
   bool operator ==(Object other) {
     if (other is !DateImplementation) return false;
     DateImplementation otherDate = other;
-    return value == otherDate.value;
+    return millisecondsSinceEpoch == otherDate.millisecondsSinceEpoch;
   }
 
-  bool operator <(Date other) => value < other.value;
+  bool operator <(Date other)
+      => millisecondsSinceEpoch < other.millisecondsSinceEpoch;
 
-  bool operator <=(Date other) => value <= other.value;
+  bool operator <=(Date other)
+      => millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
 
-  bool operator >(Date other) => value > other.value;
+  bool operator >(Date other)
+      => millisecondsSinceEpoch > other.millisecondsSinceEpoch;
 
-  bool operator >=(Date other) => value >= other.value;
+  bool operator >=(Date other)
+      => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
 
-  int compareTo(Date other) => value.compareTo(other.value);
-  int hashCode() => value;
+  int compareTo(Date other)
+      => millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);
+
+  int hashCode() => millisecondsSinceEpoch;
 
   Date toLocal() {
-    if (isUtc()) return new DateImplementation.fromEpoch(value, false);
+    if (isUtc) {
+      return new DateImplementation.fromMillisecondsSinceEpoch(
+          millisecondsSinceEpoch, false);
+    }
     return this;
   }
 
   Date toUtc() {
-    if (isUtc()) return this;
-    return new DateImplementation.fromEpoch(value, true);
+    if (isUtc) return this;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        millisecondsSinceEpoch, true);
   }
 
   String get timeZoneName() {
-    if (isUtc()) return "UTC";
-    return _timeZoneName(value);
+    if (isUtc) return "UTC";
+    return _timeZoneName(millisecondsSinceEpoch);
   }
 
   Duration get timeZoneOffset() {
-    if (isUtc()) return new Duration(0);
-    int offsetInSeconds = _timeZoneOffsetInSeconds(value);
+    if (isUtc) return new Duration(0);
+    int offsetInSeconds = _timeZoneOffsetInSeconds(millisecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
   }
 
   int get year() {
-    return _decomposeIntoYearMonthDay(_localDateInUtcValue)[0];
+    return _decomposeIntoYearMonthDay(_localDateInUtcMs)[0];
   }
 
   int get month() {
-    return _decomposeIntoYearMonthDay(_localDateInUtcValue)[1];
+    return _decomposeIntoYearMonthDay(_localDateInUtcMs)[1];
   }
 
   int get day() {
-    return _decomposeIntoYearMonthDay(_localDateInUtcValue)[2];
+    return _decomposeIntoYearMonthDay(_localDateInUtcMs)[2];
   }
 
-  int get hours() {
-    int valueInHours = _flooredDivision(_localDateInUtcValue,
+  int get hour() {
+    int valueInHours = _flooredDivision(_localDateInUtcMs,
                                         Duration.MILLISECONDS_PER_HOUR);
     return valueInHours % Duration.HOURS_PER_DAY;
   }
 
-  int get minutes() {
-    int valueInMinutes = _flooredDivision(_localDateInUtcValue,
+  int get minute() {
+    int valueInMinutes = _flooredDivision(_localDateInUtcMs,
                                           Duration.MILLISECONDS_PER_MINUTE);
     return valueInMinutes % Duration.MINUTES_PER_HOUR;
   }
 
-  int get seconds() {
+  int get second() {
     // Seconds are unaffected by the timezone the user is in. So we can
-    // directly use the value and not the [_localDateInUtcValue].
+    // directly use the millisecondsSinceEpoch and not [_localDateInUtcMs].
     int valueInSeconds =
-        _flooredDivision(value, Duration.MILLISECONDS_PER_SECOND);
+        _flooredDivision(millisecondsSinceEpoch,
+                         Duration.MILLISECONDS_PER_SECOND);
     return valueInSeconds % Duration.SECONDS_PER_MINUTE;
   }
 
-  int get milliseconds() {
+  int get millisecond() {
     // Milliseconds are unaffected by the timezone the user is in. So we can
     // directly use the value and not the [_localDateInUtcValue].
-    return value % Duration.MILLISECONDS_PER_SECOND;
+    return millisecondsSinceEpoch % Duration.MILLISECONDS_PER_SECOND;
   }
 
+  /** Returns the weekday of [this]. In accordance with ISO 8601 a week
+    * starts with Monday. Monday has the value 1 up to Sunday with 7. */
   int get weekday() {
     int daysSince1970 =
-        _flooredDivision(_localDateInUtcValue, Duration.MILLISECONDS_PER_DAY);
+        _flooredDivision(_localDateInUtcMs, Duration.MILLISECONDS_PER_DAY);
     // 1970-1-1 was a Thursday.
-    return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
+    return ((daysSince1970 + Date.THU - Date.MON) % Date.DAYS_IN_WEEK) +
+        Date.MON;
   }
-
-  bool isUtc() => _isUtc;
 
   String toString() {
     String fourDigits(int n) {
@@ -191,11 +211,11 @@ class DateImplementation implements Date {
     String y = fourDigits(year);
     String m = twoDigits(month);
     String d = twoDigits(day);
-    String h = twoDigits(hours);
-    String min = twoDigits(minutes);
-    String sec = twoDigits(seconds);
-    String ms = threeDigits(milliseconds);
-    if (isUtc()) {
+    String h = twoDigits(hour);
+    String min = twoDigits(minute);
+    String sec = twoDigits(second);
+    String ms = threeDigits(millisecond);
+    if (isUtc) {
       return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
       return "$y-$m-$d $h:$min:$sec.$ms";
@@ -204,19 +224,23 @@ class DateImplementation implements Date {
 
   /** Returns a new [Date] with the [duration] added to [this]. */
   Date add(Duration duration) {
-    return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
-                                            isUtc());
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        ms + duration.inMilliseconds, isUtc);
   }
 
   /** Returns a new [Date] with the [duration] subtracted from [this]. */
   Date subtract(Duration duration) {
-    return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
-                                            isUtc());
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        ms - duration.inMilliseconds, isUtc);
   }
 
   /** Returns a [Duration] with the difference of [this] and [other]. */
   Duration difference(Date other) {
-    return new DurationImplementation(milliseconds: value - other.value);
+    int ms = millisecondsSinceEpoch;
+    int otherMs = other.millisecondsSinceEpoch;
+    return new DurationImplementation(milliseconds: ms - otherMs);
   }
 
   /** The first list contains the days until each month in non-leap years. The
@@ -275,25 +299,26 @@ class DateImplementation implements Date {
   }
 
   /**
-   * Returns the amount of milliseconds in UTC that represent the same values as
-   * [this].
+   * Returns the amount of milliseconds in UTC that represent the same values
+   * as [this].
    *
    * Say [:t:] is the result of this function, then
-   * * [:this.year == new Date.fromEpoch(t, isUtc: true).year:],
-   * * [:this.month == new Date.fromEpoch(t, isUtc: true).month:],
-   * * [:this.day == new Date.fromEpoch(t, isUtc: true).day:],
-   * * [:this.hours == new Date.fromEpoch(t, isUtc: true).hours:],
+   * * [:this.year == new Date.fromMillisecondsSinceEpoch(t, true).year:],
+   * * [:this.month == new Date.fromMillisecondsSinceEpoch(t, true).month:],
+   * * [:this.day == new Date.fromMillisecondsSinceEpoch(t, true).day:],
+   * * [:this.hour == new Date.fromMillisecondsSinceEpoch(t, true).hour:],
    * * ...
    *
    * Daylight savings is computed as if the date was computed in [1970..2037].
-   * If [this] lies outside this range then it is a year with similar properties
-   * (leap year, weekdays) is used instead.
+   * If [this] lies outside this range then it is a year with similar
+   * properties (leap year, weekdays) is used instead.
    */
-  int get _localDateInUtcValue() {
-    if (isUtc()) return value;
+  int get _localDateInUtcMs() {
+    int ms = millisecondsSinceEpoch;
+    if (isUtc) return ms;
     int offset =
-        _timeZoneOffsetInSeconds(value) * Duration.MILLISECONDS_PER_SECOND;
-    return value + offset;
+        _timeZoneOffsetInSeconds(ms) * Duration.MILLISECONDS_PER_SECOND;
+    return ms + offset;
   }
 
   static int _flooredDivision(int a, int b) {
@@ -316,16 +341,16 @@ class DateImplementation implements Date {
 
   static _brokenDownDateToMillisecondsSinceEpoch(
       int years, int month, int day,
-      int hours, int minutes, int seconds, int milliseconds,
+      int hour, int minute, int second, int millisecond,
       bool isUtc) {
     if ((month < 1) || (month > 12)) return null;
     if ((day < 1) || (day > 31)) return null;
-    // Leap seconds can lead to hours == 24.
-    if ((hours < 0) || (hours > 24)) return null;
-    if ((hours == 24) && ((minutes != 0) || (seconds != 0))) return null;
-    if ((minutes < 0) || (minutes > 59)) return null;
-    if ((seconds < 0) || (seconds > 59)) return null;
-    if ((milliseconds < 0) || (milliseconds > 999)) return null;
+    // Leap seconds can lead to hour == 24.
+    if ((hour < 0) || (hour > 24)) return null;
+    if ((hour == 24) && ((minute != 0) || (second != 0))) return null;
+    if ((minute < 0) || (minute > 59)) return null;
+    if ((second < 0) || (second > 59)) return null;
+    if ((millisecond < 0) || (millisecond > 999)) return null;
 
     // First compute the seconds in UTC, independent of the [isUtc] flag. If
     // necessary we will add the time-zone offset later on.
@@ -333,10 +358,10 @@ class DateImplementation implements Date {
     days += _DAYS_UNTIL_MONTH[_isLeapYear(years) ? 1 : 0][month - 1];
     days += _dayFromYear(years);
     int millisecondsSinceEpoch = days * Duration.MILLISECONDS_PER_DAY +
-        hours * Duration.MILLISECONDS_PER_HOUR +
-        minutes * Duration.MILLISECONDS_PER_MINUTE+
-        seconds * Duration.MILLISECONDS_PER_SECOND +
-        milliseconds;
+        hour * Duration.MILLISECONDS_PER_HOUR +
+        minute * Duration.MILLISECONDS_PER_MINUTE+
+        second * Duration.MILLISECONDS_PER_SECOND +
+        millisecond;
 
     // Since [_timeZoneOffsetInSeconds] will crash if the input is far out of
     // the valid range we do a preliminary test that weeds out values that can
@@ -344,7 +369,7 @@ class DateImplementation implements Date {
     // The timezone adjustment is always less than a day, so adding a security
     // margin of one day should be enough.
     if (millisecondsSinceEpoch.abs() >
-        (_MAX_VALUE + Duration.MILLISECONDS_PER_DAY)) {
+        (_MAX_MILLISECONDS_SINCE_EPOCH + Duration.MILLISECONDS_PER_DAY)) {
       return null;
     }
 
@@ -357,7 +382,9 @@ class DateImplementation implements Date {
           _timeZoneOffsetInSeconds(millisecondsSinceEpoch - adjustment);
       millisecondsSinceEpoch -= zoneOffset * Duration.MILLISECONDS_PER_SECOND;
     }
-    if (millisecondsSinceEpoch.abs() > _MAX_VALUE) return null;
+    if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
+      return null;
+    }
     return millisecondsSinceEpoch;
   }
 
@@ -448,8 +475,8 @@ class DateImplementation implements Date {
     return _timeZoneNameForClampedSeconds(equivalentSeconds);
   }
 
-  final bool _isUtc;
-  final int value;
+  final bool isUtc;
+  final int millisecondsSinceEpoch;
 
   // Natives
   static int _getCurrentMs() native "DateNatives_currentTimeMillis";

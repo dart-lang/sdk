@@ -98,7 +98,7 @@ class _Random implements Random {
   int _nextSeed() {
     if (_prng == null) {
       // TODO(iposva): Use system to get a random seed.
-      _prng = new _Random(new Date.now().value);
+      _prng = new _Random(new Date.now().millisecondsSinceEpoch);
     }
     // Trigger the PRNG once to change the internal state.
     _prng._nextInt32();

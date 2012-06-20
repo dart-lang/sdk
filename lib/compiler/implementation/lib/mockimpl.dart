@@ -175,26 +175,26 @@ class StringBase {
 }
 
 class DateImplementation implements Date {
-  final int value;
-  final bool _isUtc;
+  final int millisecondsSinceEpoch;
+  final bool isUtc;
 
   DateImplementation(int years,
                      [int month = 1,
                       int day = 1,
-                      int hours = 0,
-                      int minutes = 0,
-                      int seconds = 0,
-                      int milliseconds = 0,
+                      int hour = 0,
+                      int minute = 0,
+                      int second = 0,
+                      int millisecond = 0,
                       bool isUtc = false])
-      : this._isUtc = checkNull(isUtc),
-        value = Primitives.valueFromDecomposedDate(
-            years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
+      : this.isUtc = checkNull(isUtc),
+        millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
+            years, month, day, hour, minute, second, millisecond, isUtc) {
     _asJs();
   }
 
   DateImplementation.now()
-      : _isUtc = false,
-        value = Primitives.dateNow() {
+      : isUtc = false,
+        millisecondsSinceEpoch = Primitives.dateNow() {
     _asJs();
   }
 
@@ -228,70 +228,85 @@ class DateImplementation implements Date {
       int years = Math.parseInt(match[1]);
       int month = Math.parseInt(match[2]);
       int day = Math.parseInt(match[3]);
-      int hours = parseIntOrZero(match[4]);
-      int minutes = parseIntOrZero(match[5]);
-      int seconds = parseIntOrZero(match[6]);
+      int hour = parseIntOrZero(match[4]);
+      int minute = parseIntOrZero(match[5]);
+      int second = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int milliseconds = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
-      if (milliseconds == 1000) {
+      int millisecond = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
+      if (millisecond == 1000) {
         addOneMillisecond = true;
-        milliseconds = 999;
+        millisecond = 999;
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
-      int epochValue = Primitives.valueFromDecomposedDate(
-          years, month, day, hours, minutes, seconds, milliseconds, isUtc);
-      if (epochValue === null) {
+      int millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
+          years, month, day, hour, minute, second, millisecond, isUtc);
+      if (millisecondsSinceEpoch === null) {
         throw new IllegalArgumentException(formattedString);
       }
-      if (addOneMillisecond) epochValue++;
-      return new DateImplementation.fromEpoch(epochValue, isUtc);
+      if (addOneMillisecond) millisecondsSinceEpoch++;
+      return new DateImplementation.fromMillisecondsSinceEpoch(
+          millisecondsSinceEpoch, isUtc);
     } else {
       throw new IllegalArgumentException(formattedString);
     }
   }
 
-  static final int _MAX_VALUE = 8640000000000000;
+  static final int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
-  DateImplementation.fromEpoch(this.value, [bool isUtc = false])
-      : _isUtc = checkNull(isUtc) {
-    if (value.abs() > _MAX_VALUE) throw new IllegalArgumentException(value);
+  DateImplementation.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch,
+                                                [bool isUtc = false])
+      : this.isUtc = checkNull(isUtc) {
+    if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
+      throw new IllegalArgumentException(millisecondsSinceEpoch);
+    }
   }
 
   bool operator ==(other) {
     if (!(other is DateImplementation)) return false;
-    return (value == other.value);
+    int ms = millisecondsSinceEpoch;
+    int otherMs = other.millisecondsSinceEpoch;
+    return (ms == otherMs);
   }
 
-  bool operator <(Date other) => value < other.value;
+  bool operator <(Date other)
+      => millisecondsSinceEpoch < other.millisecondsSinceEpoch;
 
-  bool operator <=(Date other) => value <= other.value;
+  bool operator <=(Date other)
+      => millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
 
-  bool operator >(Date other) => value > other.value;
+  bool operator >(Date other)
+      => millisecondsSinceEpoch > other.millisecondsSinceEpoch;
 
-  bool operator >=(Date other) => value >= other.value;
+  bool operator >=(Date other)
+      => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
 
-  int compareTo(Date other) => value.compareTo(other.value);
+  int compareTo(Date other)
+      => millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);
 
-  int hashCode() => value;
+  int hashCode() => millisecondsSinceEpoch;
 
   Date toLocal() {
-    if (isUtc()) return new DateImplementation.fromEpoch(value, false);
+    if (isUtc) {
+      int ms = millisecondsSinceEpoch;
+      return new DateImplementation.fromMillisecondsSinceEpoch(ms, false);
+    }
     return this;
   }
 
   Date toUtc() {
-    if (isUtc()) return this;
-    return new DateImplementation.fromEpoch(value, true);
+    if (isUtc) return this;
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(ms, true);
   }
 
   String get timeZoneName() {
-    if (isUtc()) return "UTC";
+    if (isUtc) return "UTC";
     return Primitives.getTimeZoneName(this);
   }
 
   Duration get timeZoneOffset() {
-    if (isUtc()) return new Duration(0);
+    if (isUtc) return new Duration(0);
     return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
 
@@ -301,21 +316,19 @@ class DateImplementation implements Date {
 
   int get day() => Primitives.getDay(this);
 
-  int get hours() => Primitives.getHours(this);
+  int get hour() => Primitives.getHours(this);
 
-  int get minutes() => Primitives.getMinutes(this);
+  int get minute() => Primitives.getMinutes(this);
 
-  int get seconds() => Primitives.getSeconds(this);
+  int get second() => Primitives.getSeconds(this);
 
-  int get milliseconds() => Primitives.getMilliseconds(this);
+  int get millisecond() => Primitives.getMilliseconds(this);
 
   int get weekday() {
     // Adjust by one because JS weeks start on Sunday.
     var day = Primitives.getWeekday(this);
-    return (day + 6) % 7;
+    return (day + 6) % 7 + Date.MON;
   }
-
-  bool isUtc() => _isUtc;
 
   String toString() {
     String fourDigits(int n) {
@@ -342,11 +355,11 @@ class DateImplementation implements Date {
     String y = fourDigits(year);
     String m = twoDigits(month);
     String d = twoDigits(day);
-    String h = twoDigits(hours);
-    String min = twoDigits(minutes);
-    String sec = twoDigits(seconds);
-    String ms = threeDigits(milliseconds);
-    if (isUtc()) {
+    String h = twoDigits(hour);
+    String min = twoDigits(minute);
+    String sec = twoDigits(second);
+    String ms = threeDigits(millisecond);
+    if (isUtc) {
       return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
       return "$y-$m-$d $h:$min:$sec.$ms";
@@ -355,22 +368,23 @@ class DateImplementation implements Date {
 
   // Adds the [duration] to this Date instance.
   Date add(Duration duration) {
-    checkNull(duration);
-    return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
-                                            isUtc());
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        ms + duration.inMilliseconds, isUtc);
   }
 
   // Subtracts the [duration] from this Date instance.
   Date subtract(Duration duration) {
-    checkNull(duration);
-    return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
-                                            isUtc());
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        ms - duration.inMilliseconds, isUtc);
   }
 
   // Returns a [Duration] with the difference of [this] and [other].
   Duration difference(Date other) {
-    checkNull(other);
-    return new Duration(milliseconds: value - other.value);
+    int ms = millisecondsSinceEpoch;
+    int otherMs = other.millisecondsSinceEpoch;
+    return new DurationImplementation(milliseconds: ms - otherMs);
   }
 
   // Lazily keep a JS Date stored in the dart object.
