@@ -36,9 +36,15 @@ class AbstractScanner<T extends SourceString> implements Scanner {
 
   /**
    * We call this method to discard '<' from the "grouping" stack
-   * (maintained by subclasses). That we don't create groups for stuff
-   * like "a = b < c, d = e > f" is used by
-   * [PartialParser.skipExpression].
+   * (maintained by subclasses).
+   *
+   * [PartialParser.skipExpression] relies on the fact that we do not
+   * create groups for stuff like:
+   * [:a = b < c, d = e > f:].
+   *
+   * In other words, this method is called when the scanner recognizes
+   * something which cannot possibly be part of a type
+   * parameter/argument list.
    */
   abstract void discardOpenLt();
 
