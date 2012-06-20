@@ -1393,6 +1393,7 @@ void Assembler::StoreIntoObject(Register object,
   // required when storing a smi or an old object.
   testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
   j(PARITY_ODD, &done, Assembler::kNearJump);
+  j(ZERO, &done, Assembler::kNearJump);
   // Check that 'object' is an old object.  A store buffer update is
   // not required when storing into a new object.
   testl(object, Immediate(kNewObjectAlignmentOffset));

@@ -1862,7 +1862,7 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, entry) {
       GrowableObjectArray::New(old_array, Heap::kOld));
   const GrowableObjectArray& grow_new_array = GrowableObjectArray::Handle(
       GrowableObjectArray::New(old_array, Heap::kNew));
-  const Smi& smi = Smi::Handle(Smi::New(7));
+  Smi& smi = Smi::Handle();
   const Context& ctx = Context::Handle(Context::New(0));
 
   EXPECT(old_array.raw() == grow_old_array.data());
@@ -1874,12 +1874,15 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, entry) {
       reinterpret_cast<uword>(grow_new_array.raw()) +
       GrowableObjectArray::data_offset() - kHeapObjectTag));
 
-  // Store Smi into the old object.
-  test_code(ctx.raw(), smi.raw(), grow_old_array.raw());
-  EXPECT(reinterpret_cast<RawArray*>(smi.raw()) == grow_old_array.data());
-  EXPECT(!Isolate::Current()->store_buffer()->Contains(
-      reinterpret_cast<uword>(grow_old_array.raw()) +
-      GrowableObjectArray::data_offset() - kHeapObjectTag));
+  // Store Smis into the old object.
+  for (int i = -32; i < 32; i++) {
+    smi = Smi::New(i);
+    test_code(ctx.raw(), smi.raw(), grow_old_array.raw());
+    EXPECT(reinterpret_cast<RawArray*>(smi.raw()) == grow_old_array.data());
+    EXPECT(!Isolate::Current()->store_buffer()->Contains(
+        reinterpret_cast<uword>(grow_old_array.raw()) +
+        GrowableObjectArray::data_offset() - kHeapObjectTag));
+  }
 
   // Store an old object into the old object.
   test_code(ctx.raw(), old_array.raw(), grow_old_array.raw());
