@@ -21,8 +21,16 @@ out/
 war/
 bin/
 client/outcode/
-Release_*/
-Debug_*/
+DebugIA32/
+Debug/
+DebugARM/
+DebugSIMARM/
+DebugX64/
+Release/
+ReleaseARM/
+ReleaseIA32/
+ReleaseSIMARM/
+ReleaseX64/
 
 # Swarm sample app output directory
 /client/outcode

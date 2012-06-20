@@ -106,21 +106,20 @@ class Namer {
   }
 
   String getFreshGlobalName(String proposedName) {
-    int usedCount = usedGlobals[proposedName];
-    if (usedCount === null) {
-      // No element with this name has been used before.
-      usedGlobals[proposedName] = 1;
-      return proposedName;
-    } else {
+    String name = proposedName;
+    int count = usedGlobals[name];
+    if (count !== null) {
       // Not the first time we see this name. Append a number to make it unique.
-      String name;
       do {
-        usedCount++;
-        name = '$proposedName$usedCount';
+        name = '$proposedName${count++}';
       } while (usedGlobals[name] !== null);
-      usedGlobals[proposedName] = usedCount;
-      return name;
+      // Record the count in case we see this name later. We
+      // frequently see names multiple times, as all our closures use
+      // the same name for their class.
+      usedGlobals[proposedName] = count;
     }
+    usedGlobals[name] = 0;
+    return name;
   }
 
   static final String LIBRARY_PREFIX = "lib";
