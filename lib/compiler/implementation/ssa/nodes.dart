@@ -992,6 +992,10 @@ abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput() => inputs[0];
   bool isStatement() => true;
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
 }
 
 class HTypeGuard extends HCheck {
@@ -1001,11 +1005,6 @@ class HTypeGuard extends HCheck {
   int checkedInputIndex = 0;
 
   HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
-
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
 
   HInstruction get guarded() => inputs[checkedInputIndex];
   HInstruction get checkedInput() => guarded;
@@ -1043,11 +1042,6 @@ class HBoundsCheck extends HCheck {
   HInstruction get index() => inputs[0];
   bool isControlFlow() => true;
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
-
   HType get guaranteedType() => HType.INTEGER;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
@@ -1063,11 +1057,6 @@ class HIntegerCheck extends HCheck {
 
   HInstruction get value() => inputs[0];
   bool isControlFlow() => true;
-
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
 
   HType get guaranteedType() => HType.INTEGER;
 
@@ -1242,7 +1231,8 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   void prepareGvn() {
     if (isLengthGetterOnStringOrArray()) {
-      clearAllSideEffects();
+      setUseGvn();
+      setDependsOnSomething();
     } else {
       setAllSideEffects();
     }
@@ -2291,7 +2281,6 @@ class HTypeConversion extends HCheck {
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool hasSideEffects() => kind != NO_CHECK;
   bool isStatement() => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 }
