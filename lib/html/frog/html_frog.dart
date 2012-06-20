@@ -6994,7 +6994,7 @@ class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
   void write(_BlobImpl data) native;
 }
 
-class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num> native "*Float32Array" {
+class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num>, JavaScriptIndexingBehavior native "*Float32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -7085,7 +7085,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   _Float32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num> native "*Float64Array" {
+class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num>, JavaScriptIndexingBehavior native "*Float64Array" {
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -8018,7 +8018,7 @@ class _InputElementEventsImpl extends _ElementEventsImpl implements InputElement
   EventListenerList get speechChange() => _get('webkitSpeechChange');
 }
 
-class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int> native "*Int16Array" {
+class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int>, JavaScriptIndexingBehavior native "*Int16Array" {
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -8109,7 +8109,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   _Int16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int> native "*Int32Array" {
+class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int>, JavaScriptIndexingBehavior native "*Int32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -8200,7 +8200,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   _Int32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int> native "*Int8Array" {
+class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int>, JavaScriptIndexingBehavior native "*Int8Array" {
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -14887,7 +14887,7 @@ class _UListElementImpl extends _ElementImpl implements UListElement native "*HT
   String type;
 }
 
-class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int> native "*Uint16Array" {
+class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int>, JavaScriptIndexingBehavior native "*Uint16Array" {
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -14978,7 +14978,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   _Uint16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int> native "*Uint32Array" {
+class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int>, JavaScriptIndexingBehavior native "*Uint32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -15069,7 +15069,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   _Uint32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int> native "*Uint8Array" {
+class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int>, JavaScriptIndexingBehavior native "*Uint8Array" {
 
   static final int BYTES_PER_ELEMENT = 1;
 
