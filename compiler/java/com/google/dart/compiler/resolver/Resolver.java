@@ -1041,7 +1041,7 @@ public class Resolver {
 
       return recordElement(x, element);
     }
-    
+
     /**
      * Possibly recursive check on the resolved identifier.
      */
@@ -1134,7 +1134,6 @@ public class Resolver {
                   onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
                 }
               }
-
               break;
 
             case NONE:
@@ -1201,6 +1200,17 @@ public class Resolver {
                 x.getPropertyName(), qualifier.getName());
           }
           break;
+
+        case NONE: {
+          // TODO(zundel): This is a bit awkward.  Maybe it would be better to have an
+          // ElementKind of THIS just like we have for SUPER?
+          if (x.getQualifier() instanceof DartThisExpression) {
+            Element foundElement = Elements.findElement(currentHolder, x.getPropertyName());
+            if (foundElement != null && !foundElement.getModifiers().isStatic()) {
+              element = foundElement;
+            }
+          }
+        }
 
         default:
           break;
@@ -1913,7 +1923,7 @@ public class Resolver {
 
       checkConstructor(node, constructorElement);
     }
-    
+
     private void onError(HasSourceInfo target, ErrorCode errorCode, Object... arguments) {
       context.onError(target, errorCode, arguments);
     }

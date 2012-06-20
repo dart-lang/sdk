@@ -63,7 +63,7 @@ public class Elements {
           Token.ASSIGN_DIV,
           Token.ASSIGN_MOD,
           Token.ASSIGN_TRUNC);
-  
+
   private Elements() {} // Prevent subclassing and instantiation.
 
   static void setParameterInitializerElement(VariableElement varElement, FieldElement element) {
@@ -166,7 +166,7 @@ public class Elements {
     ((MethodElementImplementation) method).addParameter(parameter);
   }
 
-  static Element findElement(ClassElement cls, String name) {
+  static Element findElement(EnclosingElement cls, String name) {
     if (cls instanceof  ClassElementImplementation) {
       return ((ClassElementImplementation) cls).findElement(name);
     }
@@ -195,7 +195,7 @@ public class Elements {
   public static void setType(Element element, Type type) {
     ((AbstractNodeElement) element).setType(type);
   }
-  
+
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,
                                                   Modifiers modifiers) {
@@ -292,14 +292,14 @@ static FieldElementImplementation fieldFromNode(DartField node,
         }
       }
       if (classHolder.getSupertype() != null) {
-        MethodElement result = lookupFieldElementGetter(classHolder.getSupertype().getElement(), 
+        MethodElement result = lookupFieldElementGetter(classHolder.getSupertype().getElement(),
             name);
         if (result != null) {
           return result;
         }
       }
     }
-    
+
     return null;
   }
 
@@ -325,7 +325,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
         }
       }
       if (classHolder.getSupertype() != null) {
-        MethodElement result = lookupFieldElementSetter(classHolder.getSupertype().getElement(), 
+        MethodElement result = lookupFieldElementSetter(classHolder.getSupertype().getElement(),
             name);
         if (result != null) {
           return result;
@@ -628,7 +628,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return null;
   }
-  
+
   /**
    * @return <code>true</code> if "element" is accessible in "scopeLibrary".
    */
@@ -638,12 +638,12 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return true;
   }
-  
+
   /**
    * Looks to see if the property access requires a getter.
-   * 
+   *
    * A property access requires a getter if it is on the right hand side of an assignment,
-   * or if it is on the left hand side of an assignment and uses one of the assignment 
+   * or if it is on the left hand side of an assignment and uses one of the assignment
    * operators other than plain '='.
    */
   public static boolean inGetterContext(DartNode node) {
@@ -653,15 +653,15 @@ static FieldElementImplementation fieldFromNode(DartField node,
         return false;
       }
     }
-    return true;    
+    return true;
   }
-  
+
   /**
    * Looks to see if the property access requires a setter.
-   * 
+   *
    * Basically, this boils down to any property access on the left hand side of an assignment.
-   * 
-   * Keep in mind that an assignment of the form node = <expr> is the only kind of write-only 
+   *
+   * Keep in mind that an assignment of the form node = <expr> is the only kind of write-only
    * expression. Other types of assignments also read the value and require a getter access.
    */
   public static boolean inSetterContext(DartNode node) {
@@ -673,7 +673,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
-  
+
   /**
    * @return <code>true</code> if given {@link Element} if {@link MethodElement} for artificial
    *         "assert" statement.

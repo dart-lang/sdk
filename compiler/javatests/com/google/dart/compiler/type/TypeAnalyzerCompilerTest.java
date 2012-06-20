@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -46,6 +43,9 @@ import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * slower, not actually unit test, but easier to use if you need access to DartNode's.
  */
 public class TypeAnalyzerCompilerTest extends CompilerTestCase {
-  
+
   /**
    * Top-level "main" function should not have parameters.
    * <p>
@@ -106,7 +106,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.source.indexOf("call() => 42"),
         element.getNameLocation().getOffset());
   }
-  
+
   /**
    * It is a compile-time error if a typedef refers to itself via a chain of references that does
    * not include a class or interface type.
@@ -1186,6 +1186,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "const f = 1;",
             "class A {",
             "  const f = 1;",
+            "  method() {",
+            "    f = 2;",
+            "    this.f = 2;",
+            "  }",
             "}",
             "main() {",
             "  f = 2;",
@@ -1195,8 +1199,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             ""));
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 3, 1),
-        errEx(TypeErrorCode.FIELD_IS_FINAL, 9, 5, 1));
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 6, 5, 1),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 5, 6),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
   
   /**
@@ -1714,7 +1720,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertErrors(result.getErrors());
     }
   }
-  
+
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",
@@ -1794,7 +1800,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v1", "String");
     assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
-  
+
   /**
    * Even if there is negation, we still apply "as" cast, so visit "then" statement only if cast was
    * successful.
