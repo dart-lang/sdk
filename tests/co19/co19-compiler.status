@@ -9,8 +9,12 @@ Language/03_Overview/1_Scoping_A02_t30: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A02_t31: Fail # Issue 3474
 Language/03_Overview/1_Scoping_A03_t04: Fail # co19 issue 143
 Language/03_Overview/1_Scoping_A03_t05: Fail # co19 issue 144
-Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 3783
-Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 3793
+Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 2383 
+Language/03_Overview/2_Privacy_A01_t09: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t10: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
 Language/05_Variables/05_Variables_A01_t01: Fail # Issue 3323
 Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
@@ -112,6 +116,7 @@ Language/11_Statements/13_Continue_A02_t13: Fail # Issue 2441
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue 2383
 Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
