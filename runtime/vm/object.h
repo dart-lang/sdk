@@ -1468,7 +1468,26 @@ class Function : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const;
+                   Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
+
+  // Returns true if the type of this function is more specific than the type of
+  // the other function.
+  bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
+                          const Function& other,
+                          const AbstractTypeArguments& other_type_arguments,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
 
   // Returns true if this function represents a (possibly implicit) closure
   // function.
@@ -1542,15 +1561,22 @@ class Function : public Object {
   RawString* BuildSignature(bool instantiate,
                             const AbstractTypeArguments& instantiator) const;
 
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractTypeArguments& type_arguments,
+                const Function& other,
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
+
   // Checks the type of the formal parameter at the given position for
-  // assignability relationship between the type of this function and the type
-  // of the other function.
-  bool TestParameterType(
-      intptr_t parameter_position,
-      const AbstractTypeArguments& type_arguments,
-      const Function& other,
-      const AbstractTypeArguments& other_type_arguments,
-      Error* malformed_error) const;
+  // subtyping or 'more specific' relationship between the type of this function
+  // and the type of the other function.
+  bool TestParameterType(TypeTestKind test_kind,
+                         intptr_t parameter_position,
+                         const AbstractTypeArguments& type_arguments,
+                         const Function& other,
+                         const AbstractTypeArguments& other_type_arguments,
+                         Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;

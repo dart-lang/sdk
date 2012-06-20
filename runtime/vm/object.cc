@@ -1790,10 +1790,11 @@ bool Class::TypeTest(
   if (IsSignatureClass() && other.IsSignatureClass()) {
     const Function& fun = Function::Handle(signature_function());
     const Function& other_fun = Function::Handle(other.signature_function());
-    return fun.IsSubtypeOf(type_arguments,
-                           other_fun,
-                           other_type_arguments,
-                           malformed_error);
+    return fun.TypeTest(test_kind,
+                        type_arguments,
+                        other_fun,
+                        other_type_arguments,
+                        malformed_error);
   }
   // Check for 'direct super type' in the case of an interface
   // (i.e. other.is_interface()) or implicit interface (i.e.
@@ -3770,20 +3771,21 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
 }
 
 
+// If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
+// of this function is a subtype or a supertype of the type of the corresponding
+// parameter of the other function.
+// If test_kind == kIsMoreSpecificThan, checks if the type of the specified
+// parameter of this function is more specific than the type of the
+// corresponding parameter of the other function.
+// Note that we do not apply contravariance of parameter types, but covariance
+// of both parameter types and result type.
 bool Function::TestParameterType(
+    TypeTestKind test_kind,
     intptr_t parameter_position,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
-  AbstractType& param_type =
-      AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments);
-  }
-  if (param_type.IsDynamicType()) {
-    return true;
-  }
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(parameter_position));
   if (!other_param_type.IsInstantiated()) {
@@ -3792,19 +3794,34 @@ bool Function::TestParameterType(
   if (other_param_type.IsDynamicType()) {
     return true;
   }
-  if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
-      !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
-    return false;
+  AbstractType& param_type =
+      AbstractType::Handle(ParameterTypeAt(parameter_position));
+  if (!param_type.IsInstantiated()) {
+    param_type = param_type.InstantiateFrom(type_arguments);
+  }
+  if (param_type.IsDynamicType()) {
+    return test_kind == kIsSubtypeOf;
+  }
+  if (test_kind == kIsSubtypeOf) {
+    if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
+        !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
+      return false;
+    }
+  } else {
+    ASSERT(test_kind == kIsMoreSpecificThan);
+    if (!param_type.IsMoreSpecificThan(other_param_type, malformed_error)) {
+      return false;
+    }
   }
   return true;
 }
 
 
-bool Function::IsSubtypeOf(
-    const AbstractTypeArguments& type_arguments,
-    const Function& other,
-    const AbstractTypeArguments& other_type_arguments,
-    Error* malformed_error) const {
+bool Function::TypeTest(TypeTestKind test_kind,
+                        const AbstractTypeArguments& type_arguments,
+                        const Function& other,
+                        const AbstractTypeArguments& other_type_arguments,
+                        Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
@@ -3823,16 +3840,25 @@ bool Function::IsSubtypeOf(
     if (!res_type.IsInstantiated()) {
       res_type = res_type.InstantiateFrom(type_arguments);
     }
-    if (!res_type.IsDynamicType() &&
-        (res_type.IsVoidType() ||
-         !(res_type.IsSubtypeOf(other_res_type, malformed_error) ||
-           other_res_type.IsSubtypeOf(res_type, malformed_error)))) {
+    if (res_type.IsVoidType()) {
       return false;
+    }
+    if (test_kind == kIsSubtypeOf) {
+      if (!res_type.IsSubtypeOf(other_res_type, malformed_error) &&
+          !other_res_type.IsSubtypeOf(res_type, malformed_error)) {
+        return false;
+      }
+    } else {
+      ASSERT(test_kind == kIsMoreSpecificThan);
+      if (!res_type.IsMoreSpecificThan(other_res_type, malformed_error)) {
+        return false;
+      }
     }
   }
   // Check the types of fixed parameters.
   for (intptr_t i = 0; i < num_fixed_params; i++) {
-    if (!TestParameterType(i, type_arguments, other, other_type_arguments,
+    if (!TestParameterType(test_kind,
+                           i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -3841,7 +3867,8 @@ bool Function::IsSubtypeOf(
   // Check that for each optional named parameter of type T of the other
   // function type, there is a corresponding optional named parameter of this
   // function at the same position with an identical name and with a type S
-  // that is a subtype or supertype of T.
+  // that is a either a subtype or supertype of T (if test_kind == kIsSubtypeOf)
+  // or that is more specific than T (if test_kind == kIsMoreSpecificThan).
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
   const intptr_t other_num_params =
@@ -3850,7 +3877,8 @@ bool Function::IsSubtypeOf(
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
-        !TestParameterType(i, type_arguments, other, other_type_arguments,
+        !TestParameterType(test_kind,
+                           i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
