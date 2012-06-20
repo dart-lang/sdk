@@ -34,6 +34,7 @@ arithmetic_test: Fail
 assertion_test: Fail, OK
 
 [ $compiler == dart2js ]
+fauxverride_test/none: Fail # TODO(ahe): I have pending CL to fix this.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
 exception_test: Fail # "throw null" throws NullPointerException.
@@ -139,8 +140,6 @@ empty_body_member_negative_test: Fail, OK # Negative language test.
 factory2_negative_test: Fail, OK # Negative language test.
 factory3_negative_test: Fail, OK # Negative language test.
 factory_negative_test: Fail, OK # Negative language test.
-fauxverride_test/03: Fail, OK # Negative language test.
-fauxverride_test/05: Fail, OK # Negative language test.
 field2_negative_test: Fail, OK # Negative language test.
 field3_negative_test: Fail, OK # Negative language test.
 field4_negative_test: Fail, OK # Negative language test.

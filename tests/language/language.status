@@ -10,7 +10,7 @@
 # failed on architectures other than the one you are working on.
 #
 # 1) Copy the old version of the test to
-#    tests/language/src/test_name_[dartc|vm|frog]_test.dart.
+#    tests/language/src/test_name_[dartc|vm]_test.dart.
 #    to maintain coverage.
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
@@ -56,11 +56,11 @@ prefix_core_test: Fail # Issue 3638.
 cascade_test: Pass,Fail  # Some cases pass, but for the wrong reason  
 cascade_precedence_test: Fail 
 
-# DartC or Frog specific tests that should not be run by the VM
+fauxverride_test/none: Fail # Issue 3778.
+
+# DartC specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
-*frog_test: Skip
-*frog_negative_test: Skip
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
@@ -111,16 +111,15 @@ third_test: Fail               # Issue 3659
 throw7_negative_test: Fail     # Issue 3654
 type_dartc_test: Fail          # Issue 2348
 type_variable_bounds_test/00: Fail # issue 3079
+fauxverride_test/none: Fail # Issue 3779.
 
 #
 # Add new dartc annotations above in alphabetical order
 #
 
-# VM or Frog specific tests that should not be run by DartC.
+# VM specific tests that should not be run by DartC.
 *vm_test: Skip
 *vm_negative_test: Skip
-*frog_test: Skip
-*frog_negative_test: Skip
 
 
 [ $compiler == none && $runtime == drt ]
@@ -130,236 +129,13 @@ richards_test: Fail
 string_escape1_negative_test: Skip
 gc_test: Skip # Issue 1487
 
-[ $compiler == frog && $unchecked ]
-bool_test: Fail # Issue 2092
-compile_time_constant_c_test/01: Fail # integers as keys in literal maps.
-operator4_test: Fail
-
-[ $compiler == frog ]
-bit_shift_test: Fail # Frog copies JS semantics: 499 >> 33 !== 0.
-static_initializer_type_error_test: Fail # Checked mode not implemented.
-exception_test: Fail # Issue 1785
-factory3_test: Fail # Issue 417
-factory2_negative_test: Fail
-call_through_null_getter_test: Fail # Throw ObjectNotClosure instead of NullPointerException.
-compile_time_constant_c_test/02: Fail # string-concatenated (+) keys in literal maps.
-compile_time_constant_d_test: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
-compile_time_constant_e_test: Fail
-compile_time_constant_g_test: Fail # compile time constants with super calls to optional arguments.
-compile_time_constant_k_test: Fail # Constant maps are not canonicalized correctly if the same key appears multiple times.
-compile_time_constant_l_test: Fail # final instance fields with default values are not initialized correctly.
-compile_time_constant_o_test: Fail # String constants with string-interpolation.
-compile_time_constant_p_test/01: Fail # Implicit super calls that don't match are not caught in compile-time constants.
-positive_bit_operations_test: Fail # Frog goes negative.
-disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
-double_to_string_as_exponential_test: Fail # fails due to -0.0.
-# Once the -0.0 in double_to_string_as_fixed_test is fixed it will probably need to
-# be moved to a
-# [ $compiler == frog ]
-# section.
-double_to_string_as_fixed_test: Fail # fails due to -0.0 and due to rounding in constant propagation.
-double_to_string_as_precision_test: Fail # fails due to -0.0.
-extend_type_parameter_negative_test: Skip # Issue 886
-extend_type_parameter2_negative_test: Skip # Issue 886
-final_syntax_test/none: Fail
-get_set_syntax_test/00: Fail # Issue 1571
-get_set_syntax_test/01: Fail # Issue 1571
-get_set_syntax_test/02: Fail # Issue 1571
-get_set_syntax_test/03: Fail # Issue 1571
-get_set_syntax_test/04: Fail # Issue 1571
-get_set_syntax_test/05: Fail # Issue 1571
-get_set_syntax_test/06: Fail # Issue 1571
-get_set_syntax_test/07: Fail # Issue 1571
-get_set_syntax_test/08: Fail # Issue 1571
-get_set_syntax_test/09: Fail # Issue 1571
-get_set_syntax_test/10: Fail # Issue 1571
-get_set_syntax_test/11: Fail # Issue 1571
-get_set_syntax_test/12: Fail # Issue 1571
-get_set_syntax_test/13: Fail # Issue 1571
-get_set_syntax_test/14: Fail # Issue 1571
-get_set_syntax_test/15: Fail # Issue 1571
-implement_type_tarameter_negative_test: Skip # Issue 887
-factory_implementation_test: Fail # Issue 523
-pseudo_kw_test: Fail  # Issue 356
-naming_test: Fail    # Issue 356
-duplicate_implements_test: Skip   # Issue 976
-double_to_string: Fail  # Prints "3" instead of "3.0".
-third_test: Fail # Issue 1511
-try_catch_syntax_test/08: Fail
-try_catch_syntax_test/09: Fail
-cond_expr_test: Fail
-string_interpolation8_test: Fail # Issue 2127
-super_field_access_test: Fail # Issue 1695
-compile_time_constant6_test: Fail
-constructor_redirect_test/01: Fail # Issue 2104.
-
-savannah_test: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
-
-# VM or DartC specific tests not to be run by Frog. See language.status
-*vm_test: Skip
-*vm_negative_test: Skip
-*dartc_test: Skip
-*dartc_negative_test: Skip
-# Currently, these patterns skip three tests:
-# math_vm_test - correctly skipped as this relies on VM guarantees
-#    - should add a version of this with the --enable_type_checks flag
-# type_vm_test - correctly skipped as this relies on detailed of TypeError
-# type_dartc_test - should pass, need refactoring to get frog safe version
-
-bit_operations_test: Fail  # relies on big integers not available in JS
-call_operator_test: Fail # Issue 1355
-call_through_getter_test: Fail
-char_escape_test: Fail # relies on 4 byte unicode not available in JS
-class_override_negative_test: Fail
-closure_shared_state_test: Fail
-const_objects_are_immutable_test: Fail
-default_factory_library_test: Fail    # Issue 514
-dynamic_test: Fail
-example_constructor_test: Fail
-constructor2_test: Fail
-constructor3_test: Fail
-constructor5_test: Fail    # Order of initializers.
-constructor6_test: Fail    # Parse failure in initializers.
-execute_finally6_test: Fail
-expect_test: Fail
-fauxverride_test/03: Fail
-fauxverride_test/05: Fail
-field3_negative_test: Fail  # Issue 729
-final_param_negative_test: Fail
-for2_test: Fail
-function_syntax_test: Fail
-function_test: Fail
-function_malformed_result_type_test: Fail
-function_type_alias_test: Fail
-function_type_alias2_test: Fail
-function_type_alias3_test: Fail
-function_type_alias4_test: Fail
-function_type_alias5_test/00: Fail
-function_type_alias5_test/01: Fail
-function_type_alias5_test/02: Fail
-function_type_alias6_test: Fail
-function_type_parameter2_test: Fail
-function_type_parameter_test: Fail
-generic_deep_test: Fail
-generic_instanceof_test: Fail
-generic_instanceof2_test: Fail
-generic_syntax_test: Fail
-generic_test: Fail
-generics_test: Fail
-getter_closure_execution_order_test: Pass # TODO(jmesserly): I don't think this is really passing in the static case
-implicit_scope_test: Fail
-implied_interface_test: Fail
-instanceof2_test: Fail
-instanceof3_test: Fail # Issue 2571
-interface_factory3_negative_test: Fail
-is_not_class4_negative_test: Fail
-label_test: Fail
-list_literal3_test: Fail # vm and frog throw different exceptions
-list_literal4_test: Fail # missing type checks on index operations
-list_test: Fail         # array bound checks not implemented
-local_function3_test: Fail
-local_function_test: Fail
-many_generic_instanceof_test: Fail
-map_literal4_test: Fail # missing checks on map index operations
-math_test: Fail
-method_override_test: Fail # checking on precise type rules for methods
-method_override2_test/00: Fail
-method_override2_test/01: Fail
-method_override2_test/02: Fail
-method_override2_test/03: Fail
-named_parameters_type_test: Fail
-named_parameters_with_conversions_test: Fail
-non_const_super_negative_test: Fail
-null_pointer_exception_test: Fail
-null_test: Fail
-null_to_string_test: Fail
-numbers_test: Fail
-override_field_test/01: Fail
-override_field_test/04: Fail
-override_method_with_field_test/01: Fail
-parameter_initializer5_negative_test: Fail  # Issue 581
-prefix101_test: Fail # Allow multiple imports with same prefix.
-prefix8_negative_test: Fail
-prefix9_negative_test: Fail
-prefix11_negative_test: Fail
-prefix16_test: Fail
-prefix20_negative_test: Fail
-private_member_test: Fail
-private_member1_negative_test: Fail
-private_member2_negative_test: Fail
-private_member3_negative_test: Fail
-private_test: Fail
-reg_exp3_test: Fail
-scope_negative_test: Fail
-script_negative_test: Fail
-super_implicit_closure_test: Fail
-super_test: Fail  # this is testing precise ordering of super constructor call
-switch_label_test: Fail
-type_checks_in_factory_method_test: Fail # Issue 925
-type_variable_bounds_test/10: Fail # Issue 2134
-type_variable_scope2_test: Fail # Issue 2395
-type_variable_scope3_test/00: Fail # Issue 2239
-type_variable_identifier_expression_negative_test: Fail # Issue 643
-type_variable_shadows_class: Fail # Issue 643
-wrong_number_type_arguments_test/00: Fail # Issue 2134
-implicit_this_test/01: Fail # Issue 376
-implicit_this_test/02: Fail # Issue 376
-implicit_this_test/03: Fail # Issue 376
-implicit_this_test/04: Fail # Issue 376
-implicit_this_test/none: Fail # Issue 376
-
-#Issue 1308
-named_parameters2_test: Fail
-named_parameters3_test: Fail
-named_parameters4_test: Fail
-
-string_escape4_negative_test: Fail # Issue 1352
-
-issue4515170_test: Fail
-
-[ $compiler == frog && $runtime == d8 ]
-string_escape1_negative_test: Fail # TODO(sra): investigate
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
 
-[ $compiler == frog && ($runtime == ff || $runtime == safari || $runtime == ie) ]
-closure3_test: Fail
-method_invocation_test: Fail
-private3_test: Fail
-stack_trace_test: Fail
-string_interpolate_npe_test: Fail
-
-# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
-# other browsers don't, so they eventually timeout. See issue 1515.
-# In any case, we shouldn't be relying on SyntaxError.
-label2_negative_test: Skip
-label3_negative_test: Skip
-label5_negative_test: Skip
-label6_negative_test: Skip
-label_test: Skip
-string_escape1_negative_test: Skip
-switch3_negative_test: Skip
-switch4_negative_test: Skip
-execute_finally6_test: Skip
-
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
 *: Skip
-
-[ $compiler == frog && $runtime == ff ]
-naming_test: Fail
-stack_overflow_test: Fail
-execute_finally7_test: Skip
-static_final_field2_negative_test: Skip
-
-[ $compiler == frog && $runtime == ff && $system == windows ]
-ct_const2_test: Pass,Fail  # Issue 2101
-
-[ $compiler == frog && $runtime == ie ]
-stack_overflow_test: Fail
-object_dynamic_method_test: Fail
-number_syntax_test: Fail
 
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
@@ -367,63 +143,8 @@ number_syntax_test: Fail
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-[ $compiler == frog && $unchecked ]
-private_member_test/01: Fail # test seems bad - see issue #353
-private_member_test/02: Fail # test seems bad - see issue #353
-private_member_test/03: Fail # test seems bad - see issue #353
-private_member_test/04: Fail # test seems bad - see issue #353
-type_variable_scope_test/00: Fail  # Issue 2395
-type_variable_scope_test/01: Fail  # Issue 2395
-type_variable_scope_test/02: Fail  # Issue 2395
-type_variable_scope_test/03: Fail  # Issue 2395
-type_variable_scope_test/04: Fail  # Issue 2395
-type_variable_scope_test/05: Fail  # Issue 2395
-
-[ $compiler == frog && $checked ]
-f_bounded_quantification_test/01: Fail # Issue 439
-f_bounded_quantification_test/02: Fail # Issue 439
-private_member_test/none: Fail # test seems bad - see issue #353
-assign_static_type_test/01: Fail # Unrecognized option: --no-enable-type-checks.
-assign_static_type_test/02: Fail # Unrecognized option: --no-enable-type-checks.
-assign_static_type_test/03: Fail # Unrecognized option: --no-enable-type-checks.
-assign_static_type_test/04: Fail # Unrecognized option: --no-enable-type-checks.
-default_factory2_test/01: Fail # Issue 1380
-type_variable_bounds_test/01: Fail # Issue 2135
-type_variable_bounds_test/02: Fail # Issue 2135
-type_variable_bounds_test/04: Fail # Issue 2135
-type_variable_bounds_test/05: Fail # Issue 2135
-type_variable_bounds2_test/00: Fail # Issue 2135
-type_variable_bounds2_test/03: Fail # Issue 2135
-type_variable_bounds2_test/05: Fail # Issue 2135
-
-[ $compiler == frog && $runtime == d8 ]
-# these tests are inconsistent in frogium, investigate
-static_field1_run_negative_test: Pass
-static_field2_run_negative_test: Pass
-syntax_test/28: Fail # Issue 1109
-syntax_test/29: Fail # Issue 1109
-syntax_test/31: Fail # Issue 1109
-syntax_test/32: Fail # Issue 1109
-syntax_test/33: Fail # Issue 1109
-literal_unary_plus_test/01: Fail # Issue 1400
-
-[ $compiler == frog ]
-string_escape3_negative_test: Fail # Issue 1352
-
-[ $compiler == frog && $runtime == drt ]
-# these tests are inconsistent in frogium, investigate
-static_field1_run_negative_test: Pass # but error is not correct
-static_field2_run_negative_test: Pass # but error is not correct
-
-[ $compiler == frog && $mode == debug ]
-constructor_redirect1_negative_test: Skip # Undiagnosed infinite loop.
-constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
-
 [ $browser ]
 prefix_core_test: Fail # Issue 2264.
-
-[ $compiler == frog && $runtime == none ]
-*: Skip
 
 [ $arch == simarm ]
 *: Skip
