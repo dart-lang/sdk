@@ -30,7 +30,6 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'dart2js',
-        'compiler',
       ],
       'actions': [
         {
@@ -42,7 +41,6 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js',
             '<(PRODUCT_DIR)/dart2js.bat',
-            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart-sdk/create.stamp',
@@ -53,7 +51,21 @@
             '<(PRODUCT_DIR)/dart-sdk',
           ],
           'message': 'Creating SDK.',
+          'conditions' : [
+            ['(OS=="linux" or OS=="mac") ', {
+              'inputs' : [
+                '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
+              ],
+            }],
+          ],
         },
+      ],
+      'conditions' : [
+        ['(OS=="linux" or OS=="mac") ', {
+          'dependencies': [
+            'compiler',
+          ],
+        }],
       ],
     },
     {

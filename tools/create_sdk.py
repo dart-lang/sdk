@@ -95,6 +95,12 @@ def Copy(src, dest):
   copyfile(src, dest)
   copymode(src, dest)
 
+# TODO(zundel): this excludes the analyzer from the sdk build until builders
+# have all prerequisite software installed.  Also update dart.gyp.
+def ShouldCopyAnalyzer():
+  os = utils.GuessOS(); 
+  return os == 'linux' or os == 'macos'
+
 
 def CopyShellScript(src_file, dest_dir):
   '''Copies a shell/batch script to the given destination directory. Handles
@@ -192,12 +198,14 @@ def Main(argv):
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
 
-  ANALYZER_HOME = join(HOME, build_dir, 'analyzer')
-  dart_analyzer_src_binary = join(ANALYZER_HOME, 'bin', 'dart_analyzer')
-  dart_analyzer_dest_binary = join(BIN,
-      'dart_analyzer' + analyzer_file_extension)
-  copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
-  copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
+  if ShouldCopyAnalyzer():
+    # Copy analyzer into sdk/bin
+    ANALYZER_HOME = join(HOME, build_dir, 'analyzer')
+    dart_analyzer_src_binary = join(ANALYZER_HOME, 'bin', 'dart_analyzer')
+    dart_analyzer_dest_binary = join(BIN,
+        'dart_analyzer' + analyzer_file_extension)
+    copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
+    copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
 
   # Create pub shell script.
   pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
@@ -421,24 +429,25 @@ def Main(argv):
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
 
-  # Create and copy Analyzer library into 'util'
-  ANALYZER_DEST = join(UTIL, 'analyzer')
-  os.makedirs(ANALYZER_DEST)
+  if ShouldCopyAnalyzer():
+    # Create and copy Analyzer library into 'util'
+    ANALYZER_DEST = join(UTIL, 'analyzer')
+    os.makedirs(ANALYZER_DEST)
 
-  analyzer_src_jar = join(ANALYZER_HOME, 'util', 'analyzer',
+    analyzer_src_jar = join(ANALYZER_HOME, 'util', 'analyzer',
                             'dart_analyzer.jar')
-  analyzer_dest_jar = join(ANALYZER_DEST, 'dart_analyzer.jar')
-  copyfile(analyzer_src_jar, analyzer_dest_jar)
+    analyzer_dest_jar = join(ANALYZER_DEST, 'dart_analyzer.jar')
+    copyfile(analyzer_src_jar, analyzer_dest_jar)
 
-  jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
-                 join("guava", "r09", "guava-r09.jar"),
-                 join("json", "r2_20080312", "json.jar") ]
-  for jarToCopy in jarsToCopy:
-    dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
-    os.makedirs(dest_dir)
-    dest_file = join (ANALYZER_DEST, jarToCopy)
-    src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
-    copyfile(src_file, dest_file)
+    jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
+                   join("guava", "r09", "guava-r09.jar"),
+                   join("json", "r2_20080312", "json.jar") ]
+    for jarToCopy in jarsToCopy:
+        dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
+        os.makedirs(dest_dir)
+        dest_file = join (ANALYZER_DEST, jarToCopy)
+        src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
+        copyfile(src_file, dest_file)
 
   # Create and populate util/pub.
   pub_src_dir = join(HOME, 'utils', 'pub')
