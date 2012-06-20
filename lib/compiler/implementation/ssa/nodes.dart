@@ -1576,7 +1576,8 @@ class HShiftLeft extends HBinaryBitOp {
   bool get builtin() {
     if (!left.isInteger() || !right.isConstantInteger()) return false;
     HConstant rightConstant = right;
-    int count = rightConstant.constant.value;
+    IntConstant intConstant = rightConstant.constant;
+    int count = intConstant.value;
     return count >= 0 && count <= 31;
   }
 
