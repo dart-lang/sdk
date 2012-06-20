@@ -322,6 +322,9 @@ class IDLType(IDLNode):
           if label.endswith('Type'):
             self.id = self._label_to_type(label, ast)
             break
+      array_modifiers = self._find_first(ast, 'ArrayModifiers')
+      if array_modifiers:
+        self.id += array_modifiers
     elif isinstance(ast, tuple):
       (label, value) = ast
       if label == 'ScopedName':
@@ -334,10 +337,6 @@ class IDLType(IDLNode):
       raise SyntaxError('Could not parse type %s' % (ast))
 
   def _label_to_type(self, label, ast):
-    if label == 'AnyArrayType':
-      return 'any[]'
-    if label == 'DOMStringArrayType':
-      return 'DOMString[]'
     if label == 'LongLongType':
       label = 'long long'
     elif label.endswith('Type'):
