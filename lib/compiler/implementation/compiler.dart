@@ -152,6 +152,10 @@ class Compiler implements DiagnosticListener {
       return f();
     } catch (CompilerCancelledException ex) {
       throw;
+    } catch (StackOverflowException ex) {
+      // We cannot report anything useful in this case, because we
+      // do not have enough stack space.
+      throw;
     } catch (var ex) {
       unhandledExceptionOnElement(element);
       throw;
