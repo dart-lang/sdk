@@ -240,44 +240,44 @@ public class SyntaxTest extends AbstractParserTest {
       ParserErrorCode.CATCH_OR_FINALLY_EXPECTED, 8, 3);
   }
 
-  public void test_tryOn_catch() {
-    parseUnit("tryOn.dart", "f() {try {} catch (e) {}}");
-  }
+//  public void test_tryOn_catch() {
+//    parseUnit("tryOn.dart", "f() {try {} catch (e) {}}");
+//  }
 
-  public void test_tryOn_catchStack() {
-    parseUnit("tryOn.dart", "f() {try {} catch (e, s) {}}");
-  }
+//  public void test_tryOn_catchStack() {
+//    parseUnit("tryOn.dart", "f() {try {} catch (e, s) {}}");
+//  }
 
-  public void test_tryOn_on1Catch1() {
-    parseUnit("tryOn.dart", Joiner.on("\n").join(
-        "class Object {}",
-        "class E {}",
-        "f() {try {} on E catch (e) {}}"));
-  }
+//  public void test_tryOn_on1Catch1() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E {}",
+//        "f() {try {} on E catch (e) {}}"));
+//  }
 
-  public void test_tryOn_on2Catch2() {
-    parseUnit("tryOn.dart", Joiner.on("\n").join(
-        "class Object {}",
-        "class E1 {}",
-        "class E2 {}",
-        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {}}"));
-  }
+//  public void test_tryOn_on2Catch2() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E1 {}",
+//        "class E2 {}",
+//        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {}}"));
+//  }
 
-  public void test_tryOn_on2Catch3() {
-    parseUnit("tryOn.dart", Joiner.on("\n").join(
-        "class Object {}",
-        "class E1 {}",
-        "class E2 {}",
-        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {} catch (e3) {}}"));
-  }
+//  public void test_tryOn_on2Catch3() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E1 {}",
+//        "class E2 {}",
+//        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {} catch (e3) {}}"));
+//  }
 
-  public void test_tryOn_on2Catch2Finally() {
-    parseUnit("tryOn.dart", Joiner.on("\n").join(
-        "class Object {}",
-        "class E1 {}",
-        "class E2 {}",
-        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {} finally {}}"));
-  }
+//  public void test_tryOn_on2Catch2Finally() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E1 {}",
+//        "class E2 {}",
+//        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {} finally {}}"));
+//  }
 
   public void testArrayLiteral() {
     DartUnit unit = parseUnit("phony_array_literal.dart", "var x = <int>[1,2,3];");
