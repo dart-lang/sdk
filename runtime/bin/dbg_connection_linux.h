@@ -13,6 +13,17 @@
 class DebuggerConnectionImpl {
  public:
   static void StartHandler(int port_number);
+
+ private:
+  static void SetupPollQueue();
+  static void HandleEvent(struct epoll_event* event);
+  static void Handler(uword args);
+
+  // File descriptors for pipes used to communicate with the debugger thread.
+  static int wakeup_fds_[2];
+
+  // File descriptor for the polling queue.
+  static int epoll_fd_;
 };
 
 #endif  // BIN_DBG_CONNECTION_LINUX_H_
