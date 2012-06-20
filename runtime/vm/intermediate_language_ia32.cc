@@ -306,6 +306,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   ASSERT(ic_data.NumberOfChecks() > 0);
+  ASSERT(ic_data.num_args_tested() == 1);
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_index(),
                                         comp->try_index(),
@@ -637,10 +638,47 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
 }
 
 
+static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
+                                        LoadIndexedComp* comp) {
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptLoadIndexedPolymorphic);
+  if (comp->ic_data()->NumberOfChecks() == 0) {
+    __ jmp(deopt);
+    return;
+  }
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  ASSERT(ic_data.num_args_tested() == 1);
+  // No indexed access on Smi.
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
+  // Load receiver into EAX.
+  const intptr_t kNumArguments = 2;
+  __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+  Label done;
+  __ LoadClassId(EDI, EAX);
+  compiler->EmitTestAndCall(ic_data,
+                            EDI,  // Class id register.
+                            kNumArguments,
+                            Array::Handle(),  // No named arguments.
+                            deopt, &done,  // Labels.
+                            comp->cid(),
+                            comp->token_index(),
+                            comp->try_index());
+  __ Bind(&done);
+}
+
 
 void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_type() == kIllegalObjectKind) {
-    compiler->EmitLoadIndexedGeneric(this);
+    if (HasICData()) {
+      EmitLoadIndexedPolymorphic(compiler, this);
+    } else {
+      compiler->EmitLoadIndexedGeneric(this);
+    }
     ASSERT(locs()->out().reg() == EAX);
     return;
   }
@@ -719,7 +757,6 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
 }
 
 
-
 static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                     StoreIndexedComp* comp) {
   const String& function_name =
@@ -737,14 +774,52 @@ static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                  comp->try_index(),
                                  function_name,
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
+                                 Array::ZoneHandle(),  // No named args.
                                  kNumArgsChecked);
+}
+
+
+static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
+                                        StoreIndexedComp* comp) {
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_index(),
+                                        comp->try_index(),
+                                        kDeoptStoreIndexedPolymorphic);
+  if (comp->ic_data()->NumberOfChecks() == 0) {
+    __ jmp(deopt);
+    return;
+  }
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  ASSERT(ic_data.num_args_tested() == 1);
+  // No indexed access on Smi.
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
+  // Load receiver into EAX.
+  const intptr_t kNumArguments = 3;
+  __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+  Label done;
+  __ LoadClassId(EDI, EAX);
+  compiler->EmitTestAndCall(ic_data,
+                            EDI,  // Class id register.
+                            kNumArguments,
+                            Array::Handle(),  // No named arguments.
+                            deopt, &done,  // Labels.
+                            comp->cid(),
+                            comp->token_index(),
+                            comp->try_index());
+  __ Bind(&done);
 }
 
 
 void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_type() == kIllegalObjectKind) {
-    EmitStoreIndexedGeneric(compiler, this);
+    if (HasICData()) {
+      EmitStoreIndexedPolymorphic(compiler, this);
+    } else {
+      EmitStoreIndexedGeneric(compiler, this);
+    }
     return;
   }
 
@@ -1760,12 +1835,16 @@ LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
 
 void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(instance_call()->VerifyComputation());
-  ASSERT(HasICData());
-  ASSERT(ic_data()->num_args_tested() == 1);
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
                                         kDeoptPolymorphicInstanceCallTestFail);
+  if (!HasICData() || (ic_data()->NumberOfChecks() == 0)) {
+    __ jmp(deopt);
+    return;
+  }
+  ASSERT(HasICData());
+  ASSERT(ic_data()->num_args_tested() == 1);
   Label handle_smi;
   Label* is_smi_label =
       ic_data()->GetReceiverClassIdAt(0) == kSmi ?  &handle_smi : deopt;
@@ -1777,21 +1856,14 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(ZERO, is_smi_label);
   Label done;
   __ LoadClassId(EDI, EAX);
-  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); i++) {
-    Label next_test;
-    __ cmpl(EDI, Immediate(ic_data()->GetReceiverClassIdAt(i)));
-    __ j(NOT_EQUAL, &next_test);
-    const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(i));
-    compiler->GenerateStaticCall(instance_call()->cid(),
-                                 instance_call()->token_index(),
-                                 instance_call()->try_index(),
-                                 target,
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names());
-    __ jmp(&done);
-    __ Bind(&next_test);
-  }
-  __ jmp(deopt);
+  compiler->EmitTestAndCall(*ic_data(),
+                            EDI,  // Class id register.
+                            instance_call()->ArgumentCount(),
+                            instance_call()->argument_names(),
+                            deopt, &done,  // Labels.
+                            instance_call()->cid(),
+                            instance_call()->token_index(),
+                            instance_call()->try_index());
   if (is_smi_label == &handle_smi) {
     __ Bind(&handle_smi);
     ASSERT(ic_data()->GetReceiverClassIdAt(0) == kSmi);

@@ -371,13 +371,18 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
       return;
     }
     const intptr_t kMaxChecks = 4;
-    if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
+    if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
       PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
       ICData& unary_checks =
-          ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
+          ICData::ZoneHandle(ToUnaryClassChecks(*comp->ic_data()));
       call->set_ic_data(&unary_checks);
       comp->ReplaceWith(call);
     }
+  } else {
+    // Mark it for deopt.
+    PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
+    call->set_ic_data(&ICData::ZoneHandle());
+    comp->ReplaceWith(call);
   }
 }
 
@@ -399,7 +404,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
     return false;
   }
   if (!HasOneTarget(ic_data)) {
-    // TODO(srdjan): Implement when not all targets are the sa,e.
+    // TODO(srdjan): Implement when not all targets are the same.
     return false;
   }
   Function& target = Function::Handle();
@@ -426,10 +431,13 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
 
 
 void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {
-  // TODO(srdjan): Add assigneable check node if --enable_type_checks.
+  // TODO(srdjan): Add assignable check node if --enable_type_checks.
   if (comp->HasICData() && !FLAG_enable_type_checks) {
-    TryInlineInstanceSetter(comp);
+    if (TryInlineInstanceSetter(comp)) {
+      return;
+    }
   }
+  // TODO(srdjan): Polymorphic dispatch to setters or deoptimize.
 }
 
 
@@ -542,9 +550,8 @@ void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
-  const intptr_t kMaxChecks = 4;
-  if (comp->HasICData() && (comp->ic_data()->num_args_tested() <= kMaxChecks)) {
-    // Replace binary checks with unary ones.
+  if (comp->HasICData()) {
+    // Replace binary checks with unary ones since EmitNative expects it.
     ICData& unary_checks =
         ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
     comp->set_ic_data(&unary_checks);

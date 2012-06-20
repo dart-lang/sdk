@@ -404,6 +404,37 @@ void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
 }
 
 
+void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
+                                        Register class_id_reg,
+                                        intptr_t arg_count,
+                                        const Array& arg_names,
+                                        Label* deopt,
+                                        Label* done,
+                                        intptr_t cid,
+                                        intptr_t token_index,
+                                        intptr_t try_index) {
+  // TODO(srdjan): better loop please!
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    Label next_test;
+    assembler()->cmpl(class_id_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    assembler()->j(NOT_EQUAL, &next_test);
+    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
+    GenerateStaticCall(cid,
+                       token_index,
+                       try_index,
+                       target,
+                       arg_count,
+                       arg_names);
+    assembler()->jmp(done);
+    assembler()->Bind(&next_test);
+  }
+  assembler()->jmp(deopt);
+}
+
+
+
+
+
 Register FrameRegisterAllocator::AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
     if (!blocked_registers[regno] && (registers_[regno] == NULL)) {

@@ -143,6 +143,15 @@ class FlowGraphCompiler : public ValueObject {
                             Register instance_reg,
                             Register temp_reg,
                             Label* deopt);
+  void EmitTestAndCall(const ICData& ic_data,
+                       Register class_id_reg,
+                       intptr_t arg_count,
+                       const Array& arg_names,
+                       Label* deopt,
+                       Label* done,
+                       intptr_t cid,
+                       intptr_t token_index,
+                       intptr_t try_index);
 
   intptr_t StackSize() const;
 
