@@ -31,6 +31,8 @@
     'output_stream.dart',
     'stream_util.dart',
     'string_stream.dart',
+    'path.dart',
+    'path_impl.dart',
     'platform.dart',
     'platform_impl.dart',
     'process.dart',

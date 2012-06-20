@@ -36,8 +36,8 @@
 #source('../../../../runtime/bin/list_stream.dart');
 #source('../../../../runtime/bin/list_stream_impl.dart');
 #source('../../../../runtime/bin/output_stream.dart');
-#source('../../../../runtime/bin/stream_util.dart');
-#source('../../../../runtime/bin/string_stream.dart');
+#source('../../../../runtime/bin/path.dart');
+#source('../../../../runtime/bin/path_impl.dart');
 #source('../../../../runtime/bin/platform.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/platform_impl.dart');
@@ -51,6 +51,8 @@
 #source('../../../../runtime/bin/socket_stream_impl.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/stdio.dart');
+#source('../../../../runtime/bin/stream_util.dart');
+#source('../../../../runtime/bin/string_stream.dart');
 #source('../../../../runtime/bin/timer.dart');
 #source('../../../../runtime/bin/timer_impl.dart');
 #source('../../../../runtime/bin/websocket.dart');
