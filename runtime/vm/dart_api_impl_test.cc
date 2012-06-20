@@ -5311,14 +5311,12 @@ TEST_CASE(NativeFunctionClosure) {
   result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver);
   EXPECT_VALID(result);
 
-#if 0
   result = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(0, value);
-#endif
 }
 
 

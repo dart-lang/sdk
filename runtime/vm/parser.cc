@@ -160,6 +160,8 @@ void ParsedFunction::AllocateVariables() {
     copied_parameter_count_ = parameter_count;
     if (is_native_instance_closure) {
       copied_parameter_count_ += 1;
+      first_parameter_index_ -= 1;
+      first_stack_local_index_ -= 1;
     }
   }
 

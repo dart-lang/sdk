@@ -652,8 +652,9 @@ void FlowGraphCompiler::CopyParameters() {
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
+  int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
   ASSERT(parsed_function().first_parameter_index() ==
-         ParsedFunction::kFirstLocalSlotIndex);
+         ParsedFunction::kFirstLocalSlotIndex + implicit_this_param_pos);
   // Copy positional arguments.
   // Check that no fewer than num_fixed_params positional arguments are passed
   // in and that no more than num_params arguments are passed in.
@@ -680,7 +681,6 @@ void FlowGraphCompiler::CopyParameters() {
   __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
   // Let RDI point to the last copied positional argument, i.e. to
   // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
-  int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
   const int index =
       ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos;
   // First copy captured receiver if function is an implicit native closure.
