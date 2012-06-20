@@ -403,6 +403,9 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
   if (is_fused_with_comparison()) {
     f->Print(" (fused)");
   }
+  if (is_negated()) {
+    f->Print(" (negated)");
+  }
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
             false_successor()->block_id());

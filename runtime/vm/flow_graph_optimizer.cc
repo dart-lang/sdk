@@ -482,12 +482,31 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp) {
 static void TryFuseComparisonWithBranch(ComparisonComp* comp) {
   Instruction* instr = comp->instr();
   Instruction* next_instr = instr->StraightLineSuccessor();
-  if (next_instr != NULL && next_instr->IsBranch()) {
+  if ((next_instr != NULL) && next_instr->IsBranch()) {
     BranchInstr* branch = next_instr->AsBranch();
     UseVal* use = branch->value()->AsUse();
     if (instr == use->definition()) {
       comp->MarkFusedWithBranch(branch);
       branch->MarkFusedWithComparison();
+      return;
+    }
+  }
+  if ((next_instr != NULL) && next_instr->IsBind()) {
+    Computation* next_comp = next_instr->AsBind()->computation();
+    if (next_comp->IsBooleanNegate()) {
+      Instruction* next_next_instr = next_instr->StraightLineSuccessor();
+      if ((next_next_instr != NULL) && next_next_instr->IsBranch()) {
+        BooleanNegateComp* negate = next_comp->AsBooleanNegate();
+        BranchInstr* branch = next_next_instr->AsBranch();
+        if ((branch->value()->AsUse()->definition() == negate->instr()) &&
+            (negate->value()->AsUse()->definition() == instr)) {
+          comp->MarkFusedWithBranch(branch);
+          branch->MarkFusedWithComparison();
+          branch->set_is_negated(true);
+          instr->SetSuccessor(next_next_instr);
+          return;
+        }
+      }
     }
   }
 }
@@ -513,15 +532,11 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
   // For smi and double comparisons if the next instruction is a conditional
   // branch that uses the value of this comparison mark them as fused together
   // to avoid materializing a boolean value.
-  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
-  // and a branch.
   TryFuseComparisonWithBranch(comp);
 }
 
 
 void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
-  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
-  // and a branch.
   TryFuseComparisonWithBranch(comp);
 }
 
@@ -535,8 +550,6 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
     comp->set_ic_data(&unary_checks);
   }
 
-  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
-  // and a branch.
   TryFuseComparisonWithBranch(comp);
 }
 

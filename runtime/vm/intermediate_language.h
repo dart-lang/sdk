@@ -2312,7 +2312,8 @@ class BranchInstr : public InstructionWithInputs {
         value_(value),
         true_successor_(NULL),
         false_successor_(NULL),
-        is_fused_with_comparison_(false) { }
+        is_fused_with_comparison_(false),
+        is_negated_(false) { }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -2349,12 +2350,15 @@ class BranchInstr : public InstructionWithInputs {
   }
 
   bool is_fused_with_comparison() const { return is_fused_with_comparison_; }
+  bool is_negated() const { return is_negated_; }
+  void set_is_negated(bool value) { is_negated_ = value; }
 
  private:
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
   bool is_fused_with_comparison_;
+  bool is_negated_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

@@ -1016,6 +1016,9 @@ static Condition NegateCondition(Condition condition) {
 
 void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                         Condition true_condition) {
+  if (is_negated()) {
+    true_condition = NegateCondition(true_condition);
+  }
   if (compiler->IsNextBlock(false_successor())) {
     // If the next block is the false successor we will fall through to it.
     __ j(true_condition, compiler->GetBlockLabel(true_successor()));
@@ -1071,7 +1074,9 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ CompareRegisters(left, right);
 
-  if (!is_fused_with_branch()) {
+  if (is_fused_with_branch()) {
+    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
+  } else {
     Register result = locs()->out().reg();
     Label load_true, done;
     __ j(true_condition, &load_true, Assembler::kNearJump);
@@ -1080,8 +1085,6 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&load_true);
     __ LoadObject(result, compiler->bool_true());
     __ Bind(&done);
-  } else {
-    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
   }
 }
 

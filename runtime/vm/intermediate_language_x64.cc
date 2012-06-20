@@ -542,7 +542,9 @@ static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
 
   if (comp->is_fused_with_branch()) {
     BranchInstr* branch = comp->fused_with_branch();
-    __ j(PARITY_EVEN, compiler->GetBlockLabel(branch->false_successor()));
+    BlockEntryInstr* nan_result = branch->is_negated() ?
+        branch->true_successor() : branch->false_successor();
+    __ j(PARITY_EVEN, compiler->GetBlockLabel(nan_result));
     branch->EmitBranchOnCondition(compiler, true_condition);
   } else {
     Register result = comp->locs()->out().reg();
