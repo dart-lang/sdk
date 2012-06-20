@@ -1499,6 +1499,14 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
 DART_EXPORT Dart_Handle Dart_NewString(const char* str) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (str == NULL) {
+    return Api::NewError("%s expects argument 'str' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (!Utf8::IsValid(str)) {
+    return Api::NewError("%s expects argument 'str' to be valid UTF-8.",
+                         CURRENT_FUNC);
+  }
   return Api::NewHandle(isolate, String::New(str));
 }
 

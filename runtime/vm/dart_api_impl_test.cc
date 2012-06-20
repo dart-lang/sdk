@@ -563,6 +563,27 @@ TEST_CASE(IsString) {
 }
 
 
+TEST_CASE(NewString) {
+  const char* ascii = "string";
+  Dart_Handle ascii_str = Dart_NewString(ascii);
+  EXPECT_VALID(ascii_str);
+  EXPECT(Dart_IsString(ascii_str));
+
+  const char* null = NULL;
+  Dart_Handle null_str = Dart_NewString(null);
+  EXPECT(Dart_IsError(null_str));
+
+  const char* utf8 = "\xE4\xBA\x8C";  // U+4E8C
+  Dart_Handle utf8_str = Dart_NewString(utf8);
+  EXPECT_VALID(utf8_str);
+  EXPECT(Dart_IsString(utf8_str));
+
+  const char* invalid = "\xE4\xBA";  // underflow
+  Dart_Handle invalid_str = Dart_NewString(invalid);
+  EXPECT(Dart_IsError(invalid_str));
+}
+
+
 TEST_CASE(ExternalStringGetPeer) {
   Dart_Handle result;
 
