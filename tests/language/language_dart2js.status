@@ -34,7 +34,7 @@ arithmetic_test: Fail
 assertion_test: Fail, OK
 
 [ $compiler == dart2js ]
-fauxverride_test/none: Fail # TODO(ahe): I have pending CL to fix this.
+fauxverride_test/05: Fail # TODO(ahe): I have a pending CL for this.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
 exception_test: Fail # "throw null" throws NullPointerException.
