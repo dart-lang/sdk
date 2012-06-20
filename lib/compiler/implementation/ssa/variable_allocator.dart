@@ -22,7 +22,7 @@ class LiveRange {
  */
 class LiveInterval {
   /**
-   * The id where the instruction is defined.
+   * The id where there instruction is defined.
    */
   int start;
   final List<LiveRange> ranges;
@@ -138,7 +138,7 @@ class LiveEnvironment {
    * already in the set, we save the id where it dies.
    */
   void add(HInstruction instruction, int userId) {
-    // Note that we are visiting the graph in post-dominator order, so
+    // Note that we are visiting the grap in post-dominator order, so
     // the first time we see a variable is when it dies.
     liveInstructions.putIfAbsent(instruction, () => userId);
     if (instruction is HCheck) {
@@ -589,22 +589,12 @@ class SsaVariableAllocator extends HBaseVisitor {
   }
 
   void handleInstruction(HInstruction instruction, VariableNamer namer) {
-    // TODO(ager): We cannot perform this check to free names for
-    // HCheck instructions because they are special cased to have the
-    // same live intervals as the instruction they are checking. This
-    // includes sharing the start id with the checked
-    // input. Therefore, for HCheck(checkedInput, otherInput) we would
-    // end up checking that otherInput dies not here, but at the
-    // location of checkedInput. We should preserve the start id for
-    // the check instruction.
-    if (instruction is! HCheck) {
-      for (int i = 0, len = instruction.inputs.length; i < len; i++) {
-        HInstruction input = instruction.inputs[i];
-        // If [input] has a name, and its use here is the last use, free
-        // its name.
-        if (needsName(input) && diesAt(input, instruction)) {
-          namer.freeName(input);
-        }
+    for (int i = 0, len = instruction.inputs.length; i < len; i++) {
+      HInstruction input = instruction.inputs[i];
+      // If [input] has a name, and its use here is the last use, free
+      // its name.
+      if (needsName(input) && diesAt(input, instruction)) {
+        namer.freeName(input);
       }
     }
 
