@@ -26,6 +26,7 @@ assign_top_method_negative_test: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 default_factory2_test/01: Fail # Type bounds for type variable not checked.
+function_type_test: Fail # does not detect type error in checked mode.
 
 arithmetic_test: Fail
 
