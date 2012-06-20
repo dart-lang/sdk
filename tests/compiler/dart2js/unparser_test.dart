@@ -31,6 +31,10 @@ testEmptyList() {
   testUnparse('var x= [];');
 }
 
+testClosure() {
+  testUnparse('var x=(var x)=> x;');
+}
+
 testIndexedOperatorDecl() {
   testUnparseMember('operator[](int i)=> null;');
 }
@@ -39,5 +43,6 @@ main() {
   testGenericTypes();
   testForLoop();
   testEmptyList();
+  testClosure();
   testIndexedOperatorDecl();
 }

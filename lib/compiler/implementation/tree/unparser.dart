@@ -90,8 +90,8 @@ class Unparser implements Visitor {
     // names are modelled with Send and it emits operator[] as only
     // operator, without [] which are expected to be emitted with
     // arguments.
-    Send send = node.name.asSend();
-    if (send !== null) {
+    if (node.name is Send) {
+      Send send = node.name;
       assert(send is !SendSet);
       visit(send.receiver);
       visit(send.selector);
