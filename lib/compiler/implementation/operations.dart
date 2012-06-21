@@ -228,20 +228,6 @@ class AddOperation implements BinaryOperation {
       NumConstant leftNum = left;
       NumConstant rightNum = right;
       return new DoubleConstant(leftNum.value + rightNum.value);
-    } else if (left.isString() && !right.isObject()) {
-      PrimitiveConstant primitiveRight = right;
-      DartString rightDartString = primitiveRight.toDartString();
-      StringConstant leftString = left;
-      if (rightDartString.isEmpty()) {
-        return left;
-      } else if (leftString.value.isEmpty()) {
-        // TODO(floitsch): There is no right.node. Find a node some other way.
-        return new StringConstant(rightDartString, right.node);
-      } else {
-        DartString concatenated =
-            new ConsDartString(leftString.value, rightDartString);
-        return new StringConstant(concatenated, leftString.node);
-      }
     } else {
       return null;
     }

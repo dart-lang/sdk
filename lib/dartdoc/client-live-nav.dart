@@ -7,7 +7,7 @@
 
 #import('dart:html');
 #import('dart:json');
-#import('../../frog/lang.dart', prefix: 'frog');
+#import('frog/lang.dart', prefix: 'frog');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
 

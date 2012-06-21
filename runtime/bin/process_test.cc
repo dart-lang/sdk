@@ -31,6 +31,11 @@ int main(int argc, char* argv[]) {
   int exit_code = atoi(argv[3]);
   int crash = atoi(argv[4]);
 
+  if (crash == 1) {
+    int* segfault = NULL;
+    *segfault = 1;
+  }
+
   const int kLineSize = 128;
   char line[kLineSize];
 
@@ -49,11 +54,6 @@ int main(int argc, char* argv[]) {
       fflush(stderr);
     }
     echo_counter++;
-  }
-
-  if (crash == 1) {
-    int* segfault = NULL;
-    *segfault = 1;
   }
 
   return exit_code;

@@ -70,7 +70,8 @@ class SystemCache {
     var pending = _pendingInstalls[id];
     if (pending != null) return pending;
 
-    var path = join(rootDir, id.source.name, id.source.packageName(id));
+    var sourceDir = join(rootDir, id.source.name);
+    var path = id.source.systemCacheDirectory(id, sourceDir);
     var future = exists(path).chain((exists) {
       // TODO(nweiz): better error handling
       if (exists) throw 'Package $id is already installed.';

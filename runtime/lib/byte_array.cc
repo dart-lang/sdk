@@ -61,8 +61,11 @@ static void RangeCheck(const ByteArray& array,
 #define UNALIGNED_SETTER(ArrayT, ObjectT, Getter, ValueT)               \
   SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                            \
   RangeCheck(array, index.Value(), sizeof(ValueT));                     \
-  ValueT src = value_object.Getter();                                  \
-  ByteArray::Copy(array, index.Value(), &src, sizeof(ValueT));
+  ValueT src = value_object.Getter();                                   \
+  ByteArray::Copy(array, index.Value(), &src, sizeof(ValueT));          \
+  Integer& result = Integer::Handle();                                  \
+  result ^= Integer::New(index.Value() + sizeof(ValueT));               \
+  arguments->SetReturn(result);
 
 
 #define UINT64_TO_INTEGER(value, integer)                               \
@@ -121,7 +124,10 @@ static void RangeCheck(const ByteArray& array,
   RangeCheck(array, index.Value(), sizeof(uint64_t));                   \
   uint64_t value;                                                       \
   INTEGER_TO_UINT64(value_object, value);                               \
-  ByteArray::Copy(array, index.Value(), &value, sizeof(uint64_t));
+  ByteArray::Copy(array, index.Value(), &value, sizeof(uint64_t));      \
+  Integer& result = Integer::Handle();                                  \
+  result ^= Integer::New(index.Value() + sizeof(uint64_t));             \
+  arguments->SetReturn(result);
 
 
 DEFINE_NATIVE_ENTRY(ByteArray_getLength, 1) {

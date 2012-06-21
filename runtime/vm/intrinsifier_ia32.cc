@@ -41,9 +41,9 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
   // Assert that length is a Smi.
   __ testl(EDI, Immediate(kSmiTagSize));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through);
   __ cmpl(EDI, Immediate(0));
-  __ j(LESS, &fall_through, Assembler::kNearJump);
+  __ j(LESS, &fall_through);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_2, fixed_size));  // EDI is a Smi.
   ASSERT(kSmiTagShift == 1);
@@ -61,7 +61,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // EBX: potential next object start.
   // EDI: allocation size.
   __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
@@ -93,13 +93,15 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // EBX: new object end address.
   // Store the type argument field.
   __ movl(EDI, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObject(EAX,
-                     FieldAddress(EAX, Array::type_arguments_offset()),
-                     EDI);
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::type_arguments_offset()),
+                              EDI);
 
   // Set the length field.
   __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
-  __ StoreIntoObject(EAX, FieldAddress(EAX, Array::length_offset()), EDI);
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::length_offset()),
+                              EDI);
 
   // Initialize all array elements to raw_null.
   // EAX: new object start as a tagged pointer.
@@ -300,10 +302,10 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
   // EAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObject(EAX,
-                     FieldAddress(EAX,
-                                  GrowableObjectArray::type_arguments_offset()),
-                     EBX);
+  __ StoreIntoObjectNoBarrier(
+      EAX,
+      FieldAddress(EAX, GrowableObjectArray::type_arguments_offset()),
+      EBX);
 
   // Set the length field in the growable array object to 0.
   __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()),
@@ -1255,7 +1257,9 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
   __ addl(EBX, value);  // _pos++.
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
-  __ StoreIntoObject(EAX, FieldAddress(EAX, pos_offset), EBX);  // Store _pos.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, pos_offset),
+                              EBX);  // Store _pos.
   __ movl(EAX, EDI);
   __ ret();
   __ Bind(&fall_through);

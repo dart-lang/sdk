@@ -41,4 +41,19 @@ DEFINE_RUNTIME_ENTRY(TestSmiSub, 2) {
   arguments.SetReturn(Smi::Handle(Smi::New(result)));
 }
 
+
+// A leaf runtime call for test purposes.
+// arg0: a smi.
+// arg1: a smi.
+// returns a smi representing arg0 + arg1.
+DEFINE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd,
+                          RawObject* arg0, RawObject* arg1) {
+  // Ignoring overflow in the calculation below and using the internal
+  // representation of Smi directly without using any handlized code.
+  intptr_t result = reinterpret_cast<intptr_t>(arg0) +
+      reinterpret_cast<intptr_t>(arg1);
+  return reinterpret_cast<RawObject*>(result);
+}
+END_LEAF_RUNTIME_ENTRY
+
 }  // namespace dart

@@ -76,6 +76,7 @@ static bool IsNonShortestForm(uint32_t code_point, size_t num_bytes) {
 }
 
 
+// Returns a count of the number of UTF-8 trail bytes.
 intptr_t Utf8::CodePointCount(const char* str, intptr_t* width) {
   bool is_two_byte_string = false;
   bool is_four_byte_string = false;
@@ -101,6 +102,39 @@ intptr_t Utf8::CodePointCount(const char* str, intptr_t* width) {
     *width = 1;
   }
   return len;
+}
+
+
+// Returns true if str is a valid NUL-terminated UTF-8 string.
+bool Utf8::IsValid(const char* str) {
+  intptr_t i = 0;
+  while (str[i] != '\0') {
+    uint32_t ch = str[i] & 0xFF;
+    intptr_t j = 1;
+    if (ch >= 0x80) {
+      uint8_t num_trail_bytes = kTrailBytes[ch];
+      bool is_malformed = false;
+      for (; j < num_trail_bytes; ++j) {
+        if (str[i + j] != '\0') {
+          uint8_t code_unit = str[i + j];
+          is_malformed |= !IsTrailByte(code_unit);
+          ch = (ch << 6) + code_unit;
+        } else {
+          return false;
+        }
+      }
+      ch -= kMagicBits[num_trail_bytes];
+      if (!((is_malformed == false) &&
+            (j == num_trail_bytes) &&
+            !IsOutOfRange(ch) &&
+            !IsNonShortestForm(ch, j) &&
+            !IsSurrogate(ch))) {
+        return false;
+      }
+    }
+    i += j;
+  }
+  return true;
 }
 
 

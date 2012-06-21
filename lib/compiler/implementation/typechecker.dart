@@ -62,7 +62,7 @@ class StatementType implements Type {
 
 class VoidType implements Type {
   const VoidType(this.element);
-  SourceString get name() => Types.VOID;
+  SourceString get name() => element.name;
   final VoidElement element;
 
   toString() => name.slowToString();
@@ -116,15 +116,6 @@ class FunctionType implements Type {
 }
 
 class Types {
-  static final VOID = const SourceString('void');
-  static final INT = const SourceString('int');
-  static final DOUBLE = const SourceString('double');
-  static final DYNAMIC = const SourceString('Dynamic');
-  static final STRING = const SourceString('String');
-  static final BOOL = const SourceString('bool');
-  static final OBJECT = const SourceString('Object');
-  static final LIST = const SourceString('List');
-
   final VoidType voidType;
   final InterfaceType dynamicType;
 
@@ -136,19 +127,11 @@ class Types {
     : voidType = new VoidType(new VoidElement(library)),
       dynamicType = new InterfaceType(dynamicElement);
 
-  Type lookup(SourceString s) {
-    if (VOID == s) {
-      return voidType;
-    } else if (DYNAMIC == s || s.stringValue === 'var') {
-      return dynamicType;
-    }
-    return null;
-  }
-
   /** Returns true if t is a subtype of s */
   bool isSubtype(Type t, Type s) {
     if (t === s || t === dynamicType || s === dynamicType ||
-        s.name == OBJECT) return true;
+        // TODO(karlklose): Test for s.element === compiler.objectClass.
+        s.name == const SourceString('Object')) return true;
     if (t is VoidType) {
       return false;
     } else if (t is InterfaceType) {

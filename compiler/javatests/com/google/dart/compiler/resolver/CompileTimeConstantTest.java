@@ -15,6 +15,187 @@ import com.google.common.base.Joiner;
  */
 public class CompileTimeConstantTest extends ResolverTestCase {
 
+  /**
+   * We should understand "const" keyword and temporary treat both "const" and "static final" as
+   * constants.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3550
+   */
+  public void test_temporaryConstSyntax() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "const CT = 5;",
+        "class A {",
+        " const CF = 5;",
+        " const C1 = CT + 1;",
+        " const C2 = CF + 1;",
+        " static final SF1 = CT + 1;",
+        " static final SF2 = CF + 1;",
+        "}"));
+  }
+
+  public void test_nonConstArg() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class A { const A(s); }",
+            "main() {",
+            "  var a = const A(new A(null));",
+            "}"),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 11));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1655
+   */
+  public void test_constConstructor_nonConstInitializerValue() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "foo() {}",
+            "class A {",
+            " final v;",
+            " const A() : v = foo();",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 18, 5));
+  }
+  
+  /**
+   * At compile time we "trust" user that parameter will have correct type.
+   */
+  public void test_constConstructor_constInitializerValue_plusDynamic() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            " final v;",
+            " const A(var p) : v = 100 + p;",
+            "}",
+            ""));
+  }
+  
+  public void test_constConstructor_constInitializerValue_boolNulls() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            " final a, b, c, d;",
+            " const A(var p) : ",
+            "   a = false || null,",
+            "   b = null || false,",
+            "   c = null || null,",
+            "   d = !null;",
+            "}",
+            ""));
+  }
+  
+  public void test_constConstructor_constInitializerValue_numNulls() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            " final a, b, c, d, e;",
+            " const A(var p) : ",
+            "   a = 1 ^ null,",
+            "   b = 1 << null,",
+            "   c = 1 & null,",
+            "   d = ~null,",
+            "   e = -null;",
+            "}",
+            ""));
+  }
+
+  public void test_nonConstantExpressions() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "var x = 0;",
+            "const c1 = const {'$x' : 1};",
+            "const c2 = const {'key': []};",
+            "const c3 = const [new Object()];"),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 21, 1),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 26,2),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 19, 12));
+  }
+
+  public void test_expressionsWithNull() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "var b = null === '';"));
+  }
+
+  public void test_parameterDefaultValue_inLocalFunction() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "main() {",
+            " int x = 1;",
+            " void func([var y = x]) {}",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 21, 1));
+  }
+
+  public void test_stringInterpolation_referenceConstVar_num() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "final a = 'aaa';",
+        "final v = '$a';",
+        ""));
+  }
+
+  public void test_stringInterpolation_referenceConstVar_String() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "final a = 1.0;",
+        "final v = '$a';",
+        ""));
+  }
+
+  public void test_stringInterpolation_referenceConstVar_bool() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "final a = false;",
+        "final v = '$a';",
+        ""));
+  }
+
+  public void test_stringInterpolation_referenceConstVar_Object() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "final a = const Object();",
+            "final v = '$a';",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL, 4, 13, 1));
+  }
+
+  public void test_stringInterpolation_inMethod() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "class Conster {",
+        "  const Conster(this.value);",
+        "  final value;",
+        "}",
+        "final a = 'aaa';",
+        "f() {",
+        "  const Conster('$a');",
+        "}",
+        ""));
+  }
+
   public void testConstantBinaryExpression1() {
     resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
@@ -210,7 +391,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         " static final INT_LIT_REF = INT_LIT;",
         " static final DOUBLE_LIT = 1.5;",
         " static final BOOL_LIT = true;",
-        " static final STRING_LIT = \"Hello\";",
+        " static final STRING_LIT = 'Hello';",
         " static final BOP4_0 = 5 % INT_LIT;",
         " static final BOP4_1 = INT_LIT % 5;",
         " static final BOP4_2 = 5.0 % DOUBLE_LIT;",
@@ -224,8 +405,8 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         " static final BOP5_6 = 0x80 ^ 0x04;",
         " static final BOP6 = BOOL_LIT && true;",
         " static final BOP7 = false || BOOL_LIT;",
-        " static final BOP8 = STRING_LIT == \"World!\";",
-        " static final BOP9 = \"Hello\" != STRING_LIT;",
+        " static final BOP8 = STRING_LIT == 'World!';",
+        " static final BOP9 = 'Hello' != STRING_LIT;",
         " static final BOP10 = INT_LIT === INT_LIT_REF;",
         " static final BOP11 = BOOL_LIT !== true;",
         "}"));
@@ -255,7 +436,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "class String {}",
         "class A {",
         " static int foo() { return 1; }",
-        " static String bar() { return \"1\"; }",
+        " static String bar() { return '1'; }",
         "}",
         "class B {",
         " static final BOP1 = 2 < A.foo();",
@@ -323,7 +504,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         " const B();",
         " static final OBJECT_LIT = const B();",
         " static final INT_LIT = 1;",
-        " static final STRING_LIT = \"true\";",
+        " static final STRING_LIT = 'true';",
         " static final BOP1 = STRING_LIT && true;",
         " static final BOP2 = false || STRING_LIT;",
         " static final BOP3 = 59 == OBJECT_LIT;",
@@ -366,7 +547,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "class Object {}",
         "class A {",
         "  static final b = true;",
-        "  static final s = \"apple\";", // string literal
+        "  static final s = 'apple';", // string literal
         "  static final i = 1;", // integer literal
         "  static final d = 3.3;", // double literal
         "  static final h = 0xf;", // hex literal
@@ -378,11 +559,12 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
-        "  foo() { return \"Eve\";}",
-        "  static final person = \"earthling\";",
-        "  static final s = \"Hello ${foo()}!\";",
+        "  foo() { return 'Eve';}",
+        "  static final person = 'earthling';",
+        "  static final s = 'Hello ${foo()}!';",
         "}"),
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL);
   }
 
   public void testConstantTypedLiteralAssign1() {
@@ -392,7 +574,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "class Map<K,V> {}",
         "class A {",
         "  static final aList = const[1, 2, 3];", // array literal
-        "  static final map = const { \"1\": \"one\", \"2\": \"banana\" };", // map literal
+        "  static final map = const { '1': 'one', '2': 'banana' };", // map literal
         "  static final val = aList[2];",
         "}"));
   }
@@ -426,7 +608,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "class Map<K,V> {}",
         "class A {",
         "  // map literal is not const",
-        "  static final aMap = { \"1\": \"one\", \"2\": \"banana\" };",
+        "  static final aMap = { '1': 'one', '2': 'banana' };",
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
@@ -436,13 +618,12 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "class String {}",
         "class Map<K,V> {}",
         "class A {",
-        "  static String foo() { return \"one\"; }",
-        "  static final String s = \"apple\";",
+        "  static String foo() { return 'one'; }",
+        "  static final String s = 'apple';",
         "  // map literal contains non-const member",
-        "  static final map = const { \"1\":foo(), \"2\": \"banana\" };",
-        "  static final stringInterp = \"It was that woman who gave me the ${s}\";",
+        "  static final map = const { '1': foo(), '2': 'banana' };",
+        "  static final stringInterp = 'It was that woman who gave me the ${s}';",
         "}"),
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 

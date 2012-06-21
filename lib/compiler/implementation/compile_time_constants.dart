@@ -869,11 +869,6 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       Constant folded = null;
       switch (op.source.stringValue) {
         case "+":
-          if (left.isString() && !right.isString()) {
-            // At the moment only compile-time concatenation of two strings is
-            // allowed.
-            error(send);
-          }
           folded = const AddOperation().fold(left, right);
           break;
         case "-":

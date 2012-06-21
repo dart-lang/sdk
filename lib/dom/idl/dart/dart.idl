@@ -191,6 +191,34 @@ module canvas {
     [Suppressed] void set();
     [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
   };
+
+  [Supplemental,
+   Constructor(in ArrayBuffer buffer,
+               [Optional] in unsigned long byteOffset,
+               [Optional] in unsigned long byteLength)
+   ]
+  interface DataView {
+    // Undo this:
+    // We have to use custom code because our code generator does not support int8_t type.
+    // int8_t getInt8(in unsigned long byteOffset);
+    // uint8_t getUint8(in unsigned long byteOffset);
+    [Suppressed] DOMObject getInt8();
+    [Suppressed] DOMObject getUint8();
+    byte getInt8(in unsigned long byteOffset)
+        raises (DOMException);
+    octet getUint8(in unsigned long byteOffset)
+        raises (DOMException);
+
+    // We have to use custom code because our code generator does not support uint8_t type.
+    // void setInt8(in unsigned long byteOffset, in int8_t value);
+    // void setUint8(in unsigned long byteOffset, in uint8_t value);
+    [Suppressed] void setInt8();
+    [Suppressed] void setUint8();
+    void setInt8(in unsigned long byteOffset, in byte value)
+        raises (DOMException);
+    void setUint8(in unsigned long byteOffset, in octet value)
+        raises (DOMException);
+  };
 };
 
 module storage {

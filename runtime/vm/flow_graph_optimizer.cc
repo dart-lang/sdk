@@ -14,64 +14,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, trace_optimization);
 
-// TODO(srdjan): Add _ByteArrayBase, get:length.
-
-#define RECOGNIZED_LIST(V)                                                     \
-  V(ObjectArray, get:length, ObjectArrayLength)                                \
-  V(ImmutableArray, get:length, ImmutableArrayLength)                          \
-  V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
-  V(StringBase, get:length, StringBaseLength)                                  \
-  V(IntegerImplementation, toDouble, IntegerToDouble)                          \
-  V(Double, toDouble, DoubleToDouble)                                          \
-  V(Math, sqrt, MathSqrt)                                                      \
-
-// Class that recognizes the name and owner of a function and returns the
-// corresponding enum. See RECOGNIZED_LIST above for list of recognizable
-// functions.
-class MethodRecognizer : public AllStatic {
- public:
-  enum Kind {
-    kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
-RECOGNIZED_LIST(DEFINE_ENUM_LIST)
-#undef DEFINE_ENUM_LIST
-  };
-
-  static Kind RecognizeKind(const Function& function) {
-    // Only core library methods can be recognized.
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-    const Class& function_class = Class::Handle(function.owner());
-    if ((function_class.library() != core_lib.raw()) &&
-        (function_class.library() != core_impl_lib.raw())) {
-      return kUnknown;
-    }
-    const String& recognize_name = String::Handle(function.name());
-    const String& recognize_class = String::Handle(function_class.Name());
-    String& test_function_name = String::Handle();
-    String& test_class_name = String::Handle();
-#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
-    test_function_name = String::NewSymbol(#function_name);                    \
-    test_class_name = String::NewSymbol(#class_name);                          \
-    if (recognize_name.Equals(test_function_name) &&                           \
-        recognize_class.Equals(test_class_name)) {                             \
-      return k##enum_name;                                                     \
-    }
-RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-    return kUnknown;
-  }
-
-  static const char* KindToCString(Kind kind) {
-#define KIND_TO_STRING(class_name, function_name, enum_name)                   \
-    if (kind == k##enum_name) return #enum_name;
-RECOGNIZED_LIST(KIND_TO_STRING)
-#undef KIND_TO_STRING
-    return "?";
-  }
-};
-
-
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
   if (FLAG_print_flow_graph) {
@@ -93,14 +35,11 @@ void FlowGraphOptimizer::VisitBlocks() {
 }
 
 
-static bool ICDataHasReceiverClass(const ICData& ic_data, const Class& cls) {
-  ASSERT(!cls.IsNull());
+static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
-  Class& test_class = Class::Handle();
-  Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &test_class, &target);
-    if (cls.raw() == test_class.raw()) {
+    const intptr_t test_class_id = ic_data.GetReceiverClassIdAt(i);
+    if (test_class_id == class_id) {
       return true;
     }
   }
@@ -108,22 +47,21 @@ static bool ICDataHasReceiverClass(const ICData& ic_data, const Class& cls) {
 }
 
 
-static bool ICDataHasTwoReceiverClasses(const ICData& ic_data,
-                                        const Class& cls1,
-                                        const Class& cls2) {
-  ASSERT(!cls1.IsNull() && !cls2.IsNull());
-  if (ic_data.num_args_tested() != 2) {
-    return false;
-  }
+static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
+                                             intptr_t receiver_class_id,
+                                             intptr_t argument_class_id) {
+  ASSERT(receiver_class_id != kIllegalObjectKind);
+  ASSERT(argument_class_id != kIllegalObjectKind);
+  if (ic_data.num_args_tested() != 2) return false;
+
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<const Class*> classes;
-    ic_data.GetCheckAt(i, &classes, &target);
-    ASSERT(classes.length() == 2);
-    if (classes[0]->raw() == cls1.raw()) {
-      if (classes[1]->raw() == cls2.raw()) {
-        return true;
-      }
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    ASSERT(class_ids.length() == 2);
+    if ((class_ids[0] == receiver_class_id) &&
+        (class_ids[1] == argument_class_id)) {
+      return true;
     }
   }
   return false;
@@ -131,41 +69,49 @@ static bool ICDataHasTwoReceiverClasses(const ICData& ic_data,
 
 
 static bool HasOneSmi(const ICData& ic_data) {
-  const Class& smi_class =
-      Class::Handle(Isolate::Current()->object_store()->smi_class());
-  return ICDataHasReceiverClass(ic_data, smi_class);
+  return ICDataHasReceiverClassId(ic_data, kSmi);
 }
 
 
 static bool HasTwoSmi(const ICData& ic_data) {
-  const Class& smi_class =
-      Class::Handle(Isolate::Current()->object_store()->smi_class());
-  return ICDataHasTwoReceiverClasses(ic_data, smi_class, smi_class);
+  return ICDataHasReceiverArgumentClasses(ic_data, kSmi, kSmi);
+}
+
+
+static bool HasMintSmi(const ICData& ic_data) {
+  return ICDataHasReceiverArgumentClasses(ic_data, kMint, kSmi);
 }
 
 
 static bool HasOneDouble(const ICData& ic_data) {
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
-  return ICDataHasReceiverClass(ic_data, double_class);
+  return ICDataHasReceiverClassId(ic_data, kDouble);
 }
 
 
 static bool HasTwoDouble(const ICData& ic_data) {
-  const Class& double_class =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
-  return ICDataHasTwoReceiverClasses(ic_data, double_class, double_class);
+  return ICDataHasReceiverArgumentClasses(ic_data, kDouble, kDouble);
 }
 
 
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
+  BinaryOpComp::OperandsType operands_type;
+
+  if (HasMintSmi(*comp->ic_data())) {
+    // We check for Mint receiver and Smi argument, but we try to support any
+    // combination of Mint and Smi.
+    if (op_kind != Token::kBIT_AND) {
+      // TODO(regis): Not yet supported.
+      return false;
+    }
+
+    operands_type = BinaryOpComp::kMintOperands;
+  }
+
   if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
     return false;
   }
-
-  BinaryOpComp::OperandsType operands_type;
 
   if (HasTwoSmi(*comp->ic_data())) {
     if (op_kind == Token::kDIV ||
@@ -233,26 +179,21 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
 // TODO(srdjan): if targets are native use their C_function to compare.
 static bool HasOneTarget(const ICData& ic_data) {
   ASSERT(ic_data.NumberOfChecks() > 0);
-  Function& prev_target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &prev_target);
-  ASSERT(!prev_target.IsNull());
-  Function& target = Function::Handle();
+  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
+  Function& test_target = Function::Handle();
   for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &classes, &target);
-    ASSERT(!target.IsNull());
-    if (prev_target.raw() != target.raw()) {
+    test_target = ic_data.GetTargetAt(i);
+    if (first_target.raw() != test_target.raw()) {
       return false;
     }
-    prev_target = target.raw();
   }
   return true;
 }
 
 
 // Using field class
-static RawField* GetField(const Class& field_class, const String& field_name) {
-  Class& cls = Class::Handle(field_class.raw());
+static RawField* GetField(intptr_t class_id, const String& field_name) {
+  Class& cls = Class::Handle(Isolate::Current()->class_table()->At(class_id));
   Field& field = Field::Handle();
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
@@ -265,70 +206,36 @@ static RawField* GetField(const Class& field_class, const String& field_name) {
 }
 
 
-// Returns all receiver class-ids and corresponding tagets for the given
-// 'ic_data', sorted so that a smi class id is at index[0] if it exists.
-// 'targets' can be NULL in which case it is not collected,
-static void ExtractClassIdsAndTargets(const ICData& ic_data,
-                                      ZoneGrowableArray<intptr_t>* class_ids,
-                                      ZoneGrowableArray<Function*>* targets) {
-  ASSERT(class_ids != NULL);
-  class_ids->Clear();
-  if (targets != NULL) {
-    targets->Clear();
-  }
-  intptr_t smi_index = -1;
-  Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
+// Returns ICData with num_args_checked == 1. If necessary creates a new ICData
+// object that contains unique receiver class-ids
+static RawICData* ToUnaryClassChecks(const ICData& ic_data) {
+  ASSERT(!ic_data.IsNull());
+  ASSERT(ic_data.num_args_tested() != 0);
+  if (ic_data.num_args_tested() == 1) return ic_data.raw();
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(ic_data.function()),
+      String::Handle(ic_data.target_name()),
+      ic_data.id(),
+      kNumArgsTested));
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &classes, &target);
-    // Collect receiver class only.
-    const intptr_t class_id = (*classes[0]).id();
-    if (ic_data.num_args_tested() > 1) {
-      // Check if we have not already entered the class-id.
-      intptr_t duplicate_class_id = -1;
-      for (intptr_t k = 0; k < class_ids->length(); k++) {
-        if ((*class_ids)[k] == class_id) {
-          duplicate_class_id = k;
-          break;
-        }
-      }
-      if (duplicate_class_id >= 0)  {
-        ASSERT((targets == NULL) ||
-               ((*targets)[duplicate_class_id]->raw() == target.raw()));
-        continue;
+    const intptr_t class_id = ic_data.GetReceiverClassIdAt(i);
+    intptr_t duplicate_class_id = -1;
+    for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
+      if (class_id == result.GetReceiverClassIdAt(k)) {
+        duplicate_class_id = k;
+        break;
       }
     }
-    if (class_id == kSmi) {
-      ASSERT(smi_index < 0);  // Classes entered only once in ic_data.
-      smi_index = class_ids->length();
-    }
-    class_ids->Add(class_id);
-    if (targets != NULL) {
-      targets->Add(&Function::ZoneHandle(target.raw()));
-    }
-  }
-  if (smi_index >= 0) {
-    // Smi class id must be at index 0.
-    intptr_t temp_id = (*class_ids)[0];
-    (*class_ids)[0] =  (*class_ids)[smi_index];
-    (*class_ids)[smi_index] = temp_id;
-    if (targets != NULL) {
-      Function* temp_func = (*targets)[0];
-      (*targets)[0] =  (*targets)[smi_index];
-      (*targets)[smi_index] = temp_func;
+    if (duplicate_class_id >= 0) {
+      ASSERT(result.GetTargetAt(duplicate_class_id) == ic_data.GetTargetAt(i));
+    } else {
+      // This will make sure that Smi is first if it exists.
+      result.AddReceiverCheck(class_id,
+                              Function::Handle(ic_data.GetTargetAt(i)));
     }
   }
-}
-
-
-// Returns array of all class ids that are in ic_data. The result is
-// normalized so that a smi class is at index 0 if it exists in the ic_data.
-static ZoneGrowableArray<intptr_t>*  ExtractClassIds(const ICData& ic_data) {
-  if (ic_data.NumberOfChecks() == 0) return NULL;
-  ZoneGrowableArray<intptr_t>* result =
-      new ZoneGrowableArray<intptr_t>(ic_data.NumberOfChecks());
-  ExtractClassIdsAndTargets(ic_data, result, NULL);
-  return result;
+  return result.raw();
 }
 
 
@@ -341,9 +248,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     return false;
   }
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
-  ASSERT(classes.length() == 1);
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
+  ASSERT(class_ids.length() == 1);
 
   if (target.kind() == RawFunction::kImplicitGetter) {
     if (!HasOneTarget(ic_data)) {
@@ -353,10 +260,11 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     // Inline implicit instance getter.
     const String& field_name =
         String::Handle(Field::NameFromGetter(comp->function_name()));
-    const Field& field = Field::Handle(GetField(*classes[0], field_name));
+    const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
     LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-        field, comp->InputAt(0), comp, ExtractClassIds(ic_data));
+        field, comp->InputAt(0), comp);
+    load->set_ic_data(comp->ic_data());
     comp->ReplaceWith(load);
     return true;
   }
@@ -388,9 +296,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->InputAt(0),
         length_offset,
-        Type::ZoneHandle(Type::IntInterface()),
-        comp,
-        ExtractClassIds(ic_data));
+        Type::ZoneHandle(Type::IntInterface()));
+    load->set_original(comp);
+    load->set_ic_data(comp->ic_data());
     comp->ReplaceWith(load);
     return true;
   }
@@ -400,9 +308,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->InputAt(0),
         String::length_offset(),
-        Type::ZoneHandle(Type::IntInterface()),
-        comp,
-        ExtractClassIds(ic_data));
+        Type::ZoneHandle(Type::IntInterface()));
+    load->set_original(comp);
+    load->set_ic_data(comp->ic_data());
     comp->ReplaceWith(load);
     return true;
   }
@@ -419,8 +327,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
     return false;
   }
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
-  ic_data.GetCheckAt(0, &classes, &target);
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
@@ -433,7 +341,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
     return false;
   }
 
-  if (classes[0]->id() != from_kind) {
+  if (class_ids[0] != from_kind) {
     return false;
   }
   ToDoubleComp* coerce = new ToDoubleComp(
@@ -444,18 +352,19 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
 }
 
 
+
+
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
-    const String& function_name = comp->function_name();
-    Token::Kind op_kind = Token::GetBinaryOp(function_name);
-    if ((op_kind != Token::kILLEGAL) && TryReplaceWithBinaryOp(comp, op_kind)) {
+    const Token::Kind op_kind = comp->token_kind();
+    if (Token::IsBinaryToken(op_kind) &&
+        TryReplaceWithBinaryOp(comp, op_kind)) {
       return;
     }
-    op_kind = Token::GetUnaryOp(function_name);
-    if ((op_kind != Token::kILLEGAL) && TryReplaceWithUnaryOp(comp, op_kind)) {
+    if (Token::IsUnaryToken(op_kind) && TryReplaceWithUnaryOp(comp, op_kind)) {
       return;
     }
-    if ((Field::IsGetterName(function_name)) && TryInlineInstanceGetter(comp)) {
+    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(comp)) {
       return;
     }
     if (TryInlineInstanceMethod(comp)) {
@@ -463,13 +372,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
     }
     const intptr_t kMaxChecks = 4;
     if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
-      ZoneGrowableArray<intptr_t>* class_ids =
-          new ZoneGrowableArray<intptr_t>();
-      ZoneGrowableArray<Function*>* targets =
-          new ZoneGrowableArray<Function*>();
-      ExtractClassIdsAndTargets(*comp->ic_data(), class_ids, targets);
-      PolymorphicInstanceCallComp* call =
-          new PolymorphicInstanceCallComp(comp, *class_ids, *targets);
+      PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
+      ICData& unary_checks =
+          ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
+      call->set_ic_data(&unary_checks);
       comp->ReplaceWith(call);
     }
   }
@@ -480,7 +386,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(comp->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    // TODO(srdjan): Implement this.
+    comp->set_recognized(MethodRecognizer::kMathSqrt);
   }
 }
 
@@ -497,22 +403,22 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
     return false;
   }
   Function& target = Function::Handle();
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
+  intptr_t class_id;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
   if (target.kind() != RawFunction::kImplicitSetter) {
     // Not an implicit setter.
     // TODO(srdjan): Inline special setters.
     return false;
   }
   // Inline implicit instance setter.
-  const Field& field = Field::Handle(GetField(cls, comp->field_name()));
+  const Field& field = Field::Handle(GetField(class_id, comp->field_name()));
   ASSERT(!field.IsNull());
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->InputAt(0),
       comp->InputAt(1),
-      comp,
-      ExtractClassIds(ic_data));
+      comp);
+  store->set_ic_data(comp->ic_data());
   comp->ReplaceWith(store);
   return true;
 }
@@ -544,10 +450,9 @@ static intptr_t ReceiverClassId(Computation* comp) {
   ASSERT(HasOneTarget(ic_data));
 
   Function& target = Function::Handle();
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
-
-  return cls.id();
+  intptr_t class_id;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  return class_id;
 }
 
 
@@ -577,12 +482,31 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp) {
 static void TryFuseComparisonWithBranch(ComparisonComp* comp) {
   Instruction* instr = comp->instr();
   Instruction* next_instr = instr->StraightLineSuccessor();
-  if (next_instr != NULL && next_instr->IsBranch()) {
+  if ((next_instr != NULL) && next_instr->IsBranch()) {
     BranchInstr* branch = next_instr->AsBranch();
     UseVal* use = branch->value()->AsUse();
     if (instr == use->definition()) {
       comp->MarkFusedWithBranch(branch);
       branch->MarkFusedWithComparison();
+      return;
+    }
+  }
+  if ((next_instr != NULL) && next_instr->IsBind()) {
+    Computation* next_comp = next_instr->AsBind()->computation();
+    if (next_comp->IsBooleanNegate()) {
+      Instruction* next_next_instr = next_instr->StraightLineSuccessor();
+      if ((next_next_instr != NULL) && next_next_instr->IsBranch()) {
+        BooleanNegateComp* negate = next_comp->AsBooleanNegate();
+        BranchInstr* branch = next_next_instr->AsBranch();
+        if ((branch->value()->AsUse()->definition() == negate->instr()) &&
+            (negate->value()->AsUse()->definition() == instr)) {
+          comp->MarkFusedWithBranch(branch);
+          branch->MarkFusedWithComparison();
+          branch->set_is_negated(true);
+          instr->SetSuccessor(next_next_instr);
+          return;
+        }
+      }
     }
   }
 }
@@ -608,31 +532,24 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
   // For smi and double comparisons if the next instruction is a conditional
   // branch that uses the value of this comparison mark them as fused together
   // to avoid materializing a boolean value.
-  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
-  // and a branch.
   TryFuseComparisonWithBranch(comp);
 }
 
 
 void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
-  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
-  // and a branch.
   TryFuseComparisonWithBranch(comp);
 }
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
-  if (!comp->HasICData()) return;
-  const ICData& ic_data = *comp->ic_data();
-  if (ic_data.NumberOfChecks() != 1) return;
-  ASSERT(HasOneTarget(ic_data));
-  if (HasTwoSmi(ic_data)) {
-    comp->set_operands_class_id(kSmi);
-  } else {
-    return;
+  const intptr_t kMaxChecks = 4;
+  if (comp->HasICData() && (comp->ic_data()->num_args_tested() <= kMaxChecks)) {
+    // Replace binary checks with unary ones.
+    ICData& unary_checks =
+        ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
+    comp->set_ic_data(&unary_checks);
   }
-  // TODO(vegorov): recognize the pattern with BooleanNegate between comparsion
-  // and a branch.
+
   TryFuseComparisonWithBranch(comp);
 }
 

@@ -35,14 +35,20 @@ class Source {
    * to true if the package was found in the source and false if it wasn't. For
    * all other error conditions, it should complete with an exception.
    *
-   * If [shouldCache] is true, [path] will be a path to this source's
-   * subdirectory of the [PackageCache]'s cache directory. If [shouldCache] is
-   * false, [path] will be a path to the application's "packages" directory.
-   *
    * [path] is guaranteed not to exist, and its parent directory is guaranteed
    * to exist.
    */
   abstract Future<bool> install(PackageId id, String path);
+
+  /**
+   * Returns the directory in the system cache that the package identified by
+   * [id] should be installed to. [parent] is this source's subdirectory in the
+   * system cache directory.
+   *
+   * This doesn't need to be implemented if [shouldCache] is false.
+   */
+  String systemCacheDirectory(PackageId id, String parent) =>
+    join(parent, packageName(id));
 
   /**
    * When a [Pubspec] is parsed, it reads in the description for each

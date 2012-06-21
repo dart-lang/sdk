@@ -464,6 +464,8 @@ class Assembler : public ValueObject {
   void leave();
   void ret();
 
+  void sqrtsd(XmmRegister dst, XmmRegister src);
+
   void xorpd(XmmRegister dst, const Address& src);
 
   // 'size' indicates size in bytes and must be in the range 1..8.
@@ -499,6 +501,8 @@ class Assembler : public ValueObject {
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
+  void PushRegister(Register r);
+  void PopRegister(Register r);
 
   void AddImmediate(Register reg, const Immediate& imm);
 
@@ -525,6 +529,7 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
+  void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   void CallRuntime(const RuntimeEntry& entry);
 

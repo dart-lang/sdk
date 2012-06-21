@@ -72,6 +72,16 @@ public class ResolverCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * This test succeeds if no exceptions are thrown.
+   */
+  public void test_recursiveTypes() throws Exception {
+    analyzeLibrary("test.dart", Joiner.on("\n").join(
+        "class A extends A implements A {}",
+        "class B extends C {}",
+        "class C extends B {}"));
+  }
+
+  /**
    * This test checks the class declarations to make sure that elements are set for all identifiers.
    * This is useful to the editor and other consumers of the AST.
    */

@@ -21,6 +21,8 @@ class Utf8 : AllStatic {
 
   static intptr_t CodePointCount(const char* str, intptr_t* width);
 
+  static bool IsValid(const char* src);
+
   static intptr_t Length(int32_t ch);
   static intptr_t Length(const String& str);
 

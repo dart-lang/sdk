@@ -9,6 +9,11 @@
  */
 final bool REPORT_EXCESS_RESOLUTION = false;
 
+/**
+ * If true, trace information on pass2 optimizations.
+ */
+final bool REPORT_PASS2_OPTIMIZATIONS = false;
+
 class WorkItem {
   final Element element;
   TreeElements resolutionTree;
@@ -40,7 +45,8 @@ class Backend {
 
   abstract void enqueueHelpers(Enqueuer world);
   abstract String codegen(WorkItem work);
-  abstract void processNativeClasses(world, libraries);
+  abstract void processNativeClasses(Enqueuer world,
+                                     Collection<LibraryElement> libraries);
   abstract void assembleProgram();
   abstract List<CompilerTask> get tasks();
 }
@@ -87,7 +93,8 @@ class JavaScriptBackend extends Backend {
     return generator.generateMethod(work, graph);
   }
 
-  void processNativeClasses(world, libraries) {
+  void processNativeClasses(Enqueuer world,
+                            Collection<LibraryElement> libraries) {
     native.processNativeClasses(world, emitter, libraries);
   }
 
@@ -145,6 +152,10 @@ class Compiler implements DiagnosticListener {
       return f();
     } catch (CompilerCancelledException ex) {
       throw;
+    } catch (StackOverflowException ex) {
+      // We cannot report anything useful in this case, because we
+      // do not have enough stack space.
+      throw;
     } catch (var ex) {
       unhandledExceptionOnElement(element);
       throw;
@@ -173,7 +184,13 @@ class Compiler implements DiagnosticListener {
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
-  Stopwatch codegenProgress;
+  Stopwatch progress;
+
+  static final int PHASE_SCANNING = 0;
+  static final int PHASE_RESOLVING = 1;
+  static final int PHASE_COMPILING = 2;
+  static final int PHASE_RECOMPILING = 3;
+  int phase;
 
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
@@ -182,7 +199,7 @@ class Compiler implements DiagnosticListener {
             validateUnparse = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
-        codegenProgress = new Stopwatch.start() {
+        progress = new Stopwatch.start() {
     namer = new Namer(this);
     constantHandler = new ConstantHandler(this);
     scanner = new ScannerTask(this);
@@ -200,6 +217,7 @@ class Compiler implements DiagnosticListener {
     tasks.addAll(backend.tasks);
   }
 
+  Universe get resolverWorld() => enqueuer.resolution.universe;
   Universe get codegenWorld() => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
@@ -218,8 +236,7 @@ class Compiler implements DiagnosticListener {
   void internalError(String message,
                      [Node node, Token token, HInstruction instruction,
                       Element element]) {
-    cancel("${red('internal error:')} $message",
-           node, token, instruction, element);
+    cancel('Internal error: $message', node, token, instruction, element);
   }
 
   void internalErrorOnElement(Element element, String message) {
@@ -229,7 +246,7 @@ class Compiler implements DiagnosticListener {
   void unhandledExceptionOnElement(Element element) {
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
-                     false);
+                     api.Diagnostic.CRASH);
     // TODO(ahe): Obtain the build ID.
     var buildId = 'build number could not be determined';
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message([buildId]));
@@ -251,7 +268,7 @@ class Compiler implements DiagnosticListener {
     } else {
       throw 'No error location for error: $reason';
     }
-    reportDiagnostic(span, red(reason), true);
+    reportDiagnostic(span, reason, api.Diagnostic.ERROR);
     throw new CompilerCancelledException(reason);
   }
 
@@ -263,7 +280,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void log(message) {
-    reportDiagnostic(null, message, false);
+    reportDiagnostic(null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
   bool run(Uri uri) {
@@ -414,12 +431,18 @@ class Compiler implements DiagnosticListener {
     world.populate(this, libraries.getValues());
 
     log('Resolving...');
+    phase = PHASE_RESOLVING;
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
     log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
 
     log('Compiling...');
+    phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
+    log("Recompiling ${enqueuer.codegen.recompilationCandidates.length} "
+        "methods...");
+    phase = PHASE_RECOMPILING;
+    processRecompilationQueue(enqueuer.codegen);
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     backend.assembleProgram();
@@ -427,10 +450,10 @@ class Compiler implements DiagnosticListener {
     checkQueues();
   }
 
-  processQueue(Enqueuer world, Element main) {
+  void processQueue(Enqueuer world, Element main) {
     backend.processNativeClasses(world, libraries.getValues());
     world.addToWorkList(main);
-    codegenProgress.reset();
+    progress.reset();
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
     });
@@ -439,14 +462,31 @@ class Compiler implements DiagnosticListener {
     world.registerFieldClosureInvocations();
   }
 
+  void processRecompilationQueue(Enqueuer world) {
+    assert(phase == PHASE_RECOMPILING);
+    while (!world.recompilationCandidates.isEmpty()) {
+      WorkItem work = world.recompilationCandidates.next();
+      String oldCode = world.universe.generatedCode[work.element];
+      world.universe.generatedCode.remove(work.element);
+      world.universe.generatedBailoutCode.remove(work.element);
+      withCurrentElement(work.element, () => work.run(this, world));
+      String newCode = world.universe.generatedCode[work.element];
+      if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
+        log("Pass 2 optimization:");
+        log("Before:\n$oldCode");
+        log("After:\n$newCode");
+      }
+    }
+  }
+
   /**
    * Perform various checks of the queues. This includes checking that
    * the queues are empty (nothing was added after we stopped
-   * processing the quese). Also compute the number of methods that
+   * processing the queues). Also compute the number of methods that
    * were resolved, but not compiled (aka excess resolution).
    */
   checkQueues() {
-    for (var world in [enqueuer.resolution, enqueuer.codegen]) {
+    for (Enqueuer world in [enqueuer.resolution, enqueuer.codegen]) {
       world.forEach((WorkItem work) {
         internalErrorOnElement(work.element, "Work list is not empty.");
       });
@@ -464,7 +504,8 @@ class Compiler implements DiagnosticListener {
         resolved.remove(e);
       }
       if (e.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-        if (e.enclosingElement.isInterface()) {
+        ClassElement enclosingClass = e.enclosingElement;
+        if (enclosingClass.isInterface()) {
           resolved.remove(e);
         }
         resolved.remove(e);
@@ -481,19 +522,20 @@ class Compiler implements DiagnosticListener {
     if (!REPORT_EXCESS_RESOLUTION) return;
     for (Element e in resolved) {
       SourceSpan span = spanFromElement(e);
-      reportDiagnostic(span, 'Warning: $e resolved but not compiled.', false);
+      reportDiagnostic(span, 'Warning: $e resolved but not compiled.',
+                       api.Diagnostic.WARNING);
     }
   }
 
   TreeElements analyzeElement(Element element) {
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
     if (elements !== null) return elements;
-    if (element is AbstractFieldElement) {
-      return null;
-    }
     final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
                         | ElementCategory.FACTORY;
-    if (!element.isAccessor() && (element.kind.category & allowed) == 0) {
+    ElementKind kind = element.kind;
+    if (!element.isAccessor() &&
+        ((kind === ElementKind.ABSTRACT_FIELD) ||
+         (kind.category & allowed) == 0)) {
       return null;
     }
     assert(parser !== null);
@@ -507,6 +549,15 @@ class Compiler implements DiagnosticListener {
 
   TreeElements analyze(WorkItem work, Enqueuer world) {
     if (work.isAnalyzed()) return work.resolutionTree;
+    if (progress.elapsedInMs() > 500) {
+      // TODO(ahe): Add structured diagnostics to the compiler API and
+      // use it to separate this from the --verbose option.
+      if (phase == PHASE_RESOLVING) {
+        log('Resolved ${enqueuer.resolution.resolvedElements.length}'
+            'elements.');
+        progress.reset();
+      }
+    }
     Element element = work.element;
     TreeElements result = world.getCachedElements(element);
     if (result !== null) return result;
@@ -521,11 +572,15 @@ class Compiler implements DiagnosticListener {
 
   String codegen(WorkItem work, Enqueuer world) {
     if (world !== enqueuer.codegen) return null;
-    if (codegenProgress.elapsedInMs() > 500) {
+    if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('Compiled ${codegenWorld.generatedCode.length} methods.');
-      codegenProgress.reset();
+      if (phase == PHASE_COMPILING) {
+        log('Compiled ${codegenWorld.generatedCode.length} methods.');
+      } else {
+        log('Recompiled ${world.recompilationCandidates.processed} methods.');
+      }
+      progress.reset();
     }
     if (work.element.kind.category == ElementCategory.VARIABLE) {
       constantHandler.compileWorkItem(work);
@@ -583,16 +638,18 @@ class Compiler implements DiagnosticListener {
       if (message.message.kind === MessageKind.METHOD_NOT_FOUND) return;
     }
     SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, "${magenta('warning:')} $message", false);
+
+    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING );
   }
 
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, "${red('error:')} $message", true);
+    reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
     throw new CompilerCancelledException(message.toString());
   }
 
-  abstract void reportDiagnostic(SourceSpan span, String message, bool fatal);
+  abstract void reportDiagnostic(SourceSpan span, String message,
+                                 api.Diagnostic kind);
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
     if (begin === null || end === null) {

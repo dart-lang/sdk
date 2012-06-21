@@ -37,44 +37,30 @@ const uint8_t Token::precedence_[] = {
 #undef TOKEN_ATTRIBUTE
 
 
-Token::Kind Token::GetBinaryOp(const String& name) {
-  if (name.Length() == 1) {
-    switch (name.CharAt(0)) {
-      case '+' : return Token::kADD;
-      case '-' : return Token::kSUB;
-      case '*' : return Token::kMUL;
-      case '/' : return Token::kDIV;
-      case '%' : return Token::kMOD;
-      case '|' : return Token::kBIT_OR;
-      case '^' : return Token::kBIT_XOR;
-      case '&' : return Token::kBIT_AND;
-      default: return Token::kILLEGAL;  // Not a binary operation.
-    }
+bool Token::IsBinaryToken(Token::Kind token) {
+  switch (token) {
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+    case Token::kDIV:
+    case Token::kTRUNCDIV:
+    case Token::kMOD:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kOR:
+    case Token::kAND:
+    case Token::kSHL:
+    case Token::kSHR:
+      return true;
+    default:
+      return false;
   }
-  if (name.Length() == 2) {
-    switch (name.CharAt(0)) {
-      case '|' : return name.CharAt(1) == '|' ? Token::kOR : Token::kILLEGAL;
-      case '&' : return name.CharAt(1) == '&' ? Token::kAND : Token::kILLEGAL;
-      case '<' : return name.CharAt(1) == '<' ? Token::kSHL : Token::kILLEGAL;
-      case '>' : return name.CharAt(1) == '>' ? Token::kSHR : Token::kILLEGAL;
-      case '~' :
-          return name.CharAt(1) == '/' ? Token::kTRUNCDIV : Token::kILLEGAL;
-      default: return Token::kILLEGAL;  // Not a binary operation.
-    }
-  }
-  return Token::kILLEGAL;
 }
 
 
-Token::Kind Token::GetUnaryOp(const String& name) {
-  if (name.Equals(Str(Token::kNEGATE))) {
-    return Token::kNEGATE;
-  }
-  if ((name.Length() == 1) && (name.CharAt(0) == '~')) {
-    return Token::kBIT_NOT;
-  }
-  return Token::kILLEGAL;
+bool Token::IsUnaryToken(Token::Kind token) {
+  return (token == Token::kNEGATE) || (token == kBIT_NOT);
 }
-
 
 }  // namespace dart

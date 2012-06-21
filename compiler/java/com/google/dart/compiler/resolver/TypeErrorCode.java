@@ -29,6 +29,7 @@ public enum TypeErrorCode implements ErrorCode {
       "Case expression should be compiler-time constant of type 'int' or 'String', '%s' found"),
   CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE(ErrorSeverity.ERROR,
       "All case expressions should be compiler-time constants of the same type - 'int' or 'String'. '%s' expected but '%s' found"),
+  EXPECTED_POSITIONAL_ARGUMENT("Expected positional argument of type %s before named arguments"),
   EXTRA_ARGUMENT("extra argument"),
   FIELD_HAS_NO_GETTER("Field '%s' has no getter"),
   FIELD_HAS_NO_SETTER("Field '%s' has no setter"),
@@ -38,7 +39,7 @@ public enum TypeErrorCode implements ErrorCode {
   INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),
   INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS(
       "instantiation of class %s with the inherited abstract members: %s"),
-  INTERFACE_HAS_NO_METHOD_NAMED("%s has no method named \"%s\""),
+  INTERFACE_HAS_NO_METHOD_NAMED("\"%s\" has no method named \"%s\""),
   INTERNAL_ERROR("internal error: %s", true),
   IS_STATIC_FIELD_IN("\"%s\" is a static field in \"%s\""),
   IS_STATIC_METHOD_IN("\"%s\" is a static method in \"%s\""),
@@ -56,14 +57,15 @@ public enum TypeErrorCode implements ErrorCode {
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
-  PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'+' operator cannot be used for string concatentation"),
+  PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'%s' cannot be used for string concatentation, use string interpolation or a StringBuffer instead"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
   SETTER_TYPE_MUST_BE_ASSIGNABLE("Setter type '%s' must be assignable to getter type '%s'"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),
   SUPERTYPE_HAS_FIELD(ErrorSeverity.ERROR, "%s is a field in %s"),
   SUPERTYPE_HAS_METHOD(ErrorSeverity.ERROR, "%s is a method in %s"),
-  TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(ErrorSeverity.ERROR, "Type alias cannot reference itself directly of via other typedefs"),
+  TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(ErrorSeverity.ERROR,
+      "Type alias cannot reference itself directly of via other typedefs"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
@@ -91,7 +93,7 @@ public enum TypeErrorCode implements ErrorCode {
   private TypeErrorCode(ErrorSeverity severity, String message) {
     this(severity, message, false);
   }
-  
+
   private TypeErrorCode(ErrorSeverity severity, String message, boolean needsRecompilation) {
     this.severity = severity;
     this.message = message;

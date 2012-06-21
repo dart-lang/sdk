@@ -457,12 +457,14 @@ public class NegativeParserTest extends CompilerTestCase {
             "var c = +1;",
             "var d = -a;",
             "var e = +a;",
+            "var f = + 1;",
             ""),
-        errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1));
+        errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1),
+        errEx(ParserErrorCode.NO_SPACE_AFTER_PLUS, 7, 9, 1));
   }
 
   public void test_functionDeclaration_name() {
-    parseExpectErrors(
+    parseExpectWarnings(
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "foo() {",
@@ -947,6 +949,70 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 12, 9, 3),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 9, 6),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 14, 9, 7));
+  }
+
+  /**
+   * There is ambiguity in parsing function expression inside of initializer.
+   * <p>
+   * But we should be able to parse when function expression is inside of "new expression".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2339
+   */
+  public void test_functionExpression_inInitializer_newExpression() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(var p) {}",
+            "}",
+            "class B {",
+            "  var f;",
+            "  B() : f = new A(() => 42) {",
+            "  }",
+            "}",
+            ""));
+  }
+  
+  /**
+   * There is ambiguity in parsing function expression inside of initializer.
+   * <p>
+   * But we should be able to parse when function expression is inside of "const expression".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2339
+   */
+  public void test_functionExpression_inInitializer_constExpression() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  const A(var p) {}",
+            "}",
+            "class B {",
+            "  var f;",
+            "  B() : f = const A(() => 42) {",
+            "  }",
+            "}",
+            ""));
+  }
+  
+  /**
+   * There is ambiguity in parsing function expression inside of initializer.
+   * <p>
+   * But we should be able to parse when function expression is inside of "method invocation".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2339
+   */
+  public void test_functionExpression_inInitializer_methodInvocation() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo(var p) {}",
+            "class B {",
+            "  var f;",
+            "  B() : f = foo(() => 42) {",
+            "  }",
+            "}",
+            ""));
   }
 
   public void test_qualifiedType_inForIn() {

@@ -129,6 +129,16 @@ def ProcessCompiler(name):
       os.path.join('utils', 'compiler', 'buildbot.py')],
       env=os.environ, shell=has_shell)
 
+def FixJavaHome():
+  buildbot_javahome = os.getenv('BUILDBOT_JAVA_HOME')
+  if buildbot_javahome:
+    current_pwd = os.getenv('PWD')
+    java_home = os.path.join(current_pwd, buildbot_javahome)
+    os.environ['JAVA_HOME'] = java_home
+    print 'Setting java home to'
+    print java_home
+
+
 def main():
   print 'main'
   if len(sys.argv) == 0:
@@ -141,6 +151,9 @@ def main():
 
   #TODO(sigmund): remove this indirection once we update our bots
   (name, version) = GetBuildInfo()
+  # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
+  # root directory, set JAVA_HOME based on that.
+  FixJavaHome()
   if name.startswith('dart-editor'):
     status = ProcessTools('release', name, version)
   else:

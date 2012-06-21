@@ -34,7 +34,7 @@ class _Completes extends BaseMatcher {
 
     item.onComplete(expectAsync1((future) {
       expect(future.hasValue,
-          'Expected future to complete successfully, but it failed');
+          reason: 'Expected future to complete successfully, but it failed');
       if (_matcher != null) expect(future.value, _matcher);
     }));
 

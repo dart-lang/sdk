@@ -26,6 +26,8 @@ assign_top_method_negative_test: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 default_factory2_test/01: Fail # Type bounds for type variable not checked.
+function_type_test: Fail # does not detect type error in checked mode.
+function_malformed_result_type_test: Fail # does not detect type error in checked mode.
 
 arithmetic_test: Fail
 
@@ -33,6 +35,7 @@ arithmetic_test: Fail
 assertion_test: Fail, OK
 
 [ $compiler == dart2js ]
+fauxverride_test/05: Fail # TODO(ahe): I have a pending CL for this.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
 exception_test: Fail # "throw null" throws NullPointerException.
@@ -54,7 +57,7 @@ function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
-function_type_alias6_test: Fail # visitIs for typedefs not implemented
+function_type_alias6_test: Crash # infinite loop.
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
@@ -138,8 +141,6 @@ empty_body_member_negative_test: Fail, OK # Negative language test.
 factory2_negative_test: Fail, OK # Negative language test.
 factory3_negative_test: Fail, OK # Negative language test.
 factory_negative_test: Fail, OK # Negative language test.
-fauxverride_test/03: Fail, OK # Negative language test.
-fauxverride_test/05: Fail, OK # Negative language test.
 field2_negative_test: Fail, OK # Negative language test.
 field3_negative_test: Fail, OK # Negative language test.
 field4_negative_test: Fail, OK # Negative language test.
@@ -301,3 +302,7 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
+
+
+[ $compiler == dart2js && $system == windows ]
+function_type_alias6_test: Fail # Test runner bug: this is a crash.

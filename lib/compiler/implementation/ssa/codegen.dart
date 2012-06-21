@@ -72,7 +72,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
-      new SsaBailoutPropagator(compiler).visitGraph(graph);
 
       Map<Element, String> parameterNames = getParameterNames(work);
       String parameters = Strings.join(parameterNames.getValues(), ', ');
@@ -80,17 +79,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
-      StringBuffer newParameters = new StringBuffer();
-      if (!parameterNames.isEmpty()) newParameters.add('$parameters, ');
-      newParameters.add('state');
-
-      for (int i = 0; i < codegen.maxBailoutParameters; i++) {
-        newParameters.add(', env$i');
-      }
-
-      Element element = work.element;
       String body = '${codegen.setup}${codegen.buffer}';
-      return buildJavaScriptFunction(element, newParameters.toString(), body);
+      return buildJavaScriptFunction(
+          work.element, codegen.newParameters.toString(), body);
     });
   }
 
@@ -273,8 +264,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentGraph = graph;
     indent++;  // We are already inside a function.
     subGraph = new SubGraph(graph.entry, graph.exit);
-    beginGraph(graph);
-    visitBasicBlock(graph.entry);
+    HBasicBlock start = beginGraph(graph);
+    visitBasicBlock(start);
     if (!delayedVariableDeclarations.isEmpty()) {
       addIndented("var ");
       buffer.add(Strings.join(
@@ -510,32 +501,45 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return false;
     }
 
-    // Is it a builtin operation involving constant numbers?
-    if (instruction.builtin && instruction.inputs.length == 3) {
-      var left = instruction.inputs[1];
-      var right = instruction.inputs[2];
-      if (left.isConstantNumber() && isCommutative) {
+    // Is it a builtin operation involving +, -, /, or *?
+    HBinaryArithmetic binaryInstruction = instruction;
+    assert(binaryInstruction.inputs.length == 3);
+    if (binaryInstruction.builtin) {
+      var left = binaryInstruction.left;
+      var right = binaryInstruction.right;
+      if (isCommutative && variableNames.getName(right) == name) {
         var tmp = right;
         right = left;
         left = tmp;
-      } else if (!right.isConstantNumber()) {
-        return false;
       }
-      // Right is constant number.
-      var value = right.constant.value;
+
       // Check that left has the same name as the definition and emit
       // the short update definition if it is.
       if (variableNames.getName(left) == name) {
-        if (instruction is HAdd && right.constant.value == 1) {
+        // Check if the right operand is constant one.
+        bool rightIsOne = false;
+        if (right.isConstantNumber()) {
+          HConstant rightConstant = right;
+          NumConstant numConstant = rightConstant.constant;
+          rightIsOne = (numConstant.value == 1);
+        }
+        if (binaryInstruction is HAdd && rightIsOne) {
+          beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add('++');
           declareVariable(name);
-        } else if (instruction is HSubtract && right.constant.value == 1) {
+          endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+        } else if (binaryInstruction is HSubtract && rightIsOne) {
+          beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
           buffer.add('--');
           declareVariable(name);
+          endExpression(JSPrecedence.PREFIX_PRECEDENCE);
         } else {
-          var operation = instruction.operation.name;
+          var operation = binaryInstruction.operation.name;
+          beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
           declareVariable(name);
-          buffer.add(' ${operation}= ${value}');
+          buffer.add(' ${operation}= ');
+          use(right, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+          endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
         }
         return true;
       }
@@ -1125,7 +1129,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
-    if (node.builtin){
+    if (node.builtin) {
       beginExpression(unsignedShiftPrecedences.precedence);
       int oldPrecedence = this.expectedPrecedence;
       this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
@@ -1198,13 +1202,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitNot(HBitNot node)         => visitBitInvokeUnary(node, '~');
   visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
-
-  // We need to check if the left operand is negative in order to use
-  // the native operator.
-  visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
-
-  // Shift left cannot be mapped to the native operator (different semantics).
-  visitShiftLeft(HShiftLeft node)   => visitInvokeStatic(node);
+  visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>');
+  visitShiftLeft(HShiftLeft node)   => visitBitInvokeBinary(node, '<<');
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
@@ -1711,42 +1710,43 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    if (!node.isFromActivation()) {
-      String name = compiler.namer.getName(node.element);
-      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-      use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('.');
-      buffer.add(name);
-      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-      Type type = node.receiver.propagatedType.computeType(compiler);
-      if (type != null) {
-        world.registerFieldGetter(node.element.name, type);
-      }
-    } else {
-      use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
+    String name = compiler.namer.getName(node.element);
+    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.');
+    buffer.add(name);
+    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    Type type = node.receiver.propagatedType.computeType(compiler);
+    if (type != null) {
+      world.registerFieldGetter(node.element.name, type);
     }
   }
 
   visitFieldSet(HFieldSet node) {
-    String name;
-    if (!node.isFromActivation()) {
-      name = compiler.namer.getName(node.element);
-      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('.');
-      buffer.add(name);
-      Type type = node.receiver.propagatedType.computeType(compiler);
-      if (type != null) {
-        world.registerFieldSetter(node.element.name, type);
-      }
-    } else {
-      declareInstruction(node.receiver);
+    String name = compiler.namer.getName(node.element);
+    beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.');
+    buffer.add(name);
+    Type type = node.receiver.propagatedType.computeType(compiler);
+    if (type != null) {
+      world.registerFieldSetter(node.element.name,
+                                type,
+                                node.value.isInteger());
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    if (node.receiver !== null) {
-      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    }
+    endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+  }
+
+  visitLocalGet(HLocalGet node) {
+    use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
+  }
+
+  visitLocalSet(HLocalSet node) {
+    declareInstruction(node.receiver);
+    buffer.add(' = ');
+    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
   visitForeign(HForeign node) {
@@ -1767,6 +1767,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
+    var i = 0;
+    node.element.forEachInstanceField(
+      includeBackendMembers: true,
+      includeSuperMembers: true,
+      f: (ClassElement enclosingClass, Element member) {
+        world.registerFieldInitializer(member.name,
+                                       enclosingClass.computeType(compiler),
+                                       node.inputs[i].isInteger());
+
+        i++;
+      });
     String jsClassReference = compiler.namer.isolateAccess(node.element);
     beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('new $jsClassReference(');
@@ -1894,7 +1905,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  visitParameterValue(HParameterValue node) {
+  visitParameterValue(HParameterValue node) => visitLocalValue(node);
+
+  visitLocalValue(HLocalValue node) {
     assert(isGenerateAtUseSite(node));
     buffer.add(variableNames.getName(node));
   }
@@ -1991,10 +2004,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitIntegerCheck(HIntegerCheck node) {
     if (!node.alwaysFalse) {
       buffer.add('if (');
-      use(node.value, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' !== (');
-      use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
-      buffer.add(" | 0)) ");
+      checkInt(node.value, '!==');
+      buffer.add(') ');
     }
     generateThrowWithHelper('iae', node.value);
   }
@@ -2122,42 +2133,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   String builtinJsName(HInvokeInterceptor interceptor) {
+    // Don't count the target method or the receiver in the arity.
+    int arity = interceptor.inputs.length - 2;
     HInstruction receiver = interceptor.inputs[1];
     bool getter = interceptor.getter;
     SourceString name = interceptor.name;
 
-    if (receiver.isIndexablePrimitive()) {
-      if (interceptor.isLengthGetter()) {
-        return 'length';
-      } else if (!getter
-                 && name == const SourceString('indexOf')
-                 && interceptor.inputs.length == 3) {
-        // If there are three inputs, the start index is not given,
-        // and we share the same default value with the native
-        // implementation.
-        return 'indexOf';
-      } else if (!getter
-                 && name == const SourceString('lastIndexOf')
-                 && interceptor.inputs.length == 3) {
-        // If there are three inputs, the start index is not given,
-        // and we share the same default value with the native
-        // implementation.
-        return 'lastIndexOf';
-      }
-    }
-
-    if (receiver.isExtendableArray() && !getter) {
-      if (name == const SourceString('add')) {
+    if (interceptor.isLengthGetterOnStringOrArray()) {
+      return 'length';
+    } else if (receiver.isExtendableArray() && !getter) {
+      if (name == const SourceString('add') && arity == 1) {
         return 'push';
       }
-      if (name == const SourceString('removeLast')) {
+      if (name == const SourceString('removeLast') && arity == 0) {
         return 'pop';
       }
-    }
-
-    if (receiver.isString() && !getter) {
-      if (name == const SourceString('concat')
-          && interceptor.inputs[2].isString()) {
+    } else if (receiver.isString() && !getter) {
+      if (name == const SourceString('concat') &&
+          arity == 1 &&
+          interceptor.inputs[2].isString()) {
         return '+';
       }
     }
@@ -2261,6 +2255,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.PREFIX_PRECEDENCE);
   }
 
+  void checkFixedArray(HInstruction input) {
+    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    use(input, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.fixed\$length');
+    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+  }
+
   void checkNull(HInstruction input) {
     beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     use(input, JSPrecedence.EQUALITY_PRECEDENCE);
@@ -2284,11 +2285,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
   }
 
-  void checkType(HInstruction input, Element element) {
+  void checkType(HInstruction input, Element element, [bool negative = false]) {
     world.registerIsCheck(element);
     bool requiresNativeIsCheck =
         backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (!requiresNativeIsCheck) buffer.add('!!');
+    if (!requiresNativeIsCheck) {
+      if (negative) {
+        buffer.add('!');
+      } else {
+        buffer.add('!!');
+      }
+    } else if (negative) {
+      buffer.add('!');
+    }
     use(input, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(compiler.namer.operatorIs(element));
@@ -2400,7 +2409,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (node.checked) {
+    if (node.isChecked()) {
       Element element = node.type.computeType(compiler).element;
       world.registerIsCheck(element);
       SourceString helper;
@@ -2409,6 +2418,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
+      if (node.isArgumentTypeCheck()) {
+        buffer.add('if (');
+        if (element == compiler.intClass) {
+          checkInt(node.checkedInput, '!==');
+        } else {
+          assert(element == compiler.numClass);
+          checkNum(node.checkedInput, '!==');
+        }
+        buffer.add(') ');
+        generateThrowWithHelper('iae', node.checkedInput);
+        return;
+      }
+
+      assert(node.isCheckedModeCheck());
       if (element == compiler.stringClass) {
         helper = const SourceString('stringTypeCheck');
       } else if (element == compiler.doubleClass) {
@@ -2422,6 +2445,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (element == compiler.intClass) {
         helper = const SourceString('intTypeCheck');
       } else if (Elements.isStringSupertype(element, compiler)) {
+        additionalArgument = compiler.namer.operatorIs(element);
         if (nativeCheck) {
           helper = const SourceString('stringSuperNativeTypeCheck');
         } else {
@@ -2459,18 +2483,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
-    : super(backend, work, parameters, parameterNames);
+    : super(backend, work, parameters, parameterNames) {
+    // Declare the parameter names only for the optimized version. The
+    // unoptimized version has different parameters.
+    parameterNames.forEach((Element element, String name) {
+      declaredVariables.add(name);
+    });
+  }
 
   int maxBailoutParameters;
 
-  void beginGraph(HGraph graph) {}
+  HBasicBlock beginGraph(HGraph graph) => graph.entry;
   void endGraph(HGraph graph) {}
 
   void bailout(HTypeGuard guard, String reason) {
     if (maxBailoutParameters === null) {
       maxBailoutParameters = 0;
-      work.guards.forEach((HTypeGuard guard) {
-        int inputLength = guard.inputs.length;
+      work.guards.forEach((HTypeGuard workGuard) {
+        int inputLength = workGuard.inputs.length;
         if (inputLength > maxBailoutParameters) {
           maxBailoutParameters = inputLength;
         }
@@ -2487,10 +2517,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     } else {
       buffer.add(namer.isolateBailoutAccess(element));
     }
-    int parametersCount = parameterNames.length;
-    buffer.add('($parameters');
-    if (parametersCount != 0) buffer.add(', ');
-    buffer.add('${guard.state}');
+    buffer.add('(${guard.state}');
     // TODO(ngeoffray): try to put a variable at a deterministic
     // location, so that multiple bailout calls put the variable at
     // the same parameter index.
@@ -2513,64 +2540,77 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     HInstruction input = node.guarded;
     Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
     if (node.isInteger()) {
+      // if (input is !int) bailout
       buffer.add('if (');
       checkInt(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not an integer');
     } else if (node.isNumber()) {
+      // if (input is !num) bailout
       buffer.add('if (');
       checkNum(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a number');
     } else if (node.isBoolean()) {
+      // if (input is !bool) bailout
       buffer.add('if (');
       checkBool(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a boolean');
     } else if (node.isString()) {
+      // if (input is !string) bailout
       buffer.add('if (');
       checkString(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a string');
     } else if (node.isExtendableArray()) {
+      // if (input is !Object || input is !Array || input.isFixed) bailout
       buffer.add('if (');
       checkObject(input, '!==');
       buffer.add('||');
       checkArray(input, '!==');
       buffer.add('||');
-      checkExtendableArray(input);
+      checkFixedArray(input);
       buffer.add(') ');
       bailout(node, 'Not an extendable array');
     } else if (node.isMutableArray()) {
+      // if (input is !Object
+      //     || ((input is !Array || input.isImmutable)
+      //         && input is !JsIndexingBehavior)) bailout
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add(' || ');
+      buffer.add(' || ((');
       checkArray(input, '!==');
       buffer.add(' || ');
       checkImmutableArray(input);
-      buffer.add(' || !');
-      checkType(input, indexingBehavior);
-      buffer.add(') ');
+      buffer.add(') && ');
+      checkType(input, indexingBehavior, negative: true);
+      buffer.add(')) ');
       bailout(node, 'Not a mutable array');
     } else if (node.isReadableArray()) {
+      // if (input is !Object
+      //     || (input is !Array && input is !JsIndexingBehavior)) bailout
       buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add(' || ');
+      buffer.add(' || (');
       checkArray(input, '!==');
-      buffer.add(' || !');
-      checkType(input, indexingBehavior);
-      buffer.add(') ');
+      buffer.add(' && ');
+      checkType(input, indexingBehavior, negative: true);
+      buffer.add(')) ');
       bailout(node, 'Not an array');
     } else if (node.isIndexablePrimitive()) {
+      // if (input is !String
+      //     && (input is !Object
+      //         || (input is !Array && input is !JsIndexingBehavior))) bailout
       buffer.add('if (');
       checkString(input, '!==');
       buffer.add(' && (');
       checkObject(input, '!==');
-      buffer.add(' || ');
+      buffer.add(' || (');
       checkArray(input, '!==');
-      buffer.add(' || !');
-      checkType(input, indexingBehavior);
-      buffer.add(')) ');
+      buffer.add(' && ');
+      checkType(input, indexingBehavior, negative: true);
+      buffer.add('))) ');
       bailout(node, 'Not a string or array');
     } else {
       compiler.internalError('Unexpected type guard', instruction: input);
@@ -2614,13 +2654,17 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   final StringBuffer setup;
+  final StringBuffer newParameters;
   final List<String> labels;
   int labelId = 0;
-  int maxBailoutParameters = 0;
+
+  SsaBailoutPropagator propagator;
+  HInstruction savedFirstInstruction;
 
   SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameters, parameterNames),
       setup = new StringBuffer(),
+      newParameters = new StringBuffer(),
       labels = <String>[];
 
   String pushLabel() {
@@ -2637,38 +2681,53 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     return labels.last();
   }
 
-  void beginGraph(HGraph graph) {
-    if (!graph.entry.hasGuards()) return;
-    addIndented('switch (state) {\n');
-    indent++;
-    addIndented('case 0:\n');
-    indent++;
+  HBasicBlock beginGraph(HGraph graph) {
+    propagator = new SsaBailoutPropagator(compiler, generateAtUseSite);
+    propagator.visitGraph(graph);
+    // TODO(ngeoffray): We could avoid generating the state at the
+    // call site for non-complex bailout methods.
+    newParameters.add('state');
 
-    // The setup phase of a bailout function sets up the environment for
-    // each bailout target. Each bailout target will populate this
-    // setup phase. It is put at the beginning of the function.
-    setup.add('  switch (state) {\n');
+    if (propagator.hasComplexTypeGuards) {
+      // Use generic parameters that will be assigned to
+      // the right variables in the setup phase.
+      for (int i = 0; i < propagator.maxBailoutParameters; i++) {
+        String name = 'env$i';
+        declaredVariables.add(name);
+        newParameters.add(', $name');
+      }
+
+      startBailoutSwitch();
+
+      // The setup phase of a bailout function sets up the environment for
+      // each bailout target. Each bailout target will populate this
+      // setup phase. It is put at the beginning of the function.
+      setup.add('  switch (state) {\n');
+      return graph.entry;
+    } else {
+      // We have a simple type guard, so we can reuse the names that
+      // the type guard expects.
+      for (HInstruction input in propagator.firstTypeGuard.inputs) {
+        input = unwrap(input);
+        String name = variableNames.getName(input);
+        declaredVariables.add(name);
+        newParameters.add(', $name');
+      }
+
+      // We change the first instruction of the first guard to be the
+      // guard. We will change it back in the call to [endGraph].
+      HBasicBlock block = propagator.firstTypeGuard.block;
+      savedFirstInstruction = block.first;
+      block.first = propagator.firstTypeGuard;
+      return block;
+    }
   }
-
-  void endGraph(HGraph graph) {
-    if (!graph.entry.hasGuards()) return;
-    indent--; // Close original case.
-    indent--;
-    addIndented('}\n');  // Close 'switch'.
-    setup.add('  }\n');
-  }
-
-  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
-  bool visitIfInfo(HIfBlockInformation info) => false;
-  bool visitLoopInfo(HLoopBlockInformation info) => false;
-  bool visitTryInfo(HTryBlockInformation info) => false;
-  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
   // If argument is a [HCheck] and it does not have a name, we try to
   // find the name of its checked input. Note that there must be a
   // name, otherwise the instruction would not be in the live
   // environment.
-  HInstruction unwrap(argument) {
+  HInstruction unwrap(HInstruction argument) {
     while (argument is HCheck && !variableNames.hasName(argument)) {
       argument = argument.checkedInput;
     }
@@ -2676,7 +2735,38 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     return argument;
   }
 
+  void endGraph(HGraph graph) {
+    if (propagator.hasComplexTypeGuards) {
+      indent--; // Close original case.
+      indent--;
+      addIndented('}\n');  // Close 'switch'.
+      setup.add('  }\n');
+    } else {
+      // Put back the original first instruction of the block.
+      propagator.firstTypeGuard.block.first = savedFirstInstruction;
+    }
+  }
+
+  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
+
+  bool visitIfInfo(HIfBlockInformation info) {
+    if (info.thenGraph.start.hasGuards()) return false;
+    if (info.elseGraph.start.hasGuards()) return false;
+    return super.visitIfInfo(info);
+  }
+
+  bool visitLoopInfo(HLoopBlockInformation info) {
+    if (info.start.hasGuards()) return false;
+    if (info.loopHeader.hasGuards()) return false;
+    return super.visitLoopInfo(info);
+  }
+
+  bool visitTryInfo(HTryBlockInformation info) => false;
+  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
+
   void visitTypeGuard(HTypeGuard node) {
+    if (!propagator.hasComplexTypeGuards) return;
+
     indent--;
     addIndented('case ${node.state}:\n');
     indent++;
@@ -2685,11 +2775,16 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('    case ${node.state}:\n');
     int i = 0;
     for (HInstruction input in node.inputs) {
-      HInstruction instruction = unwrap(input);
-      setup.add('      ${variableNames.getName(instruction)} = env$i;\n');
+      input = unwrap(input);
+      String name = variableNames.getName(input);
+      setup.add('      ');
+      if (!isVariableDeclared(name)) {
+        declaredVariables.add(name);
+        setup.add('var ');
+      }
+      setup.add('$name = env$i;\n');
       i++;
     }
-    if (i > maxBailoutParameters) maxBailoutParameters = i;
     setup.add('      break;\n');
   }
 
@@ -2721,7 +2816,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void beginLoop(HBasicBlock block) {
-    // TODO(ngeoffray): Don't put labels on loops that don't bailout.
     String newLabel = pushLabel();
     if (block.hasGuards()) {
       startBailoutCase(block.guards, const <HTypeGuard>[]);

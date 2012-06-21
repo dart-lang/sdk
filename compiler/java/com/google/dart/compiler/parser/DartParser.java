@@ -141,6 +141,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String INTERFACE_KEYWORD = "interface";
   private static final String NATIVE_KEYWORD = "native";
   private static final String NEGATE_KEYWORD = "negate";
+  //private static final String ON_KEYWORD = "on";
   private static final String OPERATOR_KEYWORD = "operator";
   private static final String PREFIX_KEYWORD = "prefix";
   private static final String SETTER_KEYWORD = "set";
@@ -974,7 +975,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartNode parseFieldOrMethod(boolean allowStatic) {
     beginClassMember();
     Modifiers modifiers = Modifiers.NONE;
-    if (optionalPseudoKeyword(STATIC_KEYWORD)) {
+    if (peek(1) != Token.LPAREN && optionalPseudoKeyword(STATIC_KEYWORD)) {
       if (!allowStatic) {
         reportError(position(), ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
       } else {
@@ -1046,7 +1047,20 @@ public class DartParser extends CompletionHooksParserBase {
         if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
           modifiers = modifiers.makeFactory();
         }
-        member = done(parseMethod(modifiers, null));
+        if (peek(0).equals(Token.IDENTIFIER) && looksLikeMethodOrAccessorDefinition()) {
+          return done(parseMethod(modifiers, null));
+        }
+        // Try to find type, may be "const ^ Type field".
+        DartTypeNode type = null;
+        if (peek(1) != Token.COMMA
+            && peek(1) != Token.ASSIGN
+            && peek(1) != Token.SEMICOLON) {
+          type = parseTypeAnnotation();
+        }
+        // Parse field.
+        modifiers = modifiers.makeFinal();
+        member = parseFieldDeclaration(modifiers, type);
+        expectStatmentTerminator();
         break;
       }
 
@@ -1864,7 +1878,8 @@ public class DartParser extends CompletionHooksParserBase {
     if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
-      result = done(new DartBinaryExpression(token, result, parseExpression()));
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = done(new DartBinaryExpression(token, tokenOffset, result, parseExpression()));
     } else {
       done(null);
     }
@@ -1882,7 +1897,8 @@ public class DartParser extends CompletionHooksParserBase {
     DartExpression result = parseExpression();
     // Must keep in sync with @Terminals above
     while (optional(Token.COMMA)) {
-      result = new DartBinaryExpression(Token.COMMA, result, parseExpression());
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = new DartBinaryExpression(Token.COMMA, tokenOffset, result, parseExpression());
       if (match(Token.COMMA)) {
         result = doneWithoutConsuming(result);
       }
@@ -1948,6 +1964,7 @@ public class DartParser extends CompletionHooksParserBase {
         Position prevPositionStart = ctx.getTokenLocation().getBegin();
         Position prevPositionEnd = ctx.getTokenLocation().getEnd();
         Token token = next();
+        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
         if (lastResult instanceof DartSuperExpression
             && (token == Token.AND || token == Token.OR)) {
           reportErrorAtPosition(prevPositionStart, prevPositionEnd,
@@ -1957,9 +1974,10 @@ public class DartParser extends CompletionHooksParserBase {
         if (token == Token.IS) {
           beginTypeExpression();
           if (optional(Token.NOT)) {
+            int notOffset = ctx.getTokenLocation().getBegin().getPos();
             beginTypeExpression();
             DartTypeExpression typeExpression = done(new DartTypeExpression(parseTypeAnnotation()));
-            right = done(new DartUnaryExpression(Token.NOT, typeExpression, true));
+            right = done(new DartUnaryExpression(Token.NOT, notOffset, typeExpression, true));
           } else {
             right = done(new DartTypeExpression(parseTypeAnnotation()));
           }
@@ -1975,7 +1993,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
 
         lastResult = right;
-        result = doneWithoutConsuming(new DartBinaryExpression(token, result, right));
+        result = doneWithoutConsuming(new DartBinaryExpression(token, tokenOffset, result, right));
         if (token == Token.IS
             || token == Token.AS
             || token.isRelationalOperator()
@@ -2453,7 +2471,8 @@ public class DartParser extends CompletionHooksParserBase {
     if (token.isCountOperator()) {
       ensureAssignable(result);
       consume(token);
-      result = doneWithoutConsuming(new DartUnaryExpression(token, result, false));
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = doneWithoutConsuming(new DartUnaryExpression(token, tokenOffset, result, false));
     }
 
     return done(result);
@@ -2972,7 +2991,13 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    return done(new DartNewExpression(constructor, parseArguments(), isConst));
+    boolean save = setAllowFunctionExpression(true);
+    try {
+      List<DartExpression> args = parseArguments();
+      return done(new DartNewExpression(constructor, args, isConst));
+    } finally {
+      setAllowFunctionExpression(save);
+    }
   }
 
   private DartIdentifier ensureIdentifier(DartTypeNode node) {
@@ -3158,27 +3183,30 @@ public class DartParser extends CompletionHooksParserBase {
     boolean oldInLoopStatement = inLoopStatement;
     boolean oldInCaseStatement = inCaseStatement;
     inLoopStatement = inCaseStatement = false;
-    DartBlock result;
-    if (isDietParse) {
-      result = dietParseFunctionStatementBody();
-    } else {
-      beginFunctionStatementBody();
-      if (optional(Token.ARROW)) {
-        DartExpression expr = parseExpression();
-        if (expr == null) {
-          expr = new DartSyntheticErrorExpression();
-        }
-        if (requireSemicolonForArrow) {
-          expect(Token.SEMICOLON);
-        }
-        result = done(makeReturnBlock(expr));
+    try {
+      DartBlock result;
+      if (isDietParse) {
+        result = dietParseFunctionStatementBody();
       } else {
-        result = done(parseBlock());
+        beginFunctionStatementBody();
+        if (optional(Token.ARROW)) {
+          DartExpression expr = parseExpression();
+          if (expr == null) {
+            expr = new DartSyntheticErrorExpression();
+          }
+          if (requireSemicolonForArrow) {
+            expect(Token.SEMICOLON);
+          }
+          result = done(makeReturnBlock(expr));
+        } else {
+          result = done(parseBlock());
+        }
       }
+      return result;
+    } finally {
+      inLoopStatement = oldInLoopStatement;
+      inCaseStatement = oldInCaseStatement;
     }
-    inLoopStatement = oldInLoopStatement;
-    inCaseStatement = oldInCaseStatement;
-    return result;
   }
 
   private DartBlock dietParseFunctionStatementBody() {
@@ -3792,9 +3820,11 @@ public class DartParser extends CompletionHooksParserBase {
   private DartStatement parseLoopStatement() {
     boolean oldInLoop = inLoopStatement;
     inLoopStatement = true;
-    DartStatement stmt = parseStatement();
-    inLoopStatement = oldInLoop;
-    return stmt;
+    try {
+      return parseStatement();
+    } finally {
+      inLoopStatement = oldInLoop;
+    }
   }
 
   /**
@@ -3923,6 +3953,8 @@ public class DartParser extends CompletionHooksParserBase {
   private List<DartStatement> parseCaseStatements() {
     List<DartStatement> statements = new ArrayList<DartStatement>();
     DartStatement statement = null;
+    boolean endOfCaseFound = false;
+    boolean warnedUnreachable = false;
     while (true) {
       switch (peek(0)) {
         case CASE:
@@ -3930,23 +3962,34 @@ public class DartParser extends CompletionHooksParserBase {
         case RBRACE:
         case EOS:
           return statements;
+        case IDENTIFIER:
+          // Handle consecutively labeled case statements
+          if (peek(1).equals(Token.COLON)
+              && (peek(2).equals(Token.CASE) || peek(2).equals(Token.DEFAULT))) {
+            return statements;
+          }
         default:
           boolean oldInCaseStatement = inCaseStatement;
           inCaseStatement = true;
-          statement = parseStatement();
-          inCaseStatement = oldInCaseStatement;
+          try {
+            if (endOfCaseFound && !warnedUnreachable) {
+              reportErrorWithoutAdvancing(ParserErrorCode.UNREACHABLE_CODE_IN_CASE);
+              warnedUnreachable = true;
+            }
+            statement = parseStatement();
+          } finally {
+            inCaseStatement = oldInCaseStatement;
+          }
           if (statement == null) {
             return statements;
           }
 
-          statements.add(statement);
-          if (statement.isAbruptCompletingStatement()) {
-            /*
-             * TODO(jat): is this correct? It seems like we would get better
-             * error messages if we parsed dead code as part of this case block
-             * and gave an error for unreachable code
-             */
-            return statements;
+          // Don't add unreachable code to the list of statements.
+          if (!endOfCaseFound) {
+            statements.add(statement);
+            if (statement.isAbruptCompletingStatement()) {
+              endOfCaseFound = true;
+            }
           }
       }
     }
@@ -4012,8 +4055,12 @@ public class DartParser extends CompletionHooksParserBase {
         DartIdentifier identifier = parseIdentifier();
         expect(Token.COLON);
         label = done(new DartLabel(identifier, null));
+        if (peek(0) == Token.RBRACE) {
+          reportError(position(), ParserErrorCode.LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT);
+          expectCloseBrace(foundOpenBrace);
+          break;
+        }
       }
-
       if (peek(0) == Token.CASE) {
         members.add(parseCaseMember(label));
       } else if (optional(Token.RBRACE)) {
@@ -4067,6 +4114,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
+   * Parse either the old try statement syntax:
    * <pre>
    * tryStatement
    *     : TRY block (catchPart+ finallyPart? | finallyPart)
@@ -4074,6 +4122,24 @@ public class DartParser extends CompletionHooksParserBase {
    *
    * catchPart
    *     : CATCH '(' declaredIdentifier (',' declaredIdentifier)? ')' block
+   *     ;
+   *
+   * finallyPart
+   *     : FINALLY block
+   *     ;
+   * </pre>
+   * or the new syntax:
+   * <pre>
+   * tryStatement
+   *     : TRY block (onPart+ finallyPart? | finallyPart)
+   *     ;
+   *
+   * onPart
+   *     : catchPart block
+   *     | ON qualified catchPart? block
+   *
+   * catchPart
+   *     : CATCH '(' identifier (',' identifier)? ')'
    *     ;
    *
    * finallyPart
@@ -4089,19 +4155,63 @@ public class DartParser extends CompletionHooksParserBase {
     DartBlock tryBlock = parseBlock();
 
     List<DartCatchBlock> catches = new ArrayList<DartCatchBlock>();
-    while (optional(Token.CATCH)) {
+    while (/*peekPseudoKeyword(0, ON_KEYWORD) ||*/ match(Token.CATCH)) {
       // TODO(zundel): It would be nice here to setup 'FINALLY' as token for recovery
-      beginCatchClause();
-      expect(Token.LPAREN);
-      DartParameter exception = parseCatchParameter();
-      DartParameter stackTrace = null;
-      if (optional(Token.COMMA)) {
-        stackTrace = parseCatchParameter();
-      }
-      expectCloseParen();
-      DartBlock block = parseBlock();
-      catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
-    }
+//      if (peekPseudoKeyword(0, ON_KEYWORD)) {
+//        beginCatchClause();
+//        next();
+//        DartTypeNode exceptionType = new DartTypeNode(parseQualified());
+//        DartParameter exception = null;
+//        DartParameter stackTrace = null;
+//        if (optional(Token.CATCH)) {
+//          expect(Token.LPAREN);
+//          beginCatchParameter();
+//          DartIdentifier exceptionName = parseIdentifier();
+//          exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
+//          if (optional(Token.COMMA)) {
+//            beginCatchParameter();
+//            DartIdentifier stackName = parseIdentifier();
+//            stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
+//          }
+//          expectCloseParen();
+//        } else {
+//          // Create a dummy identifier that the user cannot reliably reference.
+//          DartIdentifier exceptionName = new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis()));
+//          exception = new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE);
+//        }
+//        DartBlock block = parseBlock();
+//        catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+//      } else {
+        beginCatchClause();
+        next();
+        expect(Token.LPAREN);
+//        if (match(Token.IDENTIFIER) && (peek(1) == Token.COMMA || peek(1) == Token.RPAREN)) {
+//          beginCatchParameter();
+//          DartIdentifier exceptionName = parseIdentifier();
+//          // Create a dummy type with the right semantics.
+//          DartTypeNode exceptionType = new DartTypeNode(new DartIdentifier("Object"));
+//          DartParameter exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
+//          DartParameter stackTrace = null;
+//          if (optional(Token.COMMA)) {
+//            beginCatchParameter();
+//            DartIdentifier stackName = parseIdentifier();
+//            stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
+//          }
+//          expectCloseParen();
+//          DartBlock block = parseBlock();
+//          catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+//        } else {
+          DartParameter exception = parseCatchParameter();
+          DartParameter stackTrace = null;
+          if (optional(Token.COMMA)) {
+            stackTrace = parseCatchParameter();
+          }
+          expectCloseParen();
+          DartBlock block = parseBlock();
+          catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+        }
+//      }
+//    }
 
     // Finally.
     DartBlock finallyBlock = null;
@@ -4146,16 +4256,19 @@ public class DartParser extends CompletionHooksParserBase {
         beginUnaryExpression();
         beginUnaryExpression();
         consume(token);
+        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
         DartExpression unary = parseUnaryExpression();
-        return done(new DartUnaryExpression(Token.SUB, done(new DartUnaryExpression(Token.SUB, unary, true)), true));
+        DartUnaryExpression unary2 = new DartUnaryExpression(Token.SUB, tokenOffset, unary, true);
+        return done(new DartUnaryExpression(Token.SUB, tokenOffset, done(unary2), true));
       } else {
         beginUnaryExpression();
         consume(token);
+        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
         DartExpression unary = parseUnaryExpression();
         if (token.isCountOperator()) {
           ensureAssignable(unary);
         }
-        return done(new DartUnaryExpression(token, unary, true));
+        return done(new DartUnaryExpression(token, tokenOffset, unary, true));
       }
     } else {
       return parsePostfixExpression();

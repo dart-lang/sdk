@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
-import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
@@ -22,6 +21,7 @@ import com.google.dart.compiler.resolver.MemberBuilder;
 import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.SupertypeResolver;
+import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.type.TypeAnalyzer;
 
 import java.io.IOException;
@@ -82,10 +82,9 @@ class DeltaAnalyzer {
     for (LibraryNode path : enclosingLibrary.getLibraryUnit().getImportPaths()) {
       libraryUnit.addImportPath(path);
     }
-    for (LibraryUnit importUnit : enclosingLibrary.getLibraryUnit().getImports()) {
+    for (LibraryUnit importUnit : enclosingLibrary.getLibraryUnit().getImportedLibraries()) {
       libraryUnit.addImport(importUnit, importUnit.getEntryNode());
     }
-    libraryUnit.initializePrefixes(enclosingLibrary.getLibraryUnit());
     libraryUnit.putUnit(unit);
 
     // Create top-level elements for the new unit.

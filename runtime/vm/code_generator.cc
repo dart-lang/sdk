@@ -32,6 +32,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 
 
 bool CodeGenerator::CanOptimize() {
@@ -940,12 +941,12 @@ static RawFunction* InlineCacheMissHandler(
       CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc()));
 #if defined(DEBUG)
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<const Class*> classes;
+    GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
-    ic_data.GetCheckAt(i, &classes, &target);
+    ic_data.GetCheckAt(i, &class_ids, &target);
     bool matches = true;
-    for (intptr_t k = 0; k < classes.length(); k++) {
-      if (classes[k]->raw() != args[k]->clazz()) {
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (class_ids[k] != Class::Handle(args[k]->clazz()).id()) {
         matches = false;
         break;
       }
@@ -955,17 +956,24 @@ static RawFunction* InlineCacheMissHandler(
   }
 #endif  // DEBUG
 
-  GrowableArray<const Class*> classes;
-  ASSERT(ic_data.num_args_tested() == args.length());
-  for (intptr_t i = 0; i < args.length(); i++) {
-    classes.Add(&Class::ZoneHandle(args[i]->clazz()));
+  if (args.length() == 1) {
+    ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
+                             target_function);
+  } else {
+    GrowableArray<intptr_t> class_ids;
+    ASSERT(ic_data.num_args_tested() == args.length());
+    for (intptr_t i = 0; i < args.length(); i++) {
+      class_ids.Add(Class::Handle(args[i]->clazz()).id());
+    }
+    ic_data.AddCheck(class_ids, target_function);
   }
-  ic_data.AddCheck(classes, target_function);
   if (FLAG_trace_ic) {
-    OS::Print("InlineCacheMissHandler %d call at 0x%x' adding <%s> -> <%s>\n",
+    OS::Print("InlineCacheMissHandler %d call at 0x%x' "
+              "adding <%s> id:%d -> <%s>\n",
         args.length(),
         caller_frame->pc(),
         Class::Handle(receiver.clazz()).ToCString(),
+        Class::Handle(receiver.clazz()).id(),
         target_function.ToCString());
   }
   return target_function.raw();
@@ -1341,6 +1349,13 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     function.set_usage_counter(kLowInvocationCount);
     return;
   }
+  if ((FLAG_optimization_filter != NULL) &&
+      (strncmp(function.ToFullyQualifiedCString(),
+               FLAG_optimization_filter,
+               strlen(FLAG_optimization_filter)) != 0)) {
+    function.set_usage_counter(kLowInvocationCount);
+    return;
+  }
   if (function.is_optimizable()) {
     ASSERT(!function.HasOptimizedCode());
     const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
@@ -1573,5 +1588,13 @@ RawCode* FunctionsCache::LookupCode(const String& function_name,
   UNREACHABLE();
   return Code::null();
 }
+
+
+// Adds a pointer to the store buffer.
+// ptr: the address of a field being stored into.
+DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBuffer, uword ptr) {
+  Isolate::Current()->store_buffer()->AddPointer(ptr);
+}
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

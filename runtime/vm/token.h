@@ -268,9 +268,8 @@ class Token {
             (tok == Token::kDOUBLE));
   }
 
-  // Returns kILLEGAL if 'name' does not match a BinaryOp.
-  static Token::Kind GetBinaryOp(const String& name);
-  static Token::Kind GetUnaryOp(const String& name);
+  static bool IsBinaryToken(Token::Kind token);
+  static bool IsUnaryToken(Token::Kind token);
 
  private:
   static const char* name_[];

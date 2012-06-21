@@ -100,19 +100,19 @@ class _HttpUtils {
 
     Date d = date.toUtc();
     StringBuffer sb = new StringBuffer();
-    sb.add(wkday[d.weekday]);
+    sb.add(wkday[d.weekday - 1]);
     sb.add(", ");
     sb.add(d.day.toString());
     sb.add(" ");
     sb.add(month[d.month - 1]);
     sb.add(" ");
     sb.add(d.year.toString());
-    d.hours < 9 ? sb.add(" 0") : sb.add(" ");
-    sb.add(d.hours.toString());
-    d.minutes < 9 ? sb.add(":0") : sb.add(":");
-    sb.add(d.minutes.toString());
-    d.seconds < 9 ? sb.add(":0") : sb.add(":");
-    sb.add(d.seconds.toString());
+    d.hour < 9 ? sb.add(" 0") : sb.add(" ");
+    sb.add(d.hour.toString());
+    d.minute < 9 ? sb.add(":0") : sb.add(":");
+    sb.add(d.minute.toString());
+    d.second < 9 ? sb.add(":0") : sb.add(":");
+    sb.add(d.second.toString());
     sb.add(" GMT");
     return sb.toString();
   }

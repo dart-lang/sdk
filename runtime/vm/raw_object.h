@@ -581,6 +581,7 @@ class RawFunction : public RawObject {
   bool is_static_;
   bool is_const_;
   bool is_optimizable_;
+  bool is_native_;
 };
 
 
@@ -796,15 +797,24 @@ class RawStackmap : public RawObject {
 
 
 class RawLocalVarDescriptors : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
+ public:
+  enum VarInfoKind {
+    kStackVar = 1,
+    kContextVar,
+    kContextLevel,
+    kContextChain
+  };
 
   struct VarInfo {
     intptr_t index;      // Slot index on stack or in context.
-    intptr_t scope_id;   // Scope to which the variable belongs.
+    int8_t   kind;       // Entry kind of type VarInfoKind.
+    int16_t  scope_id;   // Scope to which the variable belongs.
     intptr_t begin_pos;  // Token position of scope start.
     intptr_t end_pos;    // Token position of scope end.
   };
 
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
   intptr_t length_;  // Number of descriptors.
   RawArray* names_;  // Array of [length_] variable names.
 
@@ -875,7 +885,7 @@ class RawICData : public RawObject {
   }
   RawFunction* function_;  // Parent/calling function of this IC.
   RawString* target_name_;  // Name of target function.
-  RawArray* ic_data_;  // Contains test classes and target function.
+  RawArray* ic_data_;  // Contains test class-ids and target functions.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
@@ -1481,7 +1491,7 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   ASSERT(kImmutableArray == kArray + 1 &&
          kGrowableObjectArray == kArray + 2 &&
          kByteArray == kArray + 3);
-  return (index >= kArray && index < kByteArray);
+  return (index >= kArray && index < kByteArray) || IsByteArrayClassId(index);
 }
 
 inline bool RawObject::IsByteArrayClassId(intptr_t index) {

@@ -13,9 +13,38 @@
 
 namespace dart {
 
+// TODO(srdjan): Add _ByteArrayBase, get:length.
+
+#define RECOGNIZED_LIST(V)                                                     \
+  V(ObjectArray, get:length, ObjectArrayLength)                                \
+  V(ImmutableArray, get:length, ImmutableArrayLength)                          \
+  V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
+  V(StringBase, get:length, StringBaseLength)                                  \
+  V(IntegerImplementation, toDouble, IntegerToDouble)                          \
+  V(Double, toDouble, DoubleToDouble)                                          \
+  V(Math, sqrt, MathSqrt)                                                      \
+
+// Class that recognizes the name and owner of a function and returns the
+// corresponding enum. See RECOGNIZED_LIST above for list of recognizable
+// functions.
+class MethodRecognizer : public AllStatic {
+ public:
+  enum Kind {
+    kUnknown,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
+RECOGNIZED_LIST(DEFINE_ENUM_LIST)
+#undef DEFINE_ENUM_LIST
+  };
+
+  static Kind RecognizeKind(const Function& function);
+  static const char* KindToCString(Kind kind);
+};
+
+
 class BitVector;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
+class Function;
 class LocalVariable;
 class LocationSummary;
 
@@ -109,6 +138,7 @@ class Computation : public ZoneAllocated {
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
+  virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
   // Static type of the computation.
   virtual RawAbstractType* StaticType() const = 0;
@@ -255,6 +285,7 @@ class TemplateComputation : public Computation {
  public:
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -449,6 +480,9 @@ class ClosureCallComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -466,18 +500,24 @@ class InstanceCallComp : public Computation {
   InstanceCallComp(intptr_t token_index,
                    intptr_t try_index,
                    const String& function_name,
+                   Token::Kind token_kind,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
       : token_index_(token_index),
         try_index_(try_index),
         function_name_(function_name),
+        token_kind_(token_kind),
         arguments_(arguments),
         argument_names_(argument_names),
         checked_argument_count_(checked_argument_count) {
     ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle());
+    ASSERT(Token::IsBinaryToken(token_kind) ||
+           Token::IsUnaryToken(token_kind) ||
+           token_kind == Token::kGET ||
+           token_kind == Token::kILLEGAL);
   }
 
   DECLARE_COMPUTATION(InstanceCall)
@@ -485,6 +525,7 @@ class InstanceCallComp : public Computation {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
+  Token::Kind token_kind() const { return token_kind_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
   const Array& argument_names() const { return argument_names_; }
@@ -492,13 +533,19 @@ class InstanceCallComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  bool VerifyComputation();
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
   const String& function_name_;
+  const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;
@@ -509,22 +556,19 @@ class InstanceCallComp : public Computation {
 
 class PolymorphicInstanceCallComp : public Computation {
  public:
-  PolymorphicInstanceCallComp(InstanceCallComp* comp,
-                              const ZoneGrowableArray<intptr_t>& class_ids,
-                              const ZoneGrowableArray<Function*>& targets)
-      : instance_call_(comp),
-        class_ids_(class_ids),
-        targets_(targets) {
+  explicit PolymorphicInstanceCallComp(InstanceCallComp* comp)
+      : instance_call_(comp) {
     ASSERT(instance_call_ != NULL);
   }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
-  const ZoneGrowableArray<intptr_t>& class_ids() const { return class_ids_; }
-  const ZoneGrowableArray<Function*>& targets() const { return targets_; }
 
   virtual intptr_t InputCount() const { return instance_call()->InputCount(); }
   virtual Value* InputAt(intptr_t i) const {
     return instance_call()->ArgumentAt(i);
+  }
+  virtual void SetInputAt(intptr_t index, Value* value) {
+    instance_call()->SetInputAt(index, value);
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const {
@@ -535,8 +579,6 @@ class PolymorphicInstanceCallComp : public Computation {
 
  private:
   InstanceCallComp* instance_call_;
-  const ZoneGrowableArray<intptr_t>& class_ids_;
-  const ZoneGrowableArray<Function*>& targets_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallComp);
 };
@@ -601,25 +643,18 @@ class EqualityCompareComp : public ComparisonComp {
                       Value* right)
       : ComparisonComp(left, right),
         token_index_(token_index),
-        try_index_(try_index),
-        operands_class_id_(kObject) {
+        try_index_(try_index) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
-  void set_operands_class_id(intptr_t value) {
-    operands_class_id_ = value;
-  }
-  intptr_t operands_class_id() const { return operands_class_id_; }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_index_;
   const intptr_t try_index_;
-  intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };
@@ -677,7 +712,8 @@ class StaticCallComp : public Computation {
         try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
-        arguments_(arguments) {
+        arguments_(arguments),
+        recognized_(MethodRecognizer::kUnknown) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -693,8 +729,14 @@ class StaticCallComp : public Computation {
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
+  MethodRecognizer::Kind recognized() const { return recognized_; }
+  void set_recognized(MethodRecognizer::Kind kind) { recognized_ = kind; }
+
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -704,6 +746,7 @@ class StaticCallComp : public Computation {
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
+  MethodRecognizer::Kind recognized_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
 };
@@ -782,6 +825,10 @@ class NativeCallComp : public TemplateComputation<0> {
     return ast_node_.has_optional_parameters();
   }
 
+  bool is_native_instance_closure() const {
+    return ast_node_.is_native_instance_closure();
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
@@ -796,9 +843,8 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
   LoadInstanceFieldComp(const Field& field,
                         Value* instance,
-                        InstanceCallComp* original,  // Maybe NULL.
-                        ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
-      : field_(field), original_(original), class_ids_(class_ids) {
+                        InstanceCallComp* original)  // Maybe NULL.
+      : field_(field), original_(original) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
@@ -807,7 +853,6 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   const Field& field() const { return field_; }
   Value* instance() const { return inputs_[0]; }
-  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
   const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -815,8 +860,6 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
  private:
   const Field& field_;
   const InstanceCallComp* original_;  // For optimizations.
-  // If non-NULL, the instruction is valid only for the class ids listed.
-  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -827,9 +870,8 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
                          Value* value,
-                         InstanceSetterComp* original,  // Maybe NULL.
-                         ZoneGrowableArray<intptr_t>* class_ids)  // Maybe NULL.
-      : field_(field), original_(original), class_ids_(class_ids) {
+                         InstanceSetterComp* original)  // Maybe NULL.
+      : field_(field), original_(original) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
     inputs_[0] = instance;
@@ -843,7 +885,6 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
-  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
   const InstanceSetterComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -851,8 +892,6 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
  private:
   const Field& field_;
   const InstanceSetterComp* original_;  // For optimizations.
-  // If non-NULL, the instruction is valid only for the class ids listed.
-  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
@@ -1125,6 +1164,9 @@ class AllocateObjectComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1155,6 +1197,9 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 
   virtual intptr_t InputCount() const;
   virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    (*arguments_)[i] = value;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1193,7 +1238,8 @@ class CreateArrayComp : public TemplateComputation<1> {
   Value* element_type() const { return inputs_[0]; }
 
   virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return ElementAt(i); }
+  virtual Value* InputAt(intptr_t i) const;
+  virtual void SetInputAt(intptr_t i, Value* value);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1245,26 +1291,9 @@ class LoadVMFieldComp : public TemplateComputation<1> {
                   const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
-        original_(NULL),
-        class_ids_(NULL) {
+        original_(NULL) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    inputs_[0] = value;
-  }
-
-  LoadVMFieldComp(Value* value,
-                  intptr_t offset_in_bytes,
-                  const AbstractType& type,
-                  InstanceCallComp* original,
-                  ZoneGrowableArray<intptr_t>* class_ids)
-      : offset_in_bytes_(offset_in_bytes),
-        type_(type),
-        original_(original),
-        class_ids_(class_ids) {
-    ASSERT(value != NULL);
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    ASSERT(original != NULL);
-    ASSERT(class_ids != NULL);
     inputs_[0] = value;
   }
 
@@ -1273,8 +1302,8 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
-  const ZoneGrowableArray<intptr_t>* class_ids() const { return class_ids_; }
   const InstanceCallComp* original() const { return original_; }
+  void set_original(InstanceCallComp* value) { original_ = value; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1283,7 +1312,6 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   const AbstractType& type_;
   const InstanceCallComp* original_;  // For optimizations.
   // If non-NULL, the instruction is valid only for the class ids listed.
-  const ZoneGrowableArray<intptr_t>* class_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };
@@ -1503,6 +1531,7 @@ class BinaryOpComp : public TemplateComputation<2> {
  public:
   enum OperandsType {
     kSmiOperands,
+    kMintOperands,
     kDoubleOperands
   };
 
@@ -1695,6 +1724,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
   virtual Value* InputAt(intptr_t i) const;                                    \
+  virtual void SetInputAt(intptr_t i, Value* value);                           \
   virtual const char* DebugName() const { return #type; }                      \
   virtual void PrintTo(BufferFormatter* f) const;                              \
   virtual void PrintToVisualizer(BufferFormatter* f) const;
@@ -1723,6 +1753,7 @@ class Instruction : public ZoneAllocated {
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
+  virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -1893,7 +1924,10 @@ class BlockEntryInstr : public Instruction {
 class GraphEntryInstr : public BlockEntryInstr {
  public:
   explicit GraphEntryInstr(TargetEntryInstr* normal_entry)
-      : BlockEntryInstr(), normal_entry_(normal_entry), catch_entries_() { }
+      : BlockEntryInstr(),
+        normal_entry_(normal_entry),
+        catch_entries_(),
+        start_env_(NULL) { }
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -1922,9 +1956,13 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
+  ZoneGrowableArray<Value*>* start_env() const { return start_env_; }
+  void set_start_env(ZoneGrowableArray<Value*>* env) { start_env_ = env; }
+
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
+  ZoneGrowableArray<Value*>* start_env_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -1953,7 +1991,6 @@ class JoinEntryInstr : public BlockEntryInstr {
     return successor_;
   }
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2008,7 +2045,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     return successor_;
   }
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2050,7 +2086,6 @@ class DoInstr : public Instruction {
   }
 
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2075,7 +2110,7 @@ class DoInstr : public Instruction {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  Definition() : temp_index_(-1) { }
+  Definition() : temp_index_(-1), ssa_temp_index_(-1) { }
 
   virtual bool IsDefinition() const { return true; }
   virtual Definition* AsDefinition() { return this; }
@@ -2083,8 +2118,12 @@ class Definition : public Instruction {
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
 
+  intptr_t ssa_temp_index() const { return ssa_temp_index_; }
+  void set_ssa_temp_index(intptr_t index) { ssa_temp_index_ = index; }
+
  private:
   intptr_t temp_index_;
+  intptr_t ssa_temp_index_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -2108,7 +2147,6 @@ class BindInstr : public Definition {
   }
 
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
@@ -2143,10 +2181,6 @@ class PhiInstr: public Definition {
 
   DECLARE_INSTRUCTION(Phi)
 
-  void SetInputAt(intptr_t i, Value* value) {
-    inputs_[i] = value;
-  }
-
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
@@ -2155,8 +2189,6 @@ class PhiInstr: public Definition {
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
-
-
 
 
 class ReturnInstr : public InstructionWithInputs {
@@ -2280,7 +2312,8 @@ class BranchInstr : public InstructionWithInputs {
         value_(value),
         true_successor_(NULL),
         false_successor_(NULL),
-        is_fused_with_comparison_(false) { }
+        is_fused_with_comparison_(false),
+        is_negated_(false) { }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -2317,12 +2350,15 @@ class BranchInstr : public InstructionWithInputs {
   }
 
   bool is_fused_with_comparison() const { return is_fused_with_comparison_; }
+  bool is_negated() const { return is_negated_; }
+  void set_is_negated(bool value) { is_negated_ = value; }
 
  private:
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
   bool is_fused_with_comparison_;
+  bool is_negated_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

@@ -675,12 +675,9 @@ class LiteralBool extends Literal<bool> {
   LiteralBool asLiteralBool() => this;
 
   bool get value() {
-    switch (token.value) {
-      case Keyword.TRUE: return true;
-      case Keyword.FALSE: return false;
-      default:
-        (this.handler)(token, "not a bool ${token.value}");
-    }
+    if (token.value == Keyword.TRUE) return true;
+    if (token.value == Keyword.FALSE) return false;
+    (this.handler)(token, "not a bool ${token.value}");
   }
 
   accept(Visitor visitor) => visitor.visitLiteralBool(this);

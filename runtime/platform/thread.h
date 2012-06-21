@@ -37,6 +37,7 @@ class Thread {
     return ThreadInlineImpl::GetThreadLocal(key);
   }
   static void SetThreadLocal(ThreadLocalKey key, uword value);
+  static intptr_t GetMaxStackSize();
 };
 
 

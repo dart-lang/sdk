@@ -51,7 +51,10 @@ testReadWrite(key, value, check,
       request.on.success.add(
         expectAsync1((e) {
           createObjectStore();
-          step1();
+
+          var transaction = e.target.result;
+          transaction.on.complete.add(expectAsync1((e) => step1()));
+          transaction.on.error.add(fail);
         })
       );
       request.on.error.add(fail);

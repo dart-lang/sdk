@@ -35,7 +35,7 @@ import java.util.List;
 public class SyntaxTest extends AbstractParserTest {
 
   public void test_getter() {
-    DartUnit unit = parseUnit("getter.dart", Joiner.on("\n").join(
+    parseUnit("getter.dart", Joiner.on("\n").join(
         "class G {",
         "  // Old getter syntax",
         "  int get g1() => 1;",
@@ -45,13 +45,64 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   public void test_setter() {
-    DartUnit unit = parseUnit("setter.dart", Joiner.on("\n").join(
+    parseUnit("setter.dart", Joiner.on("\n").join(
         "class G {",
         "  // Old setter syntax",
         "  void set g1(int v) {}",
         "  // New setter syntax",
         "  void set g2=(int v) {}",
         "}"));
+  }
+
+  public void test_const() {
+    DartUnit unit = parseUnit(getName() + ".dart", makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const T1 = 1;",
+        "final T2 = 1;",
+        "class A {",
+        "  const F1 = 2;",
+        "  static final F2 = 2;",
+        "}"));
+    // T1
+    {
+      DartFieldDefinition fieldDefinition = (DartFieldDefinition) unit.getTopLevelNodes().get(0);
+      DartField field = fieldDefinition.getFields().get(0);
+      assertEquals("T1", field.getName().getName());
+      assertEquals(true, field.getModifiers().isConstant());
+      assertEquals(false, field.getModifiers().isStatic());
+      assertEquals(true, field.getModifiers().isFinal());
+    }
+    // T2
+    {
+      DartFieldDefinition fieldDefinition = (DartFieldDefinition) unit.getTopLevelNodes().get(1);
+      DartField field = fieldDefinition.getFields().get(0);
+      assertEquals("T2", field.getName().getName());
+      assertEquals(false, field.getModifiers().isConstant());
+      assertEquals(false, field.getModifiers().isStatic());
+      assertEquals(true, field.getModifiers().isFinal());
+    }
+    // A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(2);
+      // F1
+      {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) classA.getMembers().get(0);
+        DartField field = fieldDefinition.getFields().get(0);
+        assertEquals("F1", field.getName().getName());
+        assertEquals(true, field.getModifiers().isConstant());
+        assertEquals(false, field.getModifiers().isStatic());
+        assertEquals(true, field.getModifiers().isFinal());
+      }
+      // F2
+      {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) classA.getMembers().get(1);
+        DartField field = fieldDefinition.getFields().get(0);
+        assertEquals("F2", field.getName().getName());
+        assertEquals(false, field.getModifiers().isConstant());
+        assertEquals(true, field.getModifiers().isStatic());
+        assertEquals(true, field.getModifiers().isFinal());
+      }
+    }
   }
 
   /**
@@ -189,6 +240,45 @@ public class SyntaxTest extends AbstractParserTest {
       ParserErrorCode.CATCH_OR_FINALLY_EXPECTED, 8, 3);
   }
 
+//  public void test_tryOn_catch() {
+//    parseUnit("tryOn.dart", "f() {try {} catch (e) {}}");
+//  }
+
+//  public void test_tryOn_catchStack() {
+//    parseUnit("tryOn.dart", "f() {try {} catch (e, s) {}}");
+//  }
+
+//  public void test_tryOn_on1Catch1() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E {}",
+//        "f() {try {} on E catch (e) {}}"));
+//  }
+
+//  public void test_tryOn_on2Catch2() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E1 {}",
+//        "class E2 {}",
+//        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {}}"));
+//  }
+
+//  public void test_tryOn_on2Catch3() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E1 {}",
+//        "class E2 {}",
+//        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {} catch (e3) {}}"));
+//  }
+
+//  public void test_tryOn_on2Catch2Finally() {
+//    parseUnit("tryOn.dart", Joiner.on("\n").join(
+//        "class Object {}",
+//        "class E1 {}",
+//        "class E2 {}",
+//        "f() {try {} on E1 catch (e1) {} on E2 catch (e2) {} finally {}}"));
+//  }
+
   public void testArrayLiteral() {
     DartUnit unit = parseUnit("phony_array_literal.dart", "var x = <int>[1,2,3];");
     List<DartNode> nodes = unit.getTopLevelNodes();
@@ -260,7 +350,7 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   public void testMultipleLabels() {
-    DartUnit unit = parseUnit ("multiple_labels.dart",
+    parseUnit ("multiple_labels.dart",
       Joiner.on("\n").join(
         "class A {",
         "  void foo() {",
@@ -525,6 +615,24 @@ public class SyntaxTest extends AbstractParserTest {
             "  typedef();",
             "}"));
   }
+  
+  /**
+   * We should be able to parse "static(abstract) => 42" top-level function.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1197
+   */
+  public void test_staticAsFunctionName() {
+    DartUnit unit = parseUnit(
+        getName(),
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "static(abstract) => 42;",
+            ""));
+    assertEquals(1, unit.getTopLevelNodes().size());
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertEquals("static", method.getName().toSource());
+    assertEquals("abstract", method.getFunction().getParameters().get(0).getName().toSource());
+  }
 
   /**
    * The token 'super' is valid by itself (not as a qualifier or assignment selector) in only some
@@ -623,6 +731,45 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 12, 42);
   }
 
+  public void testRedundantAbruptlyTermainatedCaseStatement() throws Exception {
+    parseUnit("phony_reduntant_abruptly_terminated_case_statement.dart",
+        Joiner.on("\n").join(
+            "func () {",
+            "  switch (0) {",
+            "   case 0: ",
+            "     return 0; ",
+            "     break;", // warn dead code
+            "   case 1: ",
+            "     return 1; ",
+            "     var foo = 1;", // warn dead code
+            "   case 2:",
+            "     return 2;",
+            "     var bar = 2;", // warn dead code
+            "     break;",    // no warning here
+            "   default:",
+            "     return -1;",
+            "     var baz = -1;", // warn dead code
+            "     break;",  // no warning here
+            "  }",
+            "}"),
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 5, 6,
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 8, 6,
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 11, 6,
+            ParserErrorCode.UNREACHABLE_CODE_IN_CASE, 15, 6);
+  }
+
+  public void testCornerCaseLabelInSwitch() throws Exception {
+    // The parser used to just accept this statement.
+    parseUnit("phony_reduntant_abruptly_terminated_case_statement.dart",
+        Joiner.on("\n").join(
+            "func () {",
+            "  switch (0) {",
+            "  label1: ",  // no case, default or statement follows.
+            "  }",
+            "}"),
+            ParserErrorCode.LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT, 3, 9);
+  }
+
   public void testBogusEscapedNewline() throws Exception {
     parseUnit("phony_bogus_escaped_newline.dart",
         Joiner.on("\n").join(
@@ -632,5 +779,17 @@ public class SyntaxTest extends AbstractParserTest {
             "}"),
             ParserErrorCode.UNEXPECTED_TOKEN,  2, 13,
             ParserErrorCode.EXPECTED_TOKEN,  4, 1);
+  }
+
+  public void testLabelledCaseStatements() throws Exception {
+    parseUnit("phony_labelled_case_statements.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  switch(1) {",
+            "  A: case 0:",
+            "  B: case 1:",
+            "    break;",
+            "  }",
+            "}"));
   }
 }

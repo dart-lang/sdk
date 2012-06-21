@@ -233,20 +233,6 @@ class StringBase {
   }
 
   /**
-   * TODO(hausner): remove support for operator + and native method plus().
-   */
-  String plus(String other) native "String_plus";
-
-  /**
-   * Convert argument obj to string and concat it with this string.
-   * Returns concatenated string.
-   * TODO(hausner): remove support for +.
-   */
-  String operator +(Object obj) {
-    return this.plus(obj.toString());
-  }
-
-  /**
    * Convert all objects in [values] to strings and concat them
    * into a result string.
    */

@@ -73,11 +73,6 @@ List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
   print('dart2jsPath = $dart2jsPath');
   print('dart2jsPathWin = $dart2jsPathWin');
 
-  // Disable String operator+. This should only be necessary
-  // temporarily as the operator will go away soon.
-  // TODO(ahe): Remove this option.
-  options = ' --allow_string_plus=false$options';
-
   // Tell the VM to grow the heap more aggressively. This should only
   // be necessary temporarily until the VM is better at detecting how
   // applications use memory.

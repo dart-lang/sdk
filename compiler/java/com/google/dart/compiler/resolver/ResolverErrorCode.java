@@ -46,6 +46,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "super type %s does not have a default constructor"),
   CIRCULAR_REFERENCE(
       "Circular reference detected:  compile-time constants cannot reference themselves."),
+  CONST_REQUIRES_VALUE("Constant fields must have an initial value"),
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),
@@ -57,6 +58,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
+  CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(
@@ -109,12 +111,15 @@ public enum ResolverErrorCode implements ErrorCode {
   FIELD_DOES_NOT_HAVE_A_GETTER("Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER("Field does not have a setter"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
+  ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(
       "Illegal constructor declaration.  No default clause in interface"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
-  INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS("Only fields of immediately surrounding class can be initialized"),
+  INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS(
+      "Only fields of immediately surrounding class can be initialized"),
+  INSTANCE_METHOD_FROM_REDIRECT("Instance methods cannot be referenced from constructor redirects"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
@@ -164,7 +169,7 @@ public enum ResolverErrorCode implements ErrorCode {
   THIS_OUTSIDE_OF_METHOD("Cannot use 'this' outside of a method"),
   THIS_IN_FACTORY_CONSTRUCTOR("Cannot use 'this' in a factory constructor"),
   TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
-  TOPLEVEL_FINAL_REQUIRES_VALUE("Top-level final fields must have an initial value"),  
+  TOPLEVEL_FINAL_REQUIRES_VALUE("Top-level final fields must have an initial value"),
   TYPE_ARGS_ONLY_ON_CONSTRUCTORS("Type arguments are only allowed on constructor methods"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   TYPE_VARIABLE_DOES_NOT_MATCH("Type variable %s does not match %s in default class %s."),
@@ -173,8 +178,9 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
+  USING_LOCAL_VARIABLE_BEFORE_DECLARATION("Using local variable '%s' before its declaration in lexical scope"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
-  
+
   private final ErrorSeverity severity;
   private final String message;
 

@@ -283,7 +283,16 @@ public class SystemLibraryManager {
       return library.translateUri(uri);
     } 
     if (isPackageUri(uri)){   
-      URI fileUri =  packageRootUri.resolve(uri.getHost() + uri.getPath());
+      URI fileUri;
+      // TODO(keertip): Investigate further
+      // if uri.getHost() returns null, then it is resolved right
+      // so use uri.getAuthority to resolve
+      // package://third_party/dart_lang/lib/unittest/unittest.dart
+      if (uri.getHost() != null){
+        fileUri =  packageRootUri.resolve(uri.getHost() + uri.getPath());
+      } else {
+        fileUri = packageRootUri.resolve(uri.getAuthority() + uri.getPath());
+      }
       File file  = new File(fileUri);
         return file.toURI();
     }

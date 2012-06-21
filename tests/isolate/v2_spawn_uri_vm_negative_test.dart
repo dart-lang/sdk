@@ -14,8 +14,8 @@ main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      expect(msg, equals('re: hello')); // should be hi, not hello
       port.close();
+      expect(msg, equals('re: hello')); // should be hi, not hello
     }));
 
     SendPort s = spawnUri('v2_spawn_uri_child_isolate.dart');

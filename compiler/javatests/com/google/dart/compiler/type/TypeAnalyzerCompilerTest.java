@@ -7,12 +7,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
@@ -31,6 +33,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -46,7 +49,9 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -70,6 +75,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.MAIN_FUNCTION_PARAMETERS, 2, 1, 4));
+  }
+
+  /**
+   * We should support resolving to the method "call".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1355
+   */
+  public void test_resolveCallMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  call() => 42;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // find a()
+    DartIdentifier aVar = findNode(libraryResult, DartIdentifier.class, "a()");
+    assertNotNull(aVar);
+    DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) aVar.getParent();
+    // analyze a() element
+    MethodElement element = (MethodElement) invocation.getElement();
+    assertNotNull(element);
+    assertEquals("call", element.getName());
+    assertEquals(
+        libraryResult.source.indexOf("call() => 42"),
+        element.getNameLocation().getOffset());
   }
 
   /**
@@ -658,7 +693,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  foo();",
         "}",
         "");
-    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 3, 3, 5));
+    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 3, 3, 3));
   }
 
   /**
@@ -785,9 +820,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "var a1 = new A();",
                 "var a2 = new A.foo();",
                 ""));
-    assertErrors(libraryResult.getCompilationErrors());
-    assertErrors(libraryResult.getCompilationWarnings());
-    assertErrors(libraryResult.getTypeErrors());
+    assertErrors(libraryResult.getErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     // new A()
     {
@@ -1143,6 +1176,58 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  print(a.f);", // 8: OK, can read
             "}"));
     assertErrors(libraryResult.getTypeErrors());
+  }
+
+  public void test_constField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "const f = 1;",
+            "class A {",
+            "  const f = 1;",
+            "  method() {",
+            "    f = 2;",
+            "    this.f = 2;",
+            "  }",
+            "}",
+            "main() {",
+            "  f = 2;",
+            "  A a = new A();",
+            "  a.f = 2;",
+            "}",
+            ""));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 6, 5, 1),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 5, 6),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
+        errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
+  }
+  
+  /**
+   * It is a compile-time error to use type variables in "const" instance creation.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2379
+   */
+  public void test_constInstantiation_withTypeVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  const A();",
+        "  const A.name();",
+        "}",
+        "class B<U> {",
+        "  test() {",
+        "    const A<U>();",
+        "    const A<U>.name();",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CONST_WITH_TYPE_VARIABLE, 8, 13, 1),
+        errEx(ResolverErrorCode.CONST_WITH_TYPE_VARIABLE, 9, 13, 1));
   }
 
   /**
@@ -1590,6 +1675,52 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
+  public void test_inferredTypes_noMemberWarnings() throws Exception {
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B extends A {",
+          "  var f;",
+          "  m() {}",
+          "}",
+          "foo(A a) {",
+          "  var v = a;",
+          "  v.f = 0;",
+          "  v.m();",
+          "}",
+          "");
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
+    }
+    // use CompilerConfiguration
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean suppressNoMemberWarningForInferredTypes() {
+          return true;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B extends A {",
+          "  var f;",
+          "  m() {}",
+          "}",
+          "foo(A a) {",
+          "  var v = a;",
+          "  v.f = 0;",
+          "  v.m();",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+    }
+  }
+
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f() {",
@@ -1654,6 +1785,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+  }
+
+  public void test_typesPropagation_ifAsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if ((v as String).length != 0) {",
+        "    var v1 = v;",
+        "  }",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+  }
+
+  /**
+   * Even if there is negation, we still apply "as" cast, so visit "then" statement only if cast was
+   * successful.
+   */
+  public void test_typesPropagation_ifAsType_negation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "f(var v) {",
+        "  if (!(v as String).isEmpty()) {",
+        "    var v1 = v;",
+        "  }",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v1", "String");
     assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
   }
 
@@ -1971,7 +2132,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v2", "double");
     assertInferredElementTypeString(libraryResult, "v3", "double");
   }
-  
+
   public void test_typesPropagation_FunctionAliasType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2454,7 +2615,141 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   }
 
-  private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
-    return analyzeLibrary(getName(), makeCode(lines));
+  public void testExpectedPositionalArgument() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method1(a, [b]) {}",
+        "method2() {",
+        "  method1(b:1);",
+        "}");
+    assertErrors(libraryResult.getErrors(),
+        errEx(TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, 4, 11, 3));
+  }
+
+  public void test_cannotResolveMethod_unqualified() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  f() {",
+        "    foo();",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 4, 5, 3));
+  }
+
+  public void test_canNotResolveMethod_qualified() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 6, 5, 3));
+  }
+
+  public void test_operatorLocation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a + 0;",
+        "  -a;",
+        "  a--;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 6, 5, 1),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 7, 3, 1),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 8, 4, 2));
+  }
+
+  /**
+   * It is a static warning if T does not denote a type available in the current lexical scope.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2373
+   */
+  public void test_asType_unknown() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  null as T;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
+  }
+  
+  /**
+   * It is a compile-time error if T is a parameterized type of the form G < T1; : : : ; Tn > and G
+   * is not a generic type with n type parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2373
+   */
+  public void test_asType_wrongNumberOfTypeArguments() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  null as A<int, bool>;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 4, 11, 12));
+  }
+  
+  /**
+   * It is a static warning if T does not denote a type available in the current lexical scope.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2373
+   */
+  public void test_isType_unknown() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  null is T;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
+  }
+
+  private static <T extends DartNode> T findNode(
+      AnalyzeLibraryResult libraryResult,
+      final Class<T> clazz,
+      String pattern) {
+    final int index = libraryResult.source.indexOf(pattern);
+    assertTrue(index != -1);
+    final AtomicReference<T> result = new AtomicReference<T>();
+    Iterator<DartUnit> unitsIterator = libraryResult.getLibraryUnitResult().getUnits().iterator();
+    unitsIterator.next();
+    DartUnit unit = unitsIterator.next();
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      @SuppressWarnings("unchecked")
+      public Void visitNode(DartNode node) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo.getOffset() <= index
+            && index < sourceInfo.getEnd()
+            && clazz.isInstance(node)) {
+          result.set((T) node);
+        }
+        return super.visitNode(node);
+      }
+    });
+    return result.get();
   }
 }

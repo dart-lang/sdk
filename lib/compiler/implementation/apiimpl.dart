@@ -15,7 +15,7 @@
 #import('source_file.dart');
 
 class Compiler extends leg.Compiler {
-  api.ReadUriFromString provider;
+  api.ReadStringFromUri provider;
   api.DiagnosticHandler handler;
   final Uri libraryRoot;
   final Uri packageRoot;
@@ -39,7 +39,7 @@ class Compiler extends leg.Compiler {
   }
 
   void log(message) {
-    handler(null, null, null, message, false);
+    handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
   leg.Script readScript(Uri uri, [tree.Node node]) {
@@ -54,8 +54,7 @@ class Compiler extends leg.Compiler {
       if (node !== null) {
         cancel("$exception", node: node);
       } else {
-        reportDiagnostic(const leg.SourceSpan(null, null, null),
-                         "$exception", true);
+        reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
         throw new leg.CompilerCancelledException("$exception");
       }
     }
@@ -95,12 +94,13 @@ class Compiler extends leg.Compiler {
     return success;
   }
 
-  void reportDiagnostic(leg.SourceSpan span, String message, bool fatal) {
+  void reportDiagnostic(leg.SourceSpan span, String message,
+                        api.Diagnostic kind) {
     if (span === null) {
-      handler(null, null, null, message, fatal);
+      handler(null, null, null, message, kind);
     } else {
       handler(translateUri(span.uri, null), span.begin, span.end,
-              message, fatal);
+              message, kind);
     }
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -115,7 +115,7 @@ public class DeltaAnalyzerTest extends TestCase {
     LibraryUnit libraryUnit = DartCompiler.analyzeLibrary(librarySource, null,
                                                           config, provider, listener);
     LibraryElement enclosingLibrary = libraryUnit.getElement();
-    LibraryElement coreLibrary = libraryUnit.getImports().iterator().next().getElement();
+    LibraryElement coreLibrary = libraryUnit.getImportedLibraries().iterator().next().getElement();
     return (DartUnit) DartCompiler.analyzeDelta(SourceDelta.before(sourceBefore).after(sourceAfter),
                                                 enclosingLibrary, coreLibrary,
                                                 null, -1, -1, config, listener);

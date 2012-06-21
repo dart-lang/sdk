@@ -22,7 +22,7 @@ class LiveRange {
  */
 class LiveInterval {
   /**
-   * The id where there instruction is defined.
+   * The id where the instruction is defined.
    */
   int start;
   final List<LiveRange> ranges;
@@ -118,7 +118,9 @@ class LiveEnvironment {
       var input = instruction.checkedInput;
       while (input is HCheck) input = input.checkedInput;
       liveIntervals.putIfAbsent(input, () => new LiveInterval());
-      liveIntervals.putIfAbsent(instruction, () => liveIntervals[input]);
+      // Unconditionally force the live interval of the HCheck to
+      // be the live interval of the instruction it is checking.
+      liveIntervals[instruction] = liveIntervals[input];
     } else {
       LiveInterval range = liveIntervals.putIfAbsent(
           instruction, () => new LiveInterval());
@@ -136,13 +138,12 @@ class LiveEnvironment {
    * already in the set, we save the id where it dies.
    */
   void add(HInstruction instruction, int userId) {
-    // Note that we are visiting the grap in post-dominator order, so
+    // Note that we are visiting the graph in post-dominator order, so
     // the first time we see a variable is when it dies.
     liveInstructions.putIfAbsent(instruction, () => userId);
     if (instruction is HCheck) {
       // Special case the HCheck instruction to mark the actual
       // checked instruction live.
-      liveInstructions.putIfAbsent(instruction, () => userId);
       var input = instruction.checkedInput;
       while (input is HCheck) input = input.checkedInput;
       liveInstructions.putIfAbsent(input, () => userId);
@@ -284,8 +285,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     });
 
     env.removeLoopMarker(header);
-   
-    // Update all liveIns set to contain the liveIns of [header]. 
+
+    // Update all liveIns set to contain the liveIns of [header].
     liveInstructions.forEach((HBasicBlock block, LiveEnvironment other) {
       if (other.loopMarkers.containsKey(header)) {
         env.liveInstructions.forEach((HInstruction instruction, int id) {
@@ -562,10 +563,10 @@ class SsaVariableAllocator extends HBaseVisitor {
    */
   bool needsName(HInstruction instruction) {
     if (instruction.usedBy.isEmpty()) return false;
-    // TODO(ngeoffray): parameters are being generated at use site,
-    // but we need a name for parameters. We should probably not make
+    // TODO(ngeoffray): locals/parameters are being generated at use site,
+    // but we need a name for them. We should probably not make
     // them generate at use site to make things simpler.
-    if (instruction is HParameterValue && instruction is !HThis) return true;
+    if (instruction is HLocalValue && instruction is !HThis) return true;
     if (generateAtUseSite.contains(instruction)) return false;
     // A [HCheck] instruction that has control flow needs a name only if its
     // checked input needs a name (e.g. a check [HConstant] does not
@@ -576,7 +577,7 @@ class SsaVariableAllocator extends HBaseVisitor {
     }
     return true;
   }
- 
+
   /**
    * Returns whether [instruction] dies at the instruction [at].
    */
@@ -588,12 +589,22 @@ class SsaVariableAllocator extends HBaseVisitor {
   }
 
   void handleInstruction(HInstruction instruction, VariableNamer namer) {
-    for (int i = 0, len = instruction.inputs.length; i < len; i++) {
-      HInstruction input = instruction.inputs[i];
-      // If [input] has a name, and its use here is the last use, free
-      // its name.
-      if (needsName(input) && diesAt(input, instruction)) {
-        namer.freeName(input);
+    // TODO(ager): We cannot perform this check to free names for
+    // HCheck instructions because they are special cased to have the
+    // same live intervals as the instruction they are checking. This
+    // includes sharing the start id with the checked
+    // input. Therefore, for HCheck(checkedInput, otherInput) we would
+    // end up checking that otherInput dies not here, but at the
+    // location of checkedInput. We should preserve the start id for
+    // the check instruction.
+    if (instruction is! HCheck) {
+      for (int i = 0, len = instruction.inputs.length; i < len; i++) {
+        HInstruction input = instruction.inputs[i];
+        // If [input] has a name, and its use here is the last use, free
+        // its name.
+        if (needsName(input) && diesAt(input, instruction)) {
+          namer.freeName(input);
+        }
       }
     }
 

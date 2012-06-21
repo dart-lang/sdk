@@ -654,6 +654,27 @@ class _BlobImpl extends _DOMWrapperBase implements Blob {
 
   String get type() native "Blob_type_Getter";
 
+  Blob slice([start = _null, end = _null, contentType = _null]) {
+    if (contentType === _null) {
+      return _slice_1(start, end);
+    }
+    if (end === _null) {
+      return _slice_2(start);
+    }
+    if (start === _null) {
+      return _slice_3();
+    }
+    return _slice_4(start, end, contentType);
+  }
+
+  Blob _slice_1(start, end) native "Blob_slice_1_Callback";
+
+  Blob _slice_2(start) native "Blob_slice_2_Callback";
+
+  Blob _slice_3() native "Blob_slice_3_Callback";
+
+  Blob _slice_4(start, end, contentType) native "Blob_slice_4_Callback";
+
   Blob webkitSlice([start = _null, end = _null, contentType = _null]) {
     if (contentType === _null) {
       return _webkitSlice_1(start, end);
@@ -4376,8 +4397,6 @@ class _ConsoleImpl extends _DOMWrapperBase implements Console {
 
   MemoryInfo get memory() native "Console_memory_Getter";
 
-  List<ScriptProfile> get profiles() native "Console_profiles_Getter";
-
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
   void count() native "Console_count_Callback";
@@ -5309,6 +5328,14 @@ class _DataTransferItemListImpl extends _DOMWrapperBase implements DataTransferI
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DataViewFactoryProvider {
+  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) => _createDataView(buffer, byteOffset, byteLength);
+  static DataView _createDataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) native "DataView_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
@@ -5357,7 +5384,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getInt32_2(byteOffset, littleEndian) native "DataView_getInt32_2_Callback";
 
-  Object getInt8() native "DataView_getInt8_Callback";
+  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
   int getUint16(byteOffset, [littleEndian = _null]) {
     if (littleEndian === _null) {
@@ -5381,7 +5408,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getUint32_2(byteOffset, littleEndian) native "DataView_getUint32_2_Callback";
 
-  Object getUint8() native "DataView_getUint8_Callback";
+  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
   void setFloat32(byteOffset, value, [littleEndian = _null]) {
     if (littleEndian === _null) {
@@ -5431,7 +5458,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setInt32_2(byteOffset, value, littleEndian) native "DataView_setInt32_2_Callback";
 
-  void setInt8() native "DataView_setInt8_Callback";
+  void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
   void setUint16(byteOffset, value, [littleEndian = _null]) {
     if (littleEndian === _null) {
@@ -5457,7 +5484,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setUint32_2(byteOffset, value, littleEndian) native "DataView_setUint32_2_Callback";
 
-  void setUint8() native "DataView_setUint8_Callback";
+  void setUint8(int byteOffset, int value) native "DataView_setUint8_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6165,6 +6192,8 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   bool get webkitIsFullScreen() native "Document_webkitIsFullScreen_Getter";
 
+  Element get webkitPointerLockElement() native "Document_webkitPointerLockElement_Getter";
+
   String get webkitVisibilityState() native "Document_webkitVisibilityState_Getter";
 
   Range caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
@@ -6218,6 +6247,8 @@ class _DocumentImpl extends _NodeImpl implements Document
   void webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
   void webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
+
+  void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
   // TODO(jacobr): implement all Element methods not on Document. 
 
@@ -7178,6 +7209,8 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void webkitRequestFullscreen() native "Element_webkitRequestFullscreen_Callback";
 
+  void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
+
 }
 
 final _START_TAG_REGEXP = const RegExp('<(\\w+)');
@@ -7225,7 +7258,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
+      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -8628,6 +8661,8 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
   String get type() native "HTMLButtonElement_type_Getter";
 
+  void set type(String) native "HTMLButtonElement_type_Setter";
+
   String get validationMessage() native "HTMLButtonElement_validationMessage_Getter";
 
   ValidityState get validity() native "HTMLButtonElement_validity_Getter";
@@ -9515,6 +9550,8 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
   num get valueAsNumber() native "HTMLInputElement_valueAsNumber_Getter";
 
   void set valueAsNumber(num) native "HTMLInputElement_valueAsNumber_Setter";
+
+  EntryArray get webkitEntries() native "HTMLInputElement_webkitEntries_Getter";
 
   bool get webkitGrammar() native "HTMLInputElement_webkitGrammar_Getter";
 
@@ -10461,8 +10498,6 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
   int get selectedIndex() native "HTMLSelectElement_selectedIndex_Getter";
 
   void set selectedIndex(int) native "HTMLSelectElement_selectedIndex_Setter";
-
-  HTMLCollection get selectedOptions() native "HTMLSelectElement_selectedOptions_Getter";
 
   int get size() native "HTMLSelectElement_size_Getter";
 
@@ -18075,8 +18110,6 @@ class _ScriptProfileNodeImpl extends _DOMWrapperBase implements ScriptProfileNod
 
   int get callUID() native "ScriptProfileNode_callUID_Getter";
 
-  List<ScriptProfileNode> get children() native "ScriptProfileNode_children_Getter";
-
   String get functionName() native "ScriptProfileNode_functionName_Getter";
 
   int get lineNumber() native "ScriptProfileNode_lineNumber_Getter";
@@ -18090,6 +18123,8 @@ class _ScriptProfileNodeImpl extends _DOMWrapperBase implements ScriptProfileNod
   String get url() native "ScriptProfileNode_url_Getter";
 
   bool get visible() native "ScriptProfileNode_visible_Getter";
+
+  List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18323,7 +18358,7 @@ class _SpeechRecognitionAlternativeImpl extends _DOMWrapperBase implements Speec
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechRecognitionErrorImpl extends _DOMWrapperBase implements SpeechRecognitionError {
+class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError {
 
   int get code() native "SpeechRecognitionError_code_Getter";
 
@@ -18337,8 +18372,6 @@ class _SpeechRecognitionErrorImpl extends _DOMWrapperBase implements SpeechRecog
 // WARNING: Do not edit - generated code.
 
 class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent {
-
-  SpeechRecognitionError get error() native "SpeechRecognitionEvent_error_Getter";
 
   SpeechRecognitionResult get result() native "SpeechRecognitionEvent_result_Getter";
 
@@ -19688,6 +19721,15 @@ class _WebGLDebugShadersImpl extends _DOMWrapperBase implements WebGLDebugShader
 
 // WARNING: Do not edit - generated code.
 
+class _WebGLDepthTextureImpl extends _DOMWrapperBase implements WebGLDepthTexture {
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _WebGLFramebufferImpl extends _DOMWrapperBase implements WebGLFramebuffer {
 
 }
@@ -20786,10 +20828,6 @@ class _XMLHttpRequestImpl extends _DOMWrapperBase implements XMLHttpRequest {
     if (_on === null) _on = new _XMLHttpRequestEventsImpl(this);
     return _on;
   }
-
-  bool get asBlob() native "XMLHttpRequest_asBlob_Getter";
-
-  void set asBlob(bool) native "XMLHttpRequest_asBlob_Setter";
 
   int get readyState() native "XMLHttpRequest_readyState_Getter";
 
@@ -22264,6 +22302,9 @@ interface Blob {
   /** @domName Blob.type */
   final String type;
 
+  /** @domName Blob.slice */
+  Blob slice([int start, int end, String contentType]);
+
   /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
 }
@@ -22369,7 +22410,7 @@ interface ButtonElement extends Element default _Elements {
   String name;
 
   /** @domName HTMLButtonElement.type */
-  final String type;
+  String type;
 
   /** @domName HTMLButtonElement.validationMessage */
   final String validationMessage;
@@ -25225,9 +25266,6 @@ interface Console {
   /** @domName Console.memory */
   final MemoryInfo memory;
 
-  /** @domName Console.profiles */
-  final List<ScriptProfile> profiles;
-
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
 
@@ -25936,7 +25974,9 @@ interface DataTransferItemList {
 // WARNING: Do not edit - generated code.
 
 /// @domName DataView
-interface DataView extends ArrayBufferView {
+interface DataView extends ArrayBufferView default _DataViewFactoryProvider {
+
+  DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]);
 
   /** @domName DataView.getFloat32 */
   num getFloat32(int byteOffset, [bool littleEndian]);
@@ -25951,7 +25991,7 @@ interface DataView extends ArrayBufferView {
   int getInt32(int byteOffset, [bool littleEndian]);
 
   /** @domName DataView.getInt8 */
-  Object getInt8();
+  int getInt8(int byteOffset);
 
   /** @domName DataView.getUint16 */
   int getUint16(int byteOffset, [bool littleEndian]);
@@ -25960,7 +26000,7 @@ interface DataView extends ArrayBufferView {
   int getUint32(int byteOffset, [bool littleEndian]);
 
   /** @domName DataView.getUint8 */
-  Object getUint8();
+  int getUint8(int byteOffset);
 
   /** @domName DataView.setFloat32 */
   void setFloat32(int byteOffset, num value, [bool littleEndian]);
@@ -25975,7 +26015,7 @@ interface DataView extends ArrayBufferView {
   void setInt32(int byteOffset, int value, [bool littleEndian]);
 
   /** @domName DataView.setInt8 */
-  void setInt8();
+  void setInt8(int byteOffset, int value);
 
   /** @domName DataView.setUint16 */
   void setUint16(int byteOffset, int value, [bool littleEndian]);
@@ -25984,7 +26024,7 @@ interface DataView extends ArrayBufferView {
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
   /** @domName DataView.setUint8 */
-  void setUint8();
+  void setUint8(int byteOffset, int value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26365,6 +26405,9 @@ interface Document extends HtmlElement {
   /** @domName Document.webkitIsFullScreen */
   final bool webkitIsFullScreen;
 
+  /** @domName Document.webkitPointerLockElement */
+  final Element webkitPointerLockElement;
+
   /** @domName Document.webkitVisibilityState */
   final String webkitVisibilityState;
 
@@ -26445,6 +26488,9 @@ interface Document extends HtmlElement {
 
   /** @domName Document.webkitExitFullscreen */
   void webkitExitFullscreen();
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock();
 
 }
 
@@ -26919,6 +26965,9 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.webkitRequestFullscreen */
   void webkitRequestFullscreen();
+
+  /** @domName Element.webkitRequestPointerLock */
+  void webkitRequestPointerLock();
 
 }
 
@@ -29081,6 +29130,9 @@ interface InputElement extends Element default _Elements {
 
   /** @domName HTMLInputElement.valueAsNumber */
   num valueAsNumber;
+
+  /** @domName HTMLInputElement.webkitEntries */
+  final EntryArray webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -35508,9 +35560,6 @@ interface ScriptProfileNode {
   /** @domName ScriptProfileNode.callUID */
   final int callUID;
 
-  /** @domName ScriptProfileNode.children */
-  final List<ScriptProfileNode> children;
-
   /** @domName ScriptProfileNode.functionName */
   final String functionName;
 
@@ -35531,6 +35580,9 @@ interface ScriptProfileNode {
 
   /** @domName ScriptProfileNode.visible */
   final bool visible;
+
+  /** @domName ScriptProfileNode.children */
+  List<ScriptProfileNode> children();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35570,9 +35622,6 @@ interface SelectElement extends Element {
 
   /** @domName HTMLSelectElement.selectedIndex */
   int selectedIndex;
-
-  /** @domName HTMLSelectElement.selectedOptions */
-  final HTMLCollection selectedOptions;
 
   /** @domName HTMLSelectElement.size */
   int size;
@@ -35922,7 +35971,7 @@ interface SpeechRecognitionAlternative {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionError
-interface SpeechRecognitionError {
+interface SpeechRecognitionError extends Event {
 
   static final int ABORTED = 2;
 
@@ -35956,9 +36005,6 @@ interface SpeechRecognitionError {
 
 /// @domName SpeechRecognitionEvent
 interface SpeechRecognitionEvent extends Event {
-
-  /** @domName SpeechRecognitionEvent.error */
-  final SpeechRecognitionError error;
 
   /** @domName SpeechRecognitionEvent.result */
   final SpeechRecognitionResult result;
@@ -37344,6 +37390,15 @@ interface WebGLDebugShaders {
 
   /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName WebGLDepthTexture
+interface WebGLDepthTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39321,9 +39376,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   static final int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.asBlob */
-  bool asBlob;
-
   /** @domName XMLHttpRequest.readyState */
   final int readyState;
 
@@ -40393,7 +40445,8 @@ class _SVGElementFactoryProvider {
     parentTag.innerHTML = svg;
     if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+    throw new IllegalArgumentException(
+        'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
 }

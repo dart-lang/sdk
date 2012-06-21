@@ -97,8 +97,8 @@ TEST_CASE(HeapProfileEmpty) {
   uint64_t hi = Read32(&array, &i);
   uint64_t lo = Read32(&array, &i);
   uint64_t time = (hi << 32) | lo;
-  EXPECT_GE(before, time);
-  EXPECT_LE(after, time);
+  EXPECT_LE(before, time);
+  EXPECT_GE(after, time);
   while (i != array.length()) {
     // Check tag
     uint8_t tag = Read8(&array, &i);

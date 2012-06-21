@@ -99,6 +99,18 @@ void Assembler::popl(const Address& address) {
 }
 
 
+void Assembler::pushal() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x60);
+}
+
+
+void Assembler::popal() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x61);
+}
+
+
 void Assembler::movl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xB8 + dst);
@@ -1293,6 +1305,16 @@ void Assembler::MoveRegister(Register to, Register from) {
 }
 
 
+void Assembler::PushRegister(Register r) {
+  pushl(r);
+}
+
+
+void Assembler::PopRegister(Register r) {
+  popl(r);
+}
+
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   int value = imm.value();
   if (value > 0) {
@@ -1365,8 +1387,56 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
-  // TODO(iposva): Add write barrier.
   movl(dest, value);
+  Label done;
+  // Check that 'value' is a new object.  Store buffer updates are not
+  // required when storing a smi or an old object.
+  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  j(PARITY_ODD, &done, Assembler::kNearJump);
+  j(ZERO, &done, Assembler::kNearJump);
+  // Check that 'object' is an old object.  A store buffer update is
+  // not required when storing into a new object.
+  testl(object, Immediate(kNewObjectAlignmentOffset));
+  j(NOT_ZERO, &done, Assembler::kNearJump);
+  // A store buffer update is required.
+  pushl(EAX);  // Preserve EAX.
+  leal(EAX, dest);
+  call(&StubCode::UpdateStoreBufferLabel());
+  popl(EAX);  // Restore EAX.
+  Bind(&done);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const FieldAddress& dest,
+                                         Register value) {
+  movl(dest, value);
+#if 0  // TODO(cshapiro) Turn this back on after it is fixed defined(DEBUG).
+  Label done;
+  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  j(PARITY_ODD, &done, Assembler::kNearJump);
+  testl(object, Immediate(kNewObjectAlignmentOffset));
+  j(NOT_ZERO, &done, Assembler::kNearJump);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif
+  // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const FieldAddress& dest,
+                                         const Object& value) {
+  if (value.IsSmi()) {
+    movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
+  } else {
+    ASSERT(value.IsOld());
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0xC7);
+    EmitOperand(0, dest);
+    buffer_.EmitObject(value);
+  }
+  // No store buffer update.
 }
 
 
@@ -1428,6 +1498,16 @@ void Assembler::EnterFrame(intptr_t frame_size) {
 void Assembler::LeaveFrame() {
   movl(ESP, EBP);
   popl(EBP);
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(ESP, Immediate(-frame_space));
+  if (OS::ActivationFrameAlignment() > 0) {
+    andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
 }
 
 

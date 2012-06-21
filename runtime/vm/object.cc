@@ -1739,22 +1739,28 @@ bool Class::IsCanonicalSignatureClass() const {
 }
 
 
-// Checks if the type S is a subtype of type T.
+// If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
+// If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
 // Type S is specified by this class parameterized with 'type_arguments', and
 // type T by class 'other' parameterized with 'other_type_arguments'.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
-bool Class::IsSubtypeOf(
+bool Class::TypeTest(
+    TypeTestKind test_kind,
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
   // Check for DynamicType.
-  // The DynamicType on the lefthand side is replaced by the bottom type, which
-  // is more specific than any type.
-  // Any type is more specific than the DynamicType on the righthand side.
-  if (IsDynamicClass() || other.IsDynamicClass()) {
+  // Each occurrence of DynamicType in type T is interpreted as the Dynamic
+  // type, a supertype of all types.
+  if (other.IsDynamicClass()) {
     return true;
+  }
+  // In the case of a subtype test, each occurrence of DynamicType in type S is
+  // interpreted as the bottom type, a subtype of all types.
+  if (IsDynamicClass()) {
+    return test_kind == kIsSubtypeOf;
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
@@ -1765,24 +1771,30 @@ bool Class::IsSubtypeOf(
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
     // Check for covariance.
-    if (type_arguments.IsNull() ||
-        other_type_arguments.IsNull() ||
-        type_arguments.IsRawInstantiatedRaw(len) ||
+    if (other_type_arguments.IsNull() ||
         other_type_arguments.IsRawInstantiatedRaw(len)) {
       return true;
     }
-    return type_arguments.IsSubtypeOf(other_type_arguments,
-                                      len,
-                                      malformed_error);
+    if (type_arguments.IsNull() ||
+        type_arguments.IsRawInstantiatedRaw(len)) {
+      return test_kind == kIsSubtypeOf;
+    }
+    return type_arguments.TypeTest(test_kind,
+                                   other_type_arguments,
+                                   len,
+                                   malformed_error);
   }
+  // TODO(regis): Check for interface type S implementing method call() of
+  // function type T.
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
     const Function& fun = Function::Handle(signature_function());
     const Function& other_fun = Function::Handle(other.signature_function());
-    return fun.IsSubtypeOf(type_arguments,
-                           other_fun,
-                           other_type_arguments,
-                           malformed_error);
+    return fun.TypeTest(test_kind,
+                        type_arguments,
+                        other_fun,
+                        other_type_arguments,
+                        malformed_error);
   }
   // Check for 'direct super type' in the case of an interface
   // (i.e. other.is_interface()) or implicit interface (i.e.
@@ -1820,10 +1832,11 @@ bool Class::IsSubtypeOf(
         }
       }
     }
-    if (interface_class.IsSubtypeOf(interface_args,
-                                    other,
-                                    other_type_arguments,
-                                    malformed_error)) {
+    if (interface_class.TypeTest(test_kind,
+                                 interface_args,
+                                 other,
+                                 other_type_arguments,
+                                 malformed_error)) {
       return true;
     }
   }
@@ -1843,10 +1856,11 @@ bool Class::IsSubtypeOf(
   // Instead of truncating the type argument vector to the length of the super
   // type argument vector, we make sure that the code works with a vector that
   // is longer than necessary.
-  return super_class.IsSubtypeOf(type_arguments,
-                                 other,
-                                 other_type_arguments,
-                                 malformed_error);
+  return super_class.TypeTest(test_kind,
+                              type_arguments,
+                              other,
+                              other_type_arguments,
+                              malformed_error);
 }
 
 
@@ -2403,8 +2417,9 @@ bool AbstractType::IsListInterface() const {
 }
 
 
-bool AbstractType::IsSubtypeOf(const AbstractType& other,
-                               Error* malformed_error) const {
+bool AbstractType::TypeTest(TypeTestKind test_kind,
+                            const AbstractType& other,
+                            Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // In case the type checked in a type test is malformed, the code generator
@@ -2426,7 +2441,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     }
     return false;
   }
-  // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
+  // AbstractType parameters cannot be handled by Class::TypeTest().
   // When comparing two uninstantiated function types, one returning type
   // parameter K, the other returning type parameter V, we cannot assume that K
   // is a subtype of V, or vice versa. We only return true if K == V, i.e. if
@@ -2438,15 +2453,25 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   // For example, with class A<K, V extends K>, new A<T, T> called from within
   // a class B<T> will never require a run time bounds check, even it T is
   // uninstantiated at compile time.
-  if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+  if (IsTypeParameter()) {
+    if (other.IsTypeParameter()) {
+      return Index() == other.Index();
+    } else {
+      // TODO(regis): In checked mode, if the other type is the upper bound of
+      // this type parameter, then return true.
+      // We would need to keep the upper bound associated to the type parameter.
+    }
+    return false;
+  }
+  if (other.IsTypeParameter()) {
+    return false;
   }
   const Class& cls = Class::Handle(type_class());
-  return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
-                         Class::Handle(other.type_class()),
-                         AbstractTypeArguments::Handle(other.arguments()),
-                         malformed_error);
+  return cls.TypeTest(test_kind,
+                      AbstractTypeArguments::Handle(arguments()),
+                      Class::Handle(other.type_class()),
+                      AbstractTypeArguments::Handle(other.arguments()),
+                      malformed_error);
 }
 
 
@@ -3181,10 +3206,10 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
 }
 
 
-bool AbstractTypeArguments::IsSubtypeOf(
-    const AbstractTypeArguments& other,
-    intptr_t len,
-    Error* malformed_error) const {
+bool AbstractTypeArguments::TypeTest(TypeTestKind test_kind,
+                                     const AbstractTypeArguments& other,
+                                     intptr_t len,
+                                     Error* malformed_error) const {
   ASSERT(Length() >= len);
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= len);
@@ -3195,7 +3220,7 @@ bool AbstractTypeArguments::IsSubtypeOf(
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.IsSubtypeOf(other_type, malformed_error)) {
+    if (!type.TypeTest(test_kind, other_type, malformed_error)) {
       return false;
     }
   }
@@ -3609,6 +3634,11 @@ void Function::set_is_optimizable(bool value) const {
 }
 
 
+void Function::set_is_native(bool value) const {
+  raw_ptr()->is_native_ = value;
+}
+
+
 intptr_t Function::NumberOfParameters() const {
   return num_fixed_parameters() + num_optional_parameters();
 }
@@ -3741,20 +3771,21 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
 }
 
 
+// If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
+// of this function is a subtype or a supertype of the type of the corresponding
+// parameter of the other function.
+// If test_kind == kIsMoreSpecificThan, checks if the type of the specified
+// parameter of this function is more specific than the type of the
+// corresponding parameter of the other function.
+// Note that we do not apply contravariance of parameter types, but covariance
+// of both parameter types and result type.
 bool Function::TestParameterType(
+    TypeTestKind test_kind,
     intptr_t parameter_position,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
-  AbstractType& param_type =
-      AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments);
-  }
-  if (param_type.IsDynamicType()) {
-    return true;
-  }
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(parameter_position));
   if (!other_param_type.IsInstantiated()) {
@@ -3763,19 +3794,34 @@ bool Function::TestParameterType(
   if (other_param_type.IsDynamicType()) {
     return true;
   }
-  if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
-      !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
-    return false;
+  AbstractType& param_type =
+      AbstractType::Handle(ParameterTypeAt(parameter_position));
+  if (!param_type.IsInstantiated()) {
+    param_type = param_type.InstantiateFrom(type_arguments);
+  }
+  if (param_type.IsDynamicType()) {
+    return test_kind == kIsSubtypeOf;
+  }
+  if (test_kind == kIsSubtypeOf) {
+    if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
+        !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
+      return false;
+    }
+  } else {
+    ASSERT(test_kind == kIsMoreSpecificThan);
+    if (!param_type.IsMoreSpecificThan(other_param_type, malformed_error)) {
+      return false;
+    }
   }
   return true;
 }
 
 
-bool Function::IsSubtypeOf(
-    const AbstractTypeArguments& type_arguments,
-    const Function& other,
-    const AbstractTypeArguments& other_type_arguments,
-    Error* malformed_error) const {
+bool Function::TypeTest(TypeTestKind test_kind,
+                        const AbstractTypeArguments& type_arguments,
+                        const Function& other,
+                        const AbstractTypeArguments& other_type_arguments,
+                        Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
@@ -3794,16 +3840,25 @@ bool Function::IsSubtypeOf(
     if (!res_type.IsInstantiated()) {
       res_type = res_type.InstantiateFrom(type_arguments);
     }
-    if (!res_type.IsDynamicType() &&
-        (res_type.IsVoidType() ||
-         !(res_type.IsSubtypeOf(other_res_type, malformed_error) ||
-           other_res_type.IsSubtypeOf(res_type, malformed_error)))) {
+    if (res_type.IsVoidType()) {
       return false;
+    }
+    if (test_kind == kIsSubtypeOf) {
+      if (!res_type.IsSubtypeOf(other_res_type, malformed_error) &&
+          !other_res_type.IsSubtypeOf(res_type, malformed_error)) {
+        return false;
+      }
+    } else {
+      ASSERT(test_kind == kIsMoreSpecificThan);
+      if (!res_type.IsMoreSpecificThan(other_res_type, malformed_error)) {
+        return false;
+      }
     }
   }
   // Check the types of fixed parameters.
   for (intptr_t i = 0; i < num_fixed_params; i++) {
-    if (!TestParameterType(i, type_arguments, other, other_type_arguments,
+    if (!TestParameterType(test_kind,
+                           i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -3812,7 +3867,8 @@ bool Function::IsSubtypeOf(
   // Check that for each optional named parameter of type T of the other
   // function type, there is a corresponding optional named parameter of this
   // function at the same position with an identical name and with a type S
-  // that is a subtype or supertype of T.
+  // that is a either a subtype or supertype of T (if test_kind == kIsSubtypeOf)
+  // or that is more specific than T (if test_kind == kIsMoreSpecificThan).
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
   const intptr_t other_num_params =
@@ -3821,7 +3877,8 @@ bool Function::IsSubtypeOf(
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
-        !TestParameterType(i, type_arguments, other, other_type_arguments,
+        !TestParameterType(test_kind,
+                           i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -3867,6 +3924,7 @@ RawFunction* Function::New(const String& name,
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
+  result.set_is_native(false);
   return result.raw();
 }
 
@@ -6064,41 +6122,21 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
 }
 
 
-void LocalVarDescriptors::GetScopeInfo(
-                              intptr_t var_index,
-                              intptr_t* scope_id,
-                              intptr_t* begin_token_pos,
-                              intptr_t* end_token_pos) const {
-  ASSERT(var_index < Length());
-  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
-  *scope_id = info->scope_id;
-  *begin_token_pos = info->begin_pos;
-  *end_token_pos = info->end_pos;
-}
-
-
-intptr_t LocalVarDescriptors::GetSlotIndex(intptr_t var_index) const {
-  ASSERT(var_index < Length());
-  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
-  return info->index;
-}
-
-
 void LocalVarDescriptors::SetVar(intptr_t var_index,
                                  const String& name,
-                                 intptr_t stack_slot,
-                                 intptr_t scope_id,
-                                 intptr_t begin_pos,
-                                 intptr_t end_pos) const {
+                                 RawLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
   names.SetAt(var_index, name);
-  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
-  info->index = stack_slot;
-  info->scope_id = scope_id;
-  info->begin_pos = begin_pos;
-  info->end_pos = end_pos;
+  raw_ptr()->data_[var_index] = *info;
+}
+
+
+void LocalVarDescriptors::GetInfo(intptr_t var_index,
+                                  RawLocalVarDescriptors::VarInfo* info) const {
+  ASSERT(var_index < Length());
+  *info = raw_ptr()->data_[var_index];
 }
 
 
@@ -6214,6 +6252,9 @@ Code::Comments& Code::Comments::New(intptr_t count) {
 
 
 intptr_t Code::Comments::Length() const {
+  if (comments_.IsNull()) {
+    return 0;
+  }
   return comments_.Length() / kNumberOfEntries;
 }
 
@@ -6643,51 +6684,103 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
-void ICData::AddCheck(const GrowableArray<const Class*>& classes,
+void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
-  ASSERT(classes.length() == num_args_tested());
+  ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
+  ASSERT(class_ids.length() == num_args_tested());
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());
   intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
   intptr_t data_pos = old_num * TestEntryLength();
-  for (intptr_t i = 0; i < classes.length(); i++) {
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
     // Null is used as terminating value, do not add it.
-    ASSERT(!classes[i]->IsNull());
-    data.SetAt(data_pos++, *(classes[i]));
+    ASSERT(class_ids[i] != kNullClass);
+    ASSERT(class_ids[i] != kIllegalObjectKind);
+    data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
   ASSERT(!target.IsNull());
   data.SetAt(data_pos, target);
 }
 
 
+void ICData::AddReceiverCheck(intptr_t receiver_class_id,
+                              const Function& target) const {
+  ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
+  // Not supporting collection of null receivers.
+  ASSERT(receiver_class_id != kNullClass);
+  ASSERT(receiver_class_id != kIllegalObjectKind);
+  ASSERT(!target.IsNull());
+
+  intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  if ((receiver_class_id == kSmi) && (data_pos > 0)) {
+    // Instert kSmi in position 0.
+    const intptr_t zero_class_id = GetReceiverClassIdAt(0);
+    ASSERT(zero_class_id != kSmi);  // Simple duplicate entry check.
+    const Function& zero_target = Function::Handle(GetTargetAt(0));
+    data.SetAt(0, Smi::Handle(Smi::New(receiver_class_id)));
+    data.SetAt(1, target);
+    data.SetAt(data_pos, Smi::Handle(Smi::New(zero_class_id)));
+    data.SetAt(data_pos + 1, zero_target);
+  } else {
+    data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+    data.SetAt(data_pos + 1, target);
+  }
+}
+
+
 void ICData::GetCheckAt(intptr_t index,
-                        GrowableArray<const Class*>* classes,
+                        GrowableArray<intptr_t>* class_ids,
                         Function* target) const {
-  ASSERT(classes != NULL);
+  ASSERT(class_ids != NULL);
   ASSERT(target != NULL);
-  classes->Clear();
+  class_ids->Clear();
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
+  Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < num_args_tested(); i++) {
-    Class& cls = Class::ZoneHandle();
-    cls ^= data.At(data_pos++);
-    classes->Add(&cls);
+    smi ^= data.At(data_pos++);
+    class_ids->Add(smi.Value());
   }
   (*target) ^= data.At(data_pos);
 }
 
 
 void ICData::GetOneClassCheckAt(
-    int index, Class* cls, Function* target) const {
-  ASSERT(cls != NULL);
+    int index, intptr_t* class_id, Function* target) const {
+  ASSERT(class_id != NULL);
   ASSERT(target != NULL);
   ASSERT(num_args_tested() == 1);
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
-  *cls ^= data.At(data_pos);
+  Smi& smi = Smi::Handle();
+  smi ^= data.At(data_pos);
+  *class_id = smi.Value();
   *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  Smi& smi = Smi::Handle();
+  smi ^= data.At(data_pos);
+  return smi.Value();
+}
+
+
+RawFunction* ICData::GetTargetAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
+  Function& target = Function::Handle();
+  target ^= data.At(data_pos);
+  return target.raw();
 }
 
 

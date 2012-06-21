@@ -340,6 +340,8 @@ class _BlobJs extends _DOMTypeJs implements Blob native "*Blob" {
 
   final String type;
 
+  _BlobJs slice([int start = null, int end = null, String contentType = null]) native;
+
   _BlobJs webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }
 
@@ -806,8 +808,6 @@ class _ConsoleJs
     native "=(typeof console == 'undefined' ? {} : console)" {
 
   final _MemoryInfoJs memory;
-
-  final List<ScriptProfile> profiles;
 
   void assertCondition(bool condition, Object arg) native;
 
@@ -1497,13 +1497,13 @@ class _DataViewJs extends _ArrayBufferViewJs implements DataView native "*DataVi
 
   int getInt32(int byteOffset, [bool littleEndian = null]) native;
 
-  Object getInt8() native;
+  int getInt8(int byteOffset) native;
 
   int getUint16(int byteOffset, [bool littleEndian = null]) native;
 
   int getUint32(int byteOffset, [bool littleEndian = null]) native;
 
-  Object getUint8() native;
+  int getUint8(int byteOffset) native;
 
   void setFloat32(int byteOffset, num value, [bool littleEndian = null]) native;
 
@@ -1513,13 +1513,13 @@ class _DataViewJs extends _ArrayBufferViewJs implements DataView native "*DataVi
 
   void setInt32(int byteOffset, int value, [bool littleEndian = null]) native;
 
-  void setInt8() native;
+  void setInt8(int byteOffset, int value) native;
 
   void setUint16(int byteOffset, int value, [bool littleEndian = null]) native;
 
   void setUint32(int byteOffset, int value, [bool littleEndian = null]) native;
 
-  void setUint8() native;
+  void setUint8(int byteOffset, int value) native;
 }
 
 class _DatabaseJs extends _DOMTypeJs implements Database native "*Database" {
@@ -1667,7 +1667,7 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
   final _ElementJs documentElement;
 
-  String documentURI;
+  final String documentURI;
 
   String domain;
 
@@ -1710,6 +1710,8 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
   final bool webkitHidden;
 
   final bool webkitIsFullScreen;
+
+  final _ElementJs webkitPointerLockElement;
 
   final String webkitVisibilityState;
 
@@ -1800,6 +1802,8 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
   void webkitCancelFullScreen() native;
 
   void webkitExitFullscreen() native;
+
+  void webkitExitPointerLock() native;
 }
 
 class _DocumentFragmentJs extends _NodeJs implements DocumentFragment native "*DocumentFragment" {
@@ -1951,6 +1955,8 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
   void webkitRequestFullScreen(int flags) native;
 
   void webkitRequestFullscreen() native;
+
+  void webkitRequestPointerLock() native;
 }
 
 class _EntityJs extends _NodeJs implements Entity native "*Entity" {
@@ -2795,7 +2801,7 @@ class _HTMLButtonElementJs extends _HTMLElementJs implements HTMLButtonElement n
 
   String name;
 
-  final String type;
+  String type;
 
   final String validationMessage;
 
@@ -3353,6 +3359,8 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   num valueAsNumber;
 
+  final _EntryArrayJs webkitEntries;
+
   bool webkitGrammar;
 
   bool webkitSpeech;
@@ -3865,8 +3873,6 @@ class _HTMLSelectElementJs extends _HTMLElementJs implements HTMLSelectElement n
   bool required;
 
   int selectedIndex;
-
-  final _HTMLCollectionJs selectedOptions;
 
   int size;
 
@@ -9411,8 +9417,6 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
 
   final int callUID;
 
-  final List<ScriptProfileNode> children;
-
   final String functionName;
 
   final int lineNumber;
@@ -9426,6 +9430,8 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
   final String url;
 
   final bool visible;
+
+  List<ScriptProfileNode> children() native;
 }
 
 class _SessionDescriptionJs extends _DOMTypeJs implements SessionDescription native "*SessionDescription" {
@@ -9533,7 +9539,7 @@ class _SpeechRecognitionAlternativeJs extends _DOMTypeJs implements SpeechRecogn
   final String transcript;
 }
 
-class _SpeechRecognitionErrorJs extends _DOMTypeJs implements SpeechRecognitionError native "*SpeechRecognitionError" {
+class _SpeechRecognitionErrorJs extends _EventJs implements SpeechRecognitionError native "*SpeechRecognitionError" {
 
   static final int ABORTED = 2;
 
@@ -9559,8 +9565,6 @@ class _SpeechRecognitionErrorJs extends _DOMTypeJs implements SpeechRecognitionE
 }
 
 class _SpeechRecognitionEventJs extends _EventJs implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
-
-  final _SpeechRecognitionErrorJs error;
 
   final _SpeechRecognitionResultJs result;
 
@@ -10427,6 +10431,9 @@ class _WebGLDebugRendererInfoJs extends _DOMTypeJs implements WebGLDebugRenderer
 class _WebGLDebugShadersJs extends _DOMTypeJs implements WebGLDebugShaders native "*WebGLDebugShaders" {
 
   String getTranslatedShaderSource(_WebGLShaderJs shader) native;
+}
+
+class _WebGLDepthTextureJs extends _DOMTypeJs implements WebGLDepthTexture native "*WebGLDepthTexture" {
 }
 
 class _WebGLFramebufferJs extends _DOMTypeJs implements WebGLFramebuffer native "*WebGLFramebuffer" {
@@ -11755,8 +11762,6 @@ class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native 
 
   static final int UNSENT = 0;
 
-  bool asBlob;
-
   final int readyState;
 
   final Object response;
@@ -11942,6 +11947,14 @@ class _DOMParserFactoryProvider {
 class _DOMURLFactoryProvider {
   factory DOMURL() native
       '''return new DOMURL();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DataViewFactoryProvider {
+  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) native
+      '''return new DataView(buffer, byteOffset, byteLength);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12611,6 +12624,8 @@ interface Blob {
 
   final String type;
 
+  Blob slice([int start, int end, String contentType]);
+
   Blob webkitSlice([int start, int end, String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13204,8 +13219,6 @@ interface CompositionEvent extends UIEvent {
 interface Console {
 
   final MemoryInfo memory;
-
-  final List<ScriptProfile> profiles;
 
   void assertCondition(bool condition, Object arg);
 
@@ -13929,7 +13942,9 @@ interface DataTransferItemList {
 
 // WARNING: Do not edit - generated code.
 
-interface DataView extends ArrayBufferView {
+interface DataView extends ArrayBufferView default _DataViewFactoryProvider {
+
+  DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]);
 
   num getFloat32(int byteOffset, [bool littleEndian]);
 
@@ -13939,13 +13954,13 @@ interface DataView extends ArrayBufferView {
 
   int getInt32(int byteOffset, [bool littleEndian]);
 
-  Object getInt8();
+  int getInt8(int byteOffset);
 
   int getUint16(int byteOffset, [bool littleEndian]);
 
   int getUint32(int byteOffset, [bool littleEndian]);
 
-  Object getUint8();
+  int getUint8(int byteOffset);
 
   void setFloat32(int byteOffset, num value, [bool littleEndian]);
 
@@ -13955,13 +13970,13 @@ interface DataView extends ArrayBufferView {
 
   void setInt32(int byteOffset, int value, [bool littleEndian]);
 
-  void setInt8();
+  void setInt8(int byteOffset, int value);
 
   void setUint16(int byteOffset, int value, [bool littleEndian]);
 
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
-  void setUint8();
+  void setUint8(int byteOffset, int value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14181,7 +14196,7 @@ interface Document extends Node {
 
   final Element documentElement;
 
-  String documentURI;
+  final String documentURI;
 
   String domain;
 
@@ -14224,6 +14239,8 @@ interface Document extends Node {
   final bool webkitHidden;
 
   final bool webkitIsFullScreen;
+
+  final Element webkitPointerLockElement;
 
   final String webkitVisibilityState;
 
@@ -14314,6 +14331,8 @@ interface Document extends Node {
   void webkitCancelFullScreen();
 
   void webkitExitFullscreen();
+
+  void webkitExitPointerLock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14490,6 +14509,8 @@ interface Element extends Node, ElementTraversal {
   void webkitRequestFullScreen(int flags);
 
   void webkitRequestFullscreen();
+
+  void webkitRequestPointerLock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15363,7 +15384,7 @@ interface HTMLButtonElement extends HTMLElement {
 
   String name;
 
-  final String type;
+  String type;
 
   final String validationMessage;
 
@@ -15940,6 +15961,8 @@ interface HTMLInputElement extends HTMLElement {
   Date valueAsDate;
 
   num valueAsNumber;
+
+  final EntryArray webkitEntries;
 
   bool webkitGrammar;
 
@@ -16578,8 +16601,6 @@ interface HTMLSelectElement extends HTMLElement {
   bool required;
 
   int selectedIndex;
-
-  final HTMLCollection selectedOptions;
 
   int size;
 
@@ -21636,8 +21657,6 @@ interface ScriptProfileNode {
 
   final int callUID;
 
-  final List<ScriptProfileNode> children;
-
   final String functionName;
 
   final int lineNumber;
@@ -21651,6 +21670,8 @@ interface ScriptProfileNode {
   final String url;
 
   final bool visible;
+
+  List<ScriptProfileNode> children();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21840,7 +21861,7 @@ interface SpeechRecognitionAlternative {
 
 // WARNING: Do not edit - generated code.
 
-interface SpeechRecognitionError {
+interface SpeechRecognitionError extends Event {
 
   static final int ABORTED = 2;
 
@@ -21871,8 +21892,6 @@ interface SpeechRecognitionError {
 // WARNING: Do not edit - generated code.
 
 interface SpeechRecognitionEvent extends Event {
-
-  final SpeechRecognitionError error;
 
   final SpeechRecognitionResult result;
 
@@ -22530,6 +22549,14 @@ interface WebGLDebugRendererInfo {
 interface WebGLDebugShaders {
 
   String getTranslatedShaderSource(WebGLShader shader);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLDepthTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24015,8 +24042,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   static final int OPENED = 1;
 
   static final int UNSENT = 0;
-
-  bool asBlob;
 
   final int readyState;
 

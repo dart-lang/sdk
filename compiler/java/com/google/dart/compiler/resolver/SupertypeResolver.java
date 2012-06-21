@@ -132,7 +132,8 @@ public class SupertypeResolver {
                 boundNode,
                 false,
                 false,
-                ResolverErrorCode.NO_SUCH_TYPE);
+                ResolverErrorCode.NO_SUCH_TYPE,
+                ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
         boundNode.setType(bound);
       }
     }

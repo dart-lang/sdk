@@ -12,10 +12,10 @@ class TimerRepeatTest {
   static void testRepeatTimer() {
 
     void timeoutHandler(Timer timer) {
-      int endTime = (new Date.now()).value;
+      int endTime = (new Date.now()).millisecondsSinceEpoch;
       _iteration++;
       if (_iteration < _ITERATIONS) {
-        _startTime = (new Date.now()).value;
+        _startTime = (new Date.now()).millisecondsSinceEpoch;
       } else {
         Expect.equals(_iteration, _ITERATIONS);
         timer.cancel();
@@ -23,7 +23,7 @@ class TimerRepeatTest {
     }
 
     _iteration = 0;
-    _startTime = (new Date.now()).value;
+    _startTime = (new Date.now()).millisecondsSinceEpoch;
     timer = new Timer.repeating(_TIMEOUT, timeoutHandler);
   }
 

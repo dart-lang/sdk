@@ -18,9 +18,9 @@
 
 #import('dart:io');
 #import('dart:json');
-#import('../../frog/lang.dart');
-#import('../../frog/file_system.dart');
-#import('../../frog/file_system_vm.dart');
+#import('frog/lang.dart');
+#import('frog/file_system.dart');
+#import('frog/file_system_vm.dart');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
 
@@ -110,9 +110,9 @@ void main() {
   // TODO(rnystrom): Note that the following lines get munged by create-sdk to
   // work with the SDK's different file layout. If you change, be sure to test
   // that dartdoc still works when run from the built SDK directory.
-  final frogPath = joinPaths(scriptDir, '../../frog/');
-  final libDir = joinPaths(frogPath, 'lib');
-  final compilerPath = joinPaths(frogPath, 'minfrog');
+  final frogPath = joinPaths(scriptDir, 'frog/');
+  final libDir = joinPaths(scriptDir, '..');
+  final compilerPath = 'dart2js';
 
   parseOptions(frogPath, ['', '', '--libdir=$libDir'], files);
   initializeWorld(files);
@@ -141,8 +141,8 @@ void main() {
     dartdoc.document(entrypoint);
   });
 
-  print('Documented ${dartdoc._totalLibraries} libraries, ' +
-      '${dartdoc._totalTypes} types, and ' +
+  print('Documented ${dartdoc._totalLibraries} libraries, '
+      '${dartdoc._totalTypes} types, and '
       '${dartdoc._totalMembers} members.');
 }
 
@@ -423,11 +423,11 @@ class Dartdoc {
     // Add data attributes describing what the page documents.
     var data = '';
     if (_currentLibrary != null) {
-      data += ' data-library="${md.escapeHtml(_currentLibrary.name)}"';
+      data = '$data data-library="${md.escapeHtml(_currentLibrary.name)}"';
     }
 
     if (_currentType != null) {
-      data += ' data-type="${md.escapeHtml(typeName(_currentType))}"';
+      data = '$data data-type="${md.escapeHtml(typeName(_currentType))}"';
     }
 
     write(
@@ -1096,7 +1096,7 @@ class Dartdoc {
 
     // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do
     // this if the paths overlap.
-    return repeat('../', countOccurrences(_filePath, '/')) + fullPath;
+    return '${repeat('../', countOccurrences(_filePath, '/'))}$fullPath';
   }
 
   /** Gets whether or not the given URL is absolute or relative. */

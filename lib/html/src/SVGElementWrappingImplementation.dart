@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,7 +31,8 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
     parentTag.innerHTML = svg;
     if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+    throw new IllegalArgumentException(
+        'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
 

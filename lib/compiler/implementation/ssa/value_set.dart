@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -47,6 +47,7 @@ class ValueSet {
   }
 
   void kill(int flags) {
+    if (flags == 0) return;
     int depends = HInstruction.computeDependsOnFlags(flags);
     // Kill in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {

@@ -275,8 +275,6 @@ def AnalyzeConstructor(interface):
     return map(lambda arg: _DartArg([arg], interface, True),
                func_value.arguments)
 
-  if 'CustomConstructor' in interface.ext_attrs:
-    return None
   if 'Constructor' in interface.ext_attrs:
     name = None
     func_value = interface.ext_attrs.get('Constructor')
@@ -713,6 +711,8 @@ _idl_type_registry = {
     'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
                                     webcore_getter_name='hasAttribute',
                                     webcore_setter_name='setBooleanAttribute'),
+    'byte': PrimitiveIDLTypeInfo('byte', dart_type='int', native_type='int'),
+    'octet': PrimitiveIDLTypeInfo('octet', dart_type='int', native_type='int'),
     'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int'),
     'unsigned short': PrimitiveIDLTypeInfo('unsigned short', dart_type='int',
         native_type='int'),

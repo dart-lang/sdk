@@ -70,12 +70,6 @@ interface String extends Comparable, Hashable, Pattern default Strings {
   String concat(String other);
 
   /**
-   * Converts [other] to a string and creates a new string by
-   * concatenating this string with the converted [other].
-   */
-  String operator +(Object other);
-
-  /**
    * Returns a substring of this string in the given range.
    * [startIndex] is inclusive and [endIndex] is exclusive.
    */

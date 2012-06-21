@@ -31,14 +31,14 @@ main() {
     Uint8ClampedArray data = image.data;
     // It is legal for the dart2js compiler to believe the type of the native
     // ImageData.data and elides the check, so check the type explicitly:
-    Expect.isTrue(confuseType(data) is Uint8ClampedArray, 'canvas array type');
+    expect(confuseType(data) is Uint8ClampedArray, reason: 'canvas array type');
 
-    Expect.equals(40000, data.length);
+    expect(data, hasLength(40000));
     checkPixel(data, 0, [0, 0, 0, 0]);
     checkPixel(data, width * height - 1, [0, 0, 0, 0]);
 
     data[100] = 200;
-    Expect.equals(200, data[100]);
+    expect(data[100], equals(200));
   });
 }
 

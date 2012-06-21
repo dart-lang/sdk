@@ -20,10 +20,10 @@ main() {
 
   test('default constructor is empty', () {
     var style = new CSSStyleDeclaration();
-    Expect.equals("", style.cssText);
-    Expect.equals("", style.getPropertyPriority('color'));
-    Expect.equals("", style.item(0));
-    Expect.equals(0, style.length);
+    expect(style.cssText, isEmpty);
+    expect(style.getPropertyPriority('color'), isEmpty);
+    expect(style.item(0), isEmpty);
+    expect(style, hasLength(0));
     // These assertions throw a NotImplementedException in dartium:
     // Expect.isNull(style.parentRule);
     // Expect.isNull(style.getPropertyCSSValue('color'));
@@ -32,48 +32,47 @@ main() {
 
   test('cssText is wrapped', () {
     var style = createTestStyle();
-    Expect.equals(
-      "color: blue; width: 2px !important; -webkit-transform: rotate(90deg); ",
-      style.cssText);
+    expect(style.cssText,
+      equals("color: blue; width: 2px !important; "
+             "-webkit-transform: rotate(90deg); "));
     style.cssText = "color: red";
-    Expect.equals("color: red; ", style.cssText);
+    expect(style.cssText, equals("color: red; "));
   });
 
   test('length is wrapped', () {
-    Expect.equals(3, createTestStyle().length);
+    expect(createTestStyle(), hasLength(3));
   });
 
   test('getPropertyPriority is wrapped', () {
     var style = createTestStyle();
-    Expect.equals("", style.getPropertyPriority("color"));
-    Expect.equals("important", style.getPropertyPriority("width"));
+    expect(style.getPropertyPriority("color"), isEmpty);
+    expect(style.getPropertyPriority("width"), equals("important"));
   });
 
   test('item is wrapped', () {
     var style = createTestStyle();
-    Expect.equals("color", style.item(0));
-    Expect.equals("width", style.item(1));
-    Expect.equals("-webkit-transform", style.item(2));
+    expect(style.item(0), equals("color"));
+    expect(style.item(1), equals("width"));
+    expect(style.item(2), equals("-webkit-transform"));
   });
 
   test('removeProperty is wrapped', () {
     var style = createTestStyle();
     style.removeProperty("width");
-    Expect.equals(
-      "color: blue; -webkit-transform: rotate(90deg); ",
-      style.cssText);
+    expect(style.cssText,
+      equals("color: blue; -webkit-transform: rotate(90deg); "));
   });
 
   test('CSS property getters and setters', () {
     var style = createTestStyle();
-    Expect.equals("blue", style.color);
-    Expect.equals("2px", style.width);
-    Expect.equals("rotate(90deg)", style.transform);
+    expect(style.color, equals("blue"));
+    expect(style.width, equals("2px"));
+    expect(style.transform, equals("rotate(90deg)"));
 
     style.color = "red";
     style.transform = "translate(10px, 20px)";
-    Expect.equals(
-      "color: red; width: 2px !important; -webkit-transform: translate(10px, 20px); ",
-      style.cssText);
+    expect(style.cssText,
+      equals("color: red; width: 2px !important;"
+             " -webkit-transform: translate(10px, 20px); "));
   });
 }

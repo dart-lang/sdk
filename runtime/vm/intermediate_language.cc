@@ -15,6 +15,42 @@
 
 namespace dart {
 
+MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
+    const Function& function) {
+  // Only core library methods can be recognized.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Class& function_class = Class::Handle(function.owner());
+  if ((function_class.library() != core_lib.raw()) &&
+      (function_class.library() != core_impl_lib.raw())) {
+    return kUnknown;
+  }
+  const String& recognize_name = String::Handle(function.name());
+  const String& recognize_class = String::Handle(function_class.Name());
+  String& test_function_name = String::Handle();
+  String& test_class_name = String::Handle();
+#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
+  test_function_name = String::NewSymbol(#function_name);                      \
+  test_class_name = String::NewSymbol(#class_name);                            \
+  if (recognize_name.Equals(test_function_name) &&                             \
+      recognize_class.Equals(test_class_name)) {                               \
+    return k##enum_name;                                                       \
+  }
+RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
+#undef RECOGNIZE_FUNCTION
+  return kUnknown;
+}
+
+
+const char* MethodRecognizer::KindToCString(Kind kind) {
+#define KIND_TO_STRING(class_name, function_name, enum_name)                   \
+  if (kind == k##enum_name) return #enum_name;
+RECOGNIZED_LIST(KIND_TO_STRING)
+#undef KIND_TO_STRING
+  return "?";
+}
+
+
 // ==== Support for visiting flow graphs.
 #define DEFINE_ACCEPT(ShortName, ClassName)                                    \
 void ClassName::Accept(FlowGraphVisitor* visitor) {                            \
@@ -37,7 +73,7 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
 
-// Truee iff. the v2 is above v1 on stack, or one of them is constant.
+// True iff. the v2 is above v1 on stack, or one of them is constant.
 static bool VerifyValues(Value* v1, Value* v2) {
   ASSERT(v1->IsUse() && v2->IsUse());
   return (v1->AsUse()->definition()->temp_index() + 1) ==
@@ -95,6 +131,24 @@ intptr_t CreateArrayComp::InputCount() const {
 }
 
 
+Value* CreateArrayComp::InputAt(intptr_t i) const {
+  if (i == 0) {
+    return element_type();
+  } else {
+    return ElementAt(i - 1);
+  }
+}
+
+
+void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    inputs_[0] = value;
+  } else {
+    (*elements_)[i - 1] = value;
+  }
+}
+
+
 intptr_t BranchInstr::InputCount() const {
   return 1;
 }
@@ -104,6 +158,15 @@ Value* BranchInstr::InputAt(intptr_t i) const {
   if (i == 0) return value();
   UNREACHABLE();
   return NULL;
+}
+
+
+void BranchInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    value_ = value;
+    return;
+  }
+  UNREACHABLE();
 }
 
 
@@ -120,6 +183,19 @@ Value* ReThrowInstr::InputAt(intptr_t i) const {
 }
 
 
+void ReThrowInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    exception_ = value;
+    return;
+  }
+  if (i == 1) {
+    stack_trace_ = value;
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 intptr_t ThrowInstr::InputCount() const {
   return 1;
 }
@@ -129,6 +205,15 @@ Value* ThrowInstr::InputAt(intptr_t i) const {
   if (i == 0) return exception();
   UNREACHABLE();
   return NULL;
+}
+
+
+void ThrowInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    exception_ = value;
+    return;
+  }
+  UNREACHABLE();
 }
 
 
@@ -144,6 +229,15 @@ Value* ReturnInstr::InputAt(intptr_t i) const {
 }
 
 
+void ReturnInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    value_ = value;
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 intptr_t BindInstr::InputCount() const {
   return computation()->InputCount();
 }
@@ -151,6 +245,11 @@ intptr_t BindInstr::InputCount() const {
 
 Value* BindInstr::InputAt(intptr_t i) const {
   return computation()->InputAt(i);
+}
+
+
+void BindInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
 }
 
 
@@ -164,6 +263,11 @@ Value* PhiInstr::InputAt(intptr_t i) const {
 }
 
 
+void PhiInstr::SetInputAt(intptr_t i, Value* value) {
+  inputs_[i] = value;
+}
+
+
 intptr_t DoInstr::InputCount() const {
   return computation()->InputCount();
 }
@@ -171,6 +275,11 @@ intptr_t DoInstr::InputCount() const {
 
 Value* DoInstr::InputAt(intptr_t i) const {
   return computation()->InputAt(i);
+}
+
+
+void DoInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
 }
 
 
@@ -185,6 +294,11 @@ Value* GraphEntryInstr::InputAt(intptr_t i) const {
 }
 
 
+void GraphEntryInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t TargetEntryInstr::InputCount() const {
   return 0;
 }
@@ -196,6 +310,11 @@ Value* TargetEntryInstr::InputAt(intptr_t i) const {
 }
 
 
+void TargetEntryInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t JoinEntryInstr::InputCount() const {
   return 0;
 }
@@ -204,6 +323,11 @@ intptr_t JoinEntryInstr::InputCount() const {
 Value* JoinEntryInstr::InputAt(intptr_t i) const {
   UNREACHABLE();
   return NULL;
+}
+
+
+void JoinEntryInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
 }
 
 
@@ -463,9 +587,12 @@ RawAbstractType* ClosureCallComp::StaticType() const {
     return Type::DynamicType();
   }
   const Class& signature_class = Class::Handle(function_type.type_class());
-  ASSERT(signature_class.IsSignatureClass());
   const Function& signature_function =
       Function::Handle(signature_class.signature_function());
+  if (signature_function.IsNull()) {
+    // Attempting to invoke a non-closure object.
+    return Type::DynamicType();
+  }
   // TODO(regis): The result type may be generic. Consider upper bounds.
   return signature_function.result_type();
 }
@@ -766,11 +893,11 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  intptr_t num_temps = (class_ids() == NULL) ? 0 : 1;
+  const intptr_t num_temps = HasICData() ? 1 : 0;
   LocationSummary* summary = new LocationSummary(kNumInputs, num_temps);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  if (class_ids() != NULL) {
+  if (HasICData()) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;
@@ -779,32 +906,33 @@ LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
 
 void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyValues(instance(), value()));
-  Register instance = locs()->in(0).reg();
-  Register value = locs()->in(1).reg();
+  Register instance_reg = locs()->in(0).reg();
+  Register value_reg = locs()->in(1).reg();
 
-  if (class_ids() != NULL) {
+  if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->cid(),
                                           original()->token_index(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
-                                          instance,
-                                          value);
+                                          instance_reg,
+                                          value_reg);
     // Smis do not have instance fields (Smi class is always first).
-    Register temp = locs()->temp(0).reg();
-    ASSERT(temp != instance);
-    ASSERT(temp != value);
-    compiler->EmitClassChecksNoSmi(*class_ids(), instance, temp, deopt);
+    Register temp_reg = locs()->temp(0).reg();
+    ASSERT(temp_reg != instance_reg);
+    ASSERT(temp_reg != value_reg);
+    ASSERT(ic_data() != NULL);
+    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
   }
-  __ StoreIntoObject(instance, FieldAddress(instance, field().Offset()),
-                     value);
+  __ StoreIntoObject(instance_reg, FieldAddress(instance_reg, field().Offset()),
+                     value_reg);
 }
 
 
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
   const int kNumInputs = 0;
   const int kNumTemps = 0;
-  return new LocationSummary(kNumInputs, kNumTemps);
+  return new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
 }
 
 
@@ -822,7 +950,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ReThrowInstr::MakeLocationSummary() const {
   const int kNumInputs = 0;
   const int kNumTemps = 0;
-  return new LocationSummary(kNumInputs, kNumTemps);
+  return new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
 }
 
 
@@ -839,11 +967,17 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
   if (is_fused_with_comparison()) {
-    return LocationSummary::Make(0, Location::NoLocation());
+    return LocationSummary::Make(0,
+                                 Location::NoLocation(),
+                                 LocationSummary::kNoCall,
+                                 LocationSummary::kBranch);
   } else {
     const int kNumInputs = 1;
     const int kNumTemps = 0;
-    LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+    LocationSummary* locs = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kNoCall,
+                                                LocationSummary::kBranch);
     locs->set_in(0, Location::RequiresRegister());
     return locs;
   }
@@ -882,6 +1016,9 @@ static Condition NegateCondition(Condition condition) {
 
 void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                         Condition true_condition) {
+  if (is_negated()) {
+    true_condition = NegateCondition(true_condition);
+  }
   if (compiler->IsNextBlock(false_successor())) {
     // If the next block is the false successor we will fall through to it.
     __ j(true_condition, compiler->GetBlockLabel(true_successor()));
@@ -937,7 +1074,9 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ CompareRegisters(left, right);
 
-  if (!is_fused_with_branch()) {
+  if (is_fused_with_branch()) {
+    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
+  } else {
     Register result = locs()->out().reg();
     Label load_true, done;
     __ j(true_condition, &load_true, Assembler::kNearJump);
@@ -946,8 +1085,6 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&load_true);
     __ LoadObject(result, compiler->bool_true());
     __ Bind(&done);
-  } else {
-    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
   }
 }
 
@@ -993,26 +1130,8 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // TODO(srdjan): Add checked calls, a series of checks each issuing
-  // a direct call to the target if check succeeds.
-  ASSERT(VerifyCallComputation(instance_call()));
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 instance_call()->cid(),
-                                 instance_call()->token_index(),
-                                 instance_call()->try_index());
-  compiler->GenerateInstanceCall(instance_call()->cid(),
-                                 instance_call()->token_index(),
-                                 instance_call()->try_index(),
-                                 instance_call()->function_name(),
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 instance_call()->checked_argument_count());
+bool InstanceCallComp::VerifyComputation() {
+  return VerifyCallComputation(this);
 }
 
 
@@ -1023,12 +1142,18 @@ LocationSummary* StaticCallComp::MakeLocationSummary() const {
 
 void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
+  Label done;
+  if (recognized() == MethodRecognizer::kMathSqrt) {
+    compiler->GenerateInlinedMathSqrt(&done);
+    // Falls through to static call when operand type is not double or smi.
+  }
   compiler->GenerateStaticCall(cid(),
                                token_index(),
                                try_index(),
                                function(),
                                ArgumentCount(),
                                argument_names());
+  __ Bind(&done);
 }
 
 
@@ -1053,7 +1178,9 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1, Location::SameAsFirstInput());
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kCall);
 }
 
 
@@ -1157,6 +1284,7 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          PcDescriptors::kOther);
   __ Drop(2);  // Discard type arguments and receiver.
 }
+
 
 #undef __
 

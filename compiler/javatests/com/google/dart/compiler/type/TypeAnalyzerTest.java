@@ -927,7 +927,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     ClassElement cls = loadClass("classes_with_properties.dart", "ClassWithProperties");
     analyzeIn(cls, "null", 0);
     analyzeIn(cls, "noSuchField", 1);
-    analyzeIn(cls, "noSuchMethod()", 0);
+    analyzeIn(cls, "noSuchMethod()", 1);
     analyzeIn(cls, "x.noSuchField", 0);
     analyzeIn(cls, "x.noSuchMethod()", 0);
     analyzeIn(cls, "x.x.noSuchField", 0);
@@ -1277,7 +1277,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(element, "this.field", 0);
     analyzeIn(element, "null", 0);
     analyzeIn(element, "noSuchField", 1);
-    analyzeIn(element, "noSuchMethod()", 0);
+    analyzeIn(element, "noSuchMethod()", 1);
     analyzeIn(element, "method()", 0);
     analyzeIn(element, "field", 0);
     analyzeIn(element, "this.noSuchField", 1);
@@ -1388,12 +1388,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("{ var c = a + b; }");
     analyzeFail("{ var c = s + b; }",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-    analyzeFail("{ var c = a + s; }",
-            TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);    
     analyzeFail("var c = 'foo' + 1;",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);        
-    analyzeFail("var c = 1 + 'foo';",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);            
     analyzeFail("var c = 'foo' + 'bar';",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);                
   }  

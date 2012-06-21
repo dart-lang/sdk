@@ -118,14 +118,6 @@ bool isJsArray(var value) {
 add$slow(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# + #', a, b);
-  } else if (a is String) {
-    // TODO(lrn): Remove when we disable String.operator+
-    b = b.toString();
-    if (b is String) {
-      return JS('String', @'# + #', a, b);
-    }
-    checkNull(b);
-    throw new IllegalArgumentException(b);
   }
   return UNINTERCEPTED(a + b);
 }
@@ -499,7 +491,7 @@ class Primitives {
       value = JS('num', @'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
-    if (value.isNaN()) throw new IllegalArgumentException('');
+    if (value.isNaN()) throw new IllegalArgumentException();
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
   }
@@ -517,55 +509,56 @@ class Primitives {
   // Lazily keep a JS Date stored in the JS object.
   static lazyAsJsDate(receiver) {
     if (JS('bool', @'#.date === (void 0)', receiver)) {
-      JS('void', @'#.date = new Date(#)', receiver, receiver.value);
+      JS('void', @'#.date = new Date(#)', receiver,
+         receiver.millisecondsSinceEpoch);
     }
     return JS('Date', @'#.date', receiver);
   }
 
   static getYear(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCFullYear()', lazyAsJsDate(receiver))
       : JS('int', @'#.getFullYear()', lazyAsJsDate(receiver));
   }
 
   static getMonth(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
       : JS('int', @'#.getMonth()', lazyAsJsDate(receiver)) + 1;
   }
 
   static getDay(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCDate()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDate()', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCHours()', lazyAsJsDate(receiver))
       : JS('int', @'#.getHours()', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCMinutes()', lazyAsJsDate(receiver))
       : JS('int', @'#.getMinutes()', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCSeconds()', lazyAsJsDate(receiver))
       : JS('int', @'#.getSeconds()', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
       : JS('int', @'#.getMilliseconds()', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
-    return (receiver.isUtc())
+    return (receiver.isUtc)
       ? JS('int', @'#.getUTCDay()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDay()', lazyAsJsDate(receiver));
   }

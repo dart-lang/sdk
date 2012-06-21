@@ -4,7 +4,7 @@
 
 #library('classify');
 
-#import('../../frog/lang.dart');
+#import('frog/lang.dart');
 #import('markdown.dart', prefix: 'md');
 
 /**

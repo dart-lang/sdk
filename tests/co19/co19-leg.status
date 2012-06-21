@@ -12,6 +12,7 @@ LibTest/core/Math/atan_A01_t01: Fail, OK
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
 Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Crash
 
 
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
@@ -42,17 +43,6 @@ LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a c
 LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant
 Language/05_Variables/05_Variables_A01_t01: Fail # Compile-time error: expected '(', but got '='
 Language/05_Variables/05_Variables_A04_t09: Fail # Compile-time error: expected '(', but got 'pi'
-Language/10_Expressions/28_Identifier_Reference_A08_t37: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t40: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t41: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t42: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t43: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t44: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t45: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t46: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t47: Fail # Compile-time error: expected ';', but got ':'
-Language/10_Expressions/28_Identifier_Reference_A08_t48: Fail # Compile-time error: expected ';', but got ':'
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Compile-time error: expected an expression, but got '&&'
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Compile-time error: expected identifier, but got '!'
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Compile-time error: unexpected token '('
@@ -121,36 +111,47 @@ LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Runtime error: Expect.
 
 
 # The following tests use the deprecated Date interface.
-LibTest/core/Date/Date_A02_t01: Fail, OK
-LibTest/core/Date/Date.now_A02_t01: Fail, OK
-LibTest/core/Date/add_A04_t01: Fail, OK
-LibTest/core/Date/value_A01_t02: Skip
-LibTest/core/Date/value_A02_t01: Skip
-LibTest/core/Date/isLocalTime_A01_t01: Fail, OK
-LibTest/core/Date/toString_A02_t01: Skip
-LibTest/core/Date/Date.fromString_A01_t03: Fail, OK
-LibTest/core/Date/changeTimeZone_A01_t01: Skip
-LibTest/core/Date/changeTimeZone_A02_t01: Fail, OK
-LibTest/core/Date/changeTimeZone_A03_t01: Fail, OK
-LibTest/core/Date/changeTimeZone_A04_t01: Skip
-LibTest/core/Date/changeTimeZone_A05_t01: Fail, OK
-LibTest/core/Date/isUtc_A01_t01: Fail, OK
-LibTest/core/Date/timeZone_A01_t01: Skip
-LibTest/core/Date/timeZone_A01_t02: Fail, OK
-LibTest/core/Date/timeZone_A01_t03: Fail, OK
-LibTest/core/Date/difference_A01_t01: Skip
-LibTest/core/Date/difference_A01_t02: Skip
-LibTest/core/Date/subtract_A04_t01: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A01_t02: Skip
-LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
-LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
-LibTest/core/Date/Date.withTimeZone_A01_t02: Skip
-LibTest/core/Date/Date.withTimeZone_A01_t03: Skip
+# Issue co19 - 125
+LibTest/core/Date/Date_A02_t01: Fail, Pass
+LibTest/core/Date/Date.now_A02_t01: Fail, Pass
+LibTest/core/Date/add_A02_t01: Fail, Pass
+LibTest/core/Date/add_A03_t01: Fail, Pass
+LibTest/core/Date/add_A04_t01: Fail, Pass
+LibTest/core/Date/value_A01_t02: Fail, Pass
+LibTest/core/Date/value_A01_t03: Fail, Pass
+LibTest/core/Date/value_A02_t01: Fail, Pass
+LibTest/core/Date/isLocalTime_A01_t01: Fail, Pass
+LibTest/core/Date/toString_A02_t01: Fail, Pass
+LibTest/core/Date/Date.fromString_A01_t02: Fail, Pass
+LibTest/core/Date/Date.fromString_A01_t03: Fail, Pass
+LibTest/core/Date/changeTimeZone_A01_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A02_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A03_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A04_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A05_t01: Fail, Pass
+LibTest/core/Date/isUtc_A01_t01: Fail, Pass
+LibTest/core/Date/timeZone_A01_t01: Fail, Pass
+LibTest/core/Date/timeZone_A01_t02: Fail, Pass
+LibTest/core/Date/timeZone_A01_t03: Fail, Pass
+LibTest/core/Date/difference_A01_t01: Fail, Pass
+LibTest/core/Date/difference_A01_t02: Fail, Pass
+LibTest/core/Date/milliseconds_A01_t01: Fail, Pass
+LibTest/core/Date/seconds_A01_t01: Fail, Pass
+LibTest/core/Date/minutes_A01_t01: Fail, Pass
+LibTest/core/Date/hours_A01_t01: Fail, Pass
+LibTest/core/Date/subtract_A02_t01: Fail, Pass
+LibTest/core/Date/subtract_A03_t01: Fail, Pass
+LibTest/core/Date/subtract_A04_t01: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t02: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t01: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t01: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t02: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, Pass
 
-LibTest/core/TimeZone/TimeZone.local_A01_t01: Skip
-LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
+LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, Pass
+LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 
 
 [ $compiler == dart2js && $checked ]
@@ -170,8 +171,10 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/10_Expressions/06_Lists_A08_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -180,6 +183,7 @@ Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail, OK # A map literal
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail, OK # A map literal cannot start an expression statement.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/11_Statements/07_Do_A02_t02: Fail, OK # co19 issue 145.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail, OK # Dart issue 2259.
@@ -406,6 +410,7 @@ Language/05_Variables/05_Variables_A08_t05: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A08_t06: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A08_t07: Fail, OK # @compile-error
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # @compile-error
+Language/06_Functions/06_Functions_A01_t31: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A02_t02: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A03_t02: Fail, OK # @compile-error
@@ -664,8 +669,19 @@ Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail, OK # @compile-err
 Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t01: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t02: Fail, OK # @compile-error
 Language/11_Statements/05_For_A01_t12: Fail, OK # @compile-error

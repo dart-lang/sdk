@@ -7,12 +7,12 @@ main() {
   useHtmlConfiguration();
   test('CSSMatrix', () {
     CSSMatrix matrix1 = new CSSMatrix();
-    Expect.equals(1, matrix1.m11.round());
-    Expect.equals(0, matrix1.m12.round());
+    expect(matrix1.m11.round(), equals(1));
+    expect(matrix1.m12.round(), isZero);
 
     CSSMatrix matrix2 = new CSSMatrix('matrix(1, 0, 0, 1, -835, 0)');
-    Expect.equals(1, matrix2.a.round());
-    Expect.equals(-835, matrix2.e.round());
+    expect(matrix2.a.round(), equals(1));
+    expect(matrix2.e.round(), equals(-835));
   });
   test('Point', () {
     Element element = new Element.tag('div');
@@ -38,6 +38,6 @@ main() {
 }
 
 void checkPoint(expectedX, expectedY, Point point) {
-  Expect.equals(expectedX, point.x.round(), 'Wrong point.x');
-  Expect.equals(expectedY, point.y.round(), 'Wrong point.y');
+  expect(point.x.round(), equals(expectedX), 'Wrong point.x');
+  expect(point.y.round(), equals(expectedY), 'Wrong point.y');
 }

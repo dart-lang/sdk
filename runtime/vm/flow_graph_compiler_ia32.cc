@@ -71,10 +71,45 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
+  Label smi_to_double, double_op, call_method;
+  __ movl(EAX, Address(ESP, 0));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &smi_to_double);
+  __ CompareClassId(EAX, kDouble, EBX);
+  __ j(NOT_EQUAL, &call_method);
+  __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ Bind(&double_op);
+  __ sqrtsd(XMM0, XMM1);
+  AssemblerMacros::TryAllocate(assembler_,
+                               double_class_,
+                               &call_method,
+                               EAX);  // Result register.
+  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ jmp(done);
+  __ Bind(&smi_to_double);
+  __ SmiUntag(EAX);
+  __ cvtsi2sd(XMM1, EAX);
+  __ jmp(&double_op);
+  __ Bind(&call_method);
+}
+
+
+void FlowGraphCompiler::GenerateCall(intptr_t token_index,
+                                     intptr_t try_index,
+                                     const ExternalLabel* label,
+                                     PcDescriptors::Kind kind) {
+  ASSERT(frame_register_allocator()->IsSpilled());
+  __ call(label);
+  AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
+}
+
+
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
                                             intptr_t token_index,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry) {
+  ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, cid, token_index, try_index);
 }
@@ -82,11 +117,14 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
 
 void FlowGraphCompiler::CopyParameters() {
   const Function& function = parsed_function().function();
+  const bool is_native_instance_closure =
+      function.is_native() && function.IsImplicitInstanceClosureFunction();
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
+  int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
   ASSERT(parsed_function().first_parameter_index() ==
-         ParsedFunction::kFirstLocalSlotIndex);
+         ParsedFunction::kFirstLocalSlotIndex + implicit_this_param_pos);
   // Copy positional arguments.
   // Check that no fewer than num_fixed_params positional arguments are passed
   // in and that no more than num_params arguments are passed in.
@@ -110,9 +148,16 @@ void FlowGraphCompiler::CopyParameters() {
   // fp[1 + num_args - (num_pos_args - 1)].
   __ subl(EBX, ECX);
   __ leal(EBX, Address(EBP, EBX, TIMES_2, 2 * kWordSize));
+
   // Let EDI point to the last copied positional argument, i.e. to
   // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
-  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
+  const int index =
+      ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos;
+  // First copy captured receiver if function is an implicit native closure.
+  if (is_native_instance_closure) {
+    __ movl(EAX, FieldAddress(CTX, Context::variable_offset(0)));
+    __ movl(Address(EBP, (index * kWordSize)), EAX);
+  }
   __ leal(EDI, Address(EBP, (index * kWordSize)));
   __ subl(EDI, ECX);  // ECX is a Smi, subtract twice for TIMES_4 scaling.
   __ subl(EDI, ECX);
@@ -132,79 +177,84 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 
   // Copy or initialize optional named arguments.
-  ASSERT(num_opt_params > 0);  // Or we would not have to copy arguments.
-  // Start by alphabetically sorting the names of the optional parameters.
-  LocalVariable** opt_param = new LocalVariable*[num_opt_params];
-  int* opt_param_position = new int[num_opt_params];
-  for (int pos = num_fixed_params; pos < num_params; pos++) {
-    LocalVariable* parameter = scope->VariableAt(pos);
-    const String& opt_param_name = parameter->name();
-    int i = pos - num_fixed_params;
-    while (--i >= 0) {
-      LocalVariable* param_i = opt_param[i];
-      const intptr_t result = opt_param_name.CompareTo(param_i->name());
-      ASSERT(result != 0);
-      if (result > 0) break;
-      opt_param[i + 1] = opt_param[i];
-      opt_param_position[i + 1] = opt_param_position[i];
-    }
-    opt_param[i + 1] = parameter;
-    opt_param_position[i + 1] = pos;
-  }
-  // Generate code handling each optional parameter in alphabetical order.
-  // Total number of args is the first Smi in args descriptor array (EDX).
-  __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
-  // Number of positional args is the second Smi in descriptor array (EDX).
-  __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
-  __ SmiUntag(ECX);
-  // Let EBX point to the first passed argument, i.e. to fp[1 + argc - 0].
-  __ leal(EBX, Address(EBP, EBX, TIMES_2, kWordSize));  // EBX is Smi.
-  // Let EDI point to the name/pos pair of the first named argument.
-  __ leal(EDI, FieldAddress(EDX, Array::data_offset() + (2 * kWordSize)));
-  for (int i = 0; i < num_opt_params; i++) {
-    // Handle this optional parameter only if k or fewer positional arguments
-    // have been passed, where k is the position of this optional parameter in
-    // the formal parameter list.
-    Label load_default_value, assign_optional_parameter, next_parameter;
-    const int param_pos = opt_param_position[i];
-    __ cmpl(ECX, Immediate(param_pos));
-    __ j(GREATER, &next_parameter, Assembler::kNearJump);
-    // Check if this named parameter was passed in.
-    __ movl(EAX, Address(EDI, 0));  // Load EAX with the name of the argument.
-    __ CompareObject(EAX, opt_param[i]->name());
-    __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
-    // Load EAX with passed-in argument at provided arg_pos, i.e. at
-    // fp[1 + argc - arg_pos].
-    __ movl(EAX, Address(EDI, kWordSize));  // EAX is arg_pos as Smi.
-    __ addl(EDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
-    __ negl(EAX);
-    Address argument_addr(EBX, EAX, TIMES_2, 0);  // EAX is a negative Smi.
-    __ movl(EAX, argument_addr);
-    __ jmp(&assign_optional_parameter, Assembler::kNearJump);
-    __ Bind(&load_default_value);
-    // Load EAX with default argument at pos.
-    const Object& value = Object::ZoneHandle(
-        parsed_function().default_parameter_values().At(
-            param_pos - num_fixed_params));
-    __ LoadObject(EAX, value);
-    __ Bind(&assign_optional_parameter);
-    // Assign EAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
-    // We do not use the final allocation index of the variable here, i.e.
-    // scope->VariableAt(i)->index(), because captured variables still need
-    // to be copied to the context that is not yet allocated.
-    const Address param_addr(
-        EBP, (ParsedFunction::kFirstLocalSlotIndex - param_pos) * kWordSize);
-    __ movl(param_addr, EAX);
-    __ Bind(&next_parameter);
-  }
-  delete[] opt_param;
-  delete[] opt_param_position;
-  // Check that EDI now points to the null terminator in the array descriptor.
+  Label all_arguments_processed;
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label all_arguments_processed;
-  __ cmpl(Address(EDI, 0), raw_null);
-  __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+  if (num_opt_params > 0) {
+    // Start by alphabetically sorting the names of the optional parameters.
+    LocalVariable** opt_param = new LocalVariable*[num_opt_params];
+    int* opt_param_position = new int[num_opt_params];
+    for (int pos = num_fixed_params; pos < num_params; pos++) {
+      LocalVariable* parameter = scope->VariableAt(pos);
+      const String& opt_param_name = parameter->name();
+      int i = pos - num_fixed_params;
+      while (--i >= 0) {
+        LocalVariable* param_i = opt_param[i];
+        const intptr_t result = opt_param_name.CompareTo(param_i->name());
+        ASSERT(result != 0);
+        if (result > 0) break;
+        opt_param[i + 1] = opt_param[i];
+        opt_param_position[i + 1] = opt_param_position[i];
+      }
+      opt_param[i + 1] = parameter;
+      opt_param_position[i + 1] = pos;
+    }
+    // Generate code handling each optional parameter in alphabetical order.
+    // Total number of args is the first Smi in args descriptor array (EDX).
+    __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
+    // Number of positional args is the second Smi in descriptor array (EDX).
+    __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
+    __ SmiUntag(ECX);
+    // Let EBX point to the first passed argument, i.e. to fp[1 + argc - 0].
+    __ leal(EBX, Address(EBP, EBX, TIMES_2, kWordSize));  // EBX is Smi.
+    // Let EDI point to the name/pos pair of the first named argument.
+    __ leal(EDI, FieldAddress(EDX, Array::data_offset() + (2 * kWordSize)));
+    for (int i = 0; i < num_opt_params; i++) {
+      // Handle this optional parameter only if k or fewer positional arguments
+      // have been passed, where k is the position of this optional parameter in
+      // the formal parameter list.
+      Label load_default_value, assign_optional_parameter, next_parameter;
+      const int param_pos = opt_param_position[i];
+      __ cmpl(ECX, Immediate(param_pos));
+      __ j(GREATER, &next_parameter, Assembler::kNearJump);
+      // Check if this named parameter was passed in.
+      __ movl(EAX, Address(EDI, 0));  // Load EAX with the name of the argument.
+      __ CompareObject(EAX, opt_param[i]->name());
+      __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
+      // Load EAX with passed-in argument at provided arg_pos, i.e. at
+      // fp[1 + argc - arg_pos].
+      __ movl(EAX, Address(EDI, kWordSize));  // EAX is arg_pos as Smi.
+      __ addl(EDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
+      __ negl(EAX);
+      Address argument_addr(EBX, EAX, TIMES_2, 0);  // EAX is a negative Smi.
+      __ movl(EAX, argument_addr);
+      __ jmp(&assign_optional_parameter, Assembler::kNearJump);
+      __ Bind(&load_default_value);
+      // Load EAX with default argument at pos.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(
+              param_pos - num_fixed_params));
+      __ LoadObject(EAX, value);
+      __ Bind(&assign_optional_parameter);
+      // Assign EAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
+                                     param_pos + implicit_this_param_pos);
+      const Address param_addr(EBP, (computed_param_pos * kWordSize));
+      __ movl(param_addr, EAX);
+      __ Bind(&next_parameter);
+    }
+    delete[] opt_param;
+    delete[] opt_param_position;
+    // Check that EDI now points to the null terminator in the array descriptor.
+    __ cmpl(Address(EDI, 0), raw_null);
+    __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+  } else {
+    ASSERT(is_native_instance_closure);
+    __ jmp(&all_arguments_processed, Assembler::kNearJump);
+  }
 
   __ Bind(&wrong_num_arguments);
   if (StackSize() != 0) {
@@ -387,15 +437,6 @@ intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
   const intptr_t descr_offset = assembler()->CodeSize();
   __ Drop(argument_count);
   return descr_offset;
-}
-
-
-void FlowGraphCompiler::GenerateCall(intptr_t token_index,
-                                     intptr_t try_index,
-                                     const ExternalLabel* label,
-                                     PcDescriptors::Kind kind) {
-  __ call(label);
-  AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
 }
 
 
@@ -947,34 +988,32 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
 
-  locs->AllocateRegisters();
+  frame_register_allocator()->AllocateRegisters(instr);
 
-  // Load instruction inputs into allocated registers.
-  for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
-    Location loc = locs->in(i);
-    ASSERT(loc.kind() == Location::kRegister);
-    __ popl(loc.reg());
-  }
+  // TODO(vegorov): adjust assertion when we start removing comparison from the
+  // graph when it is merged with a branch.
+  ASSERT(locs->is_call() ||
+         (instr->IsBranch() && instr->AsBranch()->is_fused_with_comparison()) ||
+         (locs->input_count() == instr->InputCount()));
 }
-
 
 // Checks class id of instance against all 'class_ids'. Jump to 'deopt' label
 // if no match or instance is Smi.
-void FlowGraphCompiler::EmitClassChecksNoSmi(
-    const ZoneGrowableArray<intptr_t>& class_ids,
-    Register instance_reg,
-    Register temp_reg,
-    Label* deopt) {
+void FlowGraphCompiler::EmitClassChecksNoSmi(const ICData& ic_data,
+                                             Register instance_reg,
+                                             Register temp_reg,
+                                             Label* deopt) {
   Label ok;
-  ASSERT(class_ids[0] != kSmi);
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
   __ testl(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
-  bool use_near_jump = class_ids.length() < 5;
+  const intptr_t num_checks = ic_data.NumberOfChecks();
+  const bool use_near_jump = num_checks < 5;
   __ LoadClassId(temp_reg, instance_reg);
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ cmpl(temp_reg, Immediate(class_ids[i]));
-    if (i == class_ids.length() - 1) {
+  for (intptr_t i = 0; i < num_checks; i++) {
+    __ cmpl(temp_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    if (i == (num_checks - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
       if (use_near_jump) {

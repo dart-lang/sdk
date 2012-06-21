@@ -50,24 +50,23 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolve(Element element) {
     return measure(() {
-      switch (element.kind) {
-        case ElementKind.GENERATIVE_CONSTRUCTOR:
-        case ElementKind.FUNCTION:
-        case ElementKind.GETTER:
-        case ElementKind.SETTER:
-          return resolveMethodElement(element);
-
-        case ElementKind.FIELD:
-          return resolveField(element);
-
-        case ElementKind.PARAMETER:
-        case ElementKind.FIELD_PARAMETER:
-          return resolveParameter(element);
-
-        default:
-          compiler.unimplemented(
-              "resolve($element)", node: element.parseNode(compiler));
+      ElementKind kind = element.kind;
+      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
+          kind === ElementKind.FUNCTION ||
+          kind === ElementKind.GETTER ||
+          kind === ElementKind.SETTER) {
+        return resolveMethodElement(element);
       }
+
+      if (kind === ElementKind.FIELD) return resolveField(element);
+
+      if (kind === ElementKind.PARAMETER ||
+          kind === ElementKind.FIELD_PARAMETER) {
+        return resolveParameter(element);
+      }
+
+      compiler.unimplemented("resolve($element)",
+                             node: element.parseNode(compiler));
     });
   }
 
@@ -367,7 +366,7 @@ class InitializerResolver {
     FunctionElement result;
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
-      if (lookupTarget.name == Types.OBJECT) {
+      if (lookupTarget === visitor.compiler.objectClass) {
         error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
       } else {
         lookupTarget = lookupTarget.supertype.element;
@@ -603,7 +602,7 @@ class TypeResolver {
     if (send !== null) {
       typeName = send.selector;
     }
-    if (typeName.source == Types.VOID) {
+    if (typeName.source.stringValue === 'void') {
       return compiler.types.voidType.element;
     } else if (send !== null) {
       Element e = context.lookup(send.receiver.asIdentifier().source);
@@ -1087,7 +1086,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
     useElement(node, target);
-    if (target === null) handleDynamicSend(node);
+    if (target === null) registerDynamicSend(node);
     if (node.isPropertyAccess) return target;
   }
 
@@ -1123,11 +1122,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     mapping.setSelector(node, selector);
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
-    handleDynamicSend(node);
+    registerDynamicSend(node);
     return useElement(node, setter);
   }
 
-  handleDynamicSend(Send node) {
+  registerDynamicSend(Send node) {
     Identifier id = node.selector.asIdentifier();
     if (id === null) return;
     SourceString name = node.selector.asIdentifier().source;
@@ -1593,12 +1592,13 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     } else if (supertype !== null) {
       error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
     }
-    if (classElement.name != Types.OBJECT && classElement.supertype === null) {
-      ClassElement objectElement = context.lookup(Types.OBJECT);
-      if (objectElement !== null && !objectElement.isResolved) {
+    final objectElement = compiler.objectClass;
+    if (classElement !== objectElement && classElement.supertype === null) {
+      if (objectElement === null) {
+        compiler.internalError("Internal error: cannot resolve Object",
+                               node: node);
+      } else if (!objectElement.isResolved) {
         compiler.resolver.toResolve.add(objectElement);
-      } else if (objectElement === null){
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
       classElement.supertype = new InterfaceType(objectElement);
     }

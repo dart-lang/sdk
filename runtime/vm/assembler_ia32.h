@@ -302,6 +302,9 @@ class Assembler : public ValueObject {
   void popl(Register reg);
   void popl(const Address& address);
 
+  void pushal();
+  void popal();
+
   void movl(Register dst, const Immediate& src);
   void movl(Register dst, Register src);
 
@@ -507,6 +510,8 @@ class Assembler : public ValueObject {
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
+  void PushRegister(Register r);
+  void PopRegister(Register r);
 
   void AddImmediate(Register reg, const Immediate& imm);
 
@@ -521,6 +526,13 @@ class Assembler : public ValueObject {
                        const FieldAddress& dest,  // Where we are storing into.
                        Register value);  // Value we are storing.
 
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                const Object& value);
+
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
 
@@ -533,6 +545,7 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
+  void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   void CallRuntime(const RuntimeEntry& entry);
 

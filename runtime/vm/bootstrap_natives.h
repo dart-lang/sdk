@@ -75,7 +75,6 @@ namespace dart {
   V(String_charAt, 2)                                                          \
   V(String_charCodeAt, 2)                                                      \
   V(String_concat, 2)                                                          \
-  V(String_plus, 2)                                                            \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(Strings_concatAll, 1)                                                      \
@@ -92,16 +91,10 @@ namespace dart {
   V(MathNatives_random, 0)                                                     \
   V(MathNatives_parseInt, 1)                                                   \
   V(MathNatives_parseDouble, 1)                                                \
-  V(DateNatives_brokenDownToSecondsSinceEpoch, 7)                              \
   V(DateNatives_currentTimeMillis, 0)                                          \
-  V(DateNatives_getYear, 2)                                                    \
-  V(DateNatives_getMonth, 2)                                                   \
-  V(DateNatives_getDay, 2)                                                     \
-  V(DateNatives_getHours, 2)                                                   \
-  V(DateNatives_getMinutes, 2)                                                 \
-  V(DateNatives_getSeconds, 2)                                                 \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
+  V(DateNatives_localTimeZoneAdjustmentInSeconds, 0)                           \
   V(AssertionError_throwNew, 2)                                                \
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \

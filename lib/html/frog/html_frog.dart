@@ -552,6 +552,8 @@ class _BlobImpl implements Blob native "*Blob" {
 
   final String type;
 
+  _BlobImpl slice([int start = null, int end = null, String contentType = null]) native;
+
   _BlobImpl webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }
 
@@ -623,7 +625,7 @@ class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*
 
   String name;
 
-  final String type;
+  String type;
 
   final String validationMessage;
 
@@ -4034,8 +4036,6 @@ class _ConsoleImpl
 
   final _MemoryInfoImpl memory;
 
-  final List<ScriptProfile> profiles;
-
   void assertCondition(bool condition, Object arg) native;
 
   void count() native;
@@ -4537,13 +4537,13 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*Da
 
   int getInt32(int byteOffset, [bool littleEndian = null]) native;
 
-  Object getInt8() native;
+  int getInt8(int byteOffset) native;
 
   int getUint16(int byteOffset, [bool littleEndian = null]) native;
 
   int getUint32(int byteOffset, [bool littleEndian = null]) native;
 
-  Object getUint8() native;
+  int getUint8(int byteOffset) native;
 
   void setFloat32(int byteOffset, num value, [bool littleEndian = null]) native;
 
@@ -4553,13 +4553,13 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*Da
 
   void setInt32(int byteOffset, int value, [bool littleEndian = null]) native;
 
-  void setInt8() native;
+  void setInt8(int byteOffset, int value) native;
 
   void setUint16(int byteOffset, int value, [bool littleEndian = null]) native;
 
   void setUint32(int byteOffset, int value, [bool littleEndian = null]) native;
 
-  void setUint8() native;
+  void setUint8(int byteOffset, int value) native;
 }
 
 class _DatabaseImpl implements Database native "*Database" {
@@ -4777,6 +4777,8 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   final bool webkitIsFullScreen;
 
+  final _ElementImpl webkitPointerLockElement;
+
   final String webkitVisibilityState;
 
   _RangeImpl caretRangeFromPoint(int x, int y) native;
@@ -4830,6 +4832,8 @@ class _DocumentImpl extends _NodeImpl implements Document
   void webkitCancelFullScreen() native;
 
   void webkitExitFullscreen() native;
+
+  void webkitExitPointerLock() native;
 
   // TODO(jacobr): implement all Element methods not on Document. 
 
@@ -6210,6 +6214,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void webkitRequestFullscreen() native;
 
+  void webkitRequestPointerLock() native;
+
 }
 
 final _START_TAG_REGEXP = const RegExp('<(\\w+)');
@@ -6257,7 +6263,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
+      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -6988,7 +6994,7 @@ class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
   void write(_BlobImpl data) native;
 }
 
-class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num> native "*Float32Array" {
+class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num>, JavaScriptIndexingBehavior native "*Float32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -7079,7 +7085,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   _Float32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num> native "*Float64Array" {
+class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num>, JavaScriptIndexingBehavior native "*Float64Array" {
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -7981,6 +7987,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   num valueAsNumber;
 
+  final _EntryArrayImpl webkitEntries;
+
   bool webkitGrammar;
 
   bool webkitSpeech;
@@ -8010,7 +8018,7 @@ class _InputElementEventsImpl extends _ElementEventsImpl implements InputElement
   EventListenerList get speechChange() => _get('webkitSpeechChange');
 }
 
-class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int> native "*Int16Array" {
+class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int>, JavaScriptIndexingBehavior native "*Int16Array" {
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -8101,7 +8109,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   _Int16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int> native "*Int32Array" {
+class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int>, JavaScriptIndexingBehavior native "*Int32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -8192,7 +8200,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   _Int32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int> native "*Int8Array" {
+class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int>, JavaScriptIndexingBehavior native "*Int8Array" {
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -13822,8 +13830,6 @@ class _ScriptProfileNodeImpl implements ScriptProfileNode native "*ScriptProfile
 
   final int callUID;
 
-  final List<ScriptProfileNode> children;
-
   final String functionName;
 
   final int lineNumber;
@@ -13837,6 +13843,8 @@ class _ScriptProfileNodeImpl implements ScriptProfileNode native "*ScriptProfile
   final String url;
 
   final bool visible;
+
+  List<ScriptProfileNode> children() native;
 }
 
 class _SelectElementImpl extends _ElementImpl implements SelectElement native "*HTMLSelectElement" {
@@ -13860,8 +13868,6 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
   bool required;
 
   int selectedIndex;
-
-  final _HTMLCollectionImpl selectedOptions;
 
   int size;
 
@@ -14046,7 +14052,7 @@ class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative 
   final String transcript;
 }
 
-class _SpeechRecognitionErrorImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
+class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
 
   static final int ABORTED = 2;
 
@@ -14072,8 +14078,6 @@ class _SpeechRecognitionErrorImpl implements SpeechRecognitionError native "*Spe
 }
 
 class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
-
-  final _SpeechRecognitionErrorImpl error;
 
   final _SpeechRecognitionResultImpl result;
 
@@ -14883,7 +14887,7 @@ class _UListElementImpl extends _ElementImpl implements UListElement native "*HT
   String type;
 }
 
-class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int> native "*Uint16Array" {
+class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int>, JavaScriptIndexingBehavior native "*Uint16Array" {
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -14974,7 +14978,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   _Uint16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int> native "*Uint32Array" {
+class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int>, JavaScriptIndexingBehavior native "*Uint32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -15065,7 +15069,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   _Uint32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int> native "*Uint8Array" {
+class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int>, JavaScriptIndexingBehavior native "*Uint8Array" {
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -15280,6 +15284,9 @@ class _WebGLDebugRendererInfoImpl implements WebGLDebugRendererInfo native "*Web
 class _WebGLDebugShadersImpl implements WebGLDebugShaders native "*WebGLDebugShaders" {
 
   String getTranslatedShaderSource(_WebGLShaderImpl shader) native;
+}
+
+class _WebGLDepthTextureImpl implements WebGLDepthTexture native "*WebGLDepthTexture" {
 }
 
 class _WebGLFramebufferImpl implements WebGLFramebuffer native "*WebGLFramebuffer" {
@@ -16893,8 +16900,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   static final int UNSENT = 0;
 
-  bool asBlob;
-
   final int readyState;
 
   final Object response;
@@ -17135,6 +17140,19 @@ class _DOMParserFactoryProvider {
 class _DOMURLFactoryProvider {
   factory DOMURL() native
       '''return new DOMURL();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DataViewFactoryProvider {
+  factory DataView(ArrayBuffer buffer,
+                   [int byteOffset = null, int byteLength = null])
+      native '''
+          if (byteOffset == null) return new DataView(buffer);
+          if (byteLength == null) return new DataView(buffer, byteOffset);
+          return new DataView(buffer, byteOffset, byteLength);
+      ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18540,6 +18558,9 @@ interface Blob {
   /** @domName Blob.type */
   final String type;
 
+  /** @domName Blob.slice */
+  Blob slice([int start, int end, String contentType]);
+
   /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
 }
@@ -18645,7 +18666,7 @@ interface ButtonElement extends Element default _Elements {
   String name;
 
   /** @domName HTMLButtonElement.type */
-  final String type;
+  String type;
 
   /** @domName HTMLButtonElement.validationMessage */
   final String validationMessage;
@@ -21501,9 +21522,6 @@ interface Console {
   /** @domName Console.memory */
   final MemoryInfo memory;
 
-  /** @domName Console.profiles */
-  final List<ScriptProfile> profiles;
-
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
 
@@ -22212,7 +22230,9 @@ interface DataTransferItemList {
 // WARNING: Do not edit - generated code.
 
 /// @domName DataView
-interface DataView extends ArrayBufferView {
+interface DataView extends ArrayBufferView default _DataViewFactoryProvider {
+
+  DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]);
 
   /** @domName DataView.getFloat32 */
   num getFloat32(int byteOffset, [bool littleEndian]);
@@ -22227,7 +22247,7 @@ interface DataView extends ArrayBufferView {
   int getInt32(int byteOffset, [bool littleEndian]);
 
   /** @domName DataView.getInt8 */
-  Object getInt8();
+  int getInt8(int byteOffset);
 
   /** @domName DataView.getUint16 */
   int getUint16(int byteOffset, [bool littleEndian]);
@@ -22236,7 +22256,7 @@ interface DataView extends ArrayBufferView {
   int getUint32(int byteOffset, [bool littleEndian]);
 
   /** @domName DataView.getUint8 */
-  Object getUint8();
+  int getUint8(int byteOffset);
 
   /** @domName DataView.setFloat32 */
   void setFloat32(int byteOffset, num value, [bool littleEndian]);
@@ -22251,7 +22271,7 @@ interface DataView extends ArrayBufferView {
   void setInt32(int byteOffset, int value, [bool littleEndian]);
 
   /** @domName DataView.setInt8 */
-  void setInt8();
+  void setInt8(int byteOffset, int value);
 
   /** @domName DataView.setUint16 */
   void setUint16(int byteOffset, int value, [bool littleEndian]);
@@ -22260,7 +22280,7 @@ interface DataView extends ArrayBufferView {
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
   /** @domName DataView.setUint8 */
-  void setUint8();
+  void setUint8(int byteOffset, int value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22641,6 +22661,9 @@ interface Document extends HtmlElement {
   /** @domName Document.webkitIsFullScreen */
   final bool webkitIsFullScreen;
 
+  /** @domName Document.webkitPointerLockElement */
+  final Element webkitPointerLockElement;
+
   /** @domName Document.webkitVisibilityState */
   final String webkitVisibilityState;
 
@@ -22721,6 +22744,9 @@ interface Document extends HtmlElement {
 
   /** @domName Document.webkitExitFullscreen */
   void webkitExitFullscreen();
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock();
 
 }
 
@@ -23195,6 +23221,9 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.webkitRequestFullscreen */
   void webkitRequestFullscreen();
+
+  /** @domName Element.webkitRequestPointerLock */
+  void webkitRequestPointerLock();
 
 }
 
@@ -25357,6 +25386,9 @@ interface InputElement extends Element default _Elements {
 
   /** @domName HTMLInputElement.valueAsNumber */
   num valueAsNumber;
+
+  /** @domName HTMLInputElement.webkitEntries */
+  final EntryArray webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -31784,9 +31816,6 @@ interface ScriptProfileNode {
   /** @domName ScriptProfileNode.callUID */
   final int callUID;
 
-  /** @domName ScriptProfileNode.children */
-  final List<ScriptProfileNode> children;
-
   /** @domName ScriptProfileNode.functionName */
   final String functionName;
 
@@ -31807,6 +31836,9 @@ interface ScriptProfileNode {
 
   /** @domName ScriptProfileNode.visible */
   final bool visible;
+
+  /** @domName ScriptProfileNode.children */
+  List<ScriptProfileNode> children();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31846,9 +31878,6 @@ interface SelectElement extends Element {
 
   /** @domName HTMLSelectElement.selectedIndex */
   int selectedIndex;
-
-  /** @domName HTMLSelectElement.selectedOptions */
-  final HTMLCollection selectedOptions;
 
   /** @domName HTMLSelectElement.size */
   int size;
@@ -32198,7 +32227,7 @@ interface SpeechRecognitionAlternative {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionError
-interface SpeechRecognitionError {
+interface SpeechRecognitionError extends Event {
 
   static final int ABORTED = 2;
 
@@ -32232,9 +32261,6 @@ interface SpeechRecognitionError {
 
 /// @domName SpeechRecognitionEvent
 interface SpeechRecognitionEvent extends Event {
-
-  /** @domName SpeechRecognitionEvent.error */
-  final SpeechRecognitionError error;
 
   /** @domName SpeechRecognitionEvent.result */
   final SpeechRecognitionResult result;
@@ -33620,6 +33646,15 @@ interface WebGLDebugShaders {
 
   /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName WebGLDepthTexture
+interface WebGLDepthTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35597,9 +35632,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   static final int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.asBlob */
-  bool asBlob;
-
   /** @domName XMLHttpRequest.readyState */
   final int readyState;
 
@@ -36811,7 +36843,8 @@ class _SVGElementFactoryProvider {
     parentTag.innerHTML = svg;
     if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+    throw new IllegalArgumentException(
+        'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
 }

@@ -18,10 +18,10 @@ main() {
     window.setTimeout(() { timeout0 = true; }, 0);
     final computedStyle = element.computedStyle;
     computedStyle.then(expectAsync1((style) {
-      Expect.equals(style.getPropertyValue('left'), 'auto');
-      Expect.isTrue(fnComplete);
-      Expect.isFalse(timeout0);
-      Expect.isFalse(animationFrame);
+      expect(style.getPropertyValue('left'), equals('auto'));
+      expect(fnComplete);
+      expect(timeout0, isFalse);
+      expect(animationFrame, isFalse);
     }));
     Expect.isFalse(computedStyle.isComplete);
     fnComplete = true;
@@ -31,15 +31,15 @@ main() {
     var rect;
     var computedStyle;
     window.requestLayoutFrame(expectAsync0(() {
-      Expect.isTrue(rect.isComplete);
-      Expect.isTrue(computedStyle.isComplete);
+      expect(rect.isComplete);
+      expect(computedStyle.isComplete);
     }));
 
     final element = document.body;
     rect = element.rect;
     computedStyle = element.computedStyle;
-    Expect.isFalse(rect.isComplete);
-    Expect.isFalse(computedStyle.isComplete);
+    expect(rect.isComplete, isFalse);
+    expect(computedStyle.isComplete, isFalse);
   });
 
   // TODO(jacobr): add more tests that the results return by measurement

@@ -619,12 +619,13 @@ class _File extends _FileBase implements File {
                                      "Cannot retrieve modification time "
                                      "for file '$_name'");
       }
-      return new Date.fromEpoch(response);
+      return new Date.fromMillisecondsSinceEpoch(response);
     });
   }
 
   Date lastModifiedSync() {
-    return new Date.fromEpoch(_FileUtils.checkedLastModified(_name));
+    int ms = _FileUtils.checkedLastModified(_name);
+    return new Date.fromMillisecondsSinceEpoch(ms);
   }
 
   RandomAccessFile openSync([FileMode mode = FileMode.READ]) {

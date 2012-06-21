@@ -246,9 +246,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 
 void Exceptions::Throw(const Instance& exception) {
   Isolate* isolate = Isolate::Current();
-  if (isolate->debugger()->IsActive()) {
-    isolate->debugger()->SignalExceptionThrown(exception);
-  }
+  isolate->debugger()->SignalExceptionThrown(exception);
   // Null object is a valid exception object.
   ThrowExceptionHelper(exception, Instance::Handle(isolate));
 }

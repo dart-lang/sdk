@@ -14,28 +14,28 @@ class MultipleTimerTest {
   static void testMultipleTimer() {
 
     void timeoutHandler1(Timer timer) {
-      int endTime = (new Date.now()).value;
+      int endTime = (new Date.now()).millisecondsSinceEpoch;
       Expect.equals(true, (endTime - _startTime1) >= TIMEOUT1);
       Expect.equals(true, _order[_message] == 0);
       _message++;
     }
 
     void timeoutHandler2(Timer timer) {
-      int endTime  = (new Date.now()).value;
+      int endTime  = (new Date.now()).millisecondsSinceEpoch;
       Expect.equals(true, (endTime - _startTime2) >= TIMEOUT2);
       Expect.equals(true, _order[_message] == 1);
       _message++;
     }
 
     void timeoutHandler3(Timer timer) {
-      int endTime = (new Date.now()).value;
+      int endTime = (new Date.now()).millisecondsSinceEpoch;
       Expect.equals(true, (endTime - _startTime3) >= TIMEOUT3);
       Expect.equals(true, _order[_message] == 2);
       _message++;
     }
 
     void timeoutHandler4(Timer timer) {
-      int endTime  = (new Date.now()).value;
+      int endTime  = (new Date.now()).millisecondsSinceEpoch;
       Expect.equals(true, (endTime - _startTime4) >= TIMEOUT4);
       Expect.equals(true, _order[_message] == 3);
       _message++;
@@ -48,13 +48,13 @@ class MultipleTimerTest {
     _order[3] = 1;
     _message = 0;
 
-    _startTime1 = (new Date.now()).value;
+    _startTime1 = (new Date.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT1, timeoutHandler1);
-    _startTime2 = (new Date.now()).value;
+    _startTime2 = (new Date.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT2, timeoutHandler2);
-    _startTime3 = (new Date.now()).value;
+    _startTime3 = (new Date.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT3, timeoutHandler3);
-    _startTime4 = (new Date.now()).value;
+    _startTime4 = (new Date.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT4, timeoutHandler4);
   }
 

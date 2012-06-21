@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,7 @@ public class DartIdentifier extends DartExpression {
 
   private final String name;
   private NodeElement element;
+  private boolean resolutionAlreadyReportedThatTheMethodCouldNotBeFound;
 
   public DartIdentifier(String name) {
     assert name != null;
@@ -41,6 +42,21 @@ public class DartIdentifier extends DartExpression {
   @Override
   public void setElement(Element element) {
     this.element = (NodeElement) element;
+  }
+
+  /**
+   * Specifies that this name was not found it enclosing {@link Element}.
+   */
+  public void markResolutionAlreadyReportedThatTheMethodCouldNotBeFound() {
+    this.resolutionAlreadyReportedThatTheMethodCouldNotBeFound = true;
+  }
+  
+  /**
+   * @return <code>true</code> if we know that this name was not found in its enclosing
+   *         {@link Element}, and error was already reported.
+   */
+  public boolean isResolutionAlreadyReportedThatTheMethodCouldNotBeFound() {
+    return resolutionAlreadyReportedThatTheMethodCouldNotBeFound;
   }
 
   @Override

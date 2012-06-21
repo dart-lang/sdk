@@ -223,7 +223,8 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
                                                   native_name,
                                                   native_function,
                                                   num_params,
-                                                  has_opt_params)));
+                                                  has_opt_params,
+                                                  false)));
 }
 
 
@@ -394,7 +395,8 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
                                                   native_name,
                                                   native_function,
                                                   num_params,
-                                                  has_opt_params)));
+                                                  has_opt_params,
+                                                  false)));
 }
 
 

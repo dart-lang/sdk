@@ -59,6 +59,9 @@ class Isolate : public BaseIsolate {
                                   bool visit_prologue_weak_persistent_handles);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
+  static intptr_t store_buffer_offset() {
+    return OFFSET_OF(Isolate, store_buffer_);
+  }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -198,8 +201,7 @@ class Isolate : public BaseIsolate {
 
   static uword GetSpecifiedStackSize();
 
-  static const uword kStackSizeBuffer = (128 * KB);
-  static const uword kDefaultStackSize = (1 * MB);
+  static const intptr_t kStackSizeBuffer = (16 * KB);
 
   static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_;

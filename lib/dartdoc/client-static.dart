@@ -6,7 +6,7 @@
 #library('client-static');
 
 #import('dart:html');
-#import('../../frog/lang.dart', prefix: 'frog');
+#import('frog/lang.dart', prefix: 'frog');
 #import('classify.dart');
 
 #source('client-shared.dart');

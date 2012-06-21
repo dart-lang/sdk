@@ -53,8 +53,8 @@ class SourceFile {
    * Create a pretty string representation from a character position
    * in the file.
    */
-  String getLocationMessage(String message, int start,
-      [int end, bool includeText = false]) {
+  String getLocationMessage(String message, int start, int end,
+                            bool includeText, String color(String x)) {
     var line = getLine(start);
     var column = getColumn(line, start);
 
@@ -71,26 +71,18 @@ class SourceFile {
       }
 
       int toColumn = Math.min(column + (end-start), textLine.length);
-      if (colors.enabled) {
-        buf.add(textLine.substring(0, column));
-        buf.add(colors.RED_COLOR);
-        buf.add(textLine.substring(column, toColumn));
-        buf.add(colors.NO_COLOR);
-        buf.add(textLine.substring(toColumn));
-      } else {
-        buf.add(textLine);
-      }
+      buf.add(textLine.substring(0, column));
+      buf.add(color(textLine.substring(column, toColumn)));
+      buf.add(textLine.substring(toColumn));
 
       int i = 0;
       for (; i < column; i++) {
         buf.add(' ');
       }
 
-      if (colors.enabled) buf.add(colors.RED_COLOR);
       for (; i < toColumn; i++) {
-        buf.add('^');
+        buf.add(color('^'));
       }
-      if (colors.enabled) buf.add(colors.NO_COLOR);
     }
 
     return buf.toString();

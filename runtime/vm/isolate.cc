@@ -254,7 +254,8 @@ void Isolate::BuildName(const char* name_prefix) {
 // TODO(5411455): Use flag to override default value and Validate the
 // stack size by querying OS.
 uword Isolate::GetSpecifiedStackSize() {
-  uword stack_size = Isolate::kDefaultStackSize - Isolate::kStackSizeBuffer;
+  ASSERT(Isolate::kStackSizeBuffer < Thread::GetMaxStackSize());
+  uword stack_size = Thread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
   return stack_size;
 }
 

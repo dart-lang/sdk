@@ -26,7 +26,6 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, allow_string_plus, true, "Allow + operator on strings.");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -143,9 +142,11 @@ void ParsedFunction::AllocateVariables() {
   const int fixed_parameter_count = function().num_fixed_parameters();
   const int optional_parameter_count = function().num_optional_parameters();
   const int parameter_count = fixed_parameter_count + optional_parameter_count;
+  const bool is_native_instance_closure =
+      function().is_native() && function().IsImplicitInstanceClosureFunction();
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  if (optional_parameter_count == 0) {
+  if (optional_parameter_count == 0 && !is_native_instance_closure) {
     // Parameter i will be at fp[1 + parameter_count - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - j].
     first_parameter_index_ = 1 + parameter_count;
@@ -157,6 +158,11 @@ void ParsedFunction::AllocateVariables() {
     first_parameter_index_ = kFirstLocalSlotIndex;
     first_stack_local_index_ = first_parameter_index_ - parameter_count;
     copied_parameter_count_ = parameter_count;
+    if (is_native_instance_closure) {
+      copied_parameter_count_ += 1;
+      first_parameter_index_ -= 1;
+      first_stack_local_index_ -= 1;
+    }
   }
 
   // Allocate parameters and local variables, either in the local frame or
@@ -173,8 +179,8 @@ void ParsedFunction::AllocateVariables() {
   // variables, the context needs to be saved on entry and restored on exit.
   // Add and allocate a local variable to this purpose.
   if ((context_owner != NULL) && !function().IsClosureFunction()) {
-    const String& context_var_name =
-        String::ZoneHandle(String::NewSymbol(":saved_entry_context_var"));
+    const String& context_var_name = String::ZoneHandle(
+        String::NewSymbol(LocalVariable::kSavedContextVarName));
     LocalVariable* context_var =
         new LocalVariable(function().token_index(),
                           context_var_name,
@@ -3880,7 +3886,9 @@ void Parser::OpenFunctionBlock(const Function& func) {
 SequenceNode* Parser::CloseBlock() {
   SequenceNode* statements = current_block_->statements;
   if (current_block_->scope != NULL) {
-    // Record the end token index of the scope.
+    // Record the begin and end token index of the scope.
+    ASSERT(statements != NULL);
+    current_block_->scope->set_begin_token_index(statements->token_index());
     current_block_->scope->set_end_token_index(token_index_);
   }
   current_block_ = current_block_->parent;
@@ -3954,18 +3962,23 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
 // Builds ReturnNode/NativeBodyNode for a native function.
 void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                       const Function& func) {
+  func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.owner());
   const int num_parameters = params->parameters->length();
+  const bool is_instance_closure = func.IsImplicitInstanceClosureFunction();
+  int num_params_for_resolution = num_parameters;
 
   // Parse the function name out.
   const intptr_t native_pos = token_index_;
   const String& native_name = ParseNativeDeclaration();
 
+  if (is_instance_closure) {
+    num_params_for_resolution += 1;  // account for 'this' when resolving.
+  }
   // Now resolve the native function to the corresponding native entrypoint.
-  NativeFunction native_function = NativeEntry::ResolveNative(cls,
-                                                              native_name,
-                                                              num_parameters);
+  NativeFunction native_function = NativeEntry::ResolveNative(
+      cls, native_name, num_params_for_resolution);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
@@ -3979,7 +3992,8 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                                       native_name,
                                                       native_function,
                                                       num_parameters,
-                                                      has_opt_params)));
+                                                      has_opt_params,
+                                                      is_instance_closure)));
 }
 
 
@@ -5938,29 +5952,8 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
             op_pos, op_kind, left_operand, right_operand);
         break;  // Equality and relational operators cannot be chained.
       } else {
-        StringConcatNode* str_concat = NULL;
-        if (op_kind == Token::kADD) {
-          if (left_operand->IsLiteralNode()) {
-            LiteralNode* lit = left_operand->AsLiteralNode();
-            if (lit->literal().IsString()) {
-              if (FLAG_allow_string_plus) {
-                str_concat = new StringConcatNode(lit->token_index());
-                str_concat->AddExpr(lit);
-              } else {
-                ErrorMsg(op_pos, "operator + on strings no longer allowed");
-              }
-            }
-          } else if (left_operand->IsStringConcatNode()) {
-            str_concat = left_operand->AsStringConcatNode();
-          }
-        }
-        if (str_concat != NULL) {
-          str_concat->AddExpr(right_operand);
-          left_operand = str_concat;
-        } else {
-          left_operand = OptimizeBinaryOpNode(
-              op_pos, op_kind, left_operand, right_operand);
-        }
+        left_operand = OptimizeBinaryOpNode(
+            op_pos, op_kind, left_operand, right_operand);
       }
     }
     current_preced--;

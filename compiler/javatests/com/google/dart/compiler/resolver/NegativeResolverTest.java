@@ -670,6 +670,29 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 11, 1));
   }
 
+  /**
+   * Here we have two local variables: one in "main" and one in the scope on "block". However
+   * variables are declared in lexical scopes, i.e. in "block", so using it before declaration is
+   * error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2382
+   */
+  public void test_useVariable_beforeDeclaration_inLexicalScope() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  var x;",
+            "  {",
+            "    x = 1;",
+            "    var x;",
+            "  }",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, 5, 5, 1),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 9, 1));
+  }
+
   public void test_nameShadow_field_variable() {
     checkSourceErrors(
         makeCode(

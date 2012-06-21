@@ -36,9 +36,8 @@
           'action_name': 'create_sdk_py',
           'inputs': [
             '<!@(["python", "tools/list_files.py", "\\.dart$", "lib"])',
-            'frog/scripts/bootstrap/frogc',
+            '<!@(["python", "tools/list_files.py", "import_.*\\.config$", "lib/config"])',
             'tools/create_sdk.py',
-            '<(PRODUCT_DIR)/frog/bin/frog',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js',
             '<(PRODUCT_DIR)/dart2js.bat',
@@ -53,7 +52,7 @@
           ],
           'message': 'Creating SDK.',
           'conditions' : [
-            ['OS=="linux"', {
+            ['(OS=="linux" or OS=="mac") ', {
               'inputs' : [
                 '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
               ],
@@ -62,7 +61,7 @@
         },
       ],
       'conditions' : [
-        ['OS=="linux"', {
+        ['(OS=="linux" or OS=="mac") ', {
           'dependencies': [
             'compiler',
           ],
@@ -100,11 +99,6 @@
       'type': 'none',
       'dependencies': [
         'utils/compiler/compiler.gyp:dart2js',
-
-        # TODO(ahe): Remove dependency on frog, it is just here to
-        # simplify frog/scripts/buildbot_annotated_steps.py
-        # temporarily.
-        'frog/dart-frog.gyp:frog',
       ],
     },
     {

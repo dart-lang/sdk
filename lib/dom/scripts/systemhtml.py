@@ -1064,6 +1064,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
       implements.append('List<%s>' % self._shared.DartType(element_type))
+      implements.append('JavaScriptIndexingBehavior')
 
     self._members_emitter = self._dart_code.Emit(
         self._template,

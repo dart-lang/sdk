@@ -150,8 +150,9 @@ class _Copier extends _MessageTraverser {
       return _visitNativeOrWorkerPort(port._port);
     } else {
       // TODO(floitsch): Use real exception (which one?).
-      throw "internal error: must call _waitForPendingPorts to ensure all"
-          + " ports are resolved at this point.";
+      throw
+          "internal error: must call _waitForPendingPorts to ensure all"
+          " ports are resolved at this point.";
     }
   }
 }
@@ -201,8 +202,9 @@ class _Serializer extends _MessageTraverser {
       return _visitNativeOrWorkerPort(port._port);
     } else {
       // TODO(floitsch): Use real exception (which one?).
-      throw "internal error: must call _waitForPendingPorts to ensure all"
-          + " ports are resolved at this point.";
+      throw
+          "internal error: must call _waitForPendingPorts to ensure all"
+          " ports are resolved at this point.";
     }
   }
 

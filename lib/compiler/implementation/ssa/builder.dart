@@ -159,16 +159,14 @@ class SsaBuilderTask extends CompilerTask {
       HInstruction.idCounter = 0;
       SsaBuilder builder = new SsaBuilder(this, work);
       HGraph graph;
-      switch (element.kind) {
-        case ElementKind.GENERATIVE_CONSTRUCTOR:
-          graph = compileConstructor(builder, work);
-          break;
-        case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
-        case ElementKind.FUNCTION:
-        case ElementKind.GETTER:
-        case ElementKind.SETTER:
-          graph = builder.buildMethod(work.element);
-          break;
+      ElementKind kind = element.kind;
+      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+        graph = compileConstructor(builder, work);
+      } else if (kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
+                 kind === ElementKind.FUNCTION ||
+                 kind === ElementKind.GETTER ||
+                 kind === ElementKind.SETTER) {
+        graph = builder.buildMethod(work.element);
       }
       assert(graph.isValid());
       bool inLoop = functionsCalledInLoop.contains(element);
@@ -315,11 +313,11 @@ class LocalsHandler {
     ClosureTranslator translator = new ClosureTranslator(builder);
     closureData = translator.translate(node);
 
-    FunctionSignature params = function.computeSignature(builder.compiler);
-    params.forEachParameter((Element element) {
+    FunctionSignature signature = function.computeSignature(builder.compiler);
+    signature.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
-      builder.potentiallyCheckType(parameter, element);
+      builder.parameters[element] = parameter;
       directLocals[element] = parameter;
     });
 
@@ -419,8 +417,8 @@ class LocalsHandler {
       return lookup;
     } else {
       assert(isUsedInTry(element));
-      HParameterValue parameter = getActivationParameter(element);
-      HInstruction variable = new HFieldGet.fromActivation(parameter);
+      HLocalValue local = getLocal(element);
+      HInstruction variable = new HLocalGet(element, local);
       builder.add(variable);
       return variable;
     }
@@ -443,18 +441,18 @@ class LocalsHandler {
     return res;
   }
 
-  HParameterValue getActivationParameter(Element element) {
+  HLocalValue getLocal(Element element) {
     // If the element is a parameter, we already have a
     // HParameterValue for it. We cannot create another one because
     // it could then have another name than the real parameter. And
-    // the other one would not not it is just a copy of the real
+    // the other one would not know it is just a copy of the real
     // parameter.
-    if (element.isParameter()) return directLocals[element];
+    if (element.isParameter()) return builder.parameters[element];
 
     return builder.activationVariables.putIfAbsent(element, () {
-      HParameterValue parameter = new HParameterValue(element);
-      builder.graph.entry.addAtExit(parameter);
-      return parameter;
+      HLocalValue local = new HLocalValue(element);
+      builder.graph.entry.addAtExit(local);
+      return local;
     });
   }
 
@@ -477,8 +475,8 @@ class LocalsHandler {
       builder.add(new HFieldSet(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
-      HParameterValue parameter = getActivationParameter(element);
-      builder.add(new HFieldSet.fromActivation(parameter, value));
+      HLocalValue local = getLocal(element);
+      builder.add(new HLocalSet(element, local, value));
     }
   }
 
@@ -793,6 +791,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HGraph graph;
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
+  Map<Element, HParameterValue> parameters;
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
@@ -801,7 +800,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * being updated in try/catch blocks, and should be
    * accessed indirectly through HFieldGet and HFieldSet.
    */
-  Map<Element, HParameterValue> activationVariables;
+  Map<Element, HLocalValue> activationVariables;
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
@@ -825,8 +824,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       methodInterceptionEnabled = true,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
-      activationVariables = new Map<Element, HParameterValue>(),
+      activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
+      parameters = new Map<Element, HParameterValue>(),
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
@@ -911,8 +911,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     int index = 0;
-    FunctionSignature parameters = constructor.computeSignature(compiler);
-    parameters.forEachParameter((Element parameter) {
+    FunctionSignature params = constructor.computeSignature(compiler);
+    params.forEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
       // Don't forget to update the field, if the parameter is of the
@@ -1010,8 +1010,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     openFunction(functionElement, function);
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
-    FunctionSignature parameters = functionElement.computeSignature(compiler);
-    parameters.forEachParameter((Element element) {
+    FunctionSignature params = functionElement.computeSignature(compiler);
+    params.forEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter (such as [:this.x:] then
         // initialize the field element with its value.
@@ -1076,6 +1076,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     close(new HGoto()).addSuccessor(block);
 
     open(block);
+
+    // Put the type checks in the first successor of the entry,
+    // because that is where the type guards will also be inserted.
+    // This way we ensure that a type guard will dominate the type
+    // check.
+    FunctionSignature params = functionElement.computeSignature(compiler);
+    params.forEachParameter((Element element) {
+      HInstruction newParameter = potentiallyCheckType(
+          localsHandler.directLocals[element], element);
+      localsHandler.directLocals[element] = newParameter;
+    });
   }
 
   HInstruction potentiallyCheckType(HInstruction original,
@@ -1096,7 +1107,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HInstruction instruction =
-        new HTypeConversion(convertedType, original, true);
+        new HTypeConversion.checkedModeCheck(convertedType, original);
     add(instruction);
     return instruction;
   }
@@ -2234,8 +2245,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           node: closure);
     }
     FunctionElement function = element;
-    FunctionSignature parameters = function.computeSignature(compiler);
-    if (parameters.optionalParameterCount !== 0) {
+    FunctionSignature params = function.computeSignature(compiler);
+    if (params.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',
           node: closure);
@@ -2243,8 +2254,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = compiler.namer.closureInvocationName(
-        new Selector(SelectorKind.INVOCATION,
-                     parameters.requiredParameterCount));
+        new Selector(SelectorKind.INVOCATION, params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),
                       inputs));
@@ -2345,7 +2355,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    compiler.resolver.resolveMethodElement(element);
+    if (compiler.enqueuer.resolution.getCachedElements(element) === null) {
+      compiler.internalError("Unresolved element: $element", node: node);
+    }
     FunctionElement functionElement = element;
     element = functionElement.defaultImplementation;
     HInstruction target = new HStatic(element);
@@ -3411,14 +3423,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
  */
 class StringBuilderVisitor extends AbstractVisitor {
   final SsaBuilder builder;
-  final Node node;
+  final Node diagnosticNode;
 
   /**
    * The string value generated so far.
    */
   HInstruction result = null;
 
-  StringBuilderVisitor(this.builder, this.node);
+  StringBuilderVisitor(this.builder, this.diagnosticNode);
 
   void visit(Node node) {
     node.accept(this);
@@ -3452,7 +3464,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
-    HInstruction instruction = new HStringConcat(left, right, node);
+    HInstruction instruction = new HStringConcat(left, right, diagnosticNode);
     builder.add(instruction);
     return instruction;
   }

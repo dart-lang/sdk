@@ -133,3 +133,7 @@ stringSplitUnchecked(receiver, pattern) {
     throw "StringImplementation.split(Pattern) UNIMPLEMENTED";
   }
 }
+
+stringJoinUnchecked(array, separator) {
+  return JS('String', @'#.join(#)', array, separator);
+}

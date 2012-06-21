@@ -17,6 +17,36 @@ class EnqueueTask extends CompilerTask {
   }
 }
 
+class RecompilationQueue {
+  final Queue<WorkItem> queue;
+  final Set<Element> queueElements;
+  int processed = 0;
+
+  RecompilationQueue()
+    : queue = new Queue<WorkItem>(),
+      queueElements = new Set<Element>();
+
+  void add(Element element, TreeElements elements) {
+    if (queueElements.contains(element)) return;
+    // TODO(sgjesse): Make this handle constructor bodies as well.
+    if (element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      queueElements.add(element);
+      queue.add(new WorkItem(element, elements));
+    }
+  }
+
+  int get length() => queue.length;
+
+  bool isEmpty() => queue.isEmpty();
+
+  WorkItem next() {
+    WorkItem item = queue.removeLast();
+    queueElements.remove(item.element);
+    processed++;
+    return item;
+  }
+}
+
 class Enqueuer {
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final Map<String, Link<Element>> instanceMembersByName;
@@ -24,6 +54,8 @@ class Enqueuer {
   final Universe universe;
   final Queue<WorkItem> queue;
   final Map<Element, TreeElements> resolvedElements;
+  final RecompilationQueue recompilationCandidates;
+
   bool queueIsClosed = false;
   EnqueueTask task;
 
@@ -32,9 +64,10 @@ class Enqueuer {
       seenClasses = new Set<ClassElement>(),
       universe = new Universe(),
       queue = new Queue<WorkItem>(),
-      resolvedElements = new Map<Element, TreeElements>();
+      resolvedElements = new Map<Element, TreeElements>(),
+      recompilationCandidates = new RecompilationQueue();
 
-  bool get isFirstQueue() => compiler.enqueuer.resolution === this;
+  bool get isResolutionQueue() => compiler.enqueuer.resolution === this;
 
   TreeElements getCachedElements(Element element) {
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
@@ -43,17 +76,37 @@ class Enqueuer {
 
   void addToWorkList(Element element, [TreeElements elements]) {
     if (element.isForeign()) return;
+    if (compiler.phase == Compiler.PHASE_RECOMPILING) return;
     if (queueIsClosed) {
-      if (isFirstQueue && getCachedElements(element) !== null) return;
+      if (isResolutionQueue && getCachedElements(element) !== null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
-    if (!isFirstQueue && element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (!isResolutionQueue &&
+        element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
     if (elements === null) {
       elements = getCachedElements(element);
     }
     queue.add(new WorkItem(element, elements));
+  }
+
+  bool canBeRecompiled(Element element) {
+    // Only member functions can be recompiled. An exception to this is members
+    // of closures. They are processed as part of the enclosing function and not
+    // present as a separate element (the call to the closure will be a member
+    // function).
+    var closure = const SourceString("Closure");
+    return element.isMember() && element.getEnclosingClass().name != closure;
+  }
+
+  void registerRecompilationCandidate(Element element,
+                                      [TreeElements elements]) {
+    if (!canBeRecompiled(element)) return;
+    if (queueIsClosed) {
+      compiler.internalErrorOnElement(element, "Work list is closed.");
+    }
+    recompilationCandidates.add(element, elements);
   }
 
   void registerInstantiatedClass(ClassElement cls) {
@@ -236,6 +289,12 @@ class Enqueuer {
     addToWorkList(element);
   }
 
+  void registerFieldInitializer(SourceString name, Type type, bool isInteger) {
+    task.measure(() {
+      universe.updateFieldIntegerInitializers(type, name, isInteger);
+    });
+  }
+
   void registerDynamicGetter(SourceString methodName, Selector selector) {
     registerInvokedGetter(methodName, selector);
   }
@@ -252,11 +311,12 @@ class Enqueuer {
     });
   }
 
-  void registerFieldSetter(SourceString setterName, Type type) {
+  void registerFieldSetter(SourceString setterName, Type type, bool isInteger) {
     task.measure(() {
       registerNewSelector(setterName,
                           new TypedSelector(type, Selector.SETTER),
                           universe.fieldSetters);
+      universe.updateFieldIntegerSetters(type, setterName, isInteger);
     });
   }
 

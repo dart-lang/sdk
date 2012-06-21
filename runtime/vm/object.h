@@ -337,6 +337,12 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static const ObjectKind kInstanceKind = kObject;
 
+  // Different kinds of type tests.
+  enum TypeTestKind {
+    kIsSubtypeOf = 0,
+    kIsMoreSpecificThan
+  };
+
  protected:
   // Used for extracting the C++ vtable during bringup.
   Object() : raw_(null_) {}
@@ -602,7 +608,25 @@ class Class : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const;
+                   Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
+
+  // Check the 'more specific' relationship.
+  bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
+                          const Class& other,
+                          const AbstractTypeArguments& other_type_arguments,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -739,9 +763,17 @@ class Class : public Object {
                                                      const Script& script,
                                                      intptr_t token_index);
 
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractTypeArguments& type_arguments,
+                const Class& other,
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
+
   HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class Object;
   friend class Instance;
+  friend class AbstractType;
   friend class Type;
 };
 
@@ -870,11 +902,26 @@ class AbstractType : public Object {
   }
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const;
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf, other, malformed_error);
+  }
+
+  // Check the 'more specific' relationship.
+  bool IsMoreSpecificThan(const AbstractType& other,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, malformed_error);
+  }
+
+ private:
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractType& other,
+                Error* malformed_error) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
+  friend class AbstractTypeArguments;
 };
 
 
@@ -1083,7 +1130,17 @@ class AbstractTypeArguments : public Object {
   // Check the subtype relationship, considering only a prefix of length 'len'.
   bool IsSubtypeOf(const AbstractTypeArguments& other,
                    intptr_t len,
-                   Error* malformed_error) const;
+                   Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf, other, len, malformed_error);
+  }
+
+  // Check the 'more specific' relationship, considering only a prefix of
+  // length 'len'.
+  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+                          intptr_t len,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, len, malformed_error);
+  }
 
   bool Equals(const AbstractTypeArguments& other) const;
 
@@ -1101,6 +1158,13 @@ class AbstractTypeArguments : public Object {
   // If raw_instantiated is true, consider each type parameter to be first
   // instantiated from a vector of dynamic types.
   bool IsDynamicTypes(bool raw_instantiated, intptr_t len) const;
+
+  // Check the subtype or 'more specific' relationship, considering only a
+  // prefix of length 'len'.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractTypeArguments& other,
+                intptr_t len,
+                Error* malformed_error) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments, Object);
@@ -1380,6 +1444,9 @@ class Function : public Object {
   }
   void set_is_optimizable(bool value) const;
 
+  bool is_native() const { return raw_ptr()->is_native_; }
+  void set_is_native(bool value) const;
+
   bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;
@@ -1401,7 +1468,26 @@ class Function : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const;
+                   Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
+
+  // Returns true if the type of this function is more specific than the type of
+  // the other function.
+  bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
+                          const Function& other,
+                          const AbstractTypeArguments& other_type_arguments,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan,
+                    type_arguments,
+                    other,
+                    other_type_arguments,
+                    malformed_error);
+  }
 
   // Returns true if this function represents a (possibly implicit) closure
   // function.
@@ -1475,15 +1561,22 @@ class Function : public Object {
   RawString* BuildSignature(bool instantiate,
                             const AbstractTypeArguments& instantiator) const;
 
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractTypeArguments& type_arguments,
+                const Function& other,
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
+
   // Checks the type of the formal parameter at the given position for
-  // assignability relationship between the type of this function and the type
-  // of the other function.
-  bool TestParameterType(
-      intptr_t parameter_position,
-      const AbstractTypeArguments& type_arguments,
-      const Function& other,
-      const AbstractTypeArguments& other_type_arguments,
-      Error* malformed_error) const;
+  // subtyping or 'more specific' relationship between the type of this function
+  // and the type of the other function.
+  bool TestParameterType(TypeTestKind test_kind,
+                         intptr_t parameter_position,
+                         const AbstractTypeArguments& type_arguments,
+                         const Function& other,
+                         const AbstractTypeArguments& other_type_arguments,
+                         Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -1938,18 +2031,12 @@ class LocalVarDescriptors : public Object {
   intptr_t Length() const;
 
   RawString* GetName(intptr_t var_index) const;
-  void GetScopeInfo(intptr_t var_index,
-                    intptr_t* scope_id,
-                    intptr_t* begin_token_pos,
-                    intptr_t* end_token_pos) const;
-  intptr_t GetSlotIndex(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,
-              intptr_t stack_slot,
-              intptr_t scope_id,
-              intptr_t begin_pos,
-              intptr_t end_pos) const;
+              RawLocalVarDescriptors::VarInfo* info) const;
+
+  void GetInfo(intptr_t var_index, RawLocalVarDescriptors::VarInfo* info) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
@@ -2495,12 +2582,22 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, function_);
   }
 
-  void AddCheck(const GrowableArray<const Class*>& classes,
+  // Adds one more class test to ICData. Length of 'classes' must be equal to
+  // the number of arguments tested. Use only for number_of_checks > 1.
+  void AddCheck(const GrowableArray<intptr_t>& class_ids,
                 const Function& target) const;
+  // Adds sorted so that Smi is the first class-id. Use only for
+  // number_of_checks == 1.
+  void AddReceiverCheck(intptr_t receiver_class_id,
+                        const Function& target) const;
   void GetCheckAt(intptr_t index,
-                  GrowableArray<const Class*>* classes,
+                  GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
-  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
+  void GetOneClassCheckAt(
+      int index, intptr_t* class_id, Function* target) const;
+
+  intptr_t GetReceiverClassIdAt(intptr_t index) const;
+  RawFunction* GetTargetAt(intptr_t index) const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

@@ -21,9 +21,14 @@ namespace dart {
 //   RBX : address of the runtime function to call.
 //   R10 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler) const {
-  __ movq(RBX, Immediate(GetEntryPoint()));
-  __ movq(R10, Immediate(argument_count()));
-  __ call(&StubCode::CallToRuntimeLabel());
+  if (!is_leaf()) {
+    __ movq(RBX, Immediate(GetEntryPoint()));
+    __ movq(R10, Immediate(argument_count()));
+    __ call(&StubCode::CallToRuntimeLabel());
+  } else {
+    ExternalLabel label(name(), GetEntryPoint());
+    __ call(&label);
+  }
 }
 
 }  // namespace dart

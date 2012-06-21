@@ -108,36 +108,47 @@ LibTest/core/int/operator_remainder_A01_t02: Fail
 [ $runtime == vm ]
 
 # The following tests use the deprecated Date interface.
-LibTest/core/Date/Date_A02_t01: Fail
-LibTest/core/Date/Date.now_A02_t01: Fail
-LibTest/core/Date/add_A04_t01: Fail
-LibTest/core/Date/value_A01_t02: Skip
-LibTest/core/Date/value_A02_t01: Skip
-LibTest/core/Date/isLocalTime_A01_t01: Fail
-LibTest/core/Date/toString_A02_t01: Skip
-LibTest/core/Date/Date.fromString_A01_t03: Fail
-LibTest/core/Date/changeTimeZone_A01_t01: Skip
-LibTest/core/Date/changeTimeZone_A02_t01: Fail
-LibTest/core/Date/changeTimeZone_A03_t01: Fail
-LibTest/core/Date/changeTimeZone_A04_t01: Skip
-LibTest/core/Date/changeTimeZone_A05_t01: Fail
-LibTest/core/Date/isUtc_A01_t01: Fail
-LibTest/core/Date/timeZone_A01_t01: Skip
-LibTest/core/Date/timeZone_A01_t02: Fail
-LibTest/core/Date/timeZone_A01_t03: Fail
-LibTest/core/Date/difference_A01_t01: Skip
-LibTest/core/Date/difference_A01_t02: Skip
-LibTest/core/Date/subtract_A04_t01: Fail
-LibTest/core/Date/Date.fromEpoch_A03_t01: Fail
-LibTest/core/Date/Date.fromEpoch_A01_t03: Fail
-LibTest/core/Date/Date.fromEpoch_A01_t02: Skip
-LibTest/core/Date/Date.fromEpoch_A01_t01: Skip
-LibTest/core/Date/Date.withTimeZone_A01_t01: Skip
-LibTest/core/Date/Date.withTimeZone_A01_t02: Skip
-LibTest/core/Date/Date.withTimeZone_A01_t03: Skip
-
-LibTest/core/TimeZone/TimeZone.local_A01_t01: Skip
-LibTest/core/TimeZone/TimeZone.utc_A01_t01: Skip
+# Issue co19 - 125
+LibTest/core/Date/Date_A02_t01: Fail, Pass
+LibTest/core/Date/Date.now_A02_t01: Fail, Pass
+LibTest/core/Date/add_A02_t01: Fail, Pass
+LibTest/core/Date/add_A03_t01: Fail, Pass
+LibTest/core/Date/add_A04_t01: Fail, Pass
+LibTest/core/Date/value_A01_t02: Fail, Pass
+LibTest/core/Date/value_A01_t03: Fail, Pass
+LibTest/core/Date/value_A02_t01: Fail, Pass
+LibTest/core/Date/isLocalTime_A01_t01: Fail, Pass
+LibTest/core/Date/toString_A02_t01: Fail, Pass
+LibTest/core/Date/Date.fromString_A01_t02: Fail, Pass
+LibTest/core/Date/Date.fromString_A01_t03: Fail, Pass
+LibTest/core/Date/changeTimeZone_A01_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A02_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A03_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A04_t01: Fail, Pass
+LibTest/core/Date/changeTimeZone_A05_t01: Fail, Pass
+LibTest/core/Date/isUtc_A01_t01: Fail, Pass
+LibTest/core/Date/timeZone_A01_t01: Fail, Pass
+LibTest/core/Date/timeZone_A01_t02: Fail, Pass
+LibTest/core/Date/timeZone_A01_t03: Fail, Pass
+LibTest/core/Date/difference_A01_t01: Fail, Pass
+LibTest/core/Date/difference_A01_t02: Fail, Pass
+LibTest/core/Date/milliseconds_A01_t01: Fail, Pass
+LibTest/core/Date/seconds_A01_t01: Fail, Pass
+LibTest/core/Date/minutes_A01_t01: Fail, Pass
+LibTest/core/Date/hours_A01_t01: Fail, Pass
+LibTest/core/Date/year_A01_t01: Fail, Pass
+LibTest/core/Date/subtract_A02_t01: Fail, Pass
+LibTest/core/Date/subtract_A03_t01: Fail, Pass
+LibTest/core/Date/subtract_A04_t01: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t02: Fail, Pass
+LibTest/core/Date/Date.fromEpoch_A01_t01: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t01: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t02: Fail, Pass
+LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, Pass
+LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, Pass
+LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 
 
 [ $runtime == vm ]
@@ -294,10 +305,10 @@ Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05:
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t02: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail
 Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail
 Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail
@@ -442,13 +453,6 @@ Language/03_Overview/1_Scoping_A02_t30: Fail
 Language/03_Overview/1_Scoping_A02_t31: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t05: Fail
-
-
-[ $runtime == vm && $arch == x64 && $checked ]
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Crash
-Language/10_Expressions/07_Maps_A10_t05: Fail
-Language/10_Expressions/06_Lists_A09_t01: Fail
-Language/10_Expressions/06_Lists_A09_t04: Fail
 
 
 [ $runtime == vm && $mode == debug && $unchecked ]

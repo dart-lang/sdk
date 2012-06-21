@@ -54,9 +54,8 @@ class PartialParser extends Parser {
           continue;
         }
       }
-      if (!mayParseFunctionExpressions && value === '{')
-        return token;
-      if ((value !== '<') && (token is BeginGroupToken)) {
+      if (!mayParseFunctionExpressions && value === '{') return token;
+      if (token is BeginGroupToken) {
         BeginGroupToken begin = token;
         token = (begin.endGroup !== null) ? begin.endGroup : token;
       }

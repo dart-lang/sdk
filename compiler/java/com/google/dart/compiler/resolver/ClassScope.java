@@ -6,6 +6,9 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.type.InterfaceType;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Lexical scope corresponding to a class body.
  */
@@ -24,32 +27,43 @@ class ClassScope extends Scope {
 
   @Override
   public Element findElement(LibraryElement inLibrary, String name) {
+    return findElement(inLibrary, name, new HashSet<ClassElement>());
+  }
+
+  protected Element findElement(LibraryElement inLibrary, String name, Set<ClassElement> examinedTypes) {
     Element element = super.findElement(inLibrary, name);
     if (element != null) {
       return element;
     }
+    examinedTypes.add(classElement);
     InterfaceType superclass = classElement.getSupertype();
     if (superclass != null) {
       Element enclosing = superclass.getElement().getEnclosingElement();
-      ClassScope scope = new ClassScope(superclass.getElement(),
-                                        new Scope("library", (LibraryElement) enclosing));
-      element = scope.findElement(inLibrary, name);
-      switch (ElementKind.of(element)) {
-        case TYPE_VARIABLE:
-          return null;
-        case NONE:
-          break;
-        default:
-          return element;
+      ClassElement superclassElement = superclass.getElement();
+      if (!examinedTypes.contains(superclassElement)) {
+        ClassScope scope = new ClassScope(superclassElement,
+                                          new Scope("library", (LibraryElement) enclosing));
+        element = scope.findElement(inLibrary, name, examinedTypes);
+        switch (ElementKind.of(element)) {
+          case TYPE_VARIABLE:
+            return null;
+          case NONE:
+            break;
+          default:
+            return element;
+        }
       }
     }
     for (InterfaceType supertype : classElement.getInterfaces()) {
       Element enclosing = supertype.getElement().getEnclosingElement();
-      ClassScope scope = new ClassScope(supertype.getElement(),
-                                        new Scope("library", (LibraryElement) enclosing));
-      element = scope.findElement(inLibrary, name);
-      if (element != null) {
-        return element;
+      ClassElement superclassElement = supertype.getElement();
+      if (!examinedTypes.contains(superclassElement)) {
+        ClassScope scope = new ClassScope(superclassElement,
+                                          new Scope("library", (LibraryElement) enclosing));
+        element = scope.findElement(inLibrary, name, examinedTypes);
+        if (element != null) {
+          return element;
+        }
       }
     }
     return null;

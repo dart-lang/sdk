@@ -24,6 +24,7 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
+DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
 DECLARE_FLAG(bool, enable_type_checks);
 
 
@@ -34,7 +35,8 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    graph_entry_(NULL) { }
+    graph_entry_(NULL),
+    current_ssa_temp_index_(0) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
@@ -187,8 +189,9 @@ Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
       AddInstruction(load);
       context_value = new UseVal(load);
     }
-    return new LoadVMFieldComp(
-        context_value, Context::variable_offset(local.index()), local.type());
+    return new LoadVMFieldComp(context_value,
+                               Context::variable_offset(local.index()),
+                               local.type());
   } else {
     return new LoadLocalComp(local, owner()->context_level());
   }
@@ -337,13 +340,9 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     return false;
   }
 
-  // If nothing is known about the static type of the value, the test cannot be
-  // eliminated.
+  // Consider the static type of the value.
   const AbstractType& static_type = AbstractType::Handle(value->StaticType());
   ASSERT(!static_type.IsMalformed());
-  if (static_type.IsDynamicType()) {
-    return false;
-  }
 
   // If the static type of the value is void, the only allowed value is null,
   // which must be verified by the type test.
@@ -352,7 +351,7 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     return false;
   }
 
-  // Eliminate the test if it can be performed successfully at compile time.
+  // If the static type of the value is NullType, the type test is eliminated.
   if (static_type.IsNullType()) {
     // There are only three instances that can be of Class Null:
     // Object::null(), Object::sentinel(), and Object::transition_sentinel().
@@ -363,9 +362,19 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
     // being type checked.
     return true;
   }
+
+  // The run time type of the value is guaranteed to be a subtype of the compile
+  // time static type of the value. However, establishing here that the static
+  // type is a subtype of the destination type does not guarantee that the run
+  // time type will also be a subtype of the destination type, because the
+  // subtype relation is not transitive.
+  // However, the 'more specific than' relation is transitive and is used here.
+  // In other words, if the static type of the value is more specific than the
+  // destination type, the run time type of the value, which is guaranteed to
+  // be a subtype of the static type, is also guaranteed to be a subtype of the
+  // destination type and the type check can therefore be eliminated.
   Error& malformed_error = Error::Handle();
-  if (!dst_type.IsMalformed() &&
-      static_type.IsSubtypeOf(dst_type, &malformed_error)) {
+  if (static_type.IsMoreSpecificThan(dst_type, &malformed_error)) {
     return true;
   }
 
@@ -427,6 +436,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   InstanceCallComp* call = new InstanceCallComp(node->token_index(),
                                                 owner()->try_index(),
                                                 name,
+                                                node->kind(),
                                                 arguments,
                                                 Array::ZoneHandle(),
                                                 2);
@@ -837,12 +847,13 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   Append(for_value);
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(1);
   arguments->Add(for_value.value());
+  Token::Kind token_kind =
+      (node->kind() == Token::kSUB) ? Token::kNEGATE : node->kind();
+
   const String& name =
-      String::ZoneHandle(String::NewSymbol((node->kind() == Token::kSUB)
-                                               ? Token::Str(Token::kNEGATE)
-                                               : node->Name()));
+      String::ZoneHandle(String::NewSymbol(Token::Str(token_kind)));
   InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
+      node->token_index(), owner()->try_index(), name, token_kind,
       arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
@@ -1071,6 +1082,9 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
+  CheckStackOverflowComp* comp =
+      new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+  for_body.AddInstruction(new DoInstr(comp));
   node->body()->Visit(&for_body);
 
   // Labels are set after body traversal.
@@ -1097,6 +1111,9 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
+  CheckStackOverflowComp* comp =
+      new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+  for_body.AddInstruction(new DoInstr(comp));
   node->body()->Visit(&for_body);
 
   TestGraphVisitor for_test(owner(),
@@ -1161,12 +1178,10 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   EffectGraphVisitor for_body(owner(), temp_index());
   TargetEntryInstr* body_entry = new TargetEntryInstr();
   for_body.AddInstruction(body_entry);
+  CheckStackOverflowComp* comp =
+      new CheckStackOverflowComp(node->token_index(), owner()->try_index());
+  for_body.AddInstruction(new DoInstr(comp));
   node->body()->Visit(&for_body);
-  if (for_body.is_open()) {
-    CheckStackOverflowComp* comp =
-        new CheckStackOverflowComp(node->token_index(), owner()->try_index());
-    for_body.AddInstruction(new DoInstr(comp));
-  }
 
   // Join loop body, increment and compute their end instruction.
   ASSERT(!for_body.is_empty());
@@ -1376,8 +1391,8 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   TranslateArgumentList(*arguments, values);
   InstanceCallComp* call = new InstanceCallComp(
       node->token_index(), owner()->try_index(),
-      node->function_name(), values,
-                           arguments->names(), 1);
+      node->function_name(), Token::kILLEGAL, values,
+      arguments->names(), 1);
   ReturnComputation(call);
 }
 
@@ -1748,7 +1763,7 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   const String& name =
       String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   InstanceCallComp* call = new InstanceCallComp(
-      node->token_index(), owner()->try_index(), name,
+      node->token_index(), owner()->try_index(), name, Token::kGET,
       arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
@@ -1887,7 +1902,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   node->instance()->Visit(&for_instance);
   Append(for_instance);
   LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-      node->field(), for_instance.value(), NULL, NULL);
+      node->field(), for_instance.value(), NULL);
   ReturnComputation(load);
 }
 
@@ -1910,7 +1925,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        dst_name);
   }
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
-      node->field(), for_instance.value(), store_value, NULL, NULL);
+      node->field(), for_instance.value(), store_value, NULL);
   ReturnComputation(store);
 }
 
@@ -2334,14 +2349,14 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   for (intptr_t i = 0; i < block_count; ++i) {
     postorder_block_entries_[i]->set_block_id(block_count - i - 1);
   }
-  if (for_optimized) {
+  if (for_optimized && FLAG_use_ssa) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
     InsertPhis(preorder_block_entries_,
                assigned_vars,
                variable_count,
                dominance_frontier);
-    // TODO(fschneider): Perform SSA renaming.
+    Rename(variable_count);
   }
   if (FLAG_print_flow_graph || (Dart::flow_graph_writer() != NULL)) {
     intptr_t length = postorder_block_entries_.length();
@@ -2359,6 +2374,10 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
       FlowGraphVisualizer printer(function, reverse_postorder);
       printer.PrintFunction();
     }
+  }
+
+  if (for_optimized && FLAG_use_ssa) {
+    Bailout("No SSA code generation support.");
   }
 }
 
@@ -2536,6 +2555,170 @@ void FlowGraphBuilder::InsertPhis(
             work[index] = var_index;
             worklist.Add(block);
           }
+        }
+      }
+    }
+  }
+}
+
+
+void FlowGraphBuilder::Rename(intptr_t var_count) {
+  // Initialize start environment:
+  // All locals are initialized with #null.
+  // TODO(fschneider): Support parameters. All parameters are initially located
+  // on the stack.
+  // TODO(fschneider): Store var_count in the FlowGraphBuilder instead of
+  // passing it around.
+  ZoneGrowableArray<Value*>* start_env =
+      new ZoneGrowableArray<Value*>(var_count);
+  if (parsed_function().function().num_fixed_parameters() > 0) {
+    Bailout("Fixed parameter support in SSA");
+  }
+  if (parsed_function().copied_parameter_count()) {
+    Bailout("Copied parameter support in SSA");
+  }
+  Value* null_value = new ConstantVal(Object::ZoneHandle());
+  // TODO(fschneider): Change this assert once parameters are supported.
+  ASSERT(var_count == parsed_function().stack_local_count());
+  for (intptr_t i = 0; i < var_count; i++) {
+    start_env->Add(null_value);
+  }
+  graph_entry_->set_start_env(start_env);
+
+  BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
+  ASSERT(normal_entry != NULL);  // Must have entry.
+  ZoneGrowableArray<Value*>* env = new ZoneGrowableArray<Value*>(var_count);
+  env->AddArray(*start_env);
+  RenameRecursive(normal_entry, env, var_count);
+}
+
+
+static intptr_t WhichPred(BlockEntryInstr* predecessor,
+                          JoinEntryInstr* join_block) {
+  for (intptr_t i = 0; i < join_block->PredecessorCount(); ++i) {
+    if (join_block->PredecessorAt(i) == predecessor) return i;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
+void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
+                                       ZoneGrowableArray<Value*>* env,
+                                       intptr_t var_count) {
+  // 1. Process phis first.
+  if (block_entry->IsJoinEntry()) {
+    JoinEntryInstr* join = block_entry->AsJoinEntry();
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi != NULL) {
+          (*env)[i] = new UseVal(phi);
+          phi->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
+        }
+      }
+    }
+  }
+
+  // 2. Process normal instructions.
+  Instruction* current = block_entry->StraightLineSuccessor();
+  Instruction* prev = block_entry;
+  while ((current != NULL) && !current->IsBlockEntry()) {
+    // 2a. Handle uses of LoadLocal / StoreLocal
+    // For each use of a LoadLocal or StoreLocal: Replace it with the value
+    // from the environment.
+    for (intptr_t i = 0; i < current->InputCount(); ++i) {
+      Value* v = current->InputAt(i);
+      if (v->IsUse() &&
+          v->AsUse()->definition()->IsBind() &&
+          v->AsUse()->definition()->AsBind()->computation()->IsLoadLocal()) {
+        Computation* comp = v->AsUse()->definition()->AsBind()->computation();
+        intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(var_count);
+        Value* new_value = (*env)[index];
+        // Make a copy if it is a UseVal.
+        if (new_value->IsUse()) {
+          new_value = new UseVal(new_value->AsUse()->definition());
+        }
+        current->SetInputAt(i, new_value);
+      }
+      if (v->IsUse() &&
+          v->AsUse()->definition()->IsBind() &&
+          v->AsUse()->definition()->AsBind()->computation()->IsStoreLocal()) {
+        // For each use of a StoreLocal: Replace it with the value from the
+        // environment.
+        Computation* comp = v->AsUse()->definition()->AsBind()->computation();
+        intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
+        Value* new_value = (*env)[index];
+        // Make a copy if it is a UseVal.
+        if (new_value->IsUse()) {
+          new_value = new UseVal(new_value->AsUse()->definition());
+        }
+        current->SetInputAt(i, new_value);
+      }
+    }
+
+    // 2b. Handle LoadLocal and StoreLocal.
+    // For each LoadLocal: Remove it from the graph.
+    // For each StoreLocal: Remove it from the graph and update the environment.
+    ASSERT(!current->IsDo() ||
+           !current->AsDo()->computation()->IsLoadLocal());  // Not possible.
+    LoadLocalComp* load = NULL;
+    if (current->IsBind() &&
+        current->AsBind()->computation()->IsLoadLocal()) {
+      load = current->AsBind()->computation()->AsLoadLocal();
+    }
+    StoreLocalComp* store = NULL;
+    if (current->IsDo() &&
+        current->AsDo()->computation()->IsStoreLocal()) {
+      store = current->AsDo()->computation()->AsStoreLocal();
+    } else if (current->IsBind() &&
+               current->AsBind()->computation()->IsStoreLocal()) {
+      store = current->AsBind()->computation()->AsStoreLocal();
+    }
+
+    if (load != NULL) {
+      // Remove instruction.
+      prev->SetSuccessor(current->StraightLineSuccessor());
+    } else if (store != NULL) {
+      // Remove instruction and update renaming environment.
+      prev->SetSuccessor(current->StraightLineSuccessor());
+      (*env)[store->local().BitIndexIn(var_count)] = store->value();
+    } else {
+      // Assign new SSA temporary.
+      if (current->IsBind()) {
+        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
+      }
+      // Update previous only if no instruction was removed from the graph.
+      prev = current;
+    }
+    current = current->StraightLineSuccessor();
+  }
+
+  // 3. Process dominated blocks.
+  for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
+    BlockEntryInstr* block = block_entry->dominated_blocks()[i];
+    ZoneGrowableArray<Value*>* new_env =
+        new ZoneGrowableArray<Value*>(var_count);
+    new_env->AddArray(*env);
+    RenameRecursive(block, new_env, var_count);
+  }
+
+  // 4. Process successor block. We have edge-split form, so that only blocks
+  // with one successor can have a join block as successor.
+  if ((block_entry->last_instruction()->SuccessorCount() == 1) &&
+      block_entry->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* successor =
+        block_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = WhichPred(block_entry, successor);
+    if (successor->phis() != NULL) {
+      for (intptr_t i = 0; i < successor->phis()->length(); ++i) {
+        PhiInstr* phi = (*successor->phis())[i];
+        if (phi != NULL) {
+          // Rename input operand and make a copy if it is a UseVal.
+          Value* new_val = (*env)[i]->IsUse()
+              ? new UseVal((*env)[i]->AsUse()->definition())
+              : (*env)[i];
+          phi->SetInputAt(pred_index, new_val);
         }
       }
     }

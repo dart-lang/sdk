@@ -831,6 +831,8 @@ class DromaeoTest(RuntimePerformanceTest):
       """
       current_dir = os.getcwd()
       os.chdir(DART_INSTALL_LOCATION)
+      self.test.test_runner.run_cmd(['python', os.path.join(
+          'tools', 'get_drt.py'), '--chromedriver'])
       path = os.environ['PATH'].split(os.pathsep)
       orig_chromedriver_path = os.path.join('tools', 'testing',
                                             'orig-chromedriver')

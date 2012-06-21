@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,6 +39,9 @@ interface HVisitor<R> {
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLiteralList(HLiteralList node);
+  R visitLocalGet(HLocalGet node);
+  R visitLocalSet(HLocalSet node);
+  R visitLocalValue(HLocalValue node);
   R visitLoopBranch(HLoopBranch node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
@@ -115,6 +118,7 @@ class HGraph {
   HBasicBlock exit;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
+  bool highTypeLikelyhood = false;
   final List<HBasicBlock> blocks;
 
   // We canonicalize all constants used within a graph so we do not
@@ -249,6 +253,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
+  visitFieldAccess(HFieldAccess node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
@@ -265,8 +270,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
-  visitFieldGet(HFieldGet node) => visitInstruction(node);
-  visitFieldSet(HFieldSet node) => visitInstruction(node);
+  visitFieldGet(HFieldGet node) => visitFieldAccess(node);
+  visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   visitForeign(HForeign node) => visitInstruction(node);
   visitForeignNew(HForeignNew node) => visitForeign(node);
   visitGoto(HGoto node) => visitControlFlow(node);
@@ -293,13 +298,16 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
+  visitLocalGet(HLocalGet node) => visitFieldGet(node);
+  visitLocalSet(HLocalSet node) => visitFieldSet(node);
+  visitLocalValue(HLocalValue node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitModulo(HModulo node) => visitBinaryArithmetic(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
-  visitParameterValue(HParameterValue node) => visitInstruction(node);
+  visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
@@ -740,6 +748,9 @@ class HInstruction implements Hashable {
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
+  bool dependsOnSomething() => getFlag(FLAG_DEPENDS_ON_SOMETHING);
+  void setDependsOnSomething() { setFlag(FLAG_DEPENDS_ON_SOMETHING); }
+
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
   // Does this node potentially affect control flow.
@@ -757,6 +768,7 @@ class HInstruction implements Hashable {
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
   bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
+  bool isPrimitive() => propagatedType.isPrimitive();
   bool canBePrimitive() => propagatedType.canBePrimitive();
 
   /**
@@ -930,6 +942,7 @@ class HInstruction implements Hashable {
   bool isConstantBoolean() => false;
   bool isConstantNull() => false;
   bool isConstantNumber() => false;
+  bool isConstantInteger() => false;
   bool isConstantString() => false;
   bool isConstantList() => false;
   bool isConstantMap() => false;
@@ -979,20 +992,21 @@ abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput() => inputs[0];
   bool isStatement() => true;
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
 }
 
 class HTypeGuard extends HCheck {
   final int state;
   final HType guardedType;
   bool isOn = false;
+  int checkedInputIndex = 0;
+
   HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
-
-  HInstruction get guarded() => inputs.last();
+  HInstruction get guarded() => inputs[checkedInputIndex];
   HInstruction get checkedInput() => guarded;
 
   HType computeTypeFromInputTypes() {
@@ -1006,7 +1020,9 @@ class HTypeGuard extends HCheck {
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
-  bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
+  bool dataEquals(HTypeGuard other) {
+    return guarded == other.guarded && guardedType == other.guardedType;
+  }
 }
 
 class HBoundsCheck extends HCheck {
@@ -1026,11 +1042,6 @@ class HBoundsCheck extends HCheck {
   HInstruction get index() => inputs[0];
   bool isControlFlow() => true;
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
-
   HType get guaranteedType() => HType.INTEGER;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
@@ -1046,11 +1057,6 @@ class HIntegerCheck extends HCheck {
 
   HInstruction get value() => inputs[0];
   bool isControlFlow() => true;
-
-  void prepareGvn() {
-    assert(!hasSideEffects());
-    setUseGvn();
-  }
 
   HType get guaranteedType() => HType.INTEGER;
 
@@ -1071,6 +1077,9 @@ class HConditionalBranch extends HControlFlow {
 class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
+  void prepareGvn() {
+    // Control flow does not have side-effects.
+  }
   bool isControlFlow() => true;
   bool isStatement() => true;
 }
@@ -1222,7 +1231,9 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   void prepareGvn() {
     if (isLengthGetterOnStringOrArray()) {
+      setUseGvn();
       clearAllSideEffects();
+      setDependsOnSomething();
     } else {
       setAllSideEffects();
     }
@@ -1251,17 +1262,13 @@ class HFieldGet extends HFieldAccess {
       : super(element, <HInstruction>[receiver]);
   HFieldGet.fromActivation(receiver) : this(null, receiver);
 
-  HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
+  HInstruction get receiver() => inputs[0];
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn() {
-    if (isFinalOrConst) {
-      assert(!hasSideEffects());
-      setUseGvn();
-    } else {
-      clearAllSideEffects();
-    }
+    setUseGvn();
+    if (!isFinalOrConst) setDependsOnSomething();
   }
 
   int typeCode() => 27;
@@ -1275,16 +1282,46 @@ class HFieldSet extends HFieldAccess {
   HFieldSet.fromActivation(receiver, value)
       : this(null, receiver, value);
 
-  HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
-  HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
+  HInstruction get receiver() => inputs[0];
+  HInstruction get value() => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
   void prepareGvn() {
-    // TODO(ngeoffray): implement more fine grain side effects.
+    // TODO(ngeoffray): implement more fine grained side effects.
     setAllSideEffects();
   }
 
   bool isStatement() => true;
+}
+
+class HLocalGet extends HFieldGet {
+  HLocalGet(Element element, HLocalValue local) : super(element, local);
+
+  accept(HVisitor visitor) => visitor.visitLocalGet(this);
+
+  HLocalValue get local() => inputs[0];
+
+  void prepareGvn() {
+    setUseGvn();
+    // TODO(floitsch): if the variable is not captured then it only depends
+    // on assignments to the same variable. Otherwise we need to see if the
+    // variable is mutated inside closures.
+    setDependsOnSomething();
+  }
+}
+
+class HLocalSet extends HFieldSet {
+  HLocalSet(Element element, HLocalValue local, HInstruction value)
+      : super(element, local, value);
+
+  accept(HVisitor visitor) => visitor.visitLocalSet(this);
+
+  HLocalValue get local() => inputs[0];
+
+  void prepareGvn() {
+    // TODO(floitsch): implement more fine grained side effects.
+    setAllSideEffects();
+  }
 }
 
 class HForeign extends HInstruction {
@@ -1392,49 +1429,7 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  bool get builtin() {
-    return (left.isNumber() && right.isNumber())
-            || (left.isString() && right.isString())
-            || (left.isString() && right is HConstant);
-  }
-
-  HType computeTypeFromInputTypes() {
-    if (left.isInteger() && right.isInteger()) return left.propagatedType;
-    if (left.isNumber()) {
-      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
-      return HType.NUMBER;
-    }
-    if (left.isString()) return HType.STRING;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
-    // If the desired output type is an integer we want two integers as input.
-    if (propagatedType.isInteger()) {
-      return HType.INTEGER;
-    }
-    // TODO(floitsch): remove string specialization once string+ is removed
-    // from dart2js.
-    if (propagatedType.isString() || left.isString() || right.isString()) {
-      return HType.STRING;
-    }
-    // If the desired output is a number or any of the inputs is a number
-    // ask for a number. Note that we might return the input's (say 'left')
-    // type depending on its (the 'left's) type. But that shouldn't matter.
-    if (propagatedType.isNumber() || left.isNumber() || right.isNumber()) {
-      return HType.NUMBER;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType get likelyType() {
-    if (left.isString() || right.isString()) return HType.STRING;
-    if (left.isTypeUnknown() || left.isNumber()) return HType.NUMBER;
-    return HType.UNKNOWN;
-  }
-
   AddOperation get operation() => const AddOperation();
-
   int typeCode() => 5;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
@@ -1444,8 +1439,6 @@ class HDivide extends HBinaryArithmetic {
   HDivide(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
-
-  bool get builtin() => left.isNumber() && right.isNumber();
 
   HType computeTypeFromInputTypes() {
     if (left.isNumber()) return HType.DOUBLE;
@@ -1539,7 +1532,9 @@ class HBinaryBitOp extends HBinaryArithmetic {
   bool get builtin() => left.isInteger() && right.isInteger();
 
   HType computeTypeFromInputTypes() {
-    if (left.isInteger()) return HType.INTEGER;
+    // All bitwise operations on primitive types either produce an
+    // integer or throw an error.
+    if (left.isPrimitive()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
@@ -1567,6 +1562,16 @@ class HShiftLeft extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
+  // Shift left cannot be mapped to the native operator unless the
+  // shift count is guaranteed to be an integer in the [0,31] range.
+  bool get builtin() {
+    if (!left.isInteger() || !right.isConstantInteger()) return false;
+    HConstant rightConstant = right;
+    IntConstant intConstant = rightConstant.constant;
+    int count = intConstant.value;
+    return count >= 0 && count <= 31;
+  }
+
   ShiftLeftOperation get operation() => const ShiftLeftOperation();
   int typeCode() => 11;
   bool typeEquals(other) => other is HShiftLeft;
@@ -1577,6 +1582,9 @@ class HShiftRight extends HBinaryBitOp {
   HShiftRight(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
+
+  // Shift right cannot be mapped to the native operator easily.
+  bool get builtin() => false;
 
   ShiftRightOperation get operation() => const ShiftRightOperation();
   int typeCode() => 12;
@@ -1674,8 +1682,9 @@ class HBitNot extends HInvokeUnary {
   bool get builtin() => operand.isInteger();
 
   HType computeTypeFromInputTypes() {
-    HType operandType = operand.propagatedType;
-    if (operandType.isInteger()) return HType.INTEGER;
+    // All bitwise operations on primitive types either produce an
+    // integer or throw an error.
+    if (operand.isPrimitive()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
@@ -1796,6 +1805,7 @@ class HConstant extends HInstruction {
   bool isConstantBoolean() => constant.isBool();
   bool isConstantNull() => constant.isNull();
   bool isConstantNumber() => constant.isNum();
+  bool isConstantInteger() => constant.isInt();
   bool isConstantString() => constant.isString();
   bool isConstantList() => constant.isList();
   bool isConstantMap() => constant.isMap();
@@ -1824,17 +1834,29 @@ class HNot extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HParameterValue extends HInstruction {
-  HParameterValue(element) : super(<HInstruction>[]) {
+/**
+  * An [HLocalValue] represents a local. Unlike [HParameterValue]s its
+  * first use must be in an HLocalSet. That is, [HParameterValue]s have a
+  * value from the start, whereas [HLocalValue]s need to be initialized first.
+  */
+class HLocalValue extends HInstruction {
+  HLocalValue(element) : super(<HInstruction>[]) {
     sourceElement = element;
   }
 
   void prepareGvn() {
     assert(!hasSideEffects());
   }
+  toString() => 'local ${sourceElement.name}';
+  accept(HVisitor visitor) => visitor.visitLocalValue(this);
+  bool isCodeMotionInvariant() => true;
+}
+
+class HParameterValue extends HLocalValue {
+  HParameterValue(element) : super(element);
+
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
-  bool isCodeMotionInvariant() => true;
 }
 
 class HThis extends HParameterValue {
@@ -2235,20 +2257,40 @@ class HIs extends HInstruction {
 
 class HTypeConversion extends HCheck {
   HType type;
-  final bool checked;
+  final int kind;
 
-  HTypeConversion(HType this.type,
-                  HInstruction input,
-                  [bool this.checked = false])
-    : super(<HInstruction>[input]) {
-      sourceElement = input.sourceElement;
+  static final int NO_CHECK = 0;
+  static final int CHECKED_MODE_CHECK = 1;
+  static final int ARGUMENT_TYPE_CHECK = 2;
+
+  HTypeConversion(HType type, HInstruction input)
+      : this.internal(type, input, NO_CHECK);
+  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
+      : this.internal(type, input, CHECKED_MODE_CHECK);
+  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
+      : this.internal(type, input, ARGUMENT_TYPE_CHECK);
+
+  HTypeConversion.internal(this.type, HInstruction input, this.kind)
+      : super(<HInstruction>[input]) {
+    sourceElement = input.sourceElement;
   }
+
+  bool isChecked() => kind != NO_CHECK;
+  bool isCheckedModeCheck() => kind == CHECKED_MODE_CHECK;
+  bool isArgumentTypeCheck() => kind == ARGUMENT_TYPE_CHECK;
 
   HType get guaranteedType() => type;
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool hasSideEffects() => checked;
+  bool isStatement() => kind == ARGUMENT_TYPE_CHECK;
+  bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
+
+  int typeCode() => 28;
+  bool typeEquals(HInstruction other) => other is HTypeConversion;
+  bool dataEquals(HTypeConversion other) {
+    return type == other.type && kind == other.kind;
+  }
 }
 
 class HStringConcat extends HInstruction {
@@ -2489,6 +2531,10 @@ class HLoopBlockInformation implements HStatementInformation {
       return body.start;
     }
     return condition.start;
+  }
+
+  HBasicBlock get loopHeader() {
+    return kind == DO_WHILE_LOOP ? body.start : condition.start;
   }
 
   HBasicBlock get end() {

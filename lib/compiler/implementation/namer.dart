@@ -94,33 +94,32 @@ class Namer {
   String setterName(LibraryElement lib, SourceString name) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    String safeName = safeName(privateName(lib, name));
-    return 'set\$$safeName';
+    String fieldName = safeName(privateName(lib, name));
+    return 'set\$$fieldName';
   }
 
   String getterName(LibraryElement lib, SourceString name) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    String safeName = safeName(privateName(lib, name));
-    return 'get\$$safeName';
+    String fieldName = safeName(privateName(lib, name));
+    return 'get\$$fieldName';
   }
 
   String getFreshGlobalName(String proposedName) {
-    int usedCount = usedGlobals[proposedName];
-    if (usedCount === null) {
-      // No element with this name has been used before.
-      usedGlobals[proposedName] = 1;
-      return proposedName;
-    } else {
+    String name = proposedName;
+    int count = usedGlobals[name];
+    if (count !== null) {
       // Not the first time we see this name. Append a number to make it unique.
-      String name;
       do {
-        usedCount++;
-        name = '$proposedName$usedCount';
+        name = '$proposedName${count++}';
       } while (usedGlobals[name] !== null);
-      usedGlobals[proposedName] = usedCount;
-      return name;
+      // Record the count in case we see this name later. We
+      // frequently see names multiple times, as all our closures use
+      // the same name for their class.
+      usedGlobals[proposedName] = count;
     }
+    usedGlobals[name] = 0;
+    return name;
   }
 
   static final String LIBRARY_PREFIX = "lib";
@@ -196,28 +195,26 @@ class Namer {
       if (cached !== null) return cached;
 
       String guess = _computeGuess(element);
-      switch (element.kind) {
-        case ElementKind.VARIABLE:
-        case ElementKind.PARAMETER:
-          // The name is not guaranteed to be unique.
-          return guess;
-
-        case ElementKind.GENERATIVE_CONSTRUCTOR:
-        case ElementKind.FUNCTION:
-        case ElementKind.CLASS:
-        case ElementKind.FIELD:
-        case ElementKind.GETTER:
-        case ElementKind.SETTER:
-        case ElementKind.TYPEDEF:
-        case ElementKind.LIBRARY:
-          String result = getFreshGlobalName(guess);
-          globals[element] = result;
-          return result;
-
-        default:
-          compiler.internalError('getName for unknown kind: ${element.kind}',
-                                 node: element.parseNode(compiler));
+      ElementKind kind = element.kind;
+      if (kind === ElementKind.VARIABLE ||
+          kind === ElementKind.PARAMETER) {
+        // The name is not guaranteed to be unique.
+        return guess;
       }
+      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
+          kind === ElementKind.FUNCTION ||
+          kind === ElementKind.CLASS ||
+          kind === ElementKind.FIELD ||
+          kind === ElementKind.GETTER ||
+          kind === ElementKind.SETTER ||
+          kind === ElementKind.TYPEDEF ||
+          kind === ElementKind.LIBRARY) {
+        String result = getFreshGlobalName(guess);
+        globals[element] = result;
+        return result;
+      }
+      compiler.internalError('getName for unknown kind: ${element.kind}',
+                              node: element.parseNode(compiler));
     }
   }
 

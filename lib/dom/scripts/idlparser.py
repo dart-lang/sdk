@@ -283,12 +283,15 @@ class IDLParser(object):
     def InterfaceType():
       return ScopedName
 
+    def ArrayModifiers():
+      return re.compile(r'(\[\])+')
+
     def _Type():
-      return OR(AnyArrayType, AnyType, ObjectType, _NullableType)
+      return [OR(AnyType, ObjectType, _NullableType), MAYBE(ArrayModifiers)]
 
     def _NullableType():
       return [OR(_IntegerType, BooleanType, OctetType, FloatType,
-             DoubleType, SequenceType, DOMStringArrayType, ScopedName),
+             DoubleType, SequenceType, ScopedName),
           MAYBE(Nullable)]
 
     def Nullable():
@@ -299,10 +302,6 @@ class IDLParser(object):
 
     def AnyType():
       return 'any'
-
-    def AnyArrayType():
-      # TODO(sra): Do more general handling of array types.
-      return 'any[]'
 
     def ObjectType():
       return re.compile(r'(object|Object)\b')   # both spellings.
@@ -349,9 +348,6 @@ class IDLParser(object):
 
     def ScopedName():
       return re.compile(r'[\w\_\:\.\<\>]+')
-
-    def DOMStringArrayType():
-      return 'DOMString[]'
 
     # Extended Attributes:
     def ExtAttrs():

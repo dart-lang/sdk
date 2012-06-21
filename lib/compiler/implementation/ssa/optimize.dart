@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,16 +27,17 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial constant folding first to optimize
           // some patterns useful for type conversion.
-          new SsaConstantFolder(backend),
+          new SsaConstantFolder(backend, work),
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler),
           new SsaCheckInserter(backend),
-          new SsaConstantFolder(backend),
+          new SsaConstantFolder(backend, work),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaDeadCodeEliminator()];
+          new SsaDeadCodeEliminator(),
+          new SsaProcessRecompileCandidates(backend, work)];
       runPhases(graph, phases);
     });
   }
@@ -90,10 +91,11 @@ class SsaOptimizerTask extends CompilerTask {
 class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaConstantFolder";
   final JavaScriptBackend backend;
+  final WorkItem work;
   HGraph graph;
   Compiler get compiler() => backend.compiler;
 
-  SsaConstantFolder(this.backend);
+  SsaConstantFolder(this.backend, this.work);
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -580,6 +582,27 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (modifiers != null) {
       isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
     }
+    if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
+      // If no setter is ever used for this field it is only initialized in the
+      // initializer list.
+      isFinalOrConst = true;
+    }
+    if (!isFinalOrConst &&
+        !compiler.codegenWorld.hasInvokedSetter(field, compiler) &&
+        !compiler.codegenWorld.hasFieldSetter(field, compiler)) {
+      switch (compiler.phase) {
+        case Compiler.PHASE_COMPILING:
+          compiler.enqueuer.codegen.registerRecompilationCandidate(
+              work.element);
+          break;
+        case Compiler.PHASE_RECOMPILING:
+          // If field is not final or const but no setters are used then the
+          // field might be considered final anyway as it will be either
+          // un-initialized or initialized in the constructor initializer list.
+          isFinalOrConst = true;
+          break;
+      }
+    }
     return new HFieldGet(field, node.inputs[0], isFinalOrConst: isFinalOrConst);
   }
 
@@ -689,12 +712,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
   static bool isDeadCode(HInstruction instruction) {
-    // TODO(ngeoffray): the way we handle side effects is not right
-    // (e.g. branching instructions have side effects).
     return !instruction.hasSideEffects()
            && instruction.usedBy.isEmpty()
            && instruction is !HCheck
-           && instruction is !HTypeGuard;
+           && instruction is !HTypeGuard
+           && !instruction.isControlFlow();
   }
 
   void visitGraph(HGraph graph) {
@@ -882,13 +904,16 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 
   void visitBasicBlock(HBasicBlock block, ValueSet values) {
     HInstruction instruction = block.first;
+    if (block.isLoopHeader()) {
+      int flags = loopChangesFlags[block.id];
+      values.kill(flags);
+    }
     while (instruction !== null) {
       HInstruction next = instruction.next;
       int flags = instruction.getChangesFlags();
-      if (flags != 0) {
-        assert(!instruction.useGvn());
-        values.kill(flags);
-      } else if (instruction.useGvn()) {
+      assert(flags == 0 || !instruction.useGvn());
+      values.kill(flags);
+      if (instruction.useGvn()) {
         HInstruction other = values.lookup(instruction);
         if (other !== null) {
           assert(other.gvnEquals(instruction) && instruction.gvnEquals(other));
@@ -1144,6 +1169,70 @@ class SsaTypeConversionInserter extends HBaseVisitor
       }
       // TODO(ngeoffray): Also change uses for the then block on a HType
       // that knows it is not of a specific Type.
+    }
+  }
+}
+
+class SsaProcessRecompileCandidates
+      extends HBaseVisitor implements OptimizationPhase {
+  final String name = "SsaProcessRecompileCandidates";
+  final JavaScriptBackend backend;
+  final WorkItem work;
+  HGraph graph;
+  Compiler get compiler() => backend.compiler;
+
+  SsaProcessRecompileCandidates(this.backend, this.work);
+
+  void visitGraph(HGraph visitee) {
+    graph = visitee;
+    visitDominatorTree(visitee);
+  }
+
+  HInstruction visitEquals(HEquals node) {
+    // Try to optimize the case where a field which is known to always be an
+    // integer is compared with a constant integer literal.
+    if (node.left is HFieldGet &&
+        node.right is HConstant &&
+        node.right.isInteger()) {
+      HFieldGet left = node.left;
+      HConstant right = node.right;
+      if (left.element != null) {
+        Type type = left.receiver.propagatedType.computeType(compiler);
+        switch (compiler.phase) {
+          case Compiler.PHASE_COMPILING:
+            if (compiler.codegenWorld.couldHaveFieldOnlyIntegerSetters(
+                    type, left.element.name) &&
+                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
+                    type, left.element.name)) {
+              compiler.enqueuer.codegen.registerRecompilationCandidate(
+                  work.element);
+            }
+            break;
+          case Compiler.PHASE_RECOMPILING:
+            if (compiler.codegenWorld.hasFieldOnlyIntegerSetters(
+                    type, left.element.name) &&
+                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
+                    type, left.element.name)) {
+              if (compiler.codegenWorld.hasInvokedSetter(left.element,
+                                                         compiler)) {
+                // If there are invoked setters we don't know for sure that the
+                // field will hold an integer, but the fact that the class
+                // itself always sets an integer in the fiels is still a strong
+                // signal to indiate the expected type of the field.
+                left.propagatedType = HType.INTEGER;
+                graph.highTypeLikelyhood = true;
+              } else {
+                // If there are no invoked setters we know the type of this
+                // field for sure.
+                left.guaranteedType = HType.INTEGER;
+              }
+            }
+            break;
+          default:
+            assert(false);
+            break;
+        }
+      }
     }
   }
 }

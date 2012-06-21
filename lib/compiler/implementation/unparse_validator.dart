@@ -11,7 +11,8 @@ class ValidatorListener implements DiagnosticListener {
     assert(token !== null);
     SourceSpan.withOffsets(token, token, (beginOffset, endOffset) {
         String errorMessage =
-            sourceFile.getLocationMessage(reason, beginOffset, endOffset, true);
+            sourceFile.getLocationMessage(reason, beginOffset, endOffset, true,
+                                          (s) => s /* no color */);
         print(errorMessage);
     });
     throw new CompilerCancelledException(reason);

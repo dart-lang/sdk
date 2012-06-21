@@ -74,8 +74,9 @@ public enum ParserErrorCode implements ErrorCode {
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
   INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
+  LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
   LOCAL_CANNOT_BE_STATIC("Local function cannot be static"),
-  MISSING_FUNCTION_NAME("a function name is required for a declaration"),
+  MISSING_FUNCTION_NAME(ErrorSeverity.WARNING, "a function name is required for a declaration"),
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
@@ -95,6 +96,7 @@ public enum ParserErrorCode implements ErrorCode {
   SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND(
       "'super' is not valid alone or as a boolean operand"),
   TOP_LEVEL_CANNOT_BE_STATIC("Top-level field or method cannot be static"),
+  UNREACHABLE_CODE_IN_CASE(ErrorSeverity.WARNING, "Unreachable code in case statement"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
   UNEXPECTED_TYPE_ARGUMENT("unexpected type argument"),
