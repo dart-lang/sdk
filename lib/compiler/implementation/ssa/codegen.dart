@@ -1664,7 +1664,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(compiler.namer.closureInvocationName(node.selector));
     visitArguments(node.inputs);
     // TODO(floitsch): we should have a separate list for closure invocations.
-    world.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
+    world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
                                     node.selector);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }

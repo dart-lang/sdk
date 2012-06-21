@@ -150,7 +150,8 @@ class Enqueuer {
         Set<Selector> invokedSelectors = universe.invokedNames[name];
         if (invokedSelectors != null) {
           for (Selector selector in invokedSelectors) {
-            registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME, selector);
+            registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
+                                      selector);
           }
         }
       }

@@ -639,7 +639,7 @@ function(collectedClasses) {
       // create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
+          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.getName(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
@@ -652,7 +652,7 @@ function(collectedClasses) {
       });
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
-      String fieldName = Namer.STATIC_CLOSURE_NAME_NAME;
+      String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
       buffer.add('$fieldAccess.$fieldName = "$staticName";\n');
     }
   }
@@ -706,7 +706,7 @@ function(collectedClasses) {
       // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
+          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, member);
 
       String invocationName =
           namer.instanceMethodName(member.getLibrary(),
@@ -759,7 +759,7 @@ function(collectedClasses) {
         String invocationName =
             namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                                selector);
-        SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
+        SourceString callName = namer.CLOSURE_INVOCATION_NAME;
         String closureCallName =
             namer.instanceMethodInvocationName(member.getLibrary(), callName,
                                                selector);
@@ -870,7 +870,7 @@ function(collectedClasses) {
     compiler.codegenWorld.invokedNames.forEach((SourceString methodName,
                                             Set<Selector> selectors) {
       if (objectClass.lookupLocalMember(methodName) === null
-          && methodName != Namer.OPERATOR_EQUALS) {
+          && methodName != Elements.OPERATOR_EQUALS) {
         for (Selector selector in selectors) {
           if (methodName.isPrivate()) {
             for (LibraryElement lib in libraries) {

@@ -432,7 +432,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     if (left.propagatedType.isExact()) {
       HBoundedType type = left.propagatedType;
-      Element element = type.lookupMember(Namer.OPERATOR_EQUALS);
+      Element element = type.lookupMember(Elements.OPERATOR_EQUALS);
       if (element !== null) {
         // If the left-hand side is guaranteed to be a non-primitive
         // type and and it defines operator==, we emit a call to that

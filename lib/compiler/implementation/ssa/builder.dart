@@ -2172,7 +2172,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     addGenericSendArgumentsToList(node.arguments, inputs);
     String name = compiler.namer.instanceMethodName(
-        currentLibrary, Namer.OPERATOR_EQUALS, 1);
+        currentLibrary, Elements.OPERATOR_EQUALS, 1);
     push(new HForeign(new DartString.literal('!!#.$name'),
                       const LiteralDartString('bool'),
                       inputs));

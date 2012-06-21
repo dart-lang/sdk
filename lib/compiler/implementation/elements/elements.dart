@@ -953,11 +953,14 @@ class Elements {
     return new SourceString('$r\$$s');
   }
 
+  static final SourceString OPERATOR_EQUALS =
+      const SourceString(@'operator$eq');
+
   static SourceString constructOperatorName(SourceString receiver,
                                             SourceString selector,
                                             [bool isPrefix = false]) {
     String str = selector.stringValue;
-    if (str === '==' || str === '!=') return Namer.OPERATOR_EQUALS;
+    if (str === '==' || str === '!=') return OPERATOR_EQUALS;
 
     if (str === '~') str = 'not';
     else if (str === 'negate' || (str === '-' && isPrefix)) str = 'negate';

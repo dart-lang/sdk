@@ -330,7 +330,7 @@ class ClosureTranslator extends AbstractVisitor {
     ClassElement globalizedElement =
         new ClosureClassElement(compiler, element.getCompilationUnit());
     FunctionElement callElement =
-        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
+        new FunctionElement.from(compiler.namer.CLOSURE_INVOCATION_NAME,
                                  element,
                                  globalizedElement);
     globalizedElement.backendMembers =
