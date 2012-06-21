@@ -61,7 +61,10 @@ class Configuration {
     if (passed == 0 && failed == 0 && errors == 0) {
       print('No tests found.');
       // This is considered a failure too: if this happens you probably have a
-      // bug in your unit tests.
+      // bug in your unit tests, unless you are filtering.
+      if (getFilter() != null) {
+        success = true;
+      }
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       print('All $passed tests passed.');
       success = true;

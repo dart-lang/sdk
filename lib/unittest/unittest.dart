@@ -214,6 +214,12 @@ final _ERROR = 'error';
 TestCase _soloTest;
 
 /**
+ * If set, then only tests whose descriptions match this regexp pattern
+ * will be run.
+ */
+String _filter = null;
+
+/**
  * (Deprecated) Evaluates the [function] and validates that it throws an
  * exception. If [callback] is provided, then it will be invoked with the
  * thrown exception. The callback may do any validation it wants. In addition,
@@ -241,6 +247,22 @@ void expectThrow(function, [bool callback(exception)]) {
   if (threw != true) _fail('An expected exception was not thrown.');
 }
 
+/**
+ * Sets the regexp pattern filter which constrains which tests to run
+ * based on their descriptions.
+ */
+void setFilter(String filter) {
+  if (filter == '') filter = null;
+  _filter = filter;
+}
+
+/**
+ * Gets the regexp pattern filter which constrains which tests to run
+ * based on their descriptions.
+ */
+String getFilter() {
+  return _filter;
+}
 /**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
@@ -635,11 +657,42 @@ _defer(void callback()) {
   port.toSendPort().send(null, null);
 }
 
+/** Check arguments for a --filter spec. */
+_getFilterFromArgs() {
+  var options = new Options().arguments;
+  if (options != null) {
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].startsWith('--filter=')) {
+        var filter = options[i].substring(9);
+        if (filter.length > 0) {
+          // Strip quotes if present.
+          var last = filter.length - 1;
+          if ((filter[0] == "'" && filter[last] == "'") ||
+              (filter[0] == '"' && filter[last] == '"')) {
+            filter = filter.substring(1, last);
+          }
+          if (filter.length > 0) {
+            setFilter(filter);
+          }
+        }
+        break;
+      }
+    }
+  }
+}
+
 /** Runs all queued tests, one at a time. */
 _runTests() {
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
     _tests = _tests.filter((t) => t == _soloTest);
+  }
+  if (_filter == null) {
+    _getFilterFromArgs();
+  }
+  if (_filter != null) {
+    RegExp re = new RegExp(_filter);
+    _tests = _tests.filter((t) => re.hasMatch(t.description));
   }
 
   _config.onStart();
