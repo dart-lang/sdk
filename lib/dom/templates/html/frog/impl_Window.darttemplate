@@ -11,6 +11,17 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // Override top to return secure wrapper.
   Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 
+  Window _open2(url, name) native "return this.open(url, name);";
+
+  Window _open3(url, name, options) native "return this.open(url, name, options);";
+
+  Window open(String url, String name, [String options]) {
+    if (options == null) {
+      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
+    }
+  }
 
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into

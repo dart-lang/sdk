@@ -275,6 +275,7 @@ _html_library_custom = set([
     'Window.get:top',
     'Window.get:location',
     'Window.set:location',
+    'Window.open',
     'IDBDatabase.transaction',
     ])
 

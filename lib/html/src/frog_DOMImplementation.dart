@@ -10,18 +10,29 @@ class _DOMWindowCrossFrameImpl implements Window {
   // Fields.
   // TODO(vsm): Implement history and location getters.
 
-  bool get closed() => _window.closed;
-  int get length() => _window.length;
-  Window get opener() => _createSafe(_window.opener);
-  Window get parent() => _createSafe(_window.parent);
-  Window get top() => _createSafe(_window.top);
+  // TODO(vsm): Add frames to navigate subframes.  See 2312.
+
+  bool get closed() => _closed(_window);
+  static bool _closed(win) native "return win.closed;";
+
+  Window get opener() => _createSafe(_opener(_window));
+  static Window _opener(win) native "return win.opener;";
+
+  Window get parent() => _createSafe(_parent(_window));
+  static Window _parent(win) native "return win.parent;";
+
+  Window get top() => _createSafe(_top(_window));
+  static Window _top(win) native "return win.top;";
 
   // Methods.
-  void focus() => _window.focus();
+  void focus() => _focus(_window);
+  static void _focus(win) native "win.focus()";
 
-  void blur() => _window.blur();
+  void blur() => _blur(_window);
+  static void _blur(win) native "win.blur()";
 
-  void close() => _window.close();
+  void close() => _close(_window);
+  static void _close(win) native "win.close()";
 
   void postMessage(Dynamic message,
                    String targetOrigin,

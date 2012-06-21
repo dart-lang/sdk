@@ -16343,6 +16343,17 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   // Override top to return secure wrapper.
   Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 
+  Window _open2(url, name) native "return this.open(url, name);";
+
+  Window _open3(url, name, options) native "return this.open(url, name, options);";
+
+  Window open(String url, String name, [String options]) {
+    if (options == null) {
+      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
+    }
+  }
 
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
@@ -16576,8 +16587,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   void moveBy(num x, num y) native;
 
   void moveTo(num x, num y) native;
-
-  _WindowImpl open(String url, String name, [String options = null]) native;
 
   _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
@@ -36874,18 +36883,30 @@ class _DOMWindowCrossFrameImpl implements Window {
   // Fields.
   // TODO(vsm): Implement history and location getters.
 
-  bool get closed() => _window.closed;
-  int get length() => _window.length;
-  Window get opener() => _createSafe(_window.opener);
-  Window get parent() => _createSafe(_window.parent);
-  Window get top() => _createSafe(_window.top);
+  bool get closed() => _closed(_window);
+  static bool _closed(win) native "return win.closed;";
+
+  bool get length() => _length(_window);
+  static bool _length(win) native "return win.length;";
+
+  Window get opener() => _createSafe(_opener(_window));
+  static Window _opener(win) native "return win.opener;";
+
+  Window get parent() => _createSafe(_parent(_window));
+  static Window _parent(win) native "return win.parent;";
+
+  Window get top() => _createSafe(_top(_window));
+  static Window _top(win) native "return win.top;";
 
   // Methods.
-  void focus() => _window.focus();
+  void focus() => _focus(_window);
+  static void _focus(win) native "win.focus()";
 
-  void blur() => _window.blur();
+  void blur() => _blur(_window);
+  static void _blur(win) native "win.blur()";
 
-  void close() => _window.close();
+  void close() => _close(_window);
+  static void _close(win) native "win.close()";
 
   void postMessage(Dynamic message,
                    String targetOrigin,
