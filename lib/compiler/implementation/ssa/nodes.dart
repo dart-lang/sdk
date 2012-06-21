@@ -1524,8 +1524,6 @@ class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
-  bool get builtin() => left.isInteger() && right.isInteger();
-
   HType computeTypeFromInputTypes() {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
