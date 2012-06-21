@@ -299,19 +299,21 @@ class HandleScope : public StackResource {
 class NoHandleScope : public StackResource {
  public:
   explicit NoHandleScope(BaseIsolate* isolate);
+  NoHandleScope();
   ~NoHandleScope();
 
  private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(NoHandleScope);
+  DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
 };
 #else  // defined(DEBUG)
 class NoHandleScope : public ValueObject {
  public:
   explicit NoHandleScope(BaseIsolate* isolate) { }
+  NoHandleScope() { }
   ~NoHandleScope() { }
 
  private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(NoHandleScope);
+  DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
 };
 #endif  // defined(DEBUG)
 
