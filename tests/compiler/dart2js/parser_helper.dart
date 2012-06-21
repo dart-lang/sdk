@@ -29,7 +29,7 @@ Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
   Script script = new Script(new Uri(scheme: "source"), new MockFile(text));
-  Library library = new LibraryElement(script);
+  LibraryElement library = new LibraryElement(script);
   library.canUseNative = true;
   NodeListener listener = new NodeListener(lc, library);
   Parser parser = new Parser(listener);
