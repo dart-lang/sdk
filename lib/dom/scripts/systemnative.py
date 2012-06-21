@@ -942,8 +942,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
                                 argument_name=None):
     """idl_node is IDLArgument or IDLAttribute."""
     type_info = GetIDLTypeInfo(idl_node.type.id)
-    if not IsPrimitiveType(idl_node.type.id):
-      self._cpp_impl_includes.add('"Dart%s.h"' % type_info.idl_type())
+    self._cpp_impl_includes |= set(type_info.to_native_includes())
     argument_name = argument_name or idl_node.id
     handle = 'Dart_GetNativeArgument(args, %i)' % index
     return type_info.emit_to_native(emitter, idl_node, argument_name, handle, self._interface.id)

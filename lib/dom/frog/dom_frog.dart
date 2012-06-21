@@ -4390,7 +4390,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBRequestJs count([key_OR_range = null]) native;
 
-  _IDBIndexJs createIndex(String name, String keyPath, [Map options = null]) native;
+  _IDBIndexJs createIndex(String name, keyPath, [Map options = null]) native;
 
   _IDBRequestJs delete(key_OR_keyRange) native;
 
@@ -11160,7 +11160,7 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   _WebGLActiveInfoJs getActiveUniform(_WebGLProgramJs program, int index) native;
 
-  List getAttachedShaders(_WebGLProgramJs program) native;
+  List<Object> getAttachedShaders(_WebGLProgramJs program) native;
 
   int getAttribLocation(_WebGLProgramJs program, String name) native;
 
@@ -11189,6 +11189,8 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
   _WebGLShaderPrecisionFormatJs getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
   String getShaderSource(_WebGLShaderJs shader) native;
+
+  List<String> getSupportedExtensions() native;
 
   Object getTexParameter(int target, int pname) native;
 
@@ -17264,7 +17266,7 @@ interface IDBObjectStore {
 
   IDBRequest count([key_OR_range]);
 
-  IDBIndex createIndex(String name, String keyPath, [Map options]);
+  IDBIndex createIndex(String name, keyPath, [Map options]);
 
   IDBRequest delete(key_OR_keyRange);
 
@@ -23308,7 +23310,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
-  List getAttachedShaders(WebGLProgram program);
+  List<Object> getAttachedShaders(WebGLProgram program);
 
   int getAttribLocation(WebGLProgram program, String name);
 
@@ -23337,6 +23339,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
 
   String getShaderSource(WebGLShader shader);
+
+  List<String> getSupportedExtensions();
 
   Object getTexParameter(int target, int pname);
 

@@ -7689,7 +7689,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBRequestImpl count([key_OR_range = null]) native;
 
-  _IDBIndexImpl createIndex(String name, String keyPath, [Map options = null]) native;
+  _IDBIndexImpl createIndex(String name, keyPath, [Map options = null]) native;
 
   _IDBRequestImpl delete(key_OR_keyRange) native;
 
@@ -16013,7 +16013,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   _WebGLActiveInfoImpl getActiveUniform(_WebGLProgramImpl program, int index) native;
 
-  List getAttachedShaders(_WebGLProgramImpl program) native;
+  List<Object> getAttachedShaders(_WebGLProgramImpl program) native;
 
   int getAttribLocation(_WebGLProgramImpl program, String name) native;
 
@@ -16042,6 +16042,8 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   _WebGLShaderPrecisionFormatImpl getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
   String getShaderSource(_WebGLShaderImpl shader) native;
+
+  List<String> getSupportedExtensions() native;
 
   Object getTexParameter(int target, int pname) native;
 
@@ -24927,7 +24929,7 @@ interface IDBObjectStore {
   IDBRequest count([key_OR_range]);
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, String keyPath, [Map options]);
+  IDBIndex createIndex(String name, keyPath, [Map options]);
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange);
@@ -34472,7 +34474,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
   /** @domName WebGLRenderingContext.getAttachedShaders */
-  List getAttachedShaders(WebGLProgram program);
+  List<Object> getAttachedShaders(WebGLProgram program);
 
   /** @domName WebGLRenderingContext.getAttribLocation */
   int getAttribLocation(WebGLProgram program, String name);
@@ -34515,6 +34517,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   /** @domName WebGLRenderingContext.getShaderSource */
   String getShaderSource(WebGLShader shader);
+
+  /** @domName WebGLRenderingContext.getSupportedExtensions */
+  List<String> getSupportedExtensions();
 
   /** @domName WebGLRenderingContext.getTexParameter */
   Object getTexParameter(int target, int pname);

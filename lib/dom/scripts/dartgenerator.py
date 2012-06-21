@@ -38,6 +38,9 @@ class DartGenerator(object):
     if IsPrimitiveType(type_name):
       return True
 
+    if type_name.endswith('[]'):
+      return self._IsCompoundType(database, type_name[:-len('[]')])
+
     striped_type_name = self._StripModules(type_name)
     if database.HasInterface(striped_type_name):
       return True
