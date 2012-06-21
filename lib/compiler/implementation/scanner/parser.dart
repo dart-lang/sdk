@@ -727,12 +727,12 @@ class Parser {
     }
     Token begin = token;
     int statementCount = 0;
-    listener.beginFunctionBody(begin);
     if (!optional('{', token)) {
       return listener.expectedFunctionBody(token);
-    } else {
-      token = token.next;
     }
+
+    listener.beginFunctionBody(begin);
+    token = token.next;
     while (notEofOrValue('}', token)) {
       token = parseStatement(token);
       ++statementCount;

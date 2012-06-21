@@ -28,7 +28,10 @@ Token scan(String text) => new StringScanner(text).tokenize();
 Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
-  NodeListener listener = new NodeListener(lc, null);
+  Script script = new Script(new Uri(scheme: "source"), new MockFile(text));
+  Library library = new LibraryElement(script);
+  library.canUseNative = true;
+  NodeListener listener = new NodeListener(lc, library);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);

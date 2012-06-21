@@ -39,10 +39,17 @@ testIndexedOperatorDecl() {
   testUnparseMember('operator[](int i)=> null;');
 }
 
+testNativeMethods() {
+  testUnparseMember('foo()native;');
+  testUnparseMember('foo()native "bar";');
+  testUnparseMember('foo()native "this.x = 41";');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
   testEmptyList();
   testClosure();
   testIndexedOperatorDecl();
+  testNativeMethods();
 }

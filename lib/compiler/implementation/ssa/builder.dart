@@ -2274,8 +2274,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJsCallInIsolate(node);
     } else if (element.name == const SourceString('DART_CLOSURE_TO_JS')) {
       handleForeignDartClosureToJs(node);
-    } else if (element.name == const SourceString('native')) {
-      native.handleSsaNative(this, node);
     } else {
       throw "Unknown foreign: ${node.selector}";
     }
@@ -2634,6 +2632,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitReturn(Return node) {
+    if (node.getBeginToken().stringValue === 'native') {
+      native.handleSsaNative(this, node.expression);
+      return;
+    }
     HInstruction value;
     if (node.expression === null) {
       value = graph.addConstantNull();
