@@ -407,6 +407,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       id = Builtin::kUriLibrary;
     } else if (DartUtils::IsDartUtfLibURL(url_string)) {
       id = Builtin::kUtfLibrary;
+    } else if (DartUtils::IsDartWebLibURL(url_string)) {
+      id = Builtin::kWebLibrary;
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }

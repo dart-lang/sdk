@@ -30,6 +30,7 @@ class Builtin {
     kCryptoLibrary,
     kIOLibrary,
     kUtfLibrary,
+    kWebLibrary,
 
     kInvalidLibrary,
   };
@@ -51,6 +52,7 @@ class Builtin {
   static const char json_source_[];
   static const char uri_source_[];
   static const char utf_source_[];
+  static const char web_source_[];
 
   typedef struct {
     const char* url_;

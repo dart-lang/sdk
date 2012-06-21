@@ -85,6 +85,7 @@ class DartUtils {
   static bool IsDartJsonLibURL(const char* url_name);
   static bool IsDartUriLibURL(const char* url_name);
   static bool IsDartUtfLibURL(const char* url_name);
+  static bool IsDartWebLibURL(const char* url_name);
   static Dart_Handle CanonicalizeURL(CommandLineOptions* url_mapping,
                                      Dart_Handle library,
                                      const char* url_str);
@@ -113,6 +114,7 @@ class DartUtils {
   static const char* kUriLibURL;
   static const char* kUtfLibURL;
   static const char* kIsolateLibURL;
+  static const char* kWebLibURL;
 
   static const char* kIdFieldName;
 

@@ -20,6 +20,7 @@ const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kUtfLibURL = "dart:utf";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
+const char* DartUtils::kWebLibURL = "dart:web";
 
 
 const char* DartUtils::kIdFieldName = "_id";
@@ -150,6 +151,11 @@ bool DartUtils::IsDartUriLibURL(const char* url_name) {
 
 bool DartUtils::IsDartUtfLibURL(const char* url_name) {
   return (strcmp(url_name, kUtfLibURL) == 0);
+}
+
+
+bool DartUtils::IsDartWebLibURL(const char* url_name) {
+  return (strcmp(url_name, kWebLibURL) == 0);
 }
 
 
