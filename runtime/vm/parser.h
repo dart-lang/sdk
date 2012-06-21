@@ -452,7 +452,9 @@ class Parser : ValueObject {
                                       bool resolve_locally);
   AstNode* ResolveIdentInLibraryPrefixScope(const LibraryPrefix& lib_prefix,
                                             const QualIdent& qual_ident);
-  AstNode* ResolveVarOrField(intptr_t ident_pos, const String& ident);
+  AstNode* ResolveIdent(intptr_t ident_pos,
+                        const String& ident,
+                        bool allow_closure_names);
   RawString* ResolveImportVar(intptr_t ident_pos, const String& ident);
   AstNode* OptimizeBinaryOpNode(intptr_t op_pos,
                                 Token::Kind binary_op,

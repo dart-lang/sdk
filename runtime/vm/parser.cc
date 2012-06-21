@@ -4924,7 +4924,8 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     loop_var_assignment =
         new StoreLocalNode(loop_var_pos, *loop_var, iterator_next);
   } else {
-    AstNode* loop_var_primary = ResolveVarOrField(loop_var_pos, *loop_var_name);
+    AstNode* loop_var_primary =
+        ResolveIdent(loop_var_pos, *loop_var_name, false);
     ASSERT(!loop_var_primary->IsPrimaryNode());
     loop_var_assignment =
         CreateAssignmentNode(loop_var_primary, iterator_next);
@@ -7232,17 +7233,20 @@ AstNode* Parser::ResolveIdentInLibraryPrefixScope(const LibraryPrefix& prefix,
 
 
 // Resolve identifier, issue an error message if the name refers to
-// a method or a class/interface.
+// a class/interface or a type parameter. Issue an error message if
+// the ident refers to a method and allow_closure_names is false.
 // If the name cannot be resolved, turn it into an instance field access
 // if we're compiling an instance method, or issue an error message
 // if we're compiling a static method.
-AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
-  TRACE_PARSER("ResolveVarOrField");
+AstNode* Parser::ResolveIdent(intptr_t ident_pos,
+                              const String& ident,
+                              bool allow_closure_names) {
+  TRACE_PARSER("ResolveIdent");
   // First try to find the variable in the local scope (block scope or
   // class scope).
-  AstNode* var_or_field = NULL;
-  ResolveIdentInLocalScope(ident_pos, ident, &var_or_field);
-  if (var_or_field == NULL) {
+  AstNode* resolved = NULL;
+  ResolveIdentInLocalScope(ident_pos, ident, &resolved);
+  if (resolved == NULL) {
     // Check whether the identifier is a type parameter. Type parameters
     // can never be used in primary expressions.
     const Class& scope_class = Class::Handle(TypeParametersScopeClass());
@@ -7262,12 +7266,12 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
     qual_ident.lib_prefix = NULL;
     qual_ident.ident_pos = ident_pos;
     qual_ident.ident = &(String::ZoneHandle(ident.raw()));
-    var_or_field = ResolveIdentInLibraryScope(library_,
+    resolved = ResolveIdentInLibraryScope(library_,
                                               qual_ident,
                                               kResolveIncludingImports);
   }
-  if (var_or_field->IsPrimaryNode()) {
-    PrimaryNode* primary = var_or_field->AsPrimaryNode();
+  if (resolved->IsPrimaryNode()) {
+    PrimaryNode* primary = resolved->AsPrimaryNode();
     if (primary->primary().IsString()) {
       // We got an unresolved name. If we are compiling a static
       // method, this is an error. In an instance method, we convert
@@ -7278,18 +7282,22 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
                  ident.ToCString());
       } else {
         // Treat as call to unresolved instance field.
-        var_or_field = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        resolved = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
     } else if (primary->primary().IsFunction()) {
-      ErrorMsg(ident_pos, "illegal reference to method '%s'",
-               ident.ToCString());
+      if (allow_closure_names) {
+        resolved = LoadClosure(primary);
+      } else {
+        ErrorMsg(ident_pos, "illegal reference to method '%s'",
+                 ident.ToCString());
+      }
     } else {
       ASSERT(primary->primary().IsClass());
       ErrorMsg(ident_pos, "illegal reference to class or interface '%s'",
                ident.ToCString());
     }
   }
-  return var_or_field;
+  return resolved;
 }
 
 
@@ -8083,8 +8091,7 @@ AstNode* Parser::ParseStringLiteral() {
       AstNode* expr = NULL;
       const intptr_t expr_pos = token_index_;
       if (CurrentToken() == Token::kINTERPOL_VAR) {
-        expr = ResolveVarOrField(token_index_, *CurrentLiteral());
-        ASSERT(!expr->IsPrimaryNode());
+        expr = ResolveIdent(token_index_, *CurrentLiteral(), true);
         ConsumeToken();
       } else {
         ASSERT(CurrentToken() == Token::kINTERPOL_START);

@@ -1284,7 +1284,8 @@ void Debugger::SignalBpReached() {
     }
   }
 
-  if (func_to_instrument.raw() != currently_instrumented_func.raw()) {
+  if (func_to_instrument.IsNull() ||
+      (func_to_instrument.raw() != currently_instrumented_func.raw())) {
     last_bpt_line_ = -1;
     RemoveInternalBreakpoints();  // *bpt is now invalid.
     if (!func_to_instrument.IsNull()) {
