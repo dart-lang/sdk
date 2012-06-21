@@ -5,6 +5,8 @@
 #library('source');
 
 #import('package.dart');
+#import('pubspec.dart');
+#import('version.dart');
 
 /**
  * A source from which to install packages.
@@ -28,6 +30,28 @@ class Source {
    * locally.
    */
   abstract bool get shouldCache();
+
+  /**
+   * Get the list of all versions that exist for package [name].
+   *
+   * Note that this does *not* require the packages to be installed, which is
+   * the point. This is used during version resolution to determine which
+   * package versions are available to be installed (or already installed).
+   */
+  Future<List<Version>> getVersions(String name) {
+    // TODO(rnystrom): Do something better here.
+    throw "Source $name doesn't support versioning.";
+  }
+
+  /**
+   * Loads the (possibly remote) pubspec for the desired [version] of the named
+   * [package]. This will be called for packages that have not yet been
+   * installed during the version resolution process.
+   */
+  Future<Pubspec> describe(String package, Version version) {
+    // TODO(rnystrom): Figure out how non-default sources should handle this.
+    throw "Source $name doesn't support versioning.";
+  }
 
   /**
    * Installs the package identified by [id] to [path]. Returns a [Future] that

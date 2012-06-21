@@ -25,7 +25,7 @@ class Pubspec {
    */
   List<PackageRef> dependencies;
 
-  Pubspec._(this.version, this.dependencies);
+  Pubspec(this.version, this.dependencies);
 
   Pubspec.empty()
     : version = Version.none,
@@ -59,21 +59,18 @@ class Pubspec {
       }
 
       dependencyEntries.forEach((name, spec) {
-        var description, source;
+        var description, source, versionConstraint;
         if (spec == null) {
           description = name;
           source = sources.defaultSource;
         } else if (spec is String) {
           description = name;
           source = sources.defaultSource;
-          // TODO(rnystrom): Support parsing version constraints like
-          // ">= 2.0.0 < 3.1.3".
-          version = new Version.parse(spec);
+          versionConstraint = new VersionConstraint.parse(spec);
         } else if (spec is Map) {
           if (spec.containsKey('version')) {
-            // TODO(rnystrom): Support parsing version constraints like
-            // ">= 2.0.0 < 3.1.3".
-            version = new Version.parse(spec.remove('version'));
+            versionConstraint = new VersionConstraint.parse(
+                spec.remove('version'));
           }
 
           var sourceNames = spec.getKeys();
@@ -98,10 +95,10 @@ class Pubspec {
         source.validateDescription(description);
 
         dependencies.add(new PackageRef(
-            name, source, Version.none, description));
+            name, source, versionConstraint, description));
       });
     }
 
-    return new Pubspec._(version, dependencies);
+    return new Pubspec(version, dependencies);
   }
 }

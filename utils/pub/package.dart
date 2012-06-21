@@ -62,6 +62,13 @@ class Package {
   Collection<PackageRef> get dependencies() => pubspec.dependencies;
 
   /**
+   * Constructs a package with the given name and pubspec. The package will
+   * no directory associated with it.
+   */
+  Package.inMemory(this.name, this.pubspec)
+    : dir = null;
+
+  /**
    * Constructs a package. This should not be called directly. Instead, acquire
    * packages from [load()].
    */
@@ -72,7 +79,7 @@ class Package {
   /**
    * Returns a debug string for the package.
    */
-  String toString() => '$name ($dir)';
+  String toString() => '$name $version ($dir)';
 }
 
 /**
@@ -159,7 +166,7 @@ class PackageRef {
   /**
    * The allowed package versions.
    */
-  final VersionConstraint version;
+  final VersionConstraint constraint;
 
   /**
    * The metadata used to identify the package being referenced. The
@@ -167,7 +174,7 @@ class PackageRef {
    */
   final description;
 
-  PackageRef(this.name, this.source, this.version, this.description);
+  PackageRef(this.name, this.source, this.constraint, this.description);
 
-  String toString() => "$name $version from $source ($description)";
+  String toString() => "$name $constraint from $source ($description)";
 }
