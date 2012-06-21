@@ -1427,6 +1427,9 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         body = parseFunctionStatementBody(true);
       }
+      if (body != null && modifiers.isRedirectedConstructor()) {
+        reportError(position(), ParserErrorCode.REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY);
+      }
     }
 
     DartFunction function = doneWithoutConsuming(new DartFunction(parameters, body, returnType));

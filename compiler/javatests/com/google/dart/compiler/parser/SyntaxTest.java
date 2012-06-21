@@ -615,7 +615,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  typedef();",
             "}"));
   }
-  
+
   /**
    * We should be able to parse "static(abstract) => 42" top-level function.
    * <p>
@@ -791,5 +791,16 @@ public class SyntaxTest extends AbstractParserTest {
             "    break;",
             "  }",
             "}"));
+  }
+
+  public void testRedirectingConstructorBody() throws Exception {
+    parseUnit("phony_test_redirecting_constructor_body.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  A.c() {}",  // OK
+            "  A.d() : this.c();", // OK
+            "  A(): this.b() {}", // body not allowed
+            "}"),
+            ParserErrorCode.REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY, 4, 18);
   }
 }
