@@ -126,6 +126,7 @@ xhr_test: Fail
 fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
 measurement_test: Fail
+htmloptionscollection_test: Fail # Issue 3813.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
