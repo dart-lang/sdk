@@ -32,6 +32,13 @@ class JSON {
   static String stringify(Object object) {
     return JsonStringifier.stringify(object);
   }
+
+  /**
+   * Serializes [:object:] into [:output:] stream.
+   */
+  static void printOn(Object object, StringBuffer output) {
+    return JsonStringifier.printOn(object, output);
+  }
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -401,16 +408,22 @@ class JsonUnsupportedObjectType {
 
 class JsonStringifier {
   static String stringify(final object) {
-    JsonStringifier stringifier = new JsonStringifier._internal();
+    StringBuffer output = new StringBuffer();
+    JsonStringifier stringifier = new JsonStringifier._internal(output);
     stringifier._stringify(object);
-    return stringifier._result;
+    return output.toString();
   }
 
-  JsonStringifier._internal()
-      : _sb = new StringBuffer(), _seen = new List<Object>() {}
+  static void printOn(final object, StringBuffer output) {
+    JsonStringifier stringifier = new JsonStringifier._internal(output);
+    stringifier._stringify(object);
+  }
+
+  JsonStringifier._internal(this._sb)
+      : _seen = [];
+
   StringBuffer _sb;
   List<Object> _seen;  // TODO: that should be identity set.
-  String get _result() { return _sb.toString(); }
 
   static String _numberToString(num x) {
     // TODO: need some more investigation what to do with precision
