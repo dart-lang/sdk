@@ -26,6 +26,7 @@ audiocontext_test: Pass, Fail
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 window_open_test: Fail
+htmloptionscollection_test: Fail # Issue 3813.
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
