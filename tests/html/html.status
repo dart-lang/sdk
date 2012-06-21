@@ -53,6 +53,7 @@ xhr_test: Fail
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
 cssstyledeclaration_test: Fail
+element_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
@@ -66,6 +67,7 @@ canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribut
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
+element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
@@ -122,6 +124,7 @@ xhr_test: Fail
 [ $compiler == dart2js && $runtime == drt ]
 fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
+element_test: Fail
 measurement_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]
@@ -154,6 +157,7 @@ window_open_test: Fail # TypeError: Object [object Window] has no method 'close$
 indexeddb_3_test: Fail  # DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
+element_test: Fail # method not found: 'get$add'
 fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == ff ]
@@ -167,6 +171,7 @@ fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows]
 css_test: Pass, Fail # Issue #2823
+element_test: Fail # method not found: 'get$add'
 fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == drt && $system == macos ]
