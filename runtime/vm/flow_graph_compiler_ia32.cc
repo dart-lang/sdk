@@ -86,6 +86,7 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
                                &call_method,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ Drop(1);
   __ jmp(done);
   __ Bind(&smi_to_double);
   __ SmiUntag(EAX);

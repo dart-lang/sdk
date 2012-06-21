@@ -20,9 +20,6 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
                                   const Class& cls,
                                   Label* failure,
                                   Register instance_reg) {
-#if defined(DEBUG)
-  __ Untested("AssemblerMacros::TryAllocate");
-#endif
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();

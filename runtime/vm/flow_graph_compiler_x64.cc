@@ -895,6 +895,7 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
                                &call_method,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
+  __ Drop(1);
   __ jmp(done);
   __ Bind(&smi_to_double);
   __ SmiUntag(RAX);
