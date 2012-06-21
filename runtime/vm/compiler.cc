@@ -32,13 +32,7 @@ DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
-#if defined(TARGET_ARCH_X64)
-DEFINE_FLAG(bool, use_new_compiler, true,
-    "Try to use the new compiler backend.");
-#else
-DEFINE_FLAG(bool, use_new_compiler, false,
-    "Try to use the new compiler backend.");
-#endif
+DEFINE_FLAG(bool, use_new_compiler, true, "Use the new compiler backend.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from new compiler.");
 
 
