@@ -63,8 +63,8 @@ class JavaScriptBackend extends Backend {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
-  JavaScriptBackend(Compiler compiler)
-      : emitter = new CodeEmitterTask(compiler),
+  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
+      : emitter = new CodeEmitterTask(compiler, generateSourceMap),
         fieldInitializers = new Map<Element, Map<Element, HType>>(),
         fieldIntegerSetters = new Map<Element, Map<Element, bool>>(),
         super(compiler) {
@@ -260,7 +260,8 @@ class Compiler implements DiagnosticListener {
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
             bool emitJavascript = true,
-            validateUnparse = false])
+            validateUnparse = false,
+            generateSourceMap = true])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         progress = new Stopwatch.start() {
@@ -274,7 +275,8 @@ class Compiler implements DiagnosticListener {
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     backend = emitJavascript ?
-        new JavaScriptBackend(this) : new dart_backend.DartBackend(this);
+        new JavaScriptBackend(this, generateSourceMap) :
+        new dart_backend.DartBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              unparseValidator, constantHandler, enqueuer];

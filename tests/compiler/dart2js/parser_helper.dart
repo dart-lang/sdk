@@ -10,6 +10,7 @@
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
 #import("../../../lib/compiler/implementation/leg.dart");
+#import("../../../lib/compiler/implementation/source_file.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 
 class LoggerCanceler implements DiagnosticListener {
@@ -50,10 +51,9 @@ Node parseFunction(String text, Compiler compiler) {
 Node parseMember(String text) =>
     parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens));
 
-class MockFile {
-  final filename = '<string>';
-  final text;
-  MockFile(this.text);
+class MockFile extends SourceFile {
+  MockFile(text)
+      : super('<string>', text);
 }
 
 Link<Element> parseUnit(String text, Compiler compiler,
