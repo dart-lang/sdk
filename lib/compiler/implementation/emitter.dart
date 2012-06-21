@@ -34,16 +34,11 @@ class CodeEmitterTask extends CompilerTask {
   String classesCollector;
   final Map<int, String> boundClosureCache;
 
-  final bool generateSourceMap;
-  final List<SourceMappingEntry> sourceMappings;
-
-  CodeEmitterTask(Compiler compiler, [bool generateSourceMap = false])
+  CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
         boundClosureBuffer = new StringBuffer(),
         mainBuffer = new StringBuffer(),
         boundClosureCache = new Map<int, String>(),
-        generateSourceMap = generateSourceMap,
-        sourceMappings = new List<SourceMappingEntry>(),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
   }
@@ -621,14 +616,7 @@ function(collectedClasses) {
     generatedCode.forEach((Element element, String codeBlock) {
       if (!element.isInstanceMember()) {
         String functionName = functionNamer(element);
-        buffer.add('$isolateProperties.$functionName = ');
-        int beginPosition = buffer.length;
-        buffer.add(codeBlock);
-        int endPosition = buffer.length;
-        buffer.add(';\n\n');
-        if (generateSourceMap) {
-          addSourceMapping(element, beginPosition, endPosition);
-        }
+        buffer.add('$isolateProperties.$functionName = $codeBlock;\n\n');
       }
     });
   }
@@ -1044,29 +1032,7 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       emitFinishIsolateConstructor(mainBuffer);
       mainBuffer.add('}\n');
       compiler.assembledCode = mainBuffer.toString();
-
-      if (generateSourceMap) {
-        SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
-        String sourceMap = new SourceMapBuilder().build(sourceMappings,
-                                                        compiledFile);
-        // TODO(podivilov): We should find a better way to return source maps to
-        // compiler. Using diagnostic handler for that purpose is a temporary
-        // hack.
-        compiler.reportDiagnostic(
-            null, sourceMap, new api.Diagnostic(-1, 'source map'));
-      }
     });
     return compiler.assembledCode;
-  }
-
-  void addSourceMapping(FunctionElement element,
-                        int beginPosition,
-                        int endPosition) {
-    SourceFile sourceFile = element.getCompilationUnit().script.file;
-    FunctionExpression expression = element.cachedNode;
-    sourceMappings.add(new SourceMappingEntry(
-        sourceFile, expression.getBeginToken().charOffset, beginPosition));
-    sourceMappings.add(new SourceMappingEntry(
-        sourceFile, expression.getEndToken().charOffset, endPosition));
   }
 }
