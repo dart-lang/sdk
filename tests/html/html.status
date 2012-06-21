@@ -66,8 +66,7 @@ canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribut
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
-element_test: Fail          # But works on FF12
-element_classes_test: Fail  # But works on FF12
+element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB

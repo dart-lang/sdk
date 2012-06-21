@@ -53,7 +53,7 @@ def find_depot_tools_location(is_buildbot):
       this automatically because this script is not run at build time).
   """
   if is_buildbot:
-    depot_tools = os.path.join('b', 'depot_tools')
+    depot_tools = os.sep + os.path.join('b', 'depot_tools')
     if 'win32' in sys.platform or 'cygwin' in sys.platform:
       depot_tools = os.path.join('e:', depot_tools)
     return depot_tools
@@ -219,11 +219,12 @@ class SeleniumBindingsInstaller(object):
     pip_cmd = 'pip'
     if 'win32' not in sys.platform and 'cygwin' not in sys.platform:
       admin_keyword = 'sudo'
+      pip_cmd = '/usr/local/bin/pip'
     else:
       # The python installation is "special" on Windows buildbots.
       if self.is_buildbot:
         python_loc = os.path.join(
-            find_depot_tools_location(self.is_buildbot), 'python-bin')
+            find_depot_tools_location(self.is_buildbot), 'python_bin')
         python_cmd = os.path.join(python_loc, 'python')
         pip_cmd = os.path.join(python_loc, 'Scripts', pip_cmd)
       else:
