@@ -125,7 +125,7 @@ def GetBuildMode(mode):
 
 
 def GetBuildConf(mode, arch):
-  return GetBuildMode(mode) + "_" + arch
+  return GetBuildMode(mode) + arch.upper()
 
 
 def GetBuildRoot(target_os, mode=None, arch=None):
