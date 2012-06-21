@@ -1759,7 +1759,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
-                                        kDeoptSmiBinaryOp,
+                                        kDeoptUnaryOp,
                                         value);
   if (test_class_id == kSmi) {
     __ testq(value, Immediate(kSmiTagMask));
@@ -1812,7 +1812,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
-                                        kDeoptSmiBinaryOp,
+                                        kDeoptUnaryOp,
                                         value);
   if (test_class_id == kDouble) {
     Register temp = locs()->temp(0).reg();

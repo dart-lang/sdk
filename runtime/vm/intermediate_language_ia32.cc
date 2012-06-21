@@ -1407,9 +1407,11 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   } else if (op_kind() == Token::kSHL) {
+    // Two Smi operands can easily overflow into Mint.
     const intptr_t kNumTemps = 2;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-    summary->set_in(0, Location::RequiresRegister());
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::RegisterLocation(EAX));
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
@@ -1519,10 +1521,11 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       break;
     }
     case Token::kSHL: {
+      Label call_method, done;
       // Check if count too large for handling it inlined.
       __ cmpl(right,
           Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
-      __ j(ABOVE_EQUAL, deopt);
+      __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
       Register right_temp = comp->locs()->temp(1).reg();
       ASSERT(right_temp == ECX);  // Count must be in ECX
       __ movl(right_temp, right);
@@ -1531,9 +1534,27 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       __ shll(left, right_temp);
       __ sarl(left, right_temp);
       __ cmpl(left, temp);
-      __ j(NOT_EQUAL, deopt);  // Overflow.
+      __ j(NOT_EQUAL, &call_method, Assembler::kNearJump);  // Overflow.
       // Shift for result now we know there is no overflow.
       __ shll(left, right_temp);
+      __ jmp(&done);
+      {
+        __ Bind(&call_method);
+        Function& target = Function::ZoneHandle(
+            comp->ic_data()->GetTargetForReceiverClassId(kSmi));
+        ASSERT(!target.IsNull());
+        const intptr_t kArgumentCount = 2;
+        __ pushl(temp);
+        __ pushl(right);
+        compiler->GenerateStaticCall(comp->instance_call()->cid(),
+                                     comp->instance_call()->token_index(),
+                                     comp->instance_call()->try_index(),
+                                     target,
+                                     kArgumentCount,
+                                     Array::Handle());  // No argument names.
+        ASSERT(result == EAX);
+      }
+      __ Bind(&done);
       break;
     }
     case Token::kDIV: {
@@ -1741,7 +1762,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
-                                        kDeoptSmiBinaryOp,
+                                        kDeoptUnaryOp,
                                         value);
   if (test_class_id == kSmi) {
     __ testl(value, Immediate(kSmiTagMask));
@@ -1794,7 +1815,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_index(),
                                         instance_call()->try_index(),
-                                        kDeoptSmiBinaryOp,
+                                        kDeoptUnaryOp,
                                         value);
   if (test_class_id == kDouble) {
     Register temp = locs()->temp(0).reg();
