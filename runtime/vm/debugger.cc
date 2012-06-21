@@ -638,7 +638,9 @@ bool Debugger::IsActive() {
   // This is probably not conservative enough (we could set the first
   // breakpoint after optimized code has already been produced).
   // Long-term, we need to be able to de-optimize code.
-  return (src_breakpoints_ != NULL) || (code_breakpoints_ != NULL);
+  return (src_breakpoints_ != NULL) ||
+         (code_breakpoints_ != NULL) ||
+         (exc_pause_info_ != kNoPauseOnExceptions);
 }
 
 
@@ -754,6 +756,9 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
 
 
 void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
+  ASSERT((pause_info == kNoPauseOnExceptions) ||
+         (pause_info == kPauseOnUnhandledExceptions) ||
+         (pause_info == kPauseOnAllExceptions));
   exc_pause_info_ = pause_info;
 }
 
@@ -783,7 +788,9 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::SignalExceptionThrown(const Object& exc) {
-  if (ignore_breakpoints_ || (event_handler_ == NULL)) {
+  if (ignore_breakpoints_ ||
+      (event_handler_ == NULL) ||
+      (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
