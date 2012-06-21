@@ -47,9 +47,9 @@ static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
 }
 
 
-static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
-                                             intptr_t receiver_class_id,
-                                             intptr_t argument_class_id) {
+static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
+                                              intptr_t receiver_class_id,
+                                              intptr_t argument_class_id) {
   ASSERT(receiver_class_id != kIllegalObjectKind);
   ASSERT(argument_class_id != kIllegalObjectKind);
   if (ic_data.num_args_tested() != 2) return false;
@@ -68,18 +68,54 @@ static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
 }
 
 
+static bool ClassIdIsOneOf(intptr_t class_id,
+                           GrowableArray<intptr_t>* class_ids) {
+  for (intptr_t i = 0; i < class_ids->length(); i++) {
+    if ((*class_ids)[i] == class_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+static bool ICDataHasOnlyReceiverArgumentClassIds(
+    const ICData& ic_data,
+    GrowableArray<intptr_t>* receiver_class_ids,
+    GrowableArray<intptr_t>* argument_class_ids) {
+  if (ic_data.num_args_tested() != 2) return false;
+
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    ASSERT(class_ids.length() == 2);
+    if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
+        !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 static bool HasOneSmi(const ICData& ic_data) {
   return ICDataHasReceiverClassId(ic_data, kSmi);
 }
 
 
 static bool HasTwoSmi(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClasses(ic_data, kSmi, kSmi);
+  return ICDataHasReceiverArgumentClassIds(ic_data, kSmi, kSmi);
 }
 
 
-static bool HasMintSmi(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClasses(ic_data, kMint, kSmi);
+// Returns false if the ICData contains anything other than the 4 combinations
+// of Mint and Smi for the receiver and argument classes.
+static bool HasTwoMintOrSmi(const ICData& ic_data) {
+  GrowableArray<intptr_t> class_ids;
+  class_ids.Add(kSmi);
+  class_ids.Add(kMint);
+  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, &class_ids, &class_ids);
 }
 
 
@@ -89,37 +125,24 @@ static bool HasOneDouble(const ICData& ic_data) {
 
 
 static bool HasTwoDouble(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClasses(ic_data, kDouble, kDouble);
+  return ICDataHasReceiverArgumentClassIds(ic_data, kDouble, kDouble);
 }
 
 
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
   BinaryOpComp::OperandsType operands_type;
-
-  if (HasMintSmi(*comp->ic_data())) {
-    // We check for Mint receiver and Smi argument, but we try to support any
-    // combination of Mint and Smi.
-    if (op_kind != Token::kBIT_AND) {
-      // TODO(regis): Not yet supported.
-      return false;
-    }
-
+  if ((op_kind == Token::kBIT_AND) && HasTwoMintOrSmi(*comp->ic_data())) {
     operands_type = BinaryOpComp::kMintOperands;
-  }
-
-  if (comp->ic_data()->NumberOfChecks() != 1) {
+  } else if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
     return false;
-  }
-
-  if (HasTwoSmi(*comp->ic_data())) {
+  } else if (HasTwoSmi(*comp->ic_data())) {
     if (op_kind == Token::kDIV ||
         op_kind == Token::kMOD) {
       // TODO(srdjan): Not yet supported.
       return false;
     }
-
     operands_type = BinaryOpComp::kSmiOperands;
   } else if (HasTwoDouble(*comp->ic_data())) {
     if (op_kind != Token::kADD &&
@@ -129,7 +152,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
       // TODO(vegorov): Not yet supported.
       return false;
     }
-
     operands_type = BinaryOpComp::kDoubleOperands;
   } else {
     // TODO(srdjan): Not yet supported.

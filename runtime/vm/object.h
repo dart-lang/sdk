@@ -2598,6 +2598,7 @@ class ICData : public Object {
 
   intptr_t GetReceiverClassIdAt(intptr_t index) const;
   RawFunction* GetTargetAt(intptr_t index) const;
+  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

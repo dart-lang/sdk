@@ -6784,6 +6784,16 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
 }
 
 
+RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    if (GetReceiverClassIdAt(i) == class_id) {
+      return GetTargetAt(i);
+    }
+  }
+  return Function::null();
+}
+
+
 RawICData* ICData::New(const Function& function,
                        const String& target_name,
                        intptr_t id,

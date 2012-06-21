@@ -552,7 +552,6 @@ static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
 }
 
 
-
 void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operands_class_id() == kSmi) {
     EmitSmiRelationalOp(compiler, this);
@@ -1377,8 +1376,9 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   if (operands_type() == kMintOperands) {
     ASSERT(op_kind() == Token::kBIT_AND);
     const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-    summary->set_in(0, Location::RequiresRegister());
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::RegisterLocation(EAX));
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
@@ -1563,34 +1563,93 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 
 static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   // TODO(regis): For now, we only support Token::kBIT_AND for a Mint or Smi
-  // receiver and a Smi argument.
+  // receiver and a Mint or Smi argument. We fall back to the run time call if
+  // both receiver and argument are Mint or if one of them is Mint and the other
+  // is a negative Smi.
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
   Register result = comp->locs()->out().reg();
   Register temp = comp->locs()->temp(0).reg();
   ASSERT(left == result);
+  ASSERT(comp->op_kind() == Token::kBIT_AND);
   Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
                                         comp->instance_call()->token_index(),
                                         comp->instance_call()->try_index(),
                                         kDeoptMintBinaryOp,
-                                        temp,
+                                        left,
                                         right);
-  __ testl(right, Immediate(kSmiTagMask));  // Argument must be Smi.
-  __ j(NOT_ZERO, deopt);
-  __ testl(left, Immediate(kSmiTagMask));  // Receiver can be Smi.
-  Label two_smi;
-  __ j(ZERO, &two_smi);
-  __ CompareClassId(left, kMint, temp);  // Receiver must be Mint.
-  __ j(NOT_EQUAL, deopt);
+  Label mint_static_call, smi_static_call, non_smi, smi_smi, done;
+  __ testl(left, Immediate(kSmiTagMask));  // Is receiver Smi?
+  __ j(NOT_ZERO, &non_smi);
+  __ testl(right, Immediate(kSmiTagMask));  // Is argument Smi?
+  __ j(ZERO, &smi_smi);
+  __ CompareClassId(right, kMint, temp);  // Is argument Mint?
+  __ j(NOT_EQUAL, deopt);  // Argument neither Smi nor Mint.
+  __ cmpl(left, Immediate(0));
+  __ j(LESS, &smi_static_call);  // Negative Smi receiver, Mint argument.
 
-  ASSERT(comp->op_kind() == Token::kBIT_AND);
+  // Positive Smi receiver, Mint argument.
+  // Load lower argument Mint word, convert to Smi. It is OK to loose bits.
+  __ movl(right, FieldAddress(right, Mint::value_offset()));
+  __ SmiTag(right);
+  __ andl(result, right);
+  __ jmp(&done);
 
-  // Load lower Mint word, convert to Smi. It is OK to loose bits.
-  ASSERT(result == left);
+  __ Bind(&non_smi);  // Receiver is non-Smi.
+  __ CompareClassId(left, kMint, temp);  // Is receiver Mint?
+  __ j(NOT_EQUAL, deopt);  // Receiver neither Smi nor Mint.
+  __ testl(right, Immediate(kSmiTagMask));  // Is argument Smi?
+  __ j(NOT_ZERO, &mint_static_call);  // Mint receiver, non-Smi argument.
+  __ cmpl(right, Immediate(0));
+  __ j(LESS, &mint_static_call);  // Mint receiver, negative Smi argument.
+
+  // Mint receiver, positive Smi argument.
+  // Load lower receiver Mint word, convert to Smi. It is OK to loose bits.
   __ movl(result, FieldAddress(left, Mint::value_offset()));
   __ SmiTag(result);
-  __ Bind(&two_smi);
+  __ Bind(&smi_smi);
   __ andl(result, right);
+  __ jmp(&done);
+
+  __ Bind(&smi_static_call);
+  {
+    Function& target = Function::ZoneHandle(
+        comp->ic_data()->GetTargetForReceiverClassId(kSmi));
+    if (target.IsNull()) {
+      __ jmp(deopt);
+    } else {
+      __ pushl(left);
+      __ pushl(right);
+      compiler->GenerateStaticCall(comp->instance_call()->cid(),
+                                   comp->instance_call()->token_index(),
+                                   comp->instance_call()->try_index(),
+                                   target,
+                                   comp->instance_call()->ArgumentCount(),
+                                   comp->instance_call()->argument_names());
+      ASSERT(result == EAX);
+      __ jmp(&done);
+    }
+  }
+
+  __ Bind(&mint_static_call);
+  {
+    Function& target = Function::ZoneHandle(
+        comp->ic_data()->GetTargetForReceiverClassId(kMint));
+    if (target.IsNull()) {
+      __ jmp(deopt);
+    } else {
+      __ pushl(left);
+      __ pushl(right);
+      compiler->GenerateStaticCall(comp->instance_call()->cid(),
+                                   comp->instance_call()->token_index(),
+                                   comp->instance_call()->try_index(),
+                                   target,
+                                   comp->instance_call()->ArgumentCount(),
+                                   comp->instance_call()->argument_names());
+      ASSERT(result == EAX);
+    }
+  }
+  __ Bind(&done);
 }
 
 
@@ -1877,7 +1936,6 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(&done);
 }
-
 
 }  // namespace dart
 
