@@ -792,10 +792,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 3, 18, 2),
-        errEx(TypeErrorCode.MISSING_ARGUMENT, 5, 12, 7),
+        errEx(TypeErrorCode.MISSING_ARGUMENT, 5, 12, 5),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 22, 2),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 26, 2),
-        errEx(TypeErrorCode.MISSING_ARGUMENT, 9, 12, 7),
+        errEx(TypeErrorCode.MISSING_ARGUMENT, 9, 12, 5),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 13, 21, 1),
         errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 15, 18, 4),
         errEx(TypeErrorCode.DUPLICATE_NAMED_ARGUMENT, 19, 25, 5));
@@ -2144,6 +2144,92 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "",
         "");
     assertInferredElementTypeString(libraryResult, "v", "F");
+  }
+
+  /**
+   * When we pass "function literal" into invocation on some method, we may know exact
+   * <code>Function</code> type expected by this method, so we know types of "function literal"
+   * parameters. So, if these types are not specified in "function literal", we can use "expected"
+   * types.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationNormalParameter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "foo(EventListener listener) {",
+        "}",
+        "main() {",
+        "  foo((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationNamedPositionalParameter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "foo([EventListener listener]) {",
+        "}",
+        "main() {",
+        "  foo((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationNamedParameter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "foo([EventListener listener]) {",
+        "}",
+        "main() {",
+        "  foo(listener: (e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
+  /**
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationOfMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "class Button {",
+        "  onClick(EventListener listener) {",
+        "  }",
+        "}",
+        "main() {",
+        "  Button button = new Button();",
+        "  button.onClick((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
   }
 
   public void test_getType_binaryExpression() throws Exception {
