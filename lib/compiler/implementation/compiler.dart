@@ -56,6 +56,8 @@ class JavaScriptBackend extends Backend {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
+  final Map<Element, Map<Element, HType>> fieldInitializers;
+  final Map<Element, Map<Element, bool>> fieldIntegerSetters;
 
   List<CompilerTask> get tasks() {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -63,6 +65,8 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptBackend(Compiler compiler)
       : emitter = new CodeEmitterTask(compiler),
+        fieldInitializers = new Map<Element, Map<Element, HType>>(),
+        fieldIntegerSetters = new Map<Element, Map<Element, bool>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -100,6 +104,66 @@ class JavaScriptBackend extends Backend {
 
   void assembleProgram() {
     emitter.assembleProgram();
+  }
+
+  void updateFieldInitializers(Element field, HType propagatedType) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    Map<Element, HType> fields =
+        fieldInitializers.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, HType>());
+    if (!fields.containsKey(field)) {
+      fields[field] = propagatedType;
+    } else {
+      fields[field] = fields[field].union(propagatedType);
+    }
+  }
+
+  bool couldHaveFieldSingleTypeInitializers(Element field,
+                                            HType requestedType) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    // If there is no information on the initializer it might still be
+    // initialized to integers only.
+    if (!fieldInitializers.containsKey(field.enclosingElement)) return true;
+    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
+    HType propagatedType = fields[field];
+    if (propagatedType == null) return true;
+    return propagatedType == requestedType;
+  }
+
+  bool hasFieldSingleTypeInitializers(Element field, HType requestedType) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    if (!fieldInitializers.containsKey(field.enclosingElement)) return false;
+    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
+    HType propagatedType = fields[field];
+    if (propagatedType == null) return false;
+    return propagatedType == requestedType;
+  }
+
+  void updateFieldIntegerSetters(Element field, bool isInteger) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    Map<Element, bool> fields =
+        fieldIntegerSetters.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, bool>());
+    if (!fields.containsKey(field)) {
+      fields[field] = isInteger;
+    } else {
+      fields[field] = fields[field] && isInteger;
+    }
+  }
+
+  // Returns whether nothing but setters setting the field to an integer have
+  // been seen during compilation so far.
+  bool onlyFieldIntegerSettersSoFar(Element field) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    if (!fieldIntegerSetters.containsKey(field.enclosingElement)) return true;
+    Map<Element, bool> fields = fieldIntegerSetters[field.enclosingElement];
+    if (!fields.containsKey(field)) return false;
+    return fields[field];
   }
 }
 
@@ -553,7 +617,7 @@ class Compiler implements DiagnosticListener {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
-        log('Resolved ${enqueuer.resolution.resolvedElements.length}'
+        log('Resolved ${enqueuer.resolution.resolvedElements.length} '
             'elements.');
         progress.reset();
       }

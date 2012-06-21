@@ -1730,9 +1730,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(name);
     Type type = node.receiver.propagatedType.computeType(compiler);
     if (type != null) {
-      world.registerFieldSetter(node.element.name,
-                                type,
-                                node.value.isInteger());
+      world.registerFieldSetter(node.element.name, type);
+      backend.updateFieldIntegerSetters(node.element,
+                                        node.value.isInteger());
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1772,10 +1772,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       includeBackendMembers: true,
       includeSuperMembers: true,
       f: (ClassElement enclosingClass, Element member) {
-        world.registerFieldInitializer(member.name,
-                                       enclosingClass.computeType(compiler),
-                                       node.inputs[i].isInteger());
-
+        backend.updateFieldInitializers(member,
+                                        node.inputs[i].propagatedType);
         i++;
       });
     String jsClassReference = compiler.namer.isolateAccess(node.element);

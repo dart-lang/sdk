@@ -1196,23 +1196,20 @@ class SsaProcessRecompileCandidates
         node.right.isInteger()) {
       HFieldGet left = node.left;
       HConstant right = node.right;
-      if (left.element != null) {
-        Type type = left.receiver.propagatedType.computeType(compiler);
+      if (left.element != null && left.element.enclosingElement.isClass()) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
-            if (compiler.codegenWorld.couldHaveFieldOnlyIntegerSetters(
-                    type, left.element.name) &&
-                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
-                    type, left.element.name)) {
+            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
+                backend.couldHaveFieldSingleTypeInitializers(
+                    left.element, HType.INTEGER)) {
               compiler.enqueuer.codegen.registerRecompilationCandidate(
                   work.element);
             }
             break;
           case Compiler.PHASE_RECOMPILING:
-            if (compiler.codegenWorld.hasFieldOnlyIntegerSetters(
-                    type, left.element.name) &&
-                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
-                    type, left.element.name)) {
+            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
+                backend.hasFieldSingleTypeInitializers(
+                    left.element, HType.INTEGER)) {
               if (compiler.codegenWorld.hasInvokedSetter(left.element,
                                                          compiler)) {
                 // If there are invoked setters we don't know for sure that the
