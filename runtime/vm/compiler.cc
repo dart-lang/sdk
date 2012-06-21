@@ -149,6 +149,7 @@ static bool CompileWithNewCompiler(
     const ParsedFunction& parsed_function, bool optimized) {
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
   const intptr_t prev_cid = isolate->computation_id();
   isolate->set_computation_id(0);
   LongJump* old_base = isolate->long_jump_base();
@@ -203,7 +204,6 @@ static bool CompileWithNewCompiler(
                        &CompilerStats::graphcompiler_timer,
                        isolate);
       graph_compiler.CompileGraph();
-      isolate->set_ic_data_array(Array::null());
     }
     {
       TimerScope timer(FLAG_compiler_stats,
@@ -241,6 +241,8 @@ static bool CompileWithNewCompiler(
     }
     is_compiled = false;
   }
+  // Reset global isolate state.
+  isolate->set_ic_data_array(Array::null());
   isolate->set_long_jump_base(old_base);
   isolate->set_computation_id(prev_cid);
   return is_compiled;
