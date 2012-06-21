@@ -1250,8 +1250,6 @@ abstract class HFieldAccess extends HInstruction {
   final Element element;
 
   HFieldAccess(this.element, List<HInstruction> inputs) : super(inputs);
-
-  bool isFromActivation() => element === null;
 }
 
 class HFieldGet extends HFieldAccess {
@@ -1260,7 +1258,6 @@ class HFieldGet extends HFieldAccess {
   HFieldGet(Element element, HInstruction receiver,
             [this.isFinalOrConst = false])
       : super(element, <HInstruction>[receiver]);
-  HFieldGet.fromActivation(receiver) : this(null, receiver);
 
   HInstruction get receiver() => inputs[0];
 
@@ -1279,8 +1276,6 @@ class HFieldGet extends HFieldAccess {
 class HFieldSet extends HFieldAccess {
   HFieldSet(Element element, HInstruction receiver, HInstruction value)
       : super(element, <HInstruction>[receiver, value]);
-  HFieldSet.fromActivation(receiver, value)
-      : this(null, receiver, value);
 
   HInstruction get receiver() => inputs[0];
   HInstruction get value() => inputs[1];
