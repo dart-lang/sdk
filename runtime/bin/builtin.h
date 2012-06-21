@@ -38,8 +38,8 @@ class Builtin {
   static void SetupLibrary(Dart_Handle library, BuiltinLibraryId id);
   static Dart_Handle LoadLibrary(BuiltinLibraryId id);
   static void ImportLibrary(Dart_Handle library, BuiltinLibraryId id);
-  static void SetNativeResolver(BuiltinLibraryId id);
   static void PrintString(FILE* out, Dart_Handle object);
+  static void SetupIOLibrary(Dart_Handle io_lib);
 
  private:
   static Dart_NativeFunction NativeLookup(Dart_Handle name,

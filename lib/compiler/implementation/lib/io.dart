@@ -53,7 +53,6 @@
 // #source('../../../../runtime/bin/stdio.dart');
 #source('../../../../runtime/bin/stream_util.dart');
 #source('../../../../runtime/bin/string_stream.dart');
-#source('../../../../runtime/bin/timer.dart');
 #source('../../../../runtime/bin/timer_impl.dart');
 #source('../../../../runtime/bin/websocket.dart');
 #source('../../../../runtime/bin/websocket_impl.dart');

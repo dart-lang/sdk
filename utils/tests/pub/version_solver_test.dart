@@ -5,6 +5,7 @@
 #library('pub_update_test');
 
 #import('dart:io');
+#import('dart:isolate');
 
 #import('../../pub/package.dart');
 #import('../../pub/pubspec.dart');

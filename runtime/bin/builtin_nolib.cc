@@ -28,7 +28,13 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
 
 
 void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
-  UNREACHABLE();
+  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
+         kInvalidLibrary);
+  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  if (builtin_libraries_[id].has_natives_) {
+    // Setup the native resolver for built in library functions.
+    DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
+  }
 }
 
 
